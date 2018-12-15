@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"log"
 	"github.com/zhenorzz/goploy/route"
+	_ "github.com/joho/godotenv"
 )
 
 func main() {
