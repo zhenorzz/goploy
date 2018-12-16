@@ -1,11 +1,11 @@
 package controller
 
 import (
+	"bytes"
+	"log"
 	"net/http"
 	"os/exec"
 	"strings"
-	"bytes"
-	"log"
 )
 
 func RsyncAdd(w http.ResponseWriter, r *http.Request) {

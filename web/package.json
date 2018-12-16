@@ -38,7 +38,8 @@
       "max-len": [
         1,
         200
-      ]
+      ],
+      "linebreak-style": 0
     },
     "parserOptions": {
       "parser": "babel-eslint"

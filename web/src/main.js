@@ -6,10 +6,8 @@ import VueRouter from 'vue-router';
 import HelloWorld from './components/HelloWorld';
 Vue.config.productionTip = false;
 Vue.use(ElementUI);
-Vue.use(VueRouter);
 // 0. 如果使用模块化机制编程，导入Vue和VueRouter，要调用 Vue.use(VueRouter)
-
-
+Vue.use(VueRouter);
 // 2. 定义路由
 // 每个路由应该映射一个组件。 其中"component" 可以是
 // 通过 Vue.extend() 创建的组件构造器，

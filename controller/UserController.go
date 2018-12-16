@@ -1,12 +1,12 @@
 package controller
 
 import (
-	"net/http"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"net/http"
 )
 
-type User struct{
+type User struct {
 	Id      string
 	Balance uint64
 }

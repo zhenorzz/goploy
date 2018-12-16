@@ -1,10 +1,11 @@
 package main
 
 import (
-	"net/http"
 	"log"
-	"github.com/zhenorzz/goploy/route"
+	"net/http"
+
 	_ "github.com/joho/godotenv"
+	"github.com/zhenorzz/goploy/route"
 )
 
 func main() {
