@@ -8,7 +8,9 @@ import (
 	"strings"
 )
 
-func RsyncAdd(w http.ResponseWriter, r *http.Request) {
+type Rsync string
+
+func (rsync *Rsync) Add(w http.ResponseWriter, r *http.Request) {
 	cmd := exec.Command("rsync", "-av", "192.168.21.146:/tmp", "/home/zane")
 	cmd.Stdin = strings.NewReader("some input")
 	var out bytes.Buffer

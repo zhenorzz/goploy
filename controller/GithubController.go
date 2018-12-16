@@ -1,11 +1,13 @@
 package controller
 
 import (
-	"net/http"
-	"io/ioutil"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 )
+
+type Github string
 
 type Commits struct {
 	Sha    string `json:"sha"`
@@ -27,7 +29,7 @@ type Tree struct {
 	Url string `json:"url"`
 }
 
-func GithubSearch(w http.ResponseWriter, r *http.Request) {
+func (g *Github) Search(w http.ResponseWriter, r *http.Request) {
 	resp, err := http.Get("https://api.github.com/repos/zhenorzz/godis/commits/btree")
 	if err != nil {
 		fmt.Println(err)

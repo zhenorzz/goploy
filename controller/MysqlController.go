@@ -1,11 +1,16 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/zhenorzz/goploy/model"
 )
 
-func MysqlQuery(w http.ResponseWriter, r *http.Request) {
-	model.Query()
+type Mysql string
+
+func (mysql *Mysql) Query(w http.ResponseWriter, r *http.Request) {
+	ceshis := new(model.Ceshis)
+	ceshis.QueryMany()
+	fmt.Println(ceshis)
 }

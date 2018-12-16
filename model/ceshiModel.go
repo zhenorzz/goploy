@@ -1,40 +1,37 @@
 package model
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
-	"os"
-
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/joho/godotenv"
 )
 
-func NewDB() *sql.DB {
-	godotenv.Load()
-	dbType := os.Getenv("DB_TYPE")
-	dbConn := os.Getenv("DB_CONN")
-	db, err := sql.Open(dbType, dbConn)
+type Ceshi struct {
+	id   int32
+	name string
+}
+
+type Ceshis []Ceshi
+
+func (ceshi *Ceshi) Query() {
+	db := NewDB()
+	err := db.QueryRow("SELECT * FROM ceshi").Scan(&ceshi.id, &ceshi.name)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return db
 }
 
-func Query() {
+func (ceshis *Ceshis) QueryMany() {
 	db := NewDB()
-	rows, err := db.Query("SELECT name FROM ceshi")
+	rows, err := db.Query("SELECT * FROM ceshi")
 	if err != nil {
 		log.Fatal(err)
 	}
 	for rows.Next() {
-		var name string
-		if err := rows.Scan(&name); err != nil {
+		var ceshi Ceshi
+
+		if err := rows.Scan(&ceshi.id, &ceshi.name); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("%s is %d\n", name)
-	}
-	if err := rows.Err(); err != nil {
-		log.Fatal(err)
+
+		*ceshis = append(*ceshis, ceshi)
 	}
 }

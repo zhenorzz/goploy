@@ -7,9 +7,9 @@ import (
 
 func Init() {
 	var rt = new(router.Routes)
-	rt.Add("/user/index", controller.UserIndex)
-	rt.Add("/github/search", controller.GithubSearch)
-	rt.Add("/rsync/add", controller.RsyncAdd)
-	rt.Add("/mysql/query", controller.MysqlQuery)
+	rt.Add("/user/index", new(controller.User).Index)
+	rt.Add("/github/search", new(controller.Github).Search)
+	rt.Add("/rsync/add", new(controller.Rsync).Add)
+	rt.Add("/mysql/query", new(controller.Mysql).Query)
 	rt.Start()
 }
