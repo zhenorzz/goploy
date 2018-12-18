@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.10",
+    "axios": "^0.18.0",
     "element-ui": "^2.4.11",
     "eslint-config-google": "^0.11.0",
     "node-sass": "^4.11.0",

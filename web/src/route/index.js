@@ -30,6 +30,20 @@ export const constantRouterMap = [
     component: HelloWorld,
   },
 ];
+export const asyncRouterMap = [
+  {
+    path: '/deploy',
+    name: 'Deploy',
+    component: Layout,
+    children: [
+      {
+        path: '/deploy/test',
+        name: 'Test',
+        component: HelloWorld,
+      },
+    ],
+  },
+];
 export default new Router({
   // mode: 'history', // 后端支持可开
   scrollBehavior: () => ({y: 0}),

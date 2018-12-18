@@ -1,4 +1,5 @@
 import router from './route';
+import store from './store';
 import NProgress from 'nprogress'; // progress bar
 import 'nprogress/nprogress.css';// progress bar style
 import {getToken} from '@/utils/auth';
@@ -9,6 +10,10 @@ const whiteList = ['/login'];// no redirect whitelist
 router.beforeEach((to, from, next) => {
   NProgress.start(); // start progress bar
   if (getToken()) {
+    store.dispatch('GetInfo').then((res) => {
+    }).catch(() => {
+      next({path: '/login'});
+    });
     next();
   } else {
     if (whiteList.indexOf(to.path) !== -1) { // 在免登录白名单，直接进入

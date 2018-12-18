@@ -7,12 +7,16 @@ import (
 )
 
 type User struct {
-	Id      string
-	Balance uint64
+	Id uint32
 }
 
 func (user *User) Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("i'm in user controller")
-	u := User{Id: "US123", Balance: 8}
+	u := User{Id: 1}
+	json.NewEncoder(w).Encode(u)
+}
+
+func (user *User) Info(w http.ResponseWriter, r *http.Request) {
+	u := User{Id: 1}
 	json.NewEncoder(w).Encode(u)
 }

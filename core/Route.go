@@ -15,7 +15,7 @@ type Routes []route
 
 func (rt *Routes) router(w http.ResponseWriter, r *http.Request) {
 	for _, route := range *rt {
-		fmt.Println(route)
+		fmt.Println(r.URL)
 		if route.pattern == r.URL.String() {
 			route.callback(w, r)
 		}
