@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -15,8 +14,7 @@ type Routes []route
 
 func (rt *Routes) router(w http.ResponseWriter, r *http.Request) {
 	for _, route := range *rt {
-		fmt.Println(r.URL)
-		if route.pattern == r.URL.String() {
+		if route.pattern == r.URL.Path {
 			route.callback(w, r)
 		}
 	}
