@@ -5,9 +5,11 @@ import (
 	router "github.com/zhenorzz/goploy/core"
 )
 
+// Init router
 func Init() {
-	var rt = new(router.Routes)
-	rt.Add("/user/index", new(controller.User).Index)
+	var rt = new(router.Router)
+	rt.Middleware(CheckToken)
+	rt.Add("/user/login", new(controller.User).Login)
 	rt.Add("/user/info", new(controller.User).Info)
 	rt.Add("/github/search", new(controller.Github).Search)
 	rt.Add("/rsync/add", new(controller.Rsync).Add)

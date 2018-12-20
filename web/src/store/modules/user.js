@@ -1,4 +1,5 @@
-import {getToken, setToken} from '@/utils/auth';
+import {login, logout} from '@/api/login';
+import {getToken, setToken, removeToken} from '@/utils/auth';
 import {getInfo} from '@/api/user';
 
 const user = {
@@ -18,9 +19,30 @@ const user = {
 
   actions: {
     // 登录
-    Login({commit}) {
-      setToken(1);
-      commit('SET_TOKEN', 1);
+    Login({commit}, userInfo) {
+      const account = userInfo.account.trim();
+      return new Promise((resolve, reject) => {
+        login(account, userInfo.password).then((response) => {
+          const data = response.data;
+          setToken(data.token);
+          commit('SET_TOKEN', data.token);
+          resolve();
+        }).catch((error) => {
+          reject(error);
+        });
+      });
+    },
+    // 登出
+    LogOut({commit, state}) {
+      return new Promise((resolve, reject) => {
+        logout(state.token).then(() => {
+          commit('SET_TOKEN', '');
+          removeToken();
+          resolve();
+        }).catch((error) => {
+          reject(error);
+        });
+      });
     },
     // 获取用户信息
     GetInfo({commit, state}) {

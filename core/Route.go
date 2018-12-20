@@ -6,24 +6,46 @@ import (
 
 // 路由定义
 type route struct {
-	pattern  string                                       // 正则表达式
-	callback func(w http.ResponseWriter, r *http.Request) //Controller函数
+	pattern     string                                         // 正则表达式
+	callback    func(w http.ResponseWriter, r *http.Request)   //Controller函数
+	middlewares []func(w http.ResponseWriter, r *http.Request) //中间件
 }
 
-type Routes []route
+// Router is route slice and golbal middlewares
+type Router struct {
+	Routes      []route
+	middlewares []func(w http.ResponseWriter, r *http.Request) //中间件
+}
 
-func (rt *Routes) router(w http.ResponseWriter, r *http.Request) {
-	for _, route := range *rt {
+// Start a router
+func (rt *Router) Start() {
+	http.HandleFunc("/", rt.router)
+}
+
+// Add router
+// pattern path
+// callback  where path should be handle
+func (rt *Router) Add(pattern string, callback func(w http.ResponseWriter, r *http.Request), middleware ...func(w http.ResponseWriter, r *http.Request)) {
+	r := route{pattern: pattern, callback: callback}
+	for _, m := range middleware {
+		r.middlewares = append(r.middlewares, m)
+	}
+	rt.Routes = append(rt.Routes, r)
+}
+
+// Middleware golbal Middleware handle function
+// Example handle praseToken
+func (rt *Router) Middleware(middleware func(w http.ResponseWriter, r *http.Request)) {
+	rt.middlewares = append(rt.middlewares, middleware)
+}
+
+func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
+	for _, route := range rt.Routes {
 		if route.pattern == r.URL.Path {
+			for _, middleware := range route.middlewares {
+				middleware(w, r)
+			}
 			route.callback(w, r)
 		}
 	}
-}
-
-func (rt *Routes) Add(pattern string, callback func(w http.ResponseWriter, r *http.Request)) {
-	*rt = append(*rt, route{pattern, callback})
-}
-
-func (rt *Routes) Start() {
-	http.HandleFunc("/", rt.router)
 }
