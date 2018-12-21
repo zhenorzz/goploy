@@ -1,36 +1,34 @@
 package route
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"errors"
 	"net/http"
+	"os"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/zhenorzz/goploy/core"
 )
 
-func CheckToken(w http.ResponseWriter, r *http.Request) {
-	type ReqData struct {
-		token string
+// CheckToken return token is vaild. Besides user/login router
+func CheckToken(w http.ResponseWriter, r *http.Request) error {
+	if "/user/login" == r.URL.Path {
+		return nil
 	}
-	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
-	err := json.Unmarshal(body, &reqData)
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+	unPraseToken, ok := r.Header["Authorization"]
+	if !ok || len(unPraseToken) == 0 {
+		response := core.Response{Code: 1, Message: "非法请求"}
 		response.Json(w)
-		return
+		return errors.New("非法请求")
 	}
-	token, err := jwt.Parse(reqData.token, func(token *jwt.Token) (interface{}, error) {
-		return []byte("your key"), nil
+	token, err := jwt.Parse(unPraseToken[0], func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("SIGN_KEY")), nil
 	})
 
 	if err == nil && token.Valid {
 	} else {
-		fmt.Println("This token is terrible!  I cannot accept this.")
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: 401, Message: err.Error()}
 		response.Json(w)
-		return
+		return err
 	}
+	return nil
 }

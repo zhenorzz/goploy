@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -64,9 +65,9 @@ func (user *User) createToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"account": user.Account,
 		"exp":     time.Now().Add(time.Hour * 72).Unix(),
-		"nbf":     time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+		"nbf":     time.Now().Unix(),
 	})
-	tokenString, err := token.SignedString([]byte("your key"))
+	tokenString, err := token.SignedString([]byte(os.Getenv("SIGN_KEY")))
 
 	//Sign and get the complete encoded token as string
 	return tokenString, err

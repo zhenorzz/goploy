@@ -24,20 +24,9 @@ const user = {
       return new Promise((resolve, reject) => {
         login(account, userInfo.password).then((response) => {
           const data = response.data;
-          setToken(data.token);
-          commit('SET_TOKEN', data.token);
-          resolve();
-        }).catch((error) => {
-          reject(error);
-        });
-      });
-    },
-    // 登出
-    LogOut({commit, state}) {
-      return new Promise((resolve, reject) => {
-        logout(state.token).then(() => {
-          commit('SET_TOKEN', '');
-          removeToken();
+          const token = data.data.token;
+          setToken(token);
+          commit('SET_TOKEN', token);
           resolve();
         }).catch((error) => {
           reject(error);
@@ -55,6 +44,26 @@ const user = {
         }).catch((error) => {
           reject(error);
         });
+      });
+    },
+    // 登出
+    LogOut({commit, state}) {
+      return new Promise((resolve, reject) => {
+        logout(state.token).then(() => {
+          commit('SET_TOKEN', '');
+          removeToken();
+          resolve();
+        }).catch((error) => {
+          reject(error);
+        });
+      });
+    },
+    // 前端 登出
+    FedLogOut({commit}) {
+      return new Promise((resolve) => {
+        commit('SET_TOKEN', '');
+        removeToken();
+        resolve();
       });
     },
   },

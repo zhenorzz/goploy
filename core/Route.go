@@ -14,7 +14,7 @@ type route struct {
 // Router is route slice and golbal middlewares
 type Router struct {
 	Routes      []route
-	middlewares []func(w http.ResponseWriter, r *http.Request) //中间件
+	middlewares []func(w http.ResponseWriter, r *http.Request) error //中间件
 }
 
 // Start a router
@@ -35,11 +35,17 @@ func (rt *Router) Add(pattern string, callback func(w http.ResponseWriter, r *ht
 
 // Middleware golbal Middleware handle function
 // Example handle praseToken
-func (rt *Router) Middleware(middleware func(w http.ResponseWriter, r *http.Request)) {
+func (rt *Router) Middleware(middleware func(w http.ResponseWriter, r *http.Request) error) {
 	rt.middlewares = append(rt.middlewares, middleware)
 }
 
 func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
+	for _, middleware := range rt.middlewares {
+		err := middleware(w, r)
+		if err != nil {
+			return
+		}
+	}
 	for _, route := range rt.Routes {
 		if route.pattern == r.URL.Path {
 			for _, middleware := range route.middlewares {
