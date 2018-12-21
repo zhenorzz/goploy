@@ -38,7 +38,7 @@ const user = {
       return new Promise((resolve, reject) => {
         getInfo(state.token).then((response) => {
           const responseData = response.data;
-          const userInfo = responseData.data.user_info;
+          const userInfo = responseData.data.userInfo;
           commit('SET_ID', userInfo.id);
           resolve(responseData.data);
         }).catch((error) => {

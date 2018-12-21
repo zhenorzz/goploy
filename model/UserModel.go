@@ -44,7 +44,7 @@ func (u *User) Vaildate() error {
 
 	var hashPassword string
 	db := NewDB()
-	err := db.QueryRow("SELECT password FROM user WHERE account = ?", u.Account).Scan(&hashPassword)
+	err := db.QueryRow("SELECT id, password FROM user WHERE account = ?", u.Account).Scan(&u.ID, &hashPassword)
 	if err != nil {
 		return err
 	}

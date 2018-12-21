@@ -20,11 +20,13 @@ func CheckToken(w http.ResponseWriter, r *http.Request) error {
 		response.Json(w)
 		return errors.New("非法请求")
 	}
-	token, err := jwt.Parse(unPraseToken[0], func(token *jwt.Token) (interface{}, error) {
+	claims := jwt.MapClaims{}
+	token, err := jwt.ParseWithClaims(unPraseToken[0], claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(os.Getenv("SIGN_KEY")), nil
 	})
 
 	if err == nil && token.Valid {
+		core.GolbalUserID = uint32(claims["id"].(float64))
 	} else {
 		response := core.Response{Code: 401, Message: err.Error()}
 		response.Json(w)

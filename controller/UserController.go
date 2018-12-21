@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -13,11 +14,7 @@ import (
 )
 
 // User 用户字段
-type User struct {
-	ID       uint32 `json:"id,omitempty"`
-	Account  string `json:"account,omitempty"`
-	Password string `json:"password,omitempty"`
-}
+type User struct{}
 
 // Login user login api
 func (user *User) Login(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +40,7 @@ func (user *User) Login(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	token, err := user.createToken()
+	token, err := user.createToken(model.ID)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
@@ -56,16 +53,23 @@ func (user *User) Login(w http.ResponseWriter, r *http.Request) {
 
 // Info get user info api
 func (user *User) Info(w http.ResponseWriter, r *http.Request) {
-	u := User{ID: 1}
-	response := core.Response{Data: u}
+	fmt.Println(core.GolbalUserID)
+	type RepData struct {
+		UserInfo struct {
+			ID uint32 `json:"id"`
+		} `json:"userInfo"`
+	}
+	data := RepData{}
+	data.UserInfo.ID = core.GolbalUserID
+	response := core.Response{Data: data}
 	response.Json(w)
 }
 
-func (user *User) createToken() (string, error) {
+func (user *User) createToken(id uint32) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"account": user.Account,
-		"exp":     time.Now().Add(time.Hour * 72).Unix(),
-		"nbf":     time.Now().Unix(),
+		"id":  id,
+		"exp": time.Now().Add(time.Hour * 72).Unix(),
+		"nbf": time.Now().Unix(),
 	})
 	tokenString, err := token.SignedString([]byte(os.Getenv("SIGN_KEY")))
 
