@@ -13,10 +13,20 @@ type User struct {
 	Account    string
 	Password   string
 	Name       string
-	RoleID     uint8
+	Role       string
 	State      uint8
 	CreateTime uint32
 	UpdateTime uint32
+}
+
+// QueryRow add user information to u *User
+func (u *User) QueryRow() error {
+	db := NewDB()
+	err := db.QueryRow("SELECT name, role FROM user WHERE id = ? and state = ?", u.ID, 1).Scan(&u.Name, &u.Role)
+	if err != nil {
+		return errors.New("数据查询失败")
+	}
+	return nil
 }
 
 // Query user row

@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -53,14 +52,24 @@ func (user *User) Login(w http.ResponseWriter, r *http.Request) {
 
 // Info get user info api
 func (user *User) Info(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(core.GolbalUserID)
+	model := model.User{ID: core.GolbalUserID}
+	err := model.QueryRow()
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
 	type RepData struct {
 		UserInfo struct {
-			ID uint32 `json:"id"`
+			ID   uint32 `json:"id"`
+			Name string `json:"name"`
+			Role string `json:"role"`
 		} `json:"userInfo"`
 	}
 	data := RepData{}
 	data.UserInfo.ID = core.GolbalUserID
+	data.UserInfo.Name = model.Name
+	data.UserInfo.Role = model.Role
 	response := core.Response{Data: data}
 	response.Json(w)
 }

@@ -6,6 +6,8 @@ const user = {
   state: {
     token: getToken(),
     id: 0,
+    name: '',
+    role: '',
   },
 
   mutations: {
@@ -14,6 +16,12 @@ const user = {
     },
     SET_ID: (state, id) => {
       state.id = id;
+    },
+    SET_NAME: (state, name) => {
+      state.name = name;
+    },
+    SET_ROLE: (state, role) => {
+      state.role = role;
     },
   },
 
@@ -40,6 +48,8 @@ const user = {
           const responseData = response.data;
           const userInfo = responseData.data.userInfo;
           commit('SET_ID', userInfo.id);
+          commit('SET_NAME', userInfo.name);
+          commit('SET_ROLE', userInfo.role);
           resolve(responseData.data);
         }).catch((error) => {
           reject(error);
