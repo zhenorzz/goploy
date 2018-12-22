@@ -1,7 +1,6 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 import Layout from '@/components/layout';
-import HelloWorld from '@/components/HelloWorld';
 import BaseAdmin from '@/components/BaseAdmin';
 import Login from '@/components/Login';
 Vue.use(Router);
@@ -11,23 +10,26 @@ export const constantRouterMap = [
     name: 'Dashboard',
     redirect: 'dashboard',
     component: Layout,
+    meta: {
+      title: 'eye',
+      icon: 'eye',
+    },
     children: [
       {
         path: 'dashboard',
         name: 'Admin',
         component: BaseAdmin,
+        meta: {
+          title: 'dashboard',
+          icon: 'eye',
+        },
       },
     ],
   },
   {
     path: '/login',
-    name: 'Login',
     component: Login,
-  },
-  {
-    path: '/hello',
-    name: 'HelloWorld',
-    component: HelloWorld,
+    hidden: true,
   },
 ];
 export const asyncRouterMap = [
@@ -35,11 +37,31 @@ export const asyncRouterMap = [
     path: '/deploy',
     name: 'Deploy',
     component: Layout,
+    meta: {
+      title: 'father',
+      icon: 'eye',
+      roles: ['admin'],
+    },
     children: [
       {
         path: '/deploy/test',
         name: 'Test',
-        component: HelloWorld,
+        component: () => import('@/components/HelloWorld'),
+        meta: {
+          title: 'son1',
+          icon: 'eye',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: '/deploy/my',
+        name: 'test1',
+        component: () => import('@/components/BaseAdmin'),
+        meta: {
+          title: 'son2',
+          icon: 'eye',
+          roles: ['admin'],
+        },
       },
     ],
   },
