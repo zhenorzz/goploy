@@ -7,21 +7,21 @@ Vue.use(Router);
 export const constantRouterMap = [
   {
     path: '/',
-    name: 'Dashboard',
-    redirect: 'dashboard',
+    name: '主页',
+    redirect: 'home',
     component: Layout,
     meta: {
-      title: 'eye',
-      icon: 'eye',
+      title: '主页',
+      icon: 'home',
     },
     children: [
       {
-        path: 'dashboard',
-        name: 'Admin',
+        path: 'home',
+        name: '主页',
         component: BaseAdmin,
         meta: {
-          title: 'dashboard',
-          icon: 'eye',
+          title: '主页',
+          icon: 'home',
         },
       },
     ],
@@ -34,32 +34,96 @@ export const constantRouterMap = [
 ];
 export const asyncRouterMap = [
   {
-    path: '/deploy',
-    name: 'Deploy',
+    path: '/project',
+    name: '项目管理',
     component: Layout,
     meta: {
-      title: 'father',
-      icon: 'eye',
+      title: '项目管理',
+      icon: 'project',
       roles: ['admin'],
     },
     children: [
       {
-        path: '/deploy/test',
-        name: 'Test',
-        component: () => import('@/components/HelloWorld'),
+        path: '/project/commit',
+        name: '项目提交',
+        component: () => import('@/components/BaseAdmin'),
         meta: {
-          title: 'son1',
+          title: '项目提交',
+          icon: 'commit',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: '/project/commit',
+        name: '项目审核',
+        component: () => import('@/components/BaseAdmin'),
+        meta: {
+          title: '项目审核',
           icon: 'eye',
           roles: ['admin'],
         },
       },
       {
-        path: '/deploy/my',
-        name: 'test1',
+        path: '/project/setting',
+        name: '项目设置',
+        component: () => import('@/components/HelloWorld'),
+        meta: {
+          title: '项目设置',
+          icon: 'setting',
+          roles: ['admin'],
+        },
+      },
+    ],
+  },
+  {
+    path: '/server',
+    name: '服务器管理',
+    component: Layout,
+    meta: {
+      title: '服务器管理',
+      icon: 'server',
+      roles: ['admin'],
+    },
+    children: [
+      {
+        path: '/server/list',
+        name: '服务器列表',
         component: () => import('@/components/BaseAdmin'),
         meta: {
-          title: 'son2',
-          icon: 'eye',
+          title: '服务器列表',
+          icon: 'list',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: '/server/setting',
+        name: '服务器设置',
+        component: () => import('@/components/HelloWorld'),
+        meta: {
+          title: '服务器设置',
+          icon: 'setting',
+          roles: ['admin'],
+        },
+      },
+    ],
+  },
+  {
+    path: '/user',
+    name: '成员管理',
+    component: Layout,
+    meta: {
+      title: '成员管理',
+      icon: 'user',
+      roles: ['admin'],
+    },
+    children: [
+      {
+        path: '/user/list',
+        name: '成员列表',
+        component: () => import('@/components/BaseAdmin'),
+        meta: {
+          title: '成员列表',
+          icon: 'list',
           roles: ['admin'],
         },
       },
