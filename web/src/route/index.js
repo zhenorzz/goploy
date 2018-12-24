@@ -1,13 +1,12 @@
 import Vue from 'vue';
 import Router from 'vue-router';
 import Layout from '@/components/layout';
-import BaseAdmin from '@/components/BaseAdmin';
 import Login from '@/components/Login';
 Vue.use(Router);
 export const constantRouterMap = [
   {
     path: '/',
-    name: '主页',
+    name: 'Home',
     redirect: 'home',
     component: Layout,
     meta: {
@@ -18,7 +17,7 @@ export const constantRouterMap = [
       {
         path: 'home',
         name: '主页',
-        component: BaseAdmin,
+        component: () => import('@/components/Home'),
         meta: {
           title: '主页',
           icon: 'home',
@@ -46,7 +45,7 @@ export const asyncRouterMap = [
       {
         path: '/project/commit',
         name: '项目提交',
-        component: () => import('@/components/BaseAdmin'),
+        component: () => import('@/components/project/Commit'),
         meta: {
           title: '项目提交',
           icon: 'commit',
@@ -54,19 +53,19 @@ export const asyncRouterMap = [
         },
       },
       {
-        path: '/project/commit',
+        path: '/project/deploy',
         name: '项目审核',
-        component: () => import('@/components/BaseAdmin'),
+        component: () => import('@/components/project/Deploy'),
         meta: {
           title: '项目审核',
-          icon: 'eye',
+          icon: 'deploy',
           roles: ['admin'],
         },
       },
       {
         path: '/project/setting',
         name: '项目设置',
-        component: () => import('@/components/HelloWorld'),
+        component: () => import('@/components/project/Setting'),
         meta: {
           title: '项目设置',
           icon: 'setting',
