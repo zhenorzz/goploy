@@ -1,8 +1,10 @@
 .DS_Store
 node_modules
 /dist
+gin-bin.exe
 
 # local env files
+.env
 .env.local
 .env.*.local
 

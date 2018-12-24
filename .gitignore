@@ -6,7 +6,7 @@
 *.njsproj
 *.sln
 *.sw*
-
+tmp
 
 # local env files
 .env.local

@@ -13,7 +13,7 @@ import (
 func main() {
 	godotenv.Load(".env.local", ".env")
 	route.Init()
-	err := http.ListenAndServe(":9091", nil) //设置监听的端口
+	err := http.ListenAndServe(":3001", nil) //设置监听的端口
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
