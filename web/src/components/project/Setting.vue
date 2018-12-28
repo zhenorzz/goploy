@@ -9,8 +9,9 @@
       <el-table-column prop="repository" label="仓库名称"></el-table-column>
       <el-table-column prop="createTime" label="创建时间"></el-table-column>
       <el-table-column prop="updateTime" label="更新时间"></el-table-column>
-      <el-table-column prop="operation" label="操作" width="160">
+      <el-table-column prop="operation" label="操作" width="230">
         <template slot-scope="scope">
+          <el-button size="small" type="success" @click="create(scope.row.id)">初始化</el-button>
           <el-button size="small" type="primary">编辑</el-button>
           <el-button size="small" type="danger">删除</el-button>
         </template>
@@ -36,7 +37,8 @@
   </el-row>
 </template>
 <script>
-import {get, add, edit, remove} from '@/api/project';
+import {get, add, edit, remove, create} from '@/api/project';
+import {parseTime} from '@/utils/time';
 export default {
   data() {
     return {
@@ -87,8 +89,18 @@ export default {
     },
     get() {
       get().then((response) => {
-        this.tableData = response.data.data;
+        const projectList = response.data.data.projectList;
+        projectList.forEach((element) => {
+          element.createTime = parseTime(element.createTime);
+          element.updateTime = parseTime(element.updateTime);
+        });
+        this.tableData = projectList;
       }).catch(() => {
+      });
+    },
+    create(projectId) {
+      create(projectId).then((response) => {
+
       });
     },
   },
