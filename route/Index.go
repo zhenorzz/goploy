@@ -15,6 +15,7 @@ func Init() {
 	// project route
 	rt.Add("/project/add", new(controller.Project).Add)
 	rt.Add("/project/get", new(controller.Project).Get)
+	rt.Add("/project/create", new(controller.Project).Create)
 	rt.Add("/project/branch", new(controller.Project).Branch)
 	rt.Add("/project/commit", new(controller.Project).Commit)
 

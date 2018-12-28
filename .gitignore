@@ -8,6 +8,7 @@
 *.sw*
 tmp
 gin-bin.exe
+repository
 # local env files
 .env
 .env.local

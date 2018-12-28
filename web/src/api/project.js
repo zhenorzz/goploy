@@ -18,8 +18,8 @@ export function get() {
 export function create(id) {
   return request({
     url: '/project/create',
-    method: 'get',
-    params: {id},
+    method: 'post',
+    data: {id},
   });
 }
 

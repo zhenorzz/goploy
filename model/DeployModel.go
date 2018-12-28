@@ -1,6 +1,10 @@
 package model
 
-import "github.com/zhenorzz/goploy/core"
+import (
+	"fmt"
+
+	"github.com/zhenorzz/goploy/core"
+)
 
 // Deploy mysql table for deploy
 type Deploy struct {
@@ -57,7 +61,7 @@ func (d *Deploys) Query() error {
 		deploy.create_time, 
 		deploy.update_time,
 		creator.name,
-		editor.name 
+		COALESCE(editor.name, '') as name
 		FROM deploy 
 		LEFT JOIN project on project.id = deploy.project_id
 		LEFT JOIN user AS creator ON deploy.creator = creator.id
@@ -66,9 +70,9 @@ func (d *Deploys) Query() error {
 	if err != nil {
 		return err
 	}
+	fmt.Println(rows)
 	for rows.Next() {
 		var deploy Deploy
-
 		if err := rows.Scan(
 			&deploy.ID,
 			&deploy.ProjectID,

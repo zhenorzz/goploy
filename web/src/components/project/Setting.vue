@@ -7,6 +7,7 @@
       <el-table-column prop="project" label="项目名称"></el-table-column>
       <el-table-column prop="owner" label="仓库拥有者"></el-table-column>
       <el-table-column prop="repository" label="仓库名称"></el-table-column>
+      <el-table-column prop="status" label="状态"></el-table-column>
       <el-table-column prop="createTime" label="创建时间"></el-table-column>
       <el-table-column prop="updateTime" label="更新时间"></el-table-column>
       <el-table-column prop="operation" label="操作" width="230">
@@ -39,6 +40,8 @@
 <script>
 import {get, add, edit, remove, create} from '@/api/project';
 import {parseTime} from '@/utils/time';
+
+const STATUS = ['未初始化', '初始化中', '初始化成功', '初始化失败'];
 export default {
   data() {
     return {
@@ -93,6 +96,7 @@ export default {
         projectList.forEach((element) => {
           element.createTime = parseTime(element.createTime);
           element.updateTime = parseTime(element.updateTime);
+          element.status = STATUS[element.status];
         });
         this.tableData = projectList;
       }).catch(() => {
@@ -100,7 +104,11 @@ export default {
     },
     create(projectId) {
       create(projectId).then((response) => {
-
+        this.$message({
+          message: response.data.message,
+          type: 'success',
+          duration: 5 * 1000,
+        });
       });
     },
   },
