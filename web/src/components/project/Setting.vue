@@ -12,7 +12,7 @@
       <el-table-column prop="updateTime" label="更新时间"></el-table-column>
       <el-table-column prop="operation" label="操作" width="230">
         <template slot-scope="scope">
-          <el-button size="small" type="success" @click="create(scope.row.id)">初始化</el-button>
+          <el-button :disabled="scope.row.status === '初始化成功'" size="small" type="success" @click="create(scope.row.id)">初始化</el-button>
           <el-button size="small" type="primary">编辑</el-button>
           <el-button size="small" type="danger">删除</el-button>
         </template>

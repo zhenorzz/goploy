@@ -17,7 +17,7 @@ export const constantRouterMap = [
       {
         path: 'home',
         name: '主页',
-        component: () => import('@/components/Home'),
+        component: () => import('@/components/home'),
         meta: {
           title: '主页',
           icon: 'home',
@@ -45,7 +45,7 @@ export const asyncRouterMap = [
       {
         path: '/project/commit',
         name: '项目提交',
-        component: () => import('@/components/project/Commit'),
+        component: () => import('@/components/project/commit'),
         meta: {
           title: '项目提交',
           icon: 'commit',
@@ -55,7 +55,7 @@ export const asyncRouterMap = [
       {
         path: '/project/deploy',
         name: '项目审核',
-        component: () => import('@/components/project/Deploy'),
+        component: () => import('@/components/project/deploy'),
         meta: {
           title: '项目审核',
           icon: 'deploy',
@@ -65,7 +65,7 @@ export const asyncRouterMap = [
       {
         path: '/project/setting',
         name: '项目设置',
-        component: () => import('@/components/project/Setting'),
+        component: () => import('@/components/project/setting'),
         meta: {
           title: '项目设置',
           icon: 'setting',
@@ -87,7 +87,7 @@ export const asyncRouterMap = [
       {
         path: '/server/list',
         name: '服务器列表',
-        component: () => import('@/components/BaseAdmin'),
+        component: () => import('@/components/server/list'),
         meta: {
           title: '服务器列表',
           icon: 'list',

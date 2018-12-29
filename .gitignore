@@ -7,7 +7,7 @@
 *.sln
 *.sw*
 tmp
-gin-bin.exe
+gin-bin.exe*
 repository
 # local env files
 .env

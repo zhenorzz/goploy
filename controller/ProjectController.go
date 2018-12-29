@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/zhenorzz/goploy/core"
@@ -182,7 +181,6 @@ func (project *Project) Create(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		cmd := exec.Command("git", "clone", repo, path)
-		cmd.Stdin = strings.NewReader("some input")
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		err = cmd.Run()
