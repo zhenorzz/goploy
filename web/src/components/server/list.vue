@@ -7,6 +7,7 @@
       <el-table-column prop="name" label="服务器"></el-table-column>
       <el-table-column prop="ip" label="IP"></el-table-column>
       <el-table-column prop="path" label="部署目录" show-overflow-tooltip></el-table-column>
+      <el-table-column prop="owner" label="sshKey所有者" show-overflow-tooltip></el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="160"></el-table-column>
       <el-table-column prop="updateTime" label="更新时间" width="160"></el-table-column>
       <el-table-column prop="operation" label="操作" width="210">
@@ -26,6 +27,9 @@
         </el-form-item>
         <el-form-item label="部署目录" label-width="120px" prop="path">
           <el-input v-model="form.path" autocomplete="off" placeholder="绝对路径"></el-input>
+        </el-form-item>
+        <el-form-item label="sshKey所有者" label-width="120px" prop="owner">
+          <el-input v-model="form.owner" autocomplete="off" placeholder="root"></el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -49,6 +53,7 @@ export default {
         name: '',
         ip: '',
         path: '',
+        owner: '',
         rules: {
           name: [
             {required: true, message: '请输入服务器名称', trigger: 'blur'},
@@ -58,6 +63,9 @@ export default {
           ],
           path: [
             {required: true, message: '请输入部署目录', trigger: 'blur'},
+          ],
+          owner: [
+            {required: true, message: '请输入SSH-KEY的所有者', trigger: 'blur'},
           ],
         },
       },
@@ -78,7 +86,7 @@ export default {
       this.$refs.form.validate((valid) => {
         if (valid) {
           this.form.disabled = true;
-          add(this.form.name, this.form.ip, this.form.path).then((response) => {
+          add(this.form.name, this.form.ip, this.form.path, this.form.owner).then((response) => {
             this.form.disabled = this.dialogFormVisible = false;
             this.$message({
               message: response.data.message,

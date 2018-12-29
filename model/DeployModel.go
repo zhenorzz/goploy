@@ -1,8 +1,6 @@
 package model
 
 import (
-	"fmt"
-
 	"github.com/zhenorzz/goploy/core"
 )
 
@@ -70,7 +68,6 @@ func (d *Deploys) Query() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(rows)
 	for rows.Next() {
 		var deploy Deploy
 		if err := rows.Scan(

@@ -33,9 +33,10 @@ func (server *Server) Get(w http.ResponseWriter, r *http.Request) {
 // Add one server
 func (server *Server) Add(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
-		Name string `json:"name"`
-		IP   string `json:"ip"`
-		Path string `json:"path"`
+		Name  string `json:"name"`
+		IP    string `json:"ip"`
+		Path  string `json:"path"`
+		Owner string `json:"owner"`
 	}
 	var reqData ReqData
 	body, _ := ioutil.ReadAll(r.Body)
@@ -49,6 +50,7 @@ func (server *Server) Add(w http.ResponseWriter, r *http.Request) {
 		Name:       reqData.Name,
 		IP:         reqData.IP,
 		Path:       reqData.Path,
+		Owner:      reqData.Owner,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
 	}

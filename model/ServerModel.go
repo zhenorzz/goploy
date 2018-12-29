@@ -10,6 +10,7 @@ type Server struct {
 	Name       string `json:"name"`
 	IP         string `json:"ip"`
 	Path       string `json:"path"`
+	Owner      string `json:"owner"`
 	CreateTime int64  `json:"createTime"`
 	UpdateTime int64  `json:"updateTime"`
 }
@@ -21,10 +22,11 @@ type Servers []Server
 func (s *Server) AddRow() error {
 	db := NewDB()
 	result, err := db.Exec(
-		"INSERT INTO server (name, ip, path, create_time, update_time) VALUES (?, ?, ?, ?, ?)",
+		"INSERT INTO server (name, ip, path, owner, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?)",
 		s.Name,
 		s.IP,
 		s.Path,
+		s.Owner,
 		s.CreateTime,
 		s.UpdateTime,
 	)
@@ -36,14 +38,14 @@ func (s *Server) AddRow() error {
 // Query server row
 func (s *Servers) Query() error {
 	db := NewDB()
-	rows, err := db.Query("SELECT id, name, ip, path, create_time, update_time FROM server")
+	rows, err := db.Query("SELECT id, name, ip, path, owner, create_time, update_time FROM server")
 	if err != nil {
 		return err
 	}
 	for rows.Next() {
 		var server Server
 
-		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Path, &server.CreateTime, &server.UpdateTime); err != nil {
+		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Path, &server.Owner, &server.CreateTime, &server.UpdateTime); err != nil {
 			return err
 		}
 		*s = append(*s, server)
@@ -54,7 +56,7 @@ func (s *Servers) Query() error {
 // QueryRow add server information to s *Server
 func (s *Server) QueryRow() error {
 	db := NewDB()
-	err := db.QueryRow("SELECT name, ip, path, create_time, update_time FROM server WHERE id = ?", s.ID).Scan(&s.Name, &s.IP, &s.Path, &s.CreateTime, &s.UpdateTime)
+	err := db.QueryRow("SELECT name, ip, path, owner, create_time, update_time FROM server WHERE id = ?", s.ID).Scan(&s.Name, &s.IP, &s.Path, &s.Owner, &s.CreateTime, &s.UpdateTime)
 	if err != nil {
 		return errors.New("数据查询失败")
 	}
