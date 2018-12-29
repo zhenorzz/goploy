@@ -12,6 +12,18 @@ export function get() {
 }
 
 /**
+ * @param  {int}    id
+ * @return {Promise}
+ */
+export function publish(id) {
+  return request({
+    url: '/deploy/publish',
+    method: 'post',
+    data: {id},
+  });
+}
+
+/**
  * @param  {int}    projectId
  * @param  {string} branch
  * @param  {string} commit

@@ -21,12 +21,13 @@ func Init() {
 
 	// deploy route
 	rt.Add("/deploy/get", new(controller.Deploy).Get)
+	rt.Add("/deploy/publish", new(controller.Deploy).Publish)
 	rt.Add("/deploy/add", new(controller.Deploy).Add)
 
 	// server route
 	rt.Add("/server/get", new(controller.Server).Get)
 	rt.Add("/server/add", new(controller.Server).Add)
-	
+
 	rt.Add("/github/search", new(controller.Github).Search)
 	rt.Add("/rsync/add", new(controller.Rsync).Add)
 	rt.Add("/mysql/query", new(controller.Mysql).Query)

@@ -2,6 +2,7 @@ package core
 
 import (
 	"net/http"
+	"strings"
 )
 
 // 路由定义
@@ -26,7 +27,7 @@ func (rt *Router) Start() {
 // pattern path
 // callback  where path should be handle
 func (rt *Router) Add(pattern string, callback func(w http.ResponseWriter, r *http.Request), middleware ...func(w http.ResponseWriter, r *http.Request)) {
-	r := route{pattern: pattern, callback: callback}
+	r := route{pattern: strings.ToLower(pattern), callback: callback}
 	for _, m := range middleware {
 		r.middlewares = append(r.middlewares, m)
 	}

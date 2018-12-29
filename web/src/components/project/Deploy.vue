@@ -17,7 +17,7 @@
       <el-table-column prop="operation" label="操作" width="210">
         <template slot-scope="scope">
           <el-button size="small" type="primary">编辑</el-button>
-          <el-button size="small" type="success">发布</el-button>
+          <el-button size="small" type="success" @click="publish(scope.row.id)">发布</el-button>
           <el-button size="small" type="danger">回滚</el-button>
         </template>
       </el-table-column>
@@ -68,7 +68,7 @@
 </template>
 <script>
 import {get as getProject, branch, commit} from '@/api/project';
-import {get as getDeploy, add} from '@/api/deploy';
+import {get as getDeploy, publish, add} from '@/api/deploy';
 import {parseTime} from '@/utils/time';
 
 const TYPE = ['', '全量上线'];
@@ -136,6 +136,16 @@ export default {
     },
     selectLabel(label) {
       this.form.commit = label;
+    },
+    publish(id) {
+      publish(id).then((response) => {
+        this.$message({
+          message: response.data.message,
+          type: 'success',
+          duration: 5 * 1000,
+        });
+        this.getDeploy();
+      });
     },
     add() {
       this.$refs.form.validate((valid) => {

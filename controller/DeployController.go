@@ -30,6 +30,23 @@ func (deploy *Deploy) Get(w http.ResponseWriter, r *http.Request) {
 	response.Json(w)
 }
 
+// Publish the project
+func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
+	type RepData struct {
+		Deploys model.Deploys `json:"deployList"`
+	}
+
+	model := model.Deploys{}
+	err := model.Query()
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Data: RepData{Deploys: model}}
+	response.Json(w)
+}
+
 // Add one deploy item
 func (deploy *Deploy) Add(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
