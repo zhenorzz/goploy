@@ -43,21 +43,11 @@ export const asyncRouterMap = [
     },
     children: [
       {
-        path: '/project/commit',
-        name: '项目提交',
-        component: () => import('@/components/project/commit'),
-        meta: {
-          title: '项目提交',
-          icon: 'commit',
-          roles: ['admin'],
-        },
-      },
-      {
         path: '/project/deploy',
-        name: '项目审核',
+        name: '项目部署',
         component: () => import('@/components/project/deploy'),
         meta: {
-          title: '项目审核',
+          title: '项目部署',
           icon: 'deploy',
           roles: ['admin'],
         },

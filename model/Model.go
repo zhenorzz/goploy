@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// NewDB return db model
 func NewDB() *sql.DB {
 	dbType := os.Getenv("DB_TYPE")
 	dbConn := os.Getenv("DB_CONN")

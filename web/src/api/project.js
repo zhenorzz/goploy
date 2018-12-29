@@ -24,24 +24,27 @@ export function create(id) {
 }
 
 /**
+ * @param  {id} id
  * @return {Promise}
  */
-export function branch() {
+export function branch(id) {
   return request({
     url: '/project/branch',
-    method: 'get',
-    params: {},
+    method: 'post',
+    data: {id},
   });
 }
 
 /**
+ * @param  {id} id
+ * @param  {string} branch
  * @return {Promise}
  */
-export function commit() {
+export function commit(id, branch) {
   return request({
     url: '/project/commit',
-    method: 'get',
-    params: {},
+    method: 'post',
+    data: {id, branch},
   });
 }
 

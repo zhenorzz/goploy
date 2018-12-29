@@ -69,6 +69,9 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 
 // Branch list in this project
 func (project *Project) Branch(w http.ResponseWriter, r *http.Request) {
+	type ReqData struct {
+		ID uint32 `json:"id"`
+	}
 	type Branch struct {
 		Name string `json:"name"`
 	}
@@ -76,14 +79,33 @@ func (project *Project) Branch(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		Branches Branches `json:"branchList"`
 	}
-	resp, err := http.Get("https://api.github.com/repos/zhenorzz/godis/branches")
+
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	projectModel := model.Project{
+		ID: reqData.ID,
+	}
+	err = projectModel.QueryRow()
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	url := "https://api.github.com/repos/" + projectModel.Owner + "/" + projectModel.Project + "/branches"
+	resp, err := http.Get(url)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err = ioutil.ReadAll(resp.Body)
 	var branches Branches
 	err = json.Unmarshal(body, &branches)
 	if err != nil {
@@ -97,6 +119,10 @@ func (project *Project) Branch(w http.ResponseWriter, r *http.Request) {
 
 // Commit list in this Branch
 func (project *Project) Commit(w http.ResponseWriter, r *http.Request) {
+	type ReqData struct {
+		ID     uint32 `json:"id"`
+		Branch string `json:"branch"`
+	}
 	type Commits struct {
 		Sha    string `json:"sha"`
 		NodeID string `json:"node_id"`
@@ -116,14 +142,32 @@ func (project *Project) Commit(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		Commits []Commits `json:"commitList"`
 	}
-	resp, err := http.Get("https://api.github.com/repos/zhenorzz/godis/commits?sha=btree")
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	projectModel := model.Project{
+		ID: reqData.ID,
+	}
+	err = projectModel.QueryRow()
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	url := "https://api.github.com/repos/" + projectModel.Owner + "/" + projectModel.Project + "/commits?sha=" + reqData.Branch
+	resp, err := http.Get(url)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err = ioutil.ReadAll(resp.Body)
 	var commits []Commits
 	err = json.Unmarshal(body, &commits)
 	if err != nil {

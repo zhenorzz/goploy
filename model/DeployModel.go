@@ -39,7 +39,7 @@ func (d *Deploy) AddRow() error {
 		d.CreateTime,
 		d.UpdateTime,
 		core.GolbalUserID,
-		core.GolbalUserID,
+		0,
 	)
 	id, err := result.LastInsertId()
 	d.ID = uint32(id)
