@@ -1,6 +1,8 @@
 package model
 
 import (
+	"errors"
+
 	"github.com/zhenorzz/goploy/core"
 )
 
@@ -86,6 +88,29 @@ func (d *Deploys) Query() error {
 			return err
 		}
 		*d = append(*d, deploy)
+	}
+	return nil
+}
+
+// QueryRow add deploy information to d *Deploy
+func (d *Deploy) QueryRow() error {
+	db := NewDB()
+	err := db.QueryRow(`SELECT 
+			project_id, 
+			branch, 
+			commit, 
+			commit_sha, 
+			type, 
+			status
+		FROM deploy WHERE id = ?`, d.ID).Scan(
+		&d.ProjectID,
+		&d.Branch,
+		&d.Commit,
+		&d.CommitSha,
+		&d.Type,
+		&d.Status)
+	if err != nil {
+		return errors.New("数据查询失败")
 	}
 	return nil
 }

@@ -2,8 +2,11 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"os/exec"
 	"time"
 
 	"github.com/zhenorzz/goploy/core"
@@ -32,18 +35,51 @@ func (deploy *Deploy) Get(w http.ResponseWriter, r *http.Request) {
 
 // Publish the project
 func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
-	type RepData struct {
-		Deploys model.Deploys `json:"deployList"`
+	type ReqData struct {
+		ID uint32 `json:"id"`
 	}
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(r.Body)
 
-	model := model.Deploys{}
-	err := model.Query()
-	if err != nil {
+	if err := json.Unmarshal(body, &reqData); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
-	response := core.Response{Data: RepData{Deploys: model}}
+	deployModel := model.Deploy{
+		ID: reqData.ID,
+	}
+
+	if err := deployModel.QueryRow(); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
+	projectModel := model.Project{
+		ID: deployModel.ProjectID,
+	}
+
+	if err := projectModel.QueryRow(); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
+	if projectModel.Status != 2 {
+		response := core.Response{Code: 1, Message: "项目尚未初始化"}
+		response.Json(w)
+		return
+	}
+	srcPath := "./repository/" + projectModel.Owner + "/" + projectModel.Repository
+	descPath := ""
+	cmd := exec.Command("rsync", "-rtv", srcPath, descPath)
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Println(err)
+		return
+	}
+	response := core.Response{Message: "部署中，请稍后"}
 	response.Json(w)
 }
 

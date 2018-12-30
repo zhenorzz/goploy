@@ -66,7 +66,7 @@ func (p *Projects) Query() error {
 // QueryRow add project information to p *Project
 func (p *Project) QueryRow() error {
 	db := NewDB()
-	err := db.QueryRow("SELECT project, owner, repository, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&p.Project, &p.Owner, &p.Repository, &p.CreateTime, &p.UpdateTime)
+	err := db.QueryRow("SELECT project, owner, repository, status, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&p.Project, &p.Owner, &p.Repository, &p.Status, &p.CreateTime, &p.UpdateTime)
 	if err != nil {
 		return errors.New("数据查询失败")
 	}
