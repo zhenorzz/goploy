@@ -46,7 +46,9 @@
         200
       ],
       "linebreak-style": 0,
-      "no-console": "off"
+      "no-console": "off",
+      "vue/no-use-v-if-with-v-for": "off",
+      "vue/require-component-is": 0
     },
     "parserOptions": {
       "parser": "babel-eslint"
