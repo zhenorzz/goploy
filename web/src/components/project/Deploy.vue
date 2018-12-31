@@ -5,6 +5,7 @@
     </el-row>
     <el-table :data="tableData" style="width: 100%">
       <el-table-column prop="project" label="项目名称"></el-table-column>
+      <el-table-column prop="serverName" label="服务器" show-overflow-tooltip></el-table-column>
       <el-table-column prop="branch" label="分支"></el-table-column>
       <el-table-column prop="commit" label="提交信息" show-overflow-tooltip></el-table-column>
       <el-table-column prop="commitSha" label="sha" show-overflow-tooltip></el-table-column>
@@ -25,7 +26,7 @@
     <el-dialog title="提交项目" :visible.sync="dialogFormVisible">
       <el-form ref="form" :rules="form.rules" :model="form">
         <el-form-item label="项目仓库" label-width="120px" prop="projectId">
-          <el-select v-model="form.projectId" placeholder="选择项目仓库" @change="selectBranch">
+          <el-select v-model="form.projectId" placeholder="选择项目仓库" @change="selectProject">
             <el-option
               v-for="(item, index) in projectOption"
               :key="index"
@@ -35,7 +36,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="分支" label-width="120px" prop="branch">
-          <el-select v-model="form.branch" placeholder="选择分支" @change="selectCommit">
+          <el-select v-model="form.branch" placeholder="选择分支" @change="selectBranch">
             <el-option
               v-for="(item, index) in branchOption"
               :key="index"
@@ -45,13 +46,23 @@
           </el-select>
         </el-form-item>
         <el-form-item label="提交" label-width="120px" prop="commitSha">
-          <el-select v-model="form.commitSha" placeholder="选择Commit">
+          <el-select v-model="form.commitSha" placeholder="选择Commit" @change="selectCommit">
             <el-option
               v-for="(item, index) in commitOption"
               :key="index"
               :label="item.commit.committer.name + ' : ' + item.commit.message + ' : ' + item.sha.substring(0, 10)"
               :value="item.sha"
               @click.native="selectLabel(item.commit.committer.name + ' : ' + item.commit.message + ' : ' + item.sha.substring(0, 10))"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="服务器" label-width="120px" prop="serverId">
+          <el-select v-model="form.serverId" placeholder="选择服务器">
+            <el-option
+              v-for="(item, index) in serverOption"
+              :key="index"
+              :label="item.name"
+              :value="item.id"
             ></el-option>
           </el-select>
         </el-form-item>
@@ -69,6 +80,7 @@
 <script>
 import {get as getProject, branch, commit} from '@/api/project';
 import {get as getDeploy, publish, add} from '@/api/deploy';
+import {get as getServer} from '@/api/server';
 import {parseTime} from '@/utils/time';
 
 const TYPE = ['', '全量上线'];
@@ -81,12 +93,14 @@ export default {
       projectOption: [],
       branchOption: [],
       commitOption: [],
+      serverOption: [],
       form: {
         disabled: false,
         projectId: '',
         branch: '',
         commit: '',
         commitSha: '',
+        serverId: '',
         type: 1,
         rules: {
           projectId: [
@@ -100,6 +114,9 @@ export default {
           ],
           type: [
             {required: true, message: '请选择类型', trigger: 'change'},
+          ],
+          serverId: [
+            {required: true, message: '请选择服务器', trigger: 'change'},
           ],
         },
       },
@@ -124,14 +141,19 @@ export default {
         this.tableData = deployList;
       });
     },
-    selectBranch() {
+    selectProject() {
       branch(this.form.projectId).then((response) => {
         this.branchOption = response.data.data.branchList;
       });
     },
-    selectCommit() {
+    selectBranch() {
       commit(this.form.projectId, this.form.branch).then((response) => {
         this.commitOption = response.data.data.commitList;
+      });
+    },
+    selectCommit() {
+      getServer().then((response) => {
+        this.serverOption = response.data.data.serverList;
       });
     },
     selectLabel(label) {
@@ -151,7 +173,7 @@ export default {
       this.$refs.form.validate((valid) => {
         if (valid) {
           this.form.disabled = true;
-          add(this.form.projectId, this.form.branch, this.form.commit, this.form.commitSha, this.form.type).then((response) => {
+          add(this.form.projectId, this.form.branch, this.form.commit, this.form.commitSha, this.form.serverId, this.form.type).then((response) => {
             this.getDeploy();
             this.form.disabled = this.dialogFormVisible = false;
             this.$message({

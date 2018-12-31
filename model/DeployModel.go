@@ -14,6 +14,8 @@ type Deploy struct {
 	Branch     string `json:"branch"`
 	Commit     string `json:"commit"`
 	CommitSha  string `json:"commitSha"`
+	ServerID   string `json:"serverId"`
+	ServerName string `json:"serverName"`
 	Type       uint8  `json:"type"`
 	Status     uint8  `json:"status"`
 	CreateTime int64  `json:"createTime"`
@@ -29,11 +31,12 @@ type Deploys []Deploy
 func (d *Deploy) AddRow() error {
 	db := NewDB()
 	result, err := db.Exec(
-		"INSERT INTO deploy (project_id, branch, commit, commit_sha, type, status, create_time, update_time, creator, editor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO deploy (project_id, branch, commit, commit_sha, server_id, type, status, create_time, update_time, creator, editor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		d.ProjectID,
 		d.Branch,
 		d.Commit,
 		d.CommitSha,
+		d.ServerID,
 		d.Type,
 		0,
 		d.CreateTime,
@@ -56,6 +59,8 @@ func (d *Deploys) Query() error {
 		deploy.branch, 
 		deploy.commit, 
 		deploy.commit_sha, 
+		deploy.server_id, 
+		server.name as server_name,
 		deploy.type, 
 		deploy.status, 
 		deploy.create_time, 
@@ -64,6 +69,7 @@ func (d *Deploys) Query() error {
 		COALESCE(editor.name, '') as name
 		FROM deploy 
 		LEFT JOIN project on project.id = deploy.project_id
+		LEFT JOIN server on server.id = deploy.server_id
 		LEFT JOIN user AS creator ON deploy.creator = creator.id
 		LEFT JOIN user AS editor ON deploy.editor = editor.id
 		`)
@@ -79,6 +85,8 @@ func (d *Deploys) Query() error {
 			&deploy.Branch,
 			&deploy.Commit,
 			&deploy.CommitSha,
+			&deploy.ServerID,
+			&deploy.ServerName,
 			&deploy.Type,
 			&deploy.Status,
 			&deploy.CreateTime,
@@ -100,6 +108,7 @@ func (d *Deploy) QueryRow() error {
 			branch, 
 			commit, 
 			commit_sha, 
+			server_id, 
 			type, 
 			status
 		FROM deploy WHERE id = ?`, d.ID).Scan(
@@ -107,6 +116,7 @@ func (d *Deploy) QueryRow() error {
 		&d.Branch,
 		&d.Commit,
 		&d.CommitSha,
+		&d.ServerID,
 		&d.Type,
 		&d.Status)
 	if err != nil {

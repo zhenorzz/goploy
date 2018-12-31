@@ -28,10 +28,11 @@ export function publish(id) {
  * @param  {string} branch
  * @param  {string} commit
  * @param  {string} commitSha
+ * @param  {int}    serverId
  * @param  {int}    type
  * @return {Promise}
  */
-export function add(projectId, branch, commit, commitSha, type) {
+export function add(projectId, branch, commit, commitSha, serverId, type) {
   return request({
     url: '/deploy/add',
     method: 'post',
@@ -40,6 +41,7 @@ export function add(projectId, branch, commit, commitSha, type) {
       branch: branch,
       commit: commit,
       commitSha: commitSha,
+      serverId: serverId,
       type: type,
     },
   });
