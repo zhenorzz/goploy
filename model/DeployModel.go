@@ -14,7 +14,7 @@ type Deploy struct {
 	Branch     string `json:"branch"`
 	Commit     string `json:"commit"`
 	CommitSha  string `json:"commitSha"`
-	ServerID   string `json:"serverId"`
+	ServerID   uint32 `json:"serverId"`
 	ServerName string `json:"serverName"`
 	Type       uint8  `json:"type"`
 	Status     uint8  `json:"status"`
@@ -31,7 +31,7 @@ type Deploys []Deploy
 func (d *Deploy) AddRow() error {
 	db := NewDB()
 	result, err := db.Exec(
-		"INSERT INTO deploy (project_id, branch, commit, commit_sha, server_id, type, status, create_time, update_time, creator, editor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO deploy (project_id, branch, commit, commit_sha, server_id, type, status, create_time, update_time, creator, editor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		d.ProjectID,
 		d.Branch,
 		d.Commit,
@@ -46,6 +46,17 @@ func (d *Deploy) AddRow() error {
 	)
 	id, err := result.LastInsertId()
 	d.ID = uint32(id)
+	return err
+}
+
+// ChangeStatus for deploy
+func (d *Deploy) ChangeStatus() error {
+	db := NewDB()
+	_, err := db.Exec(
+		"UPDATE deploy SET status = ? where id = ?",
+		d.Status,
+		d.ID,
+	)
 	return err
 }
 

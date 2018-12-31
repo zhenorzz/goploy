@@ -35,13 +35,11 @@ func (p *Project) AddRow() error {
 // ChangeStatus for project
 func (p *Project) ChangeStatus() error {
 	db := NewDB()
-	result, err := db.Exec(
+	_, err := db.Exec(
 		"UPDATE project SET status = ? where id = ?",
 		p.Status,
 		p.ID,
 	)
-	id, err := result.LastInsertId()
-	p.ID = uint32(id)
 	return err
 }
 

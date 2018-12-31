@@ -70,17 +70,38 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	srcPath := "./repository/" + projectModel.Owner + "/" + projectModel.Repository
-	descPath := "root@129.204.80.253:/home/ubuntu/data"
-	cmd := exec.Command("rsync", "-rtv", srcPath, descPath)
-	// cmd.Stderr = os.Stderr
-	var outbuf, errbuf bytes.Buffer
-	cmd.Stdout = &outbuf
-	cmd.Stderr = &errbuf
-	if err := cmd.Run(); err != nil {
-		core.Log(core.ERROR, errbuf.String())
+
+	serverModel := model.Server{
+		ID: deployModel.ServerID,
+	}
+
+	if err := serverModel.QueryRow(); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
 		return
 	}
+
+	srcPath := "./repository/" + projectModel.Owner + "/" + projectModel.Repository
+	destPath := serverModel.Owner + "@" + serverModel.IP + ":" + serverModel.Path
+	go func(deployID uint32, srcPath, destPath string) {
+		deployModel := model.Deploy{
+			ID: deployID,
+		}
+		cmd := exec.Command("rsync", "-rtv", srcPath, destPath)
+		// cmd.Stderr = os.Stderr
+		var outbuf, errbuf bytes.Buffer
+		cmd.Stdout = &outbuf
+		cmd.Stderr = &errbuf
+		if err := cmd.Run(); err != nil {
+			deployModel.Status = 4
+			_ = deployModel.ChangeStatus()
+			core.Log(core.ERROR, errbuf.String())
+			return
+		}
+		deployModel.Status = 2
+		_ = deployModel.ChangeStatus()
+	}(deployModel.ID, srcPath, destPath)
+
 	response := core.Response{Message: "部署中，请稍后"}
 	response.Json(w)
 }
@@ -92,6 +113,7 @@ func (deploy *Deploy) Add(w http.ResponseWriter, r *http.Request) {
 		Branch    string `json:"branch"`
 		Commit    string `json:"commit"`
 		CommitSha string `json:"commitSha"`
+		ServerID  uint32 `json:"serverID"`
 		Type      uint8  `json:"type"`
 	}
 	var reqData ReqData
@@ -107,6 +129,7 @@ func (deploy *Deploy) Add(w http.ResponseWriter, r *http.Request) {
 		Branch:     reqData.Branch,
 		Commit:     reqData.Commit,
 		CommitSha:  reqData.CommitSha,
+		ServerID:   reqData.ServerID,
 		Type:       reqData.Type,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
