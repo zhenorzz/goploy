@@ -1,11 +1,10 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"os/exec"
 	"time"
 
@@ -72,11 +71,14 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	srcPath := "./repository/" + projectModel.Owner + "/" + projectModel.Repository
-	descPath := ""
+	descPath := "root@129.204.80.253:/home/ubuntu/data"
 	cmd := exec.Command("rsync", "-rtv", srcPath, descPath)
-	cmd.Stderr = os.Stderr
+	// cmd.Stderr = os.Stderr
+	var outbuf, errbuf bytes.Buffer
+	cmd.Stdout = &outbuf
+	cmd.Stderr = &errbuf
 	if err := cmd.Run(); err != nil {
-		fmt.Println(err)
+		core.Log(core.ERROR, errbuf.String())
 		return
 	}
 	response := core.Response{Message: "部署中，请稍后"}
