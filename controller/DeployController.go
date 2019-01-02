@@ -125,7 +125,7 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 			core.Log(core.ERROR, resetErrbuf.String())
 			return
 		}
-		cmd := exec.Command("rsync", "-rtv", srcPath, destPath)
+		cmd := exec.Command("rsync", "-rtv", "--delete", srcPath, destPath)
 		var outbuf, errbuf bytes.Buffer
 		cmd.Stdout = &outbuf
 		cmd.Stderr = &errbuf
@@ -136,7 +136,10 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 			core.Log(core.ERROR, errbuf.String())
 			return
 		}
-		_ = deployModel.Publish()
+		core.Log(core.TRACE, "deployID:"+strconv.FormatUint(uint64(deployID), 10)+" change publish status")
+		if err := deployModel.Publish(); err != nil {
+			core.Log(core.ERROR, err.Error())
+		}
 	}(deployModel.ID, srcPath, destPath, sha)
 	deployModel.Status = 1
 	_ = deployModel.ChangeStatus()
