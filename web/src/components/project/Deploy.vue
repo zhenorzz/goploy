@@ -84,7 +84,7 @@ import {get as getServer} from '@/api/server';
 import {parseTime} from '@/utils/time';
 
 const TYPE = ['', '全量上线'];
-const STATUS = ['提交', '审核成功', '审核失败', '发布成功', '发布失败', '撤回'];
+const STATUS = ['提交', '发布中', '发布成功', '发布失败', '撤回'];
 export default {
   data() {
     return {

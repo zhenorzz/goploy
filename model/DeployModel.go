@@ -60,6 +60,18 @@ func (d *Deploy) ChangeStatus() error {
 	return err
 }
 
+// Publish will change the status to 2 and editor to GolbalUserID
+func (d *Deploy) Publish() error {
+	db := NewDB()
+	_, err := db.Exec(
+		"UPDATE deploy SET status = ?, editor = ? where id = ?",
+		2,
+		core.GolbalUserID,
+		d.ID,
+	)
+	return err
+}
+
 // Query user row
 func (d *Deploys) Query() error {
 	db := NewDB()

@@ -93,15 +93,15 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		cmd.Stdout = &outbuf
 		cmd.Stderr = &errbuf
 		if err := cmd.Run(); err != nil {
-			deployModel.Status = 4
+			deployModel.Status = 3
 			_ = deployModel.ChangeStatus()
 			core.Log(core.ERROR, errbuf.String())
 			return
 		}
-		deployModel.Status = 2
-		_ = deployModel.ChangeStatus()
+		_ = deployModel.Publish()
 	}(deployModel.ID, srcPath, destPath)
-
+	deployModel.Status = 1
+	_ = deployModel.ChangeStatus()
 	response := core.Response{Message: "部署中，请稍后"}
 	response.Json(w)
 }
