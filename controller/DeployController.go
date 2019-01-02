@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os/exec"
+	"strconv"
 	"time"
 
 	"github.com/zhenorzz/goploy/core"
@@ -83,15 +84,52 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 
 	srcPath := "./repository/" + projectModel.Owner + "/" + projectModel.Repository
 	destPath := serverModel.Owner + "@" + serverModel.IP + ":" + serverModel.Path
-	go func(deployID uint32, srcPath, destPath string) {
+	sha := deployModel.CommitSha
+	go func(deployID uint32, srcPath, destPath, sha string) {
 		deployModel := model.Deploy{
 			ID: deployID,
 		}
+		clean := exec.Command("git", "clean", "-f")
+		clean.Dir = srcPath
+		var cleanOutbuf, cleanErrbuf bytes.Buffer
+		clean.Stdout = &cleanOutbuf
+		clean.Stderr = &cleanErrbuf
+		core.Log(core.TRACE, "deployID:"+strconv.FormatUint(uint64(deployID), 10)+" git clean -f")
+		if err := clean.Run(); err != nil {
+			deployModel.Status = 3
+			_ = deployModel.ChangeStatus()
+			core.Log(core.ERROR, cleanErrbuf.String())
+			return
+		}
+		pull := exec.Command("git", "pull")
+		pull.Dir = srcPath
+		var pullOutbuf, pullErrbuf bytes.Buffer
+		pull.Stdout = &pullOutbuf
+		pull.Stderr = &pullErrbuf
+		core.Log(core.TRACE, "deployID:"+strconv.FormatUint(uint64(deployID), 10)+" git pull")
+		if err := pull.Run(); err != nil {
+			deployModel.Status = 3
+			_ = deployModel.ChangeStatus()
+			core.Log(core.ERROR, pullErrbuf.String())
+			return
+		}
+		reset := exec.Command("git", "reset", "--hard", sha)
+		reset.Dir = srcPath
+		var resetOutbuf, resetErrbuf bytes.Buffer
+		reset.Stdout = &resetOutbuf
+		reset.Stderr = &resetErrbuf
+		core.Log(core.TRACE, "deployID:"+strconv.FormatUint(uint64(deployID), 10)+" git reset")
+		if err := reset.Run(); err != nil {
+			deployModel.Status = 3
+			_ = deployModel.ChangeStatus()
+			core.Log(core.ERROR, resetErrbuf.String())
+			return
+		}
 		cmd := exec.Command("rsync", "-rtv", srcPath, destPath)
-		// cmd.Stderr = os.Stderr
 		var outbuf, errbuf bytes.Buffer
 		cmd.Stdout = &outbuf
 		cmd.Stderr = &errbuf
+		core.Log(core.TRACE, "deployID:"+strconv.FormatUint(uint64(deployID), 10)+" rsync -rtv")
 		if err := cmd.Run(); err != nil {
 			deployModel.Status = 3
 			_ = deployModel.ChangeStatus()
@@ -99,7 +137,7 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		_ = deployModel.Publish()
-	}(deployModel.ID, srcPath, destPath)
+	}(deployModel.ID, srcPath, destPath, sha)
 	deployModel.Status = 1
 	_ = deployModel.ChangeStatus()
 	response := core.Response{Message: "部署中，请稍后"}
