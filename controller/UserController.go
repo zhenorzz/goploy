@@ -85,3 +85,57 @@ func (user *User) createToken(id uint32) (string, error) {
 	//Sign and get the complete encoded token as string
 	return tokenString, err
 }
+
+// Get user list
+func (user *User) Get(w http.ResponseWriter, r *http.Request) {
+	type RepData struct {
+		User model.Users `json:"userList"`
+	}
+
+	model := model.Users{}
+	err := model.Query()
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Data: RepData{User: model}}
+	response.Json(w)
+}
+
+// Add one user
+func (user *User) Add(w http.ResponseWriter, r *http.Request) {
+	type ReqData struct {
+		Account  string `json:"account"`
+		Password string `json:"password"`
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Role     string `json:"role"`
+	}
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	model := model.User{
+		Account:    reqData.Account,
+		Password:   reqData.Password,
+		Name:       reqData.Name,
+		Email:      reqData.Email,
+		Role:       reqData.Role,
+		CreateTime: time.Now().Unix(),
+		UpdateTime: time.Now().Unix(),
+	}
+	err = model.AddRow()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Message: "添加成功"}
+	response.Json(w)
+}

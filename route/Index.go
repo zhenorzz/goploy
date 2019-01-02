@@ -11,6 +11,8 @@ func Init() {
 	rt.Middleware(CheckToken)
 	rt.Add("/user/login", new(controller.User).Login)
 	rt.Add("/user/info", new(controller.User).Info)
+	rt.Add("/user/get", new(controller.User).Get)
+	rt.Add("/user/add", new(controller.User).Add)
 
 	// project route
 	rt.Add("/project/get", new(controller.Project).Get)

@@ -109,7 +109,7 @@ export const asyncRouterMap = [
       {
         path: '/user/list',
         name: '成员列表',
-        component: () => import('@/components/BaseAdmin'),
+        component: () => import('@/components/user/list'),
         meta: {
           title: '成员列表',
           icon: 'list',
