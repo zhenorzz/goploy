@@ -89,17 +89,22 @@ func (user *User) createToken(id uint32) (string, error) {
 // Get user list
 func (user *User) Get(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
-		User model.Users `json:"userList"`
+		User       model.Users      `json:"userList"`
+		Pagination model.Pagination `json:"pagination"`
 	}
-
-	model := model.Users{}
-	err := model.Query()
+	userModel := model.Users{}
+	pagination, err := model.NewPagination(r.URL.Query())
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
-	response := core.Response{Data: RepData{User: model}}
+	if err := userModel.Query(pagination); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Data: RepData{User: userModel, Pagination: *pagination}}
 	response.Json(w)
 }
 

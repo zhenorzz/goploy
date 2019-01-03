@@ -12,13 +12,16 @@ export function getInfo() {
 }
 
 /**
+ * @param  {object} pagination
  * @return {Promise}
  */
-export function get() {
+export function get(pagination) {
   return request({
     url: '/user/get',
     method: 'get',
-    params: {},
+    params: {
+      ...pagination,
+    },
   });
 }
 

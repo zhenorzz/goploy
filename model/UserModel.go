@@ -33,9 +33,12 @@ func (u *User) QueryRow() error {
 }
 
 // Query user row
-func (u *Users) Query() error {
+func (u *Users) Query(pagination *Pagination) error {
 	db := NewDB()
-	rows, err := db.Query("SELECT id, account, name, email, role, create_time, update_time FROM user")
+	rows, err := db.Query(
+		"SELECT id, account, name, email, role, create_time, update_time FROM user ORDER BY id DESC LIMIT ?, ?",
+		(pagination.Page-1)*pagination.Rows,
+		pagination.Rows)
 	if err != nil {
 		return err
 	}
@@ -46,6 +49,13 @@ func (u *Users) Query() error {
 			return err
 		}
 		*u = append(*u, user)
+	}
+	rows, err = db.Query(`SELECT COUNT(*) AS count FROM user`)
+	if err != nil {
+		return err
+	}
+	if rows.Next() {
+		rows.Scan(&pagination.Total)
 	}
 	return nil
 }

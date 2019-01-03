@@ -17,6 +17,16 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-row type="flex" justify="end" style="margin-top: 10px;">
+      <el-pagination
+        v-show="pagination.total>pagination.rows"
+        :total="pagination.total"
+        :page-size="pagination.rows"
+        background
+        layout="prev, pager, next"
+        @current-change="handleCurrentChange"
+      />
+    </el-row>
     <el-dialog title="新增成员" :visible.sync="dialogFormVisible">
       <el-form ref="form" :rules="form.rules" :model="form">
         <el-form-item label="账号" label-width="120px" prop="account">
@@ -54,6 +64,11 @@ export default {
     return {
       dialogFormVisible: false,
       tableData: [],
+      pagination: {
+        page: 1,
+        rows: 11,
+        total: 0,
+      },
       form: {
         disabled: false,
         account: '',
@@ -86,14 +101,20 @@ export default {
   },
   methods: {
     getUserList() {
-      get().then((response) => {
+      get(this.pagination).then((response) => {
         const userList = response.data.data.userList;
         userList.forEach((element) => {
           element.createTime = parseTime(element.createTime);
           element.updateTime = parseTime(element.updateTime);
         });
         this.tableData = userList;
+        this.pagination = response.data.data.pagination;
       });
+    },
+    // 分页事件
+    handleCurrentChange(val) {
+      this.pagination.page = val;
+      this.getUserList();
     },
     add() {
       this.$refs.form.validate((valid) => {
