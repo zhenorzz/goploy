@@ -10,7 +10,7 @@
       <el-table-column prop="owner" label="sshKey所有者" show-overflow-tooltip></el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="160"></el-table-column>
       <el-table-column prop="updateTime" label="更新时间" width="160"></el-table-column>
-      <el-table-column prop="operation" label="操作" width="210">
+      <el-table-column prop="operation" label="操作" width="150">
         <template slot-scope="scope">
           <el-button size="small" type="primary">编辑</el-button>
           <el-button size="small" type="danger">删除</el-button>

@@ -61,29 +61,19 @@ func (user *User) Info(w http.ResponseWriter, r *http.Request) {
 	}
 	type RepData struct {
 		UserInfo struct {
-			ID   uint32 `json:"id"`
-			Name string `json:"name"`
-			Role string `json:"role"`
+			ID      uint32 `json:"id"`
+			Account string `json:"account"`
+			Name    string `json:"name"`
+			Role    string `json:"role"`
 		} `json:"userInfo"`
 	}
 	data := RepData{}
 	data.UserInfo.ID = core.GolbalUserID
 	data.UserInfo.Name = model.Name
 	data.UserInfo.Role = model.Role
+	data.UserInfo.Account = model.Account
 	response := core.Response{Data: data}
 	response.Json(w)
-}
-
-func (user *User) createToken(id uint32) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":  id,
-		"exp": time.Now().Add(time.Hour * 72).Unix(),
-		"nbf": time.Now().Unix(),
-	})
-	tokenString, err := token.SignedString([]byte(os.Getenv("SIGN_KEY")))
-
-	//Sign and get the complete encoded token as string
-	return tokenString, err
 }
 
 // Get user list
@@ -143,4 +133,50 @@ func (user *User) Add(w http.ResponseWriter, r *http.Request) {
 	}
 	response := core.Response{Message: "添加成功"}
 	response.Json(w)
+}
+
+// ChangePassword doc
+func (user *User) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	type ReqData struct {
+		Account     string `json:"account"`
+		OldPassword string `json:"oldPwd"`
+		NewPassword string `json:"newPwd"`
+	}
+	type RepData struct {
+		Token string `json:"token"`
+	}
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	userModel := model.User{Account: reqData.Account, Password: reqData.OldPassword}
+	if err := userModel.Vaildate(); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
+	if err := userModel.UpdatePassword(reqData.NewPassword); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Message: "修改成功"}
+	response.Json(w)
+}
+
+func (user *User) createToken(id uint32) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":  id,
+		"exp": time.Now().Add(time.Hour * 72).Unix(),
+		"nbf": time.Now().Unix(),
+	})
+	tokenString, err := token.SignedString([]byte(os.Getenv("SIGN_KEY")))
+
+	//Sign and get the complete encoded token as string
+	return tokenString, err
 }

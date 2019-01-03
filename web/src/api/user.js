@@ -46,3 +46,21 @@ export function add(account, password, name, email, role) {
     },
   });
 }
+
+/**
+ * @param  {string} account
+ * @param  {string} oldPwd
+ * @param  {string} newPwd
+ * @return {Promise}
+ */
+export function changePassword(account, oldPwd, newPwd) {
+  return request({
+    url: '/user/changePassword',
+    method: 'post',
+    data: {
+      account,
+      oldPwd,
+      newPwd,
+    },
+  });
+}

@@ -1,4 +1,4 @@
-import {login, logout} from '@/api/login';
+import {login} from '@/api/login';
 import {getToken, setToken, removeToken} from '@/utils/auth';
 import {getInfo} from '@/api/user';
 
@@ -7,6 +7,7 @@ const user = {
     token: getToken(),
     id: 0,
     name: '',
+    account: '',
     role: '',
   },
 
@@ -16,6 +17,9 @@ const user = {
     },
     SET_ID: (state, id) => {
       state.id = id;
+    },
+    SET_ACCOUNT: (state, account) => {
+      state.account = account;
     },
     SET_NAME: (state, name) => {
       state.name = name;
@@ -50,19 +54,8 @@ const user = {
           commit('SET_ID', userInfo.id);
           commit('SET_NAME', userInfo.name);
           commit('SET_ROLE', userInfo.role);
+          commit('SET_ACCOUNT', userInfo.account);
           resolve(responseData.data);
-        }).catch((error) => {
-          reject(error);
-        });
-      });
-    },
-    // 登出
-    LogOut({commit, state}) {
-      return new Promise((resolve, reject) => {
-        logout(state.token).then(() => {
-          commit('SET_TOKEN', '');
-          removeToken();
-          resolve();
         }).catch((error) => {
           reject(error);
         });

@@ -25,7 +25,7 @@ type Users []User
 // QueryRow add user information to u *User
 func (u *User) QueryRow() error {
 	db := NewDB()
-	err := db.QueryRow("SELECT name, role FROM user WHERE id = ? AND state = ?", u.ID, 1).Scan(&u.Name, &u.Role)
+	err := db.QueryRow("SELECT account, name, role FROM user WHERE id = ? AND state = ?", u.ID, 1).Scan(&u.Account, &u.Name, &u.Role)
 	if err != nil {
 		return errors.New("数据查询失败")
 	}
@@ -87,18 +87,6 @@ func (u *User) AddRow() error {
 
 // Vaildate if user exists
 func (u *User) Vaildate() error {
-
-	// password := []byte(u.Password)
-
-	// // Hashing the password with the default cost of 10
-	// hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println(string(hashedPassword))
-
-	// Comparing the password with the hash
-
 	var hashPassword string
 	db := NewDB()
 	err := db.QueryRow("SELECT id, password FROM user WHERE account = ?", u.Account).Scan(&u.ID, &hashPassword)
@@ -113,19 +101,19 @@ func (u *User) Vaildate() error {
 	return nil
 }
 
-// func (u *User) QueryMany() {
-// 	db := NewDB()
-// 	rows, err := db.Query("SELECT * FROM ceshi")
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	for rows.Next() {
-// 		var ceshi Ceshi
-
-// 		if err := rows.Scan(&ceshi.id, &ceshi.name); err != nil {
-// 			log.Fatal(err)
-// 		}
-
-// 		*ceshis = append(*ceshis, ceshi)
-// 	}
-// }
+// UpdatePassword return err
+func (u *User) UpdatePassword(newPassword string) error {
+	password := []byte(newPassword)
+	// Hashing the password with the default cost of 10
+	hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	db := NewDB()
+	_, err = db.Exec(
+		"UPDATE user SET password = ? where id = ?",
+		string(hashedPassword),
+		u.ID,
+	)
+	return err
+}

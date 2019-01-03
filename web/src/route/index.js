@@ -30,6 +30,17 @@ export const constantRouterMap = [
     component: Login,
     hidden: true,
   },
+  {
+    path: '/userInfo',
+    component: Layout,
+    hidden: true,
+    children: [{
+      path: '/userInfo',
+      name: '个人信息',
+      component: () => import('@/components/user/info'),
+      meta: {title: '个人信息'},
+    }],
+  },
 ];
 export const asyncRouterMap = [
   {
