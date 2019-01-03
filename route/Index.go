@@ -9,6 +9,11 @@ import (
 func Init() {
 	var rt = new(router.Router)
 	rt.Middleware(CheckToken)
+
+	// home route
+	rt.Add("/index/get", new(controller.Index).Get)
+
+	// user route
 	rt.Add("/user/login", new(controller.User).Login)
 	rt.Add("/user/info", new(controller.User).Info)
 	rt.Add("/user/get", new(controller.User).Get)

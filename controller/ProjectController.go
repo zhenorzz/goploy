@@ -97,7 +97,7 @@ func (project *Project) Branch(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	url := "https://api.github.com/repos/" + projectModel.Owner + "/" + projectModel.Project + "/branches"
+	url := "https://api.github.com/repos/" + projectModel.Owner + "/" + projectModel.Repository + "/branches?access_token=" + os.Getenv("ACCESS_TOKEN")
 	resp, err := http.Get(url)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -159,7 +159,7 @@ func (project *Project) Commit(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	url := "https://api.github.com/repos/" + projectModel.Owner + "/" + projectModel.Project + "/commits?sha=" + reqData.Branch
+	url := "https://api.github.com/repos/" + projectModel.Owner + "/" + projectModel.Repository + "/commits?sha=" + reqData.Branch + "&access_token=" + os.Getenv("ACCESS_TOKEN")
 	resp, err := http.Get(url)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
