@@ -81,7 +81,7 @@ export default {
             {required: true, message: '请输入账号', trigger: 'blur'},
           ],
           password: [
-            {required: true, message: '请输入初始密码', trigger: 'blur'},
+            {required: true, min: 5, message: '不少于5位数', trigger: 'blur'},
           ],
           name: [
             {required: true, message: '请输入名称', trigger: 'blur'},

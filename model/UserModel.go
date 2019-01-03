@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -50,12 +51,9 @@ func (u *Users) Query(pagination *Pagination) error {
 		}
 		*u = append(*u, user)
 	}
-	rows, err = db.Query(`SELECT COUNT(*) AS count FROM user`)
+	err = db.QueryRow(`SELECT COUNT(*) AS count FROM user`).Scan(&pagination.Total)
 	if err != nil {
 		return err
-	}
-	if rows.Next() {
-		rows.Scan(&pagination.Total)
 	}
 	return nil
 }
@@ -63,6 +61,15 @@ func (u *Users) Query(pagination *Pagination) error {
 // AddRow add one row to table user and add id to u.ID
 func (u *User) AddRow() error {
 	db := NewDB()
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) AS count FROM user WHERE account = ?", u.Account).Scan(&count)
+	fmt.Println(count)
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return errors.New("账号已存在")
+	}
 	password := []byte(u.Password)
 
 	// Hashing the password with the default cost of 10
