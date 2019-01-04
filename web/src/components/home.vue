@@ -8,25 +8,25 @@
       <el-col :span="6">
         <el-row class="data-list">
           <el-row class="data-list-title">提交量</el-row>
-          <countTo class="data-list-number" :startVal="0" :endVal="1000" :duration="3000"></countTo>
+          <countTo class="data-list-number" :startVal="0" :endVal="commitNumber" :duration="3000"></countTo>
         </el-row>
       </el-col>
       <el-col :span="6">
         <el-row class="data-list">
           <el-row class="data-list-title">发布量</el-row>
-          <countTo class="data-list-number" :startVal="0" :endVal="1000" :duration="3000"></countTo>
+          <countTo class="data-list-number" :startVal="0" :endVal="deployNumber" :duration="3000"></countTo>
         </el-row>
       </el-col>
       <el-col :span="6">
         <el-row class="data-list">
           <el-row class="data-list-title">回滚量</el-row>
-          <countTo class="data-list-number" :startVal="0" :endVal="1000" :duration="3000"></countTo>
+          <countTo class="data-list-number" :startVal="0" :endVal="backNumber" :duration="3000"></countTo>
         </el-row>
       </el-col>
       <el-col :span="6">
         <el-row class="data-list">
           <el-row class="data-list-title">失败量</el-row>
-          <countTo class="data-list-number" :startVal="0" :endVal="1000" :duration="3000"></countTo>
+          <countTo class="data-list-number" :startVal="0" :endVal="failNumber" :duration="3000"></countTo>
         </el-row>
       </el-col>
     </el-row>
@@ -48,6 +48,10 @@ export default {
   data() {
     return {
       date: parseTime(new Date(), '{y}-{m}-{d}'),
+      commitNumber: 0,
+      deployNumber: 0,
+      failNumber: 0,
+      backNumber: 0,
       setOption: {
         tooltip: {
           axisPointer: {
@@ -132,32 +136,31 @@ export default {
             name: '提交量',
             type: 'line',
             color: '#916DE3',
-            data: [1],
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           },
           {
             name: '发布量',
             type: 'line',
             color: '#87D3AC',
-            data: [1],
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           },
           {
             name: '失败量',
             type: 'line',
             color: '#A9ABAD',
-            data: [1],
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           },
           {
             name: '回滚量',
             type: 'line',
             color: '#5092E1',
-            data: [1],
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           },
         ],
       },
     };
   },
   mounted() {
-    this.drawLine();
     this.get();
   },
   methods: {
@@ -167,7 +170,18 @@ export default {
     },
     get() {
       get(this.date).then((response) => {
-        console.log(response);
+        const charts = response.data.data.charts;
+        charts.forEach((element) => {
+          this.setOption.series[0].data[element.hour] = element.commitNumber;
+          this.setOption.series[1].data[element.hour] = element.deployNumber;
+          this.setOption.series[2].data[element.hour] = element.failNumber;
+          this.setOption.series[3].data[element.hour] = element.backNumber;
+          this.commitNumber += element.commitNumber;
+          this.deployNumber += element.deployNumber;
+          this.failNumber += element.failNumber;
+          this.backNumber += element.backNumber;
+        });
+        this.drawLine();
       });
     },
   },

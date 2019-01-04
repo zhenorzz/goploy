@@ -12,9 +12,10 @@ type Index struct{}
 
 // Get user list
 func (index *Index) Get(w http.ResponseWriter, r *http.Request) {
-	type RepData struct {
+	type RespData struct {
+		Charts model.Charts `json:"charts"`
 	}
-	model := model.Index{}
+	model := model.Charts{}
 	date := r.URL.Query().Get("date")
 	if len(date) != 10 {
 		response := core.Response{Code: 1, Message: "日期参数错误"}
@@ -27,6 +28,7 @@ func (index *Index) Get(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	response := core.Response{}
+
+	response := core.Response{Data: RespData{Charts: model}}
 	response.Json(w)
 }
