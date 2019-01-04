@@ -46,7 +46,8 @@ func (p *Project) ChangeStatus() error {
 // Query user row
 func (p *Projects) Query() error {
 	db := NewDB()
-	rows, err := db.Query("SELECT id, project, owner, repository, status, create_time, update_time FROM project")
+	rows, err := db.Query(
+		"SELECT id, project, owner, repository, status, create_time, update_time FROM project")
 	if err != nil {
 		return err
 	}

@@ -37,9 +37,10 @@ func (project *Project) Get(w http.ResponseWriter, r *http.Request) {
 // Add one project
 func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
-		Owner      string `json:"owner"`
-		Project    string `json:"project"`
-		Repository string `json:"repository"`
+		Owner      string   `json:"owner"`
+		Project    string   `json:"project"`
+		Repository string   `json:"repository"`
+		ServerIDs  []uint32 `json:"serverIds"`
 	}
 	var reqData ReqData
 	body, _ := ioutil.ReadAll(r.Body)
@@ -49,14 +50,32 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	model := model.Project{
+	projectModel := model.Project{
 		Owner:      reqData.Owner,
 		Project:    reqData.Project,
 		Repository: reqData.Repository,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
 	}
-	err = model.AddRow()
+	err = projectModel.AddRow()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
+	projectServersModel := model.ProjectServers{}
+	for _, serverID := range reqData.ServerIDs {
+		projectServerModel := model.ProjectServer{
+			ProjectID:  projectModel.ID,
+			ServerID:   serverID,
+			CreateTime: time.Now().Unix(),
+			UpdateTime: time.Now().Unix(),
+		}
+		projectServersModel = append(projectServersModel, projectServerModel)
+	}
+	err = projectServersModel.AddMany()
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}

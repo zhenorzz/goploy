@@ -73,6 +73,16 @@ export const asyncRouterMap = [
           roles: ['admin'],
         },
       },
+      {
+        path: '/project/detail',
+        name: '项目详情',
+        hidden: true,
+        component: () => import('@/components/project/detail'),
+        meta: {
+          title: '项目详情',
+          roles: ['admin'],
+        },
+      },
     ],
   },
   {

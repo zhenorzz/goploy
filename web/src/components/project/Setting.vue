@@ -12,8 +12,15 @@
       <el-table-column prop="updateTime" label="更新时间"></el-table-column>
       <el-table-column prop="operation" label="操作" width="230">
         <template slot-scope="scope">
-          <el-button :disabled="scope.row.status === '初始化成功'" size="small" type="success" @click="create(scope.row.id)">初始化</el-button>
-          <el-button size="small" type="primary">编辑</el-button>
+          <el-button
+            :disabled="scope.row.status === '初始化成功'"
+            size="small"
+            type="success"
+            @click="create(scope.row.id)"
+          >初始化</el-button>
+          <el-button size="small" type="primary">
+            <router-link :to="{path:'/project/detail',query: {project_id: scope.row.id}}">管理</router-link>
+          </el-button>
           <el-button size="small" type="danger">删除</el-button>
         </template>
       </el-table-column>
@@ -29,6 +36,16 @@
         <el-form-item label="仓库名称" label-width="120px" prop="repository">
           <el-input v-model="form.repository" autocomplete="off"></el-input>
         </el-form-item>
+        <el-form-item label="绑定服务器" label-width="120px" prop="serverIds">
+          <el-select v-model="form.serverIds" multiple placeholder="选择服务器，可多选">
+            <el-option
+              v-for="(item, index) in serverOption"
+              :key="index"
+              :label="item.name"
+              :value="item.id"
+            ></el-option>
+          </el-select>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
@@ -38,7 +55,9 @@
   </el-row>
 </template>
 <script>
-import {get, add, edit, remove, create} from '@/api/project';
+
+import {get as getServer} from '@/api/server';
+import {get, add, remove, create} from '@/api/project';
 import {parseTime} from '@/utils/time';
 
 const STATUS = ['未初始化', '初始化中', '初始化成功', '初始化失败'];
@@ -46,11 +65,13 @@ export default {
   data() {
     return {
       dialogFormVisible: false,
+      serverOption: [],
       tableData: [],
       form: {
         repository: '',
         project: '',
         owner: '',
+        serverIds: [],
         disabled: false,
         rules: {
           project: [
@@ -61,6 +82,9 @@ export default {
           ],
           repository: [
             {required: true, message: '请输入仓库名称', trigger: ['blur']},
+          ],
+          serverIds: [
+            {type: 'array', required: true, message: '请选择服务器', trigger: 'change'},
           ],
         },
       },
@@ -74,7 +98,7 @@ export default {
       this.$refs.form.validate((valid) => {
         if (valid) {
           this.form.disabled = true;
-          add(this.form.project, this.form.owner, this.form.repository).then((response) => {
+          add(this.form.project, this.form.owner, this.form.repository, this.form.serverIds).then((response) => {
             this.form.disabled = false;
             this.dialogFormVisible = false;
             this.$message({
@@ -100,6 +124,9 @@ export default {
         });
         this.tableData = projectList;
       }).catch(() => {
+      });
+      getServer().then((response) => {
+        this.serverOption = response.data.data.serverList;
       });
     },
     create(projectId) {
