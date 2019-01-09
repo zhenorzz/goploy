@@ -53,7 +53,6 @@
 
 import {getDetail} from '@/api/project';
 
-const STATUS = ['未初始化', '初始化中', '初始化成功', '初始化失败'];
 export default {
   data() {
     return {
@@ -78,6 +77,9 @@ export default {
     };
   },
   created() {
+    getDetail(this.projectId).then((response) => {
+      console.log(response);
+    });
   },
   methods: {
   },

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"time"
 
 	"github.com/zhenorzz/goploy/core"
@@ -31,6 +32,28 @@ func (project *Project) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response := core.Response{Data: RepData{Project: model}}
+	response.Json(w)
+}
+
+// GetDetail project detail
+func (project *Project) GetDetail(w http.ResponseWriter, r *http.Request) {
+	type RepData struct {
+		ProjectDetail model.ProjectDetail `json:"projectDetail"`
+	}
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		response := core.Response{Code: 1, Message: "id参数错误"}
+		response.Json(w)
+		return
+	}
+	model := model.ProjectDetail{}
+	model.ID = uint32(id)
+	if err := model.Detail(); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Data: RepData{ProjectDetail: model}}
 	response.Json(w)
 }
 

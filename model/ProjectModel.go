@@ -13,6 +13,19 @@ type Project struct {
 	UpdateTime int64  `json:"updateTime"`
 }
 
+// ServerDetail mysql table server join project_server
+type ServerDetail struct {
+	ProjectServerID uint32 `json:"projectServerid"`
+	Name            string `json:"name"`
+	ServerID        string `json:"serverId"`
+}
+
+// ProjectDetail mysql table project join server
+type ProjectDetail struct {
+	Project
+	Servers []ServerDetail `json:"serverDetail"`
+}
+
 // Projects many project
 type Projects []Project
 
@@ -46,8 +59,7 @@ func (p *Project) ChangeStatus() error {
 // Query user row
 func (p *Projects) Query() error {
 	db := NewDB()
-	rows, err := db.Query(
-		"SELECT id, project, owner, repository, status, create_time, update_time FROM project")
+	rows, err := db.Query("SELECT id, project, owner, repository, status, create_time, update_time FROM project")
 	if err != nil {
 		return err
 	}
@@ -68,6 +80,35 @@ func (p *Project) QueryRow() error {
 	err := db.QueryRow("SELECT project, owner, repository, status, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&p.Project, &p.Owner, &p.Repository, &p.Status, &p.CreateTime, &p.UpdateTime)
 	if err != nil {
 		return errors.New("数据查询失败")
+	}
+	return nil
+}
+
+// Detail return ProjectDetail
+func (p *ProjectDetail) Detail() error {
+	if err := p.QueryRow(); err != nil {
+		return err
+	}
+	db := NewDB()
+	rows, err := db.Query(
+		`SELECT 
+			project_server.id as project_server_id,
+			server.id as server_id,
+			server.name
+		FROM server 
+		LEFT JOIN project_server 
+		ON project_server.server_id = server.id
+		WHERE project_id = ?`, p.ID)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var serverDetail ServerDetail
+
+		if err := rows.Scan(&serverDetail.ProjectServerID, &serverDetail.ServerID, &serverDetail.Name); err != nil {
+			return err
+		}
+		p.Servers = append(p.Servers, serverDetail)
 	}
 	return nil
 }
