@@ -18,8 +18,19 @@ type Deploy struct{}
 
 // Get deploy list
 func (deploy *Deploy) Get(w http.ResponseWriter, r *http.Request) {
+	type RepData struct {
+		Project model.Projects `json:"projectList"`
+	}
 
-	response := core.Response{}
+	model := model.Projects{}
+	err := model.Query()
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
+	response := core.Response{Data: RepData{Project: model}}
 	response.Json(w)
 }
 
@@ -61,12 +72,14 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	gitTraceModel := model.GitTrace{
-		ProjectID:   projectModel.ID,
-		ProjectName: projectModel.Name,
-		Creator:     core.GolbalUserID,
-		CreateTime:  time.Now().Unix(),
-		UpdateTime:  time.Now().Unix(),
+		ProjectID:     projectModel.ID,
+		ProjectName:   projectModel.Name,
+		PublisherID:   core.GolbalUserID,
+		PublisherName: core.GolbalUserName,
+		CreateTime:    time.Now().Unix(),
+		UpdateTime:    time.Now().Unix(),
 	}
+
 	stdout, err := gitSync(projectModel)
 	if err != nil {
 		gitTraceModel.Detail = err.Error()
@@ -125,14 +138,15 @@ func rsync(gitTraceID uint32, project model.Project, projectServer model.Project
 	cmd.Stderr = &errbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" rsync -rtv --delete "+srcPath+destPath)
 	rsyncTraceModel := model.RsyncTrace{
-		GitTraceID:  gitTraceID,
-		ProjectID:   project.ID,
-		ProjectName: project.Name,
-		ServerID:    projectServer.ServerID,
-		ServerName:  projectServer.ServerName,
-		Creator:     core.GolbalUserID,
-		CreateTime:  time.Now().Unix(),
-		UpdateTime:  time.Now().Unix(),
+		GitTraceID:    gitTraceID,
+		ProjectID:     project.ID,
+		ProjectName:   project.Name,
+		ServerID:      projectServer.ServerID,
+		ServerName:    projectServer.ServerName,
+		PublisherID:   core.GolbalUserID,
+		PublisherName: core.GolbalUserName,
+		CreateTime:    time.Now().Unix(),
+		UpdateTime:    time.Now().Unix(),
 	}
 	if err := cmd.Run(); err != nil {
 		core.Log(core.ERROR, errbuf.String())

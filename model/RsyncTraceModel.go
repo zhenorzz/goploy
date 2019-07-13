@@ -2,17 +2,18 @@ package model
 
 // RsyncTrace mysql table for rsync trace
 type RsyncTrace struct {
-	ID          uint32 `json:"id"`
-	GitTraceID  uint32 `json:"gitTraceId"`
-	ProjectID   uint32 `json:"projectId"`
-	ProjectName string `json:"projectName"`
-	ServerID    uint32 `json:"serverId"`
-	ServerName  string `json:"serverName"`
-	Detail      string `json:"detail"`
-	State       uint8  `json:"state"`
-	Creator     uint32 `json:"creator"`
-	CreateTime  int64  `json:"createTime"`
-	UpdateTime  int64  `json:"updateTime"`
+	ID            uint32 `json:"id"`
+	GitTraceID    uint32 `json:"gitTraceId"`
+	ProjectID     uint32 `json:"projectId"`
+	ProjectName   string `json:"projectName"`
+	ServerID      uint32 `json:"serverId"`
+	ServerName    string `json:"serverName"`
+	Detail        string `json:"detail"`
+	State         uint8  `json:"state"`
+	PublisherID   uint32 `json:"publisherId"`
+	PublisherName string `json:"publisherName"`
+	CreateTime    int64  `json:"createTime"`
+	UpdateTime    int64  `json:"updateTime"`
 }
 
 // RsyncTraces RsyncTrace slice
@@ -22,7 +23,7 @@ type RsyncTraces []RsyncTrace
 func (rt *RsyncTrace) AddRow() error {
 	db := NewDB()
 	result, err := db.Exec(
-		"INSERT INTO rsync_trace (git_trace_id, project_id, project_name, server_id, server_name, detail, state, creator, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO rsync_trace (git_trace_id, project_id, project_name, server_id, server_name, detail, state, publisher_id, publisher_name, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		rt.GitTraceID,
 		rt.ProjectID,
 		rt.ProjectName,
@@ -30,7 +31,8 @@ func (rt *RsyncTrace) AddRow() error {
 		rt.ServerName,
 		rt.Detail,
 		rt.State,
-		rt.Creator,
+		rt.PublisherID,
+		rt.PublisherName,
 		rt.CreateTime,
 		rt.UpdateTime,
 	)
@@ -52,7 +54,8 @@ func (rts *RsyncTraces) Query(gitTraceID uint32) error {
 			server_name,
 			detail,
 			state,
-			creator,
+			publisher_id,
+			publisher_name,
 			create_time,
 			update_time
 		FROM rsync_trace
@@ -72,7 +75,8 @@ func (rts *RsyncTraces) Query(gitTraceID uint32) error {
 			&rsyncTrace.ServerName,
 			&rsyncTrace.Detail,
 			&rsyncTrace.State,
-			&rsyncTrace.Creator,
+			&rsyncTrace.PublisherID,
+			&rsyncTrace.PublisherName,
 			&rsyncTrace.CreateTime,
 			&rsyncTrace.UpdateTime); err != nil {
 			return err

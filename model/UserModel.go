@@ -95,7 +95,7 @@ func (u *User) AddRow() error {
 func (u *User) Vaildate() error {
 	var hashPassword string
 	db := NewDB()
-	err := db.QueryRow("SELECT id, password FROM user WHERE account = ?", u.Account).Scan(&u.ID, &hashPassword)
+	err := db.QueryRow("SELECT id, password, name FROM user WHERE account = ?", u.Account).Scan(&u.ID, &hashPassword, &u.Name)
 	if err != nil {
 		return err
 	}

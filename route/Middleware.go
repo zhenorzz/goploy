@@ -30,6 +30,7 @@ func CheckToken(w http.ResponseWriter, r *http.Request) error {
 
 	if err == nil && token.Valid {
 		core.GolbalUserID = uint32(claims["id"].(float64))
+		core.GolbalUserName = claims["name"].(string)
 	} else {
 		response := core.Response{Code: 401, Message: err.Error()}
 		response.Json(w)

@@ -49,7 +49,7 @@ func (user *User) Login(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	token, err := user.createToken(model.ID)
+	token, err := user.createToken(model)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
@@ -199,11 +199,12 @@ func (user *User) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	response.Json(w)
 }
 
-func (user *User) createToken(id uint32) (string, error) {
+func (user *User) createToken(u model.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":  id,
-		"exp": time.Now().Add(time.Hour * 72).Unix(),
-		"nbf": time.Now().Unix(),
+		"id":   u.ID,
+		"name": u.Name,
+		"exp":  time.Now().Add(time.Hour * 72).Unix(),
+		"nbf":  time.Now().Unix(),
 	})
 	tokenString, err := token.SignedString([]byte(os.Getenv("SIGN_KEY")))
 
