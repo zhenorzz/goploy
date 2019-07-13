@@ -1,76 +1,94 @@
-import {login} from '@/api/login';
-import {getToken, setToken, removeToken} from '@/utils/auth';
-import {getInfo} from '@/api/user';
+import { login, logout, getInfo } from '@/api/user'
+import { getToken, setToken, removeToken } from '@/utils/auth'
+import { resetRouter } from '@/router'
 
-const user = {
-  state: {
-    token: getToken(),
-    id: 0,
-    name: '',
-    account: '',
-    role: '',
+const state = {
+  token: getToken(),
+  id: 0,
+  account: '',
+  name: ''
+}
+
+const mutations = {
+  SET_TOKEN: (state, token) => {
+    state.token = token
+  },
+  SET_ID: (state, id) => {
+    state.id = id
+  },
+  SET_ACCOUNT: (state, account) => {
+    state.account = account
+  },
+  SET_NAME: (state, name) => {
+    state.name = name
+  }
+}
+
+const actions = {
+  // user login
+  login({ commit }, userInfo) {
+    const { account, password, phrase } = userInfo
+    return new Promise((resolve, reject) => {
+      login({ account: account.trim(), password: password, phrase: phrase.trim() }).then(response => {
+        const { data } = response
+        const { token } = data
+        commit('SET_TOKEN', token)
+        setToken(token)
+        resolve()
+      }).catch(error => {
+        reject(error)
+      })
+    })
   },
 
-  mutations: {
-    SET_TOKEN: (state, token) => {
-      state.token = token;
-    },
-    SET_ID: (state, id) => {
-      state.id = id;
-    },
-    SET_ACCOUNT: (state, account) => {
-      state.account = account;
-    },
-    SET_NAME: (state, name) => {
-      state.name = name;
-    },
-    SET_ROLE: (state, role) => {
-      state.role = role;
-    },
+  // get user info
+  getInfo({ commit, state }) {
+    return new Promise((resolve, reject) => {
+      getInfo(state.token).then(response => {
+        const { data } = response
+        if (!data) {
+          reject('Verification failed, please Login again.')
+        }
+        const { id, account, name } = data.userInfo
+        commit('SET_ID', id)
+        commit('SET_ACCOUNT', account)
+        commit('SET_NAME', name)
+        resolve(data)
+      }).catch(error => {
+        reject(error)
+      })
+    })
   },
 
-  actions: {
-    // 登录
-    Login({commit}, userInfo) {
-      const account = userInfo.account.trim();
-      return new Promise((resolve, reject) => {
-        login(account, userInfo.password).then((response) => {
-          const data = response.data;
-          const token = data.data.token;
-          setToken(token);
-          commit('SET_TOKEN', token);
-          resolve();
-        }).catch((error) => {
-          reject(error);
-        });
-      });
-    },
-    // 获取用户信息
-    GetInfo({commit, state}) {
-      return new Promise((resolve, reject) => {
-        getInfo(state.token).then((response) => {
-          const responseData = response.data;
-          const userInfo = responseData.data.userInfo;
-          commit('SET_ID', userInfo.id);
-          commit('SET_NAME', userInfo.name);
-          commit('SET_ROLE', userInfo.role);
-          commit('SET_ACCOUNT', userInfo.account);
-          resolve(responseData.data);
-        }).catch((error) => {
-          reject(error);
-        });
-      });
-    },
-    // 前端 登出
-    FedLogOut({commit}) {
-      return new Promise((resolve) => {
-        commit('SET_TOKEN', '');
-        removeToken();
-        resolve();
-      });
-    },
+  // user logout
+  logout({ commit, state }) {
+    return new Promise((resolve, reject) => {
+      logout(state.token).then(() => {
+        commit('SET_TOKEN', '')
+        commit('SET_ID', 0)
+        removeToken()
+        resetRouter()
+        resolve()
+      }).catch(error => {
+        reject(error)
+      })
+    })
   },
 
-};
+  // remove token
+  resetToken({ commit }) {
+    return new Promise(resolve => {
+      commit('SET_TOKEN', '')
+      removeToken()
+      resolve()
+    })
+  }
+}
 
-export default user;
+export default {
+  namespaced: true,
+  state,
+  mutations,
+  actions
+}
+

@@ -1,4 +1,4 @@
-import request from '@/utils/request';
+import request from '@/utils/request'
 
 /**
  * @return {Promise}
@@ -7,8 +7,8 @@ export function get() {
   return request({
     url: '/server/get',
     method: 'get',
-    params: {},
-  });
+    params: {}
+  })
 }
 
 /**
@@ -24,7 +24,7 @@ export function add(name, ip, path) {
     data: {
       name: name,
       ip: ip,
-      path: path,
-    },
-  });
+      path: path
+    }
+  })
 }

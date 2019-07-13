@@ -1,4 +1,4 @@
-import request from '@/utils/request';
+import request from '@/utils/request'
 
 /**
  * @return {Promise}
@@ -7,8 +7,8 @@ export function get() {
   return request({
     url: '/project/get',
     method: 'get',
-    params: {},
-  });
+    params: {}
+  })
 }
 
 /**
@@ -19,8 +19,8 @@ export function getDetail(id) {
   return request({
     url: '/project/getDetail',
     method: 'get',
-    params: {id},
-  });
+    params: { id }
+  })
 }
 
 /**
@@ -31,8 +31,8 @@ export function create(id) {
   return request({
     url: '/project/create',
     method: 'post',
-    data: {id},
-  });
+    data: { id }
+  })
 }
 
 /**
@@ -43,8 +43,8 @@ export function branch(id) {
   return request({
     url: '/project/branch',
     method: 'post',
-    data: {id},
-  });
+    data: { id }
+  })
 }
 
 /**
@@ -56,8 +56,8 @@ export function commit(id, branch) {
   return request({
     url: '/project/commit',
     method: 'post',
-    data: {id, branch},
-  });
+    data: { id, branch }
+  })
 }
 
 /**
@@ -69,9 +69,9 @@ export function tree(sha) {
     url: '/project/tree',
     method: 'get',
     params: {
-      sha: sha,
-    },
-  });
+      sha: sha
+    }
+  })
 }
 
 /**
@@ -89,7 +89,7 @@ export function add(project, owner, repository, serverIds) {
       project: project,
       owner: owner,
       repository: repository,
-      serverIds: serverIds,
-    },
-  });
+      serverIds: serverIds
+    }
+  })
 }

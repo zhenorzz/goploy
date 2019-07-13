@@ -1,4 +1,4 @@
-import request from '@/utils/request';
+import request from '@/utils/request'
 
 /**
  * @return {Promise}
@@ -7,8 +7,8 @@ export function get() {
   return request({
     url: '/deploy/get',
     method: 'get',
-    params: {},
-  });
+    params: {}
+  })
 }
 
 /**
@@ -19,8 +19,8 @@ export function publish(id) {
   return request({
     url: '/deploy/publish',
     method: 'post',
-    data: {id},
-  });
+    data: { id }
+  })
 }
 
 /**
@@ -42,7 +42,7 @@ export function add(projectId, branch, commit, commitSha, serverId, type) {
       commit: commit,
       commitSha: commitSha,
       serverId: serverId,
-      type: type,
-    },
-  });
+      type: type
+    }
+  })
 }

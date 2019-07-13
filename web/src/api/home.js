@@ -1,4 +1,4 @@
-import request from '@/utils/request';
+import request from '@/utils/request'
 
 /**
  * @param  {string} date
@@ -9,7 +9,7 @@ export function get(date) {
     url: '/index/get',
     method: 'get',
     params: {
-      date,
-    },
-  });
+      date
+    }
+  })
 }

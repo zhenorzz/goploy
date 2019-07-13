@@ -1,65 +1,86 @@
-import {asyncRouterMap, constantRouterMap} from '@/route';
-
+import { homeRoutes, asyncRoutes, constantRoutes } from '@/router'
 /**
- * 通过meta.role判断是否与当前用户权限匹配
- * @param {string} role
- * @param {object} route
- * @return {boolean}
+ * 通过meta.permissionMap判断是否与当前用户权限匹配
+ * @param router
+ * @param permissionMap
  */
-function hasPermission(role, route) {
-  if (route.meta && route.meta.roles) {
-    return route.meta.roles.includes(role);
-  } else {
-    return true;
+function hasPermission(router, permissionMap) {
+  let hasPermission = false
+  if (router.meta && router.meta.permission_uri) {
+    const uri = router.meta.permission_uri
+    let index
+    for (index in permissionMap) {
+      if (!permissionMap.hasOwnProperty(index)) continue
+      if (permissionMap[index].uri === uri) {
+        hasPermission = index
+        break
+      }
+    }
   }
+  return hasPermission
 }
 
 /**
  * 递归过滤异步路由表，返回符合用户角色权限的路由表
- * @param {object} routes asyncRouterMap
- * @param {string} role
- * @return {object}
+ * @param asyncRouterMap asyncRouterMap
+ * @param resMap
  */
-function filterAsyncRouter(routes, role) {
-  const res = [];
-  routes.forEach((route) => {
-    const tmp = {...route};
-    if (hasPermission(role, tmp)) {
-      if (tmp.children) {
-        tmp.children = filterAsyncRouter(tmp.children, role);
+function filterAsyncRoutes(asyncRouterMap, resMap) {
+  return asyncRouterMap.filter(route => {
+    if (route.hasOwnProperty('meta') && route.meta.permission_uri === 'all') {
+      if (route.children && route.children.length) {
+        route.children = filterAsyncRoutes(route.children, resMap)
       }
-      res.push(tmp);
+      return true
     }
-  });
-
-  return res;
+    const mapIndex = hasPermission(route, resMap)
+    if (mapIndex !== false) {
+      if (route.children && route.children.length) {
+        route.children = filterAsyncRoutes(route.children, resMap[mapIndex].children)
+      }
+      return true
+    } else {
+      return false
+    }
+  })
 }
 
-const permission = {
-  state: {
-    routers: constantRouterMap,
-    addRouters: [],
-  },
-  mutations: {
-    SET_ROUTERS: (state, routers) => {
-      state.addRouters = routers;
-      state.routers = constantRouterMap.concat(routers);
-    },
-  },
-  actions: {
-    GenerateRoutes({commit}, role) {
-      return new Promise((resolve) => {
-        let accessedRouters;
-        // if (role === 'admin') {
-        //   accessedRouters = asyncRouterMap;
-        // } else {
-        accessedRouters = filterAsyncRouter(asyncRouterMap, role);
-        // }
-        commit('SET_ROUTERS', accessedRouters);
-        resolve();
-      });
-    },
-  },
-};
+const state = {
+  routes: [],
+  addRouters: [],
+  permissionUri: []
+}
 
-export default permission;
+const mutations = {
+  SET_ROUTES: (state, routes) => {
+    state.addRoutes = routes
+    state.routes = constantRoutes.concat(routes)
+  },
+  SET_URI: (state, permissionUri) => {
+    state.permissionUri = permissionUri
+  }
+}
+
+const actions = {
+  generateRoutes({ commit }, data) {
+    return new Promise(resolve => {
+      let accessRoutes = filterAsyncRoutes(asyncRoutes, data.permission)
+      if (accessRoutes.length !== 0) {
+        homeRoutes[0].redirect = accessRoutes[0].path + '/' + accessRoutes[0].children[0].path
+      }
+      accessRoutes = homeRoutes.concat(accessRoutes)
+
+      commit('SET_ROUTES', accessRoutes)
+      commit('SET_URI', data.permissionUri)
+
+      resolve(accessRoutes)
+    })
+  }
+}
+
+export default {
+  namespaced: true,
+  state,
+  mutations,
+  actions
+}

@@ -1,16 +1,33 @@
-import request from '@/utils/request';
+import request from '@/utils/request'
 
-/**
- * @return {Promise}
- */
+export function login(data) {
+  return request({
+    url: '/user/login',
+    method: 'post',
+    data
+  })
+}
+
 export function getInfo() {
   return request({
     url: '/user/info',
-    method: 'get',
-    params: {},
-  });
+    method: 'get'
+  })
 }
 
+export function logout() {
+  return request({
+    url: '/user/logout',
+    method: 'get'
+  })
+}
+
+export function isShowPhrase() {
+  return request({
+    url: '/user/isShowPhrase',
+    method: 'get'
+  })
+}
 /**
  * @param  {object} pagination
  * @return {Promise}
@@ -20,9 +37,9 @@ export function get(pagination) {
     url: '/user/get',
     method: 'get',
     params: {
-      ...pagination,
-    },
-  });
+      ...pagination
+    }
+  })
 }
 
 /**
@@ -42,25 +59,18 @@ export function add(account, password, name, email, role) {
       account,
       password,
       email,
-      role,
-    },
-  });
+      role
+    }
+  })
 }
 
-/**
- * @param  {string} account
- * @param  {string} oldPwd
- * @param  {string} newPwd
- * @return {Promise}
- */
-export function changePassword(account, oldPwd, newPwd) {
+export function changePassword(oldPwd, newPwd) {
   return request({
     url: '/user/changePassword',
     method: 'post',
     data: {
-      account,
       oldPwd,
-      newPwd,
-    },
-  });
+      newPwd
+    }
+  })
 }

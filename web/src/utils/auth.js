@@ -1,23 +1,15 @@
-const TokenKey = 'Admin-Token';
+import Cookies from 'js-cookie'
 
-/**
- * @return {string}
- */
+const TokenKey = 'vue_admin_template_token'
+
 export function getToken() {
-  return localStorage.getItem(TokenKey);
+  return Cookies.get(TokenKey)
 }
 
-/**
- * @param  {string} token
- * @return {string}
- */
 export function setToken(token) {
-  return localStorage.setItem(TokenKey, token);
+  return Cookies.set(TokenKey, token)
 }
 
-/**
- * @return {string}
- */
 export function removeToken() {
-  return localStorage.removeItem(TokenKey);
+  return Cookies.remove(TokenKey)
 }
