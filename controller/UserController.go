@@ -15,6 +15,16 @@ import (
 // User 用户字段
 type User struct{}
 
+// IsShowPhrase is show phrase
+func (user *User) IsShowPhrase(w http.ResponseWriter, r *http.Request) {
+	type RepData struct {
+		Show bool `json:"show"`
+	}
+	data := RepData{Show: false}
+	response := core.Response{Data: data}
+	response.Json(w)
+}
+
 // Login user login api
 func (user *User) Login(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
@@ -52,26 +62,48 @@ func (user *User) Login(w http.ResponseWriter, r *http.Request) {
 
 // Info get user info api
 func (user *User) Info(w http.ResponseWriter, r *http.Request) {
-	model := model.User{ID: core.GolbalUserID}
-	err := model.QueryRow()
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
-		return
-	}
 	type RepData struct {
 		UserInfo struct {
 			ID      uint32 `json:"id"`
 			Account string `json:"account"`
 			Name    string `json:"name"`
-			Role    string `json:"role"`
 		} `json:"userInfo"`
+		Permission    model.Permissions `json:"permission"`
+		PermissionURI []string          `json:"permissionUri"`
 	}
+	userModel := model.User{ID: core.GolbalUserID}
+	err := userModel.QueryRow()
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
 	data := RepData{}
 	data.UserInfo.ID = core.GolbalUserID
-	data.UserInfo.Name = model.Name
-	data.UserInfo.Role = model.Role
-	data.UserInfo.Account = model.Account
+	data.UserInfo.Name = userModel.Name
+	data.UserInfo.Account = userModel.Account
+
+	roleModel := model.Role{ID: userModel.RoleID}
+	err = roleModel.QueryRow()
+
+	permissionsModel := model.Permissions{}
+	err = permissionsModel.Query(roleModel.PermissionList)
+	var permissions model.Permissions
+	for _, permission := range permissionsModel {
+		data.PermissionURI = append(data.PermissionURI, permission.URI)
+		if permission.PID == 0 {
+			for _, pmChild := range permissionsModel {
+				if pmChild.PID == permission.ID {
+					permission.Children = append(permission.Children, pmChild)
+				}
+			}
+			permissions = append(permissions, permission)
+		}
+	}
+
+	data.Permission = permissions
+
 	response := core.Response{Data: data}
 	response.Json(w)
 }
@@ -104,8 +136,7 @@ func (user *User) Add(w http.ResponseWriter, r *http.Request) {
 		Account  string `json:"account"`
 		Password string `json:"password"`
 		Name     string `json:"name"`
-		Email    string `json:"email"`
-		Role     string `json:"role"`
+		Mobile   string `json:"mobile"`
 	}
 	var reqData ReqData
 	body, _ := ioutil.ReadAll(r.Body)
@@ -119,8 +150,7 @@ func (user *User) Add(w http.ResponseWriter, r *http.Request) {
 		Account:    reqData.Account,
 		Password:   reqData.Password,
 		Name:       reqData.Name,
-		Email:      reqData.Email,
-		Role:       reqData.Role,
+		Mobile:     reqData.Mobile,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
 	}

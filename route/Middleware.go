@@ -14,6 +14,9 @@ func CheckToken(w http.ResponseWriter, r *http.Request) error {
 	if "/user/login" == r.URL.Path {
 		return nil
 	}
+	if "/user/isShowPhrase" == r.URL.Path {
+		return nil
+	}
 	unPraseToken, ok := r.Header["Authorization"]
 	if !ok || len(unPraseToken) == 0 {
 		response := core.Response{Code: 1, Message: "非法请求"}

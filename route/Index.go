@@ -14,6 +14,7 @@ func Init() {
 	rt.Add("/index/get", new(controller.Index).Get)
 
 	// user route
+	rt.Add("/user/isShowPhrase", new(controller.User).IsShowPhrase)
 	rt.Add("/user/login", new(controller.User).Login)
 	rt.Add("/user/info", new(controller.User).Info)
 	rt.Add("/user/get", new(controller.User).Get)

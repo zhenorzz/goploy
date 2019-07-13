@@ -13,8 +13,8 @@ type User struct {
 	Account    string `json:"account"`
 	Password   string `json:"password"`
 	Name       string `json:"name"`
-	Email      string `json:"email"`
-	Role       string `json:"role"`
+	Mobile     string `json:"mobile"`
+	RoleID     uint32 `json:"roleId"`
 	State      uint8  `json:"state"`
 	CreateTime int64  `json:"createTime"`
 	UpdateTime int64  `json:"updateTime"`
@@ -26,7 +26,7 @@ type Users []User
 // QueryRow add user information to u *User
 func (u *User) QueryRow() error {
 	db := NewDB()
-	err := db.QueryRow("SELECT account, name, role FROM user WHERE id = ? AND state = ?", u.ID, 1).Scan(&u.Account, &u.Name, &u.Role)
+	err := db.QueryRow("SELECT account, name, role_id FROM user WHERE id = ? AND state = ?", u.ID, 1).Scan(&u.Account, &u.Name, &u.RoleID)
 	if err != nil {
 		return errors.New("数据查询失败")
 	}
@@ -37,7 +37,7 @@ func (u *User) QueryRow() error {
 func (u *Users) Query(pagination *Pagination) error {
 	db := NewDB()
 	rows, err := db.Query(
-		"SELECT id, account, name, email, role, create_time, update_time FROM user ORDER BY id DESC LIMIT ?, ?",
+		"SELECT id, account, name, mobile, create_time, update_time FROM user ORDER BY id DESC LIMIT ?, ?",
 		(pagination.Page-1)*pagination.Rows,
 		pagination.Rows)
 	if err != nil {
@@ -46,7 +46,7 @@ func (u *Users) Query(pagination *Pagination) error {
 	for rows.Next() {
 		var user User
 
-		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Email, &user.Role, &user.CreateTime, &user.UpdateTime); err != nil {
+		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.CreateTime, &user.UpdateTime); err != nil {
 			return err
 		}
 		*u = append(*u, user)
@@ -78,12 +78,11 @@ func (u *User) AddRow() error {
 		return err
 	}
 	result, err := db.Exec(
-		"INSERT INTO user (account, password, name, email, role, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO user (account, password, name, mobile, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?)",
 		u.Account,
 		string(hashedPassword),
 		u.Name,
-		u.Email,
-		u.Role,
+		u.Mobile,
 		u.CreateTime,
 		u.UpdateTime,
 	)
@@ -100,7 +99,6 @@ func (u *User) Vaildate() error {
 	if err != nil {
 		return err
 	}
-
 	err = bcrypt.CompareHashAndPassword([]byte(hashPassword), []byte(u.Password))
 	if err != nil {
 		return errors.New("密码错误")
