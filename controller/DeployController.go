@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os/exec"
 	"strconv"
-	"time"
 
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
@@ -39,6 +38,7 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		ID uint32 `json:"id"`
 	}
 	var reqData ReqData
+	projectID := reqData.ID
 	body, _ := ioutil.ReadAll(r.Body)
 
 	if err := json.Unmarshal(body, &reqData); err != nil {
@@ -46,18 +46,9 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	deployModel := model.Deploy{
-		ID: reqData.ID,
-	}
-
-	if err := deployModel.QueryRow(); err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
-		return
-	}
 
 	projectModel := model.Project{
-		ID: deployModel.ProjectID,
+		ID: reqData.ID,
 	}
 
 	if err := projectModel.QueryRow(); err != nil {
@@ -72,116 +63,71 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	serverModel := model.Server{
-		ID: deployModel.ServerID,
-	}
+	projectServersModel := model.ProjectServers{}
 
-	if err := serverModel.QueryRow(); err != nil {
+	if err := projectServersModel.Query(reqData.ID); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
 
 	srcPath := "./repository/" + projectModel.Name
-	destPath := serverModel.Owner + "@" + serverModel.IP + ":"
-	sha := deployModel.CommitSha
-	go func(deployID uint32, srcPath, destPath, sha string) {
-		deployModel := model.Deploy{
-			ID: deployID,
-		}
-		clean := exec.Command("git", "clean", "-f")
-		clean.Dir = srcPath
-		var cleanOutbuf, cleanErrbuf bytes.Buffer
-		clean.Stdout = &cleanOutbuf
-		clean.Stderr = &cleanErrbuf
-		core.Log(core.TRACE, "deployID:"+strconv.FormatUint(uint64(deployID), 10)+" git clean -f")
-		if err := clean.Run(); err != nil {
-			deployModel.Status = 3
-			_ = deployModel.ChangeStatus()
-			core.Log(core.ERROR, cleanErrbuf.String())
-			return
-		}
-		pull := exec.Command("git", "pull")
-		pull.Dir = srcPath
-		var pullOutbuf, pullErrbuf bytes.Buffer
-		pull.Stdout = &pullOutbuf
-		pull.Stderr = &pullErrbuf
-		core.Log(core.TRACE, "deployID:"+strconv.FormatUint(uint64(deployID), 10)+" git pull")
-		if err := pull.Run(); err != nil {
-			deployModel.Status = 3
-			_ = deployModel.ChangeStatus()
-			core.Log(core.ERROR, pullErrbuf.String())
-			return
-		}
-		reset := exec.Command("git", "reset", "--hard", sha)
-		reset.Dir = srcPath
-		var resetOutbuf, resetErrbuf bytes.Buffer
-		reset.Stdout = &resetOutbuf
-		reset.Stderr = &resetErrbuf
-		core.Log(core.TRACE, "deployID:"+strconv.FormatUint(uint64(deployID), 10)+" git reset")
-		if err := reset.Run(); err != nil {
-			deployModel.Status = 3
-			_ = deployModel.ChangeStatus()
-			core.Log(core.ERROR, resetErrbuf.String())
-			return
-		}
-		cmd := exec.Command("rsync", "-rtv", "--delete", srcPath, destPath)
-		var outbuf, errbuf bytes.Buffer
-		cmd.Stdout = &outbuf
-		cmd.Stderr = &errbuf
-		core.Log(core.TRACE, "deployID:"+strconv.FormatUint(uint64(deployID), 10)+" rsync -rtv")
-		if err := cmd.Run(); err != nil {
-			deployModel.Status = 3
-			_ = deployModel.ChangeStatus()
-			core.Log(core.ERROR, errbuf.String())
-			return
-		}
-		core.Log(core.TRACE, "deployID:"+strconv.FormatUint(uint64(deployID), 10)+" change publish status")
-		if err := deployModel.Publish(); err != nil {
-			core.Log(core.ERROR, err.Error())
-		}
-	}(deployModel.ID, srcPath, destPath, sha)
-	deployModel.Status = 1
-	_ = deployModel.ChangeStatus()
+
+	if err := gitSync(projectID, srcPath); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
+	for _, projectServer := range projectServersModel {
+		destPath := projectServer.ServerOwner + "@" + projectServer.ServerIP + ":" + projectModel.Path
+		go rsync(projectID, srcPath, destPath)
+	}
+
+	// deployModel.Status = 1
+	// _ = deployModel.ChangeStatus()
 	response := core.Response{Message: "部署中，请稍后"}
 	response.Json(w)
 }
 
-// Add one deploy item
-func (deploy *Deploy) Add(w http.ResponseWriter, r *http.Request) {
-	type ReqData struct {
-		ProjectID uint32 `json:"projectId"`
-		Branch    string `json:"branch"`
-		Commit    string `json:"commit"`
-		CommitSha string `json:"commitSha"`
-		ServerID  uint32 `json:"serverID"`
-		Type      uint8  `json:"type"`
+func gitSync(projectID uint32, srcPath string) error {
+	clean := exec.Command("git", "clean", "-f")
+	clean.Dir = srcPath
+	var cleanOutbuf, cleanErrbuf bytes.Buffer
+	clean.Stdout = &cleanOutbuf
+	clean.Stderr = &cleanErrbuf
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(projectID), 10)+" git clean -f")
+	if err := clean.Run(); err != nil {
+		// deployModel.Status = 3
+		// _ = deployModel.ChangeStatus()
+		core.Log(core.ERROR, cleanErrbuf.String())
+		return err
 	}
-	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
-	err := json.Unmarshal(body, &reqData)
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
-		return
+	pull := exec.Command("git", "pull")
+	pull.Dir = srcPath
+	var pullOutbuf, pullErrbuf bytes.Buffer
+	pull.Stdout = &pullOutbuf
+	pull.Stderr = &pullErrbuf
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(projectID), 10)+" git pull")
+	if err := pull.Run(); err != nil {
+		// deployModel.Status = 3
+		// _ = deployModel.ChangeStatus()
+		core.Log(core.ERROR, pullErrbuf.String())
+		return err
 	}
-	model := model.Deploy{
-		ProjectID:  reqData.ProjectID,
-		Branch:     reqData.Branch,
-		Commit:     reqData.Commit,
-		CommitSha:  reqData.CommitSha,
-		ServerID:   reqData.ServerID,
-		Type:       reqData.Type,
-		CreateTime: time.Now().Unix(),
-		UpdateTime: time.Now().Unix(),
-	}
-	err = model.AddRow()
+	return nil
+}
 
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+func rsync(projectID uint32, srcPath, destPath string) {
+	cmd := exec.Command("rsync", "-rtv", "--delete", srcPath, destPath)
+	var outbuf, errbuf bytes.Buffer
+	cmd.Stdout = &outbuf
+	cmd.Stderr = &errbuf
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(projectID), 10)+" rsync -rtv --delete "+srcPath+destPath)
+	if err := cmd.Run(); err != nil {
+		// deployModel.Status = 3
+		// _ = deployModel.ChangeStatus()
+		core.Log(core.ERROR, errbuf.String())
 		return
 	}
-	response := core.Response{Message: "添加成功"}
-	response.Json(w)
 }
