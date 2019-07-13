@@ -41,8 +41,8 @@ func (rt *RsyncTrace) AddRow() error {
 	return err
 }
 
-// Query RsyncTrace row
-func (rts *RsyncTraces) Query(gitTraceID uint32) error {
+// QueryByGitTraceID RsyncTrace row
+func (rts *RsyncTraces) QueryByGitTraceID(gitTraceID uint32) error {
 	db := NewDB()
 	rows, err := db.Query(
 		`SELECT 

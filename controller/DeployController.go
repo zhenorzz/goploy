@@ -34,6 +34,40 @@ func (deploy *Deploy) Get(w http.ResponseWriter, r *http.Request) {
 	response.Json(w)
 }
 
+// GetDetail deploy detail
+func (deploy *Deploy) GetDetail(w http.ResponseWriter, r *http.Request) {
+
+	type RepData struct {
+		GitTrace       model.GitTrace    `json:"gitTrace"`
+		RsyncTraceList model.RsyncTraces `json:"rsyncTraceList"`
+	}
+
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		response := core.Response{Code: 1, Message: "id参数错误"}
+		response.Json(w)
+		return
+	}
+
+	gitTraceModel := model.GitTrace{}
+
+	if err := gitTraceModel.QueryLatestRow(uint32(id)); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
+	rsyncTracesModel := model.RsyncTraces{}
+	if err := rsyncTracesModel.QueryByGitTraceID(gitTraceModel.ID); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
+	response := core.Response{Data: RepData{GitTrace: gitTraceModel, RsyncTraceList: rsyncTracesModel}}
+	response.Json(w)
+}
+
 // Publish the project
 func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
@@ -137,7 +171,7 @@ func gitSync(project model.Project) (string, error) {
 func rsync(gitTraceID uint32, project model.Project, projectServer model.ProjectServer) {
 	srcPath := "./repository/" + project.Name
 	destPath := projectServer.ServerOwner + "@" + projectServer.ServerIP + ":" + project.Path
-	cmd := exec.Command("rsync", "-rtv", "--delete", srcPath, destPath)
+	cmd := exec.Command("rsync", "-rtv", "--exclude", ".git", "--delete", srcPath, destPath)
 	var outbuf, errbuf bytes.Buffer
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf

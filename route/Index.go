@@ -29,6 +29,7 @@ func Init() {
 
 	// deploy route
 	rt.Add("/deploy/get", new(controller.Deploy).Get)
+	rt.Add("/deploy/getDetail", new(controller.Deploy).GetDetail)
 	rt.Add("/deploy/publish", new(controller.Deploy).Publish)
 
 	// server route

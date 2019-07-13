@@ -15,6 +15,18 @@ export function get() {
  * @param  {int}    id
  * @return {Promise}
  */
+export function getDetail(id) {
+  return request({
+    url: '/deploy/getDetail',
+    method: 'get',
+    params: { id }
+  })
+}
+
+/**
+ * @param  {int}    id
+ * @return {Promise}
+ */
 export function publish(id) {
   return request({
     url: '/deploy/publish',

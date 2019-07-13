@@ -36,8 +36,8 @@ func (gt *GitTrace) AddRow() error {
 	return err
 }
 
-// QueryRow add GitTrace information to gt *GitTrace
-func (gt *GitTrace) QueryRow(projectID uint32) error {
+// QueryLatestRow add GitTrace information to gt *GitTrace
+func (gt *GitTrace) QueryLatestRow(projectID uint32) error {
 	db := NewDB()
 	err := db.QueryRow(`SELECT 
 	        id,
@@ -45,7 +45,8 @@ func (gt *GitTrace) QueryRow(projectID uint32) error {
 			project_name, 
 			detail, 
 			state, 
-			creator, 
+			publisher_id, 
+			publisher_name, 
 			create_time, 
 			update_time
 		FROM git_trace WHERE project_id = ? ORDER BY id DESC Limit 1`, projectID).Scan(
@@ -59,7 +60,7 @@ func (gt *GitTrace) QueryRow(projectID uint32) error {
 		&gt.CreateTime,
 		&gt.UpdateTime)
 	if err != nil {
-		return errors.New("数据查询失败")
+		return errors.New("GitTrace.QueryLatestRow数据查询失败")
 	}
 	return nil
 }
