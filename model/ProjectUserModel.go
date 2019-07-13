@@ -33,3 +33,26 @@ func (pu *ProjectUsers) AddMany() error {
 	_, err = stmt.Exec(vals...)
 	return err
 }
+
+// GetUserByProjectID server row
+func (pu *ProjectUsers) GetUserByProjectID(projectID uint32) error {
+	db := NewDB()
+	rows, err := db.Query(
+		`SELECT 
+			project_id,
+			user_id
+		FROM project_user
+		WHERE project_id = ?`, projectID)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var projectUser ProjectUser
+
+		if err := rows.Scan(&projectUser.ProjectID, &projectUser.UserID); err != nil {
+			return err
+		}
+		*pu = append(*pu, projectUser)
+	}
+	return nil
+}

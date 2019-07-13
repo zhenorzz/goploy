@@ -43,6 +43,16 @@ export function get(pagination) {
 }
 
 /**
+ * @return {Promise}
+ */
+export function getOption() {
+  return request({
+    url: '/user/getOption',
+    method: 'get'
+  })
+}
+
+/**
  * @param  {string} account
  * @param  {string} password
  * @param  {string} name

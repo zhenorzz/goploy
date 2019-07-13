@@ -38,7 +38,8 @@ func (project *Project) Get(w http.ResponseWriter, r *http.Request) {
 // GetDetail project detail
 func (project *Project) GetDetail(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
-		ProjectDetail model.ProjectDetail `json:"projectDetail"`
+		ProjectServers model.ProjectServers `json:"projectServerMap"`
+		ProjectUsers   model.ProjectUsers   `json:"projectUserMap"`
 	}
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
@@ -46,14 +47,19 @@ func (project *Project) GetDetail(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	model := model.ProjectDetail{}
-	model.ID = uint32(id)
-	if err := model.Detail(); err != nil {
+	projectServersModel := model.ProjectServers{}
+	if err := projectServersModel.GetServerByProjectID(uint32(id)); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
-	response := core.Response{Data: RepData{ProjectDetail: model}}
+	projectUsersModel := model.ProjectUsers{}
+	if err := projectUsersModel.GetUserByProjectID(uint32(id)); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Data: RepData{ProjectServers: projectServersModel, ProjectUsers: projectUsersModel}}
 	response.Json(w)
 }
 

@@ -130,6 +130,21 @@ func (user *User) Get(w http.ResponseWriter, r *http.Request) {
 	response.Json(w)
 }
 
+// GetOption user list
+func (user *User) GetOption(w http.ResponseWriter, r *http.Request) {
+	type RepData struct {
+		User model.Users `json:"userList"`
+	}
+	userModel := model.Users{}
+	if err := userModel.QueryAll(); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Data: RepData{User: userModel}}
+	response.Json(w)
+}
+
 // Add one user
 func (user *User) Add(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {

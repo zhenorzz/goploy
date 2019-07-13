@@ -65,3 +65,26 @@ func (ps *ProjectServers) Query(projectID uint32) error {
 	}
 	return nil
 }
+
+// GetServerByProjectID server row
+func (ps *ProjectServers) GetServerByProjectID(projectID uint32) error {
+	db := NewDB()
+	rows, err := db.Query(
+		`SELECT 
+			project_id,
+			server_id
+		FROM project_server
+		WHERE project_id = ?`, projectID)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var projectServer ProjectServer
+
+		if err := rows.Scan(&projectServer.ProjectID, &projectServer.ServerID); err != nil {
+			return err
+		}
+		*ps = append(*ps, projectServer)
+	}
+	return nil
+}

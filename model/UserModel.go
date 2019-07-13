@@ -58,6 +58,24 @@ func (u *Users) Query(pagination *Pagination) error {
 	return nil
 }
 
+// QueryAll user row
+func (u *Users) QueryAll() error {
+	db := NewDB()
+	rows, err := db.Query("SELECT id, account, name, mobile, create_time, update_time FROM user ORDER BY id DESC")
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var user User
+
+		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.CreateTime, &user.UpdateTime); err != nil {
+			return err
+		}
+		*u = append(*u, user)
+	}
+	return nil
+}
+
 // AddRow add one row to table user and add id to u.ID
 func (u *User) AddRow() error {
 	db := NewDB()

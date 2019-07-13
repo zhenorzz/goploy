@@ -141,7 +141,7 @@ export default {
     },
 
     restoreFormData() {
-      this.formData = JSON.parse(JSON.stringify(this.formData))
+      this.formData = JSON.parse(JSON.stringify(this.tempFormData))
     }
   }
 }

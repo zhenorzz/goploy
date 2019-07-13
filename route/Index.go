@@ -18,6 +18,7 @@ func Init() {
 	rt.Add("/user/login", new(controller.User).Login)
 	rt.Add("/user/info", new(controller.User).Info)
 	rt.Add("/user/get", new(controller.User).Get)
+	rt.Add("/user/getOption", new(controller.User).GetOption)
 	rt.Add("/user/add", new(controller.User).Add)
 	rt.Add("/user/changePassword", new(controller.User).ChangePassword)
 

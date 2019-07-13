@@ -50,6 +50,16 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item label="绑定组员" label-width="120px" prop="userIds">
+          <el-select v-model="formData.userIds" multiple placeholder="选择组员，可多选">
+            <el-option
+              v-for="(item, index) in userOption"
+              :key="index"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
@@ -60,8 +70,9 @@
 </template>
 <script>
 
+import { getOption as getUserOption } from '@/api/user'
 import { get as getServer } from '@/api/server'
-import { get, add, create } from '@/api/project'
+import { get, getDetail, add, create } from '@/api/project'
 import { parseTime } from '@/utils'
 
 const STATUS = ['未初始化', '初始化中', '初始化成功', '初始化失败']
@@ -70,6 +81,7 @@ export default {
     return {
       dialogVisible: false,
       serverOption: [],
+      userOption: [],
       tableData: [],
       formProps: {
         disabled: false
@@ -80,7 +92,8 @@ export default {
         name: '',
         url: '',
         path: '',
-        serverIds: []
+        serverIds: [],
+        userIds: []
       },
       formRules: {
         name: [
@@ -94,6 +107,9 @@ export default {
         ],
         serverIds: [
           { type: 'array', required: true, message: '请选择服务器', trigger: 'change' }
+        ],
+        userIds: [
+          { type: 'array', required: true, message: '请选择组员', trigger: 'change' }
         ]
       }
     }
@@ -110,7 +126,13 @@ export default {
 
     handleEdit(data) {
       this.formData = Object.assign({}, data)
-      this.dialogVisible = true
+      getDetail(data.id).then(response => {
+        const projectServerMap = response.data.projectServerMap
+        this.formData.serverIds = projectServerMap.map(element => element.serverId)
+        const projectUserMap = response.data.projectUserMap
+        this.formData.userIds = projectUserMap.map(element => element.userId)
+        this.dialogVisible = true
+      })
     },
     submit() {
       this.$refs.form.validate((valid) => {
@@ -152,6 +174,9 @@ export default {
       getServer().then((response) => {
         this.serverOption = response.data.serverList
       })
+      getUserOption().then((response) => {
+        this.userOption = response.data.userList
+      })
     },
     create(projectId) {
       create(projectId).then((response) => {
@@ -167,7 +192,7 @@ export default {
     },
 
     restoreFormData() {
-      this.formData = JSON.parse(JSON.stringify(this.formData))
+      this.formData = JSON.parse(JSON.stringify(this.tempFormData))
     }
   }
 }
