@@ -69,6 +69,24 @@ func (s *Servers) Query() error {
 	return nil
 }
 
+// QueryAll server row
+func (s *Servers) QueryAll() error {
+	db := NewDB()
+	rows, err := db.Query("SELECT id, name, ip, owner, create_time, update_time FROM server")
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var server Server
+
+		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Owner, &server.CreateTime, &server.UpdateTime); err != nil {
+			return err
+		}
+		*s = append(*s, server)
+	}
+	return nil
+}
+
 // QueryRow add server information to s *Server
 func (s *Server) QueryRow() error {
 	db := NewDB()

@@ -11,6 +11,16 @@ export function get() {
   })
 }
 
+/**
+ * @return {Promise}
+ */
+export function getOption() {
+  return request({
+    url: '/server/getOption',
+    method: 'get'
+  })
+}
+
 export function add(data) {
   return request({
     url: '/server/add',

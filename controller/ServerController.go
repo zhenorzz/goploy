@@ -30,6 +30,23 @@ func (server *Server) Get(w http.ResponseWriter, r *http.Request) {
 	response.Json(w)
 }
 
+// GetOption server list
+func (server *Server) GetOption(w http.ResponseWriter, r *http.Request) {
+	type RepData struct {
+		Server model.Servers `json:"serverList"`
+	}
+
+	model := model.Servers{}
+	err := model.QueryAll()
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Data: RepData{Server: model}}
+	response.Json(w)
+}
+
 // Add one server
 func (server *Server) Add(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {

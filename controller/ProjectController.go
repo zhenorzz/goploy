@@ -70,6 +70,7 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 		URL       string   `json:"url"`
 		Path      string   `json:"path"`
 		ServerIDs []uint32 `json:"serverIds"`
+		UserIDs   []uint32 `json:"userIds"`
 	}
 	var reqData ReqData
 	body, _ := ioutil.ReadAll(r.Body)
@@ -111,6 +112,25 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
+
+	projectUsersModel := model.ProjectUsers{}
+	for _, userID := range reqData.UserIDs {
+		projectUserModel := model.ProjectUser{
+			ProjectID:  projectModel.ID,
+			UserID:     userID,
+			CreateTime: time.Now().Unix(),
+			UpdateTime: time.Now().Unix(),
+		}
+		projectUsersModel = append(projectUsersModel, projectUserModel)
+	}
+	err = projectUsersModel.AddMany()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
 	response := core.Response{Message: "添加成功"}
 	response.Json(w)
 }

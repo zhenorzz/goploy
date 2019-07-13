@@ -35,6 +35,7 @@ func Init() {
 
 	// server route
 	rt.Add("/server/get", new(controller.Server).Get)
+	rt.Add("/server/getOption", new(controller.Server).GetOption)
 	rt.Add("/server/add", new(controller.Server).Add)
 	rt.Add("/server/edit", new(controller.Server).Edit)
 	rt.Start()

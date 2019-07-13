@@ -71,7 +71,7 @@
 <script>
 
 import { getOption as getUserOption } from '@/api/user'
-import { get as getServer } from '@/api/server'
+import { getOption as getServerOption } from '@/api/server'
 import { get, getDetail, add, create } from '@/api/project'
 import { parseTime } from '@/utils'
 
@@ -156,11 +156,21 @@ export default {
           type: 'success',
           duration: 5 * 1000
         })
+        this.getProjectList()
       }).finally(() => {
         this.formProps.disabled = false
       })
     },
     get() {
+      this.getProjectList()
+      getServerOption().then((response) => {
+        this.serverOption = response.data.serverList
+      })
+      getUserOption().then((response) => {
+        this.userOption = response.data.userList
+      })
+    },
+    getProjectList() {
       get().then((response) => {
         const projectList = response.data.projectList
         projectList.forEach((element) => {
@@ -170,12 +180,6 @@ export default {
         })
         this.tableData = projectList
       }).catch(() => {
-      })
-      getServer().then((response) => {
-        this.serverOption = response.data.serverList
-      })
-      getUserOption().then((response) => {
-        this.userOption = response.data.userList
       })
     },
     create(projectId) {
