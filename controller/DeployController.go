@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os/exec"
 	"strconv"
+	"time"
 
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
@@ -17,18 +18,8 @@ type Deploy struct{}
 
 // Get deploy list
 func (deploy *Deploy) Get(w http.ResponseWriter, r *http.Request) {
-	type RepData struct {
-		Deploys model.Deploys `json:"deployList"`
-	}
 
-	model := model.Deploys{}
-	err := model.Query()
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
-		return
-	}
-	response := core.Response{Data: RepData{Deploys: model}}
+	response := core.Response{}
 	response.Json(w)
 }
 
@@ -38,7 +29,6 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		ID uint32 `json:"id"`
 	}
 	var reqData ReqData
-	projectID := reqData.ID
 	body, _ := ioutil.ReadAll(r.Body)
 
 	if err := json.Unmarshal(body, &reqData); err != nil {
@@ -70,64 +60,88 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-
-	srcPath := "./repository/" + projectModel.Name
-
-	if err := gitSync(projectID, srcPath); err != nil {
+	gitTraceModel := model.GitTrace{
+		ProjectID:   projectModel.ID,
+		ProjectName: projectModel.Name,
+		Creator:     core.GolbalUserID,
+		CreateTime:  time.Now().Unix(),
+		UpdateTime:  time.Now().Unix(),
+	}
+	stdout, err := gitSync(projectModel)
+	if err != nil {
+		gitTraceModel.Detail = err.Error()
+		gitTraceModel.State = 0
+		_ = gitTraceModel.AddRow()
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
+	} else {
+		gitTraceModel.Detail = stdout
+		gitTraceModel.State = 1
+		_ = gitTraceModel.AddRow()
 	}
 
 	for _, projectServer := range projectServersModel {
-		destPath := projectServer.ServerOwner + "@" + projectServer.ServerIP + ":" + projectModel.Path
-		go rsync(projectID, srcPath, destPath)
+		go rsync(gitTraceModel.ID, projectModel, projectServer)
 	}
 
-	// deployModel.Status = 1
-	// _ = deployModel.ChangeStatus()
 	response := core.Response{Message: "部署中，请稍后"}
 	response.Json(w)
 }
 
-func gitSync(projectID uint32, srcPath string) error {
+func gitSync(project model.Project) (string, error) {
+	srcPath := "./repository/" + project.Name
 	clean := exec.Command("git", "clean", "-f")
 	clean.Dir = srcPath
 	var cleanOutbuf, cleanErrbuf bytes.Buffer
 	clean.Stdout = &cleanOutbuf
 	clean.Stderr = &cleanErrbuf
-	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(projectID), 10)+" git clean -f")
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" git clean -f")
 	if err := clean.Run(); err != nil {
-		// deployModel.Status = 3
-		// _ = deployModel.ChangeStatus()
 		core.Log(core.ERROR, cleanErrbuf.String())
-		return err
+		return "", err
 	}
 	pull := exec.Command("git", "pull")
 	pull.Dir = srcPath
 	var pullOutbuf, pullErrbuf bytes.Buffer
 	pull.Stdout = &pullOutbuf
 	pull.Stderr = &pullErrbuf
-	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(projectID), 10)+" git pull")
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" git pull")
 	if err := pull.Run(); err != nil {
-		// deployModel.Status = 3
-		// _ = deployModel.ChangeStatus()
 		core.Log(core.ERROR, pullErrbuf.String())
-		return err
+		return "", err
 	}
-	return nil
+
+	core.Log(core.TRACE, pullOutbuf.String())
+	return pullOutbuf.String(), nil
 }
 
-func rsync(projectID uint32, srcPath, destPath string) {
+func rsync(gitTraceID uint32, project model.Project, projectServer model.ProjectServer) {
+	srcPath := "./repository/" + project.Name
+	destPath := projectServer.ServerOwner + "@" + projectServer.ServerIP + ":" + project.Path
 	cmd := exec.Command("rsync", "-rtv", "--delete", srcPath, destPath)
 	var outbuf, errbuf bytes.Buffer
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
-	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(projectID), 10)+" rsync -rtv --delete "+srcPath+destPath)
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" rsync -rtv --delete "+srcPath+destPath)
+	rsyncTraceModel := model.RsyncTrace{
+		GitTraceID:  gitTraceID,
+		ProjectID:   project.ID,
+		ProjectName: project.Name,
+		ServerID:    projectServer.ServerID,
+		ServerName:  projectServer.ServerName,
+		Creator:     core.GolbalUserID,
+		CreateTime:  time.Now().Unix(),
+		UpdateTime:  time.Now().Unix(),
+	}
 	if err := cmd.Run(); err != nil {
-		// deployModel.Status = 3
-		// _ = deployModel.ChangeStatus()
 		core.Log(core.ERROR, errbuf.String())
-		return
+		rsyncTraceModel.Detail = errbuf.String()
+		rsyncTraceModel.State = 0
+		_ = rsyncTraceModel.AddRow()
+	} else {
+		rsyncTraceModel.Detail = outbuf.String()
+		rsyncTraceModel.State = 1
+		_ = rsyncTraceModel.AddRow()
 	}
 }
