@@ -81,15 +81,10 @@ export function tree(sha) {
  * @param  {string} serverIds
  * @return {Promise}
  */
-export function add(project, owner, repository, serverIds) {
+export function add(data) {
   return request({
     url: '/project/add',
     method: 'post',
-    data: {
-      project: project,
-      owner: owner,
-      repository: repository,
-      serverIds: serverIds
-    }
+    data
   })
 }

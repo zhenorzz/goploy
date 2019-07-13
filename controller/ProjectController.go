@@ -60,10 +60,10 @@ func (project *Project) GetDetail(w http.ResponseWriter, r *http.Request) {
 // Add one project
 func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
-		Owner      string   `json:"owner"`
-		Project    string   `json:"project"`
-		Repository string   `json:"repository"`
-		ServerIDs  []uint32 `json:"serverIds"`
+		Name      string   `json:"name"`
+		URL       string   `json:"url"`
+		Path      string   `json:"path"`
+		ServerIDs []uint32 `json:"serverIds"`
 	}
 	var reqData ReqData
 	body, _ := ioutil.ReadAll(r.Body)
@@ -74,9 +74,9 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	projectModel := model.Project{
-		Owner:      reqData.Owner,
-		Project:    reqData.Project,
-		Repository: reqData.Repository,
+		Name:       reqData.Name,
+		URL:        reqData.URL,
+		Path:       reqData.Path,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
 	}
@@ -139,7 +139,7 @@ func (project *Project) Branch(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	url := "https://api.github.com/repos/" + projectModel.Owner + "/" + projectModel.Repository + "/branches?access_token=" + os.Getenv("ACCESS_TOKEN")
+	url := "https://api.github.com/repos/"
 	resp, err := http.Get(url)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -201,7 +201,7 @@ func (project *Project) Commit(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	url := "https://api.github.com/repos/" + projectModel.Owner + "/" + projectModel.Repository + "/commits?sha=" + reqData.Branch + "&access_token=" + os.Getenv("ACCESS_TOKEN")
+	url := "https://api.github.com/repos/"
 	resp, err := http.Get(url)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -251,8 +251,8 @@ func (project *Project) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	path := "./repository/" + projectModel.Owner + "/" + projectModel.Repository
-	repo := "https://github.com/" + projectModel.Owner + "/" + projectModel.Repository + ".git"
+	path := "./repository/" + projectModel.Name
+	repo := projectModel.URL
 
 	// clone repository async
 	go func(id uint32, path, repo string) {

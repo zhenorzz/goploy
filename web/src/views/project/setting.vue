@@ -1,7 +1,7 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" icon="el-icon-plus" @click="dialogFormVisible = true">添加</el-button>
+      <el-button type="primary" icon="el-icon-plus" @click="handleAdd">添加</el-button>
     </el-row>
     <el-table
       border
@@ -10,12 +10,12 @@
       :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="project" label="项目名称" />
-      <el-table-column prop="owner" label="仓库拥有者" />
-      <el-table-column prop="repository" label="仓库名称" />
+      <el-table-column prop="name" label="项目名称" />
+      <el-table-column prop="url" label="项目地址" />
+      <el-table-column prop="path" label="部署路径" />
       <el-table-column prop="status" label="状态" />
-      <el-table-column prop="createTime" label="创建时间" />
-      <el-table-column prop="updateTime" label="更新时间" />
+      <el-table-column prop="createTime" width="160" label="创建时间" />
+      <el-table-column prop="updateTime" width="160" label="更新时间" />
       <el-table-column prop="operation" label="操作" width="230">
         <template slot-scope="scope">
           <el-button
@@ -24,26 +24,24 @@
             type="success"
             @click="create(scope.row.id)"
           >初始化</el-button>
-          <el-button size="small" type="primary">
-            <router-link :to="{path:'/project/detail',query: {project_id: scope.row.id}}">管理</router-link>
-          </el-button>
-          <el-button size="small" type="danger">删除</el-button>
+          <el-button type="primary" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button type="danger">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog title="提交项目" :visible.sync="dialogFormVisible">
-      <el-form ref="form" :rules="form.rules" :model="form">
-        <el-form-item label="项目名称" label-width="120px" prop="project">
-          <el-input v-model="form.project" autocomplete="off" />
+    <el-dialog title="项目设置" :visible.sync="dialogVisible">
+      <el-form ref="form" :rules="formRules" :model="formData">
+        <el-form-item label="项目名称" label-width="120px" prop="name">
+          <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="仓库拥有者" label-width="120px" prop="owner">
-          <el-input v-model="form.owner" autocomplete="off" />
+        <el-form-item label="项目地址" label-width="120px" prop="url">
+          <el-input v-model="formData.url" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="仓库名称" label-width="120px" prop="repository">
-          <el-input v-model="form.repository" autocomplete="off" />
+        <el-form-item label="部署路径" label-width="120px" prop="path">
+          <el-input v-model="formData.path" autocomplete="off" />
         </el-form-item>
         <el-form-item label="绑定服务器" label-width="120px" prop="serverIds">
-          <el-select v-model="form.serverIds" multiple placeholder="选择服务器，可多选">
+          <el-select v-model="formData.serverIds" multiple placeholder="选择服务器，可多选">
             <el-option
               v-for="(item, index) in serverOption"
               :key="index"
@@ -54,8 +52,8 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button :disabled="form.disabled" type="primary" @click="add">确 定</el-button>
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button :disabled="formProps.disabled" type="primary" @click="submit">确 定</el-button>
       </div>
     </el-dialog>
   </el-row>
@@ -63,61 +61,81 @@
 <script>
 
 import { get as getServer } from '@/api/server'
-import { get, add, remove, create } from '@/api/project'
+import { get, add, create } from '@/api/project'
 import { parseTime } from '@/utils'
 
 const STATUS = ['未初始化', '初始化中', '初始化成功', '初始化失败']
 export default {
   data() {
     return {
-      dialogFormVisible: false,
+      dialogVisible: false,
       serverOption: [],
       tableData: [],
-      form: {
-        repository: '',
-        project: '',
-        owner: '',
-        serverIds: [],
-        disabled: false,
-        rules: {
-          project: [
-            { required: true, message: '请输入项目名称', trigger: ['blur'] }
-          ],
-          owner: [
-            { required: true, message: '请输入仓库拥有者', trigger: ['blur'] }
-          ],
-          repository: [
-            { required: true, message: '请输入仓库名称', trigger: ['blur'] }
-          ],
-          serverIds: [
-            { type: 'array', required: true, message: '请选择服务器', trigger: 'change' }
-          ]
-        }
+      formProps: {
+        disabled: false
+      },
+      tempFormData: {},
+      formData: {
+        id: 0,
+        name: '',
+        url: '',
+        path: '',
+        serverIds: []
+      },
+      formRules: {
+        name: [
+          { required: true, message: '请输入项目名称', trigger: ['blur'] }
+        ],
+        url: [
+          { required: true, message: '请输入项目地址', trigger: ['blur'] }
+        ],
+        path: [
+          { required: true, message: '请输入部署路径', trigger: ['blur'] }
+        ],
+        serverIds: [
+          { type: 'array', required: true, message: '请选择服务器', trigger: 'change' }
+        ]
       }
     }
   },
   created() {
+    this.storeFormData()
     this.get()
   },
   methods: {
-    add() {
+    handleAdd() {
+      this.restoreFormData()
+      this.dialogVisible = true
+    },
+
+    handleEdit(data) {
+      this.formData = Object.assign({}, data)
+      this.dialogVisible = true
+    },
+    submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
-          this.form.disabled = true
-          add(this.form.project, this.form.owner, this.form.repository, this.form.serverIds).then((response) => {
-            this.form.disabled = false
-            this.dialogFormVisible = false
-            this.$message({
-              message: response.message,
-              type: 'success',
-              duration: 5 * 1000
-            })
-          }).catch(() => {
-            this.form.disabled = false
-          })
+          if (this.formData.id === 0) {
+            this.add()
+          } else {
+            this.edit()
+          }
         } else {
           return false
         }
+      })
+    },
+    add() {
+      this.formProps.disabled = true
+      add(this.formData).then((response) => {
+        this.dialogVisible = false
+        this.$message({
+          message: response.message,
+          type: 'success',
+          duration: 5 * 1000
+        })
+      }).finally(() => {
+        this.formProps.disabled = false
       })
     },
     get() {
@@ -143,6 +161,13 @@ export default {
           duration: 5 * 1000
         })
       })
+    },
+    storeFormData() {
+      this.tempFormData = JSON.parse(JSON.stringify(this.formData))
+    },
+
+    restoreFormData() {
+      this.formData = JSON.parse(JSON.stringify(this.formData))
     }
   }
 }

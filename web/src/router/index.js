@@ -121,16 +121,6 @@ export const asyncRoutes = [
           icon: 'server',
           permission_uri: '/project/server'
         }
-      },
-      {
-        path: '/project/detail',
-        name: '项目详情',
-        hidden: true,
-        component: () => import('@/views/project/detail'),
-        meta: {
-          title: '项目详情',
-          permission_uri: '/project/detail'
-        }
       }
     ]
   },
