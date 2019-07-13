@@ -7,11 +7,10 @@
       :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="id" label="ID" />
+      <el-table-column prop="id" label="ID" width="160" />
       <el-table-column prop="name" label="项目名称" />
-      <el-table-column prop="state" label="状态" />
-      <el-table-column prop="createTime" label="创建时间" width="160" />
-      <el-table-column prop="updateTime" label="更新时间" width="160" />
+      <el-table-column prop="publisherName" label="构建者" width="160" />
+      <el-table-column prop="updateTime" label="上次构建时间" width="160" />
       <el-table-column prop="operation" label="操作" width="260">
         <template slot-scope="scope">
           <el-button size="small" type="primary" @click="publish(scope.row.id)">构建</el-button>
@@ -23,8 +22,7 @@
   </el-row>
 </template>
 <script>
-import { get } from '@/api/project'
-import { publish } from '@/api/deploy'
+import { get, publish } from '@/api/deploy'
 import { parseTime } from '@/utils'
 
 const STATE = ['构建中', '构建成功', '构建失败', '撤回']

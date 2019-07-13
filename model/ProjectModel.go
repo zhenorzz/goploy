@@ -4,13 +4,15 @@ import "errors"
 
 // Project mysql table project
 type Project struct {
-	ID         uint32 `json:"id"`
-	Name       string `json:"name"`
-	URL        string `json:"url"`
-	Path       string `json:"path"`
-	Status     uint8  `json:"status"`
-	CreateTime int64  `json:"createTime"`
-	UpdateTime int64  `json:"updateTime"`
+	ID            uint32 `json:"id"`
+	Name          string `json:"name"`
+	URL           string `json:"url"`
+	Path          string `json:"path"`
+	Status        uint8  `json:"status"`
+	PublisherID   uint32 `json:"publisherId"`
+	PublisherName string `json:"publisherName"`
+	CreateTime    int64  `json:"createTime"`
+	UpdateTime    int64  `json:"updateTime"`
 }
 
 // ServerDetail mysql table server join project_server
@@ -56,6 +58,19 @@ func (p *Project) ChangeStatus() error {
 	return err
 }
 
+// Publish for project
+func (p *Project) Publish() error {
+	db := NewDB()
+	_, err := db.Exec(
+		"UPDATE project SET publisher_id = ?, publisher_name = ?, update_time = ? where id = ?",
+		p.PublisherID,
+		p.PublisherName,
+		p.UpdateTime,
+		p.ID,
+	)
+	return err
+}
+
 // Query user row
 func (p *Projects) Query() error {
 	db := NewDB()
@@ -67,6 +82,24 @@ func (p *Projects) Query() error {
 		var project Project
 
 		if err := rows.Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Status, &project.CreateTime, &project.UpdateTime); err != nil {
+			return err
+		}
+		*p = append(*p, project)
+	}
+	return nil
+}
+
+// QueryByStatus user row by status
+func (p *Projects) QueryByStatus(status uint8) error {
+	db := NewDB()
+	rows, err := db.Query("SELECT id, name, status, publisher_id, publisher_name, update_time FROM project WHERE status = ?", status)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var project Project
+
+		if err := rows.Scan(&project.ID, &project.Name, &project.Status, &project.PublisherID, &project.PublisherName, &project.UpdateTime); err != nil {
 			return err
 		}
 		*p = append(*p, project)

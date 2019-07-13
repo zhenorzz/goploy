@@ -23,7 +23,7 @@ func (deploy *Deploy) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	model := model.Projects{}
-	err := model.Query()
+	err := model.QueryByStatus(2)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
@@ -97,6 +97,11 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 	for _, projectServer := range projectServersModel {
 		go rsync(gitTraceModel.ID, projectModel, projectServer)
 	}
+
+	projectModel.PublisherID = core.GolbalUserID
+	projectModel.PublisherName = core.GolbalUserName
+	projectModel.UpdateTime = time.Now().Unix()
+	_ = projectModel.Publish()
 
 	response := core.Response{Message: "部署中，请稍后"}
 	response.Json(w)
