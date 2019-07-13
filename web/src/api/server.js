@@ -11,20 +11,18 @@ export function get() {
   })
 }
 
-/**
- * @param  {string} name
- * @param  {string} ip
- * @param  {string} path
- * @return {Promise}
- */
-export function add(name, ip, path) {
+export function add(data) {
   return request({
     url: '/server/add',
     method: 'post',
-    data: {
-      name: name,
-      ip: ip,
-      path: path
-    }
+    data
+  })
+}
+
+export function edit(data) {
+  return request({
+    url: '/server/edit',
+    method: 'post',
+    data
   })
 }

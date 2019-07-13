@@ -83,7 +83,7 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 	}
 
 	srcPath := "./repository/" + projectModel.Owner + "/" + projectModel.Repository
-	destPath := serverModel.Owner + "@" + serverModel.IP + ":" + serverModel.Path
+	destPath := serverModel.Owner + "@" + serverModel.IP + ":"
 	sha := deployModel.CommitSha
 	go func(deployID uint32, srcPath, destPath, sha string) {
 		deployModel := model.Deploy{

@@ -35,7 +35,6 @@ func (server *Server) Add(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		Name  string `json:"name"`
 		IP    string `json:"ip"`
-		Path  string `json:"path"`
 		Owner string `json:"owner"`
 	}
 	var reqData ReqData
@@ -49,7 +48,6 @@ func (server *Server) Add(w http.ResponseWriter, r *http.Request) {
 	model := model.Server{
 		Name:       reqData.Name,
 		IP:         reqData.IP,
-		Path:       reqData.Path,
 		Owner:      reqData.Owner,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
@@ -62,5 +60,40 @@ func (server *Server) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response := core.Response{Message: "添加成功"}
+	response.Json(w)
+}
+
+// Edit one server
+func (server *Server) Edit(w http.ResponseWriter, r *http.Request) {
+	type ReqData struct {
+		ID    uint32 `json:"id"`
+		Name  string `json:"name"`
+		IP    string `json:"ip"`
+		Owner string `json:"owner"`
+	}
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	model := model.Server{
+		ID:         reqData.ID,
+		Name:       reqData.Name,
+		IP:         reqData.IP,
+		Owner:      reqData.Owner,
+		CreateTime: time.Now().Unix(),
+		UpdateTime: time.Now().Unix(),
+	}
+	err = model.EditRow()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Message: "修改成功"}
 	response.Json(w)
 }

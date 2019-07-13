@@ -37,6 +37,7 @@ func Init() {
 	// server route
 	rt.Add("/server/get", new(controller.Server).Get)
 	rt.Add("/server/add", new(controller.Server).Add)
+	rt.Add("/server/edit", new(controller.Server).Edit)
 
 	rt.Add("/github/search", new(controller.Github).Search)
 	rt.Add("/rsync/add", new(controller.Rsync).Add)

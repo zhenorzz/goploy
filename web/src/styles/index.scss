@@ -63,3 +63,12 @@ div:focus {
 .app-container {
   padding: 20px;
 }
+
+.app-bar {
+  border: 1px solid #EBEEF5;
+  margin-bottom: 5px;
+  padding: 10px;
+  background-color: #f2f6fc;
+  &-operation {margin-bottom:10px;};
+  &-input { }
+}

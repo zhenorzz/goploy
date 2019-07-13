@@ -1,9 +1,15 @@
 <template>
-  <el-row>
-    <el-row type="flex" justify="end">
+  <el-row class="app-container">
+    <el-row class="app-bar" type="flex" justify="end">
       <el-button type="primary" icon="el-icon-plus" @click="dialogFormVisible = true">添加</el-button>
     </el-row>
-    <el-table :data="tableData" style="width: 100%">
+    <el-table
+      border
+      stripe
+      highlight-current-row
+      :data="tableData"
+      style="width: 100%"
+    >
       <el-table-column prop="project" label="项目名称" />
       <el-table-column prop="owner" label="仓库拥有者" />
       <el-table-column prop="repository" label="仓库名称" />
@@ -102,7 +108,7 @@ export default {
             this.form.disabled = false
             this.dialogFormVisible = false
             this.$message({
-              message: response.data.message,
+              message: response.message,
               type: 'success',
               duration: 5 * 1000
             })
@@ -132,7 +138,7 @@ export default {
     create(projectId) {
       create(projectId).then((response) => {
         this.$message({
-          message: response.data.message,
+          message: response.message,
           type: 'success',
           duration: 5 * 1000
         })

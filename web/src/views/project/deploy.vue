@@ -1,9 +1,15 @@
 <template>
-  <el-row>
-    <el-row type="flex" justify="end">
+  <el-row class="app-container">
+    <el-row class="app-bar" type="flex" justify="end">
       <el-button type="primary" icon="el-icon-plus" @click="dialogFormVisible = true">添加</el-button>
     </el-row>
-    <el-table :data="tableData" style="width: 100%">
+    <el-table
+      border
+      stripe
+      highlight-current-row
+      :data="tableData"
+      style="width: 100%"
+    >
       <el-table-column prop="project" label="项目名称" />
       <el-table-column prop="serverName" label="服务器" show-overflow-tooltip />
       <el-table-column prop="branch" label="分支" />
@@ -177,7 +183,7 @@ export default {
             this.getDeploy()
             this.form.disabled = this.dialogFormVisible = false
             this.$message({
-              message: response.data.message,
+              message: response.message,
               type: 'success',
               duration: 5 * 1000
             })

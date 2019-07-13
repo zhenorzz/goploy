@@ -1,5 +1,5 @@
 <template>
-  <el-row>
+  <el-row class="app-container">
     <el-form ref="pwdForm" :model="form" :rules="form.rules" label-width="100px" style="margin-left:50px">
       <el-form-item label="" prop="old">
         <el-input

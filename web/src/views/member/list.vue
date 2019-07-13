@@ -1,9 +1,15 @@
 <template>
-  <el-row>
-    <el-row type="flex" justify="end">
+  <el-row class="app-container">
+    <el-row class="app-bar" type="flex" justify="end">
       <el-button type="primary" icon="el-icon-plus" @click="dialogFormVisible = true">添加</el-button>
     </el-row>
-    <el-table :data="tableData" style="width: 100%">
+    <el-table
+      border
+      stripe
+      highlight-current-row
+      :data="tableData"
+      style="width: 100%"
+    >
       <el-table-column prop="account" label="账号" />
       <el-table-column prop="name" label="名称" />
       <el-table-column prop="email" label="邮箱" show-overflow-tooltip />
@@ -123,7 +129,7 @@ export default {
           add(this.form.account, this.form.password, this.form.name, this.form.email, this.form.role).then((response) => {
             this.form.disabled = this.dialogFormVisible = false
             this.$message({
-              message: response.data.message,
+              message: response.message,
               type: 'success',
               duration: 5 * 1000
             })
