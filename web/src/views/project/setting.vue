@@ -12,8 +12,8 @@
     >
       <el-table-column prop="name" label="项目名称" />
       <el-table-column prop="url" label="项目地址" />
-      <el-table-column prop="path" label="部署路径" />
-      <el-table-column prop="status" label="状态" />
+      <el-table-column prop="path" width="200" label="部署路径" />
+      <el-table-column prop="status" label="状态" width="90" />
       <el-table-column prop="createTime" width="160" label="创建时间" />
       <el-table-column prop="updateTime" width="160" label="更新时间" />
       <el-table-column prop="operation" label="操作" width="430">
@@ -133,7 +133,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogAddServerVisible = false">取 消</el-button>
-        <el-button :disabled="addServerFormProps.disabled" type="primary" @click="submit">确 定</el-button>
+        <el-button :disabled="addServerFormProps.disabled" type="primary" @click="addServer">确 定</el-button>
       </div>
     </el-dialog>
     <el-dialog title="添加用户" :visible.sync="dialogAddUserVisible">
@@ -151,7 +151,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogAddUserVisible = false">取 消</el-button>
-        <el-button :disabled="addUserFormProps.disabled" type="primary" @click="submit">确 定</el-button>
+        <el-button :disabled="addUserFormProps.disabled" type="primary" @click="addUser">确 定</el-button>
       </div>
     </el-dialog>
   </el-row>
@@ -160,7 +160,7 @@
 
 import { getOption as getUserOption } from '@/api/user'
 import { getOption as getServerOption } from '@/api/server'
-import { getList, getBindServerList, getBindUserList, add, edit, create, removeProjectServer, removeProjectUser } from '@/api/project'
+import { getList, getBindServerList, getBindUserList, add, edit, create, addServer, addUser, removeProjectServer, removeProjectUser } from '@/api/project'
 import { parseTime } from '@/utils'
 
 const STATUS = ['未初始化', '初始化中', '初始化成功', '初始化失败']
@@ -261,7 +261,7 @@ export default {
     handleUser(data) {
       this.getBindUserList(data.id)
       // 先把projectID写入添加用户的表单
-      this.addServerFormData.projectId = data.id
+      this.addUserFormData.projectId = data.id
       this.dialogUserVisible = true
     },
 
@@ -324,6 +324,48 @@ export default {
           type: 'success',
           duration: 5 * 1000
         })
+      })
+    },
+
+    addServer() {
+      this.$refs.addServerForm.validate((valid) => {
+        if (valid) {
+          this.addServerFormProps.disabled = true
+          addServer(this.addServerFormData).then((response) => {
+            this.dialogAddServerVisible = false
+            this.$message({
+              message: response.message,
+              type: 'success',
+              duration: 5 * 1000
+            })
+            this.getBindServerList(this.addServerFormData.projectId)
+          }).finally(() => {
+            this.addServerFormProps.disabled = false
+          })
+        } else {
+          return false
+        }
+      })
+    },
+
+    addUser() {
+      this.$refs.addUserForm.validate((valid) => {
+        if (valid) {
+          this.addUserFormProps.disabled = true
+          addUser(this.addUserFormData).then((response) => {
+            this.dialogAddUserVisible = false
+            this.$message({
+              message: response.message,
+              type: 'success',
+              duration: 5 * 1000
+            })
+            this.getBindUserList(this.addUserFormData.projectId)
+          }).finally(() => {
+            this.addUserFormProps.disabled = false
+          })
+        } else {
+          return false
+        }
       })
     },
 

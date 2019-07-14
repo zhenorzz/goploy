@@ -29,6 +29,8 @@ func Init() {
 	rt.Add("/project/create", new(controller.Project).Create)
 	rt.Add("/project/add", new(controller.Project).Add)
 	rt.Add("/project/edit", new(controller.Project).Edit)
+	rt.Add("/project/addServer", new(controller.Project).AddServer)
+	rt.Add("/project/addUser", new(controller.Project).AddUser)
 	rt.Add("/project/removeProjectServer", new(controller.Project).RemoveProjectServer)
 	rt.Add("/project/removeProjectUser", new(controller.Project).RemoveProjectUser)
 

@@ -242,6 +242,78 @@ func (project *Project) Create(w http.ResponseWriter, r *http.Request) {
 	response.Json(w)
 }
 
+// AddServer one project
+func (project *Project) AddServer(w http.ResponseWriter, r *http.Request) {
+	type ReqData struct {
+		ProjectID uint32   `json:"projectId"`
+		ServerIDs []uint32 `json:"serverIds"`
+	}
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	projectID := reqData.ProjectID
+
+	projectServersModel := model.ProjectServers{}
+	for _, serverID := range reqData.ServerIDs {
+		projectServerModel := model.ProjectServer{
+			ProjectID:  projectID,
+			ServerID:   serverID,
+			CreateTime: time.Now().Unix(),
+			UpdateTime: time.Now().Unix(),
+		}
+		projectServersModel = append(projectServersModel, projectServerModel)
+	}
+
+	if err := projectServersModel.AddMany(); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Message: "添加成功"}
+	response.Json(w)
+}
+
+// AddUser one project
+func (project *Project) AddUser(w http.ResponseWriter, r *http.Request) {
+	type ReqData struct {
+		ProjectID uint32   `json:"projectId"`
+		UserIDs   []uint32 `json:"userIds"`
+	}
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	projectID := reqData.ProjectID
+
+	projectUsersModel := model.ProjectUsers{}
+	for _, userID := range reqData.UserIDs {
+		projectUserModel := model.ProjectUser{
+			ProjectID:  projectID,
+			UserID:     userID,
+			CreateTime: time.Now().Unix(),
+			UpdateTime: time.Now().Unix(),
+		}
+		projectUsersModel = append(projectUsersModel, projectUserModel)
+	}
+
+	if err := projectUsersModel.AddMany(); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Message: "添加成功"}
+	response.Json(w)
+}
+
 // RemoveProjectServer one Project
 func (project *Project) RemoveProjectServer(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {

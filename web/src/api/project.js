@@ -77,6 +77,22 @@ export function edit(data) {
   })
 }
 
+export function addServer(data) {
+  return request({
+    url: '/project/addServer',
+    method: 'post',
+    data
+  })
+}
+
+export function addUser(data) {
+  return request({
+    url: '/project/addUser',
+    method: 'post',
+    data
+  })
+}
+
 export function removeProjectUser(projectUserId) {
   return request({
     url: '/project/removeProjectUser',
