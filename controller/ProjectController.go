@@ -117,9 +117,8 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 		}
 		projectServersModel = append(projectServersModel, projectServerModel)
 	}
-	err = projectServersModel.AddMany()
 
-	if err != nil {
+	if err := projectServersModel.AddMany(); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
@@ -135,9 +134,8 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 		}
 		projectUsersModel = append(projectUsersModel, projectUserModel)
 	}
-	err = projectUsersModel.AddMany()
 
-	if err != nil {
+	if err := projectUsersModel.AddMany(); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
@@ -241,5 +239,57 @@ func (project *Project) Create(w http.ResponseWriter, r *http.Request) {
 	}(reqData.ID, path, repo)
 
 	response := core.Response{Message: "初始化中，请稍后"}
+	response.Json(w)
+}
+
+// RemoveProjectServer one Project
+func (project *Project) RemoveProjectServer(w http.ResponseWriter, r *http.Request) {
+	type ReqData struct {
+		ProjectServerID uint32 `json:"projectServerId"`
+	}
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	err = model.ProjectServer{
+		ID: reqData.ProjectServerID,
+	}.DeleteRow()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Message: "删除成功"}
+	response.Json(w)
+}
+
+// RemoveProjectUser one Project
+func (project *Project) RemoveProjectUser(w http.ResponseWriter, r *http.Request) {
+	type ReqData struct {
+		ProjectUserID uint32 `json:"projectUserId"`
+	}
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	err = model.ProjectUser{
+		ID: reqData.ProjectUserID,
+	}.DeleteRow()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Message: "删除成功"}
 	response.Json(w)
 }

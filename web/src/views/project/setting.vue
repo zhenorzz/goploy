@@ -69,6 +69,9 @@
       </div>
     </el-dialog>
     <el-dialog title="服务器管理" :visible.sync="dialogServerVisible">
+      <el-row class="app-bar" type="flex" justify="end">
+        <el-button type="primary" icon="el-icon-plus" @click="handleAdd">添加</el-button>
+      </el-row>
       <el-table
         border
         stripe
@@ -80,9 +83,9 @@
         <el-table-column prop="serverName" label="服务器名称" />
         <el-table-column prop="createTime" width="160" label="绑定时间" />
         <el-table-column prop="updateTime" width="160" label="更新时间" />
-        <el-table-column prop="operation" label="操作" width="130">
+        <el-table-column prop="operation" label="操作" width="75">
           <template slot-scope="scope">
-            <el-button type="danger">删除</el-button>
+            <el-button type="danger" @click="removeProjectServer(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -91,6 +94,9 @@
       </div>
     </el-dialog>
     <el-dialog title="成员管理" :visible.sync="dialogUserVisible">
+      <el-row class="app-bar" type="flex" justify="end">
+        <el-button type="primary" icon="el-icon-plus" @click="handleAdd">添加</el-button>
+      </el-row>
       <el-table
         border
         stripe
@@ -102,9 +108,9 @@
         <el-table-column prop="userName" label="用户名称" />
         <el-table-column prop="createTime" width="160" label="绑定时间" />
         <el-table-column prop="updateTime" width="160" label="更新时间" />
-        <el-table-column prop="operation" label="操作" width="130">
+        <el-table-column prop="operation" label="操作" width="75">
           <template slot-scope="scope">
-            <el-button type="danger">删除</el-button>
+            <el-button type="danger" @click="removeProjectUser(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -118,7 +124,7 @@
 
 import { getOption as getUserOption } from '@/api/user'
 import { getOption as getServerOption } from '@/api/server'
-import { getList, getBindServerList, getBindUserList, add, edit, create } from '@/api/project'
+import { getList, getBindServerList, getBindUserList, add, edit, create, removeProjectServer, removeProjectUser } from '@/api/project'
 import { parseTime } from '@/utils'
 
 const STATUS = ['未初始化', '初始化中', '初始化成功', '初始化失败']
@@ -184,25 +190,13 @@ export default {
     },
 
     handleServer(data) {
-      getBindServerList(data.id).then((response) => {
-        this.tableServerData = response.data.projectServerMap || []
-        this.tableServerData.forEach((element) => {
-          element.createTime = parseTime(element.createTime)
-          element.updateTime = parseTime(element.updateTime)
-        })
-        this.dialogServerVisible = true
-      })
+      this.getBindServerList(data.id)
+      this.dialogServerVisible = true
     },
 
     handleUser(data) {
-      getBindUserList(data.id).then((response) => {
-        this.tableUserData = response.data.projectUserMap || []
-        this.tableUserData.forEach((element) => {
-          element.createTime = parseTime(element.createTime)
-          element.updateTime = parseTime(element.updateTime)
-        })
-        this.dialogUserVisible = true
-      })
+      this.getBindUserList(data.id)
+      this.dialogUserVisible = true
     },
 
     submit() {
@@ -218,6 +212,7 @@ export default {
         }
       })
     },
+
     add() {
       this.formProps.disabled = true
       add(this.formData).then((response) => {
@@ -232,6 +227,7 @@ export default {
         this.formProps.disabled = false
       })
     },
+
     edit() {
       this.formProps.disabled = true
       edit(this.formData).then((response) => {
@@ -246,6 +242,61 @@ export default {
         this.formProps.disabled = false
       })
     },
+
+    create(projectID) {
+      create(projectID).then((response) => {
+        this.$message({
+          message: response.message,
+          type: 'success',
+          duration: 5 * 1000
+        })
+      })
+    },
+
+    removeProjectServer(data) {
+      this.$confirm('此操作将永久删除该服务器的绑定关系, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        removeProjectServer(data.id).then((response) => {
+          this.$message({
+            message: response.message,
+            type: 'success',
+            duration: 5 * 1000
+          })
+          this.getBindServerList(data.projectId)
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    },
+
+    removeProjectUser(data) {
+      this.$confirm('此操作将永久删除该用户的绑定关系, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        removeProjectUser(data.id).then((response) => {
+          this.$message({
+            message: response.message,
+            type: 'success',
+            duration: 5 * 1000
+          })
+          this.getBindUserList(data.projectId)
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    },
+
     get() {
       this.getProjectList()
       getServerOption().then((response) => {
@@ -255,6 +306,7 @@ export default {
         this.userOption = response.data.userList
       })
     },
+
     getProjectList() {
       getList().then((response) => {
         const projectList = response.data.projectList
@@ -267,15 +319,27 @@ export default {
       }).catch(() => {
       })
     },
-    create(projectId) {
-      create(projectId).then((response) => {
-        this.$message({
-          message: response.message,
-          type: 'success',
-          duration: 5 * 1000
+
+    getBindServerList(projectID) {
+      getBindServerList(projectID).then((response) => {
+        this.tableServerData = response.data.projectServerMap || []
+        this.tableServerData.forEach((element) => {
+          element.createTime = parseTime(element.createTime)
+          element.updateTime = parseTime(element.updateTime)
         })
       })
     },
+
+    getBindUserList(projectID) {
+      getBindUserList(projectID).then((response) => {
+        this.tableUserData = response.data.projectUserMap || []
+        this.tableUserData.forEach((element) => {
+          element.createTime = parseTime(element.createTime)
+          element.updateTime = parseTime(element.updateTime)
+        })
+      })
+    },
+
     storeFormData() {
       this.tempFormData = JSON.parse(JSON.stringify(this.formData))
     },

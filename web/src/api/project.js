@@ -76,3 +76,23 @@ export function edit(data) {
     data
   })
 }
+
+export function removeProjectUser(projectUserId) {
+  return request({
+    url: '/project/removeProjectUser',
+    method: 'post',
+    data: {
+      projectUserId
+    }
+  })
+}
+
+export function removeProjectServer(projectServerId) {
+  return request({
+    url: '/project/removeProjectServer',
+    method: 'post',
+    data: {
+      projectServerId
+    }
+  })
+}
