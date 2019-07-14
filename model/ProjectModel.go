@@ -94,22 +94,23 @@ func (p Project) GetList() (Projects, error) {
 	return projects, nil
 }
 
-// QueryByStatus user row by status
-func (p *Projects) QueryByStatus(status uint8) error {
+// GetListByStatus user row by status
+func (p Project) GetListByStatus(status uint8) (Projects, error) {
 	db := NewDB()
 	rows, err := db.Query("SELECT id, name, status, publisher_id, publisher_name, update_time FROM project WHERE status = ?", status)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var projects Projects
 	for rows.Next() {
 		var project Project
 
 		if err := rows.Scan(&project.ID, &project.Name, &project.Status, &project.PublisherID, &project.PublisherName, &project.UpdateTime); err != nil {
-			return err
+			return projects, err
 		}
-		*p = append(*p, project)
+		projects = append(projects, project)
 	}
-	return nil
+	return projects, nil
 }
 
 // GetData add project information to p *Project

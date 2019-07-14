@@ -23,77 +23,80 @@ type User struct {
 // Users many user
 type Users []User
 
-// QueryRow add user information to u *User
-func (u *User) QueryRow() error {
+// GetData add user information to u *User
+func (u User) GetData() (User, error) {
+	var user User
 	db := NewDB()
-	err := db.QueryRow("SELECT account, name, role_id FROM user WHERE id = ? AND state = ?", u.ID, 1).Scan(&u.Account, &u.Name, &u.RoleID)
+	err := db.QueryRow("SELECT account, name, role_id FROM user WHERE id = ? AND state = ?", u.ID, 1).Scan(&user.Account, &user.Name, &user.RoleID)
 	if err != nil {
-		return errors.New("数据查询失败")
+		return user, errors.New("数据查询失败")
 	}
-	return nil
+	return user, nil
 }
 
-// Query user row
-func (u *Users) Query(pagination *Pagination) error {
+// GetList get many user row
+func (u Users) GetList(pagination *Pagination) (Users, error) {
 	db := NewDB()
 	rows, err := db.Query(
 		"SELECT id, account, name, mobile, create_time, update_time FROM user ORDER BY id DESC LIMIT ?, ?",
 		(pagination.Page-1)*pagination.Rows,
 		pagination.Rows)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var users Users
 	for rows.Next() {
 		var user User
 
 		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.CreateTime, &user.UpdateTime); err != nil {
-			return err
+			return users, err
 		}
-		*u = append(*u, user)
+		users = append(users, user)
 	}
 	err = db.QueryRow(`SELECT COUNT(*) AS count FROM user`).Scan(&pagination.Total)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return users, nil
 }
 
-// QueryAll user row
-func (u *Users) QueryAll() error {
+// GetAll user row
+func (u User) GetAll() (Users, error) {
 	db := NewDB()
 	rows, err := db.Query("SELECT id, account, name, mobile, create_time, update_time FROM user ORDER BY id DESC")
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var users Users
 	for rows.Next() {
 		var user User
 
 		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.CreateTime, &user.UpdateTime); err != nil {
-			return err
+			return users, err
 		}
-		*u = append(*u, user)
+		users = append(users, user)
 	}
-	return nil
+	return users, nil
 }
 
 // AddRow add one row to table user and add id to u.ID
-func (u *User) AddRow() error {
+func (u User) AddRow() (uint32, error) {
 	db := NewDB()
 	var count int
 	err := db.QueryRow("SELECT COUNT(*) AS count FROM user WHERE account = ?", u.Account).Scan(&count)
 	fmt.Println(count)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	if count > 0 {
-		return errors.New("账号已存在")
+		return 0, errors.New("账号已存在")
 	}
 	password := []byte(u.Password)
 
 	// Hashing the password with the default cost of 10
 	hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	result, err := db.Exec(
 		"INSERT INTO user (account, password, name, mobile, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?)",
@@ -105,27 +108,27 @@ func (u *User) AddRow() error {
 		u.UpdateTime,
 	)
 	id, err := result.LastInsertId()
-	u.ID = uint32(id)
-	return err
+	return uint32(id), err
 }
 
 // Vaildate if user exists
-func (u *User) Vaildate() error {
+func (u User) Vaildate() (User, error) {
+	var user User
 	var hashPassword string
 	db := NewDB()
-	err := db.QueryRow("SELECT id, password, name FROM user WHERE account = ?", u.Account).Scan(&u.ID, &hashPassword, &u.Name)
+	err := db.QueryRow("SELECT id, password, name FROM user WHERE account = ?", u.Account).Scan(&user.ID, &hashPassword, &user.Name)
 	if err != nil {
-		return err
+		return user, err
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(hashPassword), []byte(u.Password))
 	if err != nil {
-		return errors.New("密码错误")
+		return user, errors.New("密码错误")
 	}
-	return nil
+	return user, nil
 }
 
 // UpdatePassword return err
-func (u *User) UpdatePassword(newPassword string) error {
+func (u User) UpdatePassword(newPassword string) error {
 	password := []byte(newPassword)
 	// Hashing the password with the default cost of 10
 	hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)

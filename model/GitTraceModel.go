@@ -18,7 +18,7 @@ type GitTrace struct {
 }
 
 // AddRow add one row to table deploy and add id to deploy.ID
-func (gt *GitTrace) AddRow() error {
+func (gt GitTrace) AddRow() (uint32, error) {
 	db := NewDB()
 	result, err := db.Exec(
 		"INSERT INTO git_trace (project_id, project_name, detail, state, publisher_id, publisher_name, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -32,8 +32,7 @@ func (gt *GitTrace) AddRow() error {
 		gt.UpdateTime,
 	)
 	id, err := result.LastInsertId()
-	gt.ID = uint32(id)
-	return err
+	return uint32(id), err
 }
 
 // QueryLatestRow add GitTrace information to gt *GitTrace

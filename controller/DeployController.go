@@ -22,15 +22,14 @@ func (deploy *Deploy) Get(w http.ResponseWriter, r *http.Request) {
 		Project model.Projects `json:"projectList"`
 	}
 
-	model := model.Projects{}
-	err := model.QueryByStatus(2)
+	projects, err := model.Project{}.GetListByStatus(2)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
 
-	response := core.Response{Data: RepData{Project: model}}
+	response := core.Response{Data: RepData{Project: projects}}
 	response.Json(w)
 }
 
@@ -118,18 +117,18 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		gitTraceModel.Detail = err.Error()
 		gitTraceModel.State = 0
-		_ = gitTraceModel.AddRow()
+		_, _ = gitTraceModel.AddRow()
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
-	} else {
-		gitTraceModel.Detail = stdout
-		gitTraceModel.State = 1
-		_ = gitTraceModel.AddRow()
 	}
 
+	gitTraceModel.Detail = stdout
+	gitTraceModel.State = 1
+	gitTraceID, _ := gitTraceModel.AddRow()
+
 	for _, projectServer := range projectServers {
-		go rsync(gitTraceModel.ID, project, projectServer)
+		go rsync(gitTraceID, project, projectServer)
 	}
 
 	project.PublisherID = core.GolbalUserID
@@ -191,10 +190,10 @@ func rsync(gitTraceID uint32, project model.Project, projectServer model.Project
 		core.Log(core.ERROR, errbuf.String())
 		rsyncTraceModel.Detail = errbuf.String()
 		rsyncTraceModel.State = 0
-		_ = rsyncTraceModel.AddRow()
+		_, _ = rsyncTraceModel.AddRow()
 	} else {
 		rsyncTraceModel.Detail = outbuf.String()
 		rsyncTraceModel.State = 1
-		_ = rsyncTraceModel.AddRow()
+		_, _ = rsyncTraceModel.AddRow()
 	}
 }

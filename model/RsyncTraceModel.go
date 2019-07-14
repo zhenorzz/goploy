@@ -20,7 +20,7 @@ type RsyncTrace struct {
 type RsyncTraces []RsyncTrace
 
 // AddRow add one row to table deploy and add id to deploy.ID
-func (rt *RsyncTrace) AddRow() error {
+func (rt RsyncTrace) AddRow() (uint32, error) {
 	db := NewDB()
 	result, err := db.Exec(
 		"INSERT INTO rsync_trace (git_trace_id, project_id, project_name, server_id, server_name, detail, state, publisher_id, publisher_name, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -37,8 +37,7 @@ func (rt *RsyncTrace) AddRow() error {
 		rt.UpdateTime,
 	)
 	id, err := result.LastInsertId()
-	rt.ID = uint32(id)
-	return err
+	return uint32(id), err
 }
 
 // QueryByGitTraceID RsyncTrace row

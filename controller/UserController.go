@@ -42,14 +42,13 @@ func (user *User) Login(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	model := model.User{Account: reqData.Account, Password: reqData.Password}
-	err = model.Vaildate()
+	userData, err := model.User{Account: reqData.Account, Password: reqData.Password}.Vaildate()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
-	token, err := user.createToken(model)
+	token, err := user.createToken(userData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
@@ -71,8 +70,7 @@ func (user *User) Info(w http.ResponseWriter, r *http.Request) {
 		Permission    model.Permissions `json:"permission"`
 		PermissionURI []string          `json:"permissionUri"`
 	}
-	userModel := model.User{ID: core.GolbalUserID}
-	err := userModel.QueryRow()
+	userData, err := model.User{ID: core.GolbalUserID}.GetData()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
@@ -81,28 +79,35 @@ func (user *User) Info(w http.ResponseWriter, r *http.Request) {
 
 	data := RepData{}
 	data.UserInfo.ID = core.GolbalUserID
-	data.UserInfo.Name = userModel.Name
-	data.UserInfo.Account = userModel.Account
+	data.UserInfo.Name = userData.Name
+	data.UserInfo.Account = userData.Account
 
-	roleModel := model.Role{ID: userModel.RoleID}
-	err = roleModel.QueryRow()
-
-	permissionsModel := model.Permissions{}
-	err = permissionsModel.Query(roleModel.PermissionList)
-	var permissions model.Permissions
-	for _, permission := range permissionsModel {
+	role, err := model.Role{ID: userData.RoleID}.GetData()
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	permissions, err := model.Permission{}.GetAllByPermissionList(role.PermissionList)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	var tempPermissions model.Permissions
+	for _, permission := range permissions {
 		data.PermissionURI = append(data.PermissionURI, permission.URI)
 		if permission.PID == 0 {
-			for _, pmChild := range permissionsModel {
+			for _, pmChild := range permissions {
 				if pmChild.PID == permission.ID {
 					permission.Children = append(permission.Children, pmChild)
 				}
 			}
-			permissions = append(permissions, permission)
+			tempPermissions = append(tempPermissions, permission)
 		}
 	}
 
-	data.Permission = permissions
+	data.Permission = tempPermissions
 
 	response := core.Response{Data: data}
 	response.Json(w)
@@ -121,12 +126,13 @@ func (user *User) Get(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	if err := userModel.Query(pagination); err != nil {
+	users, err := userModel.GetList(pagination)
+	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
-	response := core.Response{Data: RepData{User: userModel, Pagination: *pagination}}
+	response := core.Response{Data: RepData{User: users, Pagination: *pagination}}
 	response.Json(w)
 }
 
@@ -135,13 +141,13 @@ func (user *User) GetOption(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		User model.Users `json:"userList"`
 	}
-	userModel := model.Users{}
-	if err := userModel.QueryAll(); err != nil {
+	users, err := model.User{}.GetAll()
+	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
-	response := core.Response{Data: RepData{User: userModel}}
+	response := core.Response{Data: RepData{User: users}}
 	response.Json(w)
 }
 
@@ -161,15 +167,14 @@ func (user *User) Add(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	model := model.User{
+	_, err = model.User{
 		Account:    reqData.Account,
 		Password:   reqData.Password,
 		Name:       reqData.Name,
 		Mobile:     reqData.Mobile,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
-	}
-	err = model.AddRow()
+	}.AddRow()
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -198,8 +203,8 @@ func (user *User) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	userModel := model.User{Account: reqData.Account, Password: reqData.OldPassword}
-	if err := userModel.Vaildate(); err != nil {
+	userModel, err := model.User{Account: reqData.Account, Password: reqData.OldPassword}.Vaildate()
+	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return

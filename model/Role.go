@@ -11,12 +11,13 @@ type Role struct {
 	PermissionList string `json:"permissionList"`
 }
 
-// QueryRow role information to r *Role
-func (r *Role) QueryRow() error {
+// GetData role information to r *Role
+func (r Role) GetData() (Role, error) {
+	var role Role
 	db := NewDB()
-	err := db.QueryRow("SELECT id, name, permission_list FROM role WHERE id = ?", r.ID).Scan(&r.ID, &r.Name, &r.PermissionList)
+	err := db.QueryRow("SELECT id, name, permission_list FROM role WHERE id = ?", r.ID).Scan(&role.ID, &role.Name, &role.PermissionList)
 	if err != nil {
-		return errors.New("数据查询失败")
+		return role, errors.New("数据查询失败")
 	}
-	return nil
+	return role, nil
 }

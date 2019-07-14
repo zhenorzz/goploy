@@ -15,20 +15,21 @@ type Permission struct {
 type Permissions []Permission
 
 // Query server row
-func (p *Permissions) Query(permissionList string) error {
+func (p Permission) GetAllByPermissionList(permissionList string) (Permissions, error) {
 	db := NewDB()
 	query := fmt.Sprintf("SELECT id, title, uri, pid FROM permission WHERE id IN (%s)", permissionList)
 	rows, err := db.Query(query)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var permissions Permissions
 	for rows.Next() {
 		var permission Permission
 
 		if err := rows.Scan(&permission.ID, &permission.Title, &permission.URI, &permission.PID); err != nil {
-			return err
+			return permissions, err
 		}
-		*p = append(*p, permission)
+		permissions = append(permissions, permission)
 	}
-	return nil
+	return permissions, nil
 }

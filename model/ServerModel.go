@@ -91,12 +91,13 @@ func (s Server) GetAll() (Servers, error) {
 	return servers, nil
 }
 
-// QueryRow add server information to s *Server
-func (s *Server) QueryRow() error {
+// GetData add server information to s *Server
+func (s Server) GetData() (Server, error) {
+	var server Server
 	db := NewDB()
-	err := db.QueryRow("SELECT name, ip, owner, create_time, update_time FROM server WHERE id = ?", s.ID).Scan(&s.Name, &s.IP, &s.Owner, &s.CreateTime, &s.UpdateTime)
+	err := db.QueryRow("SELECT name, ip, owner, create_time, update_time FROM server WHERE id = ?", s.ID).Scan(&server.Name, &server.IP, &server.Owner, &server.CreateTime, &server.UpdateTime)
 	if err != nil {
-		return errors.New("数据查询失败")
+		return server, errors.New("数据查询失败")
 	}
-	return nil
+	return server, nil
 }
