@@ -34,11 +34,10 @@ func (project *Project) GetList(w http.ResponseWriter, r *http.Request) {
 	response.Json(w)
 }
 
-// GetDetail project detail
-func (project *Project) GetDetail(w http.ResponseWriter, r *http.Request) {
+// GetBindServerList project detail
+func (project *Project) GetBindServerList(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		ProjectServers model.ProjectServers `json:"projectServerMap"`
-		ProjectUsers   model.ProjectUsers   `json:"projectUserMap"`
 	}
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
@@ -46,19 +45,34 @@ func (project *Project) GetDetail(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	projectServersModel := model.ProjectServers{}
-	if err := projectServersModel.GetServerByProjectID(uint32(id)); err != nil {
+	projectServersMap, err := model.ProjectServer{}.GetBindServerListByProjectID(uint32(id))
+	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
-	projectUsersModel := model.ProjectUsers{}
-	if err := projectUsersModel.GetUserByProjectID(uint32(id)); err != nil {
+	response := core.Response{Data: RepData{ProjectServers: projectServersMap}}
+	response.Json(w)
+}
+
+// GetBindUserList project detail
+func (project *Project) GetBindUserList(w http.ResponseWriter, r *http.Request) {
+	type RepData struct {
+		ProjectUsers model.ProjectUsers `json:"projectUserMap"`
+	}
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		response := core.Response{Code: 1, Message: "id参数错误"}
+		response.Json(w)
+		return
+	}
+	projectUsersMap, err := model.ProjectUser{}.GetBindUserListByProjectID(uint32(id))
+	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
-	response := core.Response{Data: RepData{ProjectServers: projectServersModel, ProjectUsers: projectUsersModel}}
+	response := core.Response{Data: RepData{ProjectUsers: projectUsersMap}}
 	response.Json(w)
 }
 

@@ -37,8 +37,8 @@ func (ps *ProjectServers) AddMany() error {
 	return err
 }
 
-// Query server row
-func (ps *ProjectServers) Query(projectID uint32) error {
+// GetBindServerListByProjectID server row
+func (ps ProjectServer) GetBindServerListByProjectID(projectID uint32) (ProjectServers, error) {
 	db := NewDB()
 	rows, err := db.Query(
 		`SELECT 
@@ -47,44 +47,32 @@ func (ps *ProjectServers) Query(projectID uint32) error {
 			server_id,
 			server.name,
 			server.ip,
-			server.owner
+			server.owner,
+			project_server.create_time,
+			project_server.update_time
 		FROM project_server
 		LEFT JOIN server 
 		ON project_server.server_id = server.id
 		WHERE project_id = ?`, projectID)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var projectServers ProjectServers
 	for rows.Next() {
 		var projectServer ProjectServer
 
-		if err := rows.Scan(&projectServer.ID, &projectServer.ProjectID, &projectServer.ServerID, &projectServer.ServerName, &projectServer.ServerIP, &projectServer.ServerOwner); err != nil {
-			return err
+		if err := rows.Scan(
+			&projectServer.ID,
+			&projectServer.ProjectID,
+			&projectServer.ServerID,
+			&projectServer.ServerName,
+			&projectServer.ServerIP,
+			&projectServer.ServerOwner,
+			&projectServer.CreateTime,
+			&projectServer.UpdateTime); err != nil {
+			return projectServers, err
 		}
-		*ps = append(*ps, projectServer)
+		projectServers = append(projectServers, projectServer)
 	}
-	return nil
-}
-
-// GetServerByProjectID server row
-func (ps *ProjectServers) GetServerByProjectID(projectID uint32) error {
-	db := NewDB()
-	rows, err := db.Query(
-		`SELECT 
-			project_id,
-			server_id
-		FROM project_server
-		WHERE project_id = ?`, projectID)
-	if err != nil {
-		return err
-	}
-	for rows.Next() {
-		var projectServer ProjectServer
-
-		if err := rows.Scan(&projectServer.ProjectID, &projectServer.ServerID); err != nil {
-			return err
-		}
-		*ps = append(*ps, projectServer)
-	}
-	return nil
+	return projectServers, nil
 }

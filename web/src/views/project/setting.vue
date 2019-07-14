@@ -16,7 +16,7 @@
       <el-table-column prop="status" label="状态" />
       <el-table-column prop="createTime" width="160" label="创建时间" />
       <el-table-column prop="updateTime" width="160" label="更新时间" />
-      <el-table-column prop="operation" label="操作" width="230">
+      <el-table-column prop="operation" label="操作" width="430">
         <template slot-scope="scope">
           <el-button
             :disabled="scope.row.status === '初始化成功'"
@@ -25,6 +25,8 @@
             @click="create(scope.row.id)"
           >初始化</el-button>
           <el-button type="primary" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button type="primary" @click="handleServer(scope.row)">服务器管理</el-button>
+          <el-button type="primary" @click="handleUser(scope.row)">成员管理</el-button>
           <el-button type="danger">删除</el-button>
         </template>
       </el-table-column>
@@ -66,13 +68,57 @@
         <el-button :disabled="formProps.disabled" type="primary" @click="submit">确 定</el-button>
       </div>
     </el-dialog>
+    <el-dialog title="服务器管理" :visible.sync="dialogServerVisible">
+      <el-table
+        border
+        stripe
+        highlight-current-row
+        :data="tableServerData"
+        style="width: 100%"
+      >
+        <el-table-column prop="serverId" label="服务器ID" />
+        <el-table-column prop="serverName" label="服务器名称" />
+        <el-table-column prop="createTime" width="160" label="绑定时间" />
+        <el-table-column prop="updateTime" width="160" label="更新时间" />
+        <el-table-column prop="operation" label="操作" width="130">
+          <template slot-scope="scope">
+            <el-button type="danger">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogServerVisible = false">取 消</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog title="成员管理" :visible.sync="dialogUserVisible">
+      <el-table
+        border
+        stripe
+        highlight-current-row
+        :data="tableUserData"
+        style="width: 100%"
+      >
+        <el-table-column prop="userId" label="用户ID" />
+        <el-table-column prop="userName" label="用户名称" />
+        <el-table-column prop="createTime" width="160" label="绑定时间" />
+        <el-table-column prop="updateTime" width="160" label="更新时间" />
+        <el-table-column prop="operation" label="操作" width="130">
+          <template slot-scope="scope">
+            <el-button type="danger">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogUserVisible = false">取 消</el-button>
+      </div>
+    </el-dialog>
   </el-row>
 </template>
 <script>
 
 import { getOption as getUserOption } from '@/api/user'
 import { getOption as getServerOption } from '@/api/server'
-import { getList, add, edit, create } from '@/api/project'
+import { getList, getBindServerList, getBindUserList, add, edit, create } from '@/api/project'
 import { parseTime } from '@/utils'
 
 const STATUS = ['未初始化', '初始化中', '初始化成功', '初始化失败']
@@ -80,9 +126,13 @@ export default {
   data() {
     return {
       dialogVisible: false,
+      dialogServerVisible: false,
+      dialogUserVisible: false,
       serverOption: [],
       userOption: [],
       tableData: [],
+      tableServerData: [],
+      tableUserData: [],
       formProps: {
         disabled: false,
         showServers: true,
@@ -132,6 +182,29 @@ export default {
       this.formProps.showServers = this.formProps.showUsers = false
       this.dialogVisible = true
     },
+
+    handleServer(data) {
+      getBindServerList(data.id).then((response) => {
+        this.tableServerData = response.data.projectServerMap || []
+        this.tableServerData.forEach((element) => {
+          element.createTime = parseTime(element.createTime)
+          element.updateTime = parseTime(element.updateTime)
+        })
+        this.dialogServerVisible = true
+      })
+    },
+
+    handleUser(data) {
+      getBindUserList(data.id).then((response) => {
+        this.tableUserData = response.data.projectUserMap || []
+        this.tableUserData.forEach((element) => {
+          element.createTime = parseTime(element.createTime)
+          element.updateTime = parseTime(element.updateTime)
+        })
+        this.dialogUserVisible = true
+      })
+    },
+
     submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {

@@ -15,9 +15,21 @@ export function getList() {
  * @param  {id} id
  * @return {Promise}
  */
-export function getDetail(id) {
+export function getBindServerList(id) {
   return request({
-    url: '/project/getDetail',
+    url: '/project/getBindServerList',
+    method: 'get',
+    params: { id }
+  })
+}
+
+/**
+ * @param  {id} id
+ * @return {Promise}
+ */
+export function getBindUserList(id) {
+  return request({
+    url: '/project/getBindUserList',
     method: 'get',
     params: { id }
   })

@@ -5,6 +5,7 @@ type ProjectUser struct {
 	ID         uint32 `json:"id"`
 	ProjectID  uint32 `json:"projectId"`
 	UserID     uint32 `json:"userId"`
+	UserName   string `json:"userName"`
 	CreateTime int64  `json:"createTime"`
 	UpdateTime int64  `json:"updateTime"`
 }
@@ -34,25 +35,32 @@ func (pu *ProjectUsers) AddMany() error {
 	return err
 }
 
-// GetUserByProjectID server row
-func (pu *ProjectUsers) GetUserByProjectID(projectID uint32) error {
+// GetBindUserListByProjectID user row
+func (pu ProjectUser) GetBindUserListByProjectID(projectID uint32) (ProjectUsers, error) {
 	db := NewDB()
 	rows, err := db.Query(
 		`SELECT 
+		    project_user.id,
 			project_id,
-			user_id
+			user_id,
+			user.name,
+			project_user.create_time,
+			project_user.update_time
 		FROM project_user
+		LEFT JOIN user 
+		ON project_user.user_id = user.id
 		WHERE project_id = ?`, projectID)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var projectUsers ProjectUsers
 	for rows.Next() {
 		var projectUser ProjectUser
 
-		if err := rows.Scan(&projectUser.ProjectID, &projectUser.UserID); err != nil {
-			return err
+		if err := rows.Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID, &projectUser.UserName, &projectUser.CreateTime, &projectUser.UpdateTime); err != nil {
+			return projectUsers, err
 		}
-		*pu = append(*pu, projectUser)
+		projectUsers = append(projectUsers, projectUser)
 	}
-	return nil
+	return projectUsers, nil
 }

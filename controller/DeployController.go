@@ -98,9 +98,9 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projectServersModel := model.ProjectServers{}
+	projectServers, err := model.ProjectServer{}.GetBindServerListByProjectID(reqData.ID)
 
-	if err := projectServersModel.Query(reqData.ID); err != nil {
+	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
@@ -128,7 +128,7 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		_ = gitTraceModel.AddRow()
 	}
 
-	for _, projectServer := range projectServersModel {
+	for _, projectServer := range projectServers {
 		go rsync(gitTraceModel.ID, project, projectServer)
 	}
 

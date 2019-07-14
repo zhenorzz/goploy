@@ -24,7 +24,8 @@ func Init() {
 
 	// project route
 	rt.Add("/project/getList", new(controller.Project).GetList)
-	rt.Add("/project/getDetail", new(controller.Project).GetDetail)
+	rt.Add("/project/getBindServerList", new(controller.Project).GetBindServerList)
+	rt.Add("/project/getBindUserList", new(controller.Project).GetBindUserList)
 	rt.Add("/project/create", new(controller.Project).Create)
 	rt.Add("/project/add", new(controller.Project).Add)
 	rt.Add("/project/edit", new(controller.Project).Edit)
