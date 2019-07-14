@@ -114,7 +114,7 @@ func (user *User) Info(w http.ResponseWriter, r *http.Request) {
 }
 
 // Get user list
-func (user *User) Get(w http.ResponseWriter, r *http.Request) {
+func (user *User) GetList(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		User       model.Users      `json:"userList"`
 		Pagination model.Pagination `json:"pagination"`

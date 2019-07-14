@@ -117,7 +117,7 @@ func (p Project) GetListByStatus(status uint8) (Projects, error) {
 func (p Project) GetData() (Project, error) {
 	db := NewDB()
 	var project Project
-	err := db.QueryRow("SELECT name, url, path, status, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&project.Name, &project.URL, &project.Path, &project.Status, &project.CreateTime, &project.UpdateTime)
+	err := db.QueryRow("SELECT id, name, url, path, status, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Status, &project.CreateTime, &project.UpdateTime)
 	if err != nil {
 		return project, errors.New("数据查询失败")
 	}

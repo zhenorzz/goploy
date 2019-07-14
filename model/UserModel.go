@@ -38,7 +38,7 @@ func (u User) GetData() (User, error) {
 func (u Users) GetList(pagination *Pagination) (Users, error) {
 	db := NewDB()
 	rows, err := db.Query(
-		"SELECT id, account, name, mobile, create_time, update_time FROM user ORDER BY id DESC LIMIT ?, ?",
+		"SELECT id, account, name, mobile, role_id, create_time, update_time FROM user ORDER BY id DESC LIMIT ?, ?",
 		(pagination.Page-1)*pagination.Rows,
 		pagination.Rows)
 	if err != nil {
@@ -48,7 +48,7 @@ func (u Users) GetList(pagination *Pagination) (Users, error) {
 	for rows.Next() {
 		var user User
 
-		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.CreateTime, &user.UpdateTime); err != nil {
+		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.RoleID, &user.CreateTime, &user.UpdateTime); err != nil {
 			return users, err
 		}
 		users = append(users, user)

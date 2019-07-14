@@ -32,9 +32,9 @@ export function isShowPhrase() {
  * @param  {object} pagination
  * @return {Promise}
  */
-export function get(pagination) {
+export function getList(pagination) {
   return request({
-    url: '/user/get',
+    url: '/user/getList',
     method: 'get',
     params: {
       ...pagination

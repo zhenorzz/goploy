@@ -14,7 +14,7 @@ type Permission struct {
 // Permissions many project
 type Permissions []Permission
 
-// Query server row
+// GetAllByPermissionList server row
 func (p Permission) GetAllByPermissionList(permissionList string) (Permissions, error) {
 	db := NewDB()
 	query := fmt.Sprintf("SELECT id, title, uri, pid FROM permission WHERE id IN (%s)", permissionList)

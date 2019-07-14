@@ -12,8 +12,12 @@
     >
       <el-table-column prop="account" label="账号" />
       <el-table-column prop="name" label="名称" />
-      <el-table-column prop="email" label="邮箱" show-overflow-tooltip />
-      <el-table-column prop="role" label="角色" show-overflow-tooltip />
+      <el-table-column prop="mobile" label="手机号码" show-overflow-tooltip />
+      <el-table-column prop="role" label="角色">
+        <template slot-scope="scope">
+          {{ findRoleName(scope.row.roleId) }}
+        </template>
+      </el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="160" />
       <el-table-column prop="updateTime" label="更新时间" width="160" />
       <el-table-column prop="operation" label="操作" width="150">
@@ -44,13 +48,17 @@
         <el-form-item label="名称" label-width="120px" prop="name">
           <el-input v-model="form.name" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="邮箱" label-width="120px" prop="email">
+        <el-form-item label="手机号码" label-width="120px" prop="mobile">
           <el-input v-model="form.email" autocomplete="off" />
         </el-form-item>
         <el-form-item label="角色" label-width="120px" prop="role">
-          <el-select v-model="form.role" placeholder="请选择角色">
-            <el-option label="管理员" value="manager" />
-            <el-option label="普通成员" value="member" />
+          <el-select v-model="form.roleId" placeholder="选择角色">
+            <el-option
+              v-for="(item, index) in roleOption"
+              :key="index"
+              :label="item.name"
+              :value="item.id"
+            />
           </el-select>
         </el-form-item>
       </el-form>
@@ -62,13 +70,15 @@
   </el-row>
 </template>
 <script>
-import { get, add } from '@/api/user'
+import { getList, add } from '@/api/user'
+import { getOption as getRoleOption } from '@/api/role'
 import { parseTime } from '@/utils'
 
 export default {
   data() {
     return {
       dialogFormVisible: false,
+      roleOption: [],
       tableData: [],
       pagination: {
         page: 1,
@@ -80,8 +90,8 @@ export default {
         account: '',
         password: '',
         name: '',
-        email: '',
-        role: '',
+        mobile: '',
+        roleId: '',
         rules: {
           account: [
             { required: true, message: '请输入账号', trigger: 'blur' }
@@ -92,10 +102,7 @@ export default {
           name: [
             { required: true, message: '请输入名称', trigger: 'blur' }
           ],
-          email: [
-            { type: 'email', message: '邮箱格式不正确', trigger: 'blur' }
-          ],
-          role: [
+          roleId: [
             { required: true, message: '请选择角色', trigger: 'change' }
           ]
         }
@@ -103,11 +110,12 @@ export default {
     }
   },
   created() {
+    this.getRoleOption()
     this.getUserList()
   },
   methods: {
     getUserList() {
-      get(this.pagination).then((response) => {
+      getList(this.pagination).then((response) => {
         const userList = response.data.userList
         userList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
@@ -117,6 +125,16 @@ export default {
         this.pagination = response.data.pagination
       })
     },
+    getRoleOption() {
+      getRoleOption().then((response) => {
+        this.roleOption = response.data.roleList
+      })
+    },
+
+    findRoleName(roleId) {
+      return this.roleOption.find(element => element.id === roleId)['name']
+    },
+
     // 分页事件
     handleCurrentChange(val) {
       this.pagination.page = val

@@ -17,7 +17,7 @@ func Init() {
 	rt.Add("/user/isShowPhrase", new(controller.User).IsShowPhrase)
 	rt.Add("/user/login", new(controller.User).Login)
 	rt.Add("/user/info", new(controller.User).Info)
-	rt.Add("/user/get", new(controller.User).Get)
+	rt.Add("/user/getList", new(controller.User).GetList)
 	rt.Add("/user/getOption", new(controller.User).GetOption)
 	rt.Add("/user/add", new(controller.User).Add)
 	rt.Add("/user/changePassword", new(controller.User).ChangePassword)
@@ -44,5 +44,8 @@ func Init() {
 	rt.Add("/server/getOption", new(controller.Server).GetOption)
 	rt.Add("/server/add", new(controller.Server).Add)
 	rt.Add("/server/edit", new(controller.Server).Edit)
+
+	// role route
+	rt.Add("/role/getOption", new(controller.Role).GetOption)
 	rt.Start()
 }
