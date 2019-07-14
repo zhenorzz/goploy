@@ -3,9 +3,9 @@ import request from '@/utils/request'
 /**
  * @return {Promise}
  */
-export function get() {
+export function getList() {
   return request({
-    url: '/deploy/get',
+    url: '/deploy/getList',
     method: 'get',
     params: {}
   })

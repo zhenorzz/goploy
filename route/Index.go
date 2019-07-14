@@ -36,7 +36,7 @@ func Init() {
 	rt.Add("/project/removeProjectUser", new(controller.Project).RemoveProjectUser)
 
 	// deploy route
-	rt.Add("/deploy/get", new(controller.Deploy).Get)
+	rt.Add("/deploy/getList", new(controller.Deploy).GetList)
 	rt.Add("/deploy/getDetail", new(controller.Deploy).GetDetail)
 	rt.Add("/deploy/publish", new(controller.Deploy).Publish)
 

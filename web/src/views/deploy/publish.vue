@@ -28,9 +28,10 @@
         </el-row>
         <hr>
         <el-row>
-          <el-row style="margin:5px 0">rsync同步服务器信息</el-row>
-          <el-row v-for="(item, index) in rsyncTraceList" :key="index">
+          <el-row style="margin:5px 0">remote服务器信息</el-row>
+          <el-row v-for="(item, index) in remoteTraceList" :key="index">
             <el-row style="margin:5px 0">服务器: {{ item['serverName'] }}</el-row>
+            <el-row style="margin:5px 0">日志类型: {{ item['type'] === 1 ? '同步文件' : '运行脚本' }}</el-row>
             <el-row style="margin:5px 0">状态: {{ item['state'] === 1 ? '成功' : '失败' }}</el-row>
             <el-row style="margin:5px 0" v-html="formatDetail(item['detail'])" />
             <hr>
@@ -44,7 +45,7 @@
   </el-row>
 </template>
 <script>
-import { get, getDetail, publish } from '@/api/deploy'
+import { getList, getDetail, publish } from '@/api/deploy'
 import { parseTime } from '@/utils'
 
 const STATE = ['构建中', '构建成功', '构建失败', '撤回']
@@ -54,16 +55,16 @@ export default {
       dialogVisible: false,
       tableData: [],
       gitTrace: {},
-      rsyncTraceList: []
+      remoteTraceList: []
 
     }
   },
   created() {
-    this.get()
+    this.getList()
   },
   methods: {
-    get() {
-      get().then((response) => {
+    getList() {
+      getList().then((response) => {
         const projectList = response.data.projectList
         projectList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
@@ -80,14 +81,14 @@ export default {
           type: 'success',
           duration: 5 * 1000
         })
-        this.get()
+        this.getList()
       })
     },
     handleDetail(id) {
       getDetail(id).then((response) => {
         this.dialogVisible = true
         this.gitTrace = response.data.gitTrace
-        this.rsyncTraceList = response.data.rsyncTraceList
+        this.remoteTraceList = response.data.remoteTraceList
       })
     },
     formatDetail(detail) {
@@ -99,7 +100,7 @@ export default {
 <style rel="stylesheet/scss" lang="scss" scoped>
 @import "@/styles/mixin.scss";
 .project-detail {
-  height:300px;
+  height:500px;
   overflow-y: auto;
   @include scrollBar();
 }

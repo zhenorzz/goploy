@@ -1,7 +1,7 @@
 package model
 
-// RsyncTrace mysql table for rsync trace
-type RsyncTrace struct {
+// RemoteTrace mysql table for rsync trace
+type RemoteTrace struct {
 	ID            uint32 `json:"id"`
 	GitTraceID    uint32 `json:"gitTraceId"`
 	ProjectID     uint32 `json:"projectId"`
@@ -12,18 +12,19 @@ type RsyncTrace struct {
 	State         uint8  `json:"state"`
 	PublisherID   uint32 `json:"publisherId"`
 	PublisherName string `json:"publisherName"`
+	Type          uint32 `json:"type"`
 	CreateTime    int64  `json:"createTime"`
 	UpdateTime    int64  `json:"updateTime"`
 }
 
-// RsyncTraces RsyncTrace slice
-type RsyncTraces []RsyncTrace
+// RemoteTraces RemoteTrace slice
+type RemoteTraces []RemoteTrace
 
 // AddRow add one row to table deploy and add id to deploy.ID
-func (rt RsyncTrace) AddRow() (uint32, error) {
+func (rt RemoteTrace) AddRow() (uint32, error) {
 	db := NewDB()
 	result, err := db.Exec(
-		"INSERT INTO rsync_trace (git_trace_id, project_id, project_name, server_id, server_name, detail, state, publisher_id, publisher_name, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO remote_trace (git_trace_id, project_id, project_name, server_id, server_name, detail, state, publisher_id, publisher_name, type, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		rt.GitTraceID,
 		rt.ProjectID,
 		rt.ProjectName,
@@ -33,6 +34,7 @@ func (rt RsyncTrace) AddRow() (uint32, error) {
 		rt.State,
 		rt.PublisherID,
 		rt.PublisherName,
+		rt.Type,
 		rt.CreateTime,
 		rt.UpdateTime,
 	)
@@ -40,8 +42,8 @@ func (rt RsyncTrace) AddRow() (uint32, error) {
 	return uint32(id), err
 }
 
-// QueryByGitTraceID RsyncTrace row
-func (rts *RsyncTraces) QueryByGitTraceID(gitTraceID uint32) error {
+// GetListByGitTraceID RemoteTrace row
+func (rt RemoteTrace) GetListByGitTraceID(gitTraceID uint32) (RemoteTraces, error) {
 	db := NewDB()
 	rows, err := db.Query(
 		`SELECT 
@@ -55,32 +57,35 @@ func (rts *RsyncTraces) QueryByGitTraceID(gitTraceID uint32) error {
 			state,
 			publisher_id,
 			publisher_name,
+			type,
 			create_time,
 			update_time
-		FROM rsync_trace
+		FROM remote_trace
 		WHERE git_trace_id = ?`, gitTraceID)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var RemoteTraces RemoteTraces
 	for rows.Next() {
-		var rsyncTrace RsyncTrace
+		var RemoteTrace RemoteTrace
 
 		if err := rows.Scan(
-			&rsyncTrace.ID,
-			&rsyncTrace.GitTraceID,
-			&rsyncTrace.ProjectID,
-			&rsyncTrace.ProjectName,
-			&rsyncTrace.ServerID,
-			&rsyncTrace.ServerName,
-			&rsyncTrace.Detail,
-			&rsyncTrace.State,
-			&rsyncTrace.PublisherID,
-			&rsyncTrace.PublisherName,
-			&rsyncTrace.CreateTime,
-			&rsyncTrace.UpdateTime); err != nil {
-			return err
+			&RemoteTrace.ID,
+			&RemoteTrace.GitTraceID,
+			&RemoteTrace.ProjectID,
+			&RemoteTrace.ProjectName,
+			&RemoteTrace.ServerID,
+			&RemoteTrace.ServerName,
+			&RemoteTrace.Detail,
+			&RemoteTrace.State,
+			&RemoteTrace.PublisherID,
+			&RemoteTrace.PublisherName,
+			&RemoteTrace.Type,
+			&RemoteTrace.CreateTime,
+			&RemoteTrace.UpdateTime); err != nil {
+			return RemoteTraces, err
 		}
-		*rts = append(*rts, rsyncTrace)
+		RemoteTraces = append(RemoteTraces, RemoteTrace)
 	}
-	return nil
+	return RemoteTraces, nil
 }

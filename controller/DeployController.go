@@ -3,21 +3,25 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
+	"os"
 	"os/exec"
 	"strconv"
 	"time"
 
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"golang.org/x/crypto/ssh"
 )
 
 // Deploy struct
 type Deploy struct{}
 
 // Get deploy list
-func (deploy *Deploy) Get(w http.ResponseWriter, r *http.Request) {
+func (deploy *Deploy) GetList(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		Project model.Projects `json:"projectList"`
 	}
@@ -37,8 +41,8 @@ func (deploy *Deploy) Get(w http.ResponseWriter, r *http.Request) {
 func (deploy *Deploy) GetDetail(w http.ResponseWriter, r *http.Request) {
 
 	type RepData struct {
-		GitTrace       model.GitTrace    `json:"gitTrace"`
-		RsyncTraceList model.RsyncTraces `json:"rsyncTraceList"`
+		GitTrace        model.GitTrace     `json:"gitTrace"`
+		RemoteTraceList model.RemoteTraces `json:"remoteTraceList"`
 	}
 
 	id, err := strconv.Atoi(r.URL.Query().Get("id"))
@@ -56,14 +60,14 @@ func (deploy *Deploy) GetDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rsyncTracesModel := model.RsyncTraces{}
-	if err := rsyncTracesModel.QueryByGitTraceID(gitTraceModel.ID); err != nil {
+	remoteTracesList, err := model.RemoteTrace{}.GetListByGitTraceID(gitTraceModel.ID)
+	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
 
-	response := core.Response{Data: RepData{GitTrace: gitTraceModel, RsyncTraceList: rsyncTracesModel}}
+	response := core.Response{Data: RepData{GitTrace: gitTraceModel, RemoteTraceList: remoteTracesList}}
 	response.Json(w)
 }
 
@@ -128,7 +132,7 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 	gitTraceID, _ := gitTraceModel.AddRow()
 
 	for _, projectServer := range projectServers {
-		go rsync(gitTraceID, project, projectServer)
+		go remoteExec(gitTraceID, project, projectServer)
 	}
 
 	project.PublisherID = core.GolbalUserID
@@ -167,15 +171,16 @@ func gitSync(project model.Project) (string, error) {
 	return pullOutbuf.String(), nil
 }
 
-func rsync(gitTraceID uint32, project model.Project, projectServer model.ProjectServer) {
+func remoteExec(gitTraceID uint32, project model.Project, projectServer model.ProjectServer) {
 	srcPath := "./repository/" + project.Name
-	destPath := projectServer.ServerOwner + "@" + projectServer.ServerIP + ":" + project.Path
+	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
+	destPath := remoteMachine + ":" + project.Path
 	cmd := exec.Command("rsync", "-rtv", "--exclude", ".git", "--delete", srcPath, destPath)
 	var outbuf, errbuf bytes.Buffer
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" rsync -rtv --delete "+srcPath+destPath)
-	rsyncTraceModel := model.RsyncTrace{
+	remoteTraceModel := model.RemoteTrace{
 		GitTraceID:    gitTraceID,
 		ProjectID:     project.ID,
 		ProjectName:   project.Name,
@@ -183,17 +188,115 @@ func rsync(gitTraceID uint32, project model.Project, projectServer model.Project
 		ServerName:    projectServer.ServerName,
 		PublisherID:   core.GolbalUserID,
 		PublisherName: core.GolbalUserName,
+		Type:          1,
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
 	}
 	if err := cmd.Run(); err != nil {
 		core.Log(core.ERROR, errbuf.String())
-		rsyncTraceModel.Detail = errbuf.String()
-		rsyncTraceModel.State = 0
-		_, _ = rsyncTraceModel.AddRow()
+		remoteTraceModel.Detail = errbuf.String()
+		remoteTraceModel.State = 0
+		remoteTraceModel.AddRow()
 	} else {
-		rsyncTraceModel.Detail = outbuf.String()
-		rsyncTraceModel.State = 1
-		_, _ = rsyncTraceModel.AddRow()
+		remoteTraceModel.Detail = outbuf.String()
+		remoteTraceModel.State = 1
+		remoteTraceModel.AddRow()
 	}
+	// 没有脚本就不运行
+	if project.Script == "" {
+		return
+	}
+	remoteTraceModel.Type = 2
+	// 执行ssh脚本
+	session, err := connect(projectServer.ServerOwner, "", projectServer.ServerIP, 22)
+	if err != nil {
+		core.Log(core.ERROR, err.Error())
+		remoteTraceModel.Detail = err.Error()
+		remoteTraceModel.State = 0
+		remoteTraceModel.AddRow()
+		return
+	}
+	defer session.Close()
+	var sshOutbuf bytes.Buffer
+	session.Stdout = &sshOutbuf
+	// 需要更改脚本的权限 以免执行不了
+	if err := session.Run("chmod u+x " + project.Script + "&&" + project.Script); err != nil {
+		core.Log(core.ERROR, err.Error())
+		remoteTraceModel.Detail = err.Error()
+		remoteTraceModel.State = 0
+		remoteTraceModel.AddRow()
+		return
+	}
+	remoteTraceModel.Detail = sshOutbuf.String()
+	remoteTraceModel.State = 1
+	remoteTraceModel.AddRow()
+	return
+}
+
+func connect(user, password, host string, port int) (*ssh.Session, error) {
+	var (
+		auth         []ssh.AuthMethod
+		addr         string
+		clientConfig *ssh.ClientConfig
+		client       *ssh.Client
+		config       ssh.Config
+		session      *ssh.Session
+		err          error
+	)
+	// get auth method
+	auth = make([]ssh.AuthMethod, 0)
+
+	pemBytes, err := ioutil.ReadFile(os.Getenv("SSHKEY_PATH"))
+	if err != nil {
+		return nil, err
+	}
+
+	var signer ssh.Signer
+	if password == "" {
+		signer, err = ssh.ParsePrivateKey(pemBytes)
+	} else {
+		signer, err = ssh.ParsePrivateKeyWithPassphrase(pemBytes, []byte(password))
+	}
+	if err != nil {
+		return nil, err
+	}
+	auth = append(auth, ssh.PublicKeys(signer))
+
+	config = ssh.Config{
+		Ciphers: []string{"aes128-ctr", "aes192-ctr", "aes256-ctr", "aes128-gcm@openssh.com", "arcfour256", "arcfour128", "aes128-cbc", "3des-cbc", "aes192-cbc", "aes256-cbc"},
+	}
+
+	clientConfig = &ssh.ClientConfig{
+		User:    user,
+		Auth:    auth,
+		Timeout: 30 * time.Second,
+		Config:  config,
+		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
+			return nil
+		},
+	}
+
+	// connet to ssh
+	addr = fmt.Sprintf("%s:%d", host, port)
+
+	if client, err = ssh.Dial("tcp", addr, clientConfig); err != nil {
+		return nil, err
+	}
+
+	// create session
+	if session, err = client.NewSession(); err != nil {
+		return nil, err
+	}
+
+	modes := ssh.TerminalModes{
+		ssh.ECHO:          0,     // disable echoing
+		ssh.TTY_OP_ISPEED: 14400, // input speed = 14.4kbaud
+		ssh.TTY_OP_OSPEED: 14400, // output speed = 14.4kbaud
+	}
+
+	if err := session.RequestPty("xterm", 80, 40, modes); err != nil {
+		return nil, err
+	}
+
+	return session, nil
 }
