@@ -36,41 +36,18 @@ export function create(id) {
 }
 
 /**
- * @param  {id} id
+ * @param  {string} project
+ * @param  {string} owner
+ * @param  {string} repository
+ * @param  {string} serverIds
+ * @param  {string} userIds
  * @return {Promise}
  */
-export function branch(id) {
+export function add(data) {
   return request({
-    url: '/project/branch',
+    url: '/project/add',
     method: 'post',
-    data: { id }
-  })
-}
-
-/**
- * @param  {id} id
- * @param  {string} branch
- * @return {Promise}
- */
-export function commit(id, branch) {
-  return request({
-    url: '/project/commit',
-    method: 'post',
-    data: { id, branch }
-  })
-}
-
-/**
- * @param  {string} sha
- * @return {Promise}
- */
-export function tree(sha) {
-  return request({
-    url: '/project/tree',
-    method: 'get',
-    params: {
-      sha: sha
-    }
+    data
   })
 }
 
@@ -78,12 +55,11 @@ export function tree(sha) {
  * @param  {string} project
  * @param  {string} owner
  * @param  {string} repository
- * @param  {string} serverIds
  * @return {Promise}
  */
-export function add(data) {
+export function edit(data) {
   return request({
-    url: '/project/add',
+    url: '/project/edit',
     method: 'post',
     data
   })

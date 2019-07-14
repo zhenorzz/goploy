@@ -133,6 +133,39 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 	response.Json(w)
 }
 
+// Edit one Project
+func (project *Project) Edit(w http.ResponseWriter, r *http.Request) {
+	type ReqData struct {
+		ID   uint32 `json:"id"`
+		Name string `json:"name"`
+		URL  string `json:"url"`
+		Path string `json:"path"`
+	}
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	err = model.Project{
+		ID:         reqData.ID,
+		Name:       reqData.Name,
+		URL:        reqData.URL,
+		Path:       reqData.Path,
+		UpdateTime: time.Now().Unix(),
+	}.EditRow()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	response := core.Response{Message: "修改成功"}
+	response.Json(w)
+}
+
 // Create new repository
 func (project *Project) Create(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {

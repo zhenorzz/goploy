@@ -33,6 +33,24 @@ func (p Project) AddRow() (uint32, error) {
 	return uint32(id), err
 }
 
+// EditRow edit one row to table project
+func (p Project) EditRow() error {
+	db := NewDB()
+	_, err := db.Exec(
+		`UPDATE project SET 
+		  name = ?,
+		  url = ?,
+		  path = ?
+		WHERE
+		 id = ?`,
+		p.Name,
+		p.URL,
+		p.Path,
+		p.ID,
+	)
+	return err
+}
+
 // ChangeStatus for project
 func (p Project) ChangeStatus() error {
 	db := NewDB()

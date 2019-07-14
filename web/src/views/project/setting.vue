@@ -40,7 +40,7 @@
         <el-form-item label="部署路径" label-width="120px" prop="path">
           <el-input v-model="formData.path" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="绑定服务器" label-width="120px" prop="serverIds">
+        <el-form-item v-show="formProps.showServers" label="绑定服务器" label-width="120px" prop="serverIds">
           <el-select v-model="formData.serverIds" multiple placeholder="选择服务器，可多选">
             <el-option
               v-for="(item, index) in serverOption"
@@ -50,7 +50,7 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="绑定组员" label-width="120px" prop="userIds">
+        <el-form-item v-show="formProps.showUsers" label="绑定组员" label-width="120px" prop="userIds">
           <el-select v-model="formData.userIds" multiple placeholder="选择组员，可多选">
             <el-option
               v-for="(item, index) in userOption"
@@ -72,7 +72,7 @@
 
 import { getOption as getUserOption } from '@/api/user'
 import { getOption as getServerOption } from '@/api/server'
-import { getList, getDetail, add, create } from '@/api/project'
+import { getList, add, edit, create } from '@/api/project'
 import { parseTime } from '@/utils'
 
 const STATUS = ['未初始化', '初始化中', '初始化成功', '初始化失败']
@@ -84,7 +84,9 @@ export default {
       userOption: [],
       tableData: [],
       formProps: {
-        disabled: false
+        disabled: false,
+        showServers: true,
+        showUsers: true
       },
       tempFormData: {},
       formData: {
@@ -106,10 +108,10 @@ export default {
           { required: true, message: '请输入部署路径', trigger: ['blur'] }
         ],
         serverIds: [
-          { type: 'array', required: true, message: '请选择服务器', trigger: 'change' }
+          { type: 'array', message: '请选择服务器', trigger: 'change' }
         ],
         userIds: [
-          { type: 'array', required: true, message: '请选择组员', trigger: 'change' }
+          { type: 'array', message: '请选择组员', trigger: 'change' }
         ]
       }
     }
@@ -121,18 +123,14 @@ export default {
   methods: {
     handleAdd() {
       this.restoreFormData()
+      this.formProps.showServers = this.formProps.showUsers = true
       this.dialogVisible = true
     },
 
     handleEdit(data) {
       this.formData = Object.assign({}, data)
-      getDetail(data.id).then(response => {
-        const projectServerMap = response.data.projectServerMap
-        this.formData.serverIds = projectServerMap.map(element => element.serverId)
-        const projectUserMap = response.data.projectUserMap
-        this.formData.userIds = projectUserMap.map(element => element.userId)
-        this.dialogVisible = true
-      })
+      this.formProps.showServers = this.formProps.showUsers = false
+      this.dialogVisible = true
     },
     submit() {
       this.$refs.form.validate((valid) => {
@@ -150,6 +148,20 @@ export default {
     add() {
       this.formProps.disabled = true
       add(this.formData).then((response) => {
+        this.dialogVisible = false
+        this.$message({
+          message: response.message,
+          type: 'success',
+          duration: 5 * 1000
+        })
+        this.getProjectList()
+      }).finally(() => {
+        this.formProps.disabled = false
+      })
+    },
+    edit() {
+      this.formProps.disabled = true
+      edit(this.formData).then((response) => {
         this.dialogVisible = false
         this.$message({
           message: response.message,
