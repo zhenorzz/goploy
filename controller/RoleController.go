@@ -7,10 +7,10 @@ import (
 	"github.com/zhenorzz/goploy/model"
 )
 
-// Server struct
+// Role struct
 type Role struct{}
 
-// GetOption server list
+// GetOption role list
 func (role *Role) GetOption(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		Role model.Roles `json:"roleList"`

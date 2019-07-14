@@ -32,18 +32,21 @@
       </el-table-column>
     </el-table>
     <el-dialog title="项目设置" :visible.sync="dialogVisible">
-      <el-form ref="form" :rules="formRules" :model="formData">
-        <el-form-item label="项目名称" label-width="120px" prop="name">
+      <el-form ref="form" :rules="formRules" :model="formData" label-width="120px">
+        <el-form-item label="项目名称" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="项目地址" label-width="120px" prop="url">
+        <el-form-item label="项目地址" prop="url">
           <el-input v-model="formData.url" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="部署路径" label-width="120px" prop="path">
+        <el-form-item label="部署路径" prop="path">
           <el-input v-model="formData.path" autocomplete="off" />
         </el-form-item>
-        <el-form-item v-show="formProps.showServers" label="绑定服务器" label-width="120px" prop="serverIds">
-          <el-select v-model="formData.serverIds" multiple placeholder="选择服务器，可多选">
+        <el-form-item label="脚本路径" prop="scrpit">
+          <el-input v-model="formData.script" autocomplete="off" />
+        </el-form-item>
+        <el-form-item v-show="formProps.showServers" label="绑定服务器" prop="serverIds">
+          <el-select v-model="formData.serverIds" multiple placeholder="选择服务器，可多选" style="width:100%">
             <el-option
               v-for="(item, index) in serverOption"
               :key="index"
@@ -52,8 +55,8 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item v-show="formProps.showUsers" label="绑定组员" label-width="120px" prop="userIds">
-          <el-select v-model="formData.userIds" multiple placeholder="选择组员，可多选">
+        <el-form-item v-show="formProps.showUsers" label="绑定组员" prop="userIds">
+          <el-select v-model="formData.userIds" multiple placeholder="选择组员，可多选" style="width:100%">
             <el-option
               v-for="(item, index) in userOption"
               :key="index"
@@ -188,6 +191,7 @@ export default {
         name: '',
         url: '',
         path: '',
+        script: '',
         serverIds: [],
         userIds: []
       },

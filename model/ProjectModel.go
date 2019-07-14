@@ -12,6 +12,7 @@ type Project struct {
 	Name          string `json:"name"`
 	URL           string `json:"url"`
 	Path          string `json:"path"`
+	Script        string `json:"script"`
 	Status        uint8  `json:"status"`
 	PublisherID   uint32 `json:"publisherId"`
 	PublisherName string `json:"publisherName"`
@@ -26,10 +27,11 @@ type Projects []Project
 func (p Project) AddRow() (uint32, error) {
 	db := NewDB()
 	result, err := db.Exec(
-		"INSERT INTO project (name, url, path, create_time, update_time) VALUES (?, ?, ?, ?, ?)",
+		"INSERT INTO project (name, url, path, scrpit, create_time, update_time) VALUES (?, ?, ?, ?, ?)",
 		p.Name,
 		p.URL,
 		p.Path,
+		p.Script,
 		p.CreateTime,
 		p.UpdateTime,
 	)
@@ -44,12 +46,14 @@ func (p Project) EditRow() error {
 		`UPDATE project SET 
 		  name = ?,
 		  url = ?,
-		  path = ?
+		  path = ?,
+		  Script = ?
 		WHERE
 		 id = ?`,
 		p.Name,
 		p.URL,
 		p.Path,
+		p.Script,
 		p.ID,
 	)
 	return err
@@ -82,7 +86,7 @@ func (p Project) Publish() error {
 // GetList project row
 func (p Project) GetList() (Projects, error) {
 	db := NewDB()
-	rows, err := db.Query("SELECT id, name, url, path, status, create_time, update_time FROM project")
+	rows, err := db.Query("SELECT id, name, url, path, script, status, create_time, update_time FROM project")
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +94,7 @@ func (p Project) GetList() (Projects, error) {
 	for rows.Next() {
 		var project Project
 
-		if err := rows.Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Status, &project.CreateTime, &project.UpdateTime); err != nil {
+		if err := rows.Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Script, &project.Status, &project.CreateTime, &project.UpdateTime); err != nil {
 			return nil, err
 		}
 		projects = append(projects, project)
@@ -140,7 +144,7 @@ func (p Project) GetDepolyList() (Projects, error) {
 func (p Project) GetData() (Project, error) {
 	db := NewDB()
 	var project Project
-	err := db.QueryRow("SELECT id, name, url, path, status, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Status, &project.CreateTime, &project.UpdateTime)
+	err := db.QueryRow("SELECT id, name, url, path, script, status, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Script, &project.Status, &project.CreateTime, &project.UpdateTime)
 	if err != nil {
 		return project, errors.New("数据查询失败")
 	}

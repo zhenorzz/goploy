@@ -113,7 +113,7 @@ func (user *User) Info(w http.ResponseWriter, r *http.Request) {
 	response.Json(w)
 }
 
-// Get user list
+// GetList user list
 func (user *User) GetList(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		User       model.Users      `json:"userList"`
@@ -187,7 +187,7 @@ func (user *User) Add(w http.ResponseWriter, r *http.Request) {
 	response.Json(w)
 }
 
-// Add one user
+// Edit one user
 func (user *User) Edit(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		ID       uint32 `json:"id"`
