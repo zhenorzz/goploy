@@ -25,7 +25,7 @@ export default {
   },
   data() {
     return {
-      title: 'TanWan Template',
+      title: '代码部署平台',
       logo: logo
     }
   }

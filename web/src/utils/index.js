@@ -150,14 +150,7 @@ export function deepClone(item) {
           }
         }
       } else {
-        // depending what you would like here,
-        // just keep the reference, or create new object
-        if (false && item.constructor) {
-          // would not advice to do that, reason? Read below
-          result = new item.constructor()
-        } else {
-          result = item
-        }
+        result = item
       }
     } else {
       result = item
