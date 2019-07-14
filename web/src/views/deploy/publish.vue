@@ -11,7 +11,7 @@
       <el-table-column prop="name" label="项目名称" />
       <el-table-column prop="publisherName" label="构建者" width="160" />
       <el-table-column prop="updateTime" label="上次构建时间" width="160" />
-      <el-table-column prop="operation" label="操作" width="260">
+      <el-table-column prop="operation" label="操作" width="220">
         <template slot-scope="scope">
           <el-button size="small" type="primary" @click="publish(scope.row.id)">构建</el-button>
           <el-button size="small" type="success" @click="handleDetail(scope.row.id)">详情</el-button>
