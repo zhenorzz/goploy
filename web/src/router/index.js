@@ -65,20 +65,20 @@ export const constantRoutes = [
  */
 export const asyncRoutes = [
   {
-    path: '/dashboard',
+    path: '/deploy',
     component: Layout,
-    redirect: '/dashboard/list',
+    redirect: '/deploy/publish',
     meta: {
-      permission_uri: '/dashboard'
+      permission_uri: '/deploy'
     },
     children: [{
-      path: 'list',
-      name: '主页',
-      component: () => import('@/views/dashboard/index'),
+      path: 'publish',
+      name: '构建发布',
+      component: () => import('@/views/deploy/publish'),
       meta: {
-        title: '主页',
-        icon: 'dashboard',
-        permission_uri: '/dashboard/list'
+        title: '构建发布',
+        icon: 'deploy',
+        permission_uri: '/deploy/publish'
       }
     }]
   },
@@ -93,17 +93,7 @@ export const asyncRoutes = [
     },
     children: [
       {
-        path: '/project/deploy',
-        name: '项目部署',
-        component: () => import('@/views/project/deploy'),
-        meta: {
-          title: '项目部署',
-          icon: 'deploy',
-          permission_uri: '/project/deploy'
-        }
-      },
-      {
-        path: '/project/setting',
+        path: 'setting',
         name: '项目设置',
         component: () => import('@/views/project/setting'),
         meta: {
@@ -113,7 +103,7 @@ export const asyncRoutes = [
         }
       },
       {
-        path: '/project/server',
+        path: 'server',
         name: '服务器管理',
         component: () => import('@/views/project/server'),
         meta: {
