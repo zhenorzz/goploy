@@ -72,7 +72,7 @@
 
 import { getOption as getUserOption } from '@/api/user'
 import { getOption as getServerOption } from '@/api/server'
-import { get, getDetail, add, create } from '@/api/project'
+import { getList, getDetail, add, create } from '@/api/project'
 import { parseTime } from '@/utils'
 
 const STATUS = ['未初始化', '初始化中', '初始化成功', '初始化失败']
@@ -171,7 +171,7 @@ export default {
       })
     },
     getProjectList() {
-      get().then((response) => {
+      getList().then((response) => {
         const projectList = response.data.projectList
         projectList.forEach((element) => {
           element.createTime = parseTime(element.createTime)

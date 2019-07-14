@@ -18,20 +18,19 @@ import (
 // Project struct
 type Project struct{}
 
-// Get project list
-func (project *Project) Get(w http.ResponseWriter, r *http.Request) {
+// GetList project list
+func (project *Project) GetList(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		Project model.Projects `json:"projectList"`
 	}
 
-	model := model.Projects{}
-	err := model.Query()
+	projectList, err := model.Project{}.GetList()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
-	response := core.Response{Data: RepData{Project: model}}
+	response := core.Response{Data: RepData{Project: projectList}}
 	response.Json(w)
 }
 
@@ -80,14 +79,13 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	projectModel := model.Project{
+	projectID, err := model.Project{
 		Name:       reqData.Name,
 		URL:        reqData.URL,
 		Path:       reqData.Path,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
-	}
-	err = projectModel.AddRow()
+	}.AddRow()
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -98,7 +96,7 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 	projectServersModel := model.ProjectServers{}
 	for _, serverID := range reqData.ServerIDs {
 		projectServerModel := model.ProjectServer{
-			ProjectID:  projectModel.ID,
+			ProjectID:  projectID,
 			ServerID:   serverID,
 			CreateTime: time.Now().Unix(),
 			UpdateTime: time.Now().Unix(),
@@ -116,7 +114,7 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 	projectUsersModel := model.ProjectUsers{}
 	for _, userID := range reqData.UserIDs {
 		projectUserModel := model.ProjectUser{
-			ProjectID:  projectModel.ID,
+			ProjectID:  projectID,
 			UserID:     userID,
 			CreateTime: time.Now().Unix(),
 			UpdateTime: time.Now().Unix(),
@@ -148,25 +146,26 @@ func (project *Project) Create(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	projectModel := model.Project{
+	projectData, err := model.Project{
 		ID: reqData.ID,
-	}
-	err = projectModel.QueryRow()
+	}.GetData()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
-	projectModel.Status = 1
-	err = projectModel.ChangeStatus()
+	err = model.Project{
+		ID:     reqData.ID,
+		Status: 1,
+	}.ChangeStatus()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
 
-	path := "./repository/" + projectModel.Name
-	repo := projectModel.URL
+	path := "./repository/" + projectData.Name
+	repo := projectData.URL
 
 	// clone repository async
 	go func(id uint32, path, repo string) {

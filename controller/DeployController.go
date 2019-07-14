@@ -82,17 +82,17 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projectModel := model.Project{
+	project, err := model.Project{
 		ID: reqData.ID,
-	}
+	}.GetData()
 
-	if err := projectModel.QueryRow(); err != nil {
+	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
 
-	if projectModel.Status != 2 {
+	if project.Status != 2 {
 		response := core.Response{Code: 1, Message: "项目尚未初始化"}
 		response.Json(w)
 		return
@@ -106,15 +106,15 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	gitTraceModel := model.GitTrace{
-		ProjectID:     projectModel.ID,
-		ProjectName:   projectModel.Name,
+		ProjectID:     project.ID,
+		ProjectName:   project.Name,
 		PublisherID:   core.GolbalUserID,
 		PublisherName: core.GolbalUserName,
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
 	}
 
-	stdout, err := gitSync(projectModel)
+	stdout, err := gitSync(project)
 	if err != nil {
 		gitTraceModel.Detail = err.Error()
 		gitTraceModel.State = 0
@@ -129,13 +129,13 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, projectServer := range projectServersModel {
-		go rsync(gitTraceModel.ID, projectModel, projectServer)
+		go rsync(gitTraceModel.ID, project, projectServer)
 	}
 
-	projectModel.PublisherID = core.GolbalUserID
-	projectModel.PublisherName = core.GolbalUserName
-	projectModel.UpdateTime = time.Now().Unix()
-	_ = projectModel.Publish()
+	project.PublisherID = core.GolbalUserID
+	project.PublisherName = core.GolbalUserName
+	project.UpdateTime = time.Now().Unix()
+	_ = project.Publish()
 
 	response := core.Response{Message: "部署中，请稍后"}
 	response.Json(w)

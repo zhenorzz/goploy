@@ -23,7 +23,7 @@ func Init() {
 	rt.Add("/user/changePassword", new(controller.User).ChangePassword)
 
 	// project route
-	rt.Add("/project/get", new(controller.Project).Get)
+	rt.Add("/project/getList", new(controller.Project).GetList)
 	rt.Add("/project/getDetail", new(controller.Project).GetDetail)
 	rt.Add("/project/create", new(controller.Project).Create)
 	rt.Add("/project/add", new(controller.Project).Add)

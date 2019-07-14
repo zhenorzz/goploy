@@ -19,7 +19,7 @@ type Project struct {
 type Projects []Project
 
 // AddRow add one row to table project and add id to p.ID
-func (p *Project) AddRow() error {
+func (p Project) AddRow() (uint32, error) {
 	db := NewDB()
 	result, err := db.Exec(
 		"INSERT INTO project (name, url, path, create_time, update_time) VALUES (?, ?, ?, ?, ?)",
@@ -30,12 +30,11 @@ func (p *Project) AddRow() error {
 		p.UpdateTime,
 	)
 	id, err := result.LastInsertId()
-	p.ID = uint32(id)
-	return err
+	return uint32(id), err
 }
 
 // ChangeStatus for project
-func (p *Project) ChangeStatus() error {
+func (p Project) ChangeStatus() error {
 	db := NewDB()
 	_, err := db.Exec(
 		"UPDATE project SET status = ? where id = ?",
@@ -46,7 +45,7 @@ func (p *Project) ChangeStatus() error {
 }
 
 // Publish for project
-func (p *Project) Publish() error {
+func (p Project) Publish() error {
 	db := NewDB()
 	_, err := db.Exec(
 		"UPDATE project SET publisher_id = ?, publisher_name = ?, update_time = ? where id = ?",
@@ -58,22 +57,23 @@ func (p *Project) Publish() error {
 	return err
 }
 
-// Query user row
-func (p *Projects) Query() error {
+// GetList project row
+func (p Project) GetList() (Projects, error) {
 	db := NewDB()
 	rows, err := db.Query("SELECT id, name, url, path, status, create_time, update_time FROM project")
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var projects Projects
 	for rows.Next() {
 		var project Project
 
 		if err := rows.Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Status, &project.CreateTime, &project.UpdateTime); err != nil {
-			return err
+			return nil, err
 		}
-		*p = append(*p, project)
+		projects = append(projects, project)
 	}
-	return nil
+	return projects, nil
 }
 
 // QueryByStatus user row by status
@@ -94,12 +94,13 @@ func (p *Projects) QueryByStatus(status uint8) error {
 	return nil
 }
 
-// QueryRow add project information to p *Project
-func (p *Project) QueryRow() error {
+// GetData add project information to p *Project
+func (p Project) GetData() (Project, error) {
 	db := NewDB()
-	err := db.QueryRow("SELECT name, url, path, status, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&p.Name, &p.URL, &p.Path, &p.Status, &p.CreateTime, &p.UpdateTime)
+	var project Project
+	err := db.QueryRow("SELECT name, url, path, status, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&project.Name, &project.URL, &project.Path, &project.Status, &project.CreateTime, &project.UpdateTime)
 	if err != nil {
-		return errors.New("数据查询失败")
+		return project, errors.New("数据查询失败")
 	}
-	return nil
+	return project, nil
 }
