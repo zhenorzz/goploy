@@ -60,17 +60,19 @@ export function getOption() {
  * @param  {string} role
  * @return {Promise}
  */
-export function add(account, password, name, email, role) {
+export function add(data) {
   return request({
     url: '/user/add',
     method: 'post',
-    data: {
-      name,
-      account,
-      password,
-      email,
-      role
-    }
+    data
+  })
+}
+
+export function edit(data) {
+  return request({
+    url: '/user/edit',
+    method: 'post',
+    data
   })
 }
 

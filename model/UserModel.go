@@ -91,6 +91,10 @@ func (u User) AddRow() (uint32, error) {
 	if count > 0 {
 		return 0, errors.New("账号已存在")
 	}
+
+	if u.Password == "" {
+		u.Password = u.Account + "!@#"
+	}
 	password := []byte(u.Password)
 
 	// Hashing the password with the default cost of 10
@@ -111,6 +115,49 @@ func (u User) AddRow() (uint32, error) {
 	return uint32(id), err
 }
 
+// EditRow edit one row to table server
+func (u User) EditRow() error {
+	var err error
+	db := NewDB()
+	if u.Password == "" {
+		_, err = db.Exec(
+			`UPDATE user SET 
+			  name = ?,
+			  mobile = ?,
+			  role_id = ?
+			WHERE
+			 id = ?`,
+			u.Name,
+			u.Mobile,
+			u.RoleID,
+			u.ID,
+		)
+	} else {
+		password := []byte(u.Password)
+		// Hashing the password with the default cost of 10
+		hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		_, err = db.Exec(
+			`UPDATE user SET 
+			  name = ?,
+			  mobile = ?,
+			  role_id = ?,
+			  password = ?
+			WHERE
+			 id = ?`,
+			u.Name,
+			u.Mobile,
+			u.RoleID,
+			hashedPassword,
+			u.ID,
+		)
+	}
+
+	return err
+}
+
 // Vaildate if user exists
 func (u User) Vaildate() (User, error) {
 	var user User
@@ -128,8 +175,8 @@ func (u User) Vaildate() (User, error) {
 }
 
 // UpdatePassword return err
-func (u User) UpdatePassword(newPassword string) error {
-	password := []byte(newPassword)
+func (u User) UpdatePassword() error {
+	password := []byte(u.Password)
 	// Hashing the password with the default cost of 10
 	hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 	if err != nil {

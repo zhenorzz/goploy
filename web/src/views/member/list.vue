@@ -1,7 +1,7 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" icon="el-icon-plus" @click="dialogFormVisible = true">添加</el-button>
+      <el-button type="primary" icon="el-icon-plus" @click="handleAdd">添加</el-button>
     </el-row>
     <el-table
       border
@@ -22,7 +22,7 @@
       <el-table-column prop="updateTime" label="更新时间" width="160" />
       <el-table-column prop="operation" label="操作" width="150">
         <template slot-scope="scope">
-          <el-button size="small" type="primary">编辑</el-button>
+          <el-button size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
           <el-button size="small" type="danger">删除</el-button>
         </template>
       </el-table-column>
@@ -37,22 +37,22 @@
         @current-change="handleCurrentChange"
       />
     </el-row>
-    <el-dialog title="新增成员" :visible.sync="dialogFormVisible">
-      <el-form ref="form" :rules="form.rules" :model="form">
+    <el-dialog title="新增成员" :visible.sync="dialogVisible">
+      <el-form ref="form" :rules="formRules" :model="formData">
         <el-form-item label="账号" label-width="120px" prop="account">
-          <el-input v-model="form.account" autocomplete="off" />
+          <el-input v-model="formData.account" autocomplete="off" />
         </el-form-item>
         <el-form-item label="密码" label-width="120px" prop="password">
-          <el-input v-model="form.password" autocomplete="off" placeholder="请输入初始密码" />
+          <el-input v-model="formData.password" autocomplete="off" placeholder="请输入初始密码" />
         </el-form-item>
         <el-form-item label="名称" label-width="120px" prop="name">
-          <el-input v-model="form.name" autocomplete="off" />
+          <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
         <el-form-item label="手机号码" label-width="120px" prop="mobile">
-          <el-input v-model="form.email" autocomplete="off" />
+          <el-input v-model="formData.mobile" autocomplete="off" />
         </el-form-item>
         <el-form-item label="角色" label-width="120px" prop="role">
-          <el-select v-model="form.roleId" placeholder="选择角色">
+          <el-select v-model="formData.roleId" placeholder="选择角色">
             <el-option
               v-for="(item, index) in roleOption"
               :key="index"
@@ -63,53 +63,58 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button :disabled="form.disabled" type="primary" @click="add">确 定</el-button>
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button :disabled="formProps.disabled" type="primary" @click="submit">确 定</el-button>
       </div>
     </el-dialog>
   </el-row>
 </template>
 <script>
-import { getList, add } from '@/api/user'
+import { getList, add, edit } from '@/api/user'
 import { getOption as getRoleOption } from '@/api/role'
 import { parseTime } from '@/utils'
 
 export default {
   data() {
     return {
-      dialogFormVisible: false,
+      dialogVisible: false,
       roleOption: [],
       tableData: [],
+      tempFormData: {},
       pagination: {
         page: 1,
         rows: 11,
         total: 0
       },
-      form: {
-        disabled: false,
+      formProps: {
+        disabled: false
+      },
+      formData: {
+        id: 0,
         account: '',
         password: '',
         name: '',
         mobile: '',
-        roleId: '',
-        rules: {
-          account: [
-            { required: true, message: '请输入账号', trigger: 'blur' }
-          ],
-          password: [
-            { required: true, min: 5, message: '不少于5位数', trigger: 'blur' }
-          ],
-          name: [
-            { required: true, message: '请输入名称', trigger: 'blur' }
-          ],
-          roleId: [
-            { required: true, message: '请选择角色', trigger: 'change' }
-          ]
-        }
+        roleId: ''
+      },
+      formRules: {
+        account: [
+          { required: true, message: '请输入账号', trigger: 'blur' }
+        ],
+        password: [
+          { min: 5, message: '不少于5位数', trigger: 'blur' }
+        ],
+        name: [
+          { required: true, message: '请输入名称', trigger: 'blur' }
+        ],
+        roleId: [
+          { required: true, message: '请选择角色', trigger: 'change' }
+        ]
       }
     }
   },
   created() {
+    this.storeFormData()
     this.getRoleOption()
     this.getUserList()
   },
@@ -140,26 +145,67 @@ export default {
       this.pagination.page = val
       this.getUserList()
     },
-    add() {
+
+    handleAdd() {
+      this.restoreFormData()
+      this.dialogVisible = true
+    },
+
+    handleEdit(data) {
+      this.formData = Object.assign({}, data)
+      this.dialogVisible = true
+    },
+
+    submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
-          this.form.disabled = true
-          add(this.form.account, this.form.password, this.form.name, this.form.email, this.form.role).then((response) => {
-            this.form.disabled = this.dialogFormVisible = false
-            this.$message({
-              message: response.message,
-              type: 'success',
-              duration: 5 * 1000
-            })
-            this.getUserList()
-          }).catch(() => {
-            this.form.disabled = this.dialogFormVisible = false
-          })
+          if (this.formData.id === 0) {
+            this.add()
+          } else {
+            this.edit()
+          }
         } else {
-          this.form.disabled = this.dialogFormVisible = false
           return false
         }
       })
+    },
+
+    add() {
+      this.formProps.disabled = true
+      add(this.formData).then((response) => {
+        this.$message({
+          message: response.message,
+          type: 'success',
+          duration: 5 * 1000
+        })
+        this.getUserList()
+        this.dialogVisible = false
+      }).finally(() => {
+        this.formProps.disabled = false
+      })
+    },
+
+    edit() {
+      this.formProps.disabled = true
+      edit(this.formData).then((response) => {
+        this.$message({
+          message: response.message,
+          type: 'success',
+          duration: 5 * 1000
+        })
+        this.getUserList()
+        this.dialogVisible = false
+      }).finally(() => {
+        this.formProps.disabled = false
+      })
+    },
+
+    storeFormData() {
+      this.tempFormData = JSON.parse(JSON.stringify(this.formData))
+    },
+
+    restoreFormData() {
+      this.formData = JSON.parse(JSON.stringify(this.tempFormData))
     }
   }
 }

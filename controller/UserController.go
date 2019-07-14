@@ -158,6 +158,7 @@ func (user *User) Add(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 		Name     string `json:"name"`
 		Mobile   string `json:"mobile"`
+		RoleID   uint32 `json:"roleId"`
 	}
 	var reqData ReqData
 	body, _ := ioutil.ReadAll(r.Body)
@@ -172,6 +173,7 @@ func (user *User) Add(w http.ResponseWriter, r *http.Request) {
 		Password:   reqData.Password,
 		Name:       reqData.Name,
 		Mobile:     reqData.Mobile,
+		RoleID:     reqData.RoleID,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
 	}.AddRow()
@@ -181,6 +183,42 @@ func (user *User) Add(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
+	response := core.Response{Message: "添加成功"}
+	response.Json(w)
+}
+
+// Add one user
+func (user *User) Edit(w http.ResponseWriter, r *http.Request) {
+	type ReqData struct {
+		ID       uint32 `json:"id"`
+		Password string `json:"password"`
+		Name     string `json:"name"`
+		Mobile   string `json:"mobile"`
+		RoleID   uint32 `json:"roleId"`
+	}
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+	err = model.User{
+		ID:         reqData.ID,
+		Password:   reqData.Password,
+		Name:       reqData.Name,
+		Mobile:     reqData.Mobile,
+		RoleID:     reqData.RoleID,
+		UpdateTime: time.Now().Unix(),
+	}.EditRow()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
 	response := core.Response{Message: "添加成功"}
 	response.Json(w)
 }
@@ -209,8 +247,8 @@ func (user *User) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-
-	if err := userModel.UpdatePassword(reqData.NewPassword); err != nil {
+	userModel.Password = reqData.NewPassword
+	if err := userModel.UpdatePassword(); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return

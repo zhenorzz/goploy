@@ -61,17 +61,13 @@ const actions = {
   },
 
   // user logout
-  logout({ commit, state }) {
-    return new Promise((resolve, reject) => {
-      logout(state.token).then(() => {
-        commit('SET_TOKEN', '')
-        commit('SET_ID', 0)
-        removeToken()
-        resetRouter()
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
+  logout({ commit }) {
+    return new Promise((resolve) => {
+      commit('SET_TOKEN', '')
+      commit('SET_ID', 0)
+      removeToken()
+      resetRouter()
+      resolve()
     })
   },
 

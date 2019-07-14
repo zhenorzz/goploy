@@ -20,6 +20,7 @@ func Init() {
 	rt.Add("/user/getList", new(controller.User).GetList)
 	rt.Add("/user/getOption", new(controller.User).GetOption)
 	rt.Add("/user/add", new(controller.User).Add)
+	rt.Add("/user/edit", new(controller.User).Edit)
 	rt.Add("/user/changePassword", new(controller.User).ChangePassword)
 
 	// project route
