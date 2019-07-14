@@ -18,7 +18,7 @@ type Server struct {
 type Servers []Server
 
 // AddRow add one row to table server and add id to s.ID
-func (s *Server) AddRow() error {
+func (s Server) AddRow() (uint32, error) {
 	db := NewDB()
 	result, err := db.Exec(
 		"INSERT INTO server (name, ip, owner, create_time, update_time) VALUES (?, ?, ?, ?, ?)",
@@ -28,13 +28,15 @@ func (s *Server) AddRow() error {
 		s.CreateTime,
 		s.UpdateTime,
 	)
+	if err != nil {
+		return 0, err
+	}
 	id, err := result.LastInsertId()
-	s.ID = uint32(id)
-	return err
+	return uint32(id), err
 }
 
 // EditRow edit one row to table server
-func (s *Server) EditRow() error {
+func (s Server) EditRow() error {
 	db := NewDB()
 	_, err := db.Exec(
 		`UPDATE server SET 
@@ -51,40 +53,42 @@ func (s *Server) EditRow() error {
 	return err
 }
 
-// Query server row
-func (s *Servers) Query() error {
+// GetList server row
+func (s Server) GetList() (Servers, error) {
 	db := NewDB()
 	rows, err := db.Query("SELECT id, name, ip, owner, create_time, update_time FROM server")
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var servers Servers
 	for rows.Next() {
 		var server Server
 
 		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Owner, &server.CreateTime, &server.UpdateTime); err != nil {
-			return err
+			return nil, err
 		}
-		*s = append(*s, server)
+		servers = append(servers, server)
 	}
-	return nil
+	return servers, nil
 }
 
-// QueryAll server row
-func (s *Servers) QueryAll() error {
+// GetAll server row
+func (s Server) GetAll() (Servers, error) {
 	db := NewDB()
 	rows, err := db.Query("SELECT id, name, ip, owner, create_time, update_time FROM server")
 	if err != nil {
-		return err
+		return nil, err
 	}
+	var servers Servers
 	for rows.Next() {
 		var server Server
 
 		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Owner, &server.CreateTime, &server.UpdateTime); err != nil {
-			return err
+			return nil, err
 		}
-		*s = append(*s, server)
+		servers = append(servers, server)
 	}
-	return nil
+	return servers, nil
 }
 
 // QueryRow add server information to s *Server

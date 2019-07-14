@@ -42,7 +42,7 @@
   </el-row>
 </template>
 <script>
-import { get, add, edit } from '@/api/server'
+import { getList, add, edit } from '@/api/server'
 import { parseTime } from '@/utils'
 
 export default {
@@ -75,11 +75,11 @@ export default {
   },
   created() {
     this.storeFormData()
-    this.get()
+    this.getList()
   },
   methods: {
-    get() {
-      get().then((response) => {
+    getList() {
+      getList().then((response) => {
         const serverList = response.data.serverList
         serverList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
@@ -113,7 +113,7 @@ export default {
     add() {
       this.formProps.disabled = true
       add(this.formData).then((response) => {
-        this.get()
+        this.getList()
         this.$message({
           message: response.message,
           type: 'success',
@@ -126,7 +126,7 @@ export default {
     edit() {
       this.formProps.disabled = true
       edit(this.formData).then((response) => {
-        this.get()
+        this.getList()
         this.$message({
           message: response.message,
           type: 'success',

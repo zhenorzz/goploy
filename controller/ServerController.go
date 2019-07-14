@@ -13,20 +13,19 @@ import (
 // Server struct
 type Server struct{}
 
-// Get server list
-func (server *Server) Get(w http.ResponseWriter, r *http.Request) {
+// GetList server list
+func (server *Server) GetList(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		Server model.Servers `json:"serverList"`
 	}
 
-	model := model.Servers{}
-	err := model.Query()
+	serverList, err := model.Server{}.GetList()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
-	response := core.Response{Data: RepData{Server: model}}
+	response := core.Response{Data: RepData{Server: serverList}}
 	response.Json(w)
 }
 
@@ -36,14 +35,13 @@ func (server *Server) GetOption(w http.ResponseWriter, r *http.Request) {
 		Server model.Servers `json:"serverList"`
 	}
 
-	model := model.Servers{}
-	err := model.QueryAll()
+	serverList, err := model.Server{}.GetAll()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
-	response := core.Response{Data: RepData{Server: model}}
+	response := core.Response{Data: RepData{Server: serverList}}
 	response.Json(w)
 }
 
@@ -62,14 +60,13 @@ func (server *Server) Add(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	model := model.Server{
+	_, err = model.Server{
 		Name:       reqData.Name,
 		IP:         reqData.IP,
 		Owner:      reqData.Owner,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
-	}
-	err = model.AddRow()
+	}.AddRow()
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -96,15 +93,14 @@ func (server *Server) Edit(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	model := model.Server{
+	err = model.Server{
 		ID:         reqData.ID,
 		Name:       reqData.Name,
 		IP:         reqData.IP,
 		Owner:      reqData.Owner,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
-	}
-	err = model.EditRow()
+	}.EditRow()
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
