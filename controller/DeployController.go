@@ -22,7 +22,7 @@ func (deploy *Deploy) Get(w http.ResponseWriter, r *http.Request) {
 		Project model.Projects `json:"projectList"`
 	}
 
-	projects, err := model.Project{}.GetListByStatus(2)
+	projects, err := model.Project{Status: 2}.GetDepolyList()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)

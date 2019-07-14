@@ -1,6 +1,10 @@
 package model
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/zhenorzz/goploy/core"
+)
 
 // Project mysql table project
 type Project struct {
@@ -94,10 +98,29 @@ func (p Project) GetList() (Projects, error) {
 	return projects, nil
 }
 
-// GetListByStatus user row by status
-func (p Project) GetListByStatus(status uint8) (Projects, error) {
+// GetDepolyList user row by status
+func (p Project) GetDepolyList() (Projects, error) {
 	db := NewDB()
-	rows, err := db.Query("SELECT id, name, status, publisher_id, publisher_name, update_time FROM project WHERE status = ?", status)
+	rows, err := db.Query(`
+		SELECT 
+			project.id, 
+			name, 
+			status, 
+			publisher_id, 
+			publisher_name, 
+			project.update_time 
+		FROM 
+			project_user 
+		LEFT JOIN 
+			project 
+		ON 
+			project_user.project_id = project.id
+		WHERE 
+			project_user.user_id = ?
+		AND
+			status = ?`,
+		core.GolbalUserID,
+		p.Status)
 	if err != nil {
 		return nil, err
 	}
