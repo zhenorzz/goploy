@@ -100,8 +100,8 @@ export default {
       phrase: '',
       showPhrase: false,
       loginForm: {
-        account: process.env.ENV === 'production' ? '' : 'admin',
-        password: process.env.ENV === 'production' ? '' : 'admin!@#',
+        account: process.env.NODE_ENV === 'production' ? '' : 'admin',
+        password: process.env.NODE_ENV === 'production' ? '' : 'admin!@#',
         phrase: ''
       },
       loginRules: {

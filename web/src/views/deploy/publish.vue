@@ -67,7 +67,7 @@ export default {
   methods: {
     getList() {
       getList().then((response) => {
-        const projectList = response.data.projectList
+        const projectList = response.data.projectList || []
         projectList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
           element.updateTime = parseTime(element.updateTime)

@@ -138,7 +138,7 @@ export default {
   methods: {
     getUserList() {
       getList(this.pagination).then((response) => {
-        const userList = response.data.userList
+        const userList = response.data.userList || []
         userList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
           element.updateTime = parseTime(element.updateTime)

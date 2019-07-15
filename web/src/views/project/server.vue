@@ -80,7 +80,7 @@ export default {
   methods: {
     getList() {
       getList().then((response) => {
-        const serverList = response.data.serverList
+        const serverList = response.data.serverList || []
         serverList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
           element.updateTime = parseTime(element.updateTime)
