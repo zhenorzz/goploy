@@ -42,8 +42,11 @@
         <el-form-item label="部署路径" prop="path">
           <el-input v-model="formData.path" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="脚本路径" prop="scrpit">
-          <el-input v-model="formData.script" autocomplete="off" />
+        <el-form-item label="rsync选项" prop="rsyncOption">
+          <el-input v-model="formData.rsyncOption" autocomplete="off" placeholder="-rtv --exclude .git --delete" />
+        </el-form-item>
+        <el-form-item label="脚本路径(多个脚本用;分割)" prop="scrpit">
+          <el-input v-model="formData.script" :rows="3" type="textarea" autocomplete="off" />
         </el-form-item>
         <el-form-item v-show="formProps.showServers" label="绑定服务器" prop="serverIds">
           <el-select v-model="formData.serverIds" multiple placeholder="选择服务器，可多选" style="width:100%">
@@ -192,6 +195,7 @@ export default {
         url: '',
         path: '',
         script: '',
+        rsyncOption: '',
         serverIds: [],
         userIds: []
       },

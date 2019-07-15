@@ -23,6 +23,7 @@
       <el-row class="project-detail">
         <el-row>
           <el-row style="margin:5px 0">git同步信息</el-row>
+          <el-row style="margin:5px 0">时间: {{ formatTime(gitTrace['createTime']) }}</el-row>
           <el-row style="margin:5px 0">状态: {{ gitTrace['state'] === 1 ? '成功' : '失败' }}</el-row>
           <el-row style="margin:5px 0" v-html="formatDetail(gitTrace['detail'])" />
         </el-row>
@@ -32,6 +33,7 @@
           <el-row v-for="(item, index) in remoteTraceList" :key="index">
             <el-row style="margin:5px 0">服务器: {{ item['serverName'] }}</el-row>
             <el-row style="margin:5px 0">日志类型: {{ item['type'] === 1 ? '同步文件' : '运行脚本' }}</el-row>
+            <el-row style="margin:5px 0">时间: {{ formatTime(item['createTime']) }}</el-row>
             <el-row style="margin:5px 0">状态: {{ item['state'] === 1 ? '成功' : '失败' }}</el-row>
             <el-row style="margin:5px 0" v-html="formatDetail(item['detail'])" />
             <hr>
@@ -93,6 +95,9 @@ export default {
     },
     formatDetail(detail) {
       return detail ? detail.replace(/\n/g, '<br>') : ''
+    },
+    formatTime(timestamp) {
+      return parseTime(timestamp)
     }
   }
 }

@@ -83,6 +83,7 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 		URL       string   `json:"url"`
 		Path      string   `json:"path"`
 		Script    string   `json:"script"`
+		RsyncOption string `json:"rsyncOption"`
 		ServerIDs []uint32 `json:"serverIds"`
 		UserIDs   []uint32 `json:"userIds"`
 	}
@@ -99,6 +100,7 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 		URL:        reqData.URL,
 		Path:       reqData.Path,
 		Script:     reqData.Script,
+		RsyncOption:     reqData.RsyncOption,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
 	}.AddRow()
@@ -155,6 +157,7 @@ func (project *Project) Edit(w http.ResponseWriter, r *http.Request) {
 		URL  string `json:"url"`
 		Path string `json:"path"`
 		Script    string   `json:"script"`
+		RsyncOption string `json:"rsyncOption"`
 	}
 	var reqData ReqData
 	body, _ := ioutil.ReadAll(r.Body)
@@ -170,6 +173,7 @@ func (project *Project) Edit(w http.ResponseWriter, r *http.Request) {
 		URL:        reqData.URL,
 		Path:       reqData.Path,
 		Script:     reqData.Script,
+		RsyncOption:     reqData.RsyncOption,
 		UpdateTime: time.Now().Unix(),
 	}.EditRow()
 

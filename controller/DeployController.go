@@ -175,7 +175,19 @@ func remoteExec(gitTraceID uint32, project model.Project, projectServer model.Pr
 	srcPath := "./repository/" + project.Name
 	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
 	destPath := remoteMachine + ":" + project.Path
-	cmd := exec.Command("rsync", "-rtv", "--exclude", ".git", "-e", "ssh -o StrictHostKeyChecking=no", "--delete", srcPath, destPath)
+	arg := []string{
+		"-rtv",
+		"-e",
+		"ssh -o StrictHostKeyChecking=no",
+		"--delete",
+		srcPath,
+		destPath,
+		"--exclude",
+		".git",
+		"--exclude",
+		"test.php",
+	}
+	cmd := exec.Command("rsync", arg...)
 	var outbuf, errbuf bytes.Buffer
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
@@ -220,7 +232,7 @@ func remoteExec(gitTraceID uint32, project model.Project, projectServer model.Pr
 	var sshOutbuf bytes.Buffer
 	session.Stdout = &sshOutbuf
 	// 需要更改脚本的权限 以免执行不了
-	if err := session.Run("chmod u+x " + project.Script + "&&" + project.Script); err != nil {
+	if err := session.Run(project.Script); err != nil {
 		core.Log(core.ERROR, err.Error())
 		remoteTraceModel.Detail = err.Error()
 		remoteTraceModel.State = 0
