@@ -20,7 +20,7 @@ import (
 // Deploy struct
 type Deploy struct{}
 
-// Get deploy list
+// GetList deploy list
 func (deploy *Deploy) GetList(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		Project model.Projects `json:"projectList"`

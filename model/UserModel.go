@@ -31,9 +31,11 @@ func (u User) GetData() (User, error) {
 		SELECT 
 			id, 
 			account, 
+			password,
 			name, 
 			mobile, 
 			role_id, 
+			state,
 			create_time, 
 			update_time  
 		FROM 
@@ -42,9 +44,11 @@ func (u User) GetData() (User, error) {
 			id = ?`, u.ID).Scan(
 		&user.ID,
 		&user.Account,
+		&user.Password,
 		&user.Name,
 		&user.Mobile,
 		&user.RoleID,
+		&user.State,
 		&user.CreateTime,
 		&user.UpdateTime)
 	if err != nil {
@@ -61,9 +65,11 @@ func (u User) GetDataByAccount() (User, error) {
 		SELECT 
 			id, 
 			account, 
+			password,
 			name, 
 			mobile, 
 			role_id, 
+			state,
 			create_time, 
 			update_time  
 		FROM 
@@ -72,9 +78,11 @@ func (u User) GetDataByAccount() (User, error) {
 		account = ?`, u.Account).Scan(
 		&user.ID,
 		&user.Account,
+		&user.Password,
 		&user.Name,
 		&user.Mobile,
 		&user.RoleID,
+		&user.State,
 		&user.CreateTime,
 		&user.UpdateTime)
 	if err != nil {
