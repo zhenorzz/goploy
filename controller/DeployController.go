@@ -186,8 +186,7 @@ func gitSync(project model.Project) (string, error) {
 }
 
 func remoteExec(gitTraceID uint32, project model.Project, projectServer model.ProjectServer) {
-	path, _ := core.GetCurrentPath()
-	srcPath := path + "repository/" + project.Name
+	srcPath := "./repository/" + project.Name + "/"
 	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
 	destPath := remoteMachine + ":" + project.Path
 	remoteTraceModel := model.RemoteTrace{
