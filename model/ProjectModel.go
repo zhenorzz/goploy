@@ -27,7 +27,7 @@ type Projects []Project
 func (p Project) AddRow() (uint32, error) {
 	db := NewDB()
 	result, err := db.Exec(
-		"INSERT INTO project (name, url, path, scrpit, rsync_option, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO project (name, url, path, script, rsync_option, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		p.Name,
 		p.URL,
 		p.Path,
@@ -36,6 +36,7 @@ func (p Project) AddRow() (uint32, error) {
 		p.CreateTime,
 		p.UpdateTime,
 	)
+	println(p.URL, p.Path, p.Script, p.RsyncOption, p.CreateTime, p.UpdateTime)
 	id, err := result.LastInsertId()
 	return uint32(id), err
 }

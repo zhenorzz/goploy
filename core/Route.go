@@ -46,15 +46,16 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 	// If in production env, serve file in go server,
 	// else serve file in npm
 	if os.Getenv("ENV") == "production" {
+		path, _ := GetCurrentPath()
 		if "/" == r.URL.Path {
-			http.ServeFile(w, r, "web/dist/index.html")
+			http.ServeFile(w, r, path+"web/dist/index.html")
 			return
 		}
-		files, _ := ioutil.ReadDir("web/dist")
+		files, _ := ioutil.ReadDir(path + "web/dist")
 		for _, file := range files {
 			pattern := "^" + file.Name()
 			if match, _ := regexp.MatchString(pattern, r.URL.Path[1:]); match {
-				http.ServeFile(w, r, "web/dist"+r.URL.Path)
+				http.ServeFile(w, r, path+"web/dist"+r.URL.Path)
 				return
 			}
 		}
