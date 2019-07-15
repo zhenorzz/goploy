@@ -27,7 +27,56 @@ type Users []User
 func (u User) GetData() (User, error) {
 	var user User
 	db := NewDB()
-	err := db.QueryRow("SELECT account, name, role_id FROM user WHERE id = ? AND state = ?", u.ID, 1).Scan(&user.Account, &user.Name, &user.RoleID)
+	err := db.QueryRow(`
+		SELECT 
+			id, 
+			account, 
+			name, 
+			mobile, 
+			role_id, 
+			create_time, 
+			update_time  
+		FROM 
+			user 
+		WHERE 
+			id = ?`, u.ID).Scan(
+		&user.ID,
+		&user.Account,
+		&user.Name,
+		&user.Mobile,
+		&user.RoleID,
+		&user.CreateTime,
+		&user.UpdateTime)
+	if err != nil {
+		return user, errors.New("数据查询失败")
+	}
+	return user, nil
+}
+
+// GetDataByAccount get user information
+func (u User) GetDataByAccount() (User, error) {
+	var user User
+	db := NewDB()
+	err := db.QueryRow(`
+		SELECT 
+			id, 
+			account, 
+			name, 
+			mobile, 
+			role_id, 
+			create_time, 
+			update_time  
+		FROM 
+			user 
+		WHERE 
+		account = ?`, u.Account).Scan(
+		&user.ID,
+		&user.Account,
+		&user.Name,
+		&user.Mobile,
+		&user.RoleID,
+		&user.CreateTime,
+		&user.UpdateTime)
 	if err != nil {
 		return user, errors.New("数据查询失败")
 	}
@@ -159,35 +208,28 @@ func (u User) EditRow() error {
 }
 
 // Vaildate if user exists
-func (u User) Vaildate() error {
-	var hashPassword string
-	db := NewDB()
-	err := db.QueryRow("SELECT password FROM user WHERE id = ?", u.ID).Scan(&hashPassword)
-	if err != nil {
-		return err
-	}
-	err = bcrypt.CompareHashAndPassword([]byte(hashPassword), []byte(u.Password))
+func (u User) Vaildate(inputPassword string) error {
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(inputPassword))
 	if err != nil {
 		return errors.New("密码错误")
 	}
 	return nil
 }
 
-// VaildateByAccount if user exists
-func (u User) VaildateByAccount() (User, error) {
-	var user User
-	var hashPassword string
-	db := NewDB()
-	err := db.QueryRow("SELECT id, password, name FROM user WHERE account = ?", u.Account).Scan(&user.ID, &hashPassword, &user.Name)
-	if err != nil {
-		return user, err
-	}
-	err = bcrypt.CompareHashAndPassword([]byte(hashPassword), []byte(u.Password))
-	if err != nil {
-		return user, errors.New("密码错误")
-	}
-	return user, nil
-}
+// Vaildate if user exists
+// func (u User) Vaildate() error {
+// 	var hashPassword string
+// 	db := NewDB()
+// 	err := db.QueryRow("SELECT password FROM user WHERE id = ?", u.ID).Scan(&hashPassword)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = bcrypt.CompareHashAndPassword([]byte(hashPassword), []byte(u.Password))
+// 	if err != nil {
+// 		return errors.New("密码错误")
+// 	}
+// 	return nil
+// }
 
 // UpdatePassword return err
 func (u User) UpdatePassword() error {

@@ -42,12 +42,19 @@ func (user *User) Login(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	userData, err := model.User{Account: reqData.Account, Password: reqData.Password}.VaildateByAccount()
+	userData, err := model.User{Account: reqData.Account}.GetDataByAccount()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
+
+	if err := userData.Vaildate(reqData.Password); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
 	token, err := user.createToken(userData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -73,6 +80,12 @@ func (user *User) Info(w http.ResponseWriter, r *http.Request) {
 	userData, err := model.User{ID: core.GolbalUserID}.GetData()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
+	if userData.State != 1 {
+		response := core.Response{Code: 1, Message: "账号被封停"}
 		response.Json(w)
 		return
 	}
@@ -237,12 +250,19 @@ func (user *User) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-
-	if err := (model.User{ID: core.GolbalUserID, Password: reqData.OldPassword}.Vaildate()); err != nil {
+	userData, err := model.User{ID: core.GolbalUserID}.GetData()
+	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
+
+	if err := userData.Vaildate(reqData.OldPassword); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
 	if err := (model.User{ID: core.GolbalUserID, Password: reqData.NewPassword}.UpdatePassword()); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
