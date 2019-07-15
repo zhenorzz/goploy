@@ -159,7 +159,22 @@ func (u User) EditRow() error {
 }
 
 // Vaildate if user exists
-func (u User) Vaildate() (User, error) {
+func (u User) Vaildate() error {
+	var hashPassword string
+	db := NewDB()
+	err := db.QueryRow("SELECT password FROM user WHERE id = ?", u.ID).Scan(&hashPassword)
+	if err != nil {
+		return err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(hashPassword), []byte(u.Password))
+	if err != nil {
+		return errors.New("密码错误")
+	}
+	return nil
+}
+
+// VaildateByAccount if user exists
+func (u User) VaildateByAccount() (User, error) {
 	var user User
 	var hashPassword string
 	db := NewDB()

@@ -70,12 +70,27 @@
   </el-row>
 </template>
 <script>
+import { validUsername, validPassword } from '@/utils/validate'
 import { getList, add, edit } from '@/api/user'
 import { getOption as getRoleOption } from '@/api/role'
 import { parseTime } from '@/utils'
 
 export default {
   data() {
+    const validateUsername = (rule, value, callback) => {
+      if (!validUsername(value)) {
+        callback(new Error('请输入正确的用户名'))
+      } else {
+        callback()
+      }
+    }
+    const validatePassword = (rule, value, callback) => {
+      if (!validPassword(value)) {
+        callback(new Error('8到16个字符，至少包含字母、数字、特殊符号中的两种'))
+      } else {
+        callback()
+      }
+    }
     return {
       dialogVisible: false,
       roleOption: [],
@@ -99,10 +114,10 @@ export default {
       },
       formRules: {
         account: [
-          { required: true, message: '请输入账号', trigger: 'blur' }
+          { required: true, message: '请输入账号', trigger: 'blur', validator: validateUsername }
         ],
         password: [
-          { min: 5, message: '不少于5位数', trigger: 'blur' }
+          { min: 5, message: '不少于5位数', trigger: 'blur', validator: validatePassword }
         ],
         name: [
           { required: true, message: '请输入名称', trigger: 'blur' }

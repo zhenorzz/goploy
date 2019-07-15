@@ -42,7 +42,7 @@ func (user *User) Login(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	userData, err := model.User{Account: reqData.Account, Password: reqData.Password}.Vaildate()
+	userData, err := model.User{Account: reqData.Account, Password: reqData.Password}.VaildateByAccount()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
@@ -226,12 +226,8 @@ func (user *User) Edit(w http.ResponseWriter, r *http.Request) {
 // ChangePassword doc
 func (user *User) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
-		Account     string `json:"account"`
 		OldPassword string `json:"oldPwd"`
 		NewPassword string `json:"newPwd"`
-	}
-	type RepData struct {
-		Token string `json:"token"`
 	}
 	var reqData ReqData
 	body, _ := ioutil.ReadAll(r.Body)
@@ -241,14 +237,13 @@ func (user *User) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	userModel, err := model.User{Account: reqData.Account, Password: reqData.OldPassword}.Vaildate()
-	if err != nil {
+
+	if err := (model.User{ID: core.GolbalUserID, Password: reqData.OldPassword}.Vaildate()); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
-	userModel.Password = reqData.NewPassword
-	if err := userModel.UpdatePassword(); err != nil {
+	if err := (model.User{ID: core.GolbalUserID, Password: reqData.NewPassword}.UpdatePassword()); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return

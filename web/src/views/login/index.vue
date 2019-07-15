@@ -79,12 +79,11 @@ export default {
       }
     }
     const validatePassword = (rule, value, callback) => {
-      // if (!validPassword(value)) {
-      //   callback(new Error('8到16个字符，至少包含字母、数字、特殊符号中的两种'))
-      // } else {
-      //   callback()
-      // }
-      callback()
+      if (!validPassword(value)) {
+        callback(new Error('8到16个字符，至少包含字母、数字、特殊符号中的两种'))
+      } else {
+        callback()
+      }
     }
     const validatePhrase = (rule, value, callback) => {
       if (!this.showPhrase) {
@@ -101,8 +100,8 @@ export default {
       phrase: '',
       showPhrase: false,
       loginForm: {
-        account: 'admin',
-        password: '123456',
+        account: process.env.ENV === 'production' ? '' : 'admin',
+        password: process.env.ENV === 'production' ? '' : 'admin!@#',
         phrase: ''
       },
       loginRules: {
