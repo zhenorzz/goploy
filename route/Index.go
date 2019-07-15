@@ -27,7 +27,6 @@ func Init() {
 	rt.Add("/project/getList", new(controller.Project).GetList)
 	rt.Add("/project/getBindServerList", new(controller.Project).GetBindServerList)
 	rt.Add("/project/getBindUserList", new(controller.Project).GetBindUserList)
-	rt.Add("/project/create", new(controller.Project).Create)
 	rt.Add("/project/add", new(controller.Project).Add)
 	rt.Add("/project/edit", new(controller.Project).Edit)
 	rt.Add("/project/addServer", new(controller.Project).AddServer)

@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/zhenorzz/goploy/core"
@@ -26,7 +28,7 @@ func (deploy *Deploy) GetList(w http.ResponseWriter, r *http.Request) {
 		Project model.Projects `json:"projectList"`
 	}
 
-	projects, err := model.Project{Status: 2}.GetDepolyList()
+	projects, err := model.Project{}.GetDepolyList()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
@@ -95,12 +97,6 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if project.Status != 2 {
-		response := core.Response{Code: 1, Message: "项目尚未初始化"}
-		response.Json(w)
-		return
-	}
-
 	projectServers, err := model.ProjectServer{}.GetBindServerListByProjectID(reqData.ID)
 
 	if err != nil {
@@ -144,7 +140,34 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 	response.Json(w)
 }
 
+func createGitRepos(project model.Project) error {
+	path := "./repository/" + project.Name
+	repo := project.URL
+	_, err := os.Stat(path)
+	if err == nil {
+		return nil
+	}
+
+	if err := os.RemoveAll(path); err != nil {
+		return err
+	}
+
+	cmd := exec.Command("git", "clone", repo, path)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化 git clonee")
+	if err := cmd.Run(); err != nil {
+		core.Log(core.ERROR, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化失败:"+err.Error())
+		return err
+	}
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化成功")
+	return nil
+}
+
 func gitSync(project model.Project) (string, error) {
+	if err := createGitRepos(project); err != nil {
+		return "", err
+	}
 	srcPath := "./repository/" + project.Name
 	clean := exec.Command("git", "clean", "-f")
 	clean.Dir = srcPath
@@ -175,23 +198,6 @@ func remoteExec(gitTraceID uint32, project model.Project, projectServer model.Pr
 	srcPath := "./repository/" + project.Name
 	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
 	destPath := remoteMachine + ":" + project.Path
-	arg := []string{
-		"-rtv",
-		"-e",
-		"ssh -o StrictHostKeyChecking=no",
-		"--delete",
-		srcPath,
-		destPath,
-		"--exclude",
-		".git",
-		"--exclude",
-		"test.php",
-	}
-	cmd := exec.Command("rsync", arg...)
-	var outbuf, errbuf bytes.Buffer
-	cmd.Stdout = &outbuf
-	cmd.Stderr = &errbuf
-	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" rsync -rtv --delete "+srcPath+destPath)
 	remoteTraceModel := model.RemoteTrace{
 		GitTraceID:    gitTraceID,
 		ProjectID:     project.ID,
@@ -204,6 +210,20 @@ func remoteExec(gitTraceID uint32, project model.Project, projectServer model.Pr
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
 	}
+	rsyncOption, err := parseCommandLine(project.RsyncOption)
+	if err != nil {
+		core.Log(core.ERROR, err.Error())
+		remoteTraceModel.Detail = err.Error()
+		remoteTraceModel.State = 0
+		remoteTraceModel.AddRow()
+	}
+	rsyncOption = append(rsyncOption, "-e", "ssh -o StrictHostKeyChecking=no", srcPath, destPath)
+	cmd := exec.Command("rsync", rsyncOption...)
+	var outbuf, errbuf bytes.Buffer
+	cmd.Stdout = &outbuf
+	cmd.Stderr = &errbuf
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" rsync"+strings.Join(rsyncOption, " "))
+
 	if err := cmd.Run(); err != nil {
 		core.Log(core.ERROR, errbuf.String())
 		remoteTraceModel.Detail = errbuf.String()
@@ -311,4 +331,69 @@ func connect(user, password, host string, port int) (*ssh.Session, error) {
 	}
 
 	return session, nil
+}
+
+func parseCommandLine(command string) ([]string, error) {
+	var args []string
+	state := "start"
+	current := ""
+	quote := "\""
+	escapeNext := true
+	for i := 0; i < len(command); i++ {
+		c := command[i]
+
+		if state == "quotes" {
+			if string(c) != quote {
+				current += string(c)
+			} else {
+				args = append(args, current)
+				current = ""
+				state = "start"
+			}
+			continue
+		}
+
+		if escapeNext {
+			current += string(c)
+			escapeNext = false
+			continue
+		}
+
+		if c == '\\' {
+			escapeNext = true
+			continue
+		}
+
+		if c == '"' || c == '\'' {
+			state = "quotes"
+			quote = string(c)
+			continue
+		}
+
+		if state == "arg" {
+			if c == ' ' || c == '=' || c == '\t' {
+				args = append(args, current)
+				current = ""
+				state = "start"
+			} else {
+				current += string(c)
+			}
+			continue
+		}
+
+		if c != ' ' && c != '=' && c != '\t' {
+			state = "arg"
+			current += string(c)
+		}
+	}
+
+	if state == "quotes" {
+		return []string{}, errors.New(fmt.Sprintf("Unclosed quote in command line: %s", command))
+	}
+
+	if current != "" {
+		args = append(args, current)
+	}
+
+	return args, nil
 }

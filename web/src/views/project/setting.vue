@@ -13,17 +13,10 @@
       <el-table-column prop="name" label="项目名称" />
       <el-table-column prop="url" label="项目地址" />
       <el-table-column prop="path" width="200" label="部署路径" />
-      <el-table-column prop="status" label="状态" width="90" />
       <el-table-column prop="createTime" width="160" label="创建时间" />
       <el-table-column prop="updateTime" width="160" label="更新时间" />
-      <el-table-column prop="operation" label="操作" width="430">
+      <el-table-column prop="operation" label="操作" width="350">
         <template slot-scope="scope">
-          <el-button
-            :disabled="scope.row.status === '初始化成功'"
-            size="small"
-            type="success"
-            @click="create(scope.row.id)"
-          >初始化</el-button>
           <el-button type="primary" @click="handleEdit(scope.row)">编辑</el-button>
           <el-button type="primary" @click="handleServer(scope.row)">服务器管理</el-button>
           <el-button type="primary" @click="handleUser(scope.row)">成员管理</el-button>
@@ -169,7 +162,6 @@ import { getOption as getServerOption } from '@/api/server'
 import { getList, getBindServerList, getBindUserList, add, edit, create, addServer, addUser, removeProjectServer, removeProjectUser } from '@/api/project'
 import { parseTime } from '@/utils'
 
-const STATUS = ['未初始化', '初始化中', '初始化成功', '初始化失败']
 export default {
   data() {
     return {
@@ -439,7 +431,6 @@ export default {
         projectList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
           element.updateTime = parseTime(element.updateTime)
-          element.status = STATUS[element.status]
         })
         this.tableData = projectList
       }).catch(() => {

@@ -1,13 +1,9 @@
 package controller
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"os/exec"
 	"strconv"
 	"time"
 
@@ -79,13 +75,13 @@ func (project *Project) GetBindUserList(w http.ResponseWriter, r *http.Request) 
 // Add one project
 func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
-		Name      string   `json:"name"`
-		URL       string   `json:"url"`
-		Path      string   `json:"path"`
-		Script    string   `json:"script"`
-		RsyncOption string `json:"rsyncOption"`
-		ServerIDs []uint32 `json:"serverIds"`
-		UserIDs   []uint32 `json:"userIds"`
+		Name        string   `json:"name"`
+		URL         string   `json:"url"`
+		Path        string   `json:"path"`
+		Script      string   `json:"script"`
+		RsyncOption string   `json:"rsyncOption"`
+		ServerIDs   []uint32 `json:"serverIds"`
+		UserIDs     []uint32 `json:"userIds"`
 	}
 	var reqData ReqData
 	body, _ := ioutil.ReadAll(r.Body)
@@ -96,13 +92,13 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	projectID, err := model.Project{
-		Name:       reqData.Name,
-		URL:        reqData.URL,
-		Path:       reqData.Path,
-		Script:     reqData.Script,
-		RsyncOption:     reqData.RsyncOption,
-		CreateTime: time.Now().Unix(),
-		UpdateTime: time.Now().Unix(),
+		Name:        reqData.Name,
+		URL:         reqData.URL,
+		Path:        reqData.Path,
+		Script:      reqData.Script,
+		RsyncOption: reqData.RsyncOption,
+		CreateTime:  time.Now().Unix(),
+		UpdateTime:  time.Now().Unix(),
 	}.AddRow()
 
 	if err != nil {
@@ -152,11 +148,11 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 // Edit one Project
 func (project *Project) Edit(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
-		ID   uint32 `json:"id"`
-		Name string `json:"name"`
-		URL  string `json:"url"`
-		Path string `json:"path"`
-		Script    string   `json:"script"`
+		ID          uint32 `json:"id"`
+		Name        string `json:"name"`
+		URL         string `json:"url"`
+		Path        string `json:"path"`
+		Script      string `json:"script"`
 		RsyncOption string `json:"rsyncOption"`
 	}
 	var reqData ReqData
@@ -168,13 +164,13 @@ func (project *Project) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	err = model.Project{
-		ID:         reqData.ID,
-		Name:       reqData.Name,
-		URL:        reqData.URL,
-		Path:       reqData.Path,
-		Script:     reqData.Script,
-		RsyncOption:     reqData.RsyncOption,
-		UpdateTime: time.Now().Unix(),
+		ID:          reqData.ID,
+		Name:        reqData.Name,
+		URL:         reqData.URL,
+		Path:        reqData.Path,
+		Script:      reqData.Script,
+		RsyncOption: reqData.RsyncOption,
+		UpdateTime:  time.Now().Unix(),
 	}.EditRow()
 
 	if err != nil {
@@ -183,70 +179,6 @@ func (project *Project) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response := core.Response{Message: "修改成功"}
-	response.Json(w)
-}
-
-// Create new repository
-func (project *Project) Create(w http.ResponseWriter, r *http.Request) {
-	type ReqData struct {
-		ID uint32 `json:"id"`
-	}
-	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
-	err := json.Unmarshal(body, &reqData)
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
-		return
-	}
-	projectData, err := model.Project{
-		ID: reqData.ID,
-	}.GetData()
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
-		return
-	}
-	err = model.Project{
-		ID:     reqData.ID,
-		Status: 1,
-	}.ChangeStatus()
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
-		return
-	}
-
-	path := "./repository/" + projectData.Name
-	repo := projectData.URL
-
-	// clone repository async
-	go func(id uint32, path, repo string) {
-		projectModel := model.Project{
-			ID: id,
-		}
-		err = os.RemoveAll(path)
-		if err != nil {
-			projectModel.Status = 3
-			_ = projectModel.ChangeStatus()
-			fmt.Println(err)
-			return
-		}
-		cmd := exec.Command("git", "clone", repo, path)
-		var out bytes.Buffer
-		cmd.Stdout = &out
-		err = cmd.Run()
-		if err != nil {
-			projectModel.Status = 3
-			_ = projectModel.ChangeStatus()
-			fmt.Println(err)
-			return
-		}
-		projectModel.Status = 2
-		_ = projectModel.ChangeStatus()
-	}(reqData.ID, path, repo)
-
-	response := core.Response{Message: "初始化中，请稍后"}
 	response.Json(w)
 }
 

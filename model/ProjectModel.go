@@ -14,7 +14,6 @@ type Project struct {
 	Path          string `json:"path"`
 	Script        string `json:"script"`
 	RsyncOption   string `json:"rsyncOption"`
-	Status        uint8  `json:"status"`
 	PublisherID   uint32 `json:"publisherId"`
 	PublisherName string `json:"publisherName"`
 	CreateTime    int64  `json:"createTime"`
@@ -63,17 +62,6 @@ func (p Project) EditRow() error {
 	return err
 }
 
-// ChangeStatus for project
-func (p Project) ChangeStatus() error {
-	db := NewDB()
-	_, err := db.Exec(
-		"UPDATE project SET status = ? where id = ?",
-		p.Status,
-		p.ID,
-	)
-	return err
-}
-
 // Publish for project
 func (p Project) Publish() error {
 	db := NewDB()
@@ -90,7 +78,7 @@ func (p Project) Publish() error {
 // GetList project row
 func (p Project) GetList() (Projects, error) {
 	db := NewDB()
-	rows, err := db.Query("SELECT id, name, url, path, script, rsync_option, status, create_time, update_time FROM project")
+	rows, err := db.Query("SELECT id, name, url, path, script, rsync_option, create_time, update_time FROM project")
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +86,7 @@ func (p Project) GetList() (Projects, error) {
 	for rows.Next() {
 		var project Project
 
-		if err := rows.Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Script, &project.RsyncOption, &project.Status, &project.CreateTime, &project.UpdateTime); err != nil {
+		if err := rows.Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Script, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
 			return nil, err
 		}
 		projects = append(projects, project)
@@ -124,11 +112,8 @@ func (p Project) GetDepolyList() (Projects, error) {
 		ON 
 			project_user.project_id = project.id
 		WHERE 
-			project_user.user_id = ?
-		AND
-			status = ?`,
-		core.GolbalUserID,
-		p.Status)
+			project_user.user_id = ?`,
+		core.GolbalUserID)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +121,7 @@ func (p Project) GetDepolyList() (Projects, error) {
 	for rows.Next() {
 		var project Project
 
-		if err := rows.Scan(&project.ID, &project.Name, &project.Status, &project.PublisherID, &project.PublisherName, &project.UpdateTime); err != nil {
+		if err := rows.Scan(&project.ID, &project.Name, &project.PublisherID, &project.PublisherName, &project.UpdateTime); err != nil {
 			return projects, err
 		}
 		projects = append(projects, project)
@@ -148,7 +133,7 @@ func (p Project) GetDepolyList() (Projects, error) {
 func (p Project) GetData() (Project, error) {
 	db := NewDB()
 	var project Project
-	err := db.QueryRow("SELECT id, name, url, path, script, rsync_option, status, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Script, &project.RsyncOption, &project.Status, &project.CreateTime, &project.UpdateTime)
+	err := db.QueryRow("SELECT id, name, url, path, script, rsync_option, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Script, &project.RsyncOption, &project.CreateTime, &project.UpdateTime)
 	if err != nil {
 		return project, errors.New("数据查询失败")
 	}
