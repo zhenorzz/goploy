@@ -119,7 +119,7 @@ export default {
           { required: true, message: '请输入账号', trigger: 'blur', validator: validateUsername }
         ],
         password: [
-          { min: 5, message: '不少于5位数', trigger: 'blur', validator: validatePassword }
+          { trigger: 'blur', validator: validatePassword }
         ],
         name: [
           { required: true, message: '请输入名称', trigger: 'blur' }

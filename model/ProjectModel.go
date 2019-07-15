@@ -36,7 +36,6 @@ func (p Project) AddRow() (uint32, error) {
 		p.CreateTime,
 		p.UpdateTime,
 	)
-	println(p.URL, p.Path, p.Script, p.RsyncOption, p.CreateTime, p.UpdateTime)
 	id, err := result.LastInsertId()
 	return uint32(id), err
 }
