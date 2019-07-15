@@ -85,7 +85,9 @@ export default {
       }
     }
     const validatePassword = (rule, value, callback) => {
-      if (!validPassword(value)) {
+      if (!value) {
+        callback()
+      } else if (!validPassword(value)) {
         callback(new Error('8到16个字符，至少包含字母、数字、特殊符号中的两种'))
       } else {
         callback()
