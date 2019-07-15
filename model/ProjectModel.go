@@ -27,7 +27,15 @@ type Projects []Project
 func (p Project) AddRow() (uint32, error) {
 	db := NewDB()
 	result, err := db.Exec(
-		"INSERT INTO project (name, url, path, script, rsync_option, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		`INSERT INTO project (
+			name, 
+			url, 
+			path, 
+			script, 
+			rsync_option, 
+			create_time, 
+			update_time) 
+		VALUES (?, ?, ?, ?, ?, ?, ?)`,
 		p.Name,
 		p.URL,
 		p.Path,
@@ -48,7 +56,7 @@ func (p Project) EditRow() error {
 		  name = ?,
 		  url = ?,
 		  path = ?,
-		  Script = ?,
+		  script = ?,
 		  rsync_option = ?
 		WHERE
 		 id = ?`,
