@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 )
@@ -55,7 +53,7 @@ func (user *User) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := user.createToken(userData)
+	token, err := userData.CreateToken()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
@@ -270,17 +268,4 @@ func (user *User) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 	response := core.Response{Message: "修改成功"}
 	response.Json(w)
-}
-
-func (user *User) createToken(u model.User) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":   u.ID,
-		"name": u.Name,
-		"exp":  time.Now().Add(time.Hour * 72).Unix(),
-		"nbf":  time.Now().Unix(),
-	})
-	tokenString, err := token.SignedString([]byte(os.Getenv("SIGN_KEY")))
-
-	//Sign and get the complete encoded token as string
-	return tokenString, err
 }

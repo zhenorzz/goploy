@@ -3,7 +3,10 @@ package model
 import (
 	"errors"
 	"fmt"
+	"os"
+	"time"
 
+	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -215,30 +218,6 @@ func (u User) EditRow() error {
 	return err
 }
 
-// Vaildate if user exists
-func (u User) Vaildate(inputPassword string) error {
-	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(inputPassword))
-	if err != nil {
-		return errors.New("密码错误")
-	}
-	return nil
-}
-
-// Vaildate if user exists
-// func (u User) Vaildate() error {
-// 	var hashPassword string
-// 	db := NewDB()
-// 	err := db.QueryRow("SELECT password FROM user WHERE id = ?", u.ID).Scan(&hashPassword)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	err = bcrypt.CompareHashAndPassword([]byte(hashPassword), []byte(u.Password))
-// 	if err != nil {
-// 		return errors.New("密码错误")
-// 	}
-// 	return nil
-// }
-
 // UpdatePassword return err
 func (u User) UpdatePassword() error {
 	password := []byte(u.Password)
@@ -254,4 +233,27 @@ func (u User) UpdatePassword() error {
 		u.ID,
 	)
 	return err
+}
+
+// Vaildate if user exists
+func (u User) Vaildate(inputPassword string) error {
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(inputPassword))
+	if err != nil {
+		return errors.New("密码错误")
+	}
+	return nil
+}
+
+// CreateToken create token
+func (u User) CreateToken() (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":   u.ID,
+		"name": u.Name,
+		"exp":  time.Now().Add(time.Hour * 72).Unix(),
+		"nbf":  time.Now().Unix(),
+	})
+	tokenString, err := token.SignedString([]byte(os.Getenv("SIGN_KEY")))
+
+	//Sign and get the complete encoded token as string
+	return tokenString, err
 }
