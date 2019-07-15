@@ -140,35 +140,26 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 	response.Json(w)
 }
 
-func createGitRepos(project model.Project) error {
-	path := "./repository/" + project.Name
-	repo := project.URL
-	_, err := os.Stat(path)
-	if err == nil {
-		return nil
-	}
-
-	if err := os.RemoveAll(path); err != nil {
-		return err
-	}
-
-	cmd := exec.Command("git", "clone", repo, path)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化 git clonee")
-	if err := cmd.Run(); err != nil {
-		core.Log(core.ERROR, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化失败:"+err.Error())
-		return err
-	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化成功")
-	return nil
-}
-
 func gitSync(project model.Project) (string, error) {
-	if err := createGitRepos(project); err != nil {
-		return "", err
-	}
+
 	srcPath := "./repository/" + project.Name
+
+	if _, err := os.Stat(srcPath); err != nil {
+		if err := os.RemoveAll(srcPath); err != nil {
+			return "", err
+		}
+		repo := project.URL
+		cmd := exec.Command("git", "clone", repo, srcPath)
+		var out bytes.Buffer
+		cmd.Stdout = &out
+		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化 git clone")
+		if err := cmd.Run(); err != nil {
+			core.Log(core.ERROR, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化失败:"+err.Error())
+			return "", err
+		}
+		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化成功")
+	}
+
 	clean := exec.Command("git", "clean", "-f")
 	clean.Dir = srcPath
 	var cleanOutbuf, cleanErrbuf bytes.Buffer

@@ -27,7 +27,7 @@ type Projects []Project
 func (p Project) AddRow() (uint32, error) {
 	db := NewDB()
 	result, err := db.Exec(
-		"INSERT INTO project (name, url, path, scrpit, rsync_option, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?)",
+		"INSERT INTO project (name, url, path, scrpit, rsync_option, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		p.Name,
 		p.URL,
 		p.Path,
@@ -99,9 +99,8 @@ func (p Project) GetDepolyList() (Projects, error) {
 	db := NewDB()
 	rows, err := db.Query(`
 		SELECT 
-			project.id, 
-			name, 
-			status, 
+			project_id, 
+			project.name, 
 			publisher_id, 
 			publisher_name, 
 			project.update_time 
