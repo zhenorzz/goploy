@@ -15,13 +15,6 @@ export function getInfo() {
   })
 }
 
-export function logout() {
-  return request({
-    url: '/user/logout',
-    method: 'get'
-  })
-}
-
 export function isShowPhrase() {
   return request({
     url: '/user/isShowPhrase',
