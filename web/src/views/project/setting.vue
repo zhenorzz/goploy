@@ -251,6 +251,8 @@ export default {
 
     handleEdit(data) {
       this.formData = Object.assign({}, data)
+      this.formData.serverIds = []
+      this.formData.userIds = []
       this.formProps.showServers = this.formProps.showUsers = false
       this.dialogVisible = true
     },
