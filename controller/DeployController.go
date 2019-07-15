@@ -141,8 +141,8 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 }
 
 func gitSync(project model.Project) (string, error) {
-
-	srcPath := "./repository/" + project.Name
+	path, _ := core.GetCurrentPath()
+	srcPath := path + "repository/" + project.Name
 
 	if _, err := os.Stat(srcPath); err != nil {
 		if err := os.RemoveAll(srcPath); err != nil {
@@ -186,7 +186,8 @@ func gitSync(project model.Project) (string, error) {
 }
 
 func remoteExec(gitTraceID uint32, project model.Project, projectServer model.ProjectServer) {
-	srcPath := "./repository/" + project.Name
+	path, _ := core.GetCurrentPath()
+	srcPath := path + "repository/" + project.Name
 	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
 	destPath := remoteMachine + ":" + project.Path
 	remoteTraceModel := model.RemoteTrace{
