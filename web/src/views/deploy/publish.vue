@@ -15,7 +15,7 @@
         <template slot-scope="scope">
           <el-button size="small" type="primary" @click="publish(scope.row.id)">构建</el-button>
           <el-button size="small" type="success" @click="handleDetail(scope.row.id)">详情</el-button>
-          <el-button size="small" type="danger">回滚</el-button>
+          <el-button size="small" type="danger" @click="wsSend">回滚</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -55,6 +55,7 @@ export default {
   data() {
     return {
       dialogVisible: false,
+      webSocket: null,
       tableData: [],
       gitTrace: {},
       remoteTraceList: []
@@ -63,8 +64,41 @@ export default {
   },
   created() {
     this.getList()
+    this.initWebSocket()
   },
   methods: {
+    initWebSocket() {
+      try {
+        this.webSocket = new WebSocket('ws://localhost:3000/index/echo')
+        this.initEventHandle()
+      } catch (e) {
+        console.log(e)
+      }
+    },
+    initEventHandle() {
+      this.webSocket.onopen = () => {
+        console.log('WebSocket连接成功')
+      }
+
+      this.webSocket.onerror = () => {
+        console.log('WebSocket连接发生错误')
+      }
+
+      this.webSocket.onmessage = (e) => {
+        console.log(e.data)
+      }
+      this.webSocket.onclose = (e) => {
+        this.webSocket = null
+        console.log('connection closed (' + e.code + ')')
+      }
+      // 路由跳转时结束websocket链接
+      this.$router.afterEach(() => {
+        this.webSocket.close()
+      })
+    },
+    wsSend() {
+      this.webSocket.send('hello world')
+    },
     getList() {
       getList().then((response) => {
         const projectList = response.data.projectList || []
