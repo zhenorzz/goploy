@@ -19,8 +19,7 @@ type Servers []Server
 
 // AddRow add one row to table server and add id to s.ID
 func (s Server) AddRow() (uint32, error) {
-	db := NewDB()
-	result, err := db.Exec(
+	result, err := DB.Exec(
 		"INSERT INTO server (name, ip, owner, create_time, update_time) VALUES (?, ?, ?, ?, ?)",
 		s.Name,
 		s.IP,
@@ -37,8 +36,7 @@ func (s Server) AddRow() (uint32, error) {
 
 // EditRow edit one row to table server
 func (s Server) EditRow() error {
-	db := NewDB()
-	_, err := db.Exec(
+	_, err := DB.Exec(
 		`UPDATE server SET 
 		  name = ?,
 		  ip = ?,
@@ -55,8 +53,7 @@ func (s Server) EditRow() error {
 
 // GetList server row
 func (s Server) GetList() (Servers, error) {
-	db := NewDB()
-	rows, err := db.Query("SELECT id, name, ip, owner, create_time, update_time FROM server")
+	rows, err := DB.Query("SELECT id, name, ip, owner, create_time, update_time FROM server")
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +71,7 @@ func (s Server) GetList() (Servers, error) {
 
 // GetAll server row
 func (s Server) GetAll() (Servers, error) {
-	db := NewDB()
-	rows, err := db.Query("SELECT id, name, ip, owner, create_time, update_time FROM server")
+	rows, err := DB.Query("SELECT id, name, ip, owner, create_time, update_time FROM server")
 	if err != nil {
 		return nil, err
 	}
@@ -94,8 +90,7 @@ func (s Server) GetAll() (Servers, error) {
 // GetData add server information to s *Server
 func (s Server) GetData() (Server, error) {
 	var server Server
-	db := NewDB()
-	err := db.QueryRow("SELECT name, ip, owner, create_time, update_time FROM server WHERE id = ?", s.ID).Scan(&server.Name, &server.IP, &server.Owner, &server.CreateTime, &server.UpdateTime)
+	err := DB.QueryRow("SELECT name, ip, owner, create_time, update_time FROM server WHERE id = ?", s.ID).Scan(&server.Name, &server.IP, &server.Owner, &server.CreateTime, &server.UpdateTime)
 	if err != nil {
 		return server, errors.New("数据查询失败")
 	}

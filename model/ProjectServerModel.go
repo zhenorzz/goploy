@@ -17,8 +17,7 @@ type ProjectServers []ProjectServer
 
 // GetBindServerListByProjectID server row
 func (ps ProjectServer) GetBindServerListByProjectID(projectID uint32) (ProjectServers, error) {
-	db := NewDB()
-	rows, err := db.Query(
+	rows, err := DB.Query(
 		`SELECT 
 			project_server.id,
 			project_id,
@@ -57,7 +56,6 @@ func (ps ProjectServer) GetBindServerListByProjectID(projectID uint32) (ProjectS
 
 // AddMany add many row to table project_server
 func (ps ProjectServers) AddMany() error {
-	db := NewDB()
 	sqlStr := "INSERT INTO project_server (project_id, server_id, create_time, update_time) VALUES "
 	vals := []interface{}{}
 
@@ -68,7 +66,7 @@ func (ps ProjectServers) AddMany() error {
 	//trim the last ,
 	sqlStr = sqlStr[0 : len(sqlStr)-1]
 	//prepare the statement
-	stmt, err := db.Prepare(sqlStr)
+	stmt, err := DB.Prepare(sqlStr)
 	if err != nil {
 		return err
 	}
@@ -79,7 +77,6 @@ func (ps ProjectServers) AddMany() error {
 
 // DeleteRow edit one row to table server
 func (ps ProjectServer) DeleteRow() error {
-	db := NewDB()
-	_, err := db.Exec(`DELETE FROM project_server WHERE id = ?`, ps.ID)
+	_, err := DB.Exec(`DELETE FROM project_server WHERE id = ?`, ps.ID)
 	return err
 }

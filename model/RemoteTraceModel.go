@@ -22,8 +22,7 @@ type RemoteTraces []RemoteTrace
 
 // AddRow add one row to table deploy and add id to deploy.ID
 func (rt RemoteTrace) AddRow() (uint32, error) {
-	db := NewDB()
-	result, err := db.Exec(
+	result, err := DB.Exec(
 		"INSERT INTO remote_trace (git_trace_id, project_id, project_name, server_id, server_name, detail, state, publisher_id, publisher_name, type, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		rt.GitTraceID,
 		rt.ProjectID,
@@ -44,8 +43,7 @@ func (rt RemoteTrace) AddRow() (uint32, error) {
 
 // GetListByGitTraceID RemoteTrace row
 func (rt RemoteTrace) GetListByGitTraceID(gitTraceID uint32) (RemoteTraces, error) {
-	db := NewDB()
-	rows, err := db.Query(
+	rows, err := DB.Query(
 		`SELECT 
 			id,
 			git_trace_id,

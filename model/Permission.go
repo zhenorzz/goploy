@@ -16,9 +16,8 @@ type Permissions []Permission
 
 // GetAllByPermissionList server row
 func (p Permission) GetAllByPermissionList(permissionList string) (Permissions, error) {
-	db := NewDB()
 	query := fmt.Sprintf("SELECT id, title, uri, pid FROM permission WHERE id IN (%s)", permissionList)
-	rows, err := db.Query(query)
+	rows, err := DB.Query(query)
 	if err != nil {
 		return nil, err
 	}

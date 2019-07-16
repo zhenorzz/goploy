@@ -104,32 +104,8 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-	gitTraceModel := model.GitTrace{
-		ProjectID:     project.ID,
-		ProjectName:   project.Name,
-		PublisherID:   core.GolbalUserID,
-		PublisherName: core.GolbalUserName,
-		CreateTime:    time.Now().Unix(),
-		UpdateTime:    time.Now().Unix(),
-	}
 
-	stdout, err := gitSync(project)
-	if err != nil {
-		gitTraceModel.Detail = err.Error()
-		gitTraceModel.State = 0
-		_, _ = gitTraceModel.AddRow()
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
-		return
-	}
-
-	gitTraceModel.Detail = stdout
-	gitTraceModel.State = 1
-	gitTraceID, _ := gitTraceModel.AddRow()
-
-	for _, projectServer := range projectServers {
-		go remoteExec(gitTraceID, project, projectServer)
-	}
+	go execSync(project, projectServers)
 
 	project.PublisherID = core.GolbalUserID
 	project.PublisherName = core.GolbalUserName
@@ -139,14 +115,43 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 	response := core.Response{Message: "部署中，请稍后"}
 	response.Json(w)
 }
+func execSync(project model.Project, projectServers model.ProjectServers) {
+	gitTraceModel := model.GitTrace{
+		ProjectID:     project.ID,
+		ProjectName:   project.Name,
+		PublisherID:   core.GolbalUserID,
+		PublisherName: core.GolbalUserName,
+		CreateTime:    time.Now().Unix(),
+		UpdateTime:    time.Now().Unix(),
+	}
+	if err := gitCreate(project); err != nil {
+		gitTraceModel.Detail = err.Error()
+		gitTraceModel.State = 0
+		gitTraceModel.AddRow()
+		return
+	}
+	stdout, err := gitSync(project)
+	if err != nil {
+		gitTraceModel.Detail = err.Error()
+		gitTraceModel.State = 0
+		gitTraceModel.AddRow()
+		return
+	}
 
-func gitSync(project model.Project) (string, error) {
-	path, _ := core.GetCurrentPath()
-	srcPath := path + "repository/" + project.Name
+	gitTraceModel.Detail = stdout
+	gitTraceModel.State = 1
+	gitTraceID, _ := gitTraceModel.AddRow()
 
+	for _, projectServer := range projectServers {
+		go remoteSync(gitTraceID, project, projectServer)
+	}
+}
+
+func gitCreate(project model.Project) error {
+	srcPath := core.GolbalPath + "repository/" + project.Name
 	if _, err := os.Stat(srcPath); err != nil {
 		if err := os.RemoveAll(srcPath); err != nil {
-			return "", err
+			return err
 		}
 		repo := project.URL
 		cmd := exec.Command("git", "clone", repo, srcPath)
@@ -155,10 +160,15 @@ func gitSync(project model.Project) (string, error) {
 		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化 git clone")
 		if err := cmd.Run(); err != nil {
 			core.Log(core.ERROR, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化失败:"+err.Error())
-			return "", err
+			return err
 		}
 		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化成功")
 	}
+	return nil
+}
+
+func gitSync(project model.Project) (string, error) {
+	srcPath := core.GolbalPath + "repository/" + project.Name
 
 	clean := exec.Command("git", "clean", "-f")
 	clean.Dir = srcPath
@@ -185,8 +195,8 @@ func gitSync(project model.Project) (string, error) {
 	return pullOutbuf.String(), nil
 }
 
-func remoteExec(gitTraceID uint32, project model.Project, projectServer model.ProjectServer) {
-	srcPath := "./repository/" + project.Name + "/"
+func remoteSync(gitTraceID uint32, project model.Project, projectServer model.ProjectServer) {
+	srcPath := core.GolbalPath + "repository/" + project.Name + "/"
 	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
 	destPath := remoteMachine + ":" + project.Path
 	remoteTraceModel := model.RemoteTrace{

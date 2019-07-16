@@ -29,8 +29,7 @@ type Users []User
 // GetData add user information to u *User
 func (u User) GetData() (User, error) {
 	var user User
-	db := NewDB()
-	err := db.QueryRow(`
+	err := DB.QueryRow(`
 		SELECT 
 			id, 
 			account, 
@@ -63,8 +62,7 @@ func (u User) GetData() (User, error) {
 // GetDataByAccount get user information
 func (u User) GetDataByAccount() (User, error) {
 	var user User
-	db := NewDB()
-	err := db.QueryRow(`
+	err := DB.QueryRow(`
 		SELECT 
 			id, 
 			account, 
@@ -96,8 +94,7 @@ func (u User) GetDataByAccount() (User, error) {
 
 // GetList get many user row
 func (u Users) GetList(pagination *Pagination) (Users, error) {
-	db := NewDB()
-	rows, err := db.Query(
+	rows, err := DB.Query(
 		"SELECT id, account, name, mobile, role_id, create_time, update_time FROM user ORDER BY id DESC LIMIT ?, ?",
 		(pagination.Page-1)*pagination.Rows,
 		pagination.Rows)
@@ -113,7 +110,7 @@ func (u Users) GetList(pagination *Pagination) (Users, error) {
 		}
 		users = append(users, user)
 	}
-	err = db.QueryRow(`SELECT COUNT(*) AS count FROM user`).Scan(&pagination.Total)
+	err = DB.QueryRow(`SELECT COUNT(*) AS count FROM user`).Scan(&pagination.Total)
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +119,7 @@ func (u Users) GetList(pagination *Pagination) (Users, error) {
 
 // GetAll user row
 func (u User) GetAll() (Users, error) {
-	db := NewDB()
-	rows, err := db.Query("SELECT id, account, name, mobile, create_time, update_time FROM user ORDER BY id DESC")
+	rows, err := DB.Query("SELECT id, account, name, mobile, create_time, update_time FROM user ORDER BY id DESC")
 	if err != nil {
 		return nil, err
 	}
@@ -141,9 +137,8 @@ func (u User) GetAll() (Users, error) {
 
 // AddRow add one row to table user and add id to u.ID
 func (u User) AddRow() (uint32, error) {
-	db := NewDB()
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) AS count FROM user WHERE account = ?", u.Account).Scan(&count)
+	err := DB.QueryRow("SELECT COUNT(*) AS count FROM user WHERE account = ?", u.Account).Scan(&count)
 	fmt.Println(count)
 	if err != nil {
 		return 0, err
@@ -162,7 +157,7 @@ func (u User) AddRow() (uint32, error) {
 	if err != nil {
 		return 0, err
 	}
-	result, err := db.Exec(
+	result, err := DB.Exec(
 		"INSERT INTO user (account, password, name, mobile, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?)",
 		u.Account,
 		string(hashedPassword),
@@ -178,9 +173,8 @@ func (u User) AddRow() (uint32, error) {
 // EditRow edit one row to table server
 func (u User) EditRow() error {
 	var err error
-	db := NewDB()
 	if u.Password == "" {
-		_, err = db.Exec(
+		_, err = DB.Exec(
 			`UPDATE user SET 
 			  name = ?,
 			  mobile = ?,
@@ -199,7 +193,7 @@ func (u User) EditRow() error {
 		if err != nil {
 			return err
 		}
-		_, err = db.Exec(
+		_, err = DB.Exec(
 			`UPDATE user SET 
 			  name = ?,
 			  mobile = ?,
@@ -226,8 +220,7 @@ func (u User) UpdatePassword() error {
 	if err != nil {
 		return err
 	}
-	db := NewDB()
-	_, err = db.Exec(
+	_, err = DB.Exec(
 		"UPDATE user SET password = ? where id = ?",
 		string(hashedPassword),
 		u.ID,

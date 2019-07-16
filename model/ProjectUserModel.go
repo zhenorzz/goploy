@@ -15,8 +15,7 @@ type ProjectUsers []ProjectUser
 
 // GetBindUserListByProjectID user row
 func (pu ProjectUser) GetBindUserListByProjectID(projectID uint32) (ProjectUsers, error) {
-	db := NewDB()
-	rows, err := db.Query(
+	rows, err := DB.Query(
 		`SELECT 
 		    project_user.id,
 			project_id,
@@ -45,7 +44,6 @@ func (pu ProjectUser) GetBindUserListByProjectID(projectID uint32) (ProjectUsers
 
 // AddMany add many row to table project_server
 func (pu ProjectUsers) AddMany() error {
-	db := NewDB()
 	sqlStr := "INSERT INTO project_user (project_id, user_id, create_time, update_time) VALUES "
 	vals := []interface{}{}
 
@@ -56,7 +54,7 @@ func (pu ProjectUsers) AddMany() error {
 	//trim the last ,
 	sqlStr = sqlStr[0 : len(sqlStr)-1]
 	//prepare the statement
-	stmt, err := db.Prepare(sqlStr)
+	stmt, err := DB.Prepare(sqlStr)
 	if err != nil {
 		return err
 	}
@@ -67,7 +65,6 @@ func (pu ProjectUsers) AddMany() error {
 
 // DeleteRow edit one row to table ProjectUser
 func (pu ProjectUser) DeleteRow() error {
-	db := NewDB()
-	_, err := db.Exec(`DELETE FROM project_user WHERE id = ?`, pu.ID)
+	_, err := DB.Exec(`DELETE FROM project_user WHERE id = ?`, pu.ID)
 	return err
 }

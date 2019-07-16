@@ -16,15 +16,18 @@ type Pagination struct {
 	Total int `json:"total"`
 }
 
-// NewDB return db model
-func NewDB() *sql.DB {
+// DB init when the program start
+var DB *sql.DB
+
+// Init DB open
+func Init() {
 	dbType := os.Getenv("DB_TYPE")
 	dbConn := os.Getenv("DB_CONN")
-	db, err := sql.Open(dbType, dbConn)
+	var err error
+	DB, err = sql.Open(dbType, dbConn)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return db
 }
 
 // NewPagination return pagination struct

@@ -25,8 +25,7 @@ func (c *Charts) Query(date string) error {
 	}
 	startTimestamp := t.Unix()
 	endTimestamp := startTimestamp + 86400
-	db := NewDB()
-	rows, err := db.Query(
+	rows, err := DB.Query(
 		`SELECT 
 		  FROM_UNIXTIME(create_time, '%H')as hour, 
 		  COUNT(*) as commit, 
