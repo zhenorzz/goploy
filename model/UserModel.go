@@ -158,11 +158,12 @@ func (u User) AddRow() (uint32, error) {
 		return 0, err
 	}
 	result, err := DB.Exec(
-		"INSERT INTO user (account, password, name, mobile, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?)",
+		"INSERT INTO user (account, password, name, mobile, role_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		u.Account,
 		string(hashedPassword),
 		u.Name,
 		u.Mobile,
+		u.RoleID,
 		u.CreateTime,
 		u.UpdateTime,
 	)

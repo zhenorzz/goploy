@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/zhenorzz/goploy/model"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 
@@ -17,7 +15,6 @@ import (
 func main() {
 	godotenv.Load(core.GolbalPath + ".env")
 	route.Init()
-	model.Init()
 	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil) //设置监听的端口
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
