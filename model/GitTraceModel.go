@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"errors"
 )
 
@@ -56,7 +57,9 @@ func (gt *GitTrace) QueryLatestRow(projectID uint32) error {
 		&gt.PublisherName,
 		&gt.CreateTime,
 		&gt.UpdateTime)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		return errors.New("项目尚无构建记录")
+	} else if err != nil {
 		return errors.New("GitTrace.QueryLatestRow数据查询失败")
 	}
 	return nil

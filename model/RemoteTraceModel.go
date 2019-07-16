@@ -1,5 +1,10 @@
 package model
 
+import (
+	"database/sql"
+	"errors"
+)
+
 // RemoteTrace mysql table for rsync trace
 type RemoteTrace struct {
 	ID            uint32 `json:"id"`
@@ -80,8 +85,10 @@ func (rt RemoteTrace) GetListByGitTraceID(gitTraceID uint32) (RemoteTraces, erro
 			&RemoteTrace.PublisherName,
 			&RemoteTrace.Type,
 			&RemoteTrace.CreateTime,
-			&RemoteTrace.UpdateTime); err != nil {
-			return RemoteTraces, err
+			&RemoteTrace.UpdateTime); err == sql.ErrNoRows {
+			return RemoteTraces, errors.New("项目尚无远程同步记录")
+		} else if err != nil {
+			return nil, errors.New("RemoteTrace.GetListByGitTraceID数据查询失败")
 		}
 		RemoteTraces = append(RemoteTraces, RemoteTrace)
 	}
