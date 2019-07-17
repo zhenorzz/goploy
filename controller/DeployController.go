@@ -159,23 +159,18 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
 	}
-	if err := gitCreate(project); err != nil {
+	if err := gitCreate(tokenInfo, project); err != nil {
 		gitTraceModel.Detail = err.Error()
 		gitTraceModel.State = 0
 		gitTraceModel.AddRow()
 		return
 	}
-	stdout, err := gitSync(project)
+	stdout, err := gitSync(tokenInfo, project)
 	if err != nil {
 		gitTraceModel.Detail = err.Error()
 		gitTraceModel.State = 0
 		gitTraceModel.AddRow()
 		return
-	}
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-		ProjectID: project.ID,
-		State:     gitTraceModel.State,
-		Message:   stdout,
 	}
 
 	gitTraceModel.Detail = stdout
@@ -187,7 +182,7 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 	}
 }
 
-func gitCreate(project model.Project) error {
+func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 	srcPath := core.GolbalPath + "repository/" + project.Name
 	if _, err := os.Stat(srcPath); err != nil {
 		if err := os.RemoveAll(srcPath); err != nil {
@@ -198,16 +193,37 @@ func gitCreate(project model.Project) error {
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化 git clone")
+		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+			ProjectID: project.ID,
+			UserID:    tokenInfo.ID,
+			DataType:  ws.GitType,
+			State:     ws.Success,
+			Message:   "项目初始化 git clone",
+		}
 		if err := cmd.Run(); err != nil {
 			core.Log(core.ERROR, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化失败:"+err.Error())
+			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+				ProjectID: project.ID,
+				UserID:    tokenInfo.ID,
+				DataType:  ws.GitType,
+				State:     ws.Fail,
+				Message:   "项目初始化失败",
+			}
 			return err
 		}
 		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化成功")
+		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+			ProjectID: project.ID,
+			UserID:    tokenInfo.ID,
+			DataType:  ws.GitType,
+			State:     ws.Success,
+			Message:   "项目初始化成功",
+		}
 	}
 	return nil
 }
 
-func gitSync(project model.Project) (string, error) {
+func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 	srcPath := core.GolbalPath + "repository/" + project.Name
 
 	clean := exec.Command("git", "clean", "-f")
@@ -216,8 +232,22 @@ func gitSync(project model.Project) (string, error) {
 	clean.Stdout = &cleanOutbuf
 	clean.Stderr = &cleanErrbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" git clean -f")
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID: project.ID,
+		UserID:    tokenInfo.ID,
+		DataType:  ws.GitType,
+		State:     ws.Success,
+		Message:   "git clean -f",
+	}
 	if err := clean.Run(); err != nil {
 		core.Log(core.ERROR, cleanErrbuf.String())
+		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+			ProjectID: project.ID,
+			UserID:    tokenInfo.ID,
+			DataType:  ws.GitType,
+			State:     ws.Fail,
+			Message:   cleanErrbuf.String(),
+		}
 		return "", err
 	}
 	pull := exec.Command("git", "pull")
@@ -226,12 +256,33 @@ func gitSync(project model.Project) (string, error) {
 	pull.Stdout = &pullOutbuf
 	pull.Stderr = &pullErrbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" git pull")
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID: project.ID,
+		UserID:    tokenInfo.ID,
+		DataType:  ws.GitType,
+		State:     ws.Success,
+		Message:   "git pull",
+	}
 	if err := pull.Run(); err != nil {
 		core.Log(core.ERROR, pullErrbuf.String())
+		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+			ProjectID: project.ID,
+			UserID:    tokenInfo.ID,
+			DataType:  ws.GitType,
+			State:     ws.Fail,
+			Message:   pullErrbuf.String(),
+		}
 		return "", err
 	}
 
 	core.Log(core.TRACE, pullOutbuf.String())
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID: project.ID,
+		UserID:    tokenInfo.ID,
+		DataType:  ws.GitType,
+		State:     ws.Success,
+		Message:   pullOutbuf.String(),
+	}
 	return pullOutbuf.String(), nil
 }
 
@@ -263,14 +314,40 @@ func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Proje
 	var outbuf, errbuf bytes.Buffer
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
-	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" rsync"+strings.Join(rsyncOption, " "))
-
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" rsync "+strings.Join(rsyncOption, " "))
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID:  project.ID,
+		UserID:     tokenInfo.ID,
+		ServerID:   projectServer.ServerID,
+		ServerName: projectServer.ServerName,
+		DataType:   ws.RsyncType,
+		State:      ws.Success,
+		Message:    "rsync " + strings.Join(rsyncOption, " "),
+	}
 	if err := cmd.Run(); err != nil {
 		core.Log(core.ERROR, errbuf.String())
+		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+			ProjectID:  project.ID,
+			UserID:     tokenInfo.ID,
+			ServerID:   projectServer.ServerID,
+			ServerName: projectServer.ServerName,
+			DataType:   ws.RsyncType,
+			State:      ws.Fail,
+			Message:    errbuf.String(),
+		}
 		remoteTraceModel.Detail = errbuf.String()
 		remoteTraceModel.State = 0
 		remoteTraceModel.AddRow()
 	} else {
+		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+			ProjectID:  project.ID,
+			UserID:     tokenInfo.ID,
+			ServerID:   projectServer.ServerID,
+			ServerName: projectServer.ServerName,
+			DataType:   ws.RsyncType,
+			State:      ws.Success,
+			Message:    outbuf.String(),
+		}
 		remoteTraceModel.Detail = outbuf.String()
 		remoteTraceModel.State = 1
 		remoteTraceModel.AddRow()
@@ -281,24 +358,79 @@ func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Proje
 	}
 	remoteTraceModel.Type = 2
 	// 执行ssh脚本
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID:  project.ID,
+		UserID:     tokenInfo.ID,
+		ServerID:   projectServer.ServerID,
+		ServerName: projectServer.ServerName,
+		DataType:   ws.ScriptType,
+		State:      ws.Success,
+		Message:    "开始连接ssh",
+	}
 	session, err := connect(projectServer.ServerOwner, "", projectServer.ServerIP, 22)
+
 	if err != nil {
 		core.Log(core.ERROR, err.Error())
+		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+			ProjectID:  project.ID,
+			UserID:     tokenInfo.ID,
+			ServerID:   projectServer.ServerID,
+			ServerName: projectServer.ServerName,
+			DataType:   ws.ScriptType,
+			State:      ws.Fail,
+			Message:    err.Error(),
+		}
 		remoteTraceModel.Detail = err.Error()
 		remoteTraceModel.State = 0
 		remoteTraceModel.AddRow()
 		return
 	}
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID:  project.ID,
+		UserID:     tokenInfo.ID,
+		ServerID:   projectServer.ServerID,
+		ServerName: projectServer.ServerName,
+		DataType:   ws.ScriptType,
+		State:      ws.Success,
+		Message:    "开始连接成功",
+	}
 	defer session.Close()
 	var sshOutbuf bytes.Buffer
 	session.Stdout = &sshOutbuf
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID:  project.ID,
+		UserID:     tokenInfo.ID,
+		ServerID:   projectServer.ServerID,
+		ServerName: projectServer.ServerName,
+		DataType:   ws.ScriptType,
+		State:      ws.Success,
+		Message:    "运行:" + project.Script,
+	}
 	// 需要更改脚本的权限 以免执行不了
 	if err := session.Run(project.Script); err != nil {
 		core.Log(core.ERROR, err.Error())
+		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+			ProjectID:  project.ID,
+			UserID:     tokenInfo.ID,
+			ServerID:   projectServer.ServerID,
+			ServerName: projectServer.ServerName,
+			DataType:   ws.ScriptType,
+			State:      ws.Fail,
+			Message:    err.Error(),
+		}
 		remoteTraceModel.Detail = err.Error()
 		remoteTraceModel.State = 0
 		remoteTraceModel.AddRow()
 		return
+	}
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID:  project.ID,
+		UserID:     tokenInfo.ID,
+		ServerID:   projectServer.ServerID,
+		ServerName: projectServer.ServerName,
+		DataType:   ws.ScriptType,
+		State:      ws.Success,
+		Message:    sshOutbuf.String(),
 	}
 	remoteTraceModel.Detail = sshOutbuf.String()
 	remoteTraceModel.State = 1
