@@ -19,9 +19,9 @@ func (role Role) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 	roleList, err := model.Role{}.GetAll()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Data: RepData{Role: roleList}}
-	response.Json(w)
+	response.JSON(w)
 }

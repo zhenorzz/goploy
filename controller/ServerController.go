@@ -22,11 +22,11 @@ func (server Server) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	serverList, err := model.Server{}.GetList()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Data: RepData{Server: serverList}}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // GetOption server list
@@ -38,11 +38,11 @@ func (server Server) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 	serverList, err := model.Server{}.GetAll()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Data: RepData{Server: serverList}}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // Add one server
@@ -57,7 +57,7 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	_, err = model.Server{
@@ -70,11 +70,11 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Message: "添加成功"}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // Edit one server
@@ -90,7 +90,7 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	err = model.Server{
@@ -104,9 +104,9 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Message: "修改成功"}
-	response.Json(w)
+	response.JSON(w)
 }

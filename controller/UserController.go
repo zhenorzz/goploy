@@ -20,7 +20,7 @@ func (user User) IsShowPhrase(w http.ResponseWriter, gp *core.Goploy) {
 	}
 	data := RepData{Show: false}
 	response := core.Response{Data: data}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // Login user login api
@@ -37,31 +37,31 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	userData, err := model.User{Account: reqData.Account}.GetDataByAccount()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
 	if err := userData.Vaildate(reqData.Password); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
 	token, err := userData.CreateToken()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	data := RepData{Token: token}
 	response := core.Response{Data: data}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // Info get user info api
@@ -78,13 +78,13 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 	userData, err := model.User{ID: gp.TokenInfo.ID}.GetData()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
 	if userData.State != 1 {
 		response := core.Response{Code: 1, Message: "账号被封停"}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
@@ -96,13 +96,13 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 	role, err := model.Role{ID: userData.RoleID}.GetData()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	permissions, err := model.Permission{}.GetAllByPermissionList(role.PermissionList)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	var tempPermissions model.Permissions
@@ -121,7 +121,7 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 	data.Permission = tempPermissions
 
 	response := core.Response{Data: data}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // GetList user list
@@ -134,17 +134,17 @@ func (user User) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	pagination, err := model.NewPagination(gp.URLQuery)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	users, err := userModel.GetList(pagination)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Data: RepData{User: users, Pagination: *pagination}}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // GetOption user list
@@ -155,11 +155,11 @@ func (user User) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 	users, err := model.User{}.GetAll()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Data: RepData{User: users}}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // Add one user
@@ -176,7 +176,7 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	_, err = model.User{
@@ -191,11 +191,11 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Message: "添加成功"}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // Edit one user
@@ -212,7 +212,7 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	err = model.User{
@@ -226,12 +226,12 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
 	response := core.Response{Message: "添加成功"}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // ChangePassword doc
@@ -245,27 +245,27 @@ func (user User) ChangePassword(w http.ResponseWriter, gp *core.Goploy) {
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	userData, err := model.User{ID: gp.TokenInfo.ID}.GetData()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
 	if err := userData.Vaildate(reqData.OldPassword); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
 	if err := (model.User{ID: gp.TokenInfo.ID, Password: reqData.NewPassword}.UpdatePassword()); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Message: "修改成功"}
-	response.Json(w)
+	response.JSON(w)
 }

@@ -5,12 +5,14 @@ import (
 	"net/http"
 )
 
+//Response struct
 type Response struct {
 	Code    uint32      `json:"code"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
 }
 
-func (r *Response) Json(w http.ResponseWriter) {
+//JSON response
+func (r *Response) JSON(w http.ResponseWriter) {
 	json.NewEncoder(w).Encode(r)
 }

@@ -23,11 +23,11 @@ func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	projectList, err := model.Project{}.GetList()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Data: RepData{Project: projectList}}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // GetBindServerList project detail
@@ -38,17 +38,17 @@ func (project Project) GetBindServerList(w http.ResponseWriter, gp *core.Goploy)
 	id, err := strconv.Atoi(gp.URLQuery.Get("id"))
 	if err != nil {
 		response := core.Response{Code: 1, Message: "id参数错误"}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	projectServersMap, err := model.ProjectServer{ProjectID: uint32(id)}.GetBindServerListByProjectID()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Data: RepData{ProjectServers: projectServersMap}}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // GetBindUserList project detail
@@ -59,17 +59,17 @@ func (project Project) GetBindUserList(w http.ResponseWriter, gp *core.Goploy) {
 	id, err := strconv.Atoi(gp.URLQuery.Get("id"))
 	if err != nil {
 		response := core.Response{Code: 1, Message: "id参数错误"}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	projectUsersMap, err := model.ProjectUser{ProjectID: uint32(id)}.GetBindUserListByProjectID()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Data: RepData{ProjectUsers: projectUsersMap}}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // Add one project
@@ -88,7 +88,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	projectID, err := model.Project{
@@ -103,7 +103,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
@@ -120,7 +120,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 
 	if err := projectServersModel.AddMany(); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
@@ -137,12 +137,12 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 
 	if err := projectUsersModel.AddMany(); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
 	response := core.Response{Message: "添加成功"}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // Edit one Project
@@ -160,7 +160,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	err = model.Project{
@@ -175,11 +175,11 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Message: "修改成功"}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // AddServer one project
@@ -193,7 +193,7 @@ func (project Project) AddServer(w http.ResponseWriter, gp *core.Goploy) {
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	projectID := reqData.ProjectID
@@ -211,11 +211,11 @@ func (project Project) AddServer(w http.ResponseWriter, gp *core.Goploy) {
 
 	if err := projectServersModel.AddMany(); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Message: "添加成功"}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // AddUser one project
@@ -229,7 +229,7 @@ func (project Project) AddUser(w http.ResponseWriter, gp *core.Goploy) {
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	projectID := reqData.ProjectID
@@ -247,11 +247,11 @@ func (project Project) AddUser(w http.ResponseWriter, gp *core.Goploy) {
 
 	if err := projectUsersModel.AddMany(); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Message: "添加成功"}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // RemoveProjectServer one Project
@@ -264,7 +264,7 @@ func (project Project) RemoveProjectServer(w http.ResponseWriter, gp *core.Goplo
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	err = model.ProjectServer{
@@ -273,11 +273,11 @@ func (project Project) RemoveProjectServer(w http.ResponseWriter, gp *core.Goplo
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Message: "删除成功"}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // RemoveProjectUser one Project
@@ -290,7 +290,7 @@ func (project Project) RemoveProjectUser(w http.ResponseWriter, gp *core.Goploy)
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	err = model.ProjectUser{
@@ -299,9 +299,9 @@ func (project Project) RemoveProjectUser(w http.ResponseWriter, gp *core.Goploy)
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	response := core.Response{Message: "删除成功"}
-	response.Json(w)
+	response.JSON(w)
 }

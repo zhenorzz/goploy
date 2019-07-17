@@ -19,16 +19,16 @@ func (index Index) Get(w http.ResponseWriter, gp *core.Goploy) {
 	date := gp.URLQuery.Get("date")
 	if len(date) != 10 {
 		response := core.Response{Code: 1, Message: "日期参数错误"}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	err := model.Query(date)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
 	response := core.Response{Data: RespData{Charts: model}}
-	response.Json(w)
+	response.JSON(w)
 }

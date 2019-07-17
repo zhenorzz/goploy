@@ -33,12 +33,12 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	projects, err := model.ProjectUser{UserID: gp.TokenInfo.ID}.GetDepolyListByUserID()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
 	response := core.Response{Data: RepData{Project: projects}}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // GetDetail deploy detail
@@ -52,26 +52,26 @@ func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
 	id, err := strconv.Atoi(gp.URLQuery.Get("id"))
 	if err != nil {
 		response := core.Response{Code: 1, Message: "id参数错误"}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
 	gitTrace, err := model.GitTrace{}.GetLatestRow(uint32(id))
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
 	remoteTracesList, err := model.RemoteTrace{}.GetListByGitTraceID(gitTrace.ID)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
 	response := core.Response{Data: RepData{GitTrace: gitTrace, RemoteTraceList: remoteTracesList}}
-	response.Json(w)
+	response.JSON(w)
 }
 
 // Sync the publish information in websocket
@@ -120,7 +120,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 
 	if err := json.Unmarshal(body, &reqData); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
@@ -130,7 +130,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 
@@ -138,7 +138,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	go execSync(gp.TokenInfo, project, projectServers)
@@ -148,7 +148,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	_ = project.Publish()
 
 	response := core.Response{Message: "部署中，请稍后"}
-	response.Json(w)
+	response.JSON(w)
 }
 func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers model.ProjectServers) {
 	gitTraceModel := model.GitTrace{

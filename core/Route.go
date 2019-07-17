@@ -11,11 +11,13 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
+// TokenInfo pasre the jwt
 type TokenInfo struct {
 	ID   uint32
 	Name string
 }
 
+// Goploy callback param
 type Goploy struct {
 	TokenInfo TokenInfo
 	Request   *http.Request
@@ -77,7 +79,7 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 	tokenInfo, err := checkToken(w, r)
 	if err != nil {
 		response := Response{Code: 1, Message: err.Error()}
-		response.Json(w)
+		response.JSON(w)
 		return
 	}
 	for _, middleware := range rt.middlewares {
