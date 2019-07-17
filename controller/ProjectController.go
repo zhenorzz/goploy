@@ -12,10 +12,10 @@ import (
 )
 
 // Project struct
-type Project struct{}
+type Project Controller
 
 // GetList project list
-func (project *Project) GetList(w http.ResponseWriter, r *http.Request) {
+func (project Project) GetList(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		Project model.Projects `json:"projectList"`
 	}
@@ -31,7 +31,7 @@ func (project *Project) GetList(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetBindServerList project detail
-func (project *Project) GetBindServerList(w http.ResponseWriter, r *http.Request) {
+func (project Project) GetBindServerList(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		ProjectServers model.ProjectServers `json:"projectServerMap"`
 	}
@@ -52,7 +52,7 @@ func (project *Project) GetBindServerList(w http.ResponseWriter, r *http.Request
 }
 
 // GetBindUserList project detail
-func (project *Project) GetBindUserList(w http.ResponseWriter, r *http.Request) {
+func (project Project) GetBindUserList(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		ProjectUsers model.ProjectUsers `json:"projectUserMap"`
 	}
@@ -73,7 +73,7 @@ func (project *Project) GetBindUserList(w http.ResponseWriter, r *http.Request) 
 }
 
 // Add one project
-func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
+func (project Project) Add(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		Name        string   `json:"name"`
 		URL         string   `json:"url"`
@@ -146,7 +146,7 @@ func (project *Project) Add(w http.ResponseWriter, r *http.Request) {
 }
 
 // Edit one Project
-func (project *Project) Edit(w http.ResponseWriter, r *http.Request) {
+func (project Project) Edit(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		ID          uint32 `json:"id"`
 		Name        string `json:"name"`
@@ -183,7 +183,7 @@ func (project *Project) Edit(w http.ResponseWriter, r *http.Request) {
 }
 
 // AddServer one project
-func (project *Project) AddServer(w http.ResponseWriter, r *http.Request) {
+func (project Project) AddServer(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		ProjectID uint32   `json:"projectId"`
 		ServerIDs []uint32 `json:"serverIds"`
@@ -219,7 +219,7 @@ func (project *Project) AddServer(w http.ResponseWriter, r *http.Request) {
 }
 
 // AddUser one project
-func (project *Project) AddUser(w http.ResponseWriter, r *http.Request) {
+func (project Project) AddUser(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		ProjectID uint32   `json:"projectId"`
 		UserIDs   []uint32 `json:"userIds"`
@@ -255,7 +255,7 @@ func (project *Project) AddUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // RemoveProjectServer one Project
-func (project *Project) RemoveProjectServer(w http.ResponseWriter, r *http.Request) {
+func (project Project) RemoveProjectServer(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		ProjectServerID uint32 `json:"projectServerId"`
 	}
@@ -281,7 +281,7 @@ func (project *Project) RemoveProjectServer(w http.ResponseWriter, r *http.Reque
 }
 
 // RemoveProjectUser one Project
-func (project *Project) RemoveProjectUser(w http.ResponseWriter, r *http.Request) {
+func (project Project) RemoveProjectUser(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		ProjectUserID uint32 `json:"projectUserId"`
 	}

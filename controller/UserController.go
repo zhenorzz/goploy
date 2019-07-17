@@ -11,10 +11,10 @@ import (
 )
 
 // User 用户字段
-type User struct{}
+type User Controller
 
 // IsShowPhrase is show phrase
-func (user *User) IsShowPhrase(w http.ResponseWriter, r *http.Request) {
+func (user User) IsShowPhrase(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		Show bool `json:"show"`
 	}
@@ -24,7 +24,7 @@ func (user *User) IsShowPhrase(w http.ResponseWriter, r *http.Request) {
 }
 
 // Login user login api
-func (user *User) Login(w http.ResponseWriter, r *http.Request) {
+func (user User) Login(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		Account  string `json:"account"`
 		Password string `json:"password"`
@@ -65,7 +65,7 @@ func (user *User) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // Info get user info api
-func (user *User) Info(w http.ResponseWriter, r *http.Request) {
+func (user User) Info(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		UserInfo struct {
 			ID      uint32 `json:"id"`
@@ -125,7 +125,7 @@ func (user *User) Info(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetList user list
-func (user *User) GetList(w http.ResponseWriter, r *http.Request) {
+func (user User) GetList(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		User       model.Users      `json:"userList"`
 		Pagination model.Pagination `json:"pagination"`
@@ -148,7 +148,7 @@ func (user *User) GetList(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetOption user list
-func (user *User) GetOption(w http.ResponseWriter, r *http.Request) {
+func (user User) GetOption(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		User model.Users `json:"userList"`
 	}
@@ -163,7 +163,7 @@ func (user *User) GetOption(w http.ResponseWriter, r *http.Request) {
 }
 
 // Add one user
-func (user *User) Add(w http.ResponseWriter, r *http.Request) {
+func (user User) Add(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		Account  string `json:"account"`
 		Password string `json:"password"`
@@ -199,7 +199,7 @@ func (user *User) Add(w http.ResponseWriter, r *http.Request) {
 }
 
 // Edit one user
-func (user *User) Edit(w http.ResponseWriter, r *http.Request) {
+func (user User) Edit(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		ID       uint32 `json:"id"`
 		Password string `json:"password"`
@@ -235,7 +235,7 @@ func (user *User) Edit(w http.ResponseWriter, r *http.Request) {
 }
 
 // ChangePassword doc
-func (user *User) ChangePassword(w http.ResponseWriter, r *http.Request) {
+func (user User) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		OldPassword string `json:"oldPwd"`
 		NewPassword string `json:"newPwd"`

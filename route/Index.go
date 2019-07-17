@@ -11,41 +11,41 @@ func Init() {
 	rt.Middleware(CheckToken)
 
 	// home route
-	rt.Add("/index/get", new(controller.Index).Get)
+	rt.Add("/index/get", controller.Index{}.Get)
 	// user route
-	rt.Add("/user/isShowPhrase", new(controller.User).IsShowPhrase)
-	rt.Add("/user/login", new(controller.User).Login)
-	rt.Add("/user/info", new(controller.User).Info)
-	rt.Add("/user/getList", new(controller.User).GetList)
-	rt.Add("/user/getOption", new(controller.User).GetOption)
-	rt.Add("/user/add", new(controller.User).Add)
-	rt.Add("/user/edit", new(controller.User).Edit)
-	rt.Add("/user/changePassword", new(controller.User).ChangePassword)
+	rt.Add("/user/isShowPhrase", controller.User{}.IsShowPhrase)
+	rt.Add("/user/login", controller.User{}.Login)
+	rt.Add("/user/info", controller.User{}.Info)
+	rt.Add("/user/getList", controller.User{}.GetList)
+	rt.Add("/user/getOption", controller.User{}.GetOption)
+	rt.Add("/user/add", controller.User{}.Add)
+	rt.Add("/user/edit", controller.User{}.Edit)
+	rt.Add("/user/changePassword", controller.User{}.ChangePassword)
 
 	// project route
-	rt.Add("/project/getList", new(controller.Project).GetList)
-	rt.Add("/project/getBindServerList", new(controller.Project).GetBindServerList)
-	rt.Add("/project/getBindUserList", new(controller.Project).GetBindUserList)
-	rt.Add("/project/add", new(controller.Project).Add)
-	rt.Add("/project/edit", new(controller.Project).Edit)
-	rt.Add("/project/addServer", new(controller.Project).AddServer)
-	rt.Add("/project/addUser", new(controller.Project).AddUser)
-	rt.Add("/project/removeProjectServer", new(controller.Project).RemoveProjectServer)
-	rt.Add("/project/removeProjectUser", new(controller.Project).RemoveProjectUser)
+	rt.Add("/project/getList", controller.Project{}.GetList)
+	rt.Add("/project/getBindServerList", controller.Project{}.GetBindServerList)
+	rt.Add("/project/getBindUserList", controller.Project{}.GetBindUserList)
+	rt.Add("/project/add", controller.Project{}.Add)
+	rt.Add("/project/edit", controller.Project{}.Edit)
+	rt.Add("/project/addServer", controller.Project{}.AddServer)
+	rt.Add("/project/addUser", controller.Project{}.AddUser)
+	rt.Add("/project/removeProjectServer", controller.Project{}.RemoveProjectServer)
+	rt.Add("/project/removeProjectUser", controller.Project{}.RemoveProjectUser)
 
 	// deploy route
-	rt.Add("/deploy/getList", new(controller.Deploy).GetList)
-	rt.Add("/deploy/getDetail", new(controller.Deploy).GetDetail)
-	rt.Add("/deploy/sync", new(controller.Deploy).Sync)
-	rt.Add("/deploy/publish", new(controller.Deploy).Publish)
+	rt.Add("/deploy/getList", controller.Deploy{}.GetList)
+	rt.Add("/deploy/getDetail", controller.Deploy{}.GetDetail)
+	rt.Add("/deploy/sync", controller.Deploy{}.Sync)
+	rt.Add("/deploy/publish", controller.Deploy{}.Publish)
 
 	// server route
-	rt.Add("/server/getList", new(controller.Server).GetList)
-	rt.Add("/server/getOption", new(controller.Server).GetOption)
-	rt.Add("/server/add", new(controller.Server).Add)
-	rt.Add("/server/edit", new(controller.Server).Edit)
+	rt.Add("/server/getList", controller.Server{}.GetList)
+	rt.Add("/server/getOption", controller.Server{}.GetOption)
+	rt.Add("/server/add", controller.Server{}.Add)
+	rt.Add("/server/edit", controller.Server{}.Edit)
 
 	// role route
-	rt.Add("/role/getOption", new(controller.Role).GetOption)
+	rt.Add("/role/getOption", controller.Role{}.GetOption)
 	rt.Start()
 }

@@ -22,10 +22,10 @@ import (
 )
 
 // Deploy struct
-type Deploy struct{}
+type Deploy Controller
 
 // GetList deploy list
-func (deploy *Deploy) GetList(w http.ResponseWriter, r *http.Request) {
+func (deploy Deploy) GetList(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		Project model.Projects `json:"projectList"`
 	}
@@ -42,7 +42,7 @@ func (deploy *Deploy) GetList(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetDetail deploy detail
-func (deploy *Deploy) GetDetail(w http.ResponseWriter, r *http.Request) {
+func (deploy Deploy) GetDetail(w http.ResponseWriter, r *http.Request) {
 
 	type RepData struct {
 		GitTrace        model.GitTrace     `json:"gitTrace"`
@@ -75,7 +75,7 @@ func (deploy *Deploy) GetDetail(w http.ResponseWriter, r *http.Request) {
 }
 
 // Sync the publish information in websocket
-func (deploy *Deploy) Sync(w http.ResponseWriter, r *http.Request) {
+func (deploy Deploy) Sync(w http.ResponseWriter, r *http.Request) {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
@@ -91,31 +91,27 @@ func (deploy *Deploy) Sync(w http.ResponseWriter, r *http.Request) {
 	}
 	projectUsers, err := model.ProjectUser{UserID: core.GolbalUserID}.GetListByUserID()
 	if err != nil || len(projectUsers) == 0 {
-		c.WriteJSON("没有绑定项目")
+		c.WriteJSON(&ws.SyncBroadcast{
+			DataType: 0,
+			Message:  "没有绑定服务器",
+		})
 		c.Close()
 		return
 	}
-	ws.GetSyncHub().Register <- &ws.SyncClient{
-		Conn:     c,
-		UserID:   core.GolbalUserID,
-		UserName: core.GolbalUserName,
-		ProjectMap: map[uint32]struct{}{
-			1: {},
-		},
+	var projectMap map[uint32]struct{}
+	for _, projectUser := range projectUsers {
+		projectMap[projectUser.ProjectID] = struct{}{}
 	}
-	// defer c.Close()
-	// for {
-	// 	_, message, err := c.ReadMessage()
-	// 	if err != nil {
-	// 		log.Println("read:", err)
-	// 		break
-	// 	}
-	// 	log.Printf("recv: %s", message)
-	// }
+	ws.GetSyncHub().Register <- &ws.SyncClient{
+		Conn:       c,
+		UserID:     core.GolbalUserID,
+		UserName:   core.GolbalUserName,
+		ProjectMap: projectMap,
+	}
 }
 
 // Publish the project
-func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
+func (deploy Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		ID uint32 `json:"id"`
 	}

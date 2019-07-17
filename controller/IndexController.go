@@ -8,10 +8,10 @@ import (
 )
 
 // Index struct
-type Index struct{}
+type Index Controller
 
 // Get user list
-func (index *Index) Get(w http.ResponseWriter, r *http.Request) {
+func (index Index) Get(w http.ResponseWriter, r *http.Request) {
 	type RespData struct {
 		Charts model.Charts `json:"charts"`
 	}

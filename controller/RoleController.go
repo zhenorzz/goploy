@@ -8,10 +8,10 @@ import (
 )
 
 // Role struct
-type Role struct{}
+type Role Controller
 
 // GetOption role list
-func (role *Role) GetOption(w http.ResponseWriter, r *http.Request) {
+func (role Role) GetOption(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		Role model.Roles `json:"roleList"`
 	}

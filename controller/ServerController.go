@@ -11,10 +11,10 @@ import (
 )
 
 // Server struct
-type Server struct{}
+type Server Controller
 
 // GetList server list
-func (server *Server) GetList(w http.ResponseWriter, r *http.Request) {
+func (server Server) GetList(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		Server model.Servers `json:"serverList"`
 	}
@@ -30,7 +30,7 @@ func (server *Server) GetList(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetOption server list
-func (server *Server) GetOption(w http.ResponseWriter, r *http.Request) {
+func (server Server) GetOption(w http.ResponseWriter, r *http.Request) {
 	type RepData struct {
 		Server model.Servers `json:"serverList"`
 	}
@@ -46,7 +46,7 @@ func (server *Server) GetOption(w http.ResponseWriter, r *http.Request) {
 }
 
 // Add one server
-func (server *Server) Add(w http.ResponseWriter, r *http.Request) {
+func (server Server) Add(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		Name  string `json:"name"`
 		IP    string `json:"ip"`
@@ -78,7 +78,7 @@ func (server *Server) Add(w http.ResponseWriter, r *http.Request) {
 }
 
 // Edit one server
-func (server *Server) Edit(w http.ResponseWriter, r *http.Request) {
+func (server Server) Edit(w http.ResponseWriter, r *http.Request) {
 	type ReqData struct {
 		ID    uint32 `json:"id"`
 		Name  string `json:"name"`
