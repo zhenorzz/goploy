@@ -16,7 +16,7 @@ type ProjectServer struct {
 type ProjectServers []ProjectServer
 
 // GetBindServerListByProjectID server row
-func (ps ProjectServer) GetBindServerListByProjectID(projectID uint32) (ProjectServers, error) {
+func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 	rows, err := DB.Query(
 		`SELECT 
 			project_server.id,
@@ -30,7 +30,7 @@ func (ps ProjectServer) GetBindServerListByProjectID(projectID uint32) (ProjectS
 		FROM project_server
 		LEFT JOIN server 
 		ON project_server.server_id = server.id
-		WHERE project_id = ?`, projectID)
+		WHERE project_id = ?`, ps.ProjectID)
 	if err != nil {
 		return nil, err
 	}

@@ -14,7 +14,7 @@ type ProjectUser struct {
 type ProjectUsers []ProjectUser
 
 // GetBindUserListByProjectID user row
-func (pu ProjectUser) GetBindUserListByProjectID(projectID uint32) (ProjectUsers, error) {
+func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
 	rows, err := DB.Query(
 		`SELECT 
 		    project_user.id,
@@ -26,7 +26,7 @@ func (pu ProjectUser) GetBindUserListByProjectID(projectID uint32) (ProjectUsers
 		FROM project_user
 		LEFT JOIN user 
 		ON project_user.user_id = user.id
-		WHERE project_id = ?`, projectID)
+		WHERE project_id = ?`, pu.ProjectID)
 	if err != nil {
 		return nil, err
 	}
@@ -35,6 +35,32 @@ func (pu ProjectUser) GetBindUserListByProjectID(projectID uint32) (ProjectUsers
 		var projectUser ProjectUser
 
 		if err := rows.Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID, &projectUser.UserName, &projectUser.CreateTime, &projectUser.UpdateTime); err != nil {
+			return projectUsers, err
+		}
+		projectUsers = append(projectUsers, projectUser)
+	}
+	return projectUsers, nil
+}
+
+// GetListByUserID user row
+func (pu ProjectUser) GetListByUserID() (ProjectUsers, error) {
+	rows, err := DB.Query(
+		`SELECT 
+		    id,
+			project_id,
+			user_id,
+			create_time,
+			update_time
+		FROM project_user
+		WHERE user_id = ?`, pu.UserID)
+	if err != nil {
+		return nil, err
+	}
+	var projectUsers ProjectUsers
+	for rows.Next() {
+		var projectUser ProjectUser
+
+		if err := rows.Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID, &projectUser.CreateTime, &projectUser.UpdateTime); err != nil {
 			return projectUsers, err
 		}
 		projectUsers = append(projectUsers, projectUser)

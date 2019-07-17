@@ -12,8 +12,6 @@ func Init() {
 
 	// home route
 	rt.Add("/index/get", new(controller.Index).Get)
-	// home route
-	rt.Add("/index/echo", new(controller.Index).Echo)
 	// user route
 	rt.Add("/user/isShowPhrase", new(controller.User).IsShowPhrase)
 	rt.Add("/user/login", new(controller.User).Login)
@@ -38,6 +36,7 @@ func Init() {
 	// deploy route
 	rt.Add("/deploy/getList", new(controller.Deploy).GetList)
 	rt.Add("/deploy/getDetail", new(controller.Deploy).GetDetail)
+	rt.Add("/deploy/sync", new(controller.Deploy).Sync)
 	rt.Add("/deploy/publish", new(controller.Deploy).Publish)
 
 	// server route

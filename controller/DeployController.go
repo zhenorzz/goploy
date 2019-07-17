@@ -3,9 +3,9 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -14,8 +14,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/ws"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -54,23 +56,62 @@ func (deploy *Deploy) GetDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gitTraceModel := model.GitTrace{}
-
-	if err := gitTraceModel.QueryLatestRow(uint32(id)); err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.Json(w)
-		return
-	}
-
-	remoteTracesList, err := model.RemoteTrace{}.GetListByGitTraceID(gitTraceModel.ID)
+	gitTrace, err := model.GitTrace{}.GetLatestRow(uint32(id))
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
 
-	response := core.Response{Data: RepData{GitTrace: gitTraceModel, RemoteTraceList: remoteTracesList}}
+	remoteTracesList, err := model.RemoteTrace{}.GetListByGitTraceID(gitTrace.ID)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
+
+	response := core.Response{Data: RepData{GitTrace: gitTrace, RemoteTraceList: remoteTracesList}}
 	response.Json(w)
+}
+
+// Sync the publish information in websocket
+func (deploy *Deploy) Sync(w http.ResponseWriter, r *http.Request) {
+	upgrader := websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
+				return true
+			}
+			return false
+		},
+	}
+	c, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Print("upgrade:", err)
+		return
+	}
+	projectUsers, err := model.ProjectUser{UserID: core.GolbalUserID}.GetListByUserID()
+	if err != nil || len(projectUsers) == 0 {
+		c.WriteJSON("没有绑定项目")
+		c.Close()
+		return
+	}
+	ws.GetSyncHub().Register <- &ws.SyncClient{
+		Conn:     c,
+		UserID:   core.GolbalUserID,
+		UserName: core.GolbalUserName,
+		ProjectMap: map[uint32]struct{}{
+			1: {},
+		},
+	}
+	// defer c.Close()
+	// for {
+	// 	_, message, err := c.ReadMessage()
+	// 	if err != nil {
+	// 		log.Println("read:", err)
+	// 		break
+	// 	}
+	// 	log.Printf("recv: %s", message)
+	// }
 }
 
 // Publish the project
@@ -97,7 +138,7 @@ func (deploy *Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projectServers, err := model.ProjectServer{}.GetBindServerListByProjectID(reqData.ID)
+	projectServers, err := model.ProjectServer{ProjectID: reqData.ID}.GetBindServerListByProjectID()
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -136,6 +177,11 @@ func execSync(project model.Project, projectServers model.ProjectServers) {
 		gitTraceModel.State = 0
 		gitTraceModel.AddRow()
 		return
+	}
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID: project.ID,
+		State:     gitTraceModel.State,
+		Message:   stdout,
 	}
 
 	gitTraceModel.Detail = stdout
@@ -389,7 +435,7 @@ func parseCommandLine(command string) ([]string, error) {
 	}
 
 	if state == "quotes" {
-		return []string{}, errors.New(fmt.Sprintf("Unclosed quote in command line: %s", command))
+		return []string{}, fmt.Errorf("Unclosed quote in command line: %s", command)
 	}
 
 	if current != "" {

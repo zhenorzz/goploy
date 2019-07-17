@@ -69,7 +69,7 @@ export default {
   methods: {
     initWebSocket() {
       try {
-        this.webSocket = new WebSocket('ws://localhost:3000/index/echo')
+        this.webSocket = new WebSocket('ws://localhost:3000/deploy/sync')
         this.initEventHandle()
       } catch (e) {
         console.log(e)

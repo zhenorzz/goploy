@@ -35,8 +35,9 @@ func (gt GitTrace) AddRow() (uint32, error) {
 	return uint32(id), err
 }
 
-// QueryLatestRow add GitTrace information to gt *GitTrace
-func (gt *GitTrace) QueryLatestRow(projectID uint32) error {
+// GetLatestRow add GitTrace information to gt *GitTrace
+func (gt GitTrace) GetLatestRow(projectID uint32) (GitTrace, error) {
+	var gitTrace GitTrace
 	err := DB.QueryRow(`SELECT 
 	        id,
 			project_id, 
@@ -48,19 +49,19 @@ func (gt *GitTrace) QueryLatestRow(projectID uint32) error {
 			create_time, 
 			update_time
 		FROM git_trace WHERE project_id = ? ORDER BY id DESC Limit 1`, projectID).Scan(
-		&gt.ID,
-		&gt.ProjectID,
-		&gt.ProjectName,
-		&gt.Detail,
-		&gt.State,
-		&gt.PublisherID,
-		&gt.PublisherName,
-		&gt.CreateTime,
-		&gt.UpdateTime)
+		&gitTrace.ID,
+		&gitTrace.ProjectID,
+		&gitTrace.ProjectName,
+		&gitTrace.Detail,
+		&gitTrace.State,
+		&gitTrace.PublisherID,
+		&gitTrace.PublisherName,
+		&gitTrace.CreateTime,
+		&gitTrace.UpdateTime)
 	if err == sql.ErrNoRows {
-		return errors.New("项目尚无构建记录")
+		return gitTrace, errors.New("项目尚无构建记录")
 	} else if err != nil {
-		return errors.New("GitTrace.QueryLatestRow数据查询失败")
+		return gitTrace, errors.New("GitTrace.QueryLatestRow数据查询失败")
 	}
-	return nil
+	return gitTrace, nil
 }

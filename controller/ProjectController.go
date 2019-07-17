@@ -41,7 +41,7 @@ func (project *Project) GetBindServerList(w http.ResponseWriter, r *http.Request
 		response.Json(w)
 		return
 	}
-	projectServersMap, err := model.ProjectServer{}.GetBindServerListByProjectID(uint32(id))
+	projectServersMap, err := model.ProjectServer{ProjectID: uint32(id)}.GetBindServerListByProjectID()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
@@ -62,7 +62,7 @@ func (project *Project) GetBindUserList(w http.ResponseWriter, r *http.Request) 
 		response.Json(w)
 		return
 	}
-	projectUsersMap, err := model.ProjectUser{}.GetBindUserListByProjectID(uint32(id))
+	projectUsersMap, err := model.ProjectUser{ProjectID: uint32(id)}.GetBindUserListByProjectID()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)

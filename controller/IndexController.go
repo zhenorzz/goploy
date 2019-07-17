@@ -1,11 +1,8 @@
 package controller
 
 import (
-	"log"
 	"net/http"
-	"strings"
 
-	"github.com/gorilla/websocket"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 )
@@ -34,41 +31,4 @@ func (index *Index) Get(w http.ResponseWriter, r *http.Request) {
 
 	response := core.Response{Data: RespData{Charts: model}}
 	response.Json(w)
-}
-
-type msg struct {
-	Num int
-}
-
-// Echo user list
-func (index *Index) Echo(w http.ResponseWriter, r *http.Request) {
-	upgrader := websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool {
-			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
-				return true
-			} else {
-				return false
-			}
-		},
-	}
-	c, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Print("upgrade:", err)
-		return
-	}
-	defer c.Close()
-	m := msg{1}
-	for {
-		_, message, err := c.ReadMessage()
-		if err != nil {
-			log.Println("read:", err)
-			break
-		}
-		log.Printf("recv: %s", message)
-		err = c.WriteJSON(m)
-		if err != nil {
-			log.Println("write:", err)
-			break
-		}
-	}
 }
