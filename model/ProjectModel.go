@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-
-	"github.com/zhenorzz/goploy/core"
 )
 
 // Project mysql table project
@@ -92,39 +90,6 @@ func (p Project) GetList() (Projects, error) {
 
 		if err := rows.Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Script, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
 			return nil, err
-		}
-		projects = append(projects, project)
-	}
-	return projects, nil
-}
-
-// GetDepolyList user row by status
-func (p Project) GetDepolyList() (Projects, error) {
-	rows, err := DB.Query(`
-		SELECT 
-			project_id, 
-			project.name, 
-			publisher_id, 
-			publisher_name, 
-			project.update_time 
-		FROM 
-			project_user 
-		LEFT JOIN 
-			project 
-		ON 
-			project_user.project_id = project.id
-		WHERE 
-			project_user.user_id = ?`,
-		core.GolbalUserID)
-	if err != nil {
-		return nil, err
-	}
-	var projects Projects
-	for rows.Next() {
-		var project Project
-
-		if err := rows.Scan(&project.ID, &project.Name, &project.PublisherID, &project.PublisherName, &project.UpdateTime); err != nil {
-			return projects, err
 		}
 		projects = append(projects, project)
 	}

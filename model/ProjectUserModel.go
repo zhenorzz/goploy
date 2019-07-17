@@ -2,6 +2,7 @@ package model
 
 // ProjectUser project user relationship
 type ProjectUser struct {
+	Project
 	ID         uint32 `json:"id"`
 	ProjectID  uint32 `json:"projectId"`
 	UserID     uint32 `json:"userId"`
@@ -66,6 +67,39 @@ func (pu ProjectUser) GetListByUserID() (ProjectUsers, error) {
 		projectUsers = append(projectUsers, projectUser)
 	}
 	return projectUsers, nil
+}
+
+// GetDepolyListByUserID user row by status
+func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
+	rows, err := DB.Query(`
+		SELECT 
+			project_id, 
+			project.name, 
+			publisher_id, 
+			publisher_name, 
+			project.update_time 
+		FROM 
+			project_user 
+		LEFT JOIN 
+			project 
+		ON 
+			project_user.project_id = project.id
+		WHERE 
+			project_user.user_id = ?`,
+		pu.UserID)
+	if err != nil {
+		return nil, err
+	}
+	var projects Projects
+	for rows.Next() {
+		var project Project
+
+		if err := rows.Scan(&project.ID, &project.Name, &project.PublisherID, &project.PublisherName, &project.UpdateTime); err != nil {
+			return projects, err
+		}
+		projects = append(projects, project)
+	}
+	return projects, nil
 }
 
 // AddMany add many row to table project_server

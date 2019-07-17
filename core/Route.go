@@ -1,16 +1,31 @@
 package core
 
 import (
+	"errors"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
+
+	jwt "github.com/dgrijalva/jwt-go"
 )
+
+type TokenInfo struct {
+	ID   uint32
+	Name string
+}
+
+type Goploy struct {
+	TokenInfo TokenInfo
+	Request   *http.Request
+	URLQuery  url.Values
+}
 
 // 路由定义
 type route struct {
 	pattern     string                                         // 正则表达式
-	callback    func(w http.ResponseWriter, r *http.Request)   //Controller函数
+	callback    func(w http.ResponseWriter, gp *Goploy)        //Controller函数
 	middlewares []func(w http.ResponseWriter, r *http.Request) //中间件
 }
 
@@ -28,7 +43,7 @@ func (rt *Router) Start() {
 // Add router
 // pattern path
 // callback  where path should be handle
-func (rt *Router) Add(pattern string, callback func(w http.ResponseWriter, r *http.Request), middleware ...func(w http.ResponseWriter, r *http.Request)) {
+func (rt *Router) Add(pattern string, callback func(w http.ResponseWriter, gp *Goploy), middleware ...func(w http.ResponseWriter, r *http.Request)) {
 	r := route{pattern: pattern, callback: callback}
 	for _, m := range middleware {
 		r.middlewares = append(r.middlewares, m)
@@ -59,7 +74,12 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
+	tokenInfo, err := checkToken(w, r)
+	if err != nil {
+		response := Response{Code: 1, Message: err.Error()}
+		response.Json(w)
+		return
+	}
 	for _, middleware := range rt.middlewares {
 		err := middleware(w, r)
 		if err != nil {
@@ -71,7 +91,41 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 			for _, middleware := range route.middlewares {
 				middleware(w, r)
 			}
-			route.callback(w, r)
+			gp := &Goploy{
+				TokenInfo: tokenInfo,
+				Request:   r,
+				URLQuery:  r.URL.Query(),
+			}
+			route.callback(w, gp)
 		}
 	}
+}
+
+// CheckToken return token is vaild. Besides user/login router
+func checkToken(w http.ResponseWriter, r *http.Request) (TokenInfo, error) {
+	var tokenInfo TokenInfo
+	if "/user/login" == r.URL.Path {
+		return tokenInfo, nil
+	}
+	if "/user/isShowPhrase" == r.URL.Path {
+		return tokenInfo, nil
+	}
+	goployTokenCookie, err := r.Cookie("goploy_token")
+	if err != nil {
+		return tokenInfo, errors.New("非法请求")
+	}
+	unPraseToken := goployTokenCookie.Value
+	claims := jwt.MapClaims{}
+	token, err := jwt.ParseWithClaims(unPraseToken, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("SIGN_KEY")), nil
+	})
+
+	if err != nil || !token.Valid {
+		return tokenInfo, err
+	}
+
+	return TokenInfo{
+		ID:   uint32(claims["id"].(float64)),
+		Name: claims["name"].(string),
+	}, nil
 }

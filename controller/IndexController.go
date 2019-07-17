@@ -11,12 +11,12 @@ import (
 type Index Controller
 
 // Get user list
-func (index Index) Get(w http.ResponseWriter, r *http.Request) {
+func (index Index) Get(w http.ResponseWriter, gp *core.Goploy) {
 	type RespData struct {
 		Charts model.Charts `json:"charts"`
 	}
 	model := model.Charts{}
-	date := r.URL.Query().Get("date")
+	date := gp.URLQuery.Get("date")
 	if len(date) != 10 {
 		response := core.Response{Code: 1, Message: "日期参数错误"}
 		response.Json(w)

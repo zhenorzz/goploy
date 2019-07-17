@@ -15,7 +15,7 @@ import (
 type Project Controller
 
 // GetList project list
-func (project Project) GetList(w http.ResponseWriter, r *http.Request) {
+func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		Project model.Projects `json:"projectList"`
 	}
@@ -31,11 +31,11 @@ func (project Project) GetList(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetBindServerList project detail
-func (project Project) GetBindServerList(w http.ResponseWriter, r *http.Request) {
+func (project Project) GetBindServerList(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		ProjectServers model.ProjectServers `json:"projectServerMap"`
 	}
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	id, err := strconv.Atoi(gp.URLQuery.Get("id"))
 	if err != nil {
 		response := core.Response{Code: 1, Message: "id参数错误"}
 		response.Json(w)
@@ -52,11 +52,11 @@ func (project Project) GetBindServerList(w http.ResponseWriter, r *http.Request)
 }
 
 // GetBindUserList project detail
-func (project Project) GetBindUserList(w http.ResponseWriter, r *http.Request) {
+func (project Project) GetBindUserList(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		ProjectUsers model.ProjectUsers `json:"projectUserMap"`
 	}
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	id, err := strconv.Atoi(gp.URLQuery.Get("id"))
 	if err != nil {
 		response := core.Response{Code: 1, Message: "id参数错误"}
 		response.Json(w)
@@ -73,7 +73,7 @@ func (project Project) GetBindUserList(w http.ResponseWriter, r *http.Request) {
 }
 
 // Add one project
-func (project Project) Add(w http.ResponseWriter, r *http.Request) {
+func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		Name        string   `json:"name"`
 		URL         string   `json:"url"`
@@ -84,7 +84,7 @@ func (project Project) Add(w http.ResponseWriter, r *http.Request) {
 		UserIDs     []uint32 `json:"userIds"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := ioutil.ReadAll(gp.Request.Body)
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -146,7 +146,7 @@ func (project Project) Add(w http.ResponseWriter, r *http.Request) {
 }
 
 // Edit one Project
-func (project Project) Edit(w http.ResponseWriter, r *http.Request) {
+func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		ID          uint32 `json:"id"`
 		Name        string `json:"name"`
@@ -156,7 +156,7 @@ func (project Project) Edit(w http.ResponseWriter, r *http.Request) {
 		RsyncOption string `json:"rsyncOption"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := ioutil.ReadAll(gp.Request.Body)
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -183,13 +183,13 @@ func (project Project) Edit(w http.ResponseWriter, r *http.Request) {
 }
 
 // AddServer one project
-func (project Project) AddServer(w http.ResponseWriter, r *http.Request) {
+func (project Project) AddServer(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		ProjectID uint32   `json:"projectId"`
 		ServerIDs []uint32 `json:"serverIds"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := ioutil.ReadAll(gp.Request.Body)
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -219,13 +219,13 @@ func (project Project) AddServer(w http.ResponseWriter, r *http.Request) {
 }
 
 // AddUser one project
-func (project Project) AddUser(w http.ResponseWriter, r *http.Request) {
+func (project Project) AddUser(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		ProjectID uint32   `json:"projectId"`
 		UserIDs   []uint32 `json:"userIds"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := ioutil.ReadAll(gp.Request.Body)
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -255,12 +255,12 @@ func (project Project) AddUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // RemoveProjectServer one Project
-func (project Project) RemoveProjectServer(w http.ResponseWriter, r *http.Request) {
+func (project Project) RemoveProjectServer(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		ProjectServerID uint32 `json:"projectServerId"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := ioutil.ReadAll(gp.Request.Body)
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -281,12 +281,12 @@ func (project Project) RemoveProjectServer(w http.ResponseWriter, r *http.Reques
 }
 
 // RemoveProjectUser one Project
-func (project Project) RemoveProjectUser(w http.ResponseWriter, r *http.Request) {
+func (project Project) RemoveProjectUser(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		ProjectUserID uint32 `json:"projectUserId"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := ioutil.ReadAll(gp.Request.Body)
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}

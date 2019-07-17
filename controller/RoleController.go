@@ -11,7 +11,7 @@ import (
 type Role Controller
 
 // GetOption role list
-func (role Role) GetOption(w http.ResponseWriter, r *http.Request) {
+func (role Role) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		Role model.Roles `json:"roleList"`
 	}

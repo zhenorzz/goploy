@@ -8,7 +8,7 @@ import (
 // Init router
 func Init() {
 	var rt = new(router.Router)
-	rt.Middleware(CheckToken)
+	// rt.Middleware(CheckToken)
 
 	// home route
 	rt.Add("/index/get", controller.Index{}.Get)

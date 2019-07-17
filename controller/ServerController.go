@@ -14,7 +14,7 @@ import (
 type Server Controller
 
 // GetList server list
-func (server Server) GetList(w http.ResponseWriter, r *http.Request) {
+func (server Server) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		Server model.Servers `json:"serverList"`
 	}
@@ -30,7 +30,7 @@ func (server Server) GetList(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetOption server list
-func (server Server) GetOption(w http.ResponseWriter, r *http.Request) {
+func (server Server) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		Server model.Servers `json:"serverList"`
 	}
@@ -46,14 +46,14 @@ func (server Server) GetOption(w http.ResponseWriter, r *http.Request) {
 }
 
 // Add one server
-func (server Server) Add(w http.ResponseWriter, r *http.Request) {
+func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		Name  string `json:"name"`
 		IP    string `json:"ip"`
 		Owner string `json:"owner"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := ioutil.ReadAll(gp.Request.Body)
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -78,7 +78,7 @@ func (server Server) Add(w http.ResponseWriter, r *http.Request) {
 }
 
 // Edit one server
-func (server Server) Edit(w http.ResponseWriter, r *http.Request) {
+func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		ID    uint32 `json:"id"`
 		Name  string `json:"name"`
@@ -86,7 +86,7 @@ func (server Server) Edit(w http.ResponseWriter, r *http.Request) {
 		Owner string `json:"owner"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := ioutil.ReadAll(gp.Request.Body)
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}

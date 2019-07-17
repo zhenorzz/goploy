@@ -25,12 +25,12 @@ import (
 type Deploy Controller
 
 // GetList deploy list
-func (deploy Deploy) GetList(w http.ResponseWriter, r *http.Request) {
+func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		Project model.Projects `json:"projectList"`
 	}
 
-	projects, err := model.Project{}.GetDepolyList()
+	projects, err := model.ProjectUser{UserID: gp.TokenInfo.ID}.GetDepolyListByUserID()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
@@ -42,14 +42,14 @@ func (deploy Deploy) GetList(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetDetail deploy detail
-func (deploy Deploy) GetDetail(w http.ResponseWriter, r *http.Request) {
+func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
 
 	type RepData struct {
 		GitTrace        model.GitTrace     `json:"gitTrace"`
 		RemoteTraceList model.RemoteTraces `json:"remoteTraceList"`
 	}
 
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	id, err := strconv.Atoi(gp.URLQuery.Get("id"))
 	if err != nil {
 		response := core.Response{Code: 1, Message: "id参数错误"}
 		response.Json(w)
@@ -75,7 +75,7 @@ func (deploy Deploy) GetDetail(w http.ResponseWriter, r *http.Request) {
 }
 
 // Sync the publish information in websocket
-func (deploy Deploy) Sync(w http.ResponseWriter, r *http.Request) {
+func (deploy Deploy) Sync(w http.ResponseWriter, gp *core.Goploy) {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
@@ -84,12 +84,12 @@ func (deploy Deploy) Sync(w http.ResponseWriter, r *http.Request) {
 			return false
 		},
 	}
-	c, err := upgrader.Upgrade(w, r, nil)
+	c, err := upgrader.Upgrade(w, gp.Request, nil)
 	if err != nil {
 		log.Print("upgrade:", err)
 		return
 	}
-	projectUsers, err := model.ProjectUser{UserID: core.GolbalUserID}.GetListByUserID()
+	projectUsers, err := model.ProjectUser{UserID: gp.TokenInfo.ID}.GetListByUserID()
 	if err != nil || len(projectUsers) == 0 {
 		c.WriteJSON(&ws.SyncBroadcast{
 			DataType: 0,
@@ -98,25 +98,25 @@ func (deploy Deploy) Sync(w http.ResponseWriter, r *http.Request) {
 		c.Close()
 		return
 	}
-	var projectMap map[uint32]struct{}
+	projectMap := make(map[uint32]struct{})
 	for _, projectUser := range projectUsers {
 		projectMap[projectUser.ProjectID] = struct{}{}
 	}
 	ws.GetSyncHub().Register <- &ws.SyncClient{
 		Conn:       c,
-		UserID:     core.GolbalUserID,
-		UserName:   core.GolbalUserName,
+		UserID:     gp.TokenInfo.ID,
+		UserName:   gp.TokenInfo.Name,
 		ProjectMap: projectMap,
 	}
 }
 
 // Publish the project
-func (deploy Deploy) Publish(w http.ResponseWriter, r *http.Request) {
+func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		ID uint32 `json:"id"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := ioutil.ReadAll(gp.Request.Body)
 
 	if err := json.Unmarshal(body, &reqData); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -141,23 +141,21 @@ func (deploy Deploy) Publish(w http.ResponseWriter, r *http.Request) {
 		response.Json(w)
 		return
 	}
-
-	go execSync(project, projectServers)
-
-	project.PublisherID = core.GolbalUserID
-	project.PublisherName = core.GolbalUserName
+	go execSync(gp.TokenInfo, project, projectServers)
+	project.PublisherID = gp.TokenInfo.ID
+	project.PublisherName = gp.TokenInfo.Name
 	project.UpdateTime = time.Now().Unix()
 	_ = project.Publish()
 
 	response := core.Response{Message: "部署中，请稍后"}
 	response.Json(w)
 }
-func execSync(project model.Project, projectServers model.ProjectServers) {
+func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers model.ProjectServers) {
 	gitTraceModel := model.GitTrace{
 		ProjectID:     project.ID,
 		ProjectName:   project.Name,
-		PublisherID:   core.GolbalUserID,
-		PublisherName: core.GolbalUserName,
+		PublisherID:   tokenInfo.ID,
+		PublisherName: tokenInfo.Name,
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
 	}
@@ -185,7 +183,7 @@ func execSync(project model.Project, projectServers model.ProjectServers) {
 	gitTraceID, _ := gitTraceModel.AddRow()
 
 	for _, projectServer := range projectServers {
-		go remoteSync(gitTraceID, project, projectServer)
+		go remoteSync(tokenInfo, gitTraceID, project, projectServer)
 	}
 }
 
@@ -237,7 +235,7 @@ func gitSync(project model.Project) (string, error) {
 	return pullOutbuf.String(), nil
 }
 
-func remoteSync(gitTraceID uint32, project model.Project, projectServer model.ProjectServer) {
+func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Project, projectServer model.ProjectServer) {
 	srcPath := core.GolbalPath + "repository/" + project.Name + "/"
 	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
 	destPath := remoteMachine + ":" + project.Path
@@ -247,8 +245,8 @@ func remoteSync(gitTraceID uint32, project model.Project, projectServer model.Pr
 		ProjectName:   project.Name,
 		ServerID:      projectServer.ServerID,
 		ServerName:    projectServer.ServerName,
-		PublisherID:   core.GolbalUserID,
-		PublisherName: core.GolbalUserName,
+		PublisherID:   tokenInfo.ID,
+		PublisherName: tokenInfo.Name,
 		Type:          1,
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),

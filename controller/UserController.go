@@ -14,7 +14,7 @@ import (
 type User Controller
 
 // IsShowPhrase is show phrase
-func (user User) IsShowPhrase(w http.ResponseWriter, r *http.Request) {
+func (user User) IsShowPhrase(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		Show bool `json:"show"`
 	}
@@ -24,7 +24,7 @@ func (user User) IsShowPhrase(w http.ResponseWriter, r *http.Request) {
 }
 
 // Login user login api
-func (user User) Login(w http.ResponseWriter, r *http.Request) {
+func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		Account  string `json:"account"`
 		Password string `json:"password"`
@@ -33,7 +33,7 @@ func (user User) Login(w http.ResponseWriter, r *http.Request) {
 		Token string `json:"token"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := ioutil.ReadAll(gp.Request.Body)
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -65,7 +65,7 @@ func (user User) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // Info get user info api
-func (user User) Info(w http.ResponseWriter, r *http.Request) {
+func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		UserInfo struct {
 			ID      uint32 `json:"id"`
@@ -75,7 +75,7 @@ func (user User) Info(w http.ResponseWriter, r *http.Request) {
 		Permission    model.Permissions `json:"permission"`
 		PermissionURI []string          `json:"permissionUri"`
 	}
-	userData, err := model.User{ID: core.GolbalUserID}.GetData()
+	userData, err := model.User{ID: gp.TokenInfo.ID}.GetData()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
@@ -89,7 +89,7 @@ func (user User) Info(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := RepData{}
-	data.UserInfo.ID = core.GolbalUserID
+	data.UserInfo.ID = gp.TokenInfo.ID
 	data.UserInfo.Name = userData.Name
 	data.UserInfo.Account = userData.Account
 
@@ -125,13 +125,13 @@ func (user User) Info(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetList user list
-func (user User) GetList(w http.ResponseWriter, r *http.Request) {
+func (user User) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		User       model.Users      `json:"userList"`
 		Pagination model.Pagination `json:"pagination"`
 	}
 	userModel := model.Users{}
-	pagination, err := model.NewPagination(r.URL.Query())
+	pagination, err := model.NewPagination(gp.URLQuery)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
@@ -148,7 +148,7 @@ func (user User) GetList(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetOption user list
-func (user User) GetOption(w http.ResponseWriter, r *http.Request) {
+func (user User) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		User model.Users `json:"userList"`
 	}
@@ -163,7 +163,7 @@ func (user User) GetOption(w http.ResponseWriter, r *http.Request) {
 }
 
 // Add one user
-func (user User) Add(w http.ResponseWriter, r *http.Request) {
+func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		Account  string `json:"account"`
 		Password string `json:"password"`
@@ -172,7 +172,7 @@ func (user User) Add(w http.ResponseWriter, r *http.Request) {
 		RoleID   uint32 `json:"roleId"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := ioutil.ReadAll(gp.Request.Body)
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -199,7 +199,7 @@ func (user User) Add(w http.ResponseWriter, r *http.Request) {
 }
 
 // Edit one user
-func (user User) Edit(w http.ResponseWriter, r *http.Request) {
+func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		ID       uint32 `json:"id"`
 		Password string `json:"password"`
@@ -208,7 +208,7 @@ func (user User) Edit(w http.ResponseWriter, r *http.Request) {
 		RoleID   uint32 `json:"roleId"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := ioutil.ReadAll(gp.Request.Body)
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -235,20 +235,20 @@ func (user User) Edit(w http.ResponseWriter, r *http.Request) {
 }
 
 // ChangePassword doc
-func (user User) ChangePassword(w http.ResponseWriter, r *http.Request) {
+func (user User) ChangePassword(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		OldPassword string `json:"oldPwd"`
 		NewPassword string `json:"newPwd"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(r.Body)
+	body, _ := ioutil.ReadAll(gp.Request.Body)
 	err := json.Unmarshal(body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
 	}
-	userData, err := model.User{ID: core.GolbalUserID}.GetData()
+	userData, err := model.User{ID: gp.TokenInfo.ID}.GetData()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
@@ -261,7 +261,7 @@ func (user User) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := (model.User{ID: core.GolbalUserID, Password: reqData.NewPassword}.UpdatePassword()); err != nil {
+	if err := (model.User{ID: gp.TokenInfo.ID, Password: reqData.NewPassword}.UpdatePassword()); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.Json(w)
 		return
