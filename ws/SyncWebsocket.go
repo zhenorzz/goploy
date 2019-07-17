@@ -14,13 +14,13 @@ type SyncClient struct {
 
 // SyncBroadcast is message struct
 type SyncBroadcast struct {
-	ProjectID  uint32
-	ServerID   uint32
-	ServerName string
-	UserID     uint32
-	State      uint8
-	Message    string
-	DataType   uint8 // 0=>错误信息 1=>git信息 2=>rsync信息 3=>运行脚本信息
+	ProjectID  uint32 `json:"projectId"`
+	ServerID   uint32 `json:"serverId"`
+	ServerName string `json:"serverName"`
+	UserID     uint32 `json:"userId"`
+	State      uint8  `json:"state"`
+	Message    string `json:"message"`
+	DataType   uint8  `json:"dataType"`
 }
 
 // SyncHub is a client struct
@@ -87,7 +87,7 @@ func (hub *SyncHub) Run() {
 					continue
 				}
 				if _, ok := client.ProjectMap[broadcast.ProjectID]; ok {
-					if err := client.Conn.WriteJSON(broadcast); err != nil {
+					if err := client.Conn.WriteJSON(broadcast); websocket.IsCloseError(err) {
 						hub.Unregister <- client
 					}
 				}

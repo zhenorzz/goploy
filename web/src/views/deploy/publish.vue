@@ -44,6 +44,29 @@
         <el-button @click="dialogVisible = false">取 消</el-button>
       </div>
     </el-dialog>
+    <el-dialog title="构建进度" :visible.sync="publishDialogVisible">
+      <el-row class="project-detail">
+        <el-row>
+          <el-row style="margin:5px 0">git同步信息</el-row>
+          <el-row v-for="(item, index) in gitLog" :key="index">
+            <el-row v-show="item['state'] === 0" style="margin:5px 0">状态: 失败</el-row>
+            <el-row style="margin:5px 0" v-html="item['message']" />
+          </el-row>
+        </el-row>
+        <hr>
+        <el-row>
+          <el-row style="margin:5px 0">remote服务器信息</el-row>
+          <el-row v-for="(serverLog, index) in remoteLog" :key="index">
+            <el-row style="margin:5px 0">服务器: {{ index }}</el-row>
+            <el-row v-for="(item, serverIndex) in serverLog" :key="serverIndex">
+              <el-row v-show="item['state'] === 0" style="margin:5px 0">状态: 失败</el-row>
+              <el-row style="margin:5px 0" v-html="item['message']" />
+            </el-row>
+            <hr>
+          </el-row>
+        </el-row>
+      </el-row>
+    </el-dialog>
   </el-row>
 </template>
 <script>
@@ -54,12 +77,14 @@ const STATE = ['构建中', '构建成功', '构建失败', '撤回']
 export default {
   data() {
     return {
+      publishDialogVisible: false,
       dialogVisible: false,
       webSocket: null,
       tableData: [],
       gitTrace: {},
-      remoteTraceList: []
-
+      remoteTraceList: [],
+      gitLog: [],
+      remoteLog: {}
     }
   },
   created() {
@@ -85,7 +110,17 @@ export default {
       }
 
       this.webSocket.onmessage = (e) => {
-        console.log(e.data)
+        const data = JSON.parse(e.data)
+        data.messgae = this.formatDetail(data.messgae)
+        if (data.dataType === 1) {
+          this.gitLog.push(data)
+        } else {
+          if (!this.remoteLog[data.serverName]) {
+            this.$set(this.remoteLog, data.serverName, [])
+          }
+          this.remoteLog[data.serverName].push(data)
+        }
+        console.log(this.remoteLog)
       }
       this.webSocket.onclose = (e) => {
         this.webSocket = null
@@ -111,6 +146,8 @@ export default {
       })
     },
     publish(id) {
+      this.gitLog = []
+      this.remoteLog = {}
       publish(id).then((response) => {
         this.$message({
           message: response.message,
@@ -118,6 +155,7 @@ export default {
           duration: 5 * 1000
         })
         this.getList()
+        this.publishDialogVisible = true
       })
     },
     handleDetail(id) {
