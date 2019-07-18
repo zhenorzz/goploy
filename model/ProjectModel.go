@@ -16,6 +16,7 @@ type Project struct {
 	PublisherID   uint32 `json:"publisherId"`
 	PublisherName string `json:"publisherName"`
 	PublishState  uint8  `json:"publishState"`
+	State         uint8  `json:"state"`
 	CreateTime    int64  `json:"createTime"`
 	UpdateTime    int64  `json:"updateTime"`
 }
@@ -81,10 +82,24 @@ func (p Project) EditPublishState() error {
 	return err
 }
 
+// Remove project
+func (p Project) Remove() error {
+	_, err := DB.Exec(
+		`UPDATE project SET 
+		  state = 0,
+		  update_time = ?
+		WHERE
+		 id = ?`,
+		p.UpdateTime,
+		p.ID,
+	)
+	return err
+}
+
 // Publish for project
 func (p Project) Publish() error {
 	_, err := DB.Exec(
-		"UPDATE project SET publisher_id = ?, publisher_name = ?, update_time = ? where id = ?",
+		"UPDATE project SET publisher_id = ?, publisher_name = ?, update_time = ? WHERE id = ?",
 		p.PublisherID,
 		p.PublisherName,
 		p.UpdateTime,
@@ -95,7 +110,7 @@ func (p Project) Publish() error {
 
 // GetList project row
 func (p Project) GetList() (Projects, error) {
-	rows, err := DB.Query("SELECT id, name, url, path, script, rsync_option, create_time, update_time FROM project")
+	rows, err := DB.Query("SELECT id, name, url, path, script, rsync_option, create_time, update_time FROM project WHERE state = 1")
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +138,7 @@ func (p Project) GetData() (Project, error) {
 
 // FindNeedToUpdateProjectList find the project need to update its publish state
 func (p Project) FindNeedToUpdateProjectList() (Projects, error) {
-	rows, err := DB.Query("SELECT id, name, url, path, script, rsync_option, create_time, update_time FROM project WHERE update_time >= ?", time.Now().Unix()-30*60)
+	rows, err := DB.Query("SELECT id, name, url, path, script, rsync_option, create_time, update_time FROM project WHERE state = 0 AND update_time >= ?", time.Now().Unix()-30*60)
 	if err != nil {
 		return nil, err
 	}

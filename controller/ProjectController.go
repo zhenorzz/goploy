@@ -190,6 +190,33 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	response.JSON(w)
 }
 
+// Remove one Project
+func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) {
+	type ReqData struct {
+		ID          uint32 `json:"id"`
+	}
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(gp.Request.Body)
+	err := json.Unmarshal(body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	err = model.Project{
+		ID:          reqData.ID,
+		UpdateTime:  time.Now().Unix(),
+	}.Remove()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Message: "删除成功"}
+	response.JSON(w)
+}
+
 // AddServer one project
 func (project Project) AddServer(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {

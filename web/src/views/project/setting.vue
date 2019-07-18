@@ -20,7 +20,7 @@
           <el-button type="primary" @click="handleEdit(scope.row)">编辑</el-button>
           <el-button type="success" @click="handleServer(scope.row)">服务器管理</el-button>
           <el-button type="warning" @click="handleUser(scope.row)">成员管理</el-button>
-          <el-button type="danger">删除</el-button>
+          <el-button type="danger" @click="handleRemove(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -159,7 +159,7 @@
 
 import { getOption as getUserOption } from '@/api/user'
 import { getOption as getServerOption } from '@/api/server'
-import { getList, getBindServerList, getBindUserList, add, edit, create, addServer, addUser, removeProjectServer, removeProjectUser } from '@/api/project'
+import { getList, getBindServerList, getBindUserList, add, edit, create, remove, addServer, addUser, removeProjectServer, removeProjectUser } from '@/api/project'
 import { parseTime } from '@/utils'
 
 export default {
@@ -251,6 +251,28 @@ export default {
       this.formData.userIds = []
       this.formProps.showServers = this.formProps.showUsers = false
       this.dialogVisible = true
+    },
+
+    handleRemove(data) {
+      this.$confirm('此操作将删除该项目, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        remove(data.id).then((response) => {
+          this.$message({
+            message: response.message,
+            type: 'success',
+            duration: 5 * 1000
+          })
+          this.getProjectList()
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
     },
 
     handleServer(data) {

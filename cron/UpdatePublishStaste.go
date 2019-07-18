@@ -9,7 +9,6 @@ import (
 func updatePublishState() {
 	NeedToUpdateProjectList, _ := model.Project{}.FindNeedToUpdateProjectList()
 	for _, project := range NeedToUpdateProjectList {
-		println(project.Name)
 		gitTrace, err := model.GitTrace{ProjectID: project.ID}.GetLatestRow()
 		if err == sql.ErrNoRows {
 			continue

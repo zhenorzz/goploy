@@ -77,6 +77,14 @@ export function edit(data) {
   })
 }
 
+export function remove(id) {
+  return request({
+    url: '/project/remove',
+    method: 'post',
+    data: { id }
+  })
+}
+
 export function addServer(data) {
   return request({
     url: '/project/addServer',

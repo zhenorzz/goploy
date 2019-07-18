@@ -86,7 +86,8 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 		ON 
 			project_user.project_id = project.id
 		WHERE 
-			project_user.user_id = ?`,
+			project_user.user_id = ?
+		AND project.state = 1`,
 		pu.UserID)
 	if err != nil {
 		return nil, err
