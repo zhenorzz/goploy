@@ -44,9 +44,9 @@ service.interceptors.response.use(
       })
 
       // 10000:账户停用; 10001:非法Token;  10086:Token 过期了;
-      if (res.code === 10000) {
+      if ([10000, 10001, 10086].includes(res.code)) {
         MessageBox.confirm(
-          '你已被登出，可以取消继续留在该页面，或者重新登录',
+          res.message,
           '确定登出',
           {
             confirmButtonText: '重新登录',

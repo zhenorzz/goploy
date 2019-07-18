@@ -1,7 +1,6 @@
 package core
 
 import (
-	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -76,12 +75,36 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	tokenInfo, err := checkToken(w, r)
-	if err != nil {
-		response := Response{Code: 1, Message: err.Error()}
-		response.JSON(w)
-		return
+	whiteList := map[string]struct{}{
+		"/user/login":        {},
+		"/user/isShowPhrase": {},
 	}
+	var tokenInfo TokenInfo
+	if _, ok := whiteList[r.URL.Path]; !ok {
+		// check token
+		goployTokenCookie, err := r.Cookie("goploy_token")
+		if err != nil {
+			response := Response{Code: 10001, Message: "非法请求"}
+			response.JSON(w)
+			return
+		}
+		unPraseToken := goployTokenCookie.Value
+		claims := jwt.MapClaims{}
+		token, err := jwt.ParseWithClaims(unPraseToken, claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("SIGN_KEY")), nil
+		})
+
+		if err != nil || !token.Valid {
+			response := Response{Code: 10086, Message: "登录已过期"}
+			response.JSON(w)
+			return
+		}
+		tokenInfo = TokenInfo{
+			ID:   uint32(claims["id"].(float64)),
+			Name: claims["name"].(string),
+		}
+	}
+
 	for _, middleware := range rt.middlewares {
 		err := middleware(w, r)
 		if err != nil {
@@ -101,33 +124,4 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 			route.callback(w, gp)
 		}
 	}
-}
-
-// CheckToken return token is vaild. Besides user/login router
-func checkToken(w http.ResponseWriter, r *http.Request) (TokenInfo, error) {
-	var tokenInfo TokenInfo
-	if "/user/login" == r.URL.Path {
-		return tokenInfo, nil
-	}
-	if "/user/isShowPhrase" == r.URL.Path {
-		return tokenInfo, nil
-	}
-	goployTokenCookie, err := r.Cookie("goploy_token")
-	if err != nil {
-		return tokenInfo, errors.New("非法请求")
-	}
-	unPraseToken := goployTokenCookie.Value
-	claims := jwt.MapClaims{}
-	token, err := jwt.ParseWithClaims(unPraseToken, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(os.Getenv("SIGN_KEY")), nil
-	})
-
-	if err != nil || !token.Valid {
-		return tokenInfo, err
-	}
-
-	return TokenInfo{
-		ID:   uint32(claims["id"].(float64)),
-		Name: claims["name"].(string),
-	}, nil
 }
