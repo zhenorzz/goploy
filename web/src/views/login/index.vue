@@ -55,7 +55,7 @@
             placeholder="请输入验证码"
             @keyup.enter.native="handleLogin"
           />
-          <img :src="phrase" alt="验证码" style="padding-right:5px" @click="changePhrase">
+          <img src="/api/captcha/5JDz0hO95vKo9wgWlK3k.png" alt="验证码" style="padding-right:5px" @click="changePhrase">
         </el-row>
       </el-form-item>
 
