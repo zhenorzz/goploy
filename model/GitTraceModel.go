@@ -1,10 +1,5 @@
 package model
 
-import (
-	"database/sql"
-	"errors"
-)
-
 // GitTrace mysql table for git trace
 type GitTrace struct {
 	ID            uint32 `json:"id"`
@@ -36,7 +31,7 @@ func (gt GitTrace) AddRow() (uint32, error) {
 }
 
 // GetLatestRow add GitTrace information to gt *GitTrace
-func (gt GitTrace) GetLatestRow(projectID uint32) (GitTrace, error) {
+func (gt GitTrace) GetLatestRow() (GitTrace, error) {
 	var gitTrace GitTrace
 	err := DB.QueryRow(`SELECT 
 	        id,
@@ -48,7 +43,7 @@ func (gt GitTrace) GetLatestRow(projectID uint32) (GitTrace, error) {
 			publisher_name, 
 			create_time, 
 			update_time
-		FROM git_trace WHERE project_id = ? ORDER BY id DESC Limit 1`, projectID).Scan(
+		FROM git_trace WHERE project_id = ? ORDER BY id DESC Limit 1`, gt.ProjectID).Scan(
 		&gitTrace.ID,
 		&gitTrace.ProjectID,
 		&gitTrace.ProjectName,
@@ -58,10 +53,8 @@ func (gt GitTrace) GetLatestRow(projectID uint32) (GitTrace, error) {
 		&gitTrace.PublisherName,
 		&gitTrace.CreateTime,
 		&gitTrace.UpdateTime)
-	if err == sql.ErrNoRows {
-		return gitTrace, errors.New("项目尚无构建记录")
-	} else if err != nil {
-		return gitTrace, errors.New("GitTrace.QueryLatestRow数据查询失败")
+	if err != nil {
+		return gitTrace, err
 	}
 	return gitTrace, nil
 }

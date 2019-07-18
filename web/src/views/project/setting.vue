@@ -18,8 +18,8 @@
       <el-table-column prop="operation" label="操作" width="350">
         <template slot-scope="scope">
           <el-button type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button type="primary" @click="handleServer(scope.row)">服务器管理</el-button>
-          <el-button type="primary" @click="handleUser(scope.row)">成员管理</el-button>
+          <el-button type="success" @click="handleServer(scope.row)">服务器管理</el-button>
+          <el-button type="warning" @click="handleUser(scope.row)">成员管理</el-button>
           <el-button type="danger">删除</el-button>
         </template>
       </el-table-column>

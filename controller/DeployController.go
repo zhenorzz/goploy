@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -56,14 +57,18 @@ func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
-	gitTrace, err := model.GitTrace{}.GetLatestRow(uint32(id))
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+	gitTrace, err := model.GitTrace{ProjectID: uint32(id)}.GetLatestRow()
+	if err == sql.ErrNoRows {
+		response := core.Response{Code: 1, Message: "项目尚无构建记录"}
+		response.JSON(w)
+		return
+	} else if err != nil {
+		response := core.Response{Code: 1, Message: "GitTrace.GetLatestRow失败"}
 		response.JSON(w)
 		return
 	}
 
-	remoteTracesList, err := model.RemoteTrace{}.GetListByGitTraceID(gitTrace.ID)
+	remoteTracesList, err := model.RemoteTrace{GitTraceID: gitTrace.ID}.GetListByGitTraceID()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)

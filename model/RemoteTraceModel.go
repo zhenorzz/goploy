@@ -47,7 +47,7 @@ func (rt RemoteTrace) AddRow() (uint32, error) {
 }
 
 // GetListByGitTraceID RemoteTrace row
-func (rt RemoteTrace) GetListByGitTraceID(gitTraceID uint32) (RemoteTraces, error) {
+func (rt RemoteTrace) GetListByGitTraceID() (RemoteTraces, error) {
 	rows, err := DB.Query(
 		`SELECT 
 			id,
@@ -64,7 +64,7 @@ func (rt RemoteTrace) GetListByGitTraceID(gitTraceID uint32) (RemoteTraces, erro
 			create_time,
 			update_time
 		FROM remote_trace
-		WHERE git_trace_id = ?`, gitTraceID)
+		WHERE git_trace_id = ?`, rt.GitTraceID)
 	if err != nil {
 		return nil, err
 	}
@@ -93,4 +93,15 @@ func (rt RemoteTrace) GetListByGitTraceID(gitTraceID uint32) (RemoteTraces, erro
 		RemoteTraces = append(RemoteTraces, RemoteTrace)
 	}
 	return RemoteTraces, nil
+}
+
+// CountFailStateByGitTraceID fail num
+func (rt RemoteTrace) CountFailStateByGitTraceID() (uint, error) {
+	var num uint
+
+	err := DB.QueryRow("SELECT count(*) FROM remote_trace WHERE git_trace_id = ? AND state = 0", rt.GitTraceID).Scan(&num)
+	if err != nil {
+		return 0, errors.New("数据查询失败")
+	}
+	return num, nil
 }

@@ -10,6 +10,12 @@
       <el-table-column prop="id" label="ID" width="160" />
       <el-table-column prop="name" label="项目名称" />
       <el-table-column prop="publisherName" label="构建者" width="160" />
+      <el-table-column prop="publishState" label="状态" width="60">
+        <template slot-scope="scope">
+          <el-tag v-if="scope.row.publishState === 1" type="success" effect="plain">成功</el-tag>
+          <el-tag v-else type="danger" effect="plain">失败</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column prop="updateTime" label="上次构建时间" width="160" />
       <el-table-column prop="operation" label="操作" width="220">
         <template slot-scope="scope">
@@ -120,7 +126,6 @@ export default {
           }
           this.remoteLog[data.serverName].push(data)
         }
-        console.log(this.remoteLog)
       }
       this.webSocket.onclose = (e) => {
         this.webSocket = null

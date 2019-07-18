@@ -2,6 +2,50 @@
 
 
 [[projects]]
+  digest = "1:d87223d5149849684ff0678677c4de11d2bb09a153952536d94a9520a9556308"
+  name = "github.com/aws/aws-sdk-go"
+  packages = [
+    "aws",
+    "aws/awserr",
+    "aws/awsutil",
+    "aws/client",
+    "aws/client/metadata",
+    "aws/corehandlers",
+    "aws/credentials",
+    "aws/credentials/ec2rolecreds",
+    "aws/credentials/endpointcreds",
+    "aws/credentials/processcreds",
+    "aws/credentials/stscreds",
+    "aws/csm",
+    "aws/defaults",
+    "aws/ec2metadata",
+    "aws/endpoints",
+    "aws/request",
+    "aws/session",
+    "aws/signer/v4",
+    "internal/ini",
+    "internal/s3err",
+    "internal/sdkio",
+    "internal/sdkrand",
+    "internal/sdkuri",
+    "internal/shareddefaults",
+    "private/protocol",
+    "private/protocol/eventstream",
+    "private/protocol/eventstream/eventstreamapi",
+    "private/protocol/json/jsonutil",
+    "private/protocol/query",
+    "private/protocol/query/queryutil",
+    "private/protocol/rest",
+    "private/protocol/restxml",
+    "private/protocol/xml/xmlutil",
+    "service/s3",
+    "service/sts",
+  ]
+  pruneopts = "UT"
+  revision = "d56b50aa9d71793a9ebf86116b12789048a7f032"
+  version = "v1.20.21"
+
+[[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
@@ -26,12 +70,46 @@
   version = "v1.4.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:c4106fb2d460662bd0f29093e75107c0897eb562ac3f0ece53da716469170248"
+  name = "github.com/jasonlvhit/gocron"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3e01b161c6a0deea73dd6304ef51a9e905748ee1"
+
+[[projects]]
+  digest = "1:bb81097a5b62634f3e9fec1014657855610c82d19b9a40c17612e32651e35dca"
+  name = "github.com/jmespath/go-jmespath"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c2b33e84"
+
+[[projects]]
   digest = "1:ecd9aa82687cf31d1585d4ac61d0ba180e42e8a6182b85bd785fcca8dfeefc1b"
   name = "github.com/joho/godotenv"
   packages = ["."]
   pruneopts = "UT"
   revision = "23d116af351c84513e1946b527c88823e476be13"
   version = "v1.3.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:59f11f1d3fae2a0e7350c7e7f84d172fc412247895b7cb59dffb1936e6f6bf31"
+  name = "github.com/jpillora/overseer"
+  packages = [
+    ".",
+    "fetcher",
+  ]
+  pruneopts = "UT"
+  revision = "ce9055846616cf7e1ab91bb8a0bcbb1d7fa3d11a"
+
+[[projects]]
+  branch = "master"
+  digest = "1:f433da6fbabb0bd1bd730fd340782015c644123d02eb78c20c69ce03352daad1"
+  name = "github.com/kardianos/osext"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2bc1f35cddc0cc527b4bc3dce8578fc2a6c11384"
 
 [[projects]]
   branch = "master"
@@ -74,7 +152,9 @@
     "github.com/dgrijalva/jwt-go",
     "github.com/go-sql-driver/mysql",
     "github.com/gorilla/websocket",
+    "github.com/jasonlvhit/gocron",
     "github.com/joho/godotenv",
+    "github.com/jpillora/overseer",
     "golang.org/x/crypto/bcrypt",
     "golang.org/x/crypto/ssh",
   ]

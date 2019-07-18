@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"time"
 )
 
 // Project mysql table project
@@ -14,6 +15,7 @@ type Project struct {
 	RsyncOption   string `json:"rsyncOption"`
 	PublisherID   uint32 `json:"publisherId"`
 	PublisherName string `json:"publisherName"`
+	PublishState  uint8  `json:"publishState"`
 	CreateTime    int64  `json:"createTime"`
 	UpdateTime    int64  `json:"updateTime"`
 }
@@ -66,6 +68,19 @@ func (p Project) EditRow() error {
 	return err
 }
 
+// EditPublishState update publish state
+func (p Project) EditPublishState() error {
+	_, err := DB.Exec(
+		`UPDATE project SET 
+		  publish_state = ?
+		WHERE
+		 id = ?`,
+		p.PublishState,
+		p.ID,
+	)
+	return err
+}
+
 // Publish for project
 func (p Project) Publish() error {
 	_, err := DB.Exec(
@@ -104,4 +119,22 @@ func (p Project) GetData() (Project, error) {
 		return project, errors.New("数据查询失败")
 	}
 	return project, nil
+}
+
+// FindNeedToUpdateProjectList find the project need to update its publish state
+func (p Project) FindNeedToUpdateProjectList() (Projects, error) {
+	rows, err := DB.Query("SELECT id, name, url, path, script, rsync_option, create_time, update_time FROM project WHERE update_time >= ?", time.Now().Unix()-30*60)
+	if err != nil {
+		return nil, err
+	}
+	var projects Projects
+	for rows.Next() {
+		var project Project
+
+		if err := rows.Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Script, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+	return projects, nil
 }
