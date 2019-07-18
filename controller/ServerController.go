@@ -110,3 +110,30 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	response := core.Response{Message: "修改成功"}
 	response.JSON(w)
 }
+
+// Remove one Server
+func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) {
+	type ReqData struct {
+		ID uint32 `json:"id"`
+	}
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(gp.Request.Body)
+	err := json.Unmarshal(body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	err = model.Server{
+		ID:         reqData.ID,
+		UpdateTime: time.Now().Unix(),
+	}.Remove()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Message: "删除成功"}
+	response.JSON(w)
+}

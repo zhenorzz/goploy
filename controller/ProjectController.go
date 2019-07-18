@@ -206,7 +206,7 @@ func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	err = model.Project{
 		ID:          reqData.ID,
 		UpdateTime:  time.Now().Unix(),
-	}.Remove()
+	}.RemoveRow()
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}

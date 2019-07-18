@@ -36,3 +36,11 @@ export function edit(data) {
     data
   })
 }
+
+export function remove(id) {
+  return request({
+    url: '/server/remove',
+    method: 'post',
+    data: { id }
+  })
+}

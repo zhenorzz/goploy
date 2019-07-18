@@ -51,9 +51,46 @@ func (s Server) EditRow() error {
 	return err
 }
 
+// Remove Server
+func (s Server) Remove() error {
+	tx, err := DB.Begin()
+	if err != nil {
+		return errors.New("开启事务失败")
+	}
+	_, err = tx.Exec(
+		`UPDATE server SET 
+		  state = 0,
+		  update_time = ?
+		WHERE
+		 id = ?`,
+		s.UpdateTime,
+		s.ID,
+	)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	_, err = tx.Exec(
+		`DELETE FROM 
+			project_server 
+		WHERE
+		 server_id = ?`,
+		s.ID,
+	)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return errors.New("事务提交失败")
+	}
+	return nil
+}
+
 // GetList server row
 func (s Server) GetList() (Servers, error) {
-	rows, err := DB.Query("SELECT id, name, ip, owner, create_time, update_time FROM server")
+	rows, err := DB.Query("SELECT id, name, ip, owner, create_time, update_time FROM server WHERE state = 1")
 	if err != nil {
 		return nil, err
 	}

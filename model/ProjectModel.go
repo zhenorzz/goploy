@@ -82,8 +82,8 @@ func (p Project) EditPublishState() error {
 	return err
 }
 
-// Remove project
-func (p Project) Remove() error {
+// RemoveRow project
+func (p Project) RemoveRow() error {
 	_, err := DB.Exec(
 		`UPDATE project SET 
 		  state = 0,

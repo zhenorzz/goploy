@@ -18,7 +18,7 @@
       <el-table-column prop="operation" label="操作" width="150">
         <template slot-scope="scope">
           <el-button size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button size="small" type="danger">删除</el-button>
+          <el-button size="small" type="danger" @click="handleRemove(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -42,7 +42,7 @@
   </el-row>
 </template>
 <script>
-import { getList, add, edit } from '@/api/server'
+import { getList, add, edit, remove } from '@/api/server'
 import { parseTime } from '@/utils'
 
 export default {
@@ -97,6 +97,29 @@ export default {
       this.formData = Object.assign({}, data)
       this.dialogVisible = true
     },
+
+    handleRemove(data) {
+      this.$confirm('此操作将删除该服务器, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        remove(data.id).then((response) => {
+          this.$message({
+            message: response.message,
+            type: 'success',
+            duration: 5 * 1000
+          })
+          this.getList()
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    },
+
     submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
@@ -110,6 +133,7 @@ export default {
         }
       })
     },
+
     add() {
       this.formProps.disabled = true
       add(this.formData).then((response) => {
@@ -123,6 +147,7 @@ export default {
         this.formProps.disabled = this.dialogVisible = false
       })
     },
+
     edit() {
       this.formProps.disabled = true
       edit(this.formData).then((response) => {
@@ -136,6 +161,7 @@ export default {
         this.formProps.disabled = this.dialogVisible = false
       })
     },
+
     storeFormData() {
       this.tempFormData = JSON.parse(JSON.stringify(this.formData))
     },

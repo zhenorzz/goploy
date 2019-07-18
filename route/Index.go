@@ -45,6 +45,7 @@ func Init() {
 	rt.Add("/server/getOption", controller.Server{}.GetOption)
 	rt.Add("/server/add", controller.Server{}.Add)
 	rt.Add("/server/edit", controller.Server{}.Edit)
+	rt.Add("/server/remove", controller.Server{}.Remove)
 
 	// role route
 	rt.Add("/role/getOption", controller.Role{}.GetOption)
