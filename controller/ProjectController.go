@@ -9,6 +9,7 @@ import (
 
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/utils"
 )
 
 // Project struct
@@ -91,6 +92,13 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
+
+	if _, err := utils.ParseCommandLine(reqData.RsyncOption); err != nil {
+		response := core.Response{Code: 1, Message: "Rsync Option错误，请输入正确的参数格式"}
+		response.JSON(w)
+		return
+	}
+
 	projectID, err := model.Project{
 		Name:        reqData.Name,
 		URL:         reqData.URL,

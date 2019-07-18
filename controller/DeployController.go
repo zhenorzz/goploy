@@ -18,6 +18,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/utils"
 	"github.com/zhenorzz/goploy/ws"
 	"golang.org/x/crypto/ssh"
 )
@@ -307,7 +308,7 @@ func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Proje
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
 	}
-	rsyncOption, err := parseCommandLine(project.RsyncOption)
+	rsyncOption, err := utils.ParseCommandLine(project.RsyncOption)
 	if err != nil {
 		core.Log(core.ERROR, err.Error())
 		remoteTraceModel.Detail = err.Error()
@@ -509,69 +510,4 @@ func connect(user, password, host string, port int) (*ssh.Session, error) {
 	}
 
 	return session, nil
-}
-
-func parseCommandLine(command string) ([]string, error) {
-	var args []string
-	state := "start"
-	current := ""
-	quote := "\""
-	escapeNext := true
-	for i := 0; i < len(command); i++ {
-		c := command[i]
-
-		if state == "quotes" {
-			if string(c) != quote {
-				current += string(c)
-			} else {
-				args = append(args, current)
-				current = ""
-				state = "start"
-			}
-			continue
-		}
-
-		if escapeNext {
-			current += string(c)
-			escapeNext = false
-			continue
-		}
-
-		if c == '\\' {
-			escapeNext = true
-			continue
-		}
-
-		if c == '"' || c == '\'' {
-			state = "quotes"
-			quote = string(c)
-			continue
-		}
-
-		if state == "arg" {
-			if c == ' ' || c == '=' || c == '\t' {
-				args = append(args, current)
-				current = ""
-				state = "start"
-			} else {
-				current += string(c)
-			}
-			continue
-		}
-
-		if c != ' ' && c != '=' && c != '\t' {
-			state = "arg"
-			current += string(c)
-		}
-	}
-
-	if state == "quotes" {
-		return []string{}, fmt.Errorf("Unclosed quote in command line: %s", command)
-	}
-
-	if current != "" {
-		args = append(args, current)
-	}
-
-	return args, nil
 }
