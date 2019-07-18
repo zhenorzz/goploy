@@ -110,7 +110,7 @@ func (p Project) Publish() error {
 
 // GetList project row
 func (p Project) GetList() (Projects, error) {
-	rows, err := DB.Query("SELECT id, name, url, path, script, rsync_option, create_time, update_time FROM project WHERE state = 1")
+	rows, err := DB.Query("SELECT id, name, url, path, script, rsync_option, create_time, update_time FROM project WHERE state = 1 ORDER BY id DESC")
 	if err != nil {
 		return nil, err
 	}

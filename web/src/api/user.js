@@ -69,6 +69,14 @@ export function edit(data) {
   })
 }
 
+export function remove(id) {
+  return request({
+    url: '/user/remove',
+    method: 'post',
+    data: { id }
+  })
+}
+
 export function changePassword(oldPwd, newPwd) {
   return request({
     url: '/user/changePassword',

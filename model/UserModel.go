@@ -95,7 +95,7 @@ func (u User) GetDataByAccount() (User, error) {
 // GetList get many user row
 func (u Users) GetList(pagination *Pagination) (Users, error) {
 	rows, err := DB.Query(
-		"SELECT id, account, name, mobile, role_id, create_time, update_time FROM user ORDER BY id DESC LIMIT ?, ?",
+		"SELECT id, account, name, mobile, role_id, create_time, update_time FROM user WHERE state = 1 ORDER BY id DESC LIMIT ?, ?",
 		(pagination.Page-1)*pagination.Rows,
 		pagination.Rows)
 	if err != nil {
@@ -119,7 +119,7 @@ func (u Users) GetList(pagination *Pagination) (Users, error) {
 
 // GetAll user row
 func (u User) GetAll() (Users, error) {
-	rows, err := DB.Query("SELECT id, account, name, mobile, create_time, update_time FROM user ORDER BY id DESC")
+	rows, err := DB.Query("SELECT id, account, name, mobile, create_time, update_time FROM user WHERE state = 1 ORDER BY id DESC")
 	if err != nil {
 		return nil, err
 	}
@@ -210,6 +210,20 @@ func (u User) EditRow() error {
 		)
 	}
 
+	return err
+}
+
+// RemoveRow User
+func (u User) RemoveRow() error {
+	_, err := DB.Exec(
+		`UPDATE user SET 
+		  state = 0,
+		  update_time = ?
+		WHERE
+		 id = ?`,
+		u.UpdateTime,
+		u.ID,
+	)
 	return err
 }
 

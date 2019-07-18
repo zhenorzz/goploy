@@ -108,7 +108,7 @@ func (s Server) GetList() (Servers, error) {
 
 // GetAll server row
 func (s Server) GetAll() (Servers, error) {
-	rows, err := DB.Query("SELECT id, name, ip, owner, create_time, update_time FROM server")
+	rows, err := DB.Query("SELECT id, name, ip, owner, create_time, update_time FROM server WHERE state = 1 ORDER BY id DESC")
 	if err != nil {
 		return nil, err
 	}

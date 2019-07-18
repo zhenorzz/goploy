@@ -234,6 +234,40 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	response.JSON(w)
 }
 
+// Remove one User
+func (user User) Remove(w http.ResponseWriter, gp *core.Goploy) {
+	type ReqData struct {
+		ID uint32 `json:"id"`
+	}
+	var reqData ReqData
+	body, _ := ioutil.ReadAll(gp.Request.Body)
+	err := json.Unmarshal(body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
+	if reqData.ID == 1 {
+		response := core.Response{Code: 1, Message: "请勿删除超管账号"}
+		response.JSON(w)
+		return
+	}
+
+	err = model.User{
+		ID:         reqData.ID,
+		UpdateTime: time.Now().Unix(),
+	}.RemoveRow()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Message: "删除成功"}
+	response.JSON(w)
+}
+
 // ChangePassword doc
 func (user User) ChangePassword(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
