@@ -151,16 +151,27 @@ export default {
       })
     },
     publish(id) {
-      this.gitLog = []
-      this.remoteLog = {}
-      publish(id).then((response) => {
-        this.$message({
-          message: response.message,
-          type: 'success',
-          duration: 5 * 1000
+      this.$confirm('此操作将部署该项目, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.gitLog = []
+        this.remoteLog = {}
+        publish(id).then((response) => {
+          this.$message({
+            message: response.message,
+            type: 'success',
+            duration: 5 * 1000
+          })
+          this.getList()
+          this.publishDialogVisible = true
         })
-        this.getList()
-        this.publishDialogVisible = true
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
       })
     },
     handleDetail(id) {
