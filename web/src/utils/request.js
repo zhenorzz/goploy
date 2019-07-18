@@ -43,8 +43,8 @@ service.interceptors.response.use(
         duration: 5 * 1000
       })
 
-      // 50008:非法的token; 50012:其他客户端登录了;  50014:Token 过期了;
-      if (res.code === -1002) {
+      // 10000:账户停用; 10001:非法Token;  10086:Token 过期了;
+      if (res.code === 10000) {
         MessageBox.confirm(
           '你已被登出，可以取消继续留在该页面，或者重新登录',
           '确定登出',
@@ -54,12 +54,13 @@ service.interceptors.response.use(
             type: 'warning'
           }
         ).then(() => {
-          store.dispatch('user/resetToken').then(() => {
+          store.dispatch('user/logout').then(() => {
             location.reload()
           })
         })
+      } else {
+        return Promise.reject('error')
       }
-      return Promise.reject('error')
     } else {
       return res
     }

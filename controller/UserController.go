@@ -47,6 +47,12 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
+	if userData.State == 0 {
+		response := core.Response{Code: 10000, Message: "账号已被停用"}
+		response.JSON(w)
+		return
+	}
+
 	if err := userData.Vaildate(reqData.Password); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -83,7 +89,7 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 	}
 
 	if userData.State != 1 {
-		response := core.Response{Code: 1, Message: "账号被封停"}
+		response := core.Response{Code: 10000, Message: "账号被封停"}
 		response.JSON(w)
 		return
 	}
