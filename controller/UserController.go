@@ -6,24 +6,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dchest/captcha"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 )
 
 // User 用户字段
 type User Controller
-
-// IsShowPhrase is show phrase
-func (user User) IsShowPhrase(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
-		Show      bool   `json:"show"`
-		CaptchaID string `json:"captchaId"`
-	}
-	data := RepData{Show: false, CaptchaID: captcha.New()}
-	response := core.Response{Data: data}
-	response.JSON(w)
-}
 
 // Login user login api
 func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {

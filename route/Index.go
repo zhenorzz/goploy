@@ -13,7 +13,6 @@ func Init() {
 	// home route
 	rt.Add("/index/get", controller.Index{}.Get)
 	// user route
-	rt.Add("/user/isShowPhrase", controller.User{}.IsShowPhrase)
 	rt.Add("/user/login", controller.User{}.Login)
 	rt.Add("/user/info", controller.User{}.Info)
 	rt.Add("/user/getList", controller.User{}.GetList)

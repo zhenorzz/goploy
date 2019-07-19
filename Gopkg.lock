@@ -2,14 +2,6 @@
 
 
 [[projects]]
-  branch = "master"
-  digest = "1:3e38fc80f8fb9482345b1a596b21dfa2f86d696061cbd76a6620a5658e038132"
-  name = "github.com/dchest/captcha"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "6a29415a8364ec2971fdc62d9e415ed53fc20410"
-
-[[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
@@ -87,7 +79,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/dchest/captcha",
     "github.com/dgrijalva/jwt-go",
     "github.com/go-sql-driver/mysql",
     "github.com/gorilla/websocket",

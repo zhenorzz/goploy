@@ -138,7 +138,7 @@ func (p Project) GetData() (Project, error) {
 
 // FindNeedToUpdateProjectList find the project need to update its publish state
 func (p Project) FindNeedToUpdateProjectList() (Projects, error) {
-	rows, err := DB.Query("SELECT id, name, url, path, script, rsync_option, create_time, update_time FROM project WHERE state = 0 AND update_time >= ?", time.Now().Unix()-30*60)
+	rows, err := DB.Query("SELECT id, name, url, path, script, rsync_option, create_time, update_time FROM project WHERE update_time >= ?", time.Now().Unix()-30*60)
 	if err != nil {
 		return nil, err
 	}

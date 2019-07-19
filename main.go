@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dchest/captcha"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	"github.com/zhenorzz/goploy/core"
@@ -22,7 +21,6 @@ func main() {
 	syncHub := ws.GetSyncHub()
 	go syncHub.Run()
 	route.Init()
-	http.Handle("/captcha/", captcha.Server(captcha.StdWidth, captcha.StdHeight))
 	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil) //设置监听的端口
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)

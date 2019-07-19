@@ -15,12 +15,6 @@ export function getInfo() {
   })
 }
 
-export function isShowPhrase() {
-  return request({
-    url: '/user/isShowPhrase',
-    method: 'get'
-  })
-}
 /**
  * @param  {object} pagination
  * @return {Promise}

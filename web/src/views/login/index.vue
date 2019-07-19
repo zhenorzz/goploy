@@ -42,23 +42,6 @@
           <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
         </span>
       </el-form-item>
-
-      <el-form-item v-show="showPhrase" prop="phrase">
-        <el-row type="flex" align="middle">
-          <span class="svg-container">
-            <svg-icon icon-class="phrase" />
-          </span>
-          <el-input
-            v-model.trim="loginForm.phrase"
-            name="phrase"
-            size="medium"
-            placeholder="请输入验证码"
-            @keyup.enter.native="handleLogin"
-          />
-          <img src="/api/captcha/5JDz0hO95vKo9wgWlK3k.png" alt="验证码" style="padding-right:5px" @click="changePhrase">
-        </el-row>
-      </el-form-item>
-
       <el-button :loading="loading" size="medium" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">登 录</el-button>
 
     </el-form>
@@ -85,20 +68,7 @@ export default {
         callback()
       }
     }
-    const validatePhrase = (rule, value, callback) => {
-      if (!this.showPhrase) {
-        callback()
-      } else {
-        if (value === undefined || value === '') {
-          callback(new Error('验证码不能为空'))
-        } else {
-          callback()
-        }
-      }
-    }
     return {
-      phrase: '',
-      showPhrase: false,
       loginForm: {
         account: process.env.NODE_ENV === 'production' ? '' : 'admin',
         password: process.env.NODE_ENV === 'production' ? '' : 'admin!@#',
@@ -106,8 +76,7 @@ export default {
       },
       loginRules: {
         account: [{ required: true, trigger: 'blur', validator: validateUsername }],
-        password: [{ required: true, trigger: 'blur', validator: validatePassword }],
-        phrase: [{ required: true, trigger: 'blur', validator: validatePhrase }]
+        password: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
       loading: false,
       passwordType: 'password',
