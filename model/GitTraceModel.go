@@ -10,6 +10,7 @@ type GitTrace struct {
 	ProjectName   string `json:"projectName"`
 	Detail        string `json:"detail"`
 	State         uint8  `json:"state"`
+	RemoteState   uint8  `json:"remoteState"`
 	PublisherID   uint32 `json:"publisherId"`
 	PublisherName string `json:"publisherName"`
 	CreateTime    int64  `json:"createTime"`
@@ -111,6 +112,7 @@ func (gt GitTrace) GetListByProjectID() (GitTraces, error) {
 			state,
 			publisher_id,
 			publisher_name,
+			!EXISTS (SELECT id FROM remote_trace where remote_trace.state = 0 AND git_trace.id = remote_trace.git_trace_id) as remote_state,
 			create_time,
 			update_time
 		FROM git_trace
@@ -133,6 +135,7 @@ func (gt GitTrace) GetListByProjectID() (GitTraces, error) {
 			&gitTrace.State,
 			&gitTrace.PublisherID,
 			&gitTrace.PublisherName,
+			&gitTrace.RemoteState,
 			&gitTrace.CreateTime,
 			&gitTrace.UpdateTime); err != nil {
 			return nil, errors.New("GitTrace.GetListByProjectID数据查询失败")

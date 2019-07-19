@@ -27,14 +27,18 @@
     </el-table>
     <el-dialog title="构建记录" :visible.sync="dialogVisible">
       <el-row>
-        <el-col :span="9">
+        <el-col :span="8">
           <el-radio-group v-model="gitTraceId" @change="handleDetailChange">
             <el-row v-for="(item, index) in gitTraceList" :key="index">
-              <el-row style="margin:5px 0"><el-radio :label="item['id']" border>{{ item['commit'] }}</el-radio></el-row>
+              <el-row style="margin:5px 0">
+                <el-radio :label="item['id']" border>commitID: {{ item['commit'].substring(0,6) }}</el-radio>
+                <el-tag v-if="item['remoteState'] === 1" type="success" effect="plain">成功</el-tag>
+                <el-tag v-else type="danger" effect="plain">失败</el-tag>
+              </el-row>
             </el-row>
           </el-radio-group>
         </el-col>
-        <el-col :span="15" class="project-detail">
+        <el-col :span="16" class="project-detail">
           <el-row>
             <el-row style="margin:5px 0">git同步信息</el-row>
             <el-row style="margin:5px 0">时间: {{ formatTime(gitTrace['createTime']) }}</el-row>
