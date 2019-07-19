@@ -21,7 +21,7 @@
         <template slot-scope="scope">
           <el-button size="small" type="primary" @click="publish(scope.row.id)">构建</el-button>
           <el-button size="small" type="success" @click="handleDetail(scope.row.id)">详情</el-button>
-          <el-button size="small" type="danger" @click="wsSend">回滚</el-button>
+          <el-button size="small" type="danger">回滚</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -104,7 +104,7 @@ export default {
   methods: {
     initWebSocket() {
       try {
-        this.webSocket = new WebSocket('ws://localhost:3000/deploy/sync')
+        this.webSocket = new WebSocket('ws://' + window.location.host + process.env.VUE_APP_BASE_API + '/deploy/sync')
         this.initEventHandle()
       } catch (e) {
         console.log(e)
@@ -137,11 +137,8 @@ export default {
       }
       // 路由跳转时结束websocket链接
       this.$router.afterEach(() => {
-        this.webSocket.close()
+        this.webSocket && this.webSocket.close()
       })
-    },
-    wsSend() {
-      this.webSocket.send('hello world')
     },
     getList() {
       getList().then((response) => {
