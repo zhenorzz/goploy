@@ -19,32 +19,48 @@
       <el-table-column prop="updateTime" label="上次构建时间" width="160" />
       <el-table-column prop="operation" label="操作" width="220">
         <template slot-scope="scope">
-          <el-button size="small" type="primary" @click="publish(scope.row.id)">构建</el-button>
-          <el-button size="small" type="success" @click="handleDetail(scope.row.id)">详情</el-button>
-          <el-button size="small" type="danger">回滚</el-button>
+          <el-button type="primary" @click="publish(scope.row.id)">构建</el-button>
+          <el-button type="success" @click="handleDetail(scope.row.id)">详情</el-button>
+          <el-button type="danger">回滚</el-button>
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog title="上一次构建记录" :visible.sync="dialogVisible">
-      <el-row class="project-detail">
-        <el-row>
-          <el-row style="margin:5px 0">git同步信息</el-row>
-          <el-row style="margin:5px 0">时间: {{ formatTime(gitTrace['createTime']) }}</el-row>
-          <el-row style="margin:5px 0">状态: {{ gitTrace['state'] === 1 ? '成功' : '失败' }}</el-row>
-          <el-row style="margin:5px 0" v-html="formatDetail(gitTrace['detail'])" />
-        </el-row>
-        <hr>
-        <el-row>
-          <el-row style="margin:5px 0">remote服务器信息</el-row>
-          <el-row v-for="(item, index) in remoteTraceList" :key="index">
-            <el-row style="margin:5px 0">服务器: {{ item['serverName'] }}</el-row>
-            <el-row style="margin:5px 0">日志类型: {{ item['type'] === 1 ? '同步文件' : '运行脚本' }}</el-row>
-            <el-row style="margin:5px 0">时间: {{ formatTime(item['createTime']) }}</el-row>
-            <el-row style="margin:5px 0">状态: {{ item['state'] === 1 ? '成功' : '失败' }}</el-row>
-            <el-row style="margin:5px 0" v-html="formatDetail(item['detail'])" />
-            <hr>
+    <el-dialog title="构建记录" :visible.sync="dialogVisible">
+      <el-row>
+        <el-col :span="9">
+          <el-radio-group v-model="gitTraceId" @change="handleDetailChange">
+            <el-row v-for="(item, index) in gitTraceList" :key="index">
+              <el-row style="margin:5px 0"><el-radio :label="item['id']" border>{{ item['commit'] }}</el-radio></el-row>
+            </el-row>
+          </el-radio-group>
+        </el-col>
+        <el-col :span="15" class="project-detail">
+          <el-row>
+            <el-row style="margin:5px 0">git同步信息</el-row>
+            <el-row style="margin:5px 0">时间: {{ formatTime(gitTrace['createTime']) }}</el-row>
+            <el-row>commit: {{ gitTrace['commit'] }}</el-row>
+            <el-row style="margin:5px 0">
+              <el-tag v-if=" gitTrace['state'] === 1" type="success" effect="plain">成功</el-tag>
+              <el-tag v-else type="danger" effect="plain">失败</el-tag>
+              <span v-html="formatDetail(gitTrace['detail'])" />
+            </el-row>
           </el-row>
-        </el-row>
+          <hr>
+          <el-row>
+            <el-row style="margin:5px 0">remote服务器信息</el-row>
+            <el-row v-for="(item, index) in remoteTraceList" :key="index">
+              <el-row style="margin:5px 0">服务器: {{ item['serverName'] }}</el-row>
+              <el-row style="margin:5px 0">日志类型: {{ item['type'] === 1 ? '同步文件' : '运行脚本' }}</el-row>
+              <el-row style="margin:5px 0">时间: {{ formatTime(item['createTime']) }}</el-row>
+              <el-row style="margin:5px 0">
+                <el-tag v-if=" item['state'] === 1" type="success" effect="plain">成功</el-tag>
+                <el-tag v-else type="danger" effect="plain">失败</el-tag>
+                <span v-html="formatDetail(item['detail'])" />
+              </el-row>
+              <hr>
+            </el-row>
+          </el-row>
+        </el-col>
       </el-row>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
@@ -80,18 +96,19 @@
   </el-row>
 </template>
 <script>
-import { getList, getDetail, publish } from '@/api/deploy'
+import { getList, getDetail, getSyncDetail, publish } from '@/api/deploy'
 import { parseTime } from '@/utils'
 
-const STATE = ['构建中', '构建成功', '构建失败', '撤回']
 export default {
   data() {
     return {
+      gitTraceId: '1',
       publishDialogVisible: false,
       dialogVisible: false,
       webSocket: null,
       tableData: [],
       gitTrace: {},
+      gitTraceList: [],
       remoteTraceList: [],
       gitLog: [],
       remoteLog: {}
@@ -146,7 +163,6 @@ export default {
         projectList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
           element.updateTime = parseTime(element.updateTime)
-          element.state = STATE[element.state]
         })
         this.tableData = projectList
       })
@@ -179,12 +195,24 @@ export default {
       getDetail(id).then((response) => {
         this.dialogVisible = true
         this.gitTrace = response.data.gitTrace
+        this.gitTraceList = response.data.gitTraceList
         this.remoteTraceList = response.data.remoteTraceList
+        this.gitTraceId = this.gitTrace.id
       })
     },
+
+    handleDetailChange(gitTraceId) {
+      getSyncDetail(gitTraceId).then(response => {
+        this.gitTrace = response.data.gitTrace
+        this.remoteTraceList = response.data.remoteTraceList
+        this.gitTraceId = this.gitTrace.id
+      })
+    },
+
     formatDetail(detail) {
       return detail ? detail.replace(/\n/g, '<br>') : ''
     },
+
     formatTime(timestamp) {
       return parseTime(timestamp)
     }

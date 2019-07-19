@@ -48,6 +48,7 @@ func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
 
 	type RepData struct {
 		GitTrace        model.GitTrace     `json:"gitTrace"`
+		GitTraceList    model.GitTraces    `json:"gitTraceList"`
 		RemoteTraceList model.RemoteTraces `json:"remoteTraceList"`
 	}
 
@@ -68,7 +69,44 @@ func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
+	gitTraceList, err := model.GitTrace{ProjectID: uint32(id)}.GetListByProjectID()
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	remoteTracesList, err := model.RemoteTrace{GitTraceID: gitTrace.ID}.GetListByGitTraceID()
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
 
+	response := core.Response{Data: RepData{GitTrace: gitTrace, RemoteTraceList: remoteTracesList, GitTraceList: gitTraceList}}
+	response.JSON(w)
+}
+
+// GetSyncDetail deploy detail
+func (deploy Deploy) GetSyncDetail(w http.ResponseWriter, gp *core.Goploy) {
+
+	type RepData struct {
+		GitTrace        model.GitTrace     `json:"gitTrace"`
+		RemoteTraceList model.RemoteTraces `json:"remoteTraceList"`
+	}
+
+	gitTraceID, err := strconv.Atoi(gp.URLQuery.Get("gitTraceId"))
+	if err != nil {
+		response := core.Response{Code: 1, Message: "id参数错误"}
+		response.JSON(w)
+		return
+	}
+
+	gitTrace, err := model.GitTrace{ID: uint32(gitTraceID)}.GetData()
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
 	remoteTracesList, err := model.RemoteTrace{GitTraceID: gitTrace.ID}.GetListByGitTraceID()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -179,6 +217,15 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 		return
 	}
 
+	commit, err := gitCommitID(tokenInfo, project)
+	if err != nil {
+		gitTraceModel.Detail = err.Error()
+		gitTraceModel.State = 0
+		gitTraceModel.AddRow()
+		return
+	}
+
+	gitTraceModel.Commit = commit
 	gitTraceModel.Detail = stdout
 	gitTraceModel.State = 1
 	gitTraceID, _ := gitTraceModel.AddRow()
@@ -290,6 +337,43 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 		Message:   pullOutbuf.String(),
 	}
 	return pullOutbuf.String(), nil
+}
+
+func gitCommitID(tokenInfo core.TokenInfo, project model.Project) (string, error) {
+	srcPath := core.GolbalPath + "repository/" + project.Name
+
+	git := exec.Command("git", "rev-parse", "HEAD")
+	git.Dir = srcPath
+	var gitOutbuf, gitErrbuf bytes.Buffer
+	git.Stdout = &gitOutbuf
+	git.Stderr = &gitErrbuf
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" git rev-parse HEAD")
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID: project.ID,
+		UserID:    tokenInfo.ID,
+		DataType:  ws.GitType,
+		State:     ws.Success,
+		Message:   "git rev-parse HEAD",
+	}
+	if err := git.Run(); err != nil {
+		core.Log(core.ERROR, gitErrbuf.String())
+		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+			ProjectID: project.ID,
+			UserID:    tokenInfo.ID,
+			DataType:  ws.GitType,
+			State:     ws.Success,
+			Message:   gitErrbuf.String(),
+		}
+		return "", err
+	}
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID: project.ID,
+		UserID:    tokenInfo.ID,
+		DataType:  ws.GitType,
+		State:     ws.Success,
+		Message:   gitOutbuf.String(),
+	}
+	return gitOutbuf.String(), nil
 }
 
 func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Project, projectServer model.ProjectServer) {

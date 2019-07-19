@@ -68,31 +68,31 @@ func (rt RemoteTrace) GetListByGitTraceID() (RemoteTraces, error) {
 	if err != nil {
 		return nil, err
 	}
-	var RemoteTraces RemoteTraces
+	var remoteTraces RemoteTraces
 	for rows.Next() {
-		var RemoteTrace RemoteTrace
+		var remoteTrace RemoteTrace
 
 		if err := rows.Scan(
-			&RemoteTrace.ID,
-			&RemoteTrace.GitTraceID,
-			&RemoteTrace.ProjectID,
-			&RemoteTrace.ProjectName,
-			&RemoteTrace.ServerID,
-			&RemoteTrace.ServerName,
-			&RemoteTrace.Detail,
-			&RemoteTrace.State,
-			&RemoteTrace.PublisherID,
-			&RemoteTrace.PublisherName,
-			&RemoteTrace.Type,
-			&RemoteTrace.CreateTime,
-			&RemoteTrace.UpdateTime); err == sql.ErrNoRows {
-			return RemoteTraces, errors.New("项目尚无远程同步记录")
+			&remoteTrace.ID,
+			&remoteTrace.GitTraceID,
+			&remoteTrace.ProjectID,
+			&remoteTrace.ProjectName,
+			&remoteTrace.ServerID,
+			&remoteTrace.ServerName,
+			&remoteTrace.Detail,
+			&remoteTrace.State,
+			&remoteTrace.PublisherID,
+			&remoteTrace.PublisherName,
+			&remoteTrace.Type,
+			&remoteTrace.CreateTime,
+			&remoteTrace.UpdateTime); err == sql.ErrNoRows {
+			return remoteTraces, errors.New("项目尚无远程同步记录")
 		} else if err != nil {
 			return nil, errors.New("RemoteTrace.GetListByGitTraceID数据查询失败")
 		}
-		RemoteTraces = append(RemoteTraces, RemoteTrace)
+		remoteTraces = append(remoteTraces, remoteTrace)
 	}
-	return RemoteTraces, nil
+	return remoteTraces, nil
 }
 
 // CountFailStateByGitTraceID fail num
