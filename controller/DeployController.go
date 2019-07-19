@@ -337,7 +337,6 @@ func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Proje
 				State:    ws.Fail,
 				Message:  errbuf.String(),
 			}
-
 		} else {
 			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
 				DataType: ws.RsyncType,
@@ -373,25 +372,41 @@ func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Proje
 		State:    ws.Success,
 		Message:  "开始连接ssh",
 	}
-	session, err := connect(projectServer.ServerOwner, "", projectServer.ServerIP, 22)
+	var session *ssh.Session
+	var connectError error
+	for attempt := 0; attempt < 3; attempt++ {
+		session, connectError = connect(projectServer.ServerOwner, "", projectServer.ServerIP, 22)
+		if connectError != nil {
+			core.Log(core.ERROR, connectError.Error())
+			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+				DataType: ws.ScriptType,
+				State:    ws.Fail,
+				Message:  connectError.Error(),
+			}
+		} else {
+			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+				DataType: ws.ScriptType,
+				State:    ws.Success,
+				Message:  "开始连接成功",
+			}
+			break
+		}
 
-	if err != nil {
-		core.Log(core.ERROR, err.Error())
+	}
+
+	if connectError != nil {
+		core.Log(core.ERROR, connectError.Error())
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
 			DataType: ws.ScriptType,
 			State:    ws.Fail,
-			Message:  err.Error(),
+			Message:  "ssh重连失败",
 		}
-		remoteTraceModel.Detail = err.Error()
+		remoteTraceModel.Detail = connectError.Error()
 		remoteTraceModel.State = 0
 		remoteTraceModel.AddRow()
 		return
 	}
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-		DataType: ws.ScriptType,
-		State:    ws.Success,
-		Message:  "开始连接成功",
-	}
+
 	defer session.Close()
 	var sshOutbuf bytes.Buffer
 	session.Stdout = &sshOutbuf
@@ -400,24 +415,39 @@ func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Proje
 		State:    ws.Success,
 		Message:  "运行:" + project.Script,
 	}
-	// 需要更改脚本的权限 以免执行不了
-	if err := session.Run(project.Script); err != nil {
-		core.Log(core.ERROR, err.Error())
+	var scriptError error
+	for attempt := 0; attempt < 3; attempt++ {
+		sshOutbuf.Reset()
+		if scriptError = session.Run(project.Script); scriptError != nil {
+			core.Log(core.ERROR, scriptError.Error())
+			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+				DataType: ws.ScriptType,
+				State:    ws.Fail,
+				Message:  scriptError.Error(),
+			}
+		} else {
+			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+				DataType: ws.ScriptType,
+				State:    ws.Success,
+				Message:  sshOutbuf.String(),
+			}
+			break
+		}
+	}
+
+	if scriptError != nil {
+		core.Log(core.ERROR, scriptError.Error())
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
 			DataType: ws.ScriptType,
 			State:    ws.Fail,
-			Message:  err.Error(),
+			Message:  "脚本运行失败",
 		}
-		remoteTraceModel.Detail = err.Error()
+		remoteTraceModel.Detail = scriptError.Error()
 		remoteTraceModel.State = 0
 		remoteTraceModel.AddRow()
 		return
 	}
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-		DataType: ws.ScriptType,
-		State:    ws.Success,
-		Message:  sshOutbuf.String(),
-	}
+
 	remoteTraceModel.Detail = sshOutbuf.String()
 	remoteTraceModel.State = 1
 	remoteTraceModel.AddRow()

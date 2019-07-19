@@ -55,8 +55,10 @@
         <el-row>
           <el-row style="margin:5px 0">git同步信息</el-row>
           <el-row v-for="(item, index) in gitLog" :key="index">
-            <el-row v-show="item['state'] === 0" style="margin:5px 0">状态: 失败</el-row>
-            <el-row style="margin:5px 0" v-html="item['message']" />
+            <el-row style="margin:5px 0">
+              <el-tag v-show="item['state'] === 0" type="danger" effect="plain">失败</el-tag>
+              <span v-html="item['message']" />
+            </el-row>
           </el-row>
         </el-row>
         <hr>
@@ -65,8 +67,10 @@
           <el-row v-for="(serverLog, index) in remoteLog" :key="index">
             <el-row style="margin:5px 0">服务器: {{ index }}</el-row>
             <el-row v-for="(item, serverIndex) in serverLog" :key="serverIndex">
-              <el-row v-show="item['state'] === 0" style="margin:5px 0">状态: 失败</el-row>
-              <el-row style="margin:5px 0" v-html="item['message']" />
+              <el-row style="margin:5px 0">
+                <el-tag v-show="item['state'] === 0" type="danger" effect="plain">失败</el-tag>
+                <span v-html="item['message']" />
+              </el-row>
             </el-row>
             <hr>
           </el-row>
