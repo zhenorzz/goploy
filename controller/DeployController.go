@@ -224,7 +224,6 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 		gitTraceModel.AddRow()
 		return
 	}
-
 	gitTraceModel.Commit = commit
 	gitTraceModel.Detail = stdout
 	gitTraceModel.State = 1
