@@ -57,7 +57,7 @@
               <el-row style="margin:5px 0">日志类型: {{ item['type'] === 1 ? '同步文件' : '运行脚本' }}</el-row>
               <el-row style="margin:5px 0">时间: {{ formatTime(item['createTime']) }}</el-row>
               <el-row style="margin:5px 0">
-                <el-tag v-if=" item['state'] === 1" type="success" effect="plain">成功</el-tag>
+                <el-tag v-if="item['state'] === 1" type="success" effect="plain">成功</el-tag>
                 <el-tag v-else type="danger" effect="plain">失败</el-tag>
                 <span v-html="formatDetail(item['detail'])" />
               </el-row>
