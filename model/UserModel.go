@@ -12,15 +12,16 @@ import (
 
 // User mysql table user
 type User struct {
-	ID         uint32 `json:"id"`
-	Account    string `json:"account"`
-	Password   string `json:"password"`
-	Name       string `json:"name"`
-	Mobile     string `json:"mobile"`
-	RoleID     uint32 `json:"roleId"`
-	State      uint8  `json:"state"`
-	CreateTime int64  `json:"createTime"`
-	UpdateTime int64  `json:"updateTime"`
+	ID            uint32 `json:"id"`
+	Account       string `json:"account"`
+	Password      string `json:"password"`
+	Name          string `json:"name"`
+	Mobile        string `json:"mobile"`
+	RoleID        uint32 `json:"roleId"`
+	State         uint8  `json:"state"`
+	CreateTime    int64  `json:"createTime"`
+	UpdateTime    int64  `json:"updateTime"`
+	LastLoginTime int64  `json:"lastLoginTime"`
 }
 
 // Users many user
@@ -238,6 +239,16 @@ func (u User) UpdatePassword() error {
 	_, err = DB.Exec(
 		"UPDATE user SET password = ? where id = ?",
 		string(hashedPassword),
+		u.ID,
+	)
+	return err
+}
+
+// UpdateLastLoginTime return err
+func (u User) UpdateLastLoginTime() error {
+	_, err := DB.Exec(
+		"UPDATE user SET last_login_time = ? where id = ?",
+		u.LastLoginTime,
 		u.ID,
 	)
 	return err

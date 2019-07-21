@@ -55,6 +55,7 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
+	model.User{ID: userData.ID, LastLoginTime: time.Now().Unix()}.UpdateLastLoginTime()
 	data := RepData{Token: token}
 	response := core.Response{Data: data}
 	response.JSON(w)
