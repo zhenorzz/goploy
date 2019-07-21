@@ -3,6 +3,7 @@ package route
 import (
 	"github.com/zhenorzz/goploy/controller"
 	router "github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/middleware"
 )
 
 // Init router
@@ -39,7 +40,7 @@ func Init() {
 	rt.Add("/deploy/getDetail", controller.Deploy{}.GetDetail)
 	rt.Add("/deploy/getSyncDetail", controller.Deploy{}.GetSyncDetail)
 	rt.Add("/deploy/sync", controller.Deploy{}.Sync)
-	rt.Add("/deploy/publish", controller.Deploy{}.Publish)
+	rt.Add("/deploy/publish", controller.Deploy{}.Publish, middleware.HasPublishAuth)
 
 	// server route
 	rt.Add("/server/getList", controller.Server{}.GetList)

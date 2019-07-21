@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -85,8 +84,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		UserIDs     []uint32 `json:"userIds"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -163,8 +161,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		RsyncOption string `json:"rsyncOption"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -195,8 +192,7 @@ func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) {
 		ID uint32 `json:"id"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -223,8 +219,7 @@ func (project Project) AddServer(w http.ResponseWriter, gp *core.Goploy) {
 		ServerIDs []uint32 `json:"serverIds"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -259,8 +254,7 @@ func (project Project) AddUser(w http.ResponseWriter, gp *core.Goploy) {
 		UserIDs   []uint32 `json:"userIds"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -294,8 +288,7 @@ func (project Project) RemoveProjectServer(w http.ResponseWriter, gp *core.Goplo
 		ProjectServerID uint32 `json:"projectServerId"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -320,8 +313,7 @@ func (project Project) RemoveProjectUser(w http.ResponseWriter, gp *core.Goploy)
 		ProjectUserID uint32 `json:"projectUserId"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)

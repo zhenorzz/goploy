@@ -21,19 +21,20 @@ type Goploy struct {
 	TokenInfo TokenInfo
 	Request   *http.Request
 	URLQuery  url.Values
+	Body      []byte
 }
 
 // 路由定义
 type route struct {
-	pattern     string                                         // 正则表达式
-	callback    func(w http.ResponseWriter, gp *Goploy)        //Controller函数
-	middlewares []func(w http.ResponseWriter, r *http.Request) //中间件
+	pattern     string                                          // 正则表达式
+	callback    func(w http.ResponseWriter, gp *Goploy)         //Controller函数
+	middlewares []func(w http.ResponseWriter, gp *Goploy) error //中间件
 }
 
 // Router is route slice and golbal middlewares
 type Router struct {
 	Routes      []route
-	middlewares []func(w http.ResponseWriter, r *http.Request) error //中间件
+	middlewares []func(w http.ResponseWriter, gp *Goploy) error //中间件
 }
 
 // Start a router
@@ -44,7 +45,7 @@ func (rt *Router) Start() {
 // Add router
 // pattern path
 // callback  where path should be handle
-func (rt *Router) Add(pattern string, callback func(w http.ResponseWriter, gp *Goploy), middleware ...func(w http.ResponseWriter, r *http.Request)) {
+func (rt *Router) Add(pattern string, callback func(w http.ResponseWriter, gp *Goploy), middleware ...func(w http.ResponseWriter, gp *Goploy) error) {
 	r := route{pattern: pattern, callback: callback}
 	for _, m := range middleware {
 		r.middlewares = append(r.middlewares, m)
@@ -54,7 +55,7 @@ func (rt *Router) Add(pattern string, callback func(w http.ResponseWriter, gp *G
 
 // Middleware golbal Middleware handle function
 // Example handle praseToken
-func (rt *Router) Middleware(middleware func(w http.ResponseWriter, r *http.Request) error) {
+func (rt *Router) Middleware(middleware func(w http.ResponseWriter, gp *Goploy) error) {
 	rt.middlewares = append(rt.middlewares, middleware)
 }
 
@@ -105,22 +106,33 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// save the body request data bucause ioutil.ReadAll will clear the requestBody
+	body, _ := ioutil.ReadAll(r.Body)
+	gp := &Goploy{
+		TokenInfo: tokenInfo,
+		Request:   r,
+		URLQuery:  r.URL.Query(),
+		Body:      body,
+	}
 	for _, middleware := range rt.middlewares {
-		err := middleware(w, r)
+		err := middleware(w, gp)
 		if err != nil {
+			response := Response{Code: 1, Message: err.Error()}
+			response.JSON(w)
 			return
 		}
 	}
 	for _, route := range rt.Routes {
 		if route.pattern == r.URL.Path {
 			for _, middleware := range route.middlewares {
-				middleware(w, r)
+				err := middleware(w, gp)
+				if err != nil {
+					response := Response{Code: 1, Message: err.Error()}
+					response.JSON(w)
+					return
+				}
 			}
-			gp := &Goploy{
-				TokenInfo: tokenInfo,
-				Request:   r,
-				URLQuery:  r.URL.Query(),
-			}
+
 			route.callback(w, gp)
 		}
 	}

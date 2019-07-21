@@ -160,9 +160,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 		ID uint32 `json:"id"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-
-	if err := json.Unmarshal(body, &reqData); err != nil {
+	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
 		return

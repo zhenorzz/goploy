@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -23,8 +22,7 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {
 		Token string `json:"token"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -169,8 +167,7 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 		RoleID   uint32 `json:"roleId"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -205,8 +202,7 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		RoleID   uint32 `json:"roleId"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -237,8 +233,7 @@ func (user User) Remove(w http.ResponseWriter, gp *core.Goploy) {
 		ID uint32 `json:"id"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -272,8 +267,7 @@ func (user User) ChangePassword(w http.ResponseWriter, gp *core.Goploy) {
 		NewPassword string `json:"newPwd"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)

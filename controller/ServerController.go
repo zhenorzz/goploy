@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -53,8 +52,7 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 		Owner string `json:"owner"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -86,8 +84,7 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		Owner string `json:"owner"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -117,8 +114,7 @@ func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) {
 		ID uint32 `json:"id"`
 	}
 	var reqData ReqData
-	body, _ := ioutil.ReadAll(gp.Request.Body)
-	err := json.Unmarshal(body, &reqData)
+	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)

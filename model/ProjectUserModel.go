@@ -104,6 +104,24 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 	return projects, nil
 }
 
+// GetDataByProjectUser  by  projectid and userid
+func (pu ProjectUser) GetDataByProjectUser() (ProjectUser, error) {
+	var projectUser ProjectUser
+	err := DB.QueryRow(`
+		SELECT 
+			id, project_id, user_id 
+		FROM 
+			project_user
+		WHERE 
+			project_id = ? 
+		AND 
+			user_id = ?`, pu.ProjectID, pu.UserID).Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID)
+	if err != nil {
+		return projectUser, err
+	}
+	return projectUser, nil
+}
+
 // AddMany add many row to table project_server
 func (pu ProjectUsers) AddMany() error {
 	if len(pu) == 0 {
