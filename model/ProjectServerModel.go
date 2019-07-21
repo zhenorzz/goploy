@@ -56,6 +56,9 @@ func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 
 // AddMany add many row to table project_server
 func (ps ProjectServers) AddMany() error {
+	if len(ps) == 0 {
+		return nil
+	}
 	sqlStr := "INSERT INTO project_server (project_id, server_id, create_time, update_time) VALUES "
 	vals := []interface{}{}
 

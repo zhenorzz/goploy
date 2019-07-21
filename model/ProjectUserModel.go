@@ -106,6 +106,9 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 
 // AddMany add many row to table project_server
 func (pu ProjectUsers) AddMany() error {
+	if len(pu) == 0 {
+		return nil
+	}
 	sqlStr := "INSERT INTO project_user (project_id, user_id, create_time, update_time) VALUES "
 	vals := []interface{}{}
 

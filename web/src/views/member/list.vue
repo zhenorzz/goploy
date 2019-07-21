@@ -51,7 +51,7 @@
         <el-form-item label="手机号码" label-width="120px" prop="mobile">
           <el-input v-model="formData.mobile" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="角色" label-width="120px" prop="role">
+        <el-form-item label="角色" label-width="120px" prop="roleId">
           <el-select v-model="formData.roleId" placeholder="选择角色">
             <el-option
               v-for="(item, index) in roleOption"
@@ -112,7 +112,7 @@ export default {
         password: '',
         name: '',
         mobile: '',
-        roleId: ''
+        roleId: 3
       },
       formRules: {
         account: [

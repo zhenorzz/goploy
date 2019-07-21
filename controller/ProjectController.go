@@ -114,7 +114,6 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-
 	projectServersModel := model.ProjectServers{}
 	for _, serverID := range reqData.ServerIDs {
 		projectServerModel := model.ProjectServer{
@@ -193,7 +192,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 // Remove one Project
 func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID          uint32 `json:"id"`
+		ID uint32 `json:"id"`
 	}
 	var reqData ReqData
 	body, _ := ioutil.ReadAll(gp.Request.Body)
@@ -204,8 +203,8 @@ func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 	err = model.Project{
-		ID:          reqData.ID,
-		UpdateTime:  time.Now().Unix(),
+		ID:         reqData.ID,
+		UpdateTime: time.Now().Unix(),
 	}.RemoveRow()
 
 	if err != nil {
