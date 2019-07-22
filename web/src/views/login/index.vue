@@ -50,7 +50,6 @@
 
 <script>
 import { validUsername, validPassword } from '@/utils/validate'
-import { isShowPhrase } from '@/api/user'
 export default {
   name: 'Login',
   data() {
@@ -92,18 +91,8 @@ export default {
     }
   },
   created() {
-    this.isShowPhrase()
   },
   methods: {
-    isShowPhrase() {
-      isShowPhrase().then(response => {
-        const data = response.data
-        this.showPhrase = data.show
-        if (this.showPhrase) {
-          this.changePhrase()
-        }
-      })
-    },
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''

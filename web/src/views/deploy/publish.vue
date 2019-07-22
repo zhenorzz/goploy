@@ -71,7 +71,7 @@
       </div>
     </el-dialog>
     <el-dialog title="构建进度" :visible.sync="publishDialogVisible">
-      <el-row class="project-detail">
+      <el-row ref="publishSchedule" class="project-detail">
         <el-row>
           <el-row style="margin:5px 0">git同步信息</el-row>
           <el-row v-for="(item, index) in gitLog" :key="index">
@@ -120,13 +120,14 @@ export default {
   },
   created() {
     this.getList()
-    this.initWebSocket()
   },
   methods: {
     initWebSocket() {
       try {
-        this.webSocket = new WebSocket('ws://' + window.location.host + process.env.VUE_APP_BASE_API + '/deploy/sync')
-        this.initEventHandle()
+        if (this.webSocket === null) {
+          this.webSocket = new WebSocket('ws://' + window.location.host + process.env.VUE_APP_BASE_API + '/deploy/sync')
+          this.initEventHandle()
+        }
       } catch (e) {
         console.log(e)
       }
@@ -151,6 +152,10 @@ export default {
           }
           this.remoteLog[data.serverName].push(data)
         }
+        this.$nextTick(() => {
+          const contentBox = this.$refs.publishSchedule
+          contentBox.$el.scrollTop = contentBox.$el.scrollHeight
+        })
       }
       this.webSocket.onclose = (e) => {
         this.webSocket = null
@@ -179,6 +184,7 @@ export default {
       }).then(() => {
         this.gitLog = []
         this.remoteLog = {}
+        this.initWebSocket()
         publish(id).then((response) => {
           this.$message({
             message: response.message,
@@ -191,7 +197,7 @@ export default {
       }).catch(() => {
         this.$message({
           type: 'info',
-          message: '已取消删除'
+          message: '已取消构建'
         })
       })
     },
