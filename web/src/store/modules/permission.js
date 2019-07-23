@@ -27,7 +27,7 @@ function hasPermission(router, permissionMap) {
  */
 function filterAsyncRoutes(asyncRouterMap, resMap) {
   return asyncRouterMap.filter(route => {
-    if (route.hasOwnProperty('meta') && route.meta.permission_uri === 'all') {
+    if (!route.hasOwnProperty('meta')) {
       if (route.children && route.children.length) {
         route.children = filterAsyncRoutes(route.children, resMap)
       }
@@ -72,7 +72,6 @@ const actions = {
 
       commit('SET_ROUTES', accessRoutes)
       commit('SET_URI', data.permissionUri)
-
       resolve(accessRoutes)
     })
   }
