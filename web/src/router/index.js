@@ -130,7 +130,7 @@ export const asyncRoutes = [
       component: () => import('@/views/member/list'),
       meta: {
         title: '成员列表',
-        icon: 'user',
+        icon: 'list',
         permission_uri: '/member/list'
       }
     }, {
@@ -139,7 +139,7 @@ export const asyncRoutes = [
       component: () => import('@/views/member/permission'),
       meta: {
         title: '角色权限',
-        icon: 'user',
+        icon: 'permission',
         permission_uri: '/member/permission'
       }
     }]

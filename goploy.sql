@@ -78,8 +78,9 @@ INSERT INTO `permission` VALUES (4, '项目设置', '/project/setting', 1, 3);
 INSERT INTO `permission` VALUES (5, '服务器管理', '/project/server', 1, 3);
 INSERT INTO `permission` VALUES (6, '成员', '/member', 1, 0);
 INSERT INTO `permission` VALUES (7, '成员列表', '/member/list', 1, 6);
-INSERT INTO `permission` VALUES (8, '部署', '/deploy', 1, 0);
-INSERT INTO `permission` VALUES (9, '构建发布', '/deploy/publish', 1, 8);
+INSERT INTO `permission` VALUES (8, '权限管理', '/member/permission', 1, 6);
+INSERT INTO `permission` VALUES (9, '部署', '/deploy', 1, 0);
+INSERT INTO `permission` VALUES (10, '构建发布', '/deploy/publish', 1, 9);
 
 -- ----------------------------
 -- Table structure for project
@@ -178,9 +179,9 @@ CREATE TABLE `role`  (
   `state` tinyint(1) NOT NULL DEFAULT 1 COMMENT '该记录是否有效1：有效、0：无效',
   `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建时间',
   `update_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '更新时间',
-  `desc` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '备注',
+  `remark` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '备注',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Records of role
