@@ -88,18 +88,30 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 	data.UserInfo.Name = userData.Name
 	data.UserInfo.Account = userData.Account
 
-	role, err := model.Role{ID: userData.RoleID}.GetData()
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.JSON(w)
-		return
+	var permissions model.Permissions
+	// 超级管理员获取全部权限
+	if userData.RoleID == 1 {
+		permissions, err = model.Permission{}.GetAll()
+		if err != nil {
+			response := core.Response{Code: 1, Message: err.Error()}
+			response.JSON(w)
+			return
+		}
+	} else {
+		role, err := model.Role{ID: userData.RoleID}.GetData()
+		if err != nil {
+			response := core.Response{Code: 1, Message: err.Error()}
+			response.JSON(w)
+			return
+		}
+		permissions, err = model.Permission{}.GetAllByPermissionList(role.PermissionList)
+		if err != nil {
+			response := core.Response{Code: 1, Message: err.Error()}
+			response.JSON(w)
+			return
+		}
 	}
-	permissions, err := model.Permission{}.GetAllByPermissionList(role.PermissionList)
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.JSON(w)
-		return
-	}
+
 	var tempPermissions model.Permissions
 	for _, permission := range permissions {
 		data.PermissionURI = append(data.PermissionURI, permission.URI)

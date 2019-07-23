@@ -15,6 +15,16 @@ export function getPermissionList() {
   })
 }
 
+export function add(name, remark, permissionList) {
+  return request({
+    url: '/role/add',
+    method: 'post',
+    data: {
+      name, remark, permissionList
+    }
+  })
+}
+
 export function edit(id, name, remark, permissionList) {
   return request({
     url: '/role/edit',

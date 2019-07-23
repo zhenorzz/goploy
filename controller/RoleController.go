@@ -62,6 +62,36 @@ func (role Role) GetPermissionList(w http.ResponseWriter, gp *core.Goploy) {
 	response.JSON(w)
 }
 
+// Add one Role
+func (role Role) Add(w http.ResponseWriter, gp *core.Goploy) {
+	type ReqData struct {
+		Name           string `json:"name"`
+		Remark         string `json:"remark"`
+		PermissionList string `json:"permissionList"`
+	}
+	var reqData ReqData
+	err := json.Unmarshal(gp.Body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	_, err = model.Role{
+		Name:           reqData.Name,
+		Remark:         reqData.Remark,
+		PermissionList: reqData.PermissionList,
+		UpdateTime:     time.Now().Unix(),
+	}.AddRow()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Message: "添加成功"}
+	response.JSON(w)
+}
+
 // Edit one Role
 func (role Role) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {

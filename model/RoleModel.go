@@ -45,6 +45,23 @@ func (r Role) GetAll() (Roles, error) {
 	return roles, nil
 }
 
+// AddRow add one row to table server and add id to s.ID
+func (r Role) AddRow() (uint32, error) {
+	result, err := DB.Exec(
+		"INSERT INTO role (name, remark, permission_list, create_time, update_time) VALUES (?, ?, ?, ?, ?)",
+		r.Name,
+		r.Remark,
+		r.PermissionList,
+		r.CreateTime,
+		r.UpdateTime,
+	)
+	if err != nil {
+		return 0, err
+	}
+	id, err := result.LastInsertId()
+	return uint32(id), err
+}
+
 // EditRow edit one row to table Role
 func (r Role) EditRow() error {
 	_, err := DB.Exec(

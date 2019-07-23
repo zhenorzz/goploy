@@ -4,6 +4,7 @@
       <el-form-item label="角色" prop="roleId">
         <el-radio-group v-model="formData.roleId" @change="handleRoleChange">
           <el-radio v-for="role in roleList" v-show="role.id !== 1" :key="role.id" :label="role.id">{{ role.name }}</el-radio>
+          <el-radio :label="0">新增</el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item label="名称" prop="name">
@@ -28,14 +29,14 @@
         </el-row>
       </el-form-item>
       <el-form-item>
-        <el-button :disabled="formProps.disabled" type="primary" @click="submitForm()">提交</el-button>
+        <el-button :disabled="formProps.disabled" type="primary" @click="submit">提交</el-button>
       </el-form-item>
     </el-form>
   </div>
 </template>
 
 <script>
-import { getPermissionList, edit } from '@/api/role'
+import { getPermissionList, add, edit } from '@/api/role'
 export default {
   name: 'Permission',
   data() {
@@ -69,6 +70,13 @@ export default {
   },
   methods: {
     handleRoleChange(roleId) {
+      // 新增
+      if (roleId === 0) {
+        this.formData.name = ''
+        this.formData.remark = ''
+        this.formData.permissionList = []
+        return
+      }
       const role = this.roleList.find(element => element.id === roleId)
       this.formData.name = role['name']
       this.formData.remark = role['remark']
@@ -87,30 +95,53 @@ export default {
         })
       })
     },
-    submitForm() {
+
+    submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
           const permissionList = []
           this.formData.permissionList.forEach((item) => {
             permissionList.push(item.id, item.pid)
           })
-
+          const permissionStr = Array.from(new Set(permissionList)).sort((x, y) => { return x - y }).join(',')
           this.formProps.disabled = true
-          edit(this.formData.roleId, this.formData.name, this.formData.remark, Array.from(new Set(permissionList)).sort((x, y) => { return x - y }).join(',')).then(response => {
-            this.getPermissionList()
-            this.$message({
-              message: response.message,
-              type: 'success',
-              duration: 5 * 1000
-            })
-          }).finally(_ => {
-            this.formProps.disabled = false
-          })
+          if (this.formData.roleId === 0) {
+            this.add(permissionStr)
+          } else {
+            this.edit(permissionStr)
+          }
         } else {
           return false
         }
       })
     },
+
+    add(permissionStr) {
+      add(this.formData.name, this.formData.remark, permissionStr).then(response => {
+        this.getPermissionList()
+        this.$message({
+          message: response.message,
+          type: 'success',
+          duration: 5 * 1000
+        })
+      }).finally(_ => {
+        this.formProps.disabled = false
+      })
+    },
+
+    edit(permissionStr) {
+      edit(this.formData.roleId, this.formData.name, this.formData.remark, permissionStr).then(response => {
+        this.getPermissionList()
+        this.$message({
+          message: response.message,
+          type: 'success',
+          duration: 5 * 1000
+        })
+      }).finally(_ => {
+        this.formProps.disabled = false
+      })
+    },
+
     getPermissionList() {
       getPermissionList().then(response => {
         const data = response.data
