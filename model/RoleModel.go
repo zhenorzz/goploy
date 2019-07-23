@@ -9,7 +9,7 @@ type Role struct {
 	ID             uint32 `json:"id"`
 	Name           string `json:"name"`
 	PermissionList string `json:"permissionList"`
-	Desc           string `json:"desc"`
+	Remark         string `json:"remark"`
 	CreateTime     int64  `json:"createTime"`
 	UpdateTime     int64  `json:"updateTime"`
 }
@@ -29,7 +29,7 @@ func (r Role) GetData() (Role, error) {
 
 // GetAll Role row
 func (r Role) GetAll() (Roles, error) {
-	rows, err := DB.Query("SELECT id, name, permission_list FROM role")
+	rows, err := DB.Query("SELECT id, name, remark, permission_list FROM role")
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (r Role) GetAll() (Roles, error) {
 	for rows.Next() {
 		var role Role
 
-		if err := rows.Scan(&role.ID, &role.Name, &role.PermissionList); err != nil {
+		if err := rows.Scan(&role.ID, &role.Name, &role.Remark, &role.PermissionList); err != nil {
 			return nil, err
 		}
 		roles = append(roles, role)
@@ -49,9 +49,13 @@ func (r Role) GetAll() (Roles, error) {
 func (r Role) EditRow() error {
 	_, err := DB.Exec(
 		`UPDATE role SET 
+			name = ?,
+			remark = ?,
 			permission_list = ?
 		WHERE
 		 id = ?`,
+		r.Name,
+		r.Remark,
 		r.PermissionList,
 		r.ID,
 	)

@@ -66,6 +66,8 @@ func (role Role) GetPermissionList(w http.ResponseWriter, gp *core.Goploy) {
 func (role Role) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		ID             uint32 `json:"id"`
+		Name           string `json:"name"`
+		Remark         string `json:"remark"`
 		PermissionList string `json:"permissionList"`
 	}
 	var reqData ReqData
@@ -77,6 +79,8 @@ func (role Role) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	}
 	err = model.Role{
 		ID:             reqData.ID,
+		Name:           reqData.Name,
+		Remark:         reqData.Remark,
 		PermissionList: reqData.PermissionList,
 		UpdateTime:     time.Now().Unix(),
 	}.EditRow()

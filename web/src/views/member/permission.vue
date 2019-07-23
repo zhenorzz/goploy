@@ -6,6 +6,12 @@
           <el-radio v-for="role in roleList" v-show="role.id !== 1" :key="role.id" :label="role.id">{{ role.name }}</el-radio>
         </el-radio-group>
       </el-form-item>
+      <el-form-item label="名称" prop="name">
+        <el-input v-model="formData.name" autocomplete="off" style="width: 250px" />
+      </el-form-item>
+      <el-form-item label="描述" prop="remark">
+        <el-input v-model="formData.remark" :rows="3" type="textarea" autocomplete="off" style="width: 250px" />
+      </el-form-item>
       <el-form-item label="权限" prop="permissionList">
         <el-row v-for="(item, index) in permissionTree" :key="index">
           <el-row>{{ item.title }}</el-row>
@@ -41,14 +47,19 @@ export default {
       },
       formData: {
         roleId: 2,
+        name: '',
+        remark: '',
         permissionList: []
       },
       formRules: {
-        permissionList: [
-          { required: true, type: 'array', message: '请选择所需要更新的权限', trigger: 'blur' }
-        ],
         roleId: [
           { required: true, message: '请选择所需要更新权限的角色', trigger: 'blur' }
+        ],
+        name: [
+          { required: true, message: '请输入角色名称', trigger: 'blur' }
+        ],
+        permissionList: [
+          { required: true, type: 'array', message: '请选择所需要更新的权限', trigger: 'blur' }
         ]
       }
     }
@@ -58,7 +69,10 @@ export default {
   },
   methods: {
     handleRoleChange(roleId) {
-      const permissionList = this.roleList.find(element => element.id === roleId)['permissionList'].split(',').map(element => parseInt(element))
+      const role = this.roleList.find(element => element.id === roleId)
+      this.formData.name = role['name']
+      this.formData.remark = role['remark']
+      const permissionList = role['permissionList'].split(',').map(element => parseInt(element))
       this.formData.permissionList = []
       if (permissionList.length === 0) {
         return
@@ -82,10 +96,10 @@ export default {
           })
 
           this.formProps.disabled = true
-          edit(this.formData.roleId, Array.from(new Set(permissionList)).sort((x, y) => { return x - y }).join(',')).then(response => {
+          edit(this.formData.roleId, this.formData.name, this.formData.remark, Array.from(new Set(permissionList)).sort((x, y) => { return x - y }).join(',')).then(response => {
             this.getPermissionList()
             this.$message({
-              message: response.data.message,
+              message: response.message,
               type: 'success',
               duration: 5 * 1000
             })
