@@ -14,6 +14,24 @@ type Permission struct {
 // Permissions many project
 type Permissions []Permission
 
+// GetAll Permission row
+func (p Permission) GetAll() (Permissions, error) {
+	rows, err := DB.Query("SELECT id, title, uri, pid FROM permission")
+	if err != nil {
+		return nil, err
+	}
+	var permissions Permissions
+	for rows.Next() {
+		var permission Permission
+
+		if err := rows.Scan(&permission.ID, &permission.Title, &permission.URI, &permission.PID); err != nil {
+			return permissions, err
+		}
+		permissions = append(permissions, permission)
+	}
+	return permissions, nil
+}
+
 // GetAllByPermissionList server row
 func (p Permission) GetAllByPermissionList(permissionList string) (Permissions, error) {
 	query := fmt.Sprintf("SELECT id, title, uri, pid FROM permission WHERE id IN (%s)", permissionList)

@@ -118,7 +118,10 @@ export const asyncRoutes = [
     path: '/member',
     component: Layout,
     redirect: '/member/list',
+    name: '成员管理',
     meta: {
+      title: '成员管理',
+      icon: 'user',
       permission_uri: '/member'
     },
     children: [{
@@ -129,6 +132,15 @@ export const asyncRoutes = [
         title: '成员列表',
         icon: 'user',
         permission_uri: '/member/list'
+      }
+    }, {
+      path: 'permission',
+      name: '角色权限',
+      component: () => import('@/views/member/permission'),
+      meta: {
+        title: '角色权限',
+        icon: 'user',
+        permission_uri: '/member/permission'
       }
     }]
   },

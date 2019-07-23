@@ -51,5 +51,7 @@ func Init() {
 
 	// role route
 	rt.Add("/role/getOption", controller.Role{}.GetOption)
+	rt.Add("/role/getPermissionList", controller.Role{}.GetPermissionList)
+	rt.Add("/role/edit", controller.Role{}.Edit)
 	rt.Start()
 }
