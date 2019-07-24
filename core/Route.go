@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -8,6 +9,7 @@ import (
 	"regexp"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/zhenorzz/goploy/model"
 )
 
 // TokenInfo pasre the jwt
@@ -27,6 +29,7 @@ type Goploy struct {
 // 路由定义
 type route struct {
 	pattern     string                                          // 正则表达式
+	auth        []string                                        //权限
 	callback    func(w http.ResponseWriter, gp *Goploy)         //Controller函数
 	middlewares []func(w http.ResponseWriter, gp *Goploy) error //中间件
 }
@@ -45,12 +48,25 @@ func (rt *Router) Start() {
 // Add router
 // pattern path
 // callback  where path should be handle
-func (rt *Router) Add(pattern string, callback func(w http.ResponseWriter, gp *Goploy), middleware ...func(w http.ResponseWriter, gp *Goploy) error) {
+func (rt *Router) Add(pattern string, callback func(w http.ResponseWriter, gp *Goploy), middleware ...func(w http.ResponseWriter, gp *Goploy) error) *Router {
 	r := route{pattern: pattern, callback: callback}
 	for _, m := range middleware {
 		r.middlewares = append(r.middlewares, m)
 	}
 	rt.Routes = append(rt.Routes, r)
+	return rt
+}
+
+// AuthMany Add many permision to the route
+func (rt *Router) AuthMany(auth []string) *Router {
+	rt.Routes[len(rt.Routes)-1].auth = append(rt.Routes[len(rt.Routes)-1].auth, auth...)
+	return rt
+}
+
+// Auth Add permision to the route
+func (rt *Router) Auth(auth string) *Router {
+	rt.Routes[len(rt.Routes)-1].auth = append(rt.Routes[len(rt.Routes)-1].auth, auth)
+	return rt
 }
 
 // Middleware golbal Middleware handle function
@@ -124,9 +140,14 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, route := range rt.Routes {
 		if route.pattern == r.URL.Path {
+			if err := route.hasPermission(tokenInfo.ID); err != nil {
+				response := Response{Code: 1, Message: err.Error()}
+				response.JSON(w)
+				return
+			}
 			for _, middleware := range route.middlewares {
-				err := middleware(w, gp)
-				if err != nil {
+
+				if err := middleware(w, gp); err != nil {
 					response := Response{Code: 1, Message: err.Error()}
 					response.JSON(w)
 					return
@@ -136,4 +157,40 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 			route.callback(w, gp)
 		}
 	}
+}
+
+func (r *route) hasPermission(userID uint32) error {
+	if len(r.auth) == 0 {
+		return nil
+	}
+	userData, err := model.User{ID: userID}.GetData()
+	if err != nil {
+		return err
+	}
+	var permissions model.Permissions
+	// 超级管理员获取全部权限
+	if userData.RoleID == 1 {
+		permissions, err = model.Permission{}.GetAll()
+		if err != nil {
+			return err
+		}
+	} else {
+		role, err := model.Role{ID: userData.RoleID}.GetData()
+		if err != nil {
+			return err
+		}
+		permissions, err = model.Permission{}.GetAllByPermissionList(role.PermissionList)
+		if err != nil {
+			return err
+		}
+	}
+	for _, permission := range permissions {
+		for _, auth := range r.auth {
+			if permission.URI == auth {
+				return nil
+			}
+		}
+	}
+
+	return errors.New("无权限进行此操作")
 }

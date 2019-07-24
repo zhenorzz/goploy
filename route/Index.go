@@ -16,7 +16,7 @@ func Init() {
 	// user route
 	rt.Add("/user/login", controller.User{}.Login)
 	rt.Add("/user/info", controller.User{}.Info)
-	rt.Add("/user/getList", controller.User{}.GetList)
+	rt.Add("/user/getList", controller.User{}.GetList).Auth("/member/list")
 	rt.Add("/user/getOption", controller.User{}.GetOption)
 	rt.Add("/user/add", controller.User{}.Add)
 	rt.Add("/user/edit", controller.User{}.Edit)
