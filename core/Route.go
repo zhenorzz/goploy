@@ -7,10 +7,8 @@ import (
 	"net/url"
 	"os"
 	"regexp"
-	"strconv"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/zhenorzz/goploy/model"
 )
 
 // TokenInfo pasre the jwt
@@ -164,13 +162,12 @@ func (r *route) hasPermission(userID uint32) error {
 	if len(r.auth) == 0 {
 		return nil
 	}
-	var permissions model.Permissions
+	_, permissions, err := GetUserCache(userID)
 
-	if x, found := Cache.Get("permissions:" + strconv.Itoa(int(userID))); found {
-		permissions = *x.(*model.Permissions)
-	} else {
-		return errors.New("token过期")
+	if err != nil {
+		return err
 	}
+
 	for _, permission := range permissions {
 		for _, auth := range r.auth {
 			if permission.URI == auth {

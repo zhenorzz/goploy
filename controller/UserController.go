@@ -101,22 +101,10 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 		Permission    model.Permissions `json:"permission"`
 		PermissionURI []string          `json:"permissionUri"`
 	}
-	var userData model.User
+	userData, permissions, err := core.GetUserCache(gp.TokenInfo.ID)
 
-	if x, found := core.Cache.Get("userInfo:" + strconv.Itoa(int(gp.TokenInfo.ID))); found {
-		userData = *x.(*model.User)
-	} else {
-		response := core.Response{Code: 10086, Message: "token过期"}
-		response.JSON(w)
-		return
-	}
-
-	var permissions model.Permissions
-
-	if x, found := core.Cache.Get("permissions:" + strconv.Itoa(int(gp.TokenInfo.ID))); found {
-		permissions = *x.(*model.Permissions)
-	} else {
-		response := core.Response{Code: 10086, Message: "token过期"}
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
