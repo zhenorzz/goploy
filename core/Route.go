@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/zhenorzz/goploy/model"
@@ -163,26 +164,12 @@ func (r *route) hasPermission(userID uint32) error {
 	if len(r.auth) == 0 {
 		return nil
 	}
-	userData, err := model.User{ID: userID}.GetData()
-	if err != nil {
-		return err
-	}
 	var permissions model.Permissions
-	// 超级管理员获取全部权限
-	if userData.RoleID == 1 {
-		permissions, err = model.Permission{}.GetAll()
-		if err != nil {
-			return err
-		}
+
+	if x, found := Cache.Get("permissions:" + strconv.Itoa(int(userID))); found {
+		permissions = *x.(*model.Permissions)
 	} else {
-		role, err := model.Role{ID: userData.RoleID}.GetData()
-		if err != nil {
-			return err
-		}
-		permissions, err = model.Permission{}.GetAllByPermissionList(role.PermissionList)
-		if err != nil {
-			return err
-		}
+		return errors.New("token过期")
 	}
 	for _, permission := range permissions {
 		for _, auth := range r.auth {

@@ -3,8 +3,10 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
+	cache "github.com/patrickmn/go-cache"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 )
@@ -54,40 +56,8 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 	model.User{ID: userData.ID, LastLoginTime: time.Now().Unix()}.UpdateLastLoginTime()
-	data := RepData{Token: token}
-	response := core.Response{Data: data}
-	response.JSON(w)
-}
 
-// Info get user info api
-func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
-		UserInfo struct {
-			ID      uint32 `json:"id"`
-			Account string `json:"account"`
-			Name    string `json:"name"`
-		} `json:"userInfo"`
-		Permission    model.Permissions `json:"permission"`
-		PermissionURI []string          `json:"permissionUri"`
-	}
-	userData, err := model.User{ID: gp.TokenInfo.ID}.GetData()
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.JSON(w)
-		return
-	}
-
-	if userData.State != 1 {
-		response := core.Response{Code: 10000, Message: "账号被封停"}
-		response.JSON(w)
-		return
-	}
-
-	data := RepData{}
-	data.UserInfo.ID = gp.TokenInfo.ID
-	data.UserInfo.Name = userData.Name
-	data.UserInfo.Account = userData.Account
-
+	// set cache
 	var permissions model.Permissions
 	// 超级管理员获取全部权限
 	if userData.RoleID == 1 {
@@ -112,6 +82,50 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 		}
 	}
 
+	core.Cache.Set("userInfo:"+strconv.Itoa(int(userData.ID)), &userData, cache.DefaultExpiration)
+	core.Cache.Set("permissions:"+strconv.Itoa(int(userData.ID)), &permissions, cache.DefaultExpiration)
+
+	data := RepData{Token: token}
+	response := core.Response{Data: data}
+	response.JSON(w)
+}
+
+// Info get user info api
+func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
+	type RepData struct {
+		UserInfo struct {
+			ID      uint32 `json:"id"`
+			Account string `json:"account"`
+			Name    string `json:"name"`
+		} `json:"userInfo"`
+		Permission    model.Permissions `json:"permission"`
+		PermissionURI []string          `json:"permissionUri"`
+	}
+	var userData model.User
+
+	if x, found := core.Cache.Get("userInfo:" + strconv.Itoa(int(gp.TokenInfo.ID))); found {
+		userData = *x.(*model.User)
+	} else {
+		response := core.Response{Code: 10086, Message: "token过期"}
+		response.JSON(w)
+		return
+	}
+
+	var permissions model.Permissions
+
+	if x, found := core.Cache.Get("permissions:" + strconv.Itoa(int(gp.TokenInfo.ID))); found {
+		permissions = *x.(*model.Permissions)
+	} else {
+		response := core.Response{Code: 10086, Message: "token过期"}
+		response.JSON(w)
+		return
+	}
+
+	data := RepData{}
+	data.UserInfo.ID = gp.TokenInfo.ID
+	data.UserInfo.Name = userData.Name
+	data.UserInfo.Account = userData.Account
+
 	var tempPermissions model.Permissions
 	for _, permission := range permissions {
 		data.PermissionURI = append(data.PermissionURI, permission.URI)
@@ -126,7 +140,6 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 	}
 
 	data.Permission = tempPermissions
-
 	response := core.Response{Data: data}
 	response.JSON(w)
 }

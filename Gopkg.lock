@@ -42,6 +42,14 @@
   version = "v1.3.0"
 
 [[projects]]
+  digest = "1:808cdddf087fb64baeae67b8dfaee2069034d9704923a3cb8bd96a995421a625"
+  name = "github.com/patrickmn/go-cache"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "a3647f8e31d79543b2d0f0ae2fe5c379d72cedc0"
+  version = "v2.1.0"
+
+[[projects]]
   branch = "master"
   digest = "1:221e5fc4039967b9d550ba6c786eef1b6016b460ae5981631f51feb26b52acdc"
   name = "golang.org/x/crypto"
@@ -84,6 +92,7 @@
     "github.com/gorilla/websocket",
     "github.com/jasonlvhit/gocron",
     "github.com/joho/godotenv",
+    "github.com/patrickmn/go-cache",
     "golang.org/x/crypto/bcrypt",
     "golang.org/x/crypto/ssh",
   ]
