@@ -145,6 +145,7 @@ export default {
 
       this.webSocket.onmessage = (e) => {
         const data = JSON.parse(e.data)
+        data.message = this.formatDetail(data.message)
         if (data.dataType === 1) {
           this.gitLog.push(data)
         } else {
@@ -221,7 +222,7 @@ export default {
     },
 
     formatDetail(detail) {
-      return detail ? detail.replace(/\n/g, '<br>') : ''
+      return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
     },
 
     formatTime(timestamp) {

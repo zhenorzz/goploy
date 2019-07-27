@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -259,8 +260,36 @@ func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 				State:     ws.Fail,
 				Message:   "项目初始化失败",
 			}
-			return err
+			return errors.New("项目初始化失败")
 		}
+
+		if project.Branch != "master" {
+			checkout := exec.Command("git", "checkout", "-b", project.Branch, "origin/"+project.Branch)
+			checkout.Dir = srcPath
+			var checkoutOutbuf, checkoutErrbuf bytes.Buffer
+			checkout.Stdout = &checkoutOutbuf
+			checkout.Stderr = &checkoutErrbuf
+			if err := checkout.Run(); err != nil {
+				core.Log(core.ERROR, checkoutErrbuf.String())
+				ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+					ProjectID: project.ID,
+					UserID:    tokenInfo.ID,
+					DataType:  ws.GitType,
+					State:     ws.Fail,
+					Message:   checkoutErrbuf.String(),
+				}
+				os.RemoveAll(srcPath)
+				return errors.New(checkoutErrbuf.String())
+			}
+			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+				ProjectID: project.ID,
+				UserID:    tokenInfo.ID,
+				DataType:  ws.GitType,
+				State:     ws.Success,
+				Message:   checkoutOutbuf.String(),
+			}
+		}
+
 		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化成功")
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 			ProjectID: project.ID,
