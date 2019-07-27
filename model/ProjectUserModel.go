@@ -77,6 +77,8 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 			project.name, 
 			publisher_id, 
 			publisher_name, 
+			project.environment, 
+			project.branch, 
 			project.publish_state, 
 			project.update_time 
 		FROM 
@@ -96,7 +98,7 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 	for rows.Next() {
 		var project Project
 
-		if err := rows.Scan(&project.ID, &project.Name, &project.PublisherID, &project.PublisherName, &project.PublishState, &project.UpdateTime); err != nil {
+		if err := rows.Scan(&project.ID, &project.Name, &project.PublisherID, &project.PublisherName, &project.Environment, &project.Branch, &project.PublishState, &project.UpdateTime); err != nil {
 			return projects, err
 		}
 		projects = append(projects, project)

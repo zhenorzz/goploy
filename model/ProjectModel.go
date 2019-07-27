@@ -11,6 +11,8 @@ type Project struct {
 	Name          string `json:"name"`
 	URL           string `json:"url"`
 	Path          string `json:"path"`
+	Environment   string `json:"environment"`
+	Branch        string `json:"branch"`
 	Script        string `json:"script"`
 	RsyncOption   string `json:"rsyncOption"`
 	PublisherID   uint32 `json:"publisherId"`
@@ -31,14 +33,18 @@ func (p Project) AddRow() (uint32, error) {
 			name, 
 			url, 
 			path, 
+			environment, 
+			branch, 
 			script, 
 			rsync_option, 
 			create_time, 
 			update_time) 
-		VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		p.Name,
 		p.URL,
 		p.Path,
+		p.Environment,
+		p.Branch,
 		p.Script,
 		p.RsyncOption,
 		p.CreateTime,
@@ -55,6 +61,8 @@ func (p Project) EditRow() error {
 		  name = ?,
 		  url = ?,
 		  path = ?,
+		  environment = ?,
+		  branch = ?,
 		  script = ?,
 		  rsync_option = ?
 		WHERE
@@ -62,6 +70,8 @@ func (p Project) EditRow() error {
 		p.Name,
 		p.URL,
 		p.Path,
+		p.Environment,
+		p.Branch,
 		p.Script,
 		p.RsyncOption,
 		p.ID,
@@ -110,7 +120,7 @@ func (p Project) Publish() error {
 
 // GetList project row
 func (p Project) GetList() (Projects, error) {
-	rows, err := DB.Query("SELECT id, name, url, path, script, rsync_option, create_time, update_time FROM project WHERE state = 1 ORDER BY id DESC")
+	rows, err := DB.Query("SELECT id, name, url, path, environment, branch, script, rsync_option, create_time, update_time FROM project WHERE state = 1 ORDER BY id DESC")
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +128,7 @@ func (p Project) GetList() (Projects, error) {
 	for rows.Next() {
 		var project Project
 
-		if err := rows.Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Script, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
+		if err := rows.Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.Script, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
 			return nil, err
 		}
 		projects = append(projects, project)
@@ -129,7 +139,7 @@ func (p Project) GetList() (Projects, error) {
 // GetData add project information to p *Project
 func (p Project) GetData() (Project, error) {
 	var project Project
-	err := DB.QueryRow("SELECT id, name, url, path, script, rsync_option, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Script, &project.RsyncOption, &project.CreateTime, &project.UpdateTime)
+	err := DB.QueryRow("SELECT id, name, url, path, environment, branch, script, rsync_option, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.Script, &project.RsyncOption, &project.CreateTime, &project.UpdateTime)
 	if err != nil {
 		return project, errors.New("数据查询失败")
 	}

@@ -78,6 +78,8 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		Name        string   `json:"name"`
 		URL         string   `json:"url"`
 		Path        string   `json:"path"`
+		Environment string   `json:"Environment"`
+		Branch      string   `json:"branch"`
 		Script      string   `json:"script"`
 		RsyncOption string   `json:"rsyncOption"`
 		ServerIDs   []uint32 `json:"serverIds"`
@@ -101,6 +103,8 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		Name:        reqData.Name,
 		URL:         reqData.URL,
 		Path:        reqData.Path,
+		Environment: reqData.Environment,
+		Branch:      reqData.Branch,
 		Script:      reqData.Script,
 		RsyncOption: reqData.RsyncOption,
 		CreateTime:  time.Now().Unix(),
@@ -157,6 +161,8 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		Name        string `json:"name"`
 		URL         string `json:"url"`
 		Path        string `json:"path"`
+		Environment string `json:"Environment"`
+		Branch      string `json:"branch"`
 		Script      string `json:"script"`
 		RsyncOption string `json:"rsyncOption"`
 	}
@@ -172,6 +178,8 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		Name:        reqData.Name,
 		URL:         reqData.URL,
 		Path:        reqData.Path,
+		Environment: reqData.Environment,
+		Branch:      reqData.Branch,
 		Script:      reqData.Script,
 		RsyncOption: reqData.RsyncOption,
 		UpdateTime:  time.Now().Unix(),

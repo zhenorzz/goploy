@@ -9,6 +9,8 @@
     >
       <el-table-column prop="id" label="ID" width="160" />
       <el-table-column prop="name" label="项目名称" />
+      <el-table-column prop="environment" label="环境" />
+      <el-table-column prop="branch" label="分支" />
       <el-table-column prop="publisherName" label="构建者" width="160" />
       <el-table-column prop="publishState" label="状态" width="60">
         <template slot-scope="scope">
@@ -143,7 +145,6 @@ export default {
 
       this.webSocket.onmessage = (e) => {
         const data = JSON.parse(e.data)
-        data.messgae = this.formatDetail(data.messgae)
         if (data.dataType === 1) {
           this.gitLog.push(data)
         } else {

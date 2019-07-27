@@ -13,8 +13,8 @@
       <el-table-column prop="name" label="项目名称" />
       <el-table-column prop="url" label="项目地址" />
       <el-table-column prop="path" width="200" label="部署路径" />
-      <el-table-column prop="createTime" width="160" label="创建时间" />
-      <el-table-column prop="updateTime" width="160" label="更新时间" />
+      <el-table-column prop="environment" width="160" label="环境" />
+      <el-table-column prop="branch" width="160" label="分支" />
       <el-table-column prop="operation" label="操作" width="350">
         <template slot-scope="scope">
           <el-button type="primary" @click="handleEdit(scope.row)">编辑</el-button>
@@ -34,6 +34,16 @@
         </el-form-item>
         <el-form-item label="部署路径" prop="path">
           <el-input v-model="formData.path" autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="环境" prop="environment">
+          <el-select v-model="formData.environment" placeholder="选择环境" style="width:100%">
+            <el-option label="生产环境" value="生产环境" />
+            <el-option label="测试环境" value="测试环境" />
+            <el-option label="开发环境" value="开发环境" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="分支" prop="branch">
+          <el-input v-model="formData.branch" autocomplete="off" />
         </el-form-item>
         <el-form-item label="rsync选项" prop="rsyncOption">
           <el-input v-model="formData.rsyncOption" autocomplete="off" placeholder="-rtv --exclude .git --delete" />
@@ -187,6 +197,8 @@ export default {
         url: '',
         path: '',
         script: '',
+        environment: '生产环境',
+        branch: 'master',
         rsyncOption: '',
         serverIds: [],
         userIds: []
@@ -200,6 +212,12 @@ export default {
         ],
         path: [
           { required: true, message: '请输入部署路径', trigger: ['blur'] }
+        ],
+        environment: [
+          { required: true, message: '请选择环境', trigger: ['blur'] }
+        ],
+        branch: [
+          { required: true, message: '请输入分支名称', trigger: ['blur'] }
         ],
         serverIds: [
           { type: 'array', message: '请选择服务器', trigger: 'change' }
