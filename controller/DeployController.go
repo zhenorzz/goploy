@@ -158,7 +158,7 @@ func (deploy Deploy) Sync(w http.ResponseWriter, gp *core.Goploy) {
 // Publish the project
 func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID uint32 `json:"id"`
+		ProjectID uint32 `json:"projectId"`
 	}
 	var reqData ReqData
 	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
@@ -168,7 +168,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	}
 
 	project, err := model.Project{
-		ID: reqData.ID,
+		ID: reqData.ProjectID,
 	}.GetData()
 
 	if err != nil {
@@ -177,7 +177,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
-	projectServers, err := model.ProjectServer{ProjectID: reqData.ID}.GetBindServerListByProjectID()
+	projectServers, err := model.ProjectServer{ProjectID: reqData.ProjectID}.GetBindServerListByProjectID()
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -193,6 +193,47 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	response := core.Response{Message: "部署中，请稍后"}
 	response.JSON(w)
 }
+
+// Rollback the project
+func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
+	type ReqData struct {
+		ProjectID uint32 `json:"projectId"`
+		Commit    string `json:"commit"`
+	}
+	var reqData ReqData
+	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
+	project, err := model.Project{
+		ID: reqData.ProjectID,
+	}.GetData()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
+	projectServers, err := model.ProjectServer{ProjectID: reqData.ProjectID}.GetBindServerListByProjectID()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	go execRollback(gp.TokenInfo, reqData.Commit, project, projectServers)
+	project.PublisherID = gp.TokenInfo.ID
+	project.PublisherName = gp.TokenInfo.Name
+	project.UpdateTime = time.Now().Unix()
+	_ = project.Publish()
+
+	response := core.Response{Message: "重新构建中，请稍后"}
+	response.JSON(w)
+}
+
 func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers model.ProjectServers) {
 	gitTraceModel := model.GitTrace{
 		ProjectID:     project.ID,
@@ -217,6 +258,32 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 	}
 
 	commit, err := gitCommitID(tokenInfo, project)
+	if err != nil {
+		gitTraceModel.Detail = err.Error()
+		gitTraceModel.State = 0
+		gitTraceModel.AddRow()
+		return
+	}
+	gitTraceModel.Commit = commit
+	gitTraceModel.Detail = stdout
+	gitTraceModel.State = 1
+	gitTraceID, _ := gitTraceModel.AddRow()
+
+	for _, projectServer := range projectServers {
+		go remoteSync(tokenInfo, gitTraceID, project, projectServer)
+	}
+}
+
+func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project, projectServers model.ProjectServers) {
+	gitTraceModel := model.GitTrace{
+		ProjectID:     project.ID,
+		ProjectName:   project.Name,
+		PublisherID:   tokenInfo.ID,
+		PublisherName: tokenInfo.Name,
+		CreateTime:    time.Now().Unix(),
+		UpdateTime:    time.Now().Unix(),
+	}
+	stdout, err := gitRollback(tokenInfo, commit, project)
 	if err != nil {
 		gitTraceModel.Detail = err.Error()
 		gitTraceModel.State = 0
@@ -327,7 +394,7 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 			State:     ws.Fail,
 			Message:   cleanErrbuf.String(),
 		}
-		return "", err
+		return "", errors.New(cleanErrbuf.String())
 	}
 	pull := exec.Command("git", "pull")
 	pull.Dir = srcPath
@@ -351,7 +418,7 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 			State:     ws.Fail,
 			Message:   pullErrbuf.String(),
 		}
-		return "", err
+		return "", errors.New(pullErrbuf.String())
 	}
 
 	core.Log(core.TRACE, pullOutbuf.String())
@@ -363,6 +430,45 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 		Message:   pullOutbuf.String(),
 	}
 	return pullOutbuf.String(), nil
+}
+
+func gitRollback(tokenInfo core.TokenInfo, commit string, project model.Project) (string, error) {
+	srcPath := core.GolbalPath + "repository/" + project.Name
+
+	resetCmd := exec.Command("git", "reset", "--hard", commit)
+	resetCmd.Dir = srcPath
+	var resetOutbuf, resetErrbuf bytes.Buffer
+	resetCmd.Stdout = &resetOutbuf
+	resetCmd.Stderr = &resetErrbuf
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" git reset --hard "+commit)
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID: project.ID,
+		UserID:    tokenInfo.ID,
+		DataType:  ws.GitType,
+		State:     ws.Success,
+		Message:   "git reset --hard " + commit,
+	}
+	if err := resetCmd.Run(); err != nil {
+		core.Log(core.ERROR, resetErrbuf.String())
+		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+			ProjectID: project.ID,
+			UserID:    tokenInfo.ID,
+			DataType:  ws.GitType,
+			State:     ws.Fail,
+			Message:   resetErrbuf.String(),
+		}
+		return "", err
+	}
+
+	core.Log(core.TRACE, resetOutbuf.String())
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID: project.ID,
+		UserID:    tokenInfo.ID,
+		DataType:  ws.GitType,
+		State:     ws.Success,
+		Message:   resetOutbuf.String(),
+	}
+	return resetOutbuf.String(), nil
 }
 
 func gitCommitID(tokenInfo core.TokenInfo, project model.Project) (string, error) {
@@ -390,14 +496,14 @@ func gitCommitID(tokenInfo core.TokenInfo, project model.Project) (string, error
 			State:     ws.Success,
 			Message:   gitErrbuf.String(),
 		}
-		return "", err
+		return "", errors.New(gitErrbuf.String())
 	}
 	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 		ProjectID: project.ID,
 		UserID:    tokenInfo.ID,
 		DataType:  ws.GitType,
 		State:     ws.Success,
-		Message:   gitOutbuf.String(),
+		Message:   "commitSHA: " + gitOutbuf.String(),
 	}
 	return gitOutbuf.String(), nil
 }

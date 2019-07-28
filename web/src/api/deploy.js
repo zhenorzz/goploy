@@ -39,34 +39,22 @@ export function getSyncDetail(gitTraceId) {
  * @param  {int}    id
  * @return {Promise}
  */
-export function publish(id) {
+export function publish(projectId) {
   return request({
     url: '/deploy/publish',
     method: 'post',
-    data: { id }
+    data: { projectId }
   })
 }
 
 /**
- * @param  {int}    projectId
- * @param  {string} branch
- * @param  {string} commit
- * @param  {string} commitSha
- * @param  {int}    serverId
- * @param  {int}    type
+ * @param  {int}    id
  * @return {Promise}
  */
-export function add(projectId, branch, commit, commitSha, serverId, type) {
+export function rollback(projectId, commit) {
   return request({
-    url: '/deploy/add',
+    url: '/deploy/rollback',
     method: 'post',
-    data: {
-      projectId: projectId,
-      branch: branch,
-      commit: commit,
-      commitSha: commitSha,
-      serverId: serverId,
-      type: type
-    }
+    data: { projectId, commit }
   })
 }

@@ -19,11 +19,10 @@
         </template>
       </el-table-column>
       <el-table-column prop="updateTime" label="上次构建时间" width="160" />
-      <el-table-column prop="operation" label="操作" width="220">
+      <el-table-column prop="operation" label="操作" width="150">
         <template slot-scope="scope">
           <el-button type="primary" @click="publish(scope.row.id)">构建</el-button>
           <el-button type="success" @click="handleDetail(scope.row.id)">详情</el-button>
-          <el-button type="danger">回滚</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -33,9 +32,10 @@
           <el-radio-group v-model="gitTraceId" @change="handleDetailChange">
             <el-row v-for="(item, index) in gitTraceList" :key="index">
               <el-row style="margin:5px 0">
-                <el-radio :label="item['id']" border>commitID: {{ item['commit'].substring(0,6) }}</el-radio>
                 <el-tag v-if="item['remoteState'] === 1" type="success" effect="plain">成功</el-tag>
                 <el-tag v-else type="danger" effect="plain">失败</el-tag>
+                <el-radio style="margin-left: 10px;margin-right: 5px;" :label="item['id']" border>commitID: {{ item['commit'].substring(0,6) }}</el-radio>
+                <el-button type="danger" icon="el-icon-refresh" plain @click="rollback(item)" />
               </el-row>
             </el-row>
           </el-radio-group>
@@ -102,7 +102,7 @@
   </el-row>
 </template>
 <script>
-import { getList, getDetail, getSyncDetail, publish } from '@/api/deploy'
+import { getList, getDetail, getSyncDetail, publish, rollback } from '@/api/deploy'
 import { parseTime } from '@/utils'
 
 export default {
@@ -193,7 +193,7 @@ export default {
             type: 'success',
             duration: 5 * 1000
           })
-          this.getList()
+          setTimeout(() => { this.getList() }, 1000)
           this.publishDialogVisible = true
         })
       }).catch(() => {
@@ -218,6 +218,33 @@ export default {
         this.gitTrace = response.data.gitTrace
         this.remoteTraceList = response.data.remoteTraceList
         this.gitTraceId = this.gitTrace.id
+      })
+    },
+
+    rollback(data) {
+      this.$confirm('此操作将重新构建' + data.commit + ', 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.gitLog = []
+        this.remoteLog = {}
+        this.initWebSocket()
+        rollback(data.projectId, data.commit).then((response) => {
+          this.$message({
+            message: response.message,
+            type: 'success',
+            duration: 5 * 1000
+          })
+          setTimeout(() => { this.getList() }, 1000)
+          this.dialogVisible = false
+          this.publishDialogVisible = true
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
       })
     },
 
