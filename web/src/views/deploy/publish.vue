@@ -122,52 +122,56 @@ export default {
   },
   created() {
     this.getList()
+    // // 路由跳转时结束websocket链接
+    this.$router.afterEach(() => {
+      this.webSocket && this.webSocket.close()
+    })
   },
   methods: {
-    initWebSocket() {
-      try {
-        if (this.webSocket === null) {
-          this.webSocket = new WebSocket('ws://' + window.location.host + process.env.VUE_APP_BASE_API + '/deploy/sync')
-          this.initEventHandle()
+    connectWebSocket() {
+      if (this.webSocket && this.webSocket.readyState < 2) {
+        console.log('reusing the socket connection [state = ' + this.webSocket.readyState + ']: ' + this.webSocket.url)
+        return Promise.resolve(this.webSocket)
+      }
+
+      return new Promise((resolve, reject) => {
+        this.webSocket = new WebSocket('ws://' + window.location.host + process.env.VUE_APP_BASE_API + '/deploy/sync')
+
+        this.webSocket.onopen = () => {
+          console.log('socket connection is opened [state = ' + this.webSocket.readyState + ']: ' + this.webSocket.url)
+          resolve(this.webSocket)
         }
-      } catch (e) {
-        console.log(e)
-      }
-    },
-    initEventHandle() {
-      this.webSocket.onopen = () => {
-        console.log('WebSocket连接成功')
-      }
 
-      this.webSocket.onerror = () => {
-        console.log('WebSocket连接发生错误')
-      }
+        this.webSocket.onerror = (err) => {
+          console.error('socket connection error : ', err)
+          reject(err)
+        }
 
-      this.webSocket.onmessage = (e) => {
-        const data = JSON.parse(e.data)
-        data.message = this.formatDetail(data.message)
-        if (data.dataType === 1) {
-          this.gitLog.push(data)
-        } else {
-          if (!this.remoteLog[data.serverName]) {
-            this.$set(this.remoteLog, data.serverName, [])
+        this.webSocket.onclose = (e) => {
+          this.webSocket = null
+          console.log('connection closed (' + e.code + ')')
+        }
+
+        this.webSocket.onmessage = (e) => {
+          const data = JSON.parse(e.data)
+          data.message = this.formatDetail(data.message)
+          if (data.dataType === 1) {
+            this.gitLog.push(data)
+          } else {
+            if (!this.remoteLog[data.serverName]) {
+              this.$set(this.remoteLog, data.serverName, [])
+            }
+            this.remoteLog[data.serverName].push(data)
           }
-          this.remoteLog[data.serverName].push(data)
+
+          this.$nextTick(() => {
+            const contentBox = this.$refs.publishSchedule
+            contentBox.$el.scrollTop = contentBox.$el.scrollHeight
+          })
         }
-        this.$nextTick(() => {
-          const contentBox = this.$refs.publishSchedule
-          contentBox.$el.scrollTop = contentBox.$el.scrollHeight
-        })
-      }
-      this.webSocket.onclose = (e) => {
-        this.webSocket = null
-        console.log('connection closed (' + e.code + ')')
-      }
-      // 路由跳转时结束websocket链接
-      this.$router.afterEach(() => {
-        this.webSocket && this.webSocket.close()
       })
     },
+
     getList() {
       getList().then((response) => {
         const projectList = response.data.projectList || []
@@ -186,15 +190,16 @@ export default {
       }).then(() => {
         this.gitLog = []
         this.remoteLog = {}
-        this.initWebSocket()
-        publish(id).then((response) => {
-          this.$message({
-            message: response.message,
-            type: 'success',
-            duration: 5 * 1000
+        this.publishDialogVisible = true
+        this.connectWebSocket().then(server => {
+          publish(id).then((response) => {
+            this.$message({
+              message: response.message,
+              type: 'success',
+              duration: 5 * 1000
+            })
+            setTimeout(() => { this.getList() }, 1000)
           })
-          setTimeout(() => { this.getList() }, 1000)
-          this.publishDialogVisible = true
         })
       }).catch(() => {
         this.$message({
@@ -229,16 +234,17 @@ export default {
       }).then(() => {
         this.gitLog = []
         this.remoteLog = {}
-        this.initWebSocket()
-        rollback(data.projectId, data.commit).then((response) => {
-          this.$message({
-            message: response.message,
-            type: 'success',
-            duration: 5 * 1000
+        this.dialogVisible = false
+        this.publishDialogVisible = true
+        this.connectWebSocket().then(server => {
+          rollback(data.projectId, data.commit).then((response) => {
+            this.$message({
+              message: response.message,
+              type: 'success',
+              duration: 5 * 1000
+            })
+            setTimeout(() => { this.getList() }, 1000)
           })
-          setTimeout(() => { this.getList() }, 1000)
-          this.dialogVisible = false
-          this.publishDialogVisible = true
         })
       }).catch(() => {
         this.$message({

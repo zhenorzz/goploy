@@ -457,7 +457,7 @@ func gitRollback(tokenInfo core.TokenInfo, commit string, project model.Project)
 			State:     ws.Fail,
 			Message:   resetErrbuf.String(),
 		}
-		return "", err
+		return "", errors.New(resetErrbuf.String())
 	}
 
 	core.Log(core.TRACE, resetOutbuf.String())
