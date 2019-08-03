@@ -94,6 +94,43 @@ func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
 	response.JSON(w)
 }
 
+// GetCommitList get latest 10 commit list
+func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) {
+
+	type RepData struct {
+		CommitList []string `json:"commitList"`
+	}
+
+	id, err := strconv.Atoi(gp.URLQuery.Get("id"))
+	if err != nil {
+		response := core.Response{Code: 1, Message: "id参数错误"}
+		response.JSON(w)
+		return
+	}
+
+	project, err := model.Project{ID: uint32(id)}.GetData()
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
+	srcPath := core.GolbalPath + "repository/" + project.Name
+
+	log := exec.Command("git", "log", "--pretty=format:%H`%an`%ar`%s", "-n", "10")
+	log.Dir = srcPath
+	var logOutbuf, logErrbuf bytes.Buffer
+	log.Stdout = &logOutbuf
+	log.Stderr = &logErrbuf
+	if err := log.Run(); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Data: RepData{CommitList: strings.Split(logOutbuf.String(), "\n")}}
+	response.JSON(w)
+}
+
 // GetSyncDetail deploy detail
 func (deploy Deploy) GetSyncDetail(w http.ResponseWriter, gp *core.Goploy) {
 

@@ -39,6 +39,18 @@ export function getSyncDetail(gitTraceId) {
  * @param  {int}    id
  * @return {Promise}
  */
+export function getCommitList(id) {
+  return request({
+    url: '/deploy/getCommitList',
+    method: 'get',
+    params: { id }
+  })
+}
+
+/**
+ * @param  {int}    id
+ * @return {Promise}
+ */
 export function publish(projectId) {
   return request({
     url: '/deploy/publish',

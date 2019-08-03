@@ -35,10 +35,11 @@
         </template>
       </el-table-column>
       <el-table-column prop="updateTime" label="上次构建时间" width="160" />
-      <el-table-column prop="operation" label="操作" width="150">
+      <el-table-column prop="operation" label="操作" width="220">
         <template slot-scope="scope">
           <el-button type="primary" @click="publish(scope.row.id)">构建</el-button>
           <el-button type="success" @click="handleDetail(scope.row.id)">详情</el-button>
+          <el-button type="danger" @click="handleRollback(scope.row.id)">回滚</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -115,10 +116,31 @@
         </el-row>
       </el-row>
     </el-dialog>
+    <el-dialog title="commit管理" :visible.sync="commitDialogVisible">
+      <el-table
+        border
+        stripe
+        highlight-current-row
+        :data="commitTableData"
+      >
+        <el-table-column prop="commit" label="commit" width="290" />
+        <el-table-column prop="author" label="author" />
+        <el-table-column prop="date" label="date" />
+        <el-table-column prop="message" label="message" />
+        <el-table-column prop="operation" label="操作" width="75">
+          <template slot-scope="scope">
+            <el-button type="danger" @click="rollback(scope.row)">构建</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="commitDialogVisible = false">取 消</el-button>
+      </div>
+    </el-dialog>
   </el-row>
 </template>
 <script>
-import { getList, getDetail, getSyncDetail, publish, rollback } from '@/api/deploy'
+import { getList, getDetail, getSyncDetail, getCommitList, publish, rollback } from '@/api/deploy'
 import { getOption as getProjectGroupOption } from '@/api/projectGroup'
 import { parseTime } from '@/utils'
 
@@ -129,9 +151,11 @@ export default {
       projectGroupOption: [],
       gitTraceId: '1',
       publishDialogVisible: false,
+      commitDialogVisible: false,
       dialogVisible: false,
       webSocket: null,
       tableData: [],
+      commitTableData: [],
       gitTrace: {},
       gitTraceList: [],
       remoteTraceList: [],
@@ -257,6 +281,23 @@ export default {
         this.gitTrace = response.data.gitTrace
         this.remoteTraceList = response.data.remoteTraceList
         this.gitTraceId = this.gitTrace.id
+      })
+    },
+
+    handleRollback(id) {
+      getCommitList(id).then(response => {
+        this.commitTableData = response.data.commitList.map(element => {
+          const commitInfo = element.split('`')
+          return {
+            projectId: id,
+            commit: commitInfo[0],
+            author: commitInfo[1],
+            date: commitInfo[2],
+            message: commitInfo[3]
+          }
+        })
+
+        this.commitDialogVisible = true
       })
     },
 
