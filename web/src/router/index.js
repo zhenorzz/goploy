@@ -103,16 +103,6 @@ export const asyncRoutes = [
         }
       },
       {
-        path: 'server',
-        name: '服务器设置',
-        component: () => import('@/views/project/server'),
-        meta: {
-          title: '服务器设置',
-          icon: 'server',
-          permission_uri: '/project/server'
-        }
-      },
-      {
         path: 'group',
         name: '分组设置',
         component: () => import('@/views/project/group'),
@@ -120,6 +110,16 @@ export const asyncRoutes = [
           title: '分组设置',
           icon: 'list',
           permission_uri: '/project/group'
+        }
+      },
+      {
+        path: 'server',
+        name: '服务器设置',
+        component: () => import('@/views/project/server'),
+        meta: {
+          title: '服务器设置',
+          icon: 'server',
+          permission_uri: '/project/server'
         }
       }
     ]

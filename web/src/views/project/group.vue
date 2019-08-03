@@ -14,9 +14,8 @@
       <el-table-column prop="name" label="组名" />
       <el-table-column prop="createTime" label="创建时间" width="160" />
       <el-table-column prop="updateTime" label="更新时间" width="160" />
-      <el-table-column prop="operation" label="操作" width="220">
+      <el-table-column prop="operation" label="操作" width="150">
         <template slot-scope="scope">
-          <el-button size="small" type="success" @click="handleEdit(scope.row)">绑定</el-button>
           <el-button size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
           <el-button size="small" type="danger" @click="handleRemove(scope.row)">删除</el-button>
         </template>
