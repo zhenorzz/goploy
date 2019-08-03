@@ -33,7 +33,14 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 		Project model.Projects `json:"projectList"`
 	}
 
-	projects, err := model.ProjectUser{UserID: gp.TokenInfo.ID}.GetDepolyListByUserID()
+	projectGroupID, err := strconv.Atoi(gp.URLQuery.Get("projectGroupId"))
+	if err != nil {
+		response := core.Response{Code: 1, Message: "id参数错误"}
+		response.JSON(w)
+		return
+	}
+
+	projects, err := model.ProjectUser{UserID: gp.TokenInfo.ID, Project: model.Project{ProjectGroupID: uint32(projectGroupID)}}.GetDepolyListByUserID()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)

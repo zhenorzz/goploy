@@ -1,5 +1,16 @@
 <template>
   <el-row class="app-container">
+    <el-row class="app-bar" type="flex">
+      <el-select v-model="projectGroupId" placeholder="选择分组" @change="handleGroupChange">
+        <el-option label="默认" :value="0" />
+        <el-option
+          v-for="(item, index) in projectGroupOption"
+          :key="index"
+          :label="item.name"
+          :value="item.id"
+        />
+      </el-select>
+    </el-row>
     <el-table
       border
       stripe
@@ -9,6 +20,11 @@
     >
       <el-table-column prop="id" label="ID" width="160" />
       <el-table-column prop="name" label="项目名称" />
+      <el-table-column prop="group" label="分组">
+        <template slot-scope="scope">
+          {{ findGroupName(scope.row.projectGroupId) }}
+        </template>
+      </el-table-column>
       <el-table-column prop="environment" label="环境" />
       <el-table-column prop="branch" label="分支" />
       <el-table-column prop="publisherName" label="构建者" width="160" />
@@ -103,11 +119,14 @@
 </template>
 <script>
 import { getList, getDetail, getSyncDetail, publish, rollback } from '@/api/deploy'
+import { getOption as getProjectGroupOption } from '@/api/projectGroup'
 import { parseTime } from '@/utils'
 
 export default {
   data() {
     return {
+      projectGroupId: parseInt(localStorage.getItem('projectGroupId')) || 0,
+      projectGroupOption: [],
       gitTraceId: '1',
       publishDialogVisible: false,
       dialogVisible: false,
@@ -122,6 +141,7 @@ export default {
   },
   created() {
     this.getList()
+    this.getProjectGroupOption()
     // // 路由跳转时结束websocket链接
     this.$router.afterEach(() => {
       this.webSocket && this.webSocket.close()
@@ -172,8 +192,20 @@ export default {
       })
     },
 
+    handleGroupChange(projectGroupId) {
+      localStorage.setItem('projectGroupId', projectGroupId)
+      this.projectGroupId = projectGroupId
+      this.getList()
+    },
+
+    getProjectGroupOption() {
+      getProjectGroupOption().then((response) => {
+        this.projectGroupOption = response.data.projectGroupList
+      })
+    },
+
     getList() {
-      getList().then((response) => {
+      getList(this.projectGroupId).then((response) => {
         const projectList = response.data.projectList || []
         projectList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
@@ -182,6 +214,7 @@ export default {
         this.tableData = projectList
       })
     },
+
     publish(id) {
       this.$confirm('此操作将部署该项目, 是否继续?', '提示', {
         confirmButtonText: '确定',
@@ -208,6 +241,7 @@ export default {
         })
       })
     },
+
     handleDetail(id) {
       getDetail(id).then((response) => {
         this.dialogVisible = true
@@ -252,6 +286,11 @@ export default {
           message: '已取消重新构建'
         })
       })
+    },
+
+    findGroupName(projectGroupId) {
+      const projectGroup = this.projectGroupOption.find(element => element.id === projectGroupId)
+      return projectGroup ? projectGroup['name'] : '默认'
     },
 
     formatDetail(detail) {

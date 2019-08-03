@@ -77,6 +77,7 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 			project.name, 
 			publisher_id, 
 			publisher_name, 
+			project.project_group_id, 
 			project.environment, 
 			project.branch, 
 			project.publish_state, 
@@ -89,8 +90,11 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 			project_user.project_id = project.id
 		WHERE 
 			project_user.user_id = ?
-		AND project.state = 1`,
-		pu.UserID)
+		AND 
+			project.project_group_id = ?
+		AND 
+			project.state = 1`,
+		pu.UserID, pu.ProjectGroupID)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +102,7 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 	for rows.Next() {
 		var project Project
 
-		if err := rows.Scan(&project.ID, &project.Name, &project.PublisherID, &project.PublisherName, &project.Environment, &project.Branch, &project.PublishState, &project.UpdateTime); err != nil {
+		if err := rows.Scan(&project.ID, &project.Name, &project.PublisherID, &project.PublisherName, &project.ProjectGroupID, &project.Environment, &project.Branch, &project.PublishState, &project.UpdateTime); err != nil {
 			return projects, err
 		}
 		projects = append(projects, project)
