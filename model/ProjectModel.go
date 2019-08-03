@@ -7,20 +7,21 @@ import (
 
 // Project mysql table project
 type Project struct {
-	ID            uint32 `json:"id"`
-	Name          string `json:"name"`
-	URL           string `json:"url"`
-	Path          string `json:"path"`
-	Environment   string `json:"environment"`
-	Branch        string `json:"branch"`
-	Script        string `json:"script"`
-	RsyncOption   string `json:"rsyncOption"`
-	PublisherID   uint32 `json:"publisherId"`
-	PublisherName string `json:"publisherName"`
-	PublishState  uint8  `json:"publishState"`
-	State         uint8  `json:"state"`
-	CreateTime    int64  `json:"createTime"`
-	UpdateTime    int64  `json:"updateTime"`
+	ID             uint32 `json:"id"`
+	ProjectGroupID uint32 `json:"projectGroupId"`
+	Name           string `json:"name"`
+	URL            string `json:"url"`
+	Path           string `json:"path"`
+	Environment    string `json:"environment"`
+	Branch         string `json:"branch"`
+	Script         string `json:"script"`
+	RsyncOption    string `json:"rsyncOption"`
+	PublisherID    uint32 `json:"publisherId"`
+	PublisherName  string `json:"publisherName"`
+	PublishState   uint8  `json:"publishState"`
+	State          uint8  `json:"state"`
+	CreateTime     int64  `json:"createTime"`
+	UpdateTime     int64  `json:"updateTime"`
 }
 
 // Projects many project
@@ -30,6 +31,7 @@ type Projects []Project
 func (p Project) AddRow() (uint32, error) {
 	result, err := DB.Exec(
 		`INSERT INTO project (
+			project_group_id,
 			name, 
 			url, 
 			path, 
@@ -39,7 +41,8 @@ func (p Project) AddRow() (uint32, error) {
 			rsync_option, 
 			create_time, 
 			update_time) 
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		p.ProjectGroupID,
 		p.Name,
 		p.URL,
 		p.Path,
@@ -58,6 +61,7 @@ func (p Project) AddRow() (uint32, error) {
 func (p Project) EditRow() error {
 	_, err := DB.Exec(
 		`UPDATE project SET 
+		  project_group_id = ?,
 		  name = ?,
 		  url = ?,
 		  path = ?,
@@ -66,7 +70,8 @@ func (p Project) EditRow() error {
 		  script = ?,
 		  rsync_option = ?
 		WHERE
-		 id = ?`,
+		  id = ?`,
+		p.ProjectGroupID,
 		p.Name,
 		p.URL,
 		p.Path,
@@ -120,7 +125,7 @@ func (p Project) Publish() error {
 
 // GetList project row
 func (p Project) GetList() (Projects, error) {
-	rows, err := DB.Query("SELECT id, name, url, path, environment, branch, script, rsync_option, create_time, update_time FROM project WHERE state = 1 ORDER BY id DESC")
+	rows, err := DB.Query("SELECT id, project_group_id, name, url, path, environment, branch, script, rsync_option, create_time, update_time FROM project WHERE state = 1 ORDER BY id DESC")
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +133,7 @@ func (p Project) GetList() (Projects, error) {
 	for rows.Next() {
 		var project Project
 
-		if err := rows.Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.Script, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
+		if err := rows.Scan(&project.ID, &project.ProjectGroupID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.Script, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
 			return nil, err
 		}
 		projects = append(projects, project)

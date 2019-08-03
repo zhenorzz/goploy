@@ -11,6 +11,11 @@
       style="width: 100%"
     >
       <el-table-column prop="name" label="项目名称" />
+      <el-table-column prop="group" label="分组">
+        <template slot-scope="scope">
+          {{ findGroupName(scope.row.projectGroupId) }}
+        </template>
+      </el-table-column>
       <el-table-column prop="url" label="项目地址" />
       <el-table-column prop="path" width="200" label="部署路径" />
       <el-table-column prop="environment" width="160" label="环境" />
@@ -50,6 +55,17 @@
         </el-form-item>
         <el-form-item label="脚本路径(多个脚本用;分割)" prop="scrpit">
           <el-input v-model="formData.script" :rows="3" type="textarea" autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="绑定分组" prop="projectGroupId">
+          <el-select v-model="formData.projectGroupId" placeholder="选择分组" style="width:100%">
+            <el-option label="默认" :value="0" />
+            <el-option
+              v-for="(item, index) in projectGroupOption"
+              :key="index"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item v-show="formProps.showServers" label="绑定服务器" prop="serverIds">
           <el-select v-model="formData.serverIds" multiple placeholder="选择服务器，可多选" style="width:100%">
@@ -169,6 +185,7 @@
 
 import { getOption as getUserOption } from '@/api/user'
 import { getOption as getServerOption } from '@/api/server'
+import { getOption as getProjectGroupOption } from '@/api/projectGroup'
 import { getList, getBindServerList, getBindUserList, add, edit, create, remove, addServer, addUser, removeProjectServer, removeProjectUser } from '@/api/project'
 import { parseTime } from '@/utils'
 
@@ -182,6 +199,7 @@ export default {
       dialogAddUserVisible: false,
       serverOption: [],
       userOption: [],
+      projectGroupOption: [],
       tableData: [],
       tableServerData: [],
       tableUserData: [],
@@ -193,6 +211,7 @@ export default {
       tempFormData: {},
       formData: {
         id: 0,
+        projectGroupId: 0,
         name: '',
         url: '',
         path: '',
@@ -294,6 +313,13 @@ export default {
     },
 
     handleServer(data) {
+      this.getBindServerList(data.id)
+      // 先把projectID写入添加服务器的表单
+      this.addServerFormData.projectId = data.id
+      this.dialogServerVisible = true
+    },
+
+    handleGroup(data) {
       this.getBindServerList(data.id)
       // 先把projectID写入添加服务器的表单
       this.addServerFormData.projectId = data.id
@@ -463,6 +489,9 @@ export default {
       getUserOption().then((response) => {
         this.userOption = response.data.userList
       })
+      getProjectGroupOption().then((response) => {
+        this.projectGroupOption = response.data.projectGroupList
+      })
     },
 
     getProjectList() {
@@ -495,6 +524,11 @@ export default {
           element.updateTime = parseTime(element.updateTime)
         })
       })
+    },
+
+    findGroupName(projectGroupId) {
+      const projectGroup = this.projectGroupOption.find(element => element.id === projectGroupId)
+      return projectGroup ? projectGroup['name'] : '默认'
     },
 
     storeFormData() {

@@ -147,6 +147,7 @@ export default {
         this.pagination = response.data.pagination
       })
     },
+
     getRoleOption() {
       getRoleOption().then((response) => {
         this.roleOption = response.data.roleList

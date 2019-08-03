@@ -75,15 +75,16 @@ func (project Project) GetBindUserList(w http.ResponseWriter, gp *core.Goploy) {
 // Add one project
 func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		Name        string   `json:"name"`
-		URL         string   `json:"url"`
-		Path        string   `json:"path"`
-		Environment string   `json:"Environment"`
-		Branch      string   `json:"branch"`
-		Script      string   `json:"script"`
-		RsyncOption string   `json:"rsyncOption"`
-		ServerIDs   []uint32 `json:"serverIds"`
-		UserIDs     []uint32 `json:"userIds"`
+		ProjectGroupID uint32   `json:"projectGroupId"`
+		Name           string   `json:"name"`
+		URL            string   `json:"url"`
+		Path           string   `json:"path"`
+		Environment    string   `json:"Environment"`
+		Branch         string   `json:"branch"`
+		Script         string   `json:"script"`
+		RsyncOption    string   `json:"rsyncOption"`
+		ServerIDs      []uint32 `json:"serverIds"`
+		UserIDs        []uint32 `json:"userIds"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -100,15 +101,16 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 	}
 
 	projectID, err := model.Project{
-		Name:        reqData.Name,
-		URL:         reqData.URL,
-		Path:        reqData.Path,
-		Environment: reqData.Environment,
-		Branch:      reqData.Branch,
-		Script:      reqData.Script,
-		RsyncOption: reqData.RsyncOption,
-		CreateTime:  time.Now().Unix(),
-		UpdateTime:  time.Now().Unix(),
+		ProjectGroupID: reqData.ProjectGroupID,
+		Name:           reqData.Name,
+		URL:            reqData.URL,
+		Path:           reqData.Path,
+		Environment:    reqData.Environment,
+		Branch:         reqData.Branch,
+		Script:         reqData.Script,
+		RsyncOption:    reqData.RsyncOption,
+		CreateTime:     time.Now().Unix(),
+		UpdateTime:     time.Now().Unix(),
 	}.AddRow()
 
 	if err != nil {
@@ -157,14 +159,15 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 // Edit one Project
 func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID          uint32 `json:"id"`
-		Name        string `json:"name"`
-		URL         string `json:"url"`
-		Path        string `json:"path"`
-		Environment string `json:"Environment"`
-		Branch      string `json:"branch"`
-		Script      string `json:"script"`
-		RsyncOption string `json:"rsyncOption"`
+		ID             uint32 `json:"id"`
+		ProjectGroupID uint32 `json:"projectGroupId"`
+		Name           string `json:"name"`
+		URL            string `json:"url"`
+		Path           string `json:"path"`
+		Environment    string `json:"Environment"`
+		Branch         string `json:"branch"`
+		Script         string `json:"script"`
+		RsyncOption    string `json:"rsyncOption"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -174,15 +177,16 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 	err = model.Project{
-		ID:          reqData.ID,
-		Name:        reqData.Name,
-		URL:         reqData.URL,
-		Path:        reqData.Path,
-		Environment: reqData.Environment,
-		Branch:      reqData.Branch,
-		Script:      reqData.Script,
-		RsyncOption: reqData.RsyncOption,
-		UpdateTime:  time.Now().Unix(),
+		ID:             reqData.ID,
+		ProjectGroupID: reqData.ProjectGroupID,
+		Name:           reqData.Name,
+		URL:            reqData.URL,
+		Path:           reqData.Path,
+		Environment:    reqData.Environment,
+		Branch:         reqData.Branch,
+		Script:         reqData.Script,
+		RsyncOption:    reqData.RsyncOption,
+		UpdateTime:     time.Now().Unix(),
 	}.EditRow()
 
 	if err != nil {

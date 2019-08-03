@@ -14,7 +14,7 @@ type Server struct {
 	UpdateTime int64  `json:"updateTime"`
 }
 
-// Servers many project
+// Servers many server
 type Servers []Server
 
 // AddRow add one row to table server and add id to s.ID

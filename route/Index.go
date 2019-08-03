@@ -50,6 +50,13 @@ func Init() {
 	rt.Add("/server/edit", controller.Server{}.Edit)
 	rt.Add("/server/remove", controller.Server{}.Remove)
 
+	// projectGroup route
+	rt.Add("/projectGroup/getList", controller.ProjectGroup{}.GetList)
+	rt.Add("/projectGroup/getOption", controller.ProjectGroup{}.GetOption)
+	rt.Add("/projectGroup/add", controller.ProjectGroup{}.Add)
+	rt.Add("/projectGroup/edit", controller.ProjectGroup{}.Edit)
+	rt.Add("/projectGroup/remove", controller.ProjectGroup{}.Remove)
+
 	// role route
 	rt.Add("/role/getOption", controller.Role{}.GetOption)
 	rt.Add("/role/getPermissionList", controller.Role{}.GetPermissionList)
