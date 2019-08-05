@@ -42,6 +42,12 @@ func (rt RemoteTrace) AddRow() (uint32, error) {
 		rt.CreateTime,
 		rt.UpdateTime,
 	)
+
+	if err != nil {
+		println(err.Error())
+		return 0, err
+	}
+
 	id, err := result.LastInsertId()
 	return uint32(id), err
 }
