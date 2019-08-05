@@ -250,11 +250,6 @@ export default {
         this.publishDialogVisible = true
         this.connectWebSocket().then(server => {
           publish(id).then((response) => {
-            this.$message({
-              message: response.message,
-              type: 'success',
-              duration: 5 * 1000
-            })
             setTimeout(() => { this.getList() }, 1000)
           })
         })
