@@ -484,13 +484,13 @@ export default {
     get() {
       this.getProjectList()
       getServerOption().then((response) => {
-        this.serverOption = response.data.serverList
+        this.serverOption = response.data.serverList || []
       })
       getUserOption().then((response) => {
-        this.userOption = response.data.userList
+        this.userOption = response.data.userList || []
       })
       getProjectGroupOption().then((response) => {
-        this.projectGroupOption = response.data.projectGroupList
+        this.projectGroupOption = response.data.projectGroupList || []
       })
     },
 

@@ -34,6 +34,12 @@ func (gt GitTrace) AddRow() (uint32, error) {
 		gt.CreateTime,
 		gt.UpdateTime,
 	)
+	
+	if err != nil {
+		println(err.Error())
+		return 0, err
+	}
+
 	id, err := result.LastInsertId()
 	return uint32(id), err
 }

@@ -224,7 +224,7 @@ export default {
 
     getProjectGroupOption() {
       getProjectGroupOption().then((response) => {
-        this.projectGroupOption = response.data.projectGroupList
+        this.projectGroupOption = response.data.projectGroupList || []
       })
     },
 

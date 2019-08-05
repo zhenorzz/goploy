@@ -53,6 +53,9 @@ func (p Project) AddRow() (uint32, error) {
 		p.CreateTime,
 		p.UpdateTime,
 	)
+	if err != nil {
+		return 0, err
+	}
 	id, err := result.LastInsertId()
 	return uint32(id), err
 }
