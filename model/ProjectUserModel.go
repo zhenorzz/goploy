@@ -71,30 +71,43 @@ func (pu ProjectUser) GetListByUserID() (ProjectUsers, error) {
 
 // GetDepolyListByUserID user row by status
 func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
-	rows, err := DB.Query(`
-		SELECT 
-			project_id, 
-			project.name, 
-			publisher_id, 
-			publisher_name, 
-			project.project_group_id, 
-			project.environment, 
-			project.branch, 
-			project.publish_state, 
-			project.update_time 
-		FROM 
-			project_user 
-		LEFT JOIN 
-			project 
-		ON 
-			project_user.project_id = project.id
-		WHERE 
-			project_user.user_id = ?
-		AND 
-			project.project_group_id = ?
-		AND 
-			project.state = 1`,
-		pu.UserID, pu.ProjectGroupID)
+
+	sql := `
+	SELECT 
+		project_id, 
+		project.name, 
+		publisher_id, 
+		publisher_name, 
+		project.project_group_id, 
+		project.environment, 
+		project.branch, 
+		project.publish_state, 
+		project.update_time 
+	FROM 
+		project_user 
+	LEFT JOIN 
+		project 
+	ON 
+		project_user.project_id = project.id
+	WHERE 
+		project_user.user_id = ?
+	AND 
+		project.state = 1`
+
+	var arg []interface{}
+
+	arg = append(arg, pu.UserID)
+	if pu.ProjectGroupID != 0 {
+		sql += " AND project.project_group_id = ?"
+		arg = append(arg, pu.ProjectGroupID)
+	}
+
+	if len(pu.Name) > 0 {
+		sql += " AND project.name like ?"
+		arg = append(arg, "%"+pu.Name+"%")
+	}
+
+	rows, err := DB.Query(sql, arg...)
 	if err != nil {
 		return nil, err
 	}

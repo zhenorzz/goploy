@@ -40,7 +40,14 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
-	projects, err := model.ProjectUser{UserID: gp.TokenInfo.ID, Project: model.Project{ProjectGroupID: uint32(projectGroupID)}}.GetDepolyListByUserID()
+	projectName := gp.URLQuery.Get("projectName")
+
+	projects, err := model.ProjectUser{
+		UserID: gp.TokenInfo.ID,
+		Project: model.Project{
+			ProjectGroupID: uint32(projectGroupID),
+			Name:           projectName,
+		}}.GetDepolyListByUserID()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)

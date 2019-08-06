@@ -10,6 +10,7 @@
           :value="item.id"
         />
       </el-select>
+      <el-input v-model="projectName" style="width:300px" placeholder="请输入项目名称" @change="getList" />
     </el-row>
     <el-table
       border
@@ -149,6 +150,7 @@ export default {
     return {
       projectGroupId: parseInt(localStorage.getItem('projectGroupId')) || 0,
       projectGroupOption: [],
+      projectName: '',
       gitTraceId: '1',
       publishDialogVisible: false,
       commitDialogVisible: false,
@@ -229,7 +231,7 @@ export default {
     },
 
     getList() {
-      getList(this.projectGroupId).then((response) => {
+      getList(this.projectGroupId, this.projectName).then((response) => {
         const projectList = response.data.projectList || []
         projectList.forEach((element) => {
           element.createTime = parseTime(element.createTime)

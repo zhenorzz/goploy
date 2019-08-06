@@ -3,11 +3,11 @@ import request from '@/utils/request'
 /**
  * @return {Promise}
  */
-export function getList(projectGroupId) {
+export function getList(projectGroupId, projectName) {
   return request({
     url: '/deploy/getList',
     method: 'get',
-    params: { projectGroupId }
+    params: { projectGroupId, projectName }
   })
 }
 
