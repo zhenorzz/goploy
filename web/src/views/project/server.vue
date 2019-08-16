@@ -30,6 +30,9 @@
         <el-form-item label="IP" label-width="120px" prop="ip">
           <el-input v-model="formData.ip" autocomplete="off" />
         </el-form-item>
+        <el-form-item label="port" label-width="120px" prop="port">
+          <el-input v-model.number="formData.port" autocomplete="off" />
+        </el-form-item>
         <el-form-item label="sshKey所有者" label-width="120px" prop="owner">
           <el-input v-model="formData.owner" autocomplete="off" placeholder="root" />
         </el-form-item>
@@ -58,6 +61,7 @@ export default {
         id: 0,
         name: '',
         ip: '',
+        port: '22',
         owner: ''
       },
       formRules: {
@@ -66,6 +70,9 @@ export default {
         ],
         ip: [
           { required: true, message: '请输入服务器ip', trigger: 'blur' }
+        ],
+        port: [
+          { required: true, message: '请输入服务器port', trigger: 'blur' }
         ],
         owner: [
           { required: true, message: '请输入SSH-KEY的所有者', trigger: 'blur' }

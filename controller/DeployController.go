@@ -582,7 +582,7 @@ func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Proje
 		remoteTraceModel.State = 0
 		remoteTraceModel.AddRow()
 	}
-	rsyncOption = append(rsyncOption, "-e", "ssh -o StrictHostKeyChecking=no", srcPath, destPath)
+	rsyncOption = append(rsyncOption, "-e", "ssh -p "+strconv.Itoa(int(projectServer.ServerPort))+" -o StrictHostKeyChecking=no", srcPath, destPath)
 	cmd := exec.Command("rsync", rsyncOption...)
 	var outbuf, errbuf bytes.Buffer
 	cmd.Stdout = &outbuf
@@ -642,7 +642,7 @@ func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Proje
 	var session *ssh.Session
 	var connectError error
 	for attempt := 0; attempt < 3; attempt++ {
-		session, connectError = connect(projectServer.ServerOwner, "", projectServer.ServerIP, 22)
+		session, connectError = connect(projectServer.ServerOwner, "", projectServer.ServerIP, int(projectServer.ServerPort))
 		if connectError != nil {
 			core.Log(core.ERROR, connectError.Error())
 			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,

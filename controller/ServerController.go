@@ -49,6 +49,7 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		Name  string `json:"name"`
 		IP    string `json:"ip"`
+		Port  uint32 `json:"port"`
 		Owner string `json:"owner"`
 	}
 	var reqData ReqData
@@ -61,6 +62,7 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 	_, err = model.Server{
 		Name:       reqData.Name,
 		IP:         reqData.IP,
+		Port:       reqData.Port,
 		Owner:      reqData.Owner,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
@@ -81,6 +83,7 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		ID    uint32 `json:"id"`
 		Name  string `json:"name"`
 		IP    string `json:"ip"`
+		Port  uint32 `json:"port"`
 		Owner string `json:"owner"`
 	}
 	var reqData ReqData
@@ -94,6 +97,7 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		ID:         reqData.ID,
 		Name:       reqData.Name,
 		IP:         reqData.IP,
+		Port:       reqData.Port,
 		Owner:      reqData.Owner,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),

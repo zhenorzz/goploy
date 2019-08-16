@@ -7,6 +7,7 @@ type ProjectServer struct {
 	ServerID    uint32 `json:"serverId"`
 	ServerName  string `json:"serverName"`
 	ServerIP    string `json:"serverIP"`
+	ServerPort  uint32 `json:"serverPort"`
 	ServerOwner string `json:"serverOwner"`
 	CreateTime  int64  `json:"createTime"`
 	UpdateTime  int64  `json:"updateTime"`
@@ -24,6 +25,7 @@ func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 			server_id,
 			server.name,
 			server.ip,
+			server.port,
 			server.owner,
 			project_server.create_time,
 			project_server.update_time
@@ -44,6 +46,7 @@ func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 			&projectServer.ServerID,
 			&projectServer.ServerName,
 			&projectServer.ServerIP,
+			&projectServer.ServerPort,
 			&projectServer.ServerOwner,
 			&projectServer.CreateTime,
 			&projectServer.UpdateTime); err != nil {

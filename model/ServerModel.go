@@ -9,6 +9,7 @@ type Server struct {
 	ID         uint32 `json:"id"`
 	Name       string `json:"name"`
 	IP         string `json:"ip"`
+	Port       uint32 `json:"port"`
 	Owner      string `json:"owner"`
 	CreateTime int64  `json:"createTime"`
 	UpdateTime int64  `json:"updateTime"`
@@ -20,9 +21,10 @@ type Servers []Server
 // AddRow add one row to table server and add id to s.ID
 func (s Server) AddRow() (uint32, error) {
 	result, err := DB.Exec(
-		"INSERT INTO server (name, ip, owner, create_time, update_time) VALUES (?, ?, ?, ?, ?)",
+		"INSERT INTO server (name, ip, port, owner, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?)",
 		s.Name,
 		s.IP,
+		s.Port,
 		s.Owner,
 		s.CreateTime,
 		s.UpdateTime,
@@ -40,11 +42,13 @@ func (s Server) EditRow() error {
 		`UPDATE server SET 
 		  name = ?,
 		  ip = ?,
+		  port = ?,
 		  owner = ?
 		WHERE
 		 id = ?`,
 		s.Name,
 		s.IP,
+		s.Port,
 		s.Owner,
 		s.ID,
 	)
@@ -90,7 +94,7 @@ func (s Server) Remove() error {
 
 // GetList server row
 func (s Server) GetList() (Servers, error) {
-	rows, err := DB.Query("SELECT id, name, ip, owner, create_time, update_time FROM server WHERE state = 1")
+	rows, err := DB.Query("SELECT id, name, ip, port, owner, create_time, update_time FROM server WHERE state = 1")
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +102,7 @@ func (s Server) GetList() (Servers, error) {
 	for rows.Next() {
 		var server Server
 
-		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Owner, &server.CreateTime, &server.UpdateTime); err != nil {
+		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.CreateTime, &server.UpdateTime); err != nil {
 			return nil, err
 		}
 		servers = append(servers, server)
