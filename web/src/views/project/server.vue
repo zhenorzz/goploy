@@ -12,6 +12,7 @@
     >
       <el-table-column prop="name" label="服务器" />
       <el-table-column prop="ip" label="IP" />
+      <el-table-column prop="port" label="端口" />
       <el-table-column prop="owner" label="sshKey所有者" show-overflow-tooltip />
       <el-table-column prop="createTime" label="创建时间" width="160" />
       <el-table-column prop="updateTime" label="更新时间" width="160" />
