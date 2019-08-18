@@ -3,7 +3,7 @@
 1. 导入根目录goploy.sql
 2. cp .env.example .env
 3. 修改.env里面的配置
-4. 运行./main or main.exe
+4. 运行./goploy or goploy.exe
 5. web http://ip:port  (账号:密码 admin:admin!@#)
 
 ## 后端开发说明
@@ -16,8 +16,11 @@
 2. 修改.env.development
 3. npm run dev
 
+## 原理图
 ![原理图](https://github.com/zhenorzz/goploy/blob/master/goploy.png)
 
+## 预览
+![预览](https://github.com/zhenorzz/goploy/blob/master/snapshot.gif)
 有不懂的看可以发issue
 
 欢迎大家合作开发

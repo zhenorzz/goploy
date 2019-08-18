@@ -67,7 +67,7 @@ CREATE TABLE `permission`  (
   `state` tinyint(1) NOT NULL DEFAULT 1 COMMENT '该记录是否有效1：有效、0：无效',
   `pid` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '父级权限ID',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Records of permission
@@ -77,11 +77,12 @@ INSERT INTO `permission` VALUES (2, '主页列表', '/dashboard/list', 1, 1);
 INSERT INTO `permission` VALUES (3, '项目', '/project', 1, 0);
 INSERT INTO `permission` VALUES (4, '项目设置', '/project/setting', 1, 3);
 INSERT INTO `permission` VALUES (5, '服务器管理', '/project/server', 1, 3);
-INSERT INTO `permission` VALUES (6, '成员', '/member', 1, 0);
-INSERT INTO `permission` VALUES (7, '成员列表', '/member/list', 1, 6);
-INSERT INTO `permission` VALUES (8, '权限管理', '/member/permission', 1, 6);
-INSERT INTO `permission` VALUES (9, '部署', '/deploy', 1, 0);
-INSERT INTO `permission` VALUES (10, '构建发布', '/deploy/publish', 1, 9);
+INSERT INTO `permission` VALUES (6, '项目分组', '/project/group', 1, 3);
+INSERT INTO `permission` VALUES (7, '成员', '/member', 1, 0);
+INSERT INTO `permission` VALUES (8, '成员列表', '/member/list', 1, 7);
+INSERT INTO `permission` VALUES (9, '权限管理', '/member/permission', 1, 7);
+INSERT INTO `permission` VALUES (10, '部署', '/deploy', 1, 0);
+INSERT INTO `permission` VALUES (11, '构建发布', '/deploy/publish', 1, 10);
 
 -- ----------------------------
 -- Table structure for project
@@ -191,7 +192,7 @@ CREATE TABLE `role`  (
 -- ----------------------------
 INSERT INTO `role` VALUES (1, '超级管理员', '1,2,3,4,5,6,7,8,9', 1, 1527927486, 1527927486, '超级管理员是最高权限者');
 INSERT INTO `role` VALUES (2, '管理员', '3,4,5,7,8,9', 1, 1527928486, 1552642448, '包含除成员管理以外所有权限');
-INSERT INTO `role` VALUES (3, '组员', '8,9', 1, 1527928486, 1552979330, '只能发布项目');
+INSERT INTO `role` VALUES (3, '组员', '8,9', 1, 1527928486, 1552979330, '只能构建项目');
 
 -- ----------------------------
 -- Table structure for server
@@ -201,6 +202,7 @@ CREATE TABLE `server`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `port` smallint(10) UNSIGNED NOT NULL DEFAULT 22,
   `owner` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `update_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
