@@ -7,21 +7,22 @@ import (
 
 // Project mysql table project
 type Project struct {
-	ID             uint32 `json:"id"`
-	ProjectGroupID uint32 `json:"projectGroupId"`
-	Name           string `json:"name"`
-	URL            string `json:"url"`
-	Path           string `json:"path"`
-	Environment    string `json:"environment"`
-	Branch         string `json:"branch"`
-	Script         string `json:"script"`
-	RsyncOption    string `json:"rsyncOption"`
-	PublisherID    uint32 `json:"publisherId"`
-	PublisherName  string `json:"publisherName"`
-	PublishState   uint8  `json:"publishState"`
-	State          uint8  `json:"state"`
-	CreateTime     int64  `json:"createTime"`
-	UpdateTime     int64  `json:"updateTime"`
+	ID                uint32 `json:"id"`
+	ProjectGroupID    uint32 `json:"projectGroupId"`
+	Name              string `json:"name"`
+	URL               string `json:"url"`
+	Path              string `json:"path"`
+	Environment       string `json:"environment"`
+	Branch            string `json:"branch"`
+	AfterPullScript   string `json:"afterPullscript"`
+	AfterDeployScript string `json:"afterDeployscript"`
+	RsyncOption       string `json:"rsyncOption"`
+	PublisherID       uint32 `json:"publisherId"`
+	PublisherName     string `json:"publisherName"`
+	PublishState      uint8  `json:"publishState"`
+	State             uint8  `json:"state"`
+	CreateTime        int64  `json:"createTime"`
+	UpdateTime        int64  `json:"updateTime"`
 }
 
 // Projects many project
@@ -37,7 +38,8 @@ func (p Project) AddRow() (uint32, error) {
 			path, 
 			environment, 
 			branch, 
-			script, 
+			after_pull_script, 
+			after_deploy_script, 
 			rsync_option, 
 			create_time, 
 			update_time) 
@@ -48,7 +50,8 @@ func (p Project) AddRow() (uint32, error) {
 		p.Path,
 		p.Environment,
 		p.Branch,
-		p.Script,
+		p.AfterPullScript,
+		p.AfterDeployScript,
 		p.RsyncOption,
 		p.CreateTime,
 		p.UpdateTime,
@@ -70,7 +73,8 @@ func (p Project) EditRow() error {
 		  path = ?,
 		  environment = ?,
 		  branch = ?,
-		  script = ?,
+		  after_pull_script = ?,
+		  after_deploy_script = ?,
 		  rsync_option = ?
 		WHERE
 		  id = ?`,
@@ -80,7 +84,8 @@ func (p Project) EditRow() error {
 		p.Path,
 		p.Environment,
 		p.Branch,
-		p.Script,
+		p.AfterPullScript,
+		p.AfterDeployScript,
 		p.RsyncOption,
 		p.ID,
 	)
@@ -128,7 +133,7 @@ func (p Project) Publish() error {
 
 // GetList project row
 func (p Project) GetList() (Projects, error) {
-	rows, err := DB.Query("SELECT id, project_group_id, name, url, path, environment, branch, script, rsync_option, create_time, update_time FROM project WHERE state = 1 ORDER BY id DESC")
+	rows, err := DB.Query("SELECT id, project_group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, create_time, update_time FROM project WHERE state = 1 ORDER BY id DESC")
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +141,7 @@ func (p Project) GetList() (Projects, error) {
 	for rows.Next() {
 		var project Project
 
-		if err := rows.Scan(&project.ID, &project.ProjectGroupID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.Script, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
+		if err := rows.Scan(&project.ID, &project.ProjectGroupID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.AfterPullScript, &project.AfterDeployScript, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
 			return nil, err
 		}
 		projects = append(projects, project)
@@ -147,7 +152,7 @@ func (p Project) GetList() (Projects, error) {
 // GetData add project information to p *Project
 func (p Project) GetData() (Project, error) {
 	var project Project
-	err := DB.QueryRow("SELECT id, name, url, path, environment, branch, script, rsync_option, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.Script, &project.RsyncOption, &project.CreateTime, &project.UpdateTime)
+	err := DB.QueryRow("SELECT id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, create_time, update_time FROM project WHERE id = ?", p.ID).Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.AfterPullScript, &project.AfterDeployScript, &project.RsyncOption, &project.CreateTime, &project.UpdateTime)
 	if err != nil {
 		return project, errors.New("数据查询失败")
 	}
@@ -156,7 +161,7 @@ func (p Project) GetData() (Project, error) {
 
 // FindNeedToUpdateProjectList find the project need to update its publish state
 func (p Project) FindNeedToUpdateProjectList() (Projects, error) {
-	rows, err := DB.Query("SELECT id, name, url, path, script, rsync_option, create_time, update_time FROM project WHERE update_time >= ?", time.Now().Unix()-30*60)
+	rows, err := DB.Query("SELECT id, name, url, path, after_pull_script, after_deploy_script, rsync_option, create_time, update_time FROM project WHERE update_time >= ?", time.Now().Unix()-30*60)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +169,7 @@ func (p Project) FindNeedToUpdateProjectList() (Projects, error) {
 	for rows.Next() {
 		var project Project
 
-		if err := rows.Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Script, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
+		if err := rows.Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.AfterPullScript, &project.AfterDeployScript, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
 			return nil, err
 		}
 		projects = append(projects, project)

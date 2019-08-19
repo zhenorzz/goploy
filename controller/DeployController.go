@@ -629,7 +629,7 @@ func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Proje
 		return
 	}
 	// 没有脚本就不运行
-	if project.Script == "" {
+	if project.AfterDeployScript == "" {
 		return
 	}
 	remoteTraceModel.Type = 2
@@ -680,12 +680,12 @@ func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Proje
 	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
 		DataType: ws.ScriptType,
 		State:    ws.Success,
-		Message:  "运行:" + project.Script,
+		Message:  "运行:" + project.AfterDeployScript,
 	}
 	var scriptError error
 	for attempt := 0; attempt < 3; attempt++ {
 		sshOutbuf.Reset()
-		if scriptError = session.Run(project.Script); scriptError != nil {
+		if scriptError = session.Run(project.AfterDeployScript); scriptError != nil {
 			core.Log(core.ERROR, scriptError.Error())
 			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
 				DataType: ws.ScriptType,
