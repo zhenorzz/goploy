@@ -41,7 +41,7 @@ func Init() {
 	rt.Add("/deploy/getList", controller.Deploy{}.GetList)
 	rt.Add("/deploy/getDetail", controller.Deploy{}.GetDetail)
 	rt.Add("/deploy/getCommitList", controller.Deploy{}.GetCommitList)
-	rt.Add("/deploy/getSyncDetail", controller.Deploy{}.GetSyncDetail)
+	rt.Add("/deploy/getPreview", controller.Deploy{}.GetPreview)
 	rt.Add("/deploy/sync", controller.Deploy{}.Sync)
 	rt.Add("/deploy/publish", controller.Deploy{}.Publish, middleware.HasPublishAuth)
 	rt.Add("/deploy/rollback", controller.Deploy{}.Rollback, middleware.HasPublishAuth)

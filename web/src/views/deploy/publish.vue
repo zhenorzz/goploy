@@ -52,7 +52,7 @@
               <el-row style="margin:5px 0">
                 <el-tag v-if="item.publishState === 1" type="success" effect="plain">成功</el-tag>
                 <el-tag v-else type="danger" effect="plain">失败</el-tag>
-                <el-radio style="margin-left: 10px;margin-right: 5px;" :label="item.token" border>commitID: {{ item['commit'].substring(0,6) }}</el-radio>
+                <el-radio style="margin-left: 10px;margin-right: 5px;" :label="item.token" border>commitID: {{ item.commit }}</el-radio>
                 <el-button type="danger" icon="el-icon-refresh" plain @click="rollback(item)" />
               </el-row>
             </el-row>
@@ -142,7 +142,7 @@
   </el-row>
 </template>
 <script>
-import { getList, getDetail, getSyncDetail, getCommitList, publish, rollback } from '@/api/deploy'
+import { getList, getDetail, getPreview, getCommitList, publish, rollback } from '@/api/deploy'
 import { getOption as getProjectGroupOption } from '@/api/projectGroup'
 import { parseTime } from '@/utils'
 
@@ -263,28 +263,32 @@ export default {
       })
     },
 
-    handleDetail(data) {
-      getDetail({ projectId: data.id, lastPublishToken: data.lastPublishToken }).then((response) => {
-        this.dialogVisible = true
-        this.publishToken = data.lastPublishToken
+    getDetail() {
+      getDetail(this.publishToken).then((response) => {
         this.publishTraceList = response.data.publishTraceList.map(element => {
           element.createTime = parseTime(element.createTime)
-          Object.assign(element, JSON.parse(element.ext))
-          return element
-        })
-        this.gitTraceList = response.data.gitTraceList.map(element => {
-          Object.assign(element, JSON.parse(element.ext))
+          if (element.ext !== '') Object.assign(element, JSON.parse(element.ext))
           return element
         })
       })
     },
 
-    handleDetailChange(gitTraceId) {
-      getSyncDetail(gitTraceId).then(response => {
-        this.gitTrace = response.data.gitTrace
-        this.remoteTraceList = response.data.remoteTraceList
-        this.gitTraceId = this.gitTrace.id
+    handleDetail(data) {
+      this.dialogVisible = true
+      this.publishToken = data.lastPublishToken
+      getPreview(data.id).then((response) => {
+        this.gitTraceList = response.data.gitTraceList.map(element => {
+          if (element.ext !== '') Object.assign(element, JSON.parse(element.ext))
+          element.commit = element['commit'] ? element['commit'].substring(0, 6) : ''
+          return element
+        })
       })
+      this.getDetail()
+    },
+
+    handleDetailChange(lastPublishToken) {
+      this.publishToken = lastPublishToken
+      this.getDetail()
     },
 
     handleRollback(id) {

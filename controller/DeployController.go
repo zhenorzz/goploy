@@ -58,15 +58,12 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	response.JSON(w)
 }
 
-// GetDetail deploy detail
-func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
+// GetPreview deploy detail
+func (deploy Deploy) GetPreview(w http.ResponseWriter, gp *core.Goploy) {
 
 	type RepData struct {
-		PublishTraceList model.PublishTraces `json:"publishTraceList"`
-		GitTraceList     model.PublishTraces `json:"gitTraceList"`
+		GitTraceList model.PublishTraces `json:"gitTraceList"`
 	}
-
-	lastPublishToken := gp.URLQuery.Get("lastPublishToken")
 
 	projectID, err := strconv.Atoi(gp.URLQuery.Get("projectId"))
 	if err != nil {
@@ -74,6 +71,25 @@ func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
+
+	gitTraceList, err := model.PublishTrace{ProjectID: uint32(projectID)}.GetPreviewByProjectID()
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Data: RepData{GitTraceList: gitTraceList}}
+	response.JSON(w)
+}
+
+// GetDetail deploy detail
+func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
+
+	type RepData struct {
+		PublishTraceList model.PublishTraces `json:"publishTraceList"`
+	}
+
+	lastPublishToken := gp.URLQuery.Get("lastPublishToken")
 
 	publishTraceList, err := model.PublishTrace{Token: lastPublishToken}.GetListByToken()
 	if err == sql.ErrNoRows {
@@ -85,13 +101,7 @@ func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	gitTraceList, err := model.PublishTrace{ProjectID: uint32(projectID)}.GetPreviewByProjectID()
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.JSON(w)
-		return
-	}
-	response := core.Response{Data: RepData{PublishTraceList: publishTraceList, GitTraceList: gitTraceList}}
+	response := core.Response{Data: RepData{PublishTraceList: publishTraceList}}
 	response.JSON(w)
 }
 
@@ -129,38 +139,6 @@ func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 	response := core.Response{Data: RepData{CommitList: strings.Split(logOutbuf.String(), "\n")}}
-	response.JSON(w)
-}
-
-// GetSyncDetail deploy detail
-func (deploy Deploy) GetSyncDetail(w http.ResponseWriter, gp *core.Goploy) {
-
-	type RepData struct {
-		GitTrace        model.GitTrace     `json:"gitTrace"`
-		RemoteTraceList model.RemoteTraces `json:"remoteTraceList"`
-	}
-
-	gitTraceID, err := strconv.Atoi(gp.URLQuery.Get("gitTraceId"))
-	if err != nil {
-		response := core.Response{Code: 1, Message: "id参数错误"}
-		response.JSON(w)
-		return
-	}
-
-	gitTrace, err := model.GitTrace{ID: uint32(gitTraceID)}.GetData()
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.JSON(w)
-		return
-	}
-	remoteTracesList, err := model.RemoteTrace{GitTraceID: gitTrace.ID}.GetListByGitTraceID()
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.JSON(w)
-		return
-	}
-
-	response := core.Response{Data: RepData{GitTrace: gitTrace, RemoteTraceList: remoteTracesList}}
 	response.JSON(w)
 }
 

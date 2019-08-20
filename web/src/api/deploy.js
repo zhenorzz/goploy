@@ -15,11 +15,27 @@ export function getList(projectGroupId, projectName) {
  * @param  {int}    id
  * @return {Promise}
  */
-export function getDetail(params) {
+export function getDetail(lastPublishToken) {
   return request({
     url: '/deploy/getDetail',
     method: 'get',
-    params
+    params: {
+      lastPublishToken
+    }
+  })
+}
+
+/**
+ * @param  {int}    id
+ * @return {Promise}
+ */
+export function getPreview(projectId) {
+  return request({
+    url: '/deploy/getPreview',
+    method: 'get',
+    params: {
+      projectId
+    }
   })
 }
 
