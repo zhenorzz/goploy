@@ -44,7 +44,7 @@ type SyncHub struct {
 // ScriptType => 运行脚本信息
 const (
 	ErrorType  = 0
-	GitType    = 1
+	LocalType  = 1
 	RsyncType  = 2
 	ScriptType = 3
 )

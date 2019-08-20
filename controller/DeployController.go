@@ -367,7 +367,7 @@ func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 			ProjectID: project.ID,
 			UserID:    tokenInfo.ID,
-			DataType:  ws.GitType,
+			DataType:  ws.LocalType,
 			State:     ws.Success,
 			Message:   "项目初始化 git clone",
 		}
@@ -376,7 +376,7 @@ func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 				ProjectID: project.ID,
 				UserID:    tokenInfo.ID,
-				DataType:  ws.GitType,
+				DataType:  ws.LocalType,
 				State:     ws.Fail,
 				Message:   "项目初始化失败",
 			}
@@ -394,7 +394,7 @@ func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 				ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 					ProjectID: project.ID,
 					UserID:    tokenInfo.ID,
-					DataType:  ws.GitType,
+					DataType:  ws.LocalType,
 					State:     ws.Fail,
 					Message:   checkoutErrbuf.String(),
 				}
@@ -404,7 +404,7 @@ func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 				ProjectID: project.ID,
 				UserID:    tokenInfo.ID,
-				DataType:  ws.GitType,
+				DataType:  ws.LocalType,
 				State:     ws.Success,
 				Message:   checkoutOutbuf.String(),
 			}
@@ -414,7 +414,7 @@ func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 			ProjectID: project.ID,
 			UserID:    tokenInfo.ID,
-			DataType:  ws.GitType,
+			DataType:  ws.LocalType,
 			State:     ws.Success,
 			Message:   "项目初始化成功",
 		}
@@ -434,7 +434,7 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 		ProjectID: project.ID,
 		UserID:    tokenInfo.ID,
-		DataType:  ws.GitType,
+		DataType:  ws.LocalType,
 		State:     ws.Success,
 		Message:   "git clean -f",
 	}
@@ -443,7 +443,7 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 			ProjectID: project.ID,
 			UserID:    tokenInfo.ID,
-			DataType:  ws.GitType,
+			DataType:  ws.LocalType,
 			State:     ws.Fail,
 			Message:   cleanErrbuf.String(),
 		}
@@ -458,7 +458,7 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 		ProjectID: project.ID,
 		UserID:    tokenInfo.ID,
-		DataType:  ws.GitType,
+		DataType:  ws.LocalType,
 		State:     ws.Success,
 		Message:   "git pull",
 	}
@@ -467,7 +467,7 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 			ProjectID: project.ID,
 			UserID:    tokenInfo.ID,
-			DataType:  ws.GitType,
+			DataType:  ws.LocalType,
 			State:     ws.Fail,
 			Message:   pullErrbuf.String(),
 		}
@@ -478,7 +478,7 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 		ProjectID: project.ID,
 		UserID:    tokenInfo.ID,
-		DataType:  ws.GitType,
+		DataType:  ws.LocalType,
 		State:     ws.Success,
 		Message:   pullOutbuf.String(),
 	}
@@ -497,7 +497,7 @@ func gitRollback(tokenInfo core.TokenInfo, commit string, project model.Project)
 	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 		ProjectID: project.ID,
 		UserID:    tokenInfo.ID,
-		DataType:  ws.GitType,
+		DataType:  ws.LocalType,
 		State:     ws.Success,
 		Message:   "git reset --hard " + commit,
 	}
@@ -506,7 +506,7 @@ func gitRollback(tokenInfo core.TokenInfo, commit string, project model.Project)
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 			ProjectID: project.ID,
 			UserID:    tokenInfo.ID,
-			DataType:  ws.GitType,
+			DataType:  ws.LocalType,
 			State:     ws.Fail,
 			Message:   resetErrbuf.String(),
 		}
@@ -517,7 +517,7 @@ func gitRollback(tokenInfo core.TokenInfo, commit string, project model.Project)
 	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 		ProjectID: project.ID,
 		UserID:    tokenInfo.ID,
-		DataType:  ws.GitType,
+		DataType:  ws.LocalType,
 		State:     ws.Success,
 		Message:   resetOutbuf.String(),
 	}
@@ -536,7 +536,7 @@ func gitCommitID(tokenInfo core.TokenInfo, project model.Project) (string, error
 	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 		ProjectID: project.ID,
 		UserID:    tokenInfo.ID,
-		DataType:  ws.GitType,
+		DataType:  ws.LocalType,
 		State:     ws.Success,
 		Message:   "git rev-parse HEAD",
 	}
@@ -545,7 +545,7 @@ func gitCommitID(tokenInfo core.TokenInfo, project model.Project) (string, error
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 			ProjectID: project.ID,
 			UserID:    tokenInfo.ID,
-			DataType:  ws.GitType,
+			DataType:  ws.LocalType,
 			State:     ws.Success,
 			Message:   gitErrbuf.String(),
 		}
@@ -554,7 +554,7 @@ func gitCommitID(tokenInfo core.TokenInfo, project model.Project) (string, error
 	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 		ProjectID: project.ID,
 		UserID:    tokenInfo.ID,
-		DataType:  ws.GitType,
+		DataType:  ws.LocalType,
 		State:     ws.Success,
 		Message:   "commitSHA: " + gitOutbuf.String(),
 	}
@@ -588,7 +588,7 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 			ProjectID: project.ID,
 			UserID:    tokenInfo.ID,
-			DataType:  ws.GitType,
+			DataType:  ws.LocalType,
 			State:     ws.Success,
 			Message:   script,
 		}
@@ -597,7 +597,7 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 				ProjectID: project.ID,
 				UserID:    tokenInfo.ID,
-				DataType:  ws.GitType,
+				DataType:  ws.LocalType,
 				State:     ws.Success,
 				Message:   errbuf.String(),
 			}
@@ -615,7 +615,7 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 			ProjectID: project.ID,
 			UserID:    tokenInfo.ID,
-			DataType:  ws.GitType,
+			DataType:  ws.LocalType,
 			State:     ws.Success,
 			Message:   outbuf.String(),
 		}
@@ -764,7 +764,8 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	var scriptError error
 	for attempt := 0; attempt < 3; attempt++ {
 		sshOutbuf.Reset()
-		if scriptError = session.Run(project.AfterDeployScript); scriptError != nil {
+		afterDeployScript := strings.Replace(project.AfterPullScript, "\n", ";", -1)
+		if scriptError = session.Run(afterDeployScript); scriptError != nil {
 			core.Log(core.ERROR, scriptError.Error())
 			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
 				DataType: ws.ScriptType,

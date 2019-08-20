@@ -65,8 +65,7 @@
               <el-row style="margin:5px 0">时间: {{ item.createTime }}</el-row>
               <el-row>commit: {{ item.commit }}</el-row>
               <el-row style="margin:5px 0">
-                <el-tag v-if="item.state === 1" type="success" effect="plain">成功</el-tag>
-                <el-tag v-else type="danger" effect="plain">失败</el-tag>
+                <el-tag v-if="item.state === 0" type="danger" effect="plain">失败</el-tag>
                 <span v-html="formatDetail(item.detail)" />
               </el-row>
             </el-row>
@@ -75,8 +74,7 @@
               <el-row style="margin:5px 0">脚本信息</el-row>
               <el-row>script: {{ item.script }}</el-row>
               <el-row style="margin:5px 0">
-                <el-tag v-if="item.state === 1" type="success" effect="plain">成功</el-tag>
-                <el-tag v-else type="danger" effect="plain">失败</el-tag>
+                <el-tag v-if="item.state === 0" type="danger" effect="plain">失败</el-tag>
                 <span v-html="formatDetail(item.detail)" />
               </el-row>
             </el-row>
@@ -88,8 +86,7 @@
                 <el-row style="margin:5px 0">日志类型: {{ item.type === 5 ? '同步文件' : '运行脚本' }}</el-row>
                 <el-row style="margin:5px 0">时间: {{ item.createTime }}</el-row>
                 <el-row style="margin:5px 0">
-                  <el-tag v-if="item.state === 1" type="success" effect="plain">成功</el-tag>
-                  <el-tag v-else type="danger" effect="plain">失败</el-tag>
+                  <el-tag v-if="item.state === 0" type="danger" effect="plain">失败</el-tag>
                   <span v-html="formatDetail(item.detail)" />
                 </el-row>
               </el-row>
