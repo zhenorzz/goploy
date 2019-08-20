@@ -113,6 +113,16 @@ export const asyncRoutes = [
         }
       },
       {
+        path: 'template',
+        name: '模板设置',
+        component: () => import('@/views/project/template'),
+        meta: {
+          title: '模板设置',
+          icon: 'template',
+          permission_uri: '/project/template'
+        }
+      },
+      {
         path: 'server',
         name: '服务器设置',
         component: () => import('@/views/project/server'),

@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
@@ -32,7 +33,6 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		Project model.Projects `json:"projectList"`
 	}
-
 	projectGroupID, err := strconv.Atoi(gp.URLQuery.Get("projectGroupId"))
 	if err != nil {
 		response := core.Response{Code: 1, Message: "id参数错误"}
@@ -62,42 +62,36 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
 
 	type RepData struct {
-		GitTrace        model.GitTrace     `json:"gitTrace"`
-		GitTraceList    model.GitTraces    `json:"gitTraceList"`
-		RemoteTraceList model.RemoteTraces `json:"remoteTraceList"`
+		PublishTraceList model.PublishTraces `json:"publishTraceList"`
+		GitTraceList     model.PublishTraces `json:"gitTraceList"`
 	}
 
-	id, err := strconv.Atoi(gp.URLQuery.Get("id"))
+	lastPublishToken := gp.URLQuery.Get("lastPublishToken")
+
+	projectID, err := strconv.Atoi(gp.URLQuery.Get("projectId"))
 	if err != nil {
 		response := core.Response{Code: 1, Message: "id参数错误"}
 		response.JSON(w)
 		return
 	}
 
-	gitTrace, err := model.GitTrace{ProjectID: uint32(id)}.GetLatestRow()
+	publishTraceList, err := model.PublishTrace{Token: lastPublishToken}.GetListByToken()
 	if err == sql.ErrNoRows {
 		response := core.Response{Code: 1, Message: "项目尚无构建记录"}
 		response.JSON(w)
 		return
 	} else if err != nil {
-		response := core.Response{Code: 1, Message: "GitTrace.GetLatestRow失败"}
+		response := core.Response{Code: 1, Message: "GitTrace.GetListByToken失败"}
 		response.JSON(w)
 		return
 	}
-	gitTraceList, err := model.GitTrace{ProjectID: uint32(id)}.GetListByProjectID()
+	gitTraceList, err := model.PublishTrace{ProjectID: uint32(projectID)}.GetPreviewByProjectID()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	remoteTracesList, err := model.RemoteTrace{GitTraceID: gitTrace.ID}.GetListByGitTraceID()
-	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
-		response.JSON(w)
-		return
-	}
-
-	response := core.Response{Data: RepData{GitTrace: gitTrace, RemoteTraceList: remoteTracesList, GitTraceList: gitTraceList}}
+	response := core.Response{Data: RepData{PublishTraceList: publishTraceList, GitTraceList: gitTraceList}}
 	response.JSON(w)
 }
 
@@ -235,11 +229,13 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	go execSync(gp.TokenInfo, project, projectServers)
 	project.PublisherID = gp.TokenInfo.ID
 	project.PublisherName = gp.TokenInfo.Name
+	project.LastPublishToken = uuid.New().String()
 	project.UpdateTime = time.Now().Unix()
 	_ = project.Publish()
+
+	go execSync(gp.TokenInfo, project, projectServers)
 
 	response := core.Response{Message: "部署中，请稍后"}
 	response.JSON(w)
@@ -275,79 +271,96 @@ func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	go execRollback(gp.TokenInfo, reqData.Commit, project, projectServers)
 	project.PublisherID = gp.TokenInfo.ID
 	project.PublisherName = gp.TokenInfo.Name
+	project.LastPublishToken = uuid.New().String()
 	project.UpdateTime = time.Now().Unix()
 	_ = project.Publish()
+
+	go execRollback(gp.TokenInfo, reqData.Commit, project, projectServers)
 
 	response := core.Response{Message: "重新构建中，请稍后"}
 	response.JSON(w)
 }
 
 func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers model.ProjectServers) {
-	gitTraceModel := model.GitTrace{
+	publishTraceModel := model.PublishTrace{
+		Token:         project.LastPublishToken,
 		ProjectID:     project.ID,
 		ProjectName:   project.Name,
 		PublisherID:   tokenInfo.ID,
 		PublisherName: tokenInfo.Name,
+		Type:          model.Pull,
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
 	}
 	if err := gitCreate(tokenInfo, project); err != nil {
-		gitTraceModel.Detail = err.Error()
-		gitTraceModel.State = 0
-		gitTraceModel.AddRow()
+		publishTraceModel.Detail = err.Error()
+		publishTraceModel.State = model.Fail
+		publishTraceModel.AddRow()
 		return
 	}
 	stdout, err := gitSync(tokenInfo, project)
 	if err != nil {
-		gitTraceModel.Detail = err.Error()
-		gitTraceModel.State = 0
-		gitTraceModel.AddRow()
+		publishTraceModel.Detail = err.Error()
+		publishTraceModel.State = model.Fail
+		publishTraceModel.AddRow()
 		return
 	}
 
 	commit, err := gitCommitID(tokenInfo, project)
 	if err != nil {
-		gitTraceModel.Detail = err.Error()
-		gitTraceModel.State = 0
-		gitTraceModel.AddRow()
+		publishTraceModel.Detail = err.Error()
+		publishTraceModel.State = model.Fail
+		publishTraceModel.AddRow()
 		return
 	}
-	gitTraceModel.Commit = commit
-	gitTraceModel.Detail = stdout
-	gitTraceModel.State = 1
-	gitTraceID, _ := gitTraceModel.AddRow()
+	ext, _ := json.Marshal(struct {
+		Commit string `json:"commit"`
+	}{commit})
+	publishTraceModel.Ext = string(ext)
+	publishTraceModel.Detail = stdout
+	publishTraceModel.State = model.Success
+	if _, err := publishTraceModel.AddRow(); err != nil {
+		core.Log(core.ERROR, err.Error())
+	}
 
 	for _, projectServer := range projectServers {
-		go remoteSync(tokenInfo, gitTraceID, project, projectServer)
+		go remoteSync(tokenInfo, project, projectServer)
 	}
 }
 
 func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project, projectServers model.ProjectServers) {
-	gitTraceModel := model.GitTrace{
+	publishTraceModel := model.PublishTrace{
+		Token:         project.LastPublishToken,
 		ProjectID:     project.ID,
 		ProjectName:   project.Name,
 		PublisherID:   tokenInfo.ID,
 		PublisherName: tokenInfo.Name,
+		Type:          model.Pull,
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
 	}
 	stdout, err := gitRollback(tokenInfo, commit, project)
 	if err != nil {
-		gitTraceModel.Detail = err.Error()
-		gitTraceModel.State = 0
-		gitTraceModel.AddRow()
+		publishTraceModel.Detail = err.Error()
+		publishTraceModel.State = 0
+		publishTraceModel.AddRow()
 		return
 	}
-	gitTraceModel.Commit = commit
-	gitTraceModel.Detail = stdout
-	gitTraceModel.State = 1
-	gitTraceID, _ := gitTraceModel.AddRow()
+	ext, _ := json.Marshal(struct {
+		Commit string `json:"commit"`
+	}{commit})
+	publishTraceModel.Ext = string(ext)
+	publishTraceModel.Detail = stdout
+	publishTraceModel.State = 1
+
+	if _, err := publishTraceModel.AddRow(); err != nil {
+		core.Log(core.ERROR, err.Error())
+	}
 
 	for _, projectServer := range projectServers {
-		go remoteSync(tokenInfo, gitTraceID, project, projectServer)
+		go remoteSync(tokenInfo, project, projectServer)
 	}
 }
 
@@ -559,28 +572,33 @@ func gitCommitID(tokenInfo core.TokenInfo, project model.Project) (string, error
 	return gitOutbuf.String(), nil
 }
 
-func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Project, projectServer model.ProjectServer) {
+func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer model.ProjectServer) {
 	srcPath := core.GolbalPath + "repository/" + project.Name + "/"
 	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
 	destPath := remoteMachine + ":" + project.Path
-	remoteTraceModel := model.RemoteTrace{
-		GitTraceID:    gitTraceID,
+	publishTraceModel := model.PublishTrace{
+		Token:         project.LastPublishToken,
 		ProjectID:     project.ID,
 		ProjectName:   project.Name,
-		ServerID:      projectServer.ServerID,
-		ServerName:    projectServer.ServerName,
 		PublisherID:   tokenInfo.ID,
 		PublisherName: tokenInfo.Name,
-		Type:          1,
+		Type:          model.Deploy,
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
 	}
+
+	ext, _ := json.Marshal(struct {
+		ServerID   uint32 `json:"serverId"`
+		ServerName string `json:"serverName"`
+	}{projectServer.ServerID, projectServer.ServerName})
+	publishTraceModel.Ext = string(ext)
+
 	rsyncOption, err := utils.ParseCommandLine(project.RsyncOption)
 	if err != nil {
 		core.Log(core.ERROR, err.Error())
-		remoteTraceModel.Detail = err.Error()
-		remoteTraceModel.State = 0
-		remoteTraceModel.AddRow()
+		publishTraceModel.Detail = err.Error()
+		publishTraceModel.State = model.Fail
+		publishTraceModel.AddRow()
 	}
 	rsyncOption = append(rsyncOption, "-e", "ssh -p "+strconv.Itoa(int(projectServer.ServerPort))+" -o StrictHostKeyChecking=no", srcPath, destPath)
 	cmd := exec.Command("rsync", rsyncOption...)
@@ -610,9 +628,9 @@ func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Proje
 				State:    ws.Success,
 				Message:  outbuf.String(),
 			}
-			remoteTraceModel.Detail = outbuf.String()
-			remoteTraceModel.State = 1
-			remoteTraceModel.AddRow()
+			publishTraceModel.Detail = outbuf.String()
+			publishTraceModel.State = model.Success
+			publishTraceModel.AddRow()
 			break
 		}
 	}
@@ -623,16 +641,16 @@ func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Proje
 			State:    ws.Fail,
 			Message:  "rsync重试失败",
 		}
-		remoteTraceModel.Detail = errbuf.String()
-		remoteTraceModel.State = 0
-		remoteTraceModel.AddRow()
+		publishTraceModel.Detail = errbuf.String()
+		publishTraceModel.State = model.Fail
+		publishTraceModel.AddRow()
 		return
 	}
 	// 没有脚本就不运行
 	if project.AfterDeployScript == "" {
 		return
 	}
-	remoteTraceModel.Type = 2
+	publishTraceModel.Type = model.AfterDeploy
 	// 执行ssh脚本
 	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
 		DataType: ws.ScriptType,
@@ -668,9 +686,9 @@ func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Proje
 			State:    ws.Fail,
 			Message:  "ssh重连失败",
 		}
-		remoteTraceModel.Detail = connectError.Error()
-		remoteTraceModel.State = 0
-		remoteTraceModel.AddRow()
+		publishTraceModel.Detail = connectError.Error()
+		publishTraceModel.State = model.Fail
+		publishTraceModel.AddRow()
 		return
 	}
 
@@ -709,15 +727,15 @@ func remoteSync(tokenInfo core.TokenInfo, gitTraceID uint32, project model.Proje
 			State:    ws.Fail,
 			Message:  "脚本运行失败",
 		}
-		remoteTraceModel.Detail = scriptError.Error()
-		remoteTraceModel.State = 0
-		remoteTraceModel.AddRow()
+		publishTraceModel.Detail = scriptError.Error()
+		publishTraceModel.State = model.Fail
+		publishTraceModel.AddRow()
 		return
 	}
 
-	remoteTraceModel.Detail = sshOutbuf.String()
-	remoteTraceModel.State = 1
-	remoteTraceModel.AddRow()
+	publishTraceModel.Detail = sshOutbuf.String()
+	publishTraceModel.State = model.Success
+	publishTraceModel.AddRow()
 	return
 }
 

@@ -3,10 +3,12 @@ package core
 import (
 	"errors"
 	"io/ioutil"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
 	"regexp"
+	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
@@ -122,7 +124,10 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// save the body request data bucause ioutil.ReadAll will clear the requestBody
-	body, _ := ioutil.ReadAll(r.Body)
+	var body []byte
+	if hasContentType(r, "application/json") {
+		body, _ = ioutil.ReadAll(r.Body)
+	}
 	gp := &Goploy{
 		TokenInfo: tokenInfo,
 		Request:   r,
@@ -177,4 +182,21 @@ func (r *route) hasPermission(userID uint32) error {
 	}
 
 	return errors.New("无权限进行此操作")
+}
+
+func hasContentType(r *http.Request, mimetype string) bool {
+	contentType := r.Header.Get("Content-type")
+	if contentType == "" {
+		return false
+	}
+	for _, v := range strings.Split(contentType, ",") {
+		t, _, err := mime.ParseMediaType(v)
+		if err != nil {
+			break
+		}
+		if t == mimetype {
+			return true
+		}
+	}
+	return false
 }

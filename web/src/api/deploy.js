@@ -15,11 +15,11 @@ export function getList(projectGroupId, projectName) {
  * @param  {int}    id
  * @return {Promise}
  */
-export function getDetail(id) {
+export function getDetail(params) {
   return request({
     url: '/deploy/getDetail',
     method: 'get',
-    params: { id }
+    params
   })
 }
 

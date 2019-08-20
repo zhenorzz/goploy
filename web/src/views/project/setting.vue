@@ -51,7 +51,7 @@
           <el-input v-model="formData.branch" autocomplete="off" />
         </el-form-item>
         <el-form-item label="rsync选项" prop="rsyncOption">
-          <el-input v-model="formData.rsyncOption" autocomplete="off" placeholder="-rtv --exclude .git --delete" />
+          <el-input v-model="formData.rsyncOption" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
         </el-form-item>
         <el-form-item label="拉取后运行脚本" prop="afterPullScrpit">
           <el-input v-model="formData.afterPullScrpit" :rows="3" type="textarea" autocomplete="off" placeholder="多个脚本用;分割" />
@@ -222,7 +222,7 @@ export default {
         afterDeployScrpit: '',
         environment: '生产环境',
         branch: 'master',
-        rsyncOption: '',
+        rsyncOption: '-rtv --exclude .git --delete-after',
         serverIds: [],
         userIds: []
       },

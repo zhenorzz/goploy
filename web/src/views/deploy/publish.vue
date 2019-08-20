@@ -39,7 +39,7 @@
       <el-table-column prop="operation" label="操作" width="220">
         <template slot-scope="scope">
           <el-button type="primary" @click="publish(scope.row.id)">构建</el-button>
-          <el-button type="success" @click="handleDetail(scope.row.id)">详情</el-button>
+          <el-button type="success" @click="handleDetail(scope.row)">详情</el-button>
           <el-button type="danger" @click="handleRollback(scope.row.id)">回滚</el-button>
         </template>
       </el-table-column>
@@ -47,41 +47,42 @@
     <el-dialog title="构建记录" :visible.sync="dialogVisible">
       <el-row>
         <el-col :span="8">
-          <el-radio-group v-model="gitTraceId" @change="handleDetailChange">
+          <el-radio-group v-model="publishToken" @change="handleDetailChange">
             <el-row v-for="(item, index) in gitTraceList" :key="index">
               <el-row style="margin:5px 0">
-                <el-tag v-if="item['remoteState'] === 1" type="success" effect="plain">成功</el-tag>
+                <el-tag v-if="item.publishState === 1" type="success" effect="plain">成功</el-tag>
                 <el-tag v-else type="danger" effect="plain">失败</el-tag>
-                <el-radio style="margin-left: 10px;margin-right: 5px;" :label="item['id']" border>commitID: {{ item['commit'].substring(0,6) }}</el-radio>
+                <el-radio style="margin-left: 10px;margin-right: 5px;" :label="item.token" border>commitID: {{ item['commit'].substring(0,6) }}</el-radio>
                 <el-button type="danger" icon="el-icon-refresh" plain @click="rollback(item)" />
               </el-row>
             </el-row>
           </el-radio-group>
         </el-col>
         <el-col :span="16" class="project-detail">
-          <el-row>
-            <el-row style="margin:5px 0">git同步信息</el-row>
-            <el-row style="margin:5px 0">时间: {{ formatTime(gitTrace['createTime']) }}</el-row>
-            <el-row>commit: {{ gitTrace['commit'] }}</el-row>
-            <el-row style="margin:5px 0">
-              <el-tag v-if=" gitTrace['state'] === 1" type="success" effect="plain">成功</el-tag>
-              <el-tag v-else type="danger" effect="plain">失败</el-tag>
-              <span v-html="formatDetail(gitTrace['detail'])" />
-            </el-row>
-          </el-row>
-          <hr>
-          <el-row>
-            <el-row style="margin:5px 0">remote服务器信息</el-row>
-            <el-row v-for="(item, index) in remoteTraceList" :key="index">
-              <el-row style="margin:5px 0">服务器: {{ item['serverName'] }}</el-row>
-              <el-row style="margin:5px 0">日志类型: {{ item['type'] === 1 ? '同步文件' : '运行脚本' }}</el-row>
-              <el-row style="margin:5px 0">时间: {{ formatTime(item['createTime']) }}</el-row>
+          <el-row v-for="(item, index) in publishTraceList" :key="index">
+            <el-row v-if="item.type === 2">
+              <el-row style="margin:5px 0">git同步信息</el-row>
+              <el-row style="margin:5px 0">时间: {{ item.createTime }}</el-row>
+              <el-row>commit: {{ item.commit }}</el-row>
               <el-row style="margin:5px 0">
-                <el-tag v-if="item['state'] === 1" type="success" effect="plain">成功</el-tag>
+                <el-tag v-if="item.state === 1" type="success" effect="plain">成功</el-tag>
                 <el-tag v-else type="danger" effect="plain">失败</el-tag>
-                <span v-html="formatDetail(item['detail'])" />
+                <span v-html="formatDetail(item.detail)" />
               </el-row>
+            </el-row>
+            <el-row v-else>
               <hr>
+              <el-row>
+                <el-row style="margin:5px 0">remote服务器信息</el-row>
+                <el-row style="margin:5px 0">服务器: {{ item.serverName }}</el-row>
+                <el-row style="margin:5px 0">日志类型: {{ item.type === 5 ? '同步文件' : '运行脚本' }}</el-row>
+                <el-row style="margin:5px 0">时间: {{ item.createTime }}</el-row>
+                <el-row style="margin:5px 0">
+                  <el-tag v-if="item.state === 1" type="success" effect="plain">成功</el-tag>
+                  <el-tag v-else type="danger" effect="plain">失败</el-tag>
+                  <span v-html="formatDetail(item.detail)" />
+                </el-row>
+              </el-row>
             </el-row>
           </el-row>
         </el-col>
@@ -151,16 +152,15 @@ export default {
       projectGroupId: parseInt(localStorage.getItem('projectGroupId')) || 0,
       projectGroupOption: [],
       projectName: '',
-      gitTraceId: '1',
+      publishToken: '',
       publishDialogVisible: false,
       commitDialogVisible: false,
       dialogVisible: false,
       webSocket: null,
       tableData: [],
       commitTableData: [],
-      gitTrace: {},
       gitTraceList: [],
-      remoteTraceList: [],
+      publishTraceList: [],
       gitLog: [],
       remoteLog: {}
     }
@@ -263,13 +263,19 @@ export default {
       })
     },
 
-    handleDetail(id) {
-      getDetail(id).then((response) => {
+    handleDetail(data) {
+      getDetail({ projectId: data.id, lastPublishToken: data.lastPublishToken }).then((response) => {
         this.dialogVisible = true
-        this.gitTrace = response.data.gitTrace
-        this.gitTraceList = response.data.gitTraceList
-        this.remoteTraceList = response.data.remoteTraceList
-        this.gitTraceId = this.gitTrace.id
+        this.publishToken = data.lastPublishToken
+        this.publishTraceList = response.data.publishTraceList.map(element => {
+          element.createTime = parseTime(element.createTime)
+          Object.assign(element, JSON.parse(element.ext))
+          return element
+        })
+        this.gitTraceList = response.data.gitTraceList.map(element => {
+          Object.assign(element, JSON.parse(element.ext))
+          return element
+        })
       })
     },
 
@@ -333,10 +339,6 @@ export default {
 
     formatDetail(detail) {
       return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
-    },
-
-    formatTime(timestamp) {
-      return parseTime(timestamp)
     }
   }
 }

@@ -27,7 +27,7 @@ CREATE TABLE `git_trace`  (
   `commit` char(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `project_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `project_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `detail` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `detail` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `state` tinyint(4) UNSIGNED NOT NULL DEFAULT 1,
   `publisher_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `publisher_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
@@ -76,13 +76,14 @@ INSERT INTO `permission` VALUES (1, '主页', '/dashboard', 1, 0);
 INSERT INTO `permission` VALUES (2, '主页列表', '/dashboard/list', 1, 1);
 INSERT INTO `permission` VALUES (3, '项目', '/project', 1, 0);
 INSERT INTO `permission` VALUES (4, '项目设置', '/project/setting', 1, 3);
-INSERT INTO `permission` VALUES (5, '服务器管理', '/project/server', 1, 3);
-INSERT INTO `permission` VALUES (6, '项目分组', '/project/group', 1, 3);
-INSERT INTO `permission` VALUES (7, '成员', '/member', 1, 0);
-INSERT INTO `permission` VALUES (8, '成员列表', '/member/list', 1, 7);
-INSERT INTO `permission` VALUES (9, '权限管理', '/member/permission', 1, 7);
-INSERT INTO `permission` VALUES (10, '部署', '/deploy', 1, 0);
-INSERT INTO `permission` VALUES (11, '构建发布', '/deploy/publish', 1, 10);
+INSERT INTO `permission` VALUES (5, '模板设置', '/deploy/publish', 1, 3);
+INSERT INTO `permission` VALUES (6, '服务器管理', '/project/server', 1, 3);
+INSERT INTO `permission` VALUES (7, '项目分组', '/project/group', 1, 3);
+INSERT INTO `permission` VALUES (8, '成员', '/member', 1, 0);
+INSERT INTO `permission` VALUES (9, '成员列表', '/member/list', 1, 8);
+INSERT INTO `permission` VALUES (10, '权限管理', '/member/permission', 1, 8);
+INSERT INTO `permission` VALUES (11, '部署', '/deploy', 1, 0);
+INSERT INTO `permission` VALUES (12, '构建发布', '/deploy/publish', 1, 11);
 
 -- ----------------------------
 -- Table structure for project
@@ -157,7 +158,7 @@ CREATE TABLE `remote_trace`  (
   `project_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `server_id` int(11) UNSIGNED NOT NULL DEFAULT 0,
   `server_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `detail` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `detail` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `state` tinyint(4) UNSIGNED NOT NULL DEFAULT 1,
   `publisher_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `publisher_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',

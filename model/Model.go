@@ -16,6 +16,12 @@ type Pagination struct {
 	Total int `json:"total"`
 }
 
+// state type
+const (
+	Fail = iota
+	Success
+)
+
 // DB init when the program start
 var DB *sql.DB
 

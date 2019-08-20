@@ -8,7 +8,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	"github.com/zhenorzz/goploy/core"
-	"github.com/zhenorzz/goploy/cron"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/route"
 	"github.com/zhenorzz/goploy/ws"
@@ -17,7 +16,7 @@ import (
 func main() {
 	godotenv.Load(core.GolbalPath + ".env")
 	model.Init()
-	go cron.Run()
+	// go cron.Run()
 	syncHub := ws.GetSyncHub()
 	go syncHub.Run()
 	route.Init()

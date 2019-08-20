@@ -19,7 +19,8 @@ type Project struct {
 	RsyncOption       string `json:"rsyncOption"`
 	PublisherID       uint32 `json:"publisherId"`
 	PublisherName     string `json:"publisherName"`
-	PublishState      uint8  `json:"publishState"`
+	PublishState      uint32 `json:"publishState"`
+	LastPublishToken  string `json:"lastPublishToken"`
 	State             uint8  `json:"state"`
 	CreateTime        int64  `json:"createTime"`
 	UpdateTime        int64  `json:"updateTime"`
@@ -43,7 +44,7 @@ func (p Project) AddRow() (uint32, error) {
 			rsync_option, 
 			create_time, 
 			update_time) 
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		p.ProjectGroupID,
 		p.Name,
 		p.URL,
@@ -92,19 +93,6 @@ func (p Project) EditRow() error {
 	return err
 }
 
-// EditPublishState update publish state
-func (p Project) EditPublishState() error {
-	_, err := DB.Exec(
-		`UPDATE project SET 
-		  publish_state = ?
-		WHERE
-		 id = ?`,
-		p.PublishState,
-		p.ID,
-	)
-	return err
-}
-
 // RemoveRow project
 func (p Project) RemoveRow() error {
 	_, err := DB.Exec(
@@ -122,9 +110,10 @@ func (p Project) RemoveRow() error {
 // Publish for project
 func (p Project) Publish() error {
 	_, err := DB.Exec(
-		"UPDATE project SET publisher_id = ?, publisher_name = ?, update_time = ? WHERE id = ?",
+		"UPDATE project SET publisher_id = ?, publisher_name = ?, last_publish_token = ?, update_time = ? WHERE id = ?",
 		p.PublisherID,
 		p.PublisherName,
+		p.LastPublishToken,
 		p.UpdateTime,
 		p.ID,
 	)
