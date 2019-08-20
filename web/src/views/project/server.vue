@@ -62,7 +62,7 @@ export default {
         id: 0,
         name: '',
         ip: '',
-        port: '22',
+        port: 22,
         owner: ''
       },
       formRules: {

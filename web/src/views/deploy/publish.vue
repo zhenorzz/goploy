@@ -272,7 +272,8 @@ export default {
 
     getDetail() {
       getDetail(this.publishToken).then((response) => {
-        this.publishTraceList = response.data.publishTraceList.map(element => {
+        const publishTraceList = response.data.publishTraceList || []
+        this.publishTraceList = publishTraceList.map(element => {
           element.createTime = parseTime(element.createTime)
           if (element.ext !== '') Object.assign(element, JSON.parse(element.ext))
           return element
@@ -284,7 +285,8 @@ export default {
       this.dialogVisible = true
       this.publishToken = data.lastPublishToken
       getPreview(data.id).then((response) => {
-        this.gitTraceList = response.data.gitTraceList.map(element => {
+        const gitTraceList = response.data.gitTraceList || []
+        this.gitTraceList = gitTraceList.map(element => {
           if (element.ext !== '') Object.assign(element, JSON.parse(element.ext))
           element.commit = element['commit'] ? element['commit'].substring(0, 6) : ''
           return element

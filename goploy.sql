@@ -78,7 +78,8 @@ CREATE TABLE `project`  (
   `path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '项目部署路径',
   `environment` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '生产环境' COMMENT '部署环境',
   `branch` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'master' COMMENT '分支',
-  `script` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '脚本路径',
+  `after_pull_script` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '脚本路径',
+  `after_deploy_script` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '脚本路径',
   `rsync_option` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'rsync 参数',
   `state` tinyint(4) UNSIGNED NOT NULL DEFAULT 1 COMMENT '0=>失效 1=>生效',
   `publisher_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
@@ -130,6 +131,22 @@ CREATE TABLE `project_user`  (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for project_group
+-- ----------------------------
+DROP TABLE IF EXISTS `project_group`;
+CREATE TABLE `project_group`  (
+  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0,
+  `update_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
+
+-- ----------------------------
+-- Records of project_group
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for publish_trace
 -- ----------------------------
 DROP TABLE IF EXISTS `publish_trace`;
@@ -137,6 +154,7 @@ CREATE TABLE `publish_trace` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `token` char(36) CHARACTER SET ascii NOT NULL DEFAULT '',
   `project_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `project_group_id` int(10) unsigned NOT NULL DEFAULT '0',
   `project_name` varchar(255) NOT NULL DEFAULT '',
   `detail` longtext NOT NULL,
   `state` tinyint(4) unsigned NOT NULL DEFAULT '1',
