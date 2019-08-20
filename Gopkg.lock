@@ -34,14 +34,6 @@
   version = "v1.4.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:c4106fb2d460662bd0f29093e75107c0897eb562ac3f0ece53da716469170248"
-  name = "github.com/jasonlvhit/gocron"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "3e01b161c6a0deea73dd6304ef51a9e905748ee1"
-
-[[projects]]
   digest = "1:ecd9aa82687cf31d1585d4ac61d0ba180e42e8a6182b85bd785fcca8dfeefc1b"
   name = "github.com/joho/godotenv"
   packages = ["."]
@@ -99,7 +91,6 @@
     "github.com/go-sql-driver/mysql",
     "github.com/google/uuid",
     "github.com/gorilla/websocket",
-    "github.com/jasonlvhit/gocron",
     "github.com/joho/godotenv",
     "github.com/patrickmn/go-cache",
     "golang.org/x/crypto/bcrypt",

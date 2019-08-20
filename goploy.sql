@@ -18,24 +18,6 @@ SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 CREATE DATABASE IF NOT EXISTS `goploy`;
 USE `goploy`;
--- ----------------------------
--- Table structure for git_trace
--- ----------------------------
-DROP TABLE IF EXISTS `git_trace`;
-CREATE TABLE `git_trace`  (
-  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `commit` char(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `project_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
-  `project_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `detail` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `state` tinyint(4) UNSIGNED NOT NULL DEFAULT 1,
-  `publisher_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
-  `publisher_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0,
-  `update_time` int(10) UNSIGNED NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `project_id`(`project_id`) USING BTREE COMMENT 'project_id'
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Records of git_trace
@@ -101,7 +83,7 @@ CREATE TABLE `project`  (
   `state` tinyint(4) UNSIGNED NOT NULL DEFAULT 1 COMMENT '0=>失效 1=>生效',
   `publisher_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `publisher_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `publish_state` tinyint(4) UNSIGNED NOT NULL DEFAULT 0 COMMENT '0=>失效 1=>生效',
+  `last_publish_token` char(36) CHARACTER SET ascii NOT NULL DEFAULT '',
   `create_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
   `update_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
@@ -148,29 +130,28 @@ CREATE TABLE `project_user`  (
 -- ----------------------------
 
 -- ----------------------------
--- Table structure for remote_trace
+-- Table structure for publish_trace
 -- ----------------------------
-DROP TABLE IF EXISTS `remote_trace`;
-CREATE TABLE `remote_trace`  (
-  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `git_trace_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
-  `project_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
-  `project_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `server_id` int(11) UNSIGNED NOT NULL DEFAULT 0,
-  `server_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `detail` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `state` tinyint(4) UNSIGNED NOT NULL DEFAULT 1,
-  `publisher_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
-  `publisher_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `type` tinyint(3) UNSIGNED NOT NULL DEFAULT 1 COMMENT '1同步文件2运行脚本',
-  `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0,
-  `update_time` int(10) UNSIGNED NOT NULL DEFAULT 0,
+DROP TABLE IF EXISTS `publish_trace`;
+CREATE TABLE `publish_trace` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `token` char(36) CHARACTER SET ascii NOT NULL DEFAULT '',
+  `project_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `project_name` varchar(255) NOT NULL DEFAULT '',
+  `detail` longtext NOT NULL,
+  `state` tinyint(4) unsigned NOT NULL DEFAULT '1',
+  `publisher_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `publisher_name` varchar(255) NOT NULL DEFAULT '',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '1拉代码前脚本，2.git获取代码，3拉代码后脚本，4部署前脚本，5部署日志，6部署后脚本',
+  `create_time` int(10) unsigned NOT NULL DEFAULT '0',
+  `update_time` int(10) unsigned NOT NULL DEFAULT '0',
+  `ext` text NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `project_id`(`project_id`) USING BTREE COMMENT 'project_id'
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
+  KEY `project_id` (`project_id`) USING BTREE COMMENT 'project_id'
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
--- Records of remote_trace
+-- Records of publish_trace
 -- ----------------------------
 
 -- ----------------------------

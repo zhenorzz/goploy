@@ -16,7 +16,6 @@ import (
 func main() {
 	godotenv.Load(core.GolbalPath + ".env")
 	model.Init()
-	// go cron.Run()
 	syncHub := ws.GetSyncHub()
 	go syncHub.Run()
 	route.Init()
