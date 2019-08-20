@@ -179,6 +179,13 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
+
+	if _, err := utils.ParseCommandLine(reqData.RsyncOption); err != nil {
+		response := core.Response{Code: 1, Message: "Rsync Option错误，请输入正确的参数格式"}
+		response.JSON(w)
+		return
+	}
+
 	err = model.Project{
 		ID:                reqData.ID,
 		ProjectGroupID:    reqData.ProjectGroupID,

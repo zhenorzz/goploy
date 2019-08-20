@@ -302,6 +302,11 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 	if _, err := publishTraceModel.AddRow(); err != nil {
 		core.Log(core.ERROR, err.Error())
 	}
+	if project.AfterPullScript != "" {
+		if err := runAfterPullScript(tokenInfo, project); err != nil {
+			return
+		}
+	}
 
 	for _, projectServer := range projectServers {
 		go remoteSync(tokenInfo, project, projectServer)
@@ -335,6 +340,12 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 
 	if _, err := publishTraceModel.AddRow(); err != nil {
 		core.Log(core.ERROR, err.Error())
+	}
+
+	if project.AfterPullScript != "" {
+		if err := runAfterPullScript(tokenInfo, project); err != nil {
+			return
+		}
 	}
 
 	for _, projectServer := range projectServers {
@@ -548,6 +559,78 @@ func gitCommitID(tokenInfo core.TokenInfo, project model.Project) (string, error
 		Message:   "commitSHA: " + gitOutbuf.String(),
 	}
 	return gitOutbuf.String(), nil
+}
+
+func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
+	publishTraceModel := model.PublishTrace{
+		Token:         project.LastPublishToken,
+		ProjectID:     project.ID,
+		ProjectName:   project.Name,
+		PublisherID:   tokenInfo.ID,
+		PublisherName: tokenInfo.Name,
+		Type:          model.AfterPull,
+		CreateTime:    time.Now().Unix(),
+		UpdateTime:    time.Now().Unix(),
+	}
+	srcPath := core.GolbalPath + "repository/" + project.Name
+	for _, script := range strings.Split(strings.Replace(project.AfterPullScript, "\r\n", "\n", -1), "\n") {
+		command, err := utils.ParseCommandLine(script)
+		if err != nil {
+			return errors.New(script + "解析失败")
+		}
+
+		handler := exec.Command(command[0], command[1:]...)
+		handler.Dir = srcPath
+		var outbuf, errbuf bytes.Buffer
+		handler.Stdout = &outbuf
+		handler.Stderr = &errbuf
+		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+script)
+		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+			ProjectID: project.ID,
+			UserID:    tokenInfo.ID,
+			DataType:  ws.GitType,
+			State:     ws.Success,
+			Message:   script,
+		}
+		if err := handler.Run(); err != nil {
+			core.Log(core.ERROR, errbuf.String())
+			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+				ProjectID: project.ID,
+				UserID:    tokenInfo.ID,
+				DataType:  ws.GitType,
+				State:     ws.Success,
+				Message:   errbuf.String(),
+			}
+			ext, _ := json.Marshal(struct {
+				Script string `json:"script"`
+			}{script})
+			publishTraceModel.Ext = string(ext)
+			publishTraceModel.Detail = errbuf.String()
+			publishTraceModel.State = model.Fail
+			if _, err := publishTraceModel.AddRow(); err != nil {
+				core.Log(core.ERROR, err.Error())
+			}
+			return errors.New(errbuf.String())
+		}
+		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+			ProjectID: project.ID,
+			UserID:    tokenInfo.ID,
+			DataType:  ws.GitType,
+			State:     ws.Success,
+			Message:   outbuf.String(),
+		}
+		ext, _ := json.Marshal(struct {
+			Script string `json:"script"`
+		}{script})
+		publishTraceModel.Ext = string(ext)
+		publishTraceModel.Detail = outbuf.String()
+		publishTraceModel.State = model.Success
+		if _, err := publishTraceModel.AddRow(); err != nil {
+			core.Log(core.ERROR, err.Error())
+		}
+	}
+
+	return nil
 }
 
 func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer model.ProjectServer) {

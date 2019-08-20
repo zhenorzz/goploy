@@ -54,10 +54,10 @@
           <el-input v-model="formData.rsyncOption" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
         </el-form-item>
         <el-form-item label="拉取后运行脚本" prop="afterPullScrpit">
-          <el-input v-model="formData.afterPullScrpit" :rows="3" type="textarea" autocomplete="off" placeholder="多个脚本用;分割" />
+          <el-input v-model="formData.afterPullScript" :rows="3" type="textarea" autocomplete="off" placeholder="多个脚本用回车分割" />
         </el-form-item>
         <el-form-item label="部署后运行脚本" prop="afterDeployScrpit">
-          <el-input v-model="formData.afterDeployScrpit" :rows="3" type="textarea" autocomplete="off" placeholder="多个脚本用;分割" />
+          <el-input v-model="formData.afterDeployScript" :rows="3" type="textarea" autocomplete="off" placeholder="多个脚本用回车分割" />
         </el-form-item>
         <el-form-item label="绑定分组" prop="projectGroupId">
           <el-select v-model="formData.projectGroupId" placeholder="选择分组" style="width:100%">
@@ -218,8 +218,8 @@ export default {
         name: '',
         url: '',
         path: '',
-        afterPullScrpit: '',
-        afterDeployScrpit: '',
+        afterPullScript: '',
+        afterDeployScript: '',
         environment: '生产环境',
         branch: 'master',
         rsyncOption: '-rtv --exclude .git --delete-after',

@@ -14,8 +14,8 @@ type Project struct {
 	Path              string `json:"path"`
 	Environment       string `json:"environment"`
 	Branch            string `json:"branch"`
-	AfterPullScript   string `json:"afterPullscript"`
-	AfterDeployScript string `json:"afterDeployscript"`
+	AfterPullScript   string `json:"afterPullScript"`
+	AfterDeployScript string `json:"afterDeployScript"`
 	RsyncOption       string `json:"rsyncOption"`
 	PublisherID       uint32 `json:"publisherId"`
 	PublisherName     string `json:"publisherName"`

@@ -70,7 +70,17 @@
                 <span v-html="formatDetail(item.detail)" />
               </el-row>
             </el-row>
-            <el-row v-else>
+            <el-row v-if="item.type === 3">
+              <hr>
+              <el-row style="margin:5px 0">脚本信息</el-row>
+              <el-row>script: {{ item.script }}</el-row>
+              <el-row style="margin:5px 0">
+                <el-tag v-if="item.state === 1" type="success" effect="plain">成功</el-tag>
+                <el-tag v-else type="danger" effect="plain">失败</el-tag>
+                <span v-html="formatDetail(item.detail)" />
+              </el-row>
+            </el-row>
+            <el-row v-if="item.type === 5">
               <hr>
               <el-row>
                 <el-row style="margin:5px 0">remote服务器信息</el-row>
