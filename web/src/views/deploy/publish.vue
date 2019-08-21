@@ -83,8 +83,20 @@
               <el-row>
                 <el-row style="margin:5px 0">remote服务器信息</el-row>
                 <el-row style="margin:5px 0">服务器: {{ item.serverName }}</el-row>
-                <el-row style="margin:5px 0">日志类型: {{ item.type === 5 ? '同步文件' : '运行脚本' }}</el-row>
                 <el-row style="margin:5px 0">时间: {{ item.createTime }}</el-row>
+                <el-row style="margin:5px 0">
+                  <el-tag v-if="item.state === 0" type="danger" effect="plain">失败</el-tag>
+                  <span v-html="formatDetail(item.detail)" />
+                </el-row>
+              </el-row>
+            </el-row>
+            <el-row v-if="item.type === 6">
+              <hr>
+              <el-row>
+                <el-row style="margin:5px 0">remote服务器信息</el-row>
+                <el-row style="margin:5px 0">服务器: {{ item.serverName }}</el-row>
+                <el-row style="margin:5px 0">时间: {{ item.createTime }}</el-row>
+                <el-row style="margin:5px 0">脚本: {{ item.script }}</el-row>
                 <el-row style="margin:5px 0">
                   <el-tag v-if="item.state === 0" type="danger" effect="plain">失败</el-tag>
                   <span v-html="formatDetail(item.detail)" />

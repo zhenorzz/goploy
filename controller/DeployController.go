@@ -707,12 +707,17 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 		publishTraceModel.AddRow()
 		return
 	}
-	println(project.AfterDeployScript)
 	// 没有脚本就不运行
 	if project.AfterDeployScript == "" {
 		return
 	}
 	publishTraceModel.Type = model.AfterDeploy
+	ext, _ = json.Marshal(struct {
+		ServerID   uint32 `json:"serverId"`
+		ServerName string `json:"serverName"`
+		Script     string `json:"script"`
+	}{projectServer.ServerID, projectServer.ServerName, project.AfterDeployScript})
+	publishTraceModel.Ext = string(ext)
 	// 执行ssh脚本
 	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
 		DataType: ws.ScriptType,
@@ -766,7 +771,6 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	for attempt := 0; attempt < 3; attempt++ {
 		sshOutbuf.Reset()
 		afterDeployScript := strings.Replace(project.AfterDeployScript, "\n", ";", -1)
-		println(afterDeployScript)
 		if scriptError = session.Run(afterDeployScript); scriptError != nil {
 			core.Log(core.ERROR, scriptError.Error())
 			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
