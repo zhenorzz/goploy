@@ -73,6 +73,7 @@ INSERT INTO `permission` VALUES (12, '构建发布', '/deploy/publish', 1, 11);
 DROP TABLE IF EXISTS `project`;
 CREATE TABLE `project`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '项目名称',
   `url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '项目仓库地址',
   `path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '项目部署路径',
@@ -131,10 +132,10 @@ CREATE TABLE `project_user`  (
 -- ----------------------------
 
 -- ----------------------------
--- Table structure for project_group
+-- Table structure for group
 -- ----------------------------
-DROP TABLE IF EXISTS `project_group`;
-CREATE TABLE `project_group`  (
+DROP TABLE IF EXISTS `group`;
+CREATE TABLE `group`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0,
@@ -143,7 +144,7 @@ CREATE TABLE `project_group`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
 
 -- ----------------------------
--- Records of project_group
+-- Records of group
 -- ----------------------------
 
 -- ----------------------------
@@ -200,6 +201,7 @@ INSERT INTO `role` VALUES (3, '组员', '8,9', 1, 1527928486, 1552979330, '只�
 DROP TABLE IF EXISTS `server`;
 CREATE TABLE `server`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `group_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `port` smallint(10) UNSIGNED NOT NULL DEFAULT 22,

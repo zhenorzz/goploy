@@ -47,10 +47,11 @@ func (server Server) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 // Add one server
 func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		Name  string `json:"name"`
-		IP    string `json:"ip"`
-		Port  uint32 `json:"port"`
-		Owner string `json:"owner"`
+		Name    string `json:"name"`
+		IP      string `json:"ip"`
+		Port    uint32 `json:"port"`
+		Owner   string `json:"owner"`
+		GroupID uint32 `json:"groupId"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -64,6 +65,7 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 		IP:         reqData.IP,
 		Port:       reqData.Port,
 		Owner:      reqData.Owner,
+		GroupID:    reqData.GroupID,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
 	}.AddRow()
@@ -80,11 +82,12 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 // Edit one server
 func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID    uint32 `json:"id"`
-		Name  string `json:"name"`
-		IP    string `json:"ip"`
-		Port  uint32 `json:"port"`
-		Owner string `json:"owner"`
+		ID      uint32 `json:"id"`
+		Name    string `json:"name"`
+		IP      string `json:"ip"`
+		Port    uint32 `json:"port"`
+		Owner   string `json:"owner"`
+		GroupID uint32 `json:"groupId"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -99,7 +102,7 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		IP:         reqData.IP,
 		Port:       reqData.Port,
 		Owner:      reqData.Owner,
-		CreateTime: time.Now().Unix(),
+		GroupID:    reqData.GroupID,
 		UpdateTime: time.Now().Unix(),
 	}.EditRow()
 

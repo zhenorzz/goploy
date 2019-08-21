@@ -14,6 +14,11 @@
       <el-table-column prop="ip" label="IP" />
       <el-table-column prop="port" label="端口" />
       <el-table-column prop="owner" label="sshKey所有者" show-overflow-tooltip />
+      <el-table-column prop="group" label="分组" width="100">
+        <template slot-scope="scope">
+          {{ findGroupName(scope.row.groupId) }}
+        </template>
+      </el-table-column>
       <el-table-column prop="createTime" label="创建时间" width="160" />
       <el-table-column prop="updateTime" label="更新时间" width="160" />
       <el-table-column prop="operation" label="操作" width="150">
@@ -24,18 +29,29 @@
       </el-table-column>
     </el-table>
     <el-dialog title="服务器设置" :visible.sync="dialogVisible">
-      <el-form ref="form" :rules="formRules" :model="formData">
-        <el-form-item label="服务器名称" label-width="120px" prop="name">
+      <el-form ref="form" :rules="formRules" :model="formData" label-width="120px">
+        <el-form-item label="服务器名称" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="IP" label-width="120px" prop="ip">
+        <el-form-item label="IP" prop="ip">
           <el-input v-model="formData.ip" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="port" label-width="120px" prop="port">
+        <el-form-item label="port" prop="port">
           <el-input v-model.number="formData.port" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="sshKey所有者" label-width="120px" prop="owner">
+        <el-form-item label="sshKey所有者" prop="owner">
           <el-input v-model="formData.owner" autocomplete="off" placeholder="root" />
+        </el-form-item>
+        <el-form-item label="绑定分组" prop="groupId">
+          <el-select v-model="formData.groupId" placeholder="选择分组" style="width:100%">
+            <el-option label="默认" :value="0" />
+            <el-option
+              v-for="(item, index) in groupOption"
+              :key="index"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -47,6 +63,7 @@
 </template>
 <script>
 import { getList, add, edit, remove } from '@/api/server'
+import { getOption as getGroupOption } from '@/api/group'
 import { parseTime } from '@/utils'
 
 export default {
@@ -54,6 +71,7 @@ export default {
     return {
       dialogVisible: false,
       tableData: [],
+      groupOption: [],
       tempFormData: {},
       formProps: {
         disabled: false
@@ -63,7 +81,8 @@ export default {
         name: '',
         ip: '',
         port: 22,
-        owner: ''
+        owner: '',
+        groupId: 0
       },
       formRules: {
         name: [
@@ -84,6 +103,7 @@ export default {
   created() {
     this.storeFormData()
     this.getList()
+    this.getGroupOption()
   },
   methods: {
     getList() {
@@ -96,6 +116,13 @@ export default {
         this.tableData = serverList
       })
     },
+
+    getGroupOption() {
+      getGroupOption().then((response) => {
+        this.groupOption = response.data.groupList || []
+      })
+    },
+
     handleAdd() {
       this.restoreFormData()
       this.dialogVisible = true
@@ -168,6 +195,11 @@ export default {
       }).finally(() => {
         this.formProps.disabled = this.dialogVisible = false
       })
+    },
+
+    findGroupName(groupId) {
+      const group = this.groupOption.find(element => element.id === groupId)
+      return group ? group['name'] : '默认'
     },
 
     storeFormData() {
