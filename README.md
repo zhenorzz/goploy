@@ -1,4 +1,4 @@
-# goploy
+![goploy](https://github.com/zhenorzz/goploy/blob/master/logo.png)
 ## 使用说明
 1. 导入根目录goploy.sql
 2. cp .env.example .env
