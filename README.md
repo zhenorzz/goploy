@@ -1,6 +1,6 @@
-<p class="text-align:center">
+<div align=center>
 <img src="https://github.com/zhenorzz/goploy/blob/master/logo.png" alt="logo" title="logo" />
-</p>
+</div>
 
 ## 使用说明
 1. 导入根目录goploy.sql
