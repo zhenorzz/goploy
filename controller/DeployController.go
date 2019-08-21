@@ -35,7 +35,7 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	}
 	groupID, err := strconv.Atoi(gp.URLQuery.Get("groupId"))
 	if err != nil {
-		response := core.Response{Code: 1, Message: "id参数错误"}
+		response := core.Response{Code: 1, Message: "groupId参数错误"}
 		response.JSON(w)
 		return
 	}
