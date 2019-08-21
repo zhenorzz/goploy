@@ -1,4 +1,7 @@
-![goploy](https://github.com/zhenorzz/goploy/blob/master/logo.png)
+<p class="text-align:center">
+<img src="https://github.com/zhenorzz/goploy/blob/master/logo.png" alt="logo" title="logo" />
+</p>
+
 ## 使用说明
 1. 导入根目录goploy.sql
 2. cp .env.example .env
