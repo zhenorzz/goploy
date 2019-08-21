@@ -75,7 +75,7 @@ func (project Project) GetBindUserList(w http.ResponseWriter, gp *core.Goploy) {
 // Add one project
 func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ProjectGroupID    uint32   `json:"projectGroupId"`
+		GroupID           uint32   `json:"groupId"`
 		Name              string   `json:"name"`
 		URL               string   `json:"url"`
 		Path              string   `json:"path"`
@@ -102,7 +102,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 	}
 
 	projectID, err := model.Project{
-		ProjectGroupID:    reqData.ProjectGroupID,
+		GroupID:           reqData.GroupID,
 		Name:              reqData.Name,
 		URL:               reqData.URL,
 		Path:              reqData.Path,
@@ -162,7 +162,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		ID                uint32 `json:"id"`
-		ProjectGroupID    uint32 `json:"projectGroupId"`
+		GroupID           uint32 `json:"groupId"`
 		Name              string `json:"name"`
 		URL               string `json:"url"`
 		Path              string `json:"path"`
@@ -188,7 +188,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 
 	err = model.Project{
 		ID:                reqData.ID,
-		ProjectGroupID:    reqData.ProjectGroupID,
+		GroupID:           reqData.GroupID,
 		Name:              reqData.Name,
 		URL:               reqData.URL,
 		Path:              reqData.Path,

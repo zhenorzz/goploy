@@ -37,7 +37,7 @@
         @current-change="handleCurrentChange"
       />
     </el-row>
-    <el-dialog title="新增成员" :visible.sync="dialogVisible">
+    <el-dialog title="成员设置" :visible.sync="dialogVisible">
       <el-form ref="form" :rules="formRules" :model="formData">
         <el-form-item label="账号" label-width="120px" prop="account">
           <el-input v-model="formData.account" autocomplete="off" />

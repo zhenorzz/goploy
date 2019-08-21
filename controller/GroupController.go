@@ -9,43 +9,43 @@ import (
 	"github.com/zhenorzz/goploy/model"
 )
 
-// ProjectGroup struct
-type ProjectGroup Controller
+// Group struct
+type Group Controller
 
-// GetList ProjectGroup list
-func (projectGroup ProjectGroup) GetList(w http.ResponseWriter, gp *core.Goploy) {
+// GetList Group list
+func (group Group) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
-		ProjectGroups model.ProjectGroups `json:"projectGroupList"`
+		Groups model.Groups `json:"groupList"`
 	}
 
-	projectGroupList, err := model.ProjectGroup{}.GetList()
+	groupList, err := model.Group{}.GetList()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{ProjectGroups: projectGroupList}}
+	response := core.Response{Data: RepData{Groups: groupList}}
 	response.JSON(w)
 }
 
-// GetOption ProjectGroup list
-func (projectGroup ProjectGroup) GetOption(w http.ResponseWriter, gp *core.Goploy) {
+// GetOption Group list
+func (group Group) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
-		ProjectGroups model.ProjectGroups `json:"projectGroupList"`
+		Groups model.Groups `json:"groupList"`
 	}
 
-	projectGroupList, err := model.ProjectGroup{}.GetAll()
+	groupList, err := model.Group{}.GetAll()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{ProjectGroups: projectGroupList}}
+	response := core.Response{Data: RepData{Groups: groupList}}
 	response.JSON(w)
 }
 
-// Add one ProjectGroup
-func (projectGroup ProjectGroup) Add(w http.ResponseWriter, gp *core.Goploy) {
+// Add one Group
+func (group Group) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		Name string `json:"name"`
 	}
@@ -56,7 +56,7 @@ func (projectGroup ProjectGroup) Add(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	_, err = model.ProjectGroup{
+	_, err = model.Group{
 		Name:       reqData.Name,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
@@ -71,8 +71,8 @@ func (projectGroup ProjectGroup) Add(w http.ResponseWriter, gp *core.Goploy) {
 	response.JSON(w)
 }
 
-// Edit one ProjectGroup
-func (projectGroup ProjectGroup) Edit(w http.ResponseWriter, gp *core.Goploy) {
+// Edit one Group
+func (group Group) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		ID   uint32 `json:"id"`
 		Name string `json:"name"`
@@ -84,7 +84,7 @@ func (projectGroup ProjectGroup) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	err = model.ProjectGroup{
+	err = model.Group{
 		ID:         reqData.ID,
 		Name:       reqData.Name,
 		CreateTime: time.Now().Unix(),
@@ -101,7 +101,7 @@ func (projectGroup ProjectGroup) Edit(w http.ResponseWriter, gp *core.Goploy) {
 }
 
 // Remove one Server
-func (projectGroup ProjectGroup) Remove(w http.ResponseWriter, gp *core.Goploy) {
+func (group Group) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		ID uint32 `json:"id"`
 	}
@@ -112,7 +112,7 @@ func (projectGroup ProjectGroup) Remove(w http.ResponseWriter, gp *core.Goploy) 
 		response.JSON(w)
 		return
 	}
-	err = model.ProjectGroup{
+	err = model.Group{
 		ID:         reqData.ID,
 		UpdateTime: time.Now().Unix(),
 	}.Remove()

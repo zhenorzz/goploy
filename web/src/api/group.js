@@ -5,7 +5,7 @@ import request from '@/utils/request'
  */
 export function getList() {
   return request({
-    url: '/projectGroup/getList',
+    url: '/group/getList',
     method: 'get',
     params: {}
   })
@@ -16,14 +16,14 @@ export function getList() {
  */
 export function getOption() {
   return request({
-    url: '/projectGroup/getOption',
+    url: '/group/getOption',
     method: 'get'
   })
 }
 
 export function add(data) {
   return request({
-    url: '/projectGroup/add',
+    url: '/group/add',
     method: 'post',
     data
   })
@@ -31,7 +31,7 @@ export function add(data) {
 
 export function edit(data) {
   return request({
-    url: '/projectGroup/edit',
+    url: '/group/edit',
     method: 'post',
     data
   })
@@ -39,7 +39,7 @@ export function edit(data) {
 
 export function remove(id) {
   return request({
-    url: '/projectGroup/remove',
+    url: '/group/remove',
     method: 'post',
     data: { id }
   })

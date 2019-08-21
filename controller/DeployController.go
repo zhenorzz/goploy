@@ -33,7 +33,7 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		Project model.Projects `json:"projectList"`
 	}
-	projectGroupID, err := strconv.Atoi(gp.URLQuery.Get("projectGroupId"))
+	groupID, err := strconv.Atoi(gp.URLQuery.Get("groupId"))
 	if err != nil {
 		response := core.Response{Code: 1, Message: "id参数错误"}
 		response.JSON(w)
@@ -45,8 +45,8 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	projects, err := model.ProjectUser{
 		UserID: gp.TokenInfo.ID,
 		Project: model.Project{
-			ProjectGroupID: uint32(projectGroupID),
-			Name:           projectName,
+			GroupID: uint32(groupID),
+			Name:    projectName,
 		}}.GetDepolyListByUserID()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -707,6 +707,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 		publishTraceModel.AddRow()
 		return
 	}
+	println(project.AfterDeployScript)
 	// 没有脚本就不运行
 	if project.AfterDeployScript == "" {
 		return
@@ -765,6 +766,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	for attempt := 0; attempt < 3; attempt++ {
 		sshOutbuf.Reset()
 		afterDeployScript := strings.Replace(project.AfterDeployScript, "\n", ";", -1)
+		println(afterDeployScript)
 		if scriptError = session.Run(afterDeployScript); scriptError != nil {
 			core.Log(core.ERROR, scriptError.Error())
 			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,

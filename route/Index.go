@@ -61,11 +61,11 @@ func Init() {
 	rt.Add("/template/remove", controller.Template{}.Remove)
 
 	// projectGroup route
-	rt.Add("/projectGroup/getList", controller.ProjectGroup{}.GetList)
-	rt.Add("/projectGroup/getOption", controller.ProjectGroup{}.GetOption)
-	rt.Add("/projectGroup/add", controller.ProjectGroup{}.Add)
-	rt.Add("/projectGroup/edit", controller.ProjectGroup{}.Edit)
-	rt.Add("/projectGroup/remove", controller.ProjectGroup{}.Remove)
+	rt.Add("/group/getList", controller.Group{}.GetList)
+	rt.Add("/group/getOption", controller.Group{}.GetOption)
+	rt.Add("/group/add", controller.Group{}.Add)
+	rt.Add("/group/edit", controller.Group{}.Edit)
+	rt.Add("/group/remove", controller.Group{}.Remove)
 
 	// role route
 	rt.Add("/role/getOption", controller.Role{}.GetOption)

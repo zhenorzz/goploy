@@ -78,7 +78,7 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 		project.name, 
 		publisher_id, 
 		publisher_name, 
-		project.project_group_id, 
+		project.group_id, 
 		project.environment, 
 		project.branch, 
 		!EXISTS (SELECT id FROM publish_trace where publish_trace.state = 0 AND project.last_publish_token = publish_trace.token) as publish_state,
@@ -98,9 +98,9 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 	var arg []interface{}
 
 	arg = append(arg, pu.UserID)
-	if pu.ProjectGroupID != 0 {
-		sql += " AND project.project_group_id = ?"
-		arg = append(arg, pu.ProjectGroupID)
+	if pu.GroupID != 0 {
+		sql += " AND project.group_id = ?"
+		arg = append(arg, pu.GroupID)
 	}
 
 	if len(pu.Name) > 0 {
@@ -116,7 +116,7 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 	for rows.Next() {
 		var project Project
 
-		if err := rows.Scan(&project.ID, &project.Name, &project.PublisherID, &project.PublisherName, &project.ProjectGroupID, &project.Environment, &project.Branch, &project.PublishState, &project.LastPublishToken, &project.UpdateTime); err != nil {
+		if err := rows.Scan(&project.ID, &project.Name, &project.PublisherID, &project.PublisherName, &project.GroupID, &project.Environment, &project.Branch, &project.PublishState, &project.LastPublishToken, &project.UpdateTime); err != nil {
 			return projects, err
 		}
 		projects = append(projects, project)

@@ -22,8 +22,8 @@
       </el-table-column>
     </el-table>
     <el-dialog title="分组设置" :visible.sync="dialogVisible">
-      <el-form ref="form" :rules="formRules" :model="formData">
-        <el-form-item label="名称" label-width="120px" prop="name">
+      <el-form ref="form" :rules="formRules" :model="formData" label-width="80px">
+        <el-form-item label="名称" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
       </el-form>
@@ -35,7 +35,7 @@
   </el-row>
 </template>
 <script>
-import { getList, add, edit, remove } from '@/api/projectGroup'
+import { getList, add, edit, remove } from '@/api/group'
 import { parseTime } from '@/utils'
 
 export default {
@@ -64,12 +64,12 @@ export default {
   methods: {
     getList() {
       getList().then((response) => {
-        const projectGroupList = response.data.projectGroupList || []
-        projectGroupList.forEach((element) => {
+        const groupList = response.data.groupList || []
+        groupList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
           element.updateTime = parseTime(element.updateTime)
         })
-        this.tableData = projectGroupList
+        this.tableData = groupList
       })
     },
 

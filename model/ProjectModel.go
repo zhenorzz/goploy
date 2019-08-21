@@ -8,7 +8,7 @@ import (
 // Project mysql table project
 type Project struct {
 	ID                uint32 `json:"id"`
-	ProjectGroupID    uint32 `json:"projectGroupId"`
+	GroupID           uint32 `json:"groupId"`
 	Name              string `json:"name"`
 	URL               string `json:"url"`
 	Path              string `json:"path"`
@@ -33,7 +33,7 @@ type Projects []Project
 func (p Project) AddRow() (uint32, error) {
 	result, err := DB.Exec(
 		`INSERT INTO project (
-			project_group_id,
+			group_id,
 			name, 
 			url, 
 			path, 
@@ -45,7 +45,7 @@ func (p Project) AddRow() (uint32, error) {
 			create_time, 
 			update_time) 
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		p.ProjectGroupID,
+		p.GroupID,
 		p.Name,
 		p.URL,
 		p.Path,
@@ -68,7 +68,7 @@ func (p Project) AddRow() (uint32, error) {
 func (p Project) EditRow() error {
 	_, err := DB.Exec(
 		`UPDATE project SET 
-		  project_group_id = ?,
+		  group_id = ?,
 		  name = ?,
 		  url = ?,
 		  path = ?,
@@ -79,7 +79,7 @@ func (p Project) EditRow() error {
 		  rsync_option = ?
 		WHERE
 		  id = ?`,
-		p.ProjectGroupID,
+		p.GroupID,
 		p.Name,
 		p.URL,
 		p.Path,
@@ -122,7 +122,7 @@ func (p Project) Publish() error {
 
 // GetList project row
 func (p Project) GetList() (Projects, error) {
-	rows, err := DB.Query("SELECT id, project_group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, create_time, update_time FROM project WHERE state = 1 ORDER BY id DESC")
+	rows, err := DB.Query("SELECT id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, create_time, update_time FROM project WHERE state = 1 ORDER BY id DESC")
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (p Project) GetList() (Projects, error) {
 	for rows.Next() {
 		var project Project
 
-		if err := rows.Scan(&project.ID, &project.ProjectGroupID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.AfterPullScript, &project.AfterDeployScript, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
+		if err := rows.Scan(&project.ID, &project.GroupID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.AfterPullScript, &project.AfterDeployScript, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
 			return nil, err
 		}
 		projects = append(projects, project)

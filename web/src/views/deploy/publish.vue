@@ -1,10 +1,10 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex">
-      <el-select v-model="projectGroupId" placeholder="选择分组" @change="handleGroupChange">
+      <el-select v-model="groupId" placeholder="选择分组" @change="handleGroupChange">
         <el-option label="默认" :value="0" />
         <el-option
-          v-for="(item, index) in projectGroupOption"
+          v-for="(item, index) in groupOption"
           :key="index"
           :label="item.name"
           :value="item.id"
@@ -23,7 +23,7 @@
       <el-table-column prop="name" label="项目名称" />
       <el-table-column prop="group" label="分组">
         <template slot-scope="scope">
-          {{ findGroupName(scope.row.projectGroupId) }}
+          {{ findGroupName(scope.row.groupId) }}
         </template>
       </el-table-column>
       <el-table-column prop="environment" label="环境" />
@@ -150,14 +150,14 @@
 </template>
 <script>
 import { getList, getDetail, getPreview, getCommitList, publish, rollback } from '@/api/deploy'
-import { getOption as getProjectGroupOption } from '@/api/projectGroup'
+import { getOption as getGroupOption } from '@/api/group'
 import { parseTime } from '@/utils'
 
 export default {
   data() {
     return {
-      projectGroupId: parseInt(localStorage.getItem('projectGroupId')) || 0,
-      projectGroupOption: [],
+      groupId: parseInt(localStorage.getItem('groupId')) || 0,
+      groupOption: [],
       projectName: '',
       publishToken: '',
       publishDialogVisible: false,
@@ -174,7 +174,7 @@ export default {
   },
   created() {
     this.getList()
-    this.getProjectGroupOption()
+    this.getGroupOption()
     // // 路由跳转时结束websocket链接
     this.$router.afterEach(() => {
       this.webSocket && this.webSocket.close()
@@ -225,20 +225,20 @@ export default {
       })
     },
 
-    handleGroupChange(projectGroupId) {
-      localStorage.setItem('projectGroupId', projectGroupId)
-      this.projectGroupId = projectGroupId
+    handleGroupChange(groupId) {
+      localStorage.setItem('groupId', groupId)
+      this.groupId = groupId
       this.getList()
     },
 
-    getProjectGroupOption() {
-      getProjectGroupOption().then((response) => {
-        this.projectGroupOption = response.data.projectGroupList || []
+    getGroupOption() {
+      getGroupOption().then((response) => {
+        this.groupOption = response.data.groupList || []
       })
     },
 
     getList() {
-      getList(this.projectGroupId, this.projectName).then((response) => {
+      getList(this.groupId, this.projectName).then((response) => {
         const projectList = response.data.projectList || []
         projectList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
@@ -345,8 +345,8 @@ export default {
       })
     },
 
-    findGroupName(projectGroupId) {
-      const projectGroup = this.projectGroupOption.find(element => element.id === projectGroupId)
+    findGroupName(groupId) {
+      const projectGroup = this.groupOption.find(element => element.id === groupId)
       return projectGroup ? projectGroup['name'] : '默认'
     },
 

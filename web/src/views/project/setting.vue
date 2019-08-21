@@ -15,7 +15,7 @@
       <el-table-column prop="path" label="部署路径" />
       <el-table-column prop="group" label="分组" width="100">
         <template slot-scope="scope">
-          {{ findGroupName(scope.row.projectGroupId) }}
+          {{ findGroupName(scope.row.groupId) }}
         </template>
       </el-table-column>
       <el-table-column prop="environment" width="160" label="环境" />
@@ -59,11 +59,11 @@
         <el-form-item label="部署后运行脚本" prop="afterDeployScrpit">
           <el-input v-model="formData.afterDeployScript" :rows="3" type="textarea" autocomplete="off" placeholder="多个脚本用回车分割" />
         </el-form-item>
-        <el-form-item label="绑定分组" prop="projectGroupId">
-          <el-select v-model="formData.projectGroupId" placeholder="选择分组" style="width:100%">
+        <el-form-item label="绑定分组" prop="groupId">
+          <el-select v-model="formData.groupId" placeholder="选择分组" style="width:100%">
             <el-option label="默认" :value="0" />
             <el-option
-              v-for="(item, index) in projectGroupOption"
+              v-for="(item, index) in groupOption"
               :key="index"
               :label="item.name"
               :value="item.id"
@@ -188,7 +188,7 @@
 
 import { getOption as getUserOption } from '@/api/user'
 import { getOption as getServerOption } from '@/api/server'
-import { getOption as getProjectGroupOption } from '@/api/projectGroup'
+import { getOption as getGroupOption } from '@/api/group'
 import { getList, getBindServerList, getBindUserList, add, edit, create, remove, addServer, addUser, removeProjectServer, removeProjectUser } from '@/api/project'
 import { parseTime } from '@/utils'
 
@@ -202,7 +202,7 @@ export default {
       dialogAddUserVisible: false,
       serverOption: [],
       userOption: [],
-      projectGroupOption: [],
+      groupOption: [],
       tableData: [],
       tableServerData: [],
       tableUserData: [],
@@ -214,7 +214,7 @@ export default {
       tempFormData: {},
       formData: {
         id: 0,
-        projectGroupId: 0,
+        groupId: 0,
         name: '',
         url: '',
         path: '',
@@ -493,8 +493,8 @@ export default {
       getUserOption().then((response) => {
         this.userOption = response.data.userList || []
       })
-      getProjectGroupOption().then((response) => {
-        this.projectGroupOption = response.data.projectGroupList || []
+      getGroupOption().then((response) => {
+        this.groupOption = response.data.groupList || []
       })
     },
 
@@ -530,8 +530,8 @@ export default {
       })
     },
 
-    findGroupName(projectGroupId) {
-      const projectGroup = this.projectGroupOption.find(element => element.id === projectGroupId)
+    findGroupName(groupId) {
+      const projectGroup = this.groupOption.find(element => element.id === groupId)
       return projectGroup ? projectGroup['name'] : '默认'
     },
 
