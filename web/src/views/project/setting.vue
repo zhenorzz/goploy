@@ -200,6 +200,7 @@ import { parseTime } from '@/utils'
 // require component
 import { codemirror } from 'vue-codemirror'
 import 'codemirror/mode/shell/shell.js'
+import 'codemirror/theme/darcula.css'
 // require styles
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/addon/scroll/simplescrollbars.js'
@@ -215,7 +216,8 @@ export default {
         mode: 'text/x-sh',
         lineNumbers: true,
         line: true,
-        scrollbarStyle: 'overlay'
+        scrollbarStyle: 'overlay',
+        theme: 'darcula'
       },
       dialogVisible: false,
       dialogServerVisible: false,

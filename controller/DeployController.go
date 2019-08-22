@@ -764,7 +764,8 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	var scriptError error
 	for attempt := 0; attempt < 3; attempt++ {
 		sshOutbuf.Reset()
-		afterDeployScript := strings.Replace(project.AfterDeployScript, "\n", ";", -1)
+		afterDeployScript := "sh -c \"" + project.AfterDeployScript + "\""
+		println(afterDeployScript)
 		if scriptError = session.Run(afterDeployScript); scriptError != nil {
 			core.Log(core.ERROR, scriptError.Error())
 			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
