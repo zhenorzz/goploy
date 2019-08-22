@@ -116,6 +116,31 @@ func (s Server) GetList() (Servers, error) {
 	return servers, nil
 }
 
+// GetListByManagerGroupStr server row
+func (s Server) GetListByManagerGroupStr(managerGroupStr string) (Servers, error) {
+	sql := "SELECT id, name, ip, port, owner, group_id, create_time, update_time FROM server WHERE state = 1"
+	if managerGroupStr == "0" {
+		return nil, nil
+	} else if managerGroupStr != "" {
+		sql += " AND group_id IN (" + managerGroupStr + ")"
+	}
+	sql += " ORDER BY id DESC"
+	rows, err := DB.Query(sql)
+	if err != nil {
+		return nil, err
+	}
+	var servers Servers
+	for rows.Next() {
+		var server Server
+
+		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime); err != nil {
+			return nil, err
+		}
+		servers = append(servers, server)
+	}
+	return servers, nil
+}
+
 // GetAll server row
 func (s Server) GetAll() (Servers, error) {
 	rows, err := DB.Query("SELECT id, name, ip, owner, group_id, create_time, update_time FROM server WHERE state = 1 ORDER BY id DESC")

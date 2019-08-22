@@ -173,11 +173,12 @@ func (user User) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 // Add one user
 func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		Account  string `json:"account"`
-		Password string `json:"password"`
-		Name     string `json:"name"`
-		Mobile   string `json:"mobile"`
-		RoleID   uint32 `json:"roleId"`
+		Account        string `json:"account"`
+		Password       string `json:"password"`
+		Name           string `json:"name"`
+		Mobile         string `json:"mobile"`
+		RoleID         uint32 `json:"roleId"`
+		ManageGroupStr string `json:"manageGroupStr"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -187,13 +188,14 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 	_, err = model.User{
-		Account:    reqData.Account,
-		Password:   reqData.Password,
-		Name:       reqData.Name,
-		Mobile:     reqData.Mobile,
-		RoleID:     reqData.RoleID,
-		CreateTime: time.Now().Unix(),
-		UpdateTime: time.Now().Unix(),
+		Account:        reqData.Account,
+		Password:       reqData.Password,
+		Name:           reqData.Name,
+		Mobile:         reqData.Mobile,
+		RoleID:         reqData.RoleID,
+		ManageGroupStr: reqData.ManageGroupStr,
+		CreateTime:     time.Now().Unix(),
+		UpdateTime:     time.Now().Unix(),
 	}.AddRow()
 
 	if err != nil {
@@ -208,11 +210,12 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 // Edit one user
 func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID       uint32 `json:"id"`
-		Password string `json:"password"`
-		Name     string `json:"name"`
-		Mobile   string `json:"mobile"`
-		RoleID   uint32 `json:"roleId"`
+		ID             uint32 `json:"id"`
+		Password       string `json:"password"`
+		Name           string `json:"name"`
+		Mobile         string `json:"mobile"`
+		RoleID         uint32 `json:"roleId"`
+		ManageGroupStr string `json:"manageGroupStr"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -222,12 +225,13 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 	err = model.User{
-		ID:         reqData.ID,
-		Password:   reqData.Password,
-		Name:       reqData.Name,
-		Mobile:     reqData.Mobile,
-		RoleID:     reqData.RoleID,
-		UpdateTime: time.Now().Unix(),
+		ID:             reqData.ID,
+		Password:       reqData.Password,
+		Name:           reqData.Name,
+		Mobile:         reqData.Mobile,
+		RoleID:         reqData.RoleID,
+		ManageGroupStr: reqData.ManageGroupStr,
+		UpdateTime:     time.Now().Unix(),
 	}.EditRow()
 
 	if err != nil {

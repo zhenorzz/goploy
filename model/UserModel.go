@@ -12,16 +12,17 @@ import (
 
 // User mysql table user
 type User struct {
-	ID            uint32 `json:"id"`
-	Account       string `json:"account"`
-	Password      string `json:"password"`
-	Name          string `json:"name"`
-	Mobile        string `json:"mobile"`
-	RoleID        uint32 `json:"roleId"`
-	State         uint8  `json:"state"`
-	CreateTime    int64  `json:"createTime"`
-	UpdateTime    int64  `json:"updateTime"`
-	LastLoginTime int64  `json:"lastLoginTime"`
+	ID             uint32 `json:"id"`
+	Account        string `json:"account"`
+	Password       string `json:"password"`
+	Name           string `json:"name"`
+	Mobile         string `json:"mobile"`
+	RoleID         uint32 `json:"roleId"`
+	ManageGroupStr string `json:"manageGroupStr"`
+	State          uint8  `json:"state"`
+	CreateTime     int64  `json:"createTime"`
+	UpdateTime     int64  `json:"updateTime"`
+	LastLoginTime  int64  `json:"lastLoginTime"`
 }
 
 // Users many user
@@ -38,6 +39,7 @@ func (u User) GetData() (User, error) {
 			name, 
 			mobile, 
 			role_id, 
+			manage_group_str,
 			state,
 			create_time, 
 			update_time  
@@ -51,6 +53,7 @@ func (u User) GetData() (User, error) {
 		&user.Name,
 		&user.Mobile,
 		&user.RoleID,
+		&user.ManageGroupStr,
 		&user.State,
 		&user.CreateTime,
 		&user.UpdateTime)
@@ -71,6 +74,7 @@ func (u User) GetDataByAccount() (User, error) {
 			name, 
 			mobile, 
 			role_id, 
+			manage_group_str,
 			state,
 			create_time, 
 			update_time  
@@ -84,6 +88,7 @@ func (u User) GetDataByAccount() (User, error) {
 		&user.Name,
 		&user.Mobile,
 		&user.RoleID,
+		&user.ManageGroupStr,
 		&user.State,
 		&user.CreateTime,
 		&user.UpdateTime)
@@ -96,7 +101,7 @@ func (u User) GetDataByAccount() (User, error) {
 // GetList get many user row
 func (u Users) GetList(pagination *Pagination) (Users, error) {
 	rows, err := DB.Query(
-		"SELECT id, account, name, mobile, role_id, create_time, update_time FROM user WHERE state = 1 ORDER BY id DESC LIMIT ?, ?",
+		"SELECT id, account, name, mobile, role_id, manage_group_str, create_time, update_time FROM user WHERE state = 1 ORDER BY id DESC LIMIT ?, ?",
 		(pagination.Page-1)*pagination.Rows,
 		pagination.Rows)
 	if err != nil {
@@ -106,7 +111,7 @@ func (u Users) GetList(pagination *Pagination) (Users, error) {
 	for rows.Next() {
 		var user User
 
-		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.RoleID, &user.CreateTime, &user.UpdateTime); err != nil {
+		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.RoleID, &user.ManageGroupStr, &user.CreateTime, &user.UpdateTime); err != nil {
 			return users, err
 		}
 		users = append(users, user)
@@ -159,12 +164,13 @@ func (u User) AddRow() (uint32, error) {
 		return 0, err
 	}
 	result, err := DB.Exec(
-		"INSERT INTO user (account, password, name, mobile, role_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO user (account, password, name, mobile, role_id, manage_group_str, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
 		u.Account,
 		string(hashedPassword),
 		u.Name,
 		u.Mobile,
 		u.RoleID,
+		u.ManageGroupStr,
 		u.CreateTime,
 		u.UpdateTime,
 	)
@@ -183,12 +189,14 @@ func (u User) EditRow() error {
 			`UPDATE user SET 
 			  name = ?,
 			  mobile = ?,
-			  role_id = ?
+			  role_id = ?,
+			  manage_group_str = ?
 			WHERE
 			 id = ?`,
 			u.Name,
 			u.Mobile,
 			u.RoleID,
+			u.ManageGroupStr,
 			u.ID,
 		)
 	} else {
@@ -203,12 +211,14 @@ func (u User) EditRow() error {
 			  name = ?,
 			  mobile = ?,
 			  role_id = ?,
+			  manage_group_str = ?,
 			  password = ?
 			WHERE
 			 id = ?`,
 			u.Name,
 			u.Mobile,
 			u.RoleID,
+			u.ManageGroupStr,
 			hashedPassword,
 			u.ID,
 		)

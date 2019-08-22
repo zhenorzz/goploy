@@ -19,8 +19,13 @@ func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		Project model.Projects `json:"projectList"`
 	}
-
-	projectList, err := model.Project{}.GetList()
+	userData, err := core.GetUserData(gp.TokenInfo.ID)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	projectList, err := model.Project{}.GetListByManagerGroupStr(userData.ManageGroupStr)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)

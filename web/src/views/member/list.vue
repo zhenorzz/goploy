@@ -22,8 +22,8 @@
       <el-table-column prop="updateTime" label="更新时间" width="160" />
       <el-table-column prop="operation" label="操作" width="150">
         <template slot-scope="scope">
-          <el-button size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button :disabled="scope.row.id === 1" size="small" type="danger" @click="handleRemove(scope.row)">删除</el-button>
+          <el-button v-if="scope.row.id !== 1 && scope.row.id !== $store.getters.uid" size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button v-if="scope.row.id !== 1 && scope.row.id !== $store.getters.uid" size="small" type="danger" @click="handleRemove(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -38,23 +38,44 @@
       />
     </el-row>
     <el-dialog title="成员设置" :visible.sync="dialogVisible">
-      <el-form ref="form" :rules="formRules" :model="formData">
-        <el-form-item label="账号" label-width="120px" prop="account">
+      <el-form ref="form" :rules="formRules" :model="formData" label-width="80px">
+        <el-form-item label="账号" prop="account">
           <el-input v-model="formData.account" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="密码" label-width="120px" prop="password">
+        <el-form-item label="密码" prop="password">
           <el-input v-model="formData.password" autocomplete="off" placeholder="请输入初始密码" />
         </el-form-item>
-        <el-form-item label="名称" label-width="120px" prop="name">
+        <el-form-item label="名称" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="手机号码" label-width="120px" prop="mobile">
+        <el-form-item label="手机号码" prop="mobile">
           <el-input v-model="formData.mobile" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="角色" label-width="120px" prop="roleId">
+        <el-form-item label="角色" prop="roleId">
           <el-select v-model="formData.roleId" placeholder="选择角色">
             <el-option
               v-for="(item, index) in roleOption"
+              :key="index"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="管理分组" prop="groupId">
+          <el-radio-group v-model="formProps.radio" @change="handleGroupRadioChange">
+            <el-radio :label="0">无</el-radio>
+            <el-radio :label="1">全部</el-radio>
+            <el-radio :label="2">部分</el-radio>
+          </el-radio-group>
+          <el-select
+            v-show="formProps.showGroupSelect"
+            v-model="formData.groupIds"
+            multiple
+            placeholder="选择分组"
+            style="width:100%"
+          >
+            <el-option
+              v-for="(item, index) in groupOption"
               :key="index"
               :label="item.name"
               :value="item.id"
@@ -73,6 +94,7 @@
 import { validUsername, validPassword } from '@/utils/validate'
 import { getList, add, edit, remove } from '@/api/user'
 import { getOption as getRoleOption } from '@/api/role'
+import { getOption as getGroupOption } from '@/api/group'
 import { parseTime } from '@/utils'
 
 export default {
@@ -96,6 +118,7 @@ export default {
     return {
       dialogVisible: false,
       roleOption: [],
+      groupOption: [],
       tableData: [],
       tempFormData: {},
       pagination: {
@@ -104,7 +127,9 @@ export default {
         total: 0
       },
       formProps: {
-        disabled: false
+        radio: 0,
+        disabled: false,
+        showGroupSelect: false
       },
       formData: {
         id: 0,
@@ -112,7 +137,9 @@ export default {
         password: '',
         name: '',
         mobile: '',
-        roleId: 3
+        roleId: 3,
+        groupIds: [],
+        manageGroupStr: '0'
       },
       formRules: {
         account: [
@@ -133,6 +160,7 @@ export default {
   created() {
     this.storeFormData()
     this.getRoleOption()
+    this.getGroupOption()
     this.getUserList()
   },
   methods: {
@@ -154,6 +182,12 @@ export default {
       })
     },
 
+    getGroupOption() {
+      getGroupOption().then((response) => {
+        this.groupOption = response.data.groupList || []
+      })
+    },
+
     findRoleName(roleId) {
       return this.roleOption.find(element => element.id === roleId)['name']
     },
@@ -166,11 +200,30 @@ export default {
 
     handleAdd() {
       this.restoreFormData()
+      this.formProps.radio = 0
+      this.formProps.showGroupSelect = false
+      this.formData.groupIds = []
       this.dialogVisible = true
     },
 
     handleEdit(data) {
-      this.formData = Object.assign({}, data)
+      this.restoreFormData()
+      this.formData = Object.assign(this.formData, data)
+      if (data.manageGroupStr === '0') {
+        this.formProps.radio = 0
+        this.formProps.showGroupSelect = false
+        this.formData.groupIds = []
+      } else if (data.manageGroupStr === '') {
+        this.formProps.radio = 1
+        this.formProps.showGroupSelect = false
+        this.formData.groupIds = []
+      } else {
+        this.formProps.radio = 2
+        this.formProps.showGroupSelect = true
+        this.formData.groupIds = data.manageGroupStr.split(',').map(element => {
+          return parseInt(element)
+        })
+      }
       this.dialogVisible = true
     },
 
@@ -196,9 +249,36 @@ export default {
       })
     },
 
+    handleGroupRadioChange(value) {
+      if (value === 2) {
+        this.formProps.showGroupSelect = true
+      } else {
+        this.formProps.showGroupSelect = false
+      }
+    },
+
     submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
+          // 0 无权限 '' 全部
+          switch (this.formProps.radio) {
+            case 0:
+              this.formData.manageGroupStr = '0'
+              break
+            case 1:
+              this.formData.manageGroupStr = ''
+              break
+            case 2:
+              if (this.formData.groupIds.length === 0) {
+                this.formData.manageGroupStr = '0'
+              } else {
+                this.formData.manageGroupStr = this.formData.groupIds.join(',')
+              }
+              break
+            default:
+              this.formData.manageGroupStr = '0'
+          }
+
           if (this.formData.id === 0) {
             this.add()
           } else {

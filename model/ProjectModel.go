@@ -138,6 +138,31 @@ func (p Project) GetList() (Projects, error) {
 	return projects, nil
 }
 
+// GetListByManagerGroupStr project row
+func (p Project) GetListByManagerGroupStr(managerGroupStr string) (Projects, error) {
+	sql := "SELECT id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, create_time, update_time FROM project WHERE state = 1"
+	if managerGroupStr == "0" {
+		return nil, nil
+	} else if managerGroupStr != "" {
+		sql += " AND group_id IN (" + managerGroupStr + ")"
+	}
+	sql += " ORDER BY id DESC"
+	rows, err := DB.Query(sql)
+	if err != nil {
+		return nil, err
+	}
+	var projects Projects
+	for rows.Next() {
+		var project Project
+
+		if err := rows.Scan(&project.ID, &project.GroupID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.AfterPullScript, &project.AfterDeployScript, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+	return projects, nil
+}
+
 // GetData add project information to p *Project
 func (p Project) GetData() (Project, error) {
 	var project Project

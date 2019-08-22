@@ -17,16 +17,12 @@ func GetUserCache(UserID uint32) (model.User, model.Permissions, error) {
 	var userData model.User
 	var permissions model.Permissions
 	var err error
-	if x, found := Cache.Get("userInfo:" + strconv.Itoa(int(UserID))); found {
-		userData = *x.(*model.User)
-	} else {
-		userData, err = model.User{ID: UserID}.GetData()
-		if err != nil {
-			return userData, permissions, err
-		}
 
-		Cache.Set("userInfo:"+strconv.Itoa(int(UserID)), &userData, cache.DefaultExpiration)
+	userData, err = GetUserData(UserID)
+	if err != nil {
+		return userData, permissions, err
 	}
+
 	if x, found := Cache.Get("permissions:" + strconv.Itoa(int(UserID))); found {
 		permissions = *x.(*model.Permissions)
 	} else {
@@ -49,4 +45,21 @@ func GetUserCache(UserID uint32) (model.User, model.Permissions, error) {
 		}
 	}
 	return userData, permissions, nil
+}
+
+// GetUserData return model.User and error
+func GetUserData(UserID uint32) (model.User, error) {
+	var userData model.User
+	var err error
+	if x, found := Cache.Get("userInfo:" + strconv.Itoa(int(UserID))); found {
+		userData = *x.(*model.User)
+	} else {
+		userData, err = model.User{ID: UserID}.GetData()
+		if err != nil {
+			return userData, err
+		}
+
+		Cache.Set("userInfo:"+strconv.Itoa(int(UserID)), &userData, cache.DefaultExpiration)
+	}
+	return userData, nil
 }

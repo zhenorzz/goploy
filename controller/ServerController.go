@@ -17,8 +17,13 @@ func (server Server) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		Server model.Servers `json:"serverList"`
 	}
-
-	serverList, err := model.Server{}.GetList()
+	userData, err := core.GetUserData(gp.TokenInfo.ID)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	serverList, err := model.Server{}.GetListByManagerGroupStr(userData.ManageGroupStr)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
