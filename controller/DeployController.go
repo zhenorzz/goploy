@@ -573,61 +573,55 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 		UpdateTime:    time.Now().Unix(),
 	}
 	srcPath := core.GolbalPath + "repository/" + project.Name
-	for _, script := range strings.Split(strings.Replace(project.AfterPullScript, "\r\n", "\n", -1), "\n") {
-		command, err := utils.ParseCommandLine(script)
-		if err != nil {
-			return errors.New(script + "解析失败")
-		}
 
-		handler := exec.Command(command[0], command[1:]...)
-		handler.Dir = srcPath
-		var outbuf, errbuf bytes.Buffer
-		handler.Stdout = &outbuf
-		handler.Stderr = &errbuf
-		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+script)
+	handler := exec.Command("sh", "-c", project.AfterPullScript)
+	handler.Dir = srcPath
+	var outbuf, errbuf bytes.Buffer
+	handler.Stdout = &outbuf
+	handler.Stderr = &errbuf
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+project.AfterPullScript)
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID: project.ID,
+		UserID:    tokenInfo.ID,
+		DataType:  ws.LocalType,
+		State:     ws.Success,
+		Message:   project.AfterPullScript,
+	}
+	if err := handler.Run(); err != nil {
+		core.Log(core.ERROR, err.Error())
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
 			ProjectID: project.ID,
 			UserID:    tokenInfo.ID,
 			DataType:  ws.LocalType,
 			State:     ws.Success,
-			Message:   script,
-		}
-		if err := handler.Run(); err != nil {
-			core.Log(core.ERROR, errbuf.String())
-			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-				ProjectID: project.ID,
-				UserID:    tokenInfo.ID,
-				DataType:  ws.LocalType,
-				State:     ws.Success,
-				Message:   errbuf.String(),
-			}
-			ext, _ := json.Marshal(struct {
-				Script string `json:"script"`
-			}{script})
-			publishTraceModel.Ext = string(ext)
-			publishTraceModel.Detail = errbuf.String()
-			publishTraceModel.State = model.Fail
-			if _, err := publishTraceModel.AddRow(); err != nil {
-				core.Log(core.ERROR, err.Error())
-			}
-			return errors.New(errbuf.String())
-		}
-		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-			ProjectID: project.ID,
-			UserID:    tokenInfo.ID,
-			DataType:  ws.LocalType,
-			State:     ws.Success,
-			Message:   outbuf.String(),
+			Message:   err.Error(),
 		}
 		ext, _ := json.Marshal(struct {
 			Script string `json:"script"`
-		}{script})
+		}{project.AfterPullScript})
 		publishTraceModel.Ext = string(ext)
-		publishTraceModel.Detail = outbuf.String()
-		publishTraceModel.State = model.Success
+		publishTraceModel.Detail = err.Error()
+		publishTraceModel.State = model.Fail
 		if _, err := publishTraceModel.AddRow(); err != nil {
 			core.Log(core.ERROR, err.Error())
 		}
+		return err
+	}
+	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ProjectID: project.ID,
+		UserID:    tokenInfo.ID,
+		DataType:  ws.LocalType,
+		State:     ws.Success,
+		Message:   outbuf.String(),
+	}
+	ext, _ := json.Marshal(struct {
+		Script string `json:"script"`
+	}{project.AfterPullScript})
+	publishTraceModel.Ext = string(ext)
+	publishTraceModel.Detail = outbuf.String()
+	publishTraceModel.State = model.Success
+	if _, err := publishTraceModel.AddRow(); err != nil {
+		core.Log(core.ERROR, err.Error())
 	}
 
 	return nil

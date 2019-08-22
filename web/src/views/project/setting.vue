@@ -29,67 +29,73 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog title="项目设置" :visible.sync="dialogVisible">
+    <el-dialog title="项目设置" :visible.sync="dialogVisible" width="60%">
       <el-form ref="form" :rules="formRules" :model="formData" label-width="120px">
-        <el-form-item label="项目名称" prop="name">
-          <el-input v-model="formData.name" autocomplete="off" />
-        </el-form-item>
-        <el-form-item label="项目地址" prop="url">
-          <el-input v-model="formData.url" autocomplete="off" />
-        </el-form-item>
-        <el-form-item label="部署路径" prop="path">
-          <el-input v-model="formData.path" autocomplete="off" />
-        </el-form-item>
-        <el-form-item label="环境" prop="environment">
-          <el-select v-model="formData.environment" placeholder="选择环境" style="width:100%">
-            <el-option label="生产环境" value="生产环境" />
-            <el-option label="测试环境" value="测试环境" />
-            <el-option label="开发环境" value="开发环境" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="分支" prop="branch">
-          <el-input v-model="formData.branch" autocomplete="off" />
-        </el-form-item>
-        <el-form-item label="rsync选项" prop="rsyncOption">
-          <el-input v-model="formData.rsyncOption" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
-        </el-form-item>
-        <el-form-item label="拉取后运行脚本" prop="afterPullScrpit">
-          <el-input v-model="formData.afterPullScript" :rows="3" type="textarea" autocomplete="off" placeholder="多个脚本用回车分割" />
-        </el-form-item>
-        <el-form-item label="部署后运行脚本" prop="afterDeployScrpit">
-          <el-input v-model="formData.afterDeployScript" :rows="3" type="textarea" autocomplete="off" placeholder="多个脚本用回车分割" />
-        </el-form-item>
-        <el-form-item label="绑定分组" prop="groupId">
-          <el-select v-model="formData.groupId" placeholder="选择分组" style="width:100%">
-            <el-option label="默认" :value="0" />
-            <el-option
-              v-for="(item, index) in groupOption"
-              :key="index"
-              :label="item.name"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item v-show="formProps.showServers" label="绑定服务器" prop="serverIds">
-          <el-select v-model="formData.serverIds" multiple placeholder="选择服务器，可多选" style="width:100%">
-            <el-option
-              v-for="(item, index) in serverOption"
-              :key="index"
-              :label="item.name"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item v-show="formProps.showUsers" label="绑定组员" prop="userIds">
-          <el-select v-model="formData.userIds" multiple placeholder="选择组员，可多选" style="width:100%">
-            <el-option
-              v-for="(item, index) in userOption"
-              :key="index"
-              :label="item.name"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
+        <el-row>
+          <el-col :span="8">
+            <el-form-item label="项目名称" prop="name">
+              <el-input v-model="formData.name" autocomplete="off" />
+            </el-form-item>
+            <el-form-item label="项目地址" prop="url">
+              <el-input v-model="formData.url" autocomplete="off" />
+            </el-form-item>
+            <el-form-item label="部署路径" prop="path">
+              <el-input v-model="formData.path" autocomplete="off" />
+            </el-form-item>
+            <el-form-item label="环境" prop="environment">
+              <el-select v-model="formData.environment" placeholder="选择环境" style="width:100%">
+                <el-option label="生产环境" value="生产环境" />
+                <el-option label="测试环境" value="测试环境" />
+                <el-option label="开发环境" value="开发环境" />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="分支" prop="branch">
+              <el-input v-model="formData.branch" autocomplete="off" />
+            </el-form-item>
+            <el-form-item label="rsync选项" prop="rsyncOption">
+              <el-input v-model="formData.rsyncOption" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
+            </el-form-item>
+            <el-form-item label="绑定分组" prop="groupId">
+              <el-select v-model="formData.groupId" placeholder="选择分组" style="width:100%">
+                <el-option label="默认" :value="0" />
+                <el-option
+                  v-for="(item, index) in groupOption"
+                  :key="index"
+                  :label="item.name"
+                  :value="item.id"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item v-show="formProps.showServers" label="绑定服务器" prop="serverIds">
+              <el-select v-model="formData.serverIds" multiple placeholder="选择服务器，可多选" style="width:100%">
+                <el-option
+                  v-for="(item, index) in serverOption"
+                  :key="index"
+                  :label="item.name"
+                  :value="item.id"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item v-show="formProps.showUsers" label="绑定组员" prop="userIds">
+              <el-select v-model="formData.userIds" multiple placeholder="选择组员，可多选" style="width:100%">
+                <el-option
+                  v-for="(item, index) in userOption"
+                  :key="index"
+                  :label="item.name"
+                  :value="item.id"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="16">
+            <el-form-item label="拉取后运行脚本" prop="afterPullScrpit">
+              <codemirror v-model="formData.afterPullScript" :options="cmOptions" />
+            </el-form-item>
+            <el-form-item label="部署后运行脚本" prop="afterDeployScrpit">
+              <codemirror v-model="formData.afterDeployScript" :options="cmOptions" />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
@@ -191,10 +197,26 @@ import { getOption as getServerOption } from '@/api/server'
 import { getOption as getGroupOption } from '@/api/group'
 import { getList, getBindServerList, getBindUserList, add, edit, create, remove, addServer, addUser, removeProjectServer, removeProjectUser } from '@/api/project'
 import { parseTime } from '@/utils'
-
+// require component
+import { codemirror } from 'vue-codemirror'
+import 'codemirror/mode/shell/shell.js'
+// require styles
+import 'codemirror/lib/codemirror.css'
+import 'codemirror/addon/scroll/simplescrollbars.js'
+import 'codemirror/addon/scroll/simplescrollbars.css'
 export default {
+  components: {
+    codemirror
+  },
   data() {
     return {
+      cmOptions: {
+        tabSize: 4,
+        mode: 'text/x-sh',
+        lineNumbers: true,
+        line: true,
+        scrollbarStyle: 'overlay'
+      },
       dialogVisible: false,
       dialogServerVisible: false,
       dialogUserVisible: false,
@@ -545,3 +567,10 @@ export default {
   }
 }
 </script>
+<style>
+.CodeMirror {
+  border-radius: 4px;
+  border: 1px solid #DCDFE6;
+  height: 200px;
+}
+</style>
