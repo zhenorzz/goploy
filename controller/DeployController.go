@@ -577,8 +577,9 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 	}{project.AfterPullScript})
 	publishTraceModel.Ext = string(ext)
 	srcPath := core.GolbalPath + "repository/" + project.Name
-
-	handler := exec.Command("bash", "-c", project.AfterPullScript)
+	scriptName := srcPath + "/after-pull.sh"
+	ioutil.WriteFile(scriptName, []byte(project.AfterPullScript), 0755)
+	handler := exec.Command("bash", "./after-pull.sh")
 	handler.Dir = srcPath
 	var outbuf, errbuf bytes.Buffer
 	handler.Stdout = &outbuf
@@ -617,6 +618,7 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 	}
 	publishTraceModel.Detail = outbuf.String()
 	publishTraceModel.State = model.Success
+	os.Remove(scriptName)
 	if _, err := publishTraceModel.AddRow(); err != nil {
 		core.Log(core.ERROR, err.Error())
 	}
