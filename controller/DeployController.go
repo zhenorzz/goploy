@@ -598,7 +598,7 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 			UserID:    tokenInfo.ID,
 			DataType:  ws.LocalType,
 			State:     ws.Success,
-			Message:   err.Error(),
+			Message:   errbuf.String(),
 		}
 
 		publishTraceModel.Detail = err.Error()
@@ -717,6 +717,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	}
 	var session *ssh.Session
 	var connectError error
+	var scriptError error
 	for attempt := 0; attempt < 3; attempt++ {
 		session, connectError = connect(projectServer.ServerOwner, "", projectServer.ServerIP, int(projectServer.ServerPort))
 		if connectError != nil {
@@ -732,7 +733,35 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 				State:    ws.Success,
 				Message:  "开始连接成功",
 			}
-			break
+			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+				DataType: ws.ScriptType,
+				State:    ws.Success,
+				Message:  "运行:" + project.AfterDeployScript,
+			}
+			defer session.Close()
+			var sshOutbuf, sshErrbuf bytes.Buffer
+			session.Stdout = &sshOutbuf
+			session.Stderr = &sshErrbuf
+			sshOutbuf.Reset()
+			afterDeployScript := "echo '" + project.AfterDeployScript + "' > /tmp/after-deploy.sh;bash /tmp/after-deploy.sh"
+			if scriptError = session.Run(afterDeployScript); scriptError != nil {
+				core.Log(core.ERROR, scriptError.Error())
+				ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+					DataType: ws.ScriptType,
+					State:    ws.Fail,
+					Message:  scriptError.Error(),
+				}
+			} else {
+				ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+					DataType: ws.ScriptType,
+					State:    ws.Success,
+					Message:  sshOutbuf.String(),
+				}
+				publishTraceModel.Detail = sshOutbuf.String()
+				publishTraceModel.State = model.Success
+				publishTraceModel.AddRow()
+				break
+			}
 		}
 
 	}
@@ -748,41 +777,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
 		return
-	}
-
-	defer session.Close()
-	var sshOutbuf, sshErrbuf bytes.Buffer
-	session.Stdout = &sshOutbuf
-	session.Stderr = &sshErrbuf
-
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-		DataType: ws.ScriptType,
-		State:    ws.Success,
-		Message:  "运行:" + project.AfterDeployScript,
-	}
-	var scriptError error
-	for attempt := 0; attempt < 3; attempt++ {
-		sshOutbuf.Reset()
-		afterDeployScript := "echo '" + project.AfterDeployScript + "' > /tmp/after-deploy.sh;bash /tmp/after-deploy.sh"
-		println(afterDeployScript)
-		if scriptError = session.Run(afterDeployScript); scriptError != nil {
-			core.Log(core.ERROR, scriptError.Error())
-			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-				DataType: ws.ScriptType,
-				State:    ws.Fail,
-				Message:  scriptError.Error(),
-			}
-		} else {
-			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-				DataType: ws.ScriptType,
-				State:    ws.Success,
-				Message:  sshOutbuf.String(),
-			}
-			break
-		}
-	}
-
-	if scriptError != nil {
+	} else if scriptError != nil {
 		core.Log(core.ERROR, scriptError.Error())
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
 			DataType: ws.ScriptType,
@@ -794,10 +789,6 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 		publishTraceModel.AddRow()
 		return
 	}
-
-	publishTraceModel.Detail = sshOutbuf.String()
-	publishTraceModel.State = model.Success
-	publishTraceModel.AddRow()
 	return
 }
 
