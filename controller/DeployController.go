@@ -572,9 +572,13 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
 	}
+	ext, _ := json.Marshal(struct {
+		Script string `json:"script"`
+	}{project.AfterPullScript})
+	publishTraceModel.Ext = string(ext)
 	srcPath := core.GolbalPath + "repository/" + project.Name
 
-	handler := exec.Command("sh", "-c", project.AfterPullScript)
+	handler := exec.Command("bash", "-c", project.AfterPullScript)
 	handler.Dir = srcPath
 	var outbuf, errbuf bytes.Buffer
 	handler.Stdout = &outbuf
@@ -596,10 +600,7 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 			State:     ws.Success,
 			Message:   err.Error(),
 		}
-		ext, _ := json.Marshal(struct {
-			Script string `json:"script"`
-		}{project.AfterPullScript})
-		publishTraceModel.Ext = string(ext)
+
 		publishTraceModel.Detail = err.Error()
 		publishTraceModel.State = model.Fail
 		if _, err := publishTraceModel.AddRow(); err != nil {
@@ -614,10 +615,6 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 		State:     ws.Success,
 		Message:   outbuf.String(),
 	}
-	ext, _ := json.Marshal(struct {
-		Script string `json:"script"`
-	}{project.AfterPullScript})
-	publishTraceModel.Ext = string(ext)
 	publishTraceModel.Detail = outbuf.String()
 	publishTraceModel.State = model.Success
 	if _, err := publishTraceModel.AddRow(); err != nil {
@@ -754,8 +751,10 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	}
 
 	defer session.Close()
-	var sshOutbuf bytes.Buffer
+	var sshOutbuf, sshErrbuf bytes.Buffer
 	session.Stdout = &sshOutbuf
+	session.Stderr = &sshErrbuf
+
 	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
 		DataType: ws.ScriptType,
 		State:    ws.Success,
@@ -764,7 +763,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	var scriptError error
 	for attempt := 0; attempt < 3; attempt++ {
 		sshOutbuf.Reset()
-		afterDeployScript := "sh -c \"" + project.AfterDeployScript + "\""
+		afterDeployScript := "echo '" + project.AfterDeployScript + "' > /tmp/after-deploy.sh;bash /tmp/after-deploy.sh"
 		println(afterDeployScript)
 		if scriptError = session.Run(afterDeployScript); scriptError != nil {
 			core.Log(core.ERROR, scriptError.Error())
