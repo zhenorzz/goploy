@@ -93,7 +93,7 @@ func (u User) GetDataByAccount() (User, error) {
 		&user.CreateTime,
 		&user.UpdateTime)
 	if err != nil {
-		return user, errors.New("数据查询失败")
+		return user, err
 	}
 	return user, nil
 }
