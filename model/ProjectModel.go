@@ -141,9 +141,9 @@ func (p Project) GetList() (Projects, error) {
 // GetListByManagerGroupStr project row
 func (p Project) GetListByManagerGroupStr(managerGroupStr string) (Projects, error) {
 	sql := "SELECT id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, create_time, update_time FROM project WHERE state = 1"
-	if managerGroupStr == "0" {
+	if managerGroupStr == "" {
 		return nil, nil
-	} else if managerGroupStr != "" {
+	} else if managerGroupStr != "all" {
 		sql += " AND group_id IN (" + managerGroupStr + ")"
 	}
 	sql += " ORDER BY id DESC"

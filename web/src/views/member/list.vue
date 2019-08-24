@@ -61,14 +61,8 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="管理分组" prop="groupId">
-          <el-radio-group v-model="formProps.radio" @change="handleGroupRadioChange">
-            <el-radio :label="0">无</el-radio>
-            <el-radio :label="1">全部</el-radio>
-            <el-radio :label="2">部分</el-radio>
-          </el-radio-group>
+        <el-form-item v-show="formData.roleId===3" label="管理分组" prop="groupId">
           <el-select
-            v-show="formProps.showGroupSelect"
             v-model="formData.groupIds"
             multiple
             placeholder="选择分组"
@@ -127,9 +121,7 @@ export default {
         total: 0
       },
       formProps: {
-        radio: 0,
-        disabled: false,
-        showGroupSelect: false
+        disabled: false
       },
       formData: {
         id: 0,
@@ -139,7 +131,7 @@ export default {
         mobile: '',
         roleId: 3,
         groupIds: [],
-        manageGroupStr: '0'
+        manageGroupStr: ''
       },
       formRules: {
         account: [
@@ -200,30 +192,15 @@ export default {
 
     handleAdd() {
       this.restoreFormData()
-      this.formProps.radio = 0
-      this.formProps.showGroupSelect = false
-      this.formData.groupIds = []
       this.dialogVisible = true
     },
 
     handleEdit(data) {
       this.restoreFormData()
       this.formData = Object.assign(this.formData, data)
-      if (data.manageGroupStr === '0') {
-        this.formProps.radio = 0
-        this.formProps.showGroupSelect = false
-        this.formData.groupIds = []
-      } else if (data.manageGroupStr === '') {
-        this.formProps.radio = 1
-        this.formProps.showGroupSelect = false
-        this.formData.groupIds = []
-      } else {
-        this.formProps.radio = 2
-        this.formProps.showGroupSelect = true
-        this.formData.groupIds = data.manageGroupStr.split(',').map(element => {
-          return parseInt(element)
-        })
-      }
+      this.formData.groupIds = data.manageGroupStr.split(',').filter(element => element !== '').map(element => {
+        return parseInt(element)
+      })
       this.dialogVisible = true
     },
 
@@ -260,25 +237,13 @@ export default {
     submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
-          // 0 无权限 '' 全部
-          switch (this.formProps.radio) {
-            case 0:
-              this.formData.manageGroupStr = '0'
-              break
-            case 1:
-              this.formData.manageGroupStr = ''
-              break
-            case 2:
-              if (this.formData.groupIds.length === 0) {
-                this.formData.manageGroupStr = '0'
-              } else {
-                this.formData.manageGroupStr = this.formData.groupIds.join(',')
-              }
-              break
-            default:
-              this.formData.manageGroupStr = '0'
+          if (this.formData.roleId < 3) {
+            this.formData.manageGroupStr = 'all'
+          } else if (this.formData.roleId === 3) {
+            this.formData.manageGroupStr = this.formData.groupIds.sort((x, y) => x - y).join(',')
+          } else {
+            this.formData.manageGroupStr = ''
           }
-
           if (this.formData.id === 0) {
             this.add()
           } else {

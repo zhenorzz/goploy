@@ -119,9 +119,9 @@ func (s Server) GetList() (Servers, error) {
 // GetListByManagerGroupStr server row
 func (s Server) GetListByManagerGroupStr(managerGroupStr string) (Servers, error) {
 	sql := "SELECT id, name, ip, port, owner, group_id, create_time, update_time FROM server WHERE state = 1"
-	if managerGroupStr == "0" {
+	if managerGroupStr == "" {
 		return nil, nil
-	} else if managerGroupStr != "" {
+	} else if managerGroupStr != "all" {
 		sql += " AND group_id IN (" + managerGroupStr + ")"
 	}
 	sql += " ORDER BY id DESC"
