@@ -32,7 +32,7 @@
         <el-form-item label="安装包" prop="package">
           <el-upload
             ref="upload"
-            :action="formProps.action"
+            :action="action"
             :on-remove="handleRemove"
             :before-remove="beforeRemove"
             multiple
@@ -64,7 +64,6 @@ export default {
       tempFormData: {},
       formProps: {
         disabled: false,
-        action: process.env.VUE_APP_BASE_API + '/common/upload',
         fileList: []
       },
       formData: {
@@ -82,6 +81,15 @@ export default {
           { required: true, message: '请输入脚本', trigger: 'blur' }
         ]
       }
+    }
+  },
+  computed: {
+    action: function() {
+      let action = process.env.VUE_APP_BASE_API + '/template/upload'
+      if (this.formData.id !== 0) {
+        action += '?templateId=' + this.formData.id
+      }
+      return action
     }
   },
   created() {

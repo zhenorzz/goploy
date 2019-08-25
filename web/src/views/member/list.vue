@@ -129,7 +129,7 @@ export default {
         password: '',
         name: '',
         mobile: '',
-        roleId: 3,
+        roleId: 4,
         groupIds: [],
         manageGroupStr: ''
       },

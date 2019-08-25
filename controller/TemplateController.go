@@ -2,6 +2,8 @@ package controller
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -44,6 +46,41 @@ func (template Template) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 	response := core.Response{Data: RepData{Template: templateList}}
+	response.JSON(w)
+}
+
+// Upload file
+func (template Template) Upload(w http.ResponseWriter, gp *core.Goploy) {
+	type RepData struct {
+		FileName string `json:"fileName"`
+	}
+	file, handler, err := gp.Request.FormFile("file")
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	defer file.Close()
+	fmt.Printf("Uploaded File: %+v\n", handler.Filename)
+	fmt.Printf("File Size: %+v\n", handler.Size)
+	fmt.Printf("MIME Header: %+v\n", handler.Header)
+
+	// read all of the contents of our uploaded file into a
+	// byte array
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	filePath := core.TemplatePath + handler.Filename
+	err = ioutil.WriteFile(filePath, fileBytes, 0755)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Data: RepData{FileName: handler.Filename}}
 	response.JSON(w)
 }
 

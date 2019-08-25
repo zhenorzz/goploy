@@ -10,6 +10,12 @@ import (
 // GolbalPath current path end with /
 var GolbalPath = getCurrentPath()
 
+// RepositoryPath repository path end with /
+var RepositoryPath = GolbalPath + "repository/"
+
+// TemplatePath template path end with /
+var TemplatePath = RepositoryPath + "template-package/"
+
 // getCurrentPath if env = 'production' return absolute else return relative
 func getCurrentPath() string {
 	if os.Getenv("ENV") != "production" {

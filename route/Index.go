@@ -13,8 +13,6 @@ func Init() {
 
 	// home route
 	rt.Add("/index/get", controller.Index{}.Get)
-	// common route
-	rt.Add("/common/upload", controller.Common{}.Upload)
 	// user route
 	rt.Add("/user/login", controller.User{}.Login)
 	rt.Add("/user/info", controller.User{}.Info)
@@ -56,6 +54,7 @@ func Init() {
 	// template route
 	rt.Add("/template/getList", controller.Template{}.GetList)
 	rt.Add("/template/getOption", controller.Template{}.GetOption)
+	rt.Add("/template/upload", controller.Template{}.Upload)
 	rt.Add("/template/add", controller.Template{}.Add)
 	rt.Add("/template/edit", controller.Template{}.Edit)
 	rt.Add("/template/remove", controller.Template{}.Remove)
