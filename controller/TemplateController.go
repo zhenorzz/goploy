@@ -74,6 +74,10 @@ func (template Template) Upload(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 	filePath := core.TemplatePath + handler.Filename
+	templateID := gp.URLQuery.Get("templateId")
+	if templateID != "" {
+		filePath = core.TemplatePath + templateID + "/" + handler.Filename
+	}
 	err = ioutil.WriteFile(filePath, fileBytes, 0755)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -90,7 +94,7 @@ func (template Template) Add(w http.ResponseWriter, gp *core.Goploy) {
 		Name    string `json:"name"`
 		Remark  string `json:"remark"`
 		Package string `json:"package"`
-		Script  string `json:"scrpit"`
+		Script  string `json:"script"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -114,8 +118,13 @@ func (template Template) Add(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
+	if err := os.Mkdir(core.TemplatePath+strconv.Itoa(int(id)), os.ModePerm); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
 	for _, fileName := range strings.Split(reqData.Package, ",") {
-		err := os.Rename(core.GolbalPath+"tmp/"+fileName, core.GolbalPath+"package/"+reqData.Name+":"+strconv.Itoa(int(id))+"/"+fileName)
+		err := os.Rename(core.TemplatePath+fileName, core.TemplatePath+strconv.Itoa(int(id))+"/"+fileName)
 		if err != nil {
 			response := core.Response{Code: 1, Message: err.Error()}
 			response.JSON(w)
@@ -162,6 +171,35 @@ func (template Template) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	response.JSON(w)
 }
 
+// RemovePackage one Template file
+func (template Template) RemovePackage(w http.ResponseWriter, gp *core.Goploy) {
+	type ReqData struct {
+		TemplateID uint32 `json:"templateId"`
+		Filename   string `json:"filename"`
+	}
+	var reqData ReqData
+	err := json.Unmarshal(gp.Body, &reqData)
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
+	filePath := core.TemplatePath + reqData.Filename
+
+	if reqData.TemplateID != 0 {
+		filePath = core.TemplatePath + strconv.Itoa(int(reqData.TemplateID)) + "/" + reqData.Filename
+	}
+
+	if err := os.Remove(filePath); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Message: "删除成功"}
+	response.JSON(w)
+}
+
 // Remove one Template
 func (template Template) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
@@ -184,6 +222,7 @@ func (template Template) Remove(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
+	os.Remove(core.TemplatePath + strconv.Itoa(int(reqData.ID)))
 	response := core.Response{Message: "删除成功"}
 	response.JSON(w)
 }

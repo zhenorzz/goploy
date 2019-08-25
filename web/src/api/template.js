@@ -44,3 +44,11 @@ export function remove(id) {
     data: { id }
   })
 }
+
+export function removePackage(templateId, filename) {
+  return request({
+    url: '/template/removePackage',
+    method: 'post',
+    data: { templateId, filename }
+  })
+}

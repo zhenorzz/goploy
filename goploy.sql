@@ -218,6 +218,25 @@ CREATE TABLE `server`  (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for template
+-- ----------------------------
+DROP TABLE IF EXISTS `template`;
+CREATE TABLE `template` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `package` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `script` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `create_time` int(10) unsigned NOT NULL DEFAULT 0,
+  `update_time` int(11) unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
+
+-- ----------------------------
+-- Records of template
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for user
 -- ----------------------------
 DROP TABLE IF EXISTS `user`;
@@ -228,7 +247,7 @@ CREATE TABLE `user`  (
   `name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `mobile` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
-  `manage_group_str` text CHARACTER SET ascii NOT NULL COMMENT '管理分组逗号分割(0没有管理权限，空串管理全部)',
+  `manage_group_str` text CHARACTER SET ascii NOT NULL COMMENT '管理分组逗号分割(空串没有管理权限，all管理全部)',
   `state` tinyint(1) NOT NULL DEFAULT 1 COMMENT '0:=被禁用  1=正常',
   `create_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
   `update_time` int(11) UNSIGNED NOT NULL DEFAULT 0,

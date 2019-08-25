@@ -42,7 +42,7 @@
           </el-upload>
         </el-form-item>
         <el-form-item label="脚本" prop="script">
-          <el-input v-model="formData.script" :rows="3" type="textarea" autocomplete="off" placeholder="多个脚本用;分割" />
+          <codemirror v-model="formData.script" :options="cmOptions" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -53,15 +53,33 @@
   </el-row>
 </template>
 <script>
-import { getList, add, edit, remove } from '@/api/template'
+import { getList, add, edit, remove, removePackage } from '@/api/template'
 import { parseTime } from '@/utils'
-
+// require component
+import { codemirror } from 'vue-codemirror'
+import 'codemirror/mode/shell/shell.js'
+import 'codemirror/theme/darcula.css'
+// require styles
+import 'codemirror/lib/codemirror.css'
+import 'codemirror/addon/scroll/simplescrollbars.js'
+import 'codemirror/addon/scroll/simplescrollbars.css'
 export default {
+  components: {
+    codemirror
+  },
   data() {
     return {
       dialogVisible: false,
       tableData: [],
       tempFormData: {},
+      cmOptions: {
+        tabSize: 4,
+        mode: 'text/x-sh',
+        lineNumbers: true,
+        line: true,
+        scrollbarStyle: 'overlay',
+        theme: 'darcula'
+      },
       formProps: {
         disabled: false,
         fileList: []
@@ -112,7 +130,11 @@ export default {
     },
 
     beforeRemove(file, fileList) {
-      return this.$confirm(`确定移除 ${file.name}？`)
+      return removePackage(this.formData.id, file.name).then((response) => {
+        return Promise.resolve(response)
+      }).catch(err => {
+        return Promise.reject(err)
+      })
     },
 
     handleAdd() {
@@ -206,3 +228,10 @@ export default {
   }
 }
 </script>
+<style>
+.CodeMirror {
+  border-radius: 4px;
+  border: 1px solid #DCDFE6;
+  height: 200px;
+}
+</style>

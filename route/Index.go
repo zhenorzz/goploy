@@ -57,6 +57,7 @@ func Init() {
 	rt.Add("/template/upload", controller.Template{}.Upload)
 	rt.Add("/template/add", controller.Template{}.Add)
 	rt.Add("/template/edit", controller.Template{}.Edit)
+	rt.Add("/template/removePackage", controller.Template{}.RemovePackage)
 	rt.Add("/template/remove", controller.Template{}.Remove)
 
 	// projectGroup route

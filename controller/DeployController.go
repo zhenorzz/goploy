@@ -126,7 +126,7 @@ func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
-	srcPath := core.GolbalPath + "repository/" + project.Name
+	srcPath := core.RepositoryPath + project.Name
 
 	log := exec.Command("git", "log", "--pretty=format:%H`%an`%ar`%s", "-n", "10")
 	log.Dir = srcPath
@@ -354,7 +354,7 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 }
 
 func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
-	srcPath := core.GolbalPath + "repository/" + project.Name
+	srcPath := core.RepositoryPath + project.Name
 	if _, err := os.Stat(srcPath); err != nil {
 		if err := os.RemoveAll(srcPath); err != nil {
 			return err
@@ -423,7 +423,7 @@ func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 }
 
 func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
-	srcPath := core.GolbalPath + "repository/" + project.Name
+	srcPath := core.RepositoryPath + project.Name
 
 	clean := exec.Command("git", "clean", "-f")
 	clean.Dir = srcPath
@@ -486,7 +486,7 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 }
 
 func gitRollback(tokenInfo core.TokenInfo, commit string, project model.Project) (string, error) {
-	srcPath := core.GolbalPath + "repository/" + project.Name
+	srcPath := core.RepositoryPath + project.Name
 
 	resetCmd := exec.Command("git", "reset", "--hard", commit)
 	resetCmd.Dir = srcPath
@@ -525,7 +525,7 @@ func gitRollback(tokenInfo core.TokenInfo, commit string, project model.Project)
 }
 
 func gitCommitID(tokenInfo core.TokenInfo, project model.Project) (string, error) {
-	srcPath := core.GolbalPath + "repository/" + project.Name
+	srcPath := core.RepositoryPath + project.Name
 
 	git := exec.Command("git", "rev-parse", "HEAD")
 	git.Dir = srcPath
@@ -576,7 +576,7 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 		Script string `json:"script"`
 	}{project.AfterPullScript})
 	publishTraceModel.Ext = string(ext)
-	srcPath := core.GolbalPath + "repository/" + project.Name
+	srcPath := core.RepositoryPath + project.Name
 	scriptName := srcPath + "/after-pull.sh"
 	ioutil.WriteFile(scriptName, []byte(project.AfterPullScript), 0755)
 	handler := exec.Command("bash", "./after-pull.sh")
@@ -627,7 +627,7 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 }
 
 func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer model.ProjectServer) {
-	srcPath := core.GolbalPath + "repository/" + project.Name + "/"
+	srcPath := core.RepositoryPath + project.Name + "/"
 	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
 	destPath := remoteMachine + ":" + project.Path
 	publishTraceModel := model.PublishTrace{
