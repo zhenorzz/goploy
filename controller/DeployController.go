@@ -769,7 +769,6 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	}
 
 	if connectError != nil {
-		core.Log(core.ERROR, connectError.Error())
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
 			DataType: ws.ScriptType,
 			State:    ws.Fail,
@@ -780,7 +779,6 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 		publishTraceModel.AddRow()
 		return
 	} else if scriptError != nil {
-		core.Log(core.ERROR, scriptError.Error())
 		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
 			DataType: ws.ScriptType,
 			State:    ws.Fail,

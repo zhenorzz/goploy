@@ -44,3 +44,11 @@ export function remove(id) {
     data: { id }
   })
 }
+
+export function install(serverId, templateId) {
+  return request({
+    url: '/server/install',
+    method: 'post',
+    data: { serverId, templateId }
+  })
+}

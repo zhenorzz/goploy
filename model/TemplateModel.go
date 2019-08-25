@@ -1,9 +1,5 @@
 package model
 
-import (
-	"errors"
-)
-
 // Template mysql table template
 type Template struct {
 	ID         uint32 `json:"id"`
@@ -100,9 +96,9 @@ func (tpl Template) GetAll() (Templates, error) {
 // GetData add template information to tpl *Template
 func (tpl Template) GetData() (Template, error) {
 	var template Template
-	err := DB.QueryRow("SELECT name, remark, script, package, create_time, update_time FROM template WHERE id = ?", tpl.ID).Scan(&template.Name, &template.Remark, &template.Script, &template.Package, &template.CreateTime, &template.UpdateTime)
+	err := DB.QueryRow("SELECT id, name, remark, script, package, create_time, update_time FROM template WHERE id = ?", tpl.ID).Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.Package, &template.CreateTime, &template.UpdateTime)
 	if err != nil {
-		return template, errors.New("数据查询失败")
+		return template, err
 	}
 	return template, nil
 }

@@ -162,7 +162,7 @@ func (s Server) GetAll() (Servers, error) {
 // GetData add server information to s *Server
 func (s Server) GetData() (Server, error) {
 	var server Server
-	err := DB.QueryRow("SELECT name, ip, owner, group_id, create_time, update_time FROM server WHERE id = ?", s.ID).Scan(&server.Name, &server.IP, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime)
+	err := DB.QueryRow("SELECT name, ip, port, owner, group_id, create_time, update_time FROM server WHERE id = ?", s.ID).Scan(&server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime)
 	if err != nil {
 		return server, errors.New("数据查询失败")
 	}

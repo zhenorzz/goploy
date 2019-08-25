@@ -50,6 +50,7 @@ func Init() {
 	rt.Add("/server/add", controller.Server{}.Add)
 	rt.Add("/server/edit", controller.Server{}.Edit)
 	rt.Add("/server/remove", controller.Server{}.Remove)
+	rt.Add("/server/install", controller.Server{}.Install)
 
 	// template route
 	rt.Add("/template/getList", controller.Template{}.GetList)

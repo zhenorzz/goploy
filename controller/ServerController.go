@@ -1,12 +1,17 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
+	"os/exec"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"golang.org/x/crypto/ssh"
 )
 
 // Server struct
@@ -144,4 +149,106 @@ func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	}
 	response := core.Response{Message: "删除成功"}
 	response.JSON(w)
+}
+
+// Install Server Enviroment
+func (server Server) Install(w http.ResponseWriter, gp *core.Goploy) {
+	type ReqData struct {
+		ServerID   uint32 `json:"serverId"`
+		TemplateID uint32 `json:"templateId"`
+	}
+	var reqData ReqData
+	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	serverInfo, err := model.Server{
+		ID: reqData.ServerID,
+	}.GetData()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
+	templateInfo, err := model.Template{
+		ID: reqData.TemplateID,
+	}.GetData()
+
+	if err != nil {
+		response := core.Response{Code: 1, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	go remoteInstall(serverInfo, templateInfo)
+
+	response := core.Response{Message: "正在安装"}
+	response.JSON(w)
+}
+
+func remoteInstall(server model.Server, template model.Template) {
+	srcPath := core.TemplatePath + strconv.Itoa(int(template.ID)) + "/"
+	remoteMachine := server.Owner + "@" + server.IP
+	destPath := remoteMachine + ":/tmp"
+	rsyncOption := []string{
+		"-rtv",
+		"-e",
+		"ssh -p " + strconv.Itoa(int(server.Port)) + " -o StrictHostKeyChecking=no",
+		srcPath,
+		destPath,
+	}
+	cmd := exec.Command("rsync", rsyncOption...)
+	var outbuf, errbuf bytes.Buffer
+	cmd.Stdout = &outbuf
+	cmd.Stderr = &errbuf
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(server.ID), 10)+" rsync "+strings.Join(rsyncOption, " "))
+
+	var rsyncError error
+	// 失败重试三次
+	for attempt := 0; attempt < 3; attempt++ {
+		rsyncError = cmd.Run()
+		if rsyncError != nil {
+			core.Log(core.ERROR, errbuf.String())
+		} else {
+			println(outbuf.String())
+			break
+		}
+	}
+
+	if rsyncError != nil {
+		return
+	}
+
+	var session *ssh.Session
+	var connectError error
+	var scriptError error
+	for attempt := 0; attempt < 3; attempt++ {
+		session, connectError = connect(server.Owner, "", server.IP, int(server.Port))
+		if connectError != nil {
+			core.Log(core.ERROR, connectError.Error())
+		} else {
+			defer session.Close()
+			var sshOutbuf, sshErrbuf bytes.Buffer
+			session.Stdout = &sshOutbuf
+			session.Stderr = &sshErrbuf
+			sshOutbuf.Reset()
+			templateInstallScript := "echo '" + template.Script + "' > /tmp/template-install.sh;bash /tmp/template-install.sh"
+			if scriptError = session.Run(templateInstallScript); scriptError != nil {
+				core.Log(core.ERROR, scriptError.Error())
+			} else {
+				println(sshOutbuf.String())
+				break
+			}
+		}
+
+	}
+
+	if connectError != nil {
+		return
+	} else if scriptError != nil {
+		return
+	}
+	return
 }
