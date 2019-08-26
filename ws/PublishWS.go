@@ -7,15 +7,13 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/zhenorzz/goploy/core"
-	"github.com/zhenorzz/goploy/model"
 )
 
 // SyncClient stores a client information
 type SyncClient struct {
-	Conn       *websocket.Conn
-	UserID     uint32
-	UserName   string
-	ProjectMap map[uint32]struct{}
+	Conn     *websocket.Conn
+	UserID   uint32
+	UserName string
 }
 
 // SyncBroadcast is message struct
@@ -55,12 +53,6 @@ const (
 	ScriptType = 3
 )
 
-// State
-const (
-	Fail    = 0
-	Success = 1
-)
-
 var instance *SyncHub
 
 // GetSyncHub it will only init once in main.go
@@ -91,24 +83,10 @@ func (hub *SyncHub) Publish(w http.ResponseWriter, gp *core.Goploy) {
 		log.Print("upgrade:", err)
 		return
 	}
-	projectUsers, err := model.ProjectUser{UserID: gp.TokenInfo.ID}.GetListByUserID()
-	if err != nil || len(projectUsers) == 0 {
-		c.WriteJSON(&SyncBroadcast{
-			DataType: 0,
-			Message:  "没有绑定服务器",
-		})
-		c.Close()
-		return
-	}
-	projectMap := make(map[uint32]struct{})
-	for _, projectUser := range projectUsers {
-		projectMap[projectUser.ProjectID] = struct{}{}
-	}
 	hub.Register <- &SyncClient{
-		Conn:       c,
-		UserID:     gp.TokenInfo.ID,
-		UserName:   gp.TokenInfo.Name,
-		ProjectMap: projectMap,
+		Conn:     c,
+		UserID:   gp.TokenInfo.ID,
+		UserName: gp.TokenInfo.Name,
 	}
 }
 
@@ -128,10 +106,8 @@ func (hub *SyncHub) Run() {
 				if client.UserID != broadcast.UserID {
 					continue
 				}
-				if _, ok := client.ProjectMap[broadcast.ProjectID]; ok {
-					if err := client.Conn.WriteJSON(broadcast); websocket.IsCloseError(err) {
-						hub.Unregister <- client
-					}
+				if err := client.Conn.WriteJSON(broadcast); websocket.IsCloseError(err) {
+					hub.Unregister <- client
 				}
 			}
 		}
