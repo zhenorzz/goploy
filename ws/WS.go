@@ -8,5 +8,5 @@ const (
 
 // Init websocket
 func Init() {
-	go GetSyncHub().Run()
+	go GetUnicastHub().Run()
 }

@@ -16,7 +16,7 @@ func Init() {
 	rt.Add("/index/get", controller.Index{}.Get)
 
 	// websocket route
-	rt.Add("/ws/publish", ws.GetSyncHub().Publish)
+	rt.Add("/ws/publish", ws.GetUnicastHub().Publish)
 
 	// user route
 	rt.Add("/user/login", controller.User{}.Login)

@@ -326,21 +326,27 @@ func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化 git clone")
-		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-			ProjectID: project.ID,
-			UserID:    tokenInfo.ID,
-			DataType:  ws.LocalType,
-			State:     ws.Success,
-			Message:   "项目初始化 git clone",
-		}
-		if err := cmd.Run(); err != nil {
-			core.Log(core.ERROR, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化失败:"+err.Error())
-			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ToUserID: tokenInfo.ID,
+			Message: ws.ProjectMessage{
 				ProjectID: project.ID,
 				UserID:    tokenInfo.ID,
 				DataType:  ws.LocalType,
-				State:     ws.Fail,
-				Message:   "项目初始化失败",
+				State:     ws.Success,
+				Message:   "项目初始化 git clone",
+			},
+		}
+		if err := cmd.Run(); err != nil {
+			core.Log(core.ERROR, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化失败:"+err.Error())
+			ws.GetUnicastHub().Unicast <- &ws.Unicast{
+				ToUserID: tokenInfo.ID,
+				Message: ws.ProjectMessage{
+					ProjectID: project.ID,
+					UserID:    tokenInfo.ID,
+					DataType:  ws.LocalType,
+					State:     ws.Fail,
+					Message:   "项目初始化失败",
+				},
 			}
 			return errors.New("项目初始化失败")
 		}
@@ -353,32 +359,41 @@ func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 			checkout.Stderr = &checkoutErrbuf
 			if err := checkout.Run(); err != nil {
 				core.Log(core.ERROR, checkoutErrbuf.String())
-				ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-					ProjectID: project.ID,
-					UserID:    tokenInfo.ID,
-					DataType:  ws.LocalType,
-					State:     ws.Fail,
-					Message:   checkoutErrbuf.String(),
+				ws.GetUnicastHub().Unicast <- &ws.Unicast{
+					ToUserID: tokenInfo.ID,
+					Message: ws.ProjectMessage{
+						ProjectID: project.ID,
+						UserID:    tokenInfo.ID,
+						DataType:  ws.LocalType,
+						State:     ws.Fail,
+						Message:   checkoutErrbuf.String(),
+					},
 				}
 				os.RemoveAll(srcPath)
 				return errors.New(checkoutErrbuf.String())
 			}
-			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-				ProjectID: project.ID,
-				UserID:    tokenInfo.ID,
-				DataType:  ws.LocalType,
-				State:     ws.Success,
-				Message:   checkoutOutbuf.String(),
+			ws.GetUnicastHub().Unicast <- &ws.Unicast{
+				ToUserID: tokenInfo.ID,
+				Message: ws.ProjectMessage{
+					ProjectID: project.ID,
+					UserID:    tokenInfo.ID,
+					DataType:  ws.LocalType,
+					State:     ws.Success,
+					Message:   checkoutOutbuf.String(),
+				},
 			}
 		}
 
 		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化成功")
-		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-			ProjectID: project.ID,
-			UserID:    tokenInfo.ID,
-			DataType:  ws.LocalType,
-			State:     ws.Success,
-			Message:   "项目初始化成功",
+		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ToUserID: tokenInfo.ID,
+			Message: ws.ProjectMessage{
+				ProjectID: project.ID,
+				UserID:    tokenInfo.ID,
+				DataType:  ws.LocalType,
+				State:     ws.Success,
+				Message:   "项目初始化成功",
+			},
 		}
 	}
 	return nil
@@ -393,21 +408,27 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 	clean.Stdout = &cleanOutbuf
 	clean.Stderr = &cleanErrbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" git clean -f")
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-		ProjectID: project.ID,
-		UserID:    tokenInfo.ID,
-		DataType:  ws.LocalType,
-		State:     ws.Success,
-		Message:   "git clean -f",
-	}
-	if err := clean.Run(); err != nil {
-		core.Log(core.ERROR, cleanErrbuf.String())
-		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ToUserID: tokenInfo.ID,
+		Message: ws.ProjectMessage{
 			ProjectID: project.ID,
 			UserID:    tokenInfo.ID,
 			DataType:  ws.LocalType,
-			State:     ws.Fail,
-			Message:   cleanErrbuf.String(),
+			State:     ws.Success,
+			Message:   "git clean -f",
+		},
+	}
+	if err := clean.Run(); err != nil {
+		core.Log(core.ERROR, cleanErrbuf.String())
+		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ToUserID: tokenInfo.ID,
+			Message: ws.ProjectMessage{
+				ProjectID: project.ID,
+				UserID:    tokenInfo.ID,
+				DataType:  ws.LocalType,
+				State:     ws.Fail,
+				Message:   cleanErrbuf.String(),
+			},
 		}
 		return "", errors.New(cleanErrbuf.String())
 	}
@@ -417,32 +438,41 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 	pull.Stdout = &pullOutbuf
 	pull.Stderr = &pullErrbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" git pull")
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-		ProjectID: project.ID,
-		UserID:    tokenInfo.ID,
-		DataType:  ws.LocalType,
-		State:     ws.Success,
-		Message:   "git pull",
-	}
-	if err := pull.Run(); err != nil {
-		core.Log(core.ERROR, pullErrbuf.String())
-		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ToUserID: tokenInfo.ID,
+		Message: ws.ProjectMessage{
 			ProjectID: project.ID,
 			UserID:    tokenInfo.ID,
 			DataType:  ws.LocalType,
-			State:     ws.Fail,
-			Message:   pullErrbuf.String(),
+			State:     ws.Success,
+			Message:   "git pull",
+		},
+	}
+	if err := pull.Run(); err != nil {
+		core.Log(core.ERROR, pullErrbuf.String())
+		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ToUserID: tokenInfo.ID,
+			Message: ws.ProjectMessage{
+				ProjectID: project.ID,
+				UserID:    tokenInfo.ID,
+				DataType:  ws.LocalType,
+				State:     ws.Fail,
+				Message:   pullErrbuf.String(),
+			},
 		}
 		return "", errors.New(pullErrbuf.String())
 	}
 
 	core.Log(core.TRACE, pullOutbuf.String())
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-		ProjectID: project.ID,
-		UserID:    tokenInfo.ID,
-		DataType:  ws.LocalType,
-		State:     ws.Success,
-		Message:   pullOutbuf.String(),
+	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ToUserID: tokenInfo.ID,
+		Message: ws.ProjectMessage{
+			ProjectID: project.ID,
+			UserID:    tokenInfo.ID,
+			DataType:  ws.LocalType,
+			State:     ws.Success,
+			Message:   pullOutbuf.String(),
+		},
 	}
 	return pullOutbuf.String(), nil
 }
@@ -456,32 +486,41 @@ func gitRollback(tokenInfo core.TokenInfo, commit string, project model.Project)
 	resetCmd.Stdout = &resetOutbuf
 	resetCmd.Stderr = &resetErrbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" git reset --hard "+commit)
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-		ProjectID: project.ID,
-		UserID:    tokenInfo.ID,
-		DataType:  ws.LocalType,
-		State:     ws.Success,
-		Message:   "git reset --hard " + commit,
-	}
-	if err := resetCmd.Run(); err != nil {
-		core.Log(core.ERROR, resetErrbuf.String())
-		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ToUserID: tokenInfo.ID,
+		Message: ws.ProjectMessage{
 			ProjectID: project.ID,
 			UserID:    tokenInfo.ID,
 			DataType:  ws.LocalType,
-			State:     ws.Fail,
-			Message:   resetErrbuf.String(),
+			State:     ws.Success,
+			Message:   "git reset --hard " + commit,
+		},
+	}
+	if err := resetCmd.Run(); err != nil {
+		core.Log(core.ERROR, resetErrbuf.String())
+		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ToUserID: tokenInfo.ID,
+			Message: ws.ProjectMessage{
+				ProjectID: project.ID,
+				UserID:    tokenInfo.ID,
+				DataType:  ws.LocalType,
+				State:     ws.Fail,
+				Message:   resetErrbuf.String(),
+			},
 		}
 		return "", errors.New(resetErrbuf.String())
 	}
 
 	core.Log(core.TRACE, resetOutbuf.String())
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-		ProjectID: project.ID,
-		UserID:    tokenInfo.ID,
-		DataType:  ws.LocalType,
-		State:     ws.Success,
-		Message:   resetOutbuf.String(),
+	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ToUserID: tokenInfo.ID,
+		Message: ws.ProjectMessage{
+			ProjectID: project.ID,
+			UserID:    tokenInfo.ID,
+			DataType:  ws.LocalType,
+			State:     ws.Success,
+			Message:   resetOutbuf.String(),
+		},
 	}
 	return resetOutbuf.String(), nil
 }
@@ -495,30 +534,39 @@ func gitCommitID(tokenInfo core.TokenInfo, project model.Project) (string, error
 	git.Stdout = &gitOutbuf
 	git.Stderr = &gitErrbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" git rev-parse HEAD")
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-		ProjectID: project.ID,
-		UserID:    tokenInfo.ID,
-		DataType:  ws.LocalType,
-		State:     ws.Success,
-		Message:   "git rev-parse HEAD",
-	}
-	if err := git.Run(); err != nil {
-		core.Log(core.ERROR, gitErrbuf.String())
-		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ToUserID: tokenInfo.ID,
+		Message: ws.ProjectMessage{
 			ProjectID: project.ID,
 			UserID:    tokenInfo.ID,
 			DataType:  ws.LocalType,
 			State:     ws.Success,
-			Message:   gitErrbuf.String(),
+			Message:   "git rev-parse HEAD",
+		},
+	}
+	if err := git.Run(); err != nil {
+		core.Log(core.ERROR, gitErrbuf.String())
+		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ToUserID: tokenInfo.ID,
+			Message: ws.ProjectMessage{
+				ProjectID: project.ID,
+				UserID:    tokenInfo.ID,
+				DataType:  ws.LocalType,
+				State:     ws.Success,
+				Message:   gitErrbuf.String(),
+			},
 		}
 		return "", errors.New(gitErrbuf.String())
 	}
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-		ProjectID: project.ID,
-		UserID:    tokenInfo.ID,
-		DataType:  ws.LocalType,
-		State:     ws.Success,
-		Message:   "commitSHA: " + gitOutbuf.String(),
+	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ToUserID: tokenInfo.ID,
+		Message: ws.ProjectMessage{
+			ProjectID: project.ID,
+			UserID:    tokenInfo.ID,
+			DataType:  ws.LocalType,
+			State:     ws.Success,
+			Message:   "commitSHA: " + gitOutbuf.String(),
+		},
 	}
 	return gitOutbuf.String(), nil
 }
@@ -547,21 +595,27 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 	handler.Stdout = &outbuf
 	handler.Stderr = &errbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+project.AfterPullScript)
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-		ProjectID: project.ID,
-		UserID:    tokenInfo.ID,
-		DataType:  ws.LocalType,
-		State:     ws.Success,
-		Message:   project.AfterPullScript,
-	}
-	if err := handler.Run(); err != nil {
-		core.Log(core.ERROR, err.Error())
-		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
+	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ToUserID: tokenInfo.ID,
+		Message: ws.ProjectMessage{
 			ProjectID: project.ID,
 			UserID:    tokenInfo.ID,
 			DataType:  ws.LocalType,
 			State:     ws.Success,
-			Message:   errbuf.String(),
+			Message:   project.AfterPullScript,
+		},
+	}
+	if err := handler.Run(); err != nil {
+		core.Log(core.ERROR, err.Error())
+		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ToUserID: tokenInfo.ID,
+			Message: ws.ProjectMessage{
+				ProjectID: project.ID,
+				UserID:    tokenInfo.ID,
+				DataType:  ws.LocalType,
+				State:     ws.Success,
+				Message:   errbuf.String(),
+			},
 		}
 
 		publishTraceModel.Detail = err.Error()
@@ -571,12 +625,15 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 		}
 		return err
 	}
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{
-		ProjectID: project.ID,
-		UserID:    tokenInfo.ID,
-		DataType:  ws.LocalType,
-		State:     ws.Success,
-		Message:   outbuf.String(),
+	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ToUserID: tokenInfo.ID,
+		Message: ws.ProjectMessage{
+			ProjectID: project.ID,
+			UserID:    tokenInfo.ID,
+			DataType:  ws.LocalType,
+			State:     ws.Success,
+			Message:   outbuf.String(),
+		},
 	}
 	publishTraceModel.Detail = outbuf.String()
 	publishTraceModel.State = model.Success
@@ -622,10 +679,14 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" rsync "+strings.Join(rsyncOption, " "))
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-		DataType: ws.RsyncType,
-		State:    ws.Success,
-		Message:  "rsync " + strings.Join(rsyncOption, " "),
+	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ToUserID: tokenInfo.ID,
+		Message: ws.ProjectMessage{
+			ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+			DataType: ws.RsyncType,
+			State:    ws.Success,
+			Message:  "rsync " + strings.Join(rsyncOption, " "),
+		},
 	}
 	var rsyncError error
 	// 失败重试三次
@@ -633,17 +694,26 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 		rsyncError = cmd.Run()
 		if rsyncError != nil {
 			core.Log(core.ERROR, errbuf.String())
-			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-				DataType: ws.RsyncType,
-				State:    ws.Fail,
-				Message:  errbuf.String(),
+			ws.GetUnicastHub().Unicast <- &ws.Unicast{
+				ToUserID: tokenInfo.ID,
+				Message: ws.ProjectMessage{
+					ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+					DataType: ws.RsyncType,
+					State:    ws.Fail,
+					Message:  errbuf.String(),
+				},
 			}
 		} else {
-			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-				DataType: ws.RsyncType,
-				State:    ws.Success,
-				Message:  outbuf.String(),
+			ws.GetUnicastHub().Unicast <- &ws.Unicast{
+				ToUserID: tokenInfo.ID,
+				Message: ws.ProjectMessage{
+					ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+					DataType: ws.RsyncType,
+					State:    ws.Success,
+					Message:  outbuf.String(),
+				},
 			}
+
 			publishTraceModel.Detail = outbuf.String()
 			publishTraceModel.State = model.Success
 			publishTraceModel.AddRow()
@@ -652,10 +722,14 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	}
 
 	if rsyncError != nil {
-		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-			DataType: ws.RsyncType,
-			State:    ws.Fail,
-			Message:  "rsync重试失败",
+		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ToUserID: tokenInfo.ID,
+			Message: ws.ProjectMessage{
+				ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+				DataType: ws.RsyncType,
+				State:    ws.Fail,
+				Message:  "rsync重试失败",
+			},
 		}
 		publishTraceModel.Detail = errbuf.String()
 		publishTraceModel.State = model.Fail
@@ -674,10 +748,14 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	}{projectServer.ServerID, projectServer.ServerName, project.AfterDeployScript})
 	publishTraceModel.Ext = string(ext)
 	// 执行ssh脚本
-	ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-		DataType: ws.ScriptType,
-		State:    ws.Success,
-		Message:  "开始连接ssh",
+	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ToUserID: tokenInfo.ID,
+		Message: ws.ProjectMessage{
+			ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+			DataType: ws.ScriptType,
+			State:    ws.Success,
+			Message:  "开始连接ssh",
+		},
 	}
 	var session *ssh.Session
 	var connectError error
@@ -686,21 +764,33 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 		session, connectError = connect(projectServer.ServerOwner, "", projectServer.ServerIP, int(projectServer.ServerPort))
 		if connectError != nil {
 			core.Log(core.ERROR, connectError.Error())
-			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-				DataType: ws.ScriptType,
-				State:    ws.Fail,
-				Message:  connectError.Error(),
+			ws.GetUnicastHub().Unicast <- &ws.Unicast{
+				ToUserID: tokenInfo.ID,
+				Message: ws.ProjectMessage{
+					ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+					DataType: ws.ScriptType,
+					State:    ws.Fail,
+					Message:  connectError.Error(),
+				},
 			}
 		} else {
-			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-				DataType: ws.ScriptType,
-				State:    ws.Success,
-				Message:  "开始连接成功",
+			ws.GetUnicastHub().Unicast <- &ws.Unicast{
+				ToUserID: tokenInfo.ID,
+				Message: ws.ProjectMessage{
+					ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+					DataType: ws.ScriptType,
+					State:    ws.Success,
+					Message:  "开始连接成功",
+				},
 			}
-			ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-				DataType: ws.ScriptType,
-				State:    ws.Success,
-				Message:  "运行:" + project.AfterDeployScript,
+			ws.GetUnicastHub().Unicast <- &ws.Unicast{
+				ToUserID: tokenInfo.ID,
+				Message: ws.ProjectMessage{
+					ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+					DataType: ws.ScriptType,
+					State:    ws.Success,
+					Message:  "运行:" + project.AfterDeployScript,
+				},
 			}
 			defer session.Close()
 			var sshOutbuf, sshErrbuf bytes.Buffer
@@ -710,16 +800,24 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 			afterDeployScript := "echo '" + project.AfterDeployScript + "' > /tmp/after-deploy.sh;bash /tmp/after-deploy.sh"
 			if scriptError = session.Run(afterDeployScript); scriptError != nil {
 				core.Log(core.ERROR, scriptError.Error())
-				ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-					DataType: ws.ScriptType,
-					State:    ws.Fail,
-					Message:  scriptError.Error(),
+				ws.GetUnicastHub().Unicast <- &ws.Unicast{
+					ToUserID: tokenInfo.ID,
+					Message: ws.ProjectMessage{
+						ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+						DataType: ws.ScriptType,
+						State:    ws.Fail,
+						Message:  scriptError.Error(),
+					},
 				}
 			} else {
-				ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-					DataType: ws.ScriptType,
-					State:    ws.Success,
-					Message:  sshOutbuf.String(),
+				ws.GetUnicastHub().Unicast <- &ws.Unicast{
+					ToUserID: tokenInfo.ID,
+					Message: ws.ProjectMessage{
+						ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+						DataType: ws.ScriptType,
+						State:    ws.Success,
+						Message:  sshOutbuf.String(),
+					},
 				}
 				publishTraceModel.Detail = sshOutbuf.String()
 				publishTraceModel.State = model.Success
@@ -731,20 +829,28 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	}
 
 	if connectError != nil {
-		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-			DataType: ws.ScriptType,
-			State:    ws.Fail,
-			Message:  "ssh重连失败",
+		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ToUserID: tokenInfo.ID,
+			Message: ws.ProjectMessage{
+				ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+				DataType: ws.ScriptType,
+				State:    ws.Fail,
+				Message:  "ssh重连失败",
+			},
 		}
 		publishTraceModel.Detail = connectError.Error()
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
 		return
 	} else if scriptError != nil {
-		ws.GetSyncHub().Broadcast <- &ws.SyncBroadcast{ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
-			DataType: ws.ScriptType,
-			State:    ws.Fail,
-			Message:  "脚本运行失败",
+		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ToUserID: tokenInfo.ID,
+			Message: ws.ProjectMessage{
+				ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
+				DataType: ws.ScriptType,
+				State:    ws.Fail,
+				Message:  "脚本运行失败",
+			},
 		}
 		publishTraceModel.Detail = scriptError.Error()
 		publishTraceModel.State = model.Fail

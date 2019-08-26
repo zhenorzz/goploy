@@ -1,5 +1,6 @@
 package ws
 
+// 单播
 import (
 	"log"
 	"net/http"
@@ -9,15 +10,21 @@ import (
 	"github.com/zhenorzz/goploy/core"
 )
 
-// SyncClient stores a client information
-type SyncClient struct {
+// UnicastClient stores a client information
+type UnicastClient struct {
 	Conn     *websocket.Conn
 	UserID   uint32
 	UserName string
 }
 
-// SyncBroadcast is message struct
-type SyncBroadcast struct {
+// Unicast is message struct
+type Unicast struct {
+	ToUserID uint32
+	Message  interface{}
+}
+
+// ProjectMessage is publish project message struct
+type ProjectMessage struct {
 	ProjectID  uint32 `json:"projectId"`
 	ServerID   uint32 `json:"serverId"`
 	ServerName string `json:"serverName"`
@@ -27,19 +34,19 @@ type SyncBroadcast struct {
 	DataType   uint8  `json:"dataType"`
 }
 
-// SyncHub is a client struct
-type SyncHub struct {
+// UnicastHub is a client struct
+type UnicastHub struct {
 	// Registered clients.
-	clients map[*SyncClient]bool
+	clients map[*UnicastClient]bool
 
 	// Inbound messages from the clients.
-	Broadcast chan *SyncBroadcast
+	Unicast chan *Unicast
 
 	// Register requests from the clients.
-	Register chan *SyncClient
+	Register chan *UnicastClient
 
 	// Unregister requests from clients.
-	Unregister chan *SyncClient
+	Unregister chan *UnicastClient
 }
 
 // ErrorType =>错误信息
@@ -53,23 +60,23 @@ const (
 	ScriptType = 3
 )
 
-var instance *SyncHub
+var instance *UnicastHub
 
-// GetSyncHub it will only init once in main.go
-func GetSyncHub() *SyncHub {
+// GetUnicastHub it will only init once in main.go
+func GetUnicastHub() *UnicastHub {
 	if instance == nil {
-		instance = &SyncHub{
-			Broadcast:  make(chan *SyncBroadcast),
-			clients:    make(map[*SyncClient]bool),
-			Register:   make(chan *SyncClient),
-			Unregister: make(chan *SyncClient),
+		instance = &UnicastHub{
+			Unicast:    make(chan *Unicast),
+			clients:    make(map[*UnicastClient]bool),
+			Register:   make(chan *UnicastClient),
+			Unregister: make(chan *UnicastClient),
 		}
 	}
 	return instance
 }
 
 // Publish the publish information in websocket
-func (hub *SyncHub) Publish(w http.ResponseWriter, gp *core.Goploy) {
+func (hub *UnicastHub) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
@@ -83,7 +90,7 @@ func (hub *SyncHub) Publish(w http.ResponseWriter, gp *core.Goploy) {
 		log.Print("upgrade:", err)
 		return
 	}
-	hub.Register <- &SyncClient{
+	hub.Register <- &UnicastClient{
 		Conn:     c,
 		UserID:   gp.TokenInfo.ID,
 		UserName: gp.TokenInfo.Name,
@@ -91,7 +98,7 @@ func (hub *SyncHub) Publish(w http.ResponseWriter, gp *core.Goploy) {
 }
 
 // Run goroutine run the sync hub
-func (hub *SyncHub) Run() {
+func (hub *UnicastHub) Run() {
 	for {
 		select {
 		case client := <-hub.Register:
@@ -101,12 +108,12 @@ func (hub *SyncHub) Run() {
 				delete(hub.clients, client)
 				client.Conn.Close()
 			}
-		case broadcast := <-hub.Broadcast:
+		case broadcast := <-hub.Unicast:
 			for client := range hub.clients {
-				if client.UserID != broadcast.UserID {
+				if client.UserID != broadcast.ToUserID {
 					continue
 				}
-				if err := client.Conn.WriteJSON(broadcast); websocket.IsCloseError(err) {
+				if err := client.Conn.WriteJSON(broadcast.Message); websocket.IsCloseError(err) {
 					hub.Unregister <- client
 				}
 			}
