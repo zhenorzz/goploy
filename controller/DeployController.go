@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -17,7 +16,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/gorilla/websocket"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/utils"
@@ -140,42 +138,6 @@ func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) {
 	}
 	response := core.Response{Data: RepData{CommitList: strings.Split(logOutbuf.String(), "\n")}}
 	response.JSON(w)
-}
-
-// Sync the publish information in websocket
-func (deploy Deploy) Sync(w http.ResponseWriter, gp *core.Goploy) {
-	upgrader := websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool {
-			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
-				return true
-			}
-			return false
-		},
-	}
-	c, err := upgrader.Upgrade(w, gp.Request, nil)
-	if err != nil {
-		log.Print("upgrade:", err)
-		return
-	}
-	projectUsers, err := model.ProjectUser{UserID: gp.TokenInfo.ID}.GetListByUserID()
-	if err != nil || len(projectUsers) == 0 {
-		c.WriteJSON(&ws.SyncBroadcast{
-			DataType: 0,
-			Message:  "没有绑定服务器",
-		})
-		c.Close()
-		return
-	}
-	projectMap := make(map[uint32]struct{})
-	for _, projectUser := range projectUsers {
-		projectMap[projectUser.ProjectID] = struct{}{}
-	}
-	ws.GetSyncHub().Register <- &ws.SyncClient{
-		Conn:       c,
-		UserID:     gp.TokenInfo.ID,
-		UserName:   gp.TokenInfo.Name,
-		ProjectMap: projectMap,
-	}
 }
 
 // Publish the project

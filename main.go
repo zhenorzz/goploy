@@ -16,8 +16,7 @@ import (
 func main() {
 	godotenv.Load(core.GolbalPath + ".env")
 	model.Init()
-	syncHub := ws.GetSyncHub()
-	go syncHub.Run()
+	ws.Init()
 	route.Init()
 	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil) //设置监听的端口
 	if err != nil {

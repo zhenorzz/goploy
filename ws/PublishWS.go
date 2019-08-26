@@ -1,7 +1,13 @@
 package ws
 
 import (
+	"log"
+	"net/http"
+	"strings"
+
 	"github.com/gorilla/websocket"
+	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/model"
 )
 
 // SyncClient stores a client information
@@ -68,6 +74,42 @@ func GetSyncHub() *SyncHub {
 		}
 	}
 	return instance
+}
+
+// Publish the publish information in websocket
+func (hub *SyncHub) Publish(w http.ResponseWriter, gp *core.Goploy) {
+	upgrader := websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
+				return true
+			}
+			return false
+		},
+	}
+	c, err := upgrader.Upgrade(w, gp.Request, nil)
+	if err != nil {
+		log.Print("upgrade:", err)
+		return
+	}
+	projectUsers, err := model.ProjectUser{UserID: gp.TokenInfo.ID}.GetListByUserID()
+	if err != nil || len(projectUsers) == 0 {
+		c.WriteJSON(&SyncBroadcast{
+			DataType: 0,
+			Message:  "没有绑定服务器",
+		})
+		c.Close()
+		return
+	}
+	projectMap := make(map[uint32]struct{})
+	for _, projectUser := range projectUsers {
+		projectMap[projectUser.ProjectID] = struct{}{}
+	}
+	hub.Register <- &SyncClient{
+		Conn:       c,
+		UserID:     gp.TokenInfo.ID,
+		UserName:   gp.TokenInfo.Name,
+		ProjectMap: projectMap,
+	}
 }
 
 // Run goroutine run the sync hub

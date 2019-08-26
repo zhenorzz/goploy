@@ -4,6 +4,7 @@ import (
 	"github.com/zhenorzz/goploy/controller"
 	router "github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/middleware"
+	"github.com/zhenorzz/goploy/ws"
 )
 
 // Init router
@@ -13,6 +14,10 @@ func Init() {
 
 	// home route
 	rt.Add("/index/get", controller.Index{}.Get)
+
+	// websocket route
+	rt.Add("/ws/publish", ws.GetSyncHub().Publish)
+
 	// user route
 	rt.Add("/user/login", controller.User{}.Login)
 	rt.Add("/user/info", controller.User{}.Info)
@@ -40,7 +45,6 @@ func Init() {
 	rt.Add("/deploy/getDetail", controller.Deploy{}.GetDetail)
 	rt.Add("/deploy/getCommitList", controller.Deploy{}.GetCommitList)
 	rt.Add("/deploy/getPreview", controller.Deploy{}.GetPreview)
-	rt.Add("/deploy/sync", controller.Deploy{}.Sync)
 	rt.Add("/deploy/publish", controller.Deploy{}.Publish, middleware.HasPublishAuth)
 	rt.Add("/deploy/rollback", controller.Deploy{}.Rollback, middleware.HasPublishAuth)
 
