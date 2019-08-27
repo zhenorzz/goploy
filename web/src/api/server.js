@@ -14,6 +14,28 @@ export function getList() {
 /**
  * @return {Promise}
  */
+export function getInstallPreview(serverId) {
+  return request({
+    url: '/server/getInstallPreview',
+    method: 'get',
+    params: { serverId }
+  })
+}
+
+/**
+ * @return {Promise}
+ */
+export function getInstallList(token) {
+  return request({
+    url: '/server/getInstallList',
+    method: 'get',
+    params: { token }
+  })
+}
+
+/**
+ * @return {Promise}
+ */
 export function getOption() {
   return request({
     url: '/server/getOption',

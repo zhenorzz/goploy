@@ -6,18 +6,90 @@ import (
 
 // Server mysql table server
 type Server struct {
-	ID         uint32 `json:"id"`
-	Name       string `json:"name"`
-	IP         string `json:"ip"`
-	Port       uint32 `json:"port"`
-	Owner      string `json:"owner"`
-	GroupID    uint32 `json:"groupId"`
-	CreateTime int64  `json:"createTime"`
-	UpdateTime int64  `json:"updateTime"`
+	ID               uint32 `json:"id"`
+	LastInstallToken string `json:"lastInstallToken"`
+	Name             string `json:"name"`
+	IP               string `json:"ip"`
+	Port             uint32 `json:"port"`
+	Owner            string `json:"owner"`
+	GroupID          uint32 `json:"groupId"`
+	CreateTime       int64  `json:"createTime"`
+	UpdateTime       int64  `json:"updateTime"`
 }
 
 // Servers many server
 type Servers []Server
+
+// GetList server row
+func (s Server) GetList() (Servers, error) {
+	rows, err := DB.Query("SELECT id, name, ip, port, owner, group_id, create_time, update_time FROM server WHERE state = 1")
+	if err != nil {
+		return nil, err
+	}
+	var servers Servers
+	for rows.Next() {
+		var server Server
+
+		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime); err != nil {
+			return nil, err
+		}
+		servers = append(servers, server)
+	}
+	return servers, nil
+}
+
+// GetListByManagerGroupStr server row
+func (s Server) GetListByManagerGroupStr(managerGroupStr string) (Servers, error) {
+	sql := "SELECT id, name, ip, port, owner, group_id, create_time, update_time FROM server WHERE state = 1"
+	if managerGroupStr == "" {
+		return nil, nil
+	} else if managerGroupStr != "all" {
+		sql += " AND group_id IN (" + managerGroupStr + ")"
+	}
+	sql += " ORDER BY id DESC"
+	rows, err := DB.Query(sql)
+	if err != nil {
+		return nil, err
+	}
+	var servers Servers
+	for rows.Next() {
+		var server Server
+
+		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime); err != nil {
+			return nil, err
+		}
+		servers = append(servers, server)
+	}
+	return servers, nil
+}
+
+// GetAll server row
+func (s Server) GetAll() (Servers, error) {
+	rows, err := DB.Query("SELECT id, name, ip, owner, group_id, create_time, update_time FROM server WHERE state = 1 ORDER BY id DESC")
+	if err != nil {
+		return nil, err
+	}
+	var servers Servers
+	for rows.Next() {
+		var server Server
+
+		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime); err != nil {
+			return nil, err
+		}
+		servers = append(servers, server)
+	}
+	return servers, nil
+}
+
+// GetData add server information to s *Server
+func (s Server) GetData() (Server, error) {
+	var server Server
+	err := DB.QueryRow("SELECT id, name, ip, port, owner, group_id, create_time, update_time FROM server WHERE id = ?", s.ID).Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime)
+	if err != nil {
+		return server, errors.New("数据查询失败")
+	}
+	return server, nil
+}
 
 // AddRow add one row to table server and add id to s.ID
 func (s Server) AddRow() (uint32, error) {
@@ -98,73 +170,13 @@ func (s Server) Remove() error {
 	return nil
 }
 
-// GetList server row
-func (s Server) GetList() (Servers, error) {
-	rows, err := DB.Query("SELECT id, name, ip, port, owner, group_id, create_time, update_time FROM server WHERE state = 1")
-	if err != nil {
-		return nil, err
-	}
-	var servers Servers
-	for rows.Next() {
-		var server Server
-
-		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime); err != nil {
-			return nil, err
-		}
-		servers = append(servers, server)
-	}
-	return servers, nil
-}
-
-// GetListByManagerGroupStr server row
-func (s Server) GetListByManagerGroupStr(managerGroupStr string) (Servers, error) {
-	sql := "SELECT id, name, ip, port, owner, group_id, create_time, update_time FROM server WHERE state = 1"
-	if managerGroupStr == "" {
-		return nil, nil
-	} else if managerGroupStr != "all" {
-		sql += " AND group_id IN (" + managerGroupStr + ")"
-	}
-	sql += " ORDER BY id DESC"
-	rows, err := DB.Query(sql)
-	if err != nil {
-		return nil, err
-	}
-	var servers Servers
-	for rows.Next() {
-		var server Server
-
-		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime); err != nil {
-			return nil, err
-		}
-		servers = append(servers, server)
-	}
-	return servers, nil
-}
-
-// GetAll server row
-func (s Server) GetAll() (Servers, error) {
-	rows, err := DB.Query("SELECT id, name, ip, owner, group_id, create_time, update_time FROM server WHERE state = 1 ORDER BY id DESC")
-	if err != nil {
-		return nil, err
-	}
-	var servers Servers
-	for rows.Next() {
-		var server Server
-
-		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime); err != nil {
-			return nil, err
-		}
-		servers = append(servers, server)
-	}
-	return servers, nil
-}
-
-// GetData add server information to s *Server
-func (s Server) GetData() (Server, error) {
-	var server Server
-	err := DB.QueryRow("SELECT name, ip, port, owner, group_id, create_time, update_time FROM server WHERE id = ?", s.ID).Scan(&server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime)
-	if err != nil {
-		return server, errors.New("数据查询失败")
-	}
-	return server, nil
+// Install server
+func (s Server) Install() error {
+	_, err := DB.Exec(
+		"UPDATE server SET last_install_token = ?, update_time = ? WHERE id = ?",
+		s.LastInstallToken,
+		s.UpdateTime,
+		s.ID,
+	)
+	return err
 }

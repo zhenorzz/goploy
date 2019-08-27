@@ -85,7 +85,7 @@ CREATE TABLE `project`  (
   `state` tinyint(4) UNSIGNED NOT NULL DEFAULT 1 COMMENT '0=>失效 1=>生效',
   `publisher_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `publisher_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `last_publish_token` char(36) CHARACTER SET ascii NOT NULL DEFAULT '',
+  `last_publish_token` char(36) CHARACTER SET utf8mb4 NOT NULL DEFAULT '',
   `create_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
   `update_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
@@ -153,7 +153,7 @@ CREATE TABLE `group`  (
 DROP TABLE IF EXISTS `publish_trace`;
 CREATE TABLE `publish_trace` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `token` char(36) CHARACTER SET ascii NOT NULL DEFAULT '',
+  `token` char(36) CHARACTER SET utf8mb4 NOT NULL DEFAULT '',
   `project_id` int(10) unsigned NOT NULL DEFAULT '0',
   `project_group_id` int(10) unsigned NOT NULL DEFAULT '0',
   `project_name` varchar(255) NOT NULL DEFAULT '',
@@ -179,14 +179,14 @@ CREATE TABLE `publish_trace` (
 DROP TABLE IF EXISTS `role`;
 CREATE TABLE `role`  (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '角色id',
-  `name` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '角色名',
-  `permission_list` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '权限列表',
+  `name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '角色名',
+  `permission_list` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '权限列表',
   `state` tinyint(1) NOT NULL DEFAULT 1 COMMENT '该记录是否有效1：有效、0：无效',
   `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建时间',
   `update_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '更新时间',
-  `remark` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '备注',
+  `remark` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '备注',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Records of role
@@ -207,6 +207,7 @@ CREATE TABLE `server`  (
   `ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `port` smallint(10) UNSIGNED NOT NULL DEFAULT 22,
   `owner` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `last_publish_token` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `update_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
   `state` tinyint(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '0=>失效 1=>生效',
@@ -234,6 +235,31 @@ CREATE TABLE `template` (
 
 -- ----------------------------
 -- Records of template
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for template
+-- ----------------------------
+DROP TABLE IF EXISTS `install_trace`;
+CREATE TABLE `install_trace` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `token` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `server_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `server_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '',
+  `detail` longtext NOT NULL,
+  `state` tinyint(4) unsigned NOT NULL DEFAULT '1',
+  `operator_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `operator_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '1rsync 2script',
+  `create_time` int(10) unsigned NOT NULL DEFAULT '0',
+  `update_time` int(10) unsigned NOT NULL DEFAULT '0',
+  `ext` json NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `project_id` (`server_id`) USING BTREE COMMENT 'project_id'
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- ----------------------------
+-- Records of install_trace
 -- ----------------------------
 
 -- ----------------------------

@@ -61,7 +61,7 @@
       </div>
     </el-dialog>
     <el-dialog title="安装模板" :visible.sync="templateDialogVisible">
-      <el-form ref="templateForm" :rules="templateFormRules" :model="templateFormData" label-width="120px">
+      <el-form ref="templateForm" :rules="templateFormRules" :model="templateFormData" label-width="90px">
         <el-form-item label="选择模板" prop="templateId">
           <el-select v-model="templateFormData.templateId" placeholder="选择模板" style="width:100%">
             <el-option
@@ -73,15 +73,50 @@
           </el-select>
         </el-form-item>
       </el-form>
+      <el-row>
+        <el-collapse accordion @change="handleTokenChange">
+          <el-collapse-item v-for="(item, index) in installPreviewList" :key="index" :name="item.token">
+            <template slot="title">
+              <span style="margin-right: 10px">token: {{ item.token }}</span>
+              <el-tag v-if="item.installState === 1" type="success" effect="plain">成功</el-tag>
+              <el-tag v-else type="danger" effect="plain">失败</el-tag>
+            </template>
+            <el-row v-for="(installItem, key) in installTraceList" :key="key">
+              <el-row style="margin:5px 0">
+                <el-row v-if="installItem.type === 1">
+                  同步安装包: {{ installItem.command }}
+                </el-row>
+                <el-row v-else-if="installItem.type === 2">
+                  运行脚本：{{ installItem.script }}
+                </el-row>
+                <el-tag v-show="installItem['state'] === 0" type="danger" effect="plain">失败</el-tag>
+                返回结果：<span v-html="installItem['detail']" />
+              </el-row>
+            </el-row>
+          </el-collapse-item>
+        </el-collapse>
+      </el-row>
       <div slot="footer" class="dialog-footer">
         <el-button @click="templateDialogVisible = false">取 消</el-button>
         <el-button :disabled="templateFormProps.disabled" type="primary" @click="install">确 定</el-button>
       </div>
     </el-dialog>
+    <el-dialog title="安装进度" :visible.sync="installDialogVisible">
+      <el-row ref="publishSchedule" class="project-detail">
+        <el-row>
+          <el-row v-for="(item, key) in remoteLog" :key="key">
+            <el-row style="margin:5px 0">
+              <el-tag v-show="item['state'] === 0" type="danger" effect="plain">失败</el-tag>
+              <span v-html="item['message']" />
+            </el-row>
+          </el-row>
+        </el-row>
+      </el-row>
+    </el-dialog>
   </el-row>
 </template>
 <script>
-import { getList, add, edit, remove, install } from '@/api/server'
+import { getList, getInstallPreview, getInstallList, add, edit, remove, install } from '@/api/server'
 import { getOption as getGroupOption } from '@/api/group'
 import { getOption as getTemplateOption } from '@/api/template'
 import { parseTime } from '@/utils'
@@ -91,9 +126,14 @@ export default {
     return {
       dialogVisible: false,
       templateDialogVisible: false,
+      installDialogVisible: false,
       tableData: [],
       groupOption: [],
       templateOption: [],
+      remoteLog: [],
+      installToken: '',
+      installPreviewList: [],
+      installTraceList: [],
       tempFormData: {},
       formProps: {
         disabled: false
@@ -198,9 +238,21 @@ export default {
 
     handleInstall(data) {
       this.templateFormData.serverId = data.id
+      getInstallPreview(data.id).then(response => {
+        this.installPreviewList = response.data.installTraceList || []
+      })
       this.templateDialogVisible = true
     },
-
+    handleTokenChange(token) {
+      if (token === '') return
+      getInstallList(token).then(response => {
+        const installTraceList = response.data.installTraceList || []
+        this.installTraceList = installTraceList.map(element => {
+          Object.assign(element, JSON.parse(element.ext))
+          return element
+        })
+      })
+    },
     submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
@@ -247,13 +299,16 @@ export default {
       this.$refs.templateForm.validate((valid) => {
         if (valid) {
           this.templateFormProps.disabled = true
-          install(this.templateFormData.serverId, this.templateFormData.templateId).then((response) => {
-            this.$message({
-              message: response.message,
-              duration: 5 * 1000
+          this.installDialogVisible = true
+          this.templateFormProps.disabled = this.templateDialogVisible = false
+          this.remoteLog = []
+          this.connectWebSocket().then(server => {
+            install(this.templateFormData.serverId, this.templateFormData.templateId).then((response) => {
+              this.$message({
+                message: response.message,
+                duration: 5 * 1000
+              })
             })
-          }).finally(() => {
-            this.templateFormProps.disabled = this.templateDialogVisible = false
           })
         } else {
           return false
@@ -261,9 +316,50 @@ export default {
       })
     },
 
+    connectWebSocket() {
+      if (this.webSocket && this.webSocket.readyState < 2) {
+        console.log('reusing the socket connection [state = ' + this.webSocket.readyState + ']: ' + this.webSocket.url)
+        return Promise.resolve(this.webSocket)
+      }
+
+      return new Promise((resolve, reject) => {
+        this.webSocket = new WebSocket('ws://' + window.location.host + process.env.VUE_APP_BASE_API + '/ws/unicast')
+
+        this.webSocket.onopen = () => {
+          console.log('socket connection is opened [state = ' + this.webSocket.readyState + ']: ' + this.webSocket.url)
+          resolve(this.webSocket)
+        }
+
+        this.webSocket.onerror = (err) => {
+          console.error('socket connection error : ', err)
+          reject(err)
+        }
+
+        this.webSocket.onclose = (e) => {
+          this.webSocket = null
+          console.log('connection closed (' + e.code + ')')
+        }
+
+        this.webSocket.onmessage = (e) => {
+          const data = JSON.parse(e.data)
+          data.message = this.formatDetail(data.message)
+          this.remoteLog.push(data)
+        }
+
+        this.$nextTick(() => {
+          const contentBox = this.$refs.publishSchedule
+          contentBox.$el.scrollTop = contentBox.$el.scrollHeight
+        })
+      })
+    },
+
     findGroupName(groupId) {
       const group = this.groupOption.find(element => element.id === groupId)
       return group ? group['name'] : '默认'
+    },
+
+    formatDetail(detail) {
+      return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
     },
 
     storeFormData() {

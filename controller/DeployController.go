@@ -326,7 +326,7 @@ func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化 git clone")
-		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 			ToUserID: tokenInfo.ID,
 			Message: ws.ProjectMessage{
 				ProjectID: project.ID,
@@ -338,7 +338,7 @@ func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 		}
 		if err := cmd.Run(); err != nil {
 			core.Log(core.ERROR, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化失败:"+err.Error())
-			ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 				ToUserID: tokenInfo.ID,
 				Message: ws.ProjectMessage{
 					ProjectID: project.ID,
@@ -359,7 +359,7 @@ func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 			checkout.Stderr = &checkoutErrbuf
 			if err := checkout.Run(); err != nil {
 				core.Log(core.ERROR, checkoutErrbuf.String())
-				ws.GetUnicastHub().Unicast <- &ws.Unicast{
+				ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 					ToUserID: tokenInfo.ID,
 					Message: ws.ProjectMessage{
 						ProjectID: project.ID,
@@ -372,7 +372,7 @@ func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 				os.RemoveAll(srcPath)
 				return errors.New(checkoutErrbuf.String())
 			}
-			ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 				ToUserID: tokenInfo.ID,
 				Message: ws.ProjectMessage{
 					ProjectID: project.ID,
@@ -385,7 +385,7 @@ func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
 		}
 
 		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化成功")
-		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 			ToUserID: tokenInfo.ID,
 			Message: ws.ProjectMessage{
 				ProjectID: project.ID,
@@ -408,7 +408,7 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 	clean.Stdout = &cleanOutbuf
 	clean.Stderr = &cleanErrbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" git clean -f")
-	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 		ToUserID: tokenInfo.ID,
 		Message: ws.ProjectMessage{
 			ProjectID: project.ID,
@@ -420,7 +420,7 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 	}
 	if err := clean.Run(); err != nil {
 		core.Log(core.ERROR, cleanErrbuf.String())
-		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 			ToUserID: tokenInfo.ID,
 			Message: ws.ProjectMessage{
 				ProjectID: project.ID,
@@ -438,7 +438,7 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 	pull.Stdout = &pullOutbuf
 	pull.Stderr = &pullErrbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" git pull")
-	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 		ToUserID: tokenInfo.ID,
 		Message: ws.ProjectMessage{
 			ProjectID: project.ID,
@@ -450,7 +450,7 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 	}
 	if err := pull.Run(); err != nil {
 		core.Log(core.ERROR, pullErrbuf.String())
-		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 			ToUserID: tokenInfo.ID,
 			Message: ws.ProjectMessage{
 				ProjectID: project.ID,
@@ -464,7 +464,7 @@ func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
 	}
 
 	core.Log(core.TRACE, pullOutbuf.String())
-	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 		ToUserID: tokenInfo.ID,
 		Message: ws.ProjectMessage{
 			ProjectID: project.ID,
@@ -486,7 +486,7 @@ func gitRollback(tokenInfo core.TokenInfo, commit string, project model.Project)
 	resetCmd.Stdout = &resetOutbuf
 	resetCmd.Stderr = &resetErrbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" git reset --hard "+commit)
-	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 		ToUserID: tokenInfo.ID,
 		Message: ws.ProjectMessage{
 			ProjectID: project.ID,
@@ -498,7 +498,7 @@ func gitRollback(tokenInfo core.TokenInfo, commit string, project model.Project)
 	}
 	if err := resetCmd.Run(); err != nil {
 		core.Log(core.ERROR, resetErrbuf.String())
-		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 			ToUserID: tokenInfo.ID,
 			Message: ws.ProjectMessage{
 				ProjectID: project.ID,
@@ -512,7 +512,7 @@ func gitRollback(tokenInfo core.TokenInfo, commit string, project model.Project)
 	}
 
 	core.Log(core.TRACE, resetOutbuf.String())
-	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 		ToUserID: tokenInfo.ID,
 		Message: ws.ProjectMessage{
 			ProjectID: project.ID,
@@ -534,7 +534,7 @@ func gitCommitID(tokenInfo core.TokenInfo, project model.Project) (string, error
 	git.Stdout = &gitOutbuf
 	git.Stderr = &gitErrbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" git rev-parse HEAD")
-	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 		ToUserID: tokenInfo.ID,
 		Message: ws.ProjectMessage{
 			ProjectID: project.ID,
@@ -546,7 +546,7 @@ func gitCommitID(tokenInfo core.TokenInfo, project model.Project) (string, error
 	}
 	if err := git.Run(); err != nil {
 		core.Log(core.ERROR, gitErrbuf.String())
-		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 			ToUserID: tokenInfo.ID,
 			Message: ws.ProjectMessage{
 				ProjectID: project.ID,
@@ -558,7 +558,7 @@ func gitCommitID(tokenInfo core.TokenInfo, project model.Project) (string, error
 		}
 		return "", errors.New(gitErrbuf.String())
 	}
-	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 		ToUserID: tokenInfo.ID,
 		Message: ws.ProjectMessage{
 			ProjectID: project.ID,
@@ -595,7 +595,7 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 	handler.Stdout = &outbuf
 	handler.Stderr = &errbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+project.AfterPullScript)
-	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 		ToUserID: tokenInfo.ID,
 		Message: ws.ProjectMessage{
 			ProjectID: project.ID,
@@ -607,7 +607,7 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 	}
 	if err := handler.Run(); err != nil {
 		core.Log(core.ERROR, err.Error())
-		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 			ToUserID: tokenInfo.ID,
 			Message: ws.ProjectMessage{
 				ProjectID: project.ID,
@@ -625,7 +625,7 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 		}
 		return err
 	}
-	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 		ToUserID: tokenInfo.ID,
 		Message: ws.ProjectMessage{
 			ProjectID: project.ID,
@@ -679,7 +679,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" rsync "+strings.Join(rsyncOption, " "))
-	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 		ToUserID: tokenInfo.ID,
 		Message: ws.ProjectMessage{
 			ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
@@ -694,7 +694,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 		rsyncError = cmd.Run()
 		if rsyncError != nil {
 			core.Log(core.ERROR, errbuf.String())
-			ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 				ToUserID: tokenInfo.ID,
 				Message: ws.ProjectMessage{
 					ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
@@ -704,7 +704,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 				},
 			}
 		} else {
-			ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 				ToUserID: tokenInfo.ID,
 				Message: ws.ProjectMessage{
 					ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
@@ -722,7 +722,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	}
 
 	if rsyncError != nil {
-		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 			ToUserID: tokenInfo.ID,
 			Message: ws.ProjectMessage{
 				ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
@@ -748,7 +748,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	}{projectServer.ServerID, projectServer.ServerName, project.AfterDeployScript})
 	publishTraceModel.Ext = string(ext)
 	// 执行ssh脚本
-	ws.GetUnicastHub().Unicast <- &ws.Unicast{
+	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 		ToUserID: tokenInfo.ID,
 		Message: ws.ProjectMessage{
 			ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
@@ -764,7 +764,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 		session, connectError = connect(projectServer.ServerOwner, "", projectServer.ServerIP, int(projectServer.ServerPort))
 		if connectError != nil {
 			core.Log(core.ERROR, connectError.Error())
-			ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 				ToUserID: tokenInfo.ID,
 				Message: ws.ProjectMessage{
 					ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
@@ -774,7 +774,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 				},
 			}
 		} else {
-			ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 				ToUserID: tokenInfo.ID,
 				Message: ws.ProjectMessage{
 					ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
@@ -783,7 +783,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 					Message:  "开始连接成功",
 				},
 			}
-			ws.GetUnicastHub().Unicast <- &ws.Unicast{
+			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 				ToUserID: tokenInfo.ID,
 				Message: ws.ProjectMessage{
 					ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
@@ -800,7 +800,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 			afterDeployScript := "echo '" + project.AfterDeployScript + "' > /tmp/after-deploy.sh;bash /tmp/after-deploy.sh"
 			if scriptError = session.Run(afterDeployScript); scriptError != nil {
 				core.Log(core.ERROR, scriptError.Error())
-				ws.GetUnicastHub().Unicast <- &ws.Unicast{
+				ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 					ToUserID: tokenInfo.ID,
 					Message: ws.ProjectMessage{
 						ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
@@ -810,7 +810,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 					},
 				}
 			} else {
-				ws.GetUnicastHub().Unicast <- &ws.Unicast{
+				ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 					ToUserID: tokenInfo.ID,
 					Message: ws.ProjectMessage{
 						ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
@@ -829,7 +829,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	}
 
 	if connectError != nil {
-		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 			ToUserID: tokenInfo.ID,
 			Message: ws.ProjectMessage{
 				ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,
@@ -843,7 +843,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 		publishTraceModel.AddRow()
 		return
 	} else if scriptError != nil {
-		ws.GetUnicastHub().Unicast <- &ws.Unicast{
+		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 			ToUserID: tokenInfo.ID,
 			Message: ws.ProjectMessage{
 				ProjectID: project.ID, UserID: tokenInfo.ID, ServerID: projectServer.ServerID, ServerName: projectServer.ServerName,

@@ -17,8 +17,8 @@ type UnicastClient struct {
 	UserName string
 }
 
-// Unicast is message struct
-type Unicast struct {
+// UnicastData is message struct
+type UnicastData struct {
 	ToUserID uint32
 	Message  interface{}
 }
@@ -34,13 +34,22 @@ type ProjectMessage struct {
 	DataType   uint8  `json:"dataType"`
 }
 
+// InstallMessage is server install message struct
+type InstallMessage struct {
+	ServerID uint32 `json:"serverId"`
+	UserID   uint32 `json:"userId"`
+	State    uint8  `json:"state"`
+	Message  string `json:"message"`
+	DataType uint8  `json:"dataType"`
+}
+
 // UnicastHub is a client struct
 type UnicastHub struct {
 	// Registered clients.
 	clients map[*UnicastClient]bool
 
 	// Inbound messages from the clients.
-	Unicast chan *Unicast
+	UnicastData chan *UnicastData
 
 	// Register requests from the clients.
 	Register chan *UnicastClient
@@ -66,16 +75,16 @@ var instance *UnicastHub
 func GetUnicastHub() *UnicastHub {
 	if instance == nil {
 		instance = &UnicastHub{
-			Unicast:    make(chan *Unicast),
-			clients:    make(map[*UnicastClient]bool),
-			Register:   make(chan *UnicastClient),
-			Unregister: make(chan *UnicastClient),
+			UnicastData: make(chan *UnicastData),
+			clients:     make(map[*UnicastClient]bool),
+			Register:    make(chan *UnicastClient),
+			Unregister:  make(chan *UnicastClient),
 		}
 	}
 	return instance
 }
 
-// Publish the publish information in websocket
+// Unicast the publish information in websocket
 func (hub *UnicastHub) Unicast(w http.ResponseWriter, gp *core.Goploy) {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
@@ -108,7 +117,7 @@ func (hub *UnicastHub) Run() {
 				delete(hub.clients, client)
 				client.Conn.Close()
 			}
-		case broadcast := <-hub.Unicast:
+		case broadcast := <-hub.UnicastData:
 			for client := range hub.clients {
 				if client.UserID != broadcast.ToUserID {
 					continue
