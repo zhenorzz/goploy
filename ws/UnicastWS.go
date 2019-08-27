@@ -76,7 +76,7 @@ func GetUnicastHub() *UnicastHub {
 }
 
 // Publish the publish information in websocket
-func (hub *UnicastHub) Publish(w http.ResponseWriter, gp *core.Goploy) {
+func (hub *UnicastHub) Unicast(w http.ResponseWriter, gp *core.Goploy) {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
