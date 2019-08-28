@@ -6,7 +6,8 @@ const state = {
   token: getToken(),
   id: 0,
   account: '',
-  name: ''
+  name: '',
+  role: ''
 }
 
 const mutations = {
@@ -21,6 +22,9 @@ const mutations = {
   },
   SET_NAME: (state, name) => {
     state.name = name
+  },
+  SET_ROLE: (state, role) => {
+    state.role = role
   }
 }
 
@@ -49,10 +53,11 @@ const actions = {
         if (!data) {
           reject('Verification failed, please Login again.')
         }
-        const { id, account, name } = data.userInfo
+        const { id, account, name, role } = data.userInfo
         commit('SET_ID', id)
         commit('SET_ACCOUNT', account)
         commit('SET_NAME', name)
+        commit('SET_ROLE', role)
         resolve(data)
       }).catch(error => {
         reject(error)

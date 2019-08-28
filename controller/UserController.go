@@ -97,6 +97,7 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 			ID      uint32 `json:"id"`
 			Account string `json:"account"`
 			Name    string `json:"name"`
+			Role    string `json:"role"`
 		} `json:"userInfo"`
 		Permission    model.Permissions `json:"permission"`
 		PermissionURI []string          `json:"permissionUri"`
@@ -113,6 +114,7 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 	data.UserInfo.ID = gp.TokenInfo.ID
 	data.UserInfo.Name = userData.Name
 	data.UserInfo.Account = userData.Account
+	data.UserInfo.Role = userData.Role
 
 	var tempPermissions model.Permissions
 	for _, permission := range permissions {

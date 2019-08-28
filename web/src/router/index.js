@@ -17,7 +17,7 @@ import Layout from '@/layout'
  * redirect: noRedirect           if set noRedirect will no redirect in the breadcrumb
  * name:'router-name'             the name is used by <keep-alive> (must set!!!)
  * meta : {
-    permission_uri: '/dashboard'   control the page roles (you can set multiple roles)
+    roles: ['admin', 'manager', 'group-manager', 'member']   control the page roles (you can set multiple roles)
     title: 'title'               the name show in sidebar and breadcrumb (recommend set)
     icon: 'svg-name'             the icon show in the sidebar
     breadcrumb: false            if set false, the item will hidden in breadcrumb(default is true)
@@ -68,17 +68,13 @@ export const asyncRoutes = [
     path: '/deploy',
     component: Layout,
     redirect: '/deploy/publish',
-    meta: {
-      permission_uri: '/deploy'
-    },
     children: [{
       path: 'publish',
       name: '构建发布',
       component: () => import('@/views/deploy/publish'),
       meta: {
         title: '构建发布',
-        icon: 'deploy',
-        permission_uri: '/deploy/publish'
+        icon: 'deploy'
       }
     }]
   },
@@ -89,7 +85,7 @@ export const asyncRoutes = [
     meta: {
       title: '项目管理',
       icon: 'project',
-      permission_uri: '/project'
+      roles: ['admin', 'manager', 'group-manager']
     },
     children: [
       {
@@ -99,7 +95,7 @@ export const asyncRoutes = [
         meta: {
           title: '项目设置',
           icon: 'setting',
-          permission_uri: '/project/setting'
+          roles: ['admin', 'manager', 'group-manager']
         }
       },
       {
@@ -109,7 +105,7 @@ export const asyncRoutes = [
         meta: {
           title: '分组设置',
           icon: 'list',
-          permission_uri: '/project/group'
+          roles: ['admin', 'manager']
         }
       },
       {
@@ -119,7 +115,7 @@ export const asyncRoutes = [
         meta: {
           title: '模板设置',
           icon: 'template',
-          permission_uri: '/project/template'
+          roles: ['admin', 'manager', 'group-manager']
         }
       },
       {
@@ -129,7 +125,7 @@ export const asyncRoutes = [
         meta: {
           title: '服务器设置',
           icon: 'server',
-          permission_uri: '/project/server'
+          roles: ['admin', 'manager', 'group-manager']
         }
       }
     ]
@@ -142,7 +138,7 @@ export const asyncRoutes = [
     meta: {
       title: '成员管理',
       icon: 'user',
-      permission_uri: '/member'
+      roles: ['admin']
     },
     children: [{
       path: 'list',
@@ -151,7 +147,7 @@ export const asyncRoutes = [
       meta: {
         title: '成员列表',
         icon: 'list',
-        permission_uri: '/member/list'
+        roles: ['admin']
       }
     }, {
       path: 'permission',
@@ -159,8 +155,7 @@ export const asyncRoutes = [
       component: () => import('@/views/member/permission'),
       meta: {
         title: '角色权限',
-        icon: 'permission',
-        permission_uri: '/member/permission'
+        icon: 'permission'
       }
     }]
   },

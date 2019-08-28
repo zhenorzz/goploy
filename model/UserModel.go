@@ -18,6 +18,7 @@ type User struct {
 	Name           string `json:"name"`
 	Mobile         string `json:"mobile"`
 	RoleID         uint32 `json:"roleId"`
+	Role           string `json:"role"`
 	ManageGroupStr string `json:"manageGroupStr"`
 	State          uint8  `json:"state"`
 	CreateTime     int64  `json:"createTime"`
@@ -39,6 +40,7 @@ func (u User) GetData() (User, error) {
 			name, 
 			mobile, 
 			role_id, 
+			role, 
 			manage_group_str,
 			state,
 			create_time, 
@@ -53,6 +55,7 @@ func (u User) GetData() (User, error) {
 		&user.Name,
 		&user.Mobile,
 		&user.RoleID,
+		&user.Role,
 		&user.ManageGroupStr,
 		&user.State,
 		&user.CreateTime,
@@ -74,6 +77,7 @@ func (u User) GetDataByAccount() (User, error) {
 			name, 
 			mobile, 
 			role_id, 
+			role, 
 			manage_group_str,
 			state,
 			create_time, 
@@ -88,6 +92,7 @@ func (u User) GetDataByAccount() (User, error) {
 		&user.Name,
 		&user.Mobile,
 		&user.RoleID,
+		&user.Role,
 		&user.ManageGroupStr,
 		&user.State,
 		&user.CreateTime,
