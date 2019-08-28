@@ -1,9 +1,5 @@
 package model
 
-import (
-	"errors"
-)
-
 // Role mysql table server
 type Role struct {
 	ID             uint32 `json:"id"`
@@ -22,7 +18,7 @@ func (r Role) GetData() (Role, error) {
 	var role Role
 	err := DB.QueryRow("SELECT id, name, permission_list FROM role WHERE id = ?", r.ID).Scan(&role.ID, &role.Name, &role.PermissionList)
 	if err != nil {
-		return role, errors.New("数据查询失败")
+		return role, err
 	}
 	return role, nil
 }
