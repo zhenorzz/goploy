@@ -54,8 +54,8 @@ CREATE TABLE `permission`  (
 -- ----------------------------
 -- Records of permission
 -- ----------------------------
-INSERT INTO `permission` VALUES (1, '主页', '/dashboard', 1, 0);
-INSERT INTO `permission` VALUES (2, '主页列表', '/dashboard/list', 1, 1);
+INSERT INTO `permission` VALUES (1, '部署', '/deploy', 1, 0);
+INSERT INTO `permission` VALUES (2, '构建发布', '/deploy/publish', 1, 1);
 INSERT INTO `permission` VALUES (3, '项目', '/project', 1, 0);
 INSERT INTO `permission` VALUES (4, '项目设置', '/project/setting', 1, 3);
 INSERT INTO `permission` VALUES (5, '模板设置', '/deploy/publish', 1, 3);
@@ -64,8 +64,6 @@ INSERT INTO `permission` VALUES (7, '项目分组', '/project/group', 1, 3);
 INSERT INTO `permission` VALUES (8, '成员', '/member', 1, 0);
 INSERT INTO `permission` VALUES (9, '成员列表', '/member/list', 1, 8);
 INSERT INTO `permission` VALUES (10, '权限管理', '/member/permission', 1, 8);
-INSERT INTO `permission` VALUES (11, '部署', '/deploy', 1, 0);
-INSERT INTO `permission` VALUES (12, '构建发布', '/deploy/publish', 1, 11);
 
 -- ----------------------------
 -- Table structure for project
@@ -192,9 +190,9 @@ CREATE TABLE `role`  (
 -- Records of role
 -- ----------------------------
 INSERT INTO `role` VALUES (1, '超级管理员', '', 1, 1527927486, 1527927486, '超级管理员是最高权限者');
-INSERT INTO `role` VALUES (2, '管理员', '3,4,5,6,7,11,12', 1, 1527928486, 1552642448, '包含除成员管理以外所有权限');
-INSERT INTO `role` VALUES (2, '组管理员', '3,4,5,6,11,12', 1, 1527928486, 1552642448, '包含分组权限');
-INSERT INTO `role` VALUES (3, '成员', '11,12', 1, 1527928486, 1552979330, '只能构建项目');
+INSERT INTO `role` VALUES (2, '管理员', '1,2,3,4,5,6,7', 1, 1527928486, 1552642448, '包含除成员管理以外所有权限');
+INSERT INTO `role` VALUES (2, '组管理员', '1,2,3,4,5,6,7', 1, 1527928486, 1552642448, '包含分组权限');
+INSERT INTO `role` VALUES (3, '成员', '1,2', 1, 1527928486, 1552979330, '只能构建项目');
 
 -- ----------------------------
 -- Table structure for server
