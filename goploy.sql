@@ -39,33 +39,6 @@ CREATE TABLE `log`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
 
 -- ----------------------------
--- Table structure for permission
--- ----------------------------
-DROP TABLE IF EXISTS `permission`;
-CREATE TABLE `permission`  (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '权限id',
-  `title` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '权限标题',
-  `uri` varchar(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '' COMMENT '权限uri',
-  `state` tinyint(1) NOT NULL DEFAULT 1 COMMENT '该记录是否有效1：有效、0：无效',
-  `pid` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '父级权限ID',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
-
--- ----------------------------
--- Records of permission
--- ----------------------------
-INSERT INTO `permission` VALUES (1, '部署', '/deploy', 1, 0);
-INSERT INTO `permission` VALUES (2, '构建发布', '/deploy/publish', 1, 1);
-INSERT INTO `permission` VALUES (3, '项目', '/project', 1, 0);
-INSERT INTO `permission` VALUES (4, '项目设置', '/project/setting', 1, 3);
-INSERT INTO `permission` VALUES (5, '模板设置', '/project/template', 1, 3);
-INSERT INTO `permission` VALUES (6, '服务器管理', '/project/server', 1, 3);
-INSERT INTO `permission` VALUES (7, '项目分组', '/project/group', 1, 3);
-INSERT INTO `permission` VALUES (8, '成员', '/member', 1, 0);
-INSERT INTO `permission` VALUES (9, '成员列表', '/member/list', 1, 8);
-INSERT INTO `permission` VALUES (10, '权限管理', '/member/permission', 1, 8);
-
--- ----------------------------
 -- Table structure for project
 -- ----------------------------
 DROP TABLE IF EXISTS `project`;
@@ -172,29 +145,6 @@ CREATE TABLE `publish_trace` (
 -- ----------------------------
 
 -- ----------------------------
--- Table structure for role
--- ----------------------------
-DROP TABLE IF EXISTS `role`;
-CREATE TABLE `role`  (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '角色id',
-  `name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '角色名',
-  `permission_list` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '权限列表',
-  `state` tinyint(1) NOT NULL DEFAULT 1 COMMENT '该记录是否有效1：有效、0：无效',
-  `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建时间',
-  `update_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '更新时间',
-  `remark` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '备注',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
-
--- ----------------------------
--- Records of role
--- ----------------------------
-INSERT INTO `role` VALUES (1, '超级管理员', '', 1, 1527927486, 1527927486, '超级管理员是最高权限者');
-INSERT INTO `role` VALUES (2, '管理员', '1,2,3,4,5,6,7', 1, 1527928486, 1552642448, '包含除成员管理以外所有权限');
-INSERT INTO `role` VALUES (3, '组管理员', '1,2,3,4,5,6,7', 1, 1527928486, 1552642448, '包含分组权限');
-INSERT INTO `role` VALUES (4, '成员', '1,2', 1, 1527928486, 1552979330, '只能构建项目');
-
--- ----------------------------
 -- Table structure for server
 -- ----------------------------
 DROP TABLE IF EXISTS `server`;
@@ -270,7 +220,7 @@ CREATE TABLE `user`  (
   `password` varchar(60) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `mobile` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
+  `role` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'member',
   `manage_group_str` text CHARACTER SET ascii NOT NULL COMMENT '管理分组逗号分割(空串没有管理权限，all管理全部)',
   `state` tinyint(1) NOT NULL DEFAULT 1 COMMENT '0:=被禁用  1=正常',
   `create_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
@@ -282,6 +232,6 @@ CREATE TABLE `user`  (
 -- ----------------------------
 -- Records of user
 -- ----------------------------
-INSERT INTO `user` VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '18023496666', 1, 'all', 1, 1540869597, 1561461294, 1563668841);
+INSERT INTO `user` VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '18023496666', 'admin' ,'all', 1, 1540869597, 1561461294, 1563668841);
 
 SET FOREIGN_KEY_CHECKS = 1;
