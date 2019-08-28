@@ -170,7 +170,7 @@ export default {
 
     getRoleOption() {
       getRoleOption().then((response) => {
-        this.roleOption = response.data.roleList
+        this.roleOption = response.data.roleList || []
       })
     },
 

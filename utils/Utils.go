@@ -1,6 +1,35 @@
 package utils
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+)
+
+// GetCurrentPath if env = 'production' return absolute else return relative
+func GetCurrentPath() string {
+	if os.Getenv("ENV") != "production" {
+		return "./"
+	}
+	file, err := exec.LookPath(os.Args[0])
+	if err != nil {
+		panic(err)
+	}
+	path, err := filepath.Abs(file)
+	if err != nil {
+		panic(err)
+	}
+	i := strings.LastIndex(path, "/")
+	if i < 0 {
+		i = strings.LastIndex(path, "\\")
+	}
+	if i < 0 {
+		panic(err)
+	}
+	return string(path[0 : i+1])
+}
 
 // ParseCommandLine parse cmd arg
 func ParseCommandLine(command string) ([]string, error) {
