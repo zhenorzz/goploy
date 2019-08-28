@@ -30,7 +30,7 @@ type Goploy struct {
 // 路由定义
 type route struct {
 	pattern     string                                          // 正则表达式
-	auth        []string                                        //权限
+	roles       []string                                        //允许的角色
 	callback    func(w http.ResponseWriter, gp *Goploy)         //Controller函数
 	middlewares []func(w http.ResponseWriter, gp *Goploy) error //中间件
 }
@@ -58,15 +58,15 @@ func (rt *Router) Add(pattern string, callback func(w http.ResponseWriter, gp *G
 	return rt
 }
 
-// AuthMany Add many permision to the route
-func (rt *Router) AuthMany(auth []string) *Router {
-	rt.Routes[len(rt.Routes)-1].auth = append(rt.Routes[len(rt.Routes)-1].auth, auth...)
+// Roles Add many permision to the route
+func (rt *Router) Roles(role []string) *Router {
+	rt.Routes[len(rt.Routes)-1].roles = append(rt.Routes[len(rt.Routes)-1].roles, role...)
 	return rt
 }
 
-// Auth Add permision to the route
-func (rt *Router) Auth(auth string) *Router {
-	rt.Routes[len(rt.Routes)-1].auth = append(rt.Routes[len(rt.Routes)-1].auth, auth)
+// Role Add permision to the route
+func (rt *Router) Role(role string) *Router {
+	rt.Routes[len(rt.Routes)-1].roles = append(rt.Routes[len(rt.Routes)-1].roles, role)
 	return rt
 }
 
@@ -144,7 +144,7 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, route := range rt.Routes {
 		if route.pattern == r.URL.Path {
-			if err := route.hasPermission(tokenInfo.ID); err != nil {
+			if err := route.hasRole(tokenInfo.ID); err != nil {
 				response := Response{Code: 1, Message: err.Error()}
 				response.JSON(w)
 				return
@@ -163,21 +163,18 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (r *route) hasPermission(userID uint32) error {
-	if len(r.auth) == 0 {
+func (r *route) hasRole(userID uint32) error {
+	if len(r.roles) == 0 {
 		return nil
 	}
-	_, permissions, err := GetUserCache(userID)
-
+	userInfo, err := GetUserInfo(userID)
 	if err != nil {
 		return err
 	}
 
-	for _, permission := range permissions {
-		for _, auth := range r.auth {
-			if permission.URI == auth {
-				return nil
-			}
+	for _, role := range r.roles {
+		if role == userInfo.Role {
+			return nil
 		}
 	}
 

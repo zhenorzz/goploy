@@ -17,7 +17,6 @@ type User struct {
 	Password       string `json:"password"`
 	Name           string `json:"name"`
 	Mobile         string `json:"mobile"`
-	RoleID         uint32 `json:"roleId"`
 	Role           string `json:"role"`
 	ManageGroupStr string `json:"manageGroupStr"`
 	State          uint8  `json:"state"`
@@ -39,7 +38,6 @@ func (u User) GetData() (User, error) {
 			password,
 			name, 
 			mobile, 
-			role_id, 
 			role, 
 			manage_group_str,
 			state,
@@ -54,7 +52,6 @@ func (u User) GetData() (User, error) {
 		&user.Password,
 		&user.Name,
 		&user.Mobile,
-		&user.RoleID,
 		&user.Role,
 		&user.ManageGroupStr,
 		&user.State,
@@ -76,7 +73,6 @@ func (u User) GetDataByAccount() (User, error) {
 			password,
 			name, 
 			mobile, 
-			role_id, 
 			role, 
 			manage_group_str,
 			state,
@@ -91,7 +87,6 @@ func (u User) GetDataByAccount() (User, error) {
 		&user.Password,
 		&user.Name,
 		&user.Mobile,
-		&user.RoleID,
 		&user.Role,
 		&user.ManageGroupStr,
 		&user.State,
@@ -106,7 +101,7 @@ func (u User) GetDataByAccount() (User, error) {
 // GetList get many user row
 func (u Users) GetList(pagination *Pagination) (Users, error) {
 	rows, err := DB.Query(
-		"SELECT id, account, name, mobile, role_id, manage_group_str, create_time, update_time FROM user WHERE state = 1 ORDER BY id DESC LIMIT ?, ?",
+		"SELECT id, account, name, mobile, role, manage_group_str, create_time, update_time FROM user WHERE state = 1 ORDER BY id DESC LIMIT ?, ?",
 		(pagination.Page-1)*pagination.Rows,
 		pagination.Rows)
 	if err != nil {
@@ -116,7 +111,7 @@ func (u Users) GetList(pagination *Pagination) (Users, error) {
 	for rows.Next() {
 		var user User
 
-		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.RoleID, &user.ManageGroupStr, &user.CreateTime, &user.UpdateTime); err != nil {
+		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.Role, &user.ManageGroupStr, &user.CreateTime, &user.UpdateTime); err != nil {
 			return users, err
 		}
 		users = append(users, user)
@@ -169,12 +164,12 @@ func (u User) AddRow() (uint32, error) {
 		return 0, err
 	}
 	result, err := DB.Exec(
-		"INSERT INTO user (account, password, name, mobile, role_id, manage_group_str, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+		"INSERT INTO user (account, password, name, mobile, role, manage_group_str, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
 		u.Account,
 		string(hashedPassword),
 		u.Name,
 		u.Mobile,
-		u.RoleID,
+		u.Role,
 		u.ManageGroupStr,
 		u.CreateTime,
 		u.UpdateTime,
@@ -194,13 +189,13 @@ func (u User) EditRow() error {
 			`UPDATE user SET 
 			  name = ?,
 			  mobile = ?,
-			  role_id = ?,
+			  role = ?,
 			  manage_group_str = ?
 			WHERE
 			 id = ?`,
 			u.Name,
 			u.Mobile,
-			u.RoleID,
+			u.Role,
 			u.ManageGroupStr,
 			u.ID,
 		)
@@ -215,14 +210,14 @@ func (u User) EditRow() error {
 			`UPDATE user SET 
 			  name = ?,
 			  mobile = ?,
-			  role_id = ?,
+			  role = ?,
 			  manage_group_str = ?,
 			  password = ?
 			WHERE
 			 id = ?`,
 			u.Name,
 			u.Mobile,
-			u.RoleID,
+			u.Role,
 			u.ManageGroupStr,
 			hashedPassword,
 			u.ID,

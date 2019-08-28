@@ -57,33 +57,7 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {
 	}
 	model.User{ID: userData.ID, LastLoginTime: time.Now().Unix()}.UpdateLastLoginTime()
 
-	// set cache
-	var permissions model.Permissions
-	// 超级管理员获取全部权限
-	if userData.RoleID == 1 {
-		permissions, err = model.Permission{}.GetAll()
-		if err != nil {
-			response := core.Response{Code: 1, Message: err.Error()}
-			response.JSON(w)
-			return
-		}
-	} else {
-		role, err := model.Role{ID: userData.RoleID}.GetData()
-		if err != nil {
-			response := core.Response{Code: 1, Message: err.Error()}
-			response.JSON(w)
-			return
-		}
-		permissions, err = model.Permission{}.GetAllByPermissionList(role.PermissionList)
-		if err != nil {
-			response := core.Response{Code: 1, Message: err.Error()}
-			response.JSON(w)
-			return
-		}
-	}
-
 	core.Cache.Set("userInfo:"+strconv.Itoa(int(userData.ID)), &userData, cache.DefaultExpiration)
-	core.Cache.Set("permissions:"+strconv.Itoa(int(userData.ID)), &permissions, cache.DefaultExpiration)
 
 	data := RepData{Token: token}
 	response := core.Response{Data: data}
@@ -99,10 +73,8 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 			Name    string `json:"name"`
 			Role    string `json:"role"`
 		} `json:"userInfo"`
-		Permission    model.Permissions `json:"permission"`
-		PermissionURI []string          `json:"permissionUri"`
 	}
-	userData, permissions, err := core.GetUserCache(gp.TokenInfo.ID)
+	userData, err := core.GetUserInfo(gp.TokenInfo.ID)
 
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
@@ -115,21 +87,6 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 	data.UserInfo.Name = userData.Name
 	data.UserInfo.Account = userData.Account
 	data.UserInfo.Role = userData.Role
-
-	var tempPermissions model.Permissions
-	for _, permission := range permissions {
-		data.PermissionURI = append(data.PermissionURI, permission.URI)
-		if permission.PID == 0 {
-			for _, pmChild := range permissions {
-				if pmChild.PID == permission.ID {
-					permission.Children = append(permission.Children, pmChild)
-				}
-			}
-			tempPermissions = append(tempPermissions, permission)
-		}
-	}
-
-	data.Permission = tempPermissions
 	response := core.Response{Data: data}
 	response.JSON(w)
 }
@@ -179,7 +136,7 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 		Password       string `json:"password"`
 		Name           string `json:"name"`
 		Mobile         string `json:"mobile"`
-		RoleID         uint32 `json:"roleId"`
+		Role           string `json:"role"`
 		ManageGroupStr string `json:"manageGroupStr"`
 	}
 	var reqData ReqData
@@ -194,7 +151,7 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 		Password:       reqData.Password,
 		Name:           reqData.Name,
 		Mobile:         reqData.Mobile,
-		RoleID:         reqData.RoleID,
+		Role:           reqData.Role,
 		ManageGroupStr: reqData.ManageGroupStr,
 		CreateTime:     time.Now().Unix(),
 		UpdateTime:     time.Now().Unix(),
@@ -216,7 +173,7 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		Password       string `json:"password"`
 		Name           string `json:"name"`
 		Mobile         string `json:"mobile"`
-		RoleID         uint32 `json:"roleId"`
+		Role           string `json:"role"`
 		ManageGroupStr string `json:"manageGroupStr"`
 	}
 	var reqData ReqData
@@ -231,7 +188,7 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		Password:       reqData.Password,
 		Name:           reqData.Name,
 		Mobile:         reqData.Mobile,
-		RoleID:         reqData.RoleID,
+		Role:           reqData.Role,
 		ManageGroupStr: reqData.ManageGroupStr,
 		UpdateTime:     time.Now().Unix(),
 	}.EditRow()

@@ -7,30 +7,3 @@ export function getOption(params) {
     params
   })
 }
-
-export function getPermissionList() {
-  return request({
-    url: '/role/getPermissionList',
-    method: 'get'
-  })
-}
-
-export function add(name, remark, permissionList) {
-  return request({
-    url: '/role/add',
-    method: 'post',
-    data: {
-      name, remark, permissionList
-    }
-  })
-}
-
-export function edit(id, name, remark, permissionList) {
-  return request({
-    url: '/role/edit',
-    method: 'post',
-    data: {
-      id, name, remark, permissionList
-    }
-  })
-}

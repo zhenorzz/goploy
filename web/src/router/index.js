@@ -149,14 +149,6 @@ export const asyncRoutes = [
         icon: 'list',
         roles: ['admin']
       }
-    }, {
-      path: 'permission',
-      name: '角色权限',
-      component: () => import('@/views/member/permission'),
-      meta: {
-        title: '角色权限',
-        icon: 'permission'
-      }
     }]
   },
   // 404 page must be placed at the end !!!

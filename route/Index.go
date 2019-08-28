@@ -21,7 +21,7 @@ func Init() {
 	// user route
 	rt.Add("/user/login", controller.User{}.Login)
 	rt.Add("/user/info", controller.User{}.Info)
-	rt.Add("/user/getList", controller.User{}.GetList).Auth("/member/list")
+	rt.Add("/user/getList", controller.User{}.GetList).Role("admin")
 	rt.Add("/user/getOption", controller.User{}.GetOption)
 	rt.Add("/user/add", controller.User{}.Add)
 	rt.Add("/user/edit", controller.User{}.Edit)
@@ -76,8 +76,5 @@ func Init() {
 
 	// role route
 	rt.Add("/role/getOption", controller.Role{}.GetOption)
-	rt.Add("/role/getPermissionList", controller.Role{}.GetPermissionList)
-	rt.Add("/role/add", controller.Role{}.Add)
-	rt.Add("/role/edit", controller.Role{}.Edit)
 	rt.Start()
 }

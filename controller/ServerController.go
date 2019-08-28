@@ -24,7 +24,7 @@ func (server Server) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		Server model.Servers `json:"serverList"`
 	}
-	userData, err := core.GetUserData(gp.TokenInfo.ID)
+	userData, err := core.GetUserInfo(gp.TokenInfo.ID)
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -40,7 +40,7 @@ func (server Server) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	response.JSON(w)
 }
 
-// getInstallPreview server install token list
+// GetInstallPreview server install token list
 func (server Server) GetInstallPreview(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		InstallTraceList model.InstallTraces `json:"installTraceList"`

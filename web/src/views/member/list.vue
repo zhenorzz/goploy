@@ -13,11 +13,7 @@
       <el-table-column prop="account" label="账号" />
       <el-table-column prop="name" label="名称" />
       <el-table-column prop="mobile" label="手机号码" show-overflow-tooltip />
-      <el-table-column prop="role" label="角色">
-        <template slot-scope="scope">
-          {{ findRoleName(scope.row.roleId) }}
-        </template>
-      </el-table-column>
+      <el-table-column prop="role" label="角色" />
       <el-table-column prop="createTime" label="创建时间" width="160" />
       <el-table-column prop="updateTime" label="更新时间" width="160" />
       <el-table-column prop="operation" label="操作" width="150">
@@ -52,16 +48,16 @@
           <el-input v-model="formData.mobile" autocomplete="off" />
         </el-form-item>
         <el-form-item label="角色" prop="roleId">
-          <el-select v-model="formData.roleId" placeholder="选择角色">
+          <el-select v-model="formData.role" placeholder="选择角色">
             <el-option
-              v-for="(item, index) in roleOption"
+              v-for="(role, index) in roleOption"
               :key="index"
-              :label="item.name"
-              :value="item.id"
+              :label="role"
+              :value="role"
             />
           </el-select>
         </el-form-item>
-        <el-form-item v-show="formData.roleId===3" label="管理分组" prop="groupId">
+        <el-form-item v-show="formData.role==='group-manager'" label="管理分组" prop="groupId">
           <el-select
             v-model="formData.groupIds"
             multiple
@@ -129,7 +125,7 @@ export default {
         password: '',
         name: '',
         mobile: '',
-        roleId: 4,
+        role: 'member',
         groupIds: [],
         manageGroupStr: ''
       },
@@ -143,7 +139,7 @@ export default {
         name: [
           { required: true, message: '请输入名称', trigger: 'blur' }
         ],
-        roleId: [
+        role: [
           { required: true, message: '请选择角色', trigger: 'change' }
         ]
       }
@@ -180,10 +176,6 @@ export default {
       })
     },
 
-    findRoleName(roleId) {
-      return this.roleOption.find(element => element.id === roleId)['name']
-    },
-
     // 分页事件
     handleCurrentChange(val) {
       this.pagination.page = val
@@ -198,7 +190,7 @@ export default {
     handleEdit(data) {
       this.restoreFormData()
       this.formData = Object.assign(this.formData, data)
-      this.formData.groupIds = data.manageGroupStr.split(',').filter(element => element !== '').map(element => {
+      this.formData.groupIds = data.manageGroupStr.split(',').filter(element => element !== '' && element !== 'all').map(element => {
         return parseInt(element)
       })
       this.dialogVisible = true
@@ -237,9 +229,9 @@ export default {
     submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
-          if (this.formData.roleId < 3) {
+          if (this.formData.role === 'admin' || this.formData.role === 'manager') {
             this.formData.manageGroupStr = 'all'
-          } else if (this.formData.roleId === 3) {
+          } else if (this.formData.role === 'group-manager') {
             this.formData.manageGroupStr = this.formData.groupIds.sort((x, y) => x - y).join(',')
           } else {
             this.formData.manageGroupStr = ''
