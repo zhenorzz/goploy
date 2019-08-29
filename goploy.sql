@@ -173,7 +173,7 @@ DROP TABLE IF EXISTS `template`;
 CREATE TABLE `template` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `package` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `package_id_str` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `script` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `create_time` int(10) unsigned NOT NULL DEFAULT 0,
@@ -183,6 +183,23 @@ CREATE TABLE `template` (
 
 -- ----------------------------
 -- Records of template
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for package
+-- ----------------------------
+DROP TABLE IF EXISTS `package`;
+CREATE TABLE `package` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `size` int(10) unsigned NOT NULL DEFAULT '0',
+  `create_time` int(10) unsigned NOT NULL DEFAULT '0',
+  `update_time` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
+
+-- ----------------------------
+-- Records of package
 -- ----------------------------
 
 -- ----------------------------
