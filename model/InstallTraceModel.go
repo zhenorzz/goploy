@@ -161,9 +161,7 @@ func (it InstallTrace) GetListGroupByToken() (InstallTraces, error) {
 			install_trace
 		WHERE 
 			server_id = ?
-		GROUP BY token
-		ORDER BY token DESC
-		LIMIT 5`, it.ServerID)
+		GROUP BY token`, it.ServerID)
 	if err != nil {
 		return nil, err
 	}

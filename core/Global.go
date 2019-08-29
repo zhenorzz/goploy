@@ -9,7 +9,7 @@ var GolbalPath = utils.GetCurrentPath()
 var RepositoryPath = GolbalPath + "repository/"
 
 // TemplatePath template path end with /
-var TemplatePath = RepositoryPath + "template-package/"
+var PackagePath = RepositoryPath + "template-package/"
 
 //role
 const (

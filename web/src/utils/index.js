@@ -159,3 +159,18 @@ export function deepClone(item) {
 
   return result
 }
+
+/**
+ * 人类可读的字节大小
+ * @param {mixed} item
+ * @returns {Object}
+ */
+export function humanSize(bytes) {
+  if (bytes === 0) return '0 B'
+  var k = 1000 // or 1024
+  var sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+  var i = Math.floor(Math.log(bytes) / Math.log(k))
+
+  return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i]
+}
+

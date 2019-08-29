@@ -61,11 +61,14 @@ func Init() {
 	// template route
 	rt.Add("/template/getList", controller.Template{}.GetList)
 	rt.Add("/template/getOption", controller.Template{}.GetOption)
-	rt.Add("/template/upload", controller.Template{}.Upload)
 	rt.Add("/template/add", controller.Template{}.Add)
 	rt.Add("/template/edit", controller.Template{}.Edit)
-	rt.Add("/template/removePackage", controller.Template{}.RemovePackage)
 	rt.Add("/template/remove", controller.Template{}.Remove)
+
+	// template route
+	rt.Add("/package/getList", controller.Package{}.GetList)
+	rt.Add("/package/getOption", controller.Package{}.GetOption)
+	rt.Add("/package/upload", controller.Package{}.Upload)
 
 	// projectGroup route
 	rt.Add("/group/getList", controller.Group{}.GetList)

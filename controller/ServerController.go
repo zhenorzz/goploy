@@ -242,80 +242,90 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 		CreateTime:   time.Now().Unix(),
 		UpdateTime:   time.Now().Unix(),
 	}
-	srcPath := core.TemplatePath + strconv.Itoa(int(template.ID)) + "/"
-	remoteMachine := server.Owner + "@" + server.IP
-	destPath := remoteMachine + ":/tmp"
-	rsyncOption := []string{
-		"-rtv",
-		"-e",
-		"ssh -p " + strconv.Itoa(int(server.Port)) + " -o StrictHostKeyChecking=no",
-		srcPath,
-		destPath,
-	}
-	cmd := exec.Command("rsync", rsyncOption...)
-	var outbuf, errbuf bytes.Buffer
-	cmd.Stdout = &outbuf
-	cmd.Stderr = &errbuf
-	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(server.ID), 10)+" rsync "+strings.Join(rsyncOption, " "))
-	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-		ToUserID: tokenInfo.ID,
-		Message: ws.InstallMessage{
-			ServerID: server.ID,
-			UserID:   tokenInfo.ID,
-			DataType: ws.RsyncType,
-			State:    ws.Success,
-			Message:  "rsync " + strings.Join(rsyncOption, " "),
-		},
-	}
-	var rsyncError error
-	// 失败重试三次
-	for attempt := 0; attempt < 3; attempt++ {
-		rsyncError = cmd.Run()
-		if rsyncError != nil {
-			core.Log(core.ERROR, errbuf.String())
-		} else {
-			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-				ToUserID: tokenInfo.ID,
-				Message: ws.InstallMessage{
-					ServerID: server.ID,
-					UserID:   tokenInfo.ID,
-					DataType: ws.RsyncType,
-					State:    ws.Success,
-					Message:  outbuf.String(),
-				},
-			}
-			ext, _ := json.Marshal(struct {
-				Command string `json:"command"`
-				Package string `json:"package"`
-			}{"rsync " + strings.Join(rsyncOption, " "), template.Package})
-			installTraceModel.Ext = string(ext)
-			installTraceModel.Detail = outbuf.String()
-			installTraceModel.State = model.Success
-			installTraceModel.AddRow()
-			break
+	if template.PackageIDStr != "" {
+		packages, err := model.Package{}.GetListInIDStr(template.PackageIDStr)
+		if err != nil {
+			core.Log(core.ERROR, server.LastInstallToken+":"+err.Error())
+			return
 		}
-	}
+		srcPath := core.PackagePath
+		remoteMachine := server.Owner + "@" + server.IP
+		destPath := remoteMachine + ":/tmp"
+		rsyncOption := []string{
+			"-rtv",
+			"-e",
+			"ssh -p " + strconv.Itoa(int(server.Port)) + " -o StrictHostKeyChecking=no",
+			"--include",
+			"'*/'",
+		}
 
-	if rsyncError != nil {
+		for _, pkg := range packages {
+			rsyncOption = append(rsyncOption, "--include", pkg.Name)
+		}
+		rsyncOption = append(rsyncOption, "--exclude", "'*'", srcPath, destPath)
+		cmd := exec.Command("rsync", rsyncOption...)
+		var outbuf, errbuf bytes.Buffer
+		cmd.Stdout = &outbuf
+		cmd.Stderr = &errbuf
+		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(server.ID), 10)+" rsync "+strings.Join(rsyncOption, " "))
 		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 			ToUserID: tokenInfo.ID,
 			Message: ws.InstallMessage{
 				ServerID: server.ID,
 				UserID:   tokenInfo.ID,
 				DataType: ws.RsyncType,
-				State:    ws.Fail,
-				Message:  "rsync重试失败",
+				State:    ws.Success,
+				Message:  "rsync " + strings.Join(rsyncOption, " "),
 			},
 		}
-		ext, _ := json.Marshal(struct {
-			Command string `json:"command"`
-			Package string `json:"package"`
-		}{"rsync " + strings.Join(rsyncOption, " "), template.Package})
-		installTraceModel.Ext = string(ext)
-		installTraceModel.Detail = errbuf.String()
-		installTraceModel.State = model.Fail
-		installTraceModel.AddRow()
-		return
+		var rsyncError error
+		// 失败重试三次
+		for attempt := 0; attempt < 3; attempt++ {
+			rsyncError = cmd.Run()
+			if rsyncError != nil {
+				core.Log(core.ERROR, errbuf.String())
+			} else {
+				ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
+					ToUserID: tokenInfo.ID,
+					Message: ws.InstallMessage{
+						ServerID: server.ID,
+						UserID:   tokenInfo.ID,
+						DataType: ws.RsyncType,
+						State:    ws.Success,
+						Message:  outbuf.String(),
+					},
+				}
+				ext, _ := json.Marshal(struct {
+					Command string `json:"command"`
+				}{"rsync " + strings.Join(rsyncOption, " ")})
+				installTraceModel.Ext = string(ext)
+				installTraceModel.Detail = outbuf.String()
+				installTraceModel.State = model.Success
+				installTraceModel.AddRow()
+				break
+			}
+		}
+
+		if rsyncError != nil {
+			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
+				ToUserID: tokenInfo.ID,
+				Message: ws.InstallMessage{
+					ServerID: server.ID,
+					UserID:   tokenInfo.ID,
+					DataType: ws.RsyncType,
+					State:    ws.Fail,
+					Message:  "rsync重试失败",
+				},
+			}
+			ext, _ := json.Marshal(struct {
+				Command string `json:"command"`
+			}{"rsync " + strings.Join(rsyncOption, " ")})
+			installTraceModel.Ext = string(ext)
+			installTraceModel.Detail = errbuf.String()
+			installTraceModel.State = model.Fail
+			installTraceModel.AddRow()
+			return
+		}
 	}
 
 	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
@@ -396,9 +406,8 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 					},
 				}
 				ext, _ := json.Marshal(struct {
-					Package string `json:"package"`
-					Script  string `json:"script"`
-				}{template.Package, template.Script})
+					Script string `json:"script"`
+				}{template.Script})
 				installTraceModel.Ext = string(ext)
 				installTraceModel.Type = model.Script
 				installTraceModel.State = model.Success
@@ -434,9 +443,8 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 			},
 		}
 		ext, _ := json.Marshal(struct {
-			Package string `json:"package"`
-			Script  string `json:"script"`
-		}{template.Package, template.Script})
+			Script string `json:"script"`
+		}{template.Script})
 		installTraceModel.Ext = string(ext)
 		installTraceModel.Type = model.Script
 		installTraceModel.State = model.Fail

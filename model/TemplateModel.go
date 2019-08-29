@@ -2,13 +2,13 @@ package model
 
 // Template mysql table template
 type Template struct {
-	ID         uint32 `json:"id"`
-	Name       string `json:"name"`
-	Remark     string `json:"remark"`
-	Package    string `json:"package"`
-	Script     string `json:"script"`
-	CreateTime int64  `json:"createTime"`
-	UpdateTime int64  `json:"updateTime"`
+	ID           uint32 `json:"id"`
+	Name         string `json:"name"`
+	Remark       string `json:"remark"`
+	PackageIDStr string `json:"packageIdStr"`
+	Script       string `json:"script"`
+	CreateTime   int64  `json:"createTime"`
+	UpdateTime   int64  `json:"updateTime"`
 }
 
 // Templates many template
@@ -17,11 +17,11 @@ type Templates []Template
 // AddRow add one row to table template and add id to tpl.ID
 func (tpl Template) AddRow() (uint32, error) {
 	result, err := DB.Exec(
-		"INSERT INTO template (name, remark, script, package, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?)",
+		"INSERT INTO template (name, remark, script, package_id_str, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?)",
 		tpl.Name,
 		tpl.Remark,
 		tpl.Script,
-		tpl.Package,
+		tpl.PackageIDStr,
 		tpl.CreateTime,
 		tpl.UpdateTime,
 	)
@@ -39,13 +39,13 @@ func (tpl Template) EditRow() error {
 		  name = ?,
 		  remark = ?,
 		  script = ?,
-		  package = ?
+		  package_id_str = ?
 		WHERE
 		 id = ?`,
 		tpl.Name,
 		tpl.Remark,
 		tpl.Script,
-		tpl.Package,
+		tpl.PackageIDStr,
 		tpl.ID,
 	)
 	return err
@@ -59,7 +59,7 @@ func (tpl Template) Remove() error {
 
 // GetList template row
 func (tpl Template) GetList() (Templates, error) {
-	rows, err := DB.Query("SELECT id, name, remark, script, package, create_time, update_time FROM template")
+	rows, err := DB.Query("SELECT id, name, remark, script, package_id_str, create_time, update_time FROM template")
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (tpl Template) GetList() (Templates, error) {
 	for rows.Next() {
 		var template Template
 
-		if err := rows.Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.Package, &template.CreateTime, &template.UpdateTime); err != nil {
+		if err := rows.Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.PackageIDStr, &template.CreateTime, &template.UpdateTime); err != nil {
 			return nil, err
 		}
 		templates = append(templates, template)
@@ -77,7 +77,7 @@ func (tpl Template) GetList() (Templates, error) {
 
 // GetAll template row
 func (tpl Template) GetAll() (Templates, error) {
-	rows, err := DB.Query("SELECT id, name, remark, script, package, create_time, update_time FROM template ORDER BY id DESC")
+	rows, err := DB.Query("SELECT id, name, remark, script, package_id_str, create_time, update_time FROM template ORDER BY id DESC")
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func (tpl Template) GetAll() (Templates, error) {
 	for rows.Next() {
 		var template Template
 
-		if err := rows.Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.Package, &template.CreateTime, &template.UpdateTime); err != nil {
+		if err := rows.Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.PackageIDStr, &template.CreateTime, &template.UpdateTime); err != nil {
 			return nil, err
 		}
 		templates = append(templates, template)
@@ -96,7 +96,7 @@ func (tpl Template) GetAll() (Templates, error) {
 // GetData add template information to tpl *Template
 func (tpl Template) GetData() (Template, error) {
 	var template Template
-	err := DB.QueryRow("SELECT id, name, remark, script, package, create_time, update_time FROM template WHERE id = ?", tpl.ID).Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.Package, &template.CreateTime, &template.UpdateTime)
+	err := DB.QueryRow("SELECT id, name, remark, script, package_id_str, create_time, update_time FROM template WHERE id = ?", tpl.ID).Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.PackageIDStr, &template.CreateTime, &template.UpdateTime)
 	if err != nil {
 		return template, err
 	}
