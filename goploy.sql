@@ -238,7 +238,7 @@ CREATE TABLE `user`  (
   `name` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `mobile` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `role` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'member',
-  `manage_group_str` text CHARACTER SET ascii NOT NULL COMMENT '管理分组逗号分割(空串没有管理权限，all管理全部)',
+  `manage_group_str` text CHARACTER SET utf8mb4 NOT NULL COMMENT '管理分组逗号分割(空串没有管理权限，all管理全部)',
   `state` tinyint(1) NOT NULL DEFAULT 1 COMMENT '0:=被禁用  1=正常',
   `create_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
   `update_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
