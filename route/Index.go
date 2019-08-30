@@ -2,6 +2,7 @@ package route
 
 import (
 	"github.com/zhenorzz/goploy/controller"
+	"github.com/zhenorzz/goploy/core"
 	router "github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/middleware"
 	"github.com/zhenorzz/goploy/ws"
@@ -21,24 +22,24 @@ func Init() {
 	// user route
 	rt.Add("/user/login", controller.User{}.Login)
 	rt.Add("/user/info", controller.User{}.Info)
-	rt.Add("/user/getList", controller.User{}.GetList).Role("admin")
+	rt.Add("/user/getList", controller.User{}.GetList)
 	rt.Add("/user/getOption", controller.User{}.GetOption)
-	rt.Add("/user/add", controller.User{}.Add)
-	rt.Add("/user/edit", controller.User{}.Edit)
-	rt.Add("/user/remove", controller.User{}.Remove)
+	rt.Add("/user/add", controller.User{}.Add).Role(core.RoleAdmin)
+	rt.Add("/user/edit", controller.User{}.Edit).Role(core.RoleAdmin)
+	rt.Add("/user/remove", controller.User{}.Remove).Role(core.RoleAdmin)
 	rt.Add("/user/changePassword", controller.User{}.ChangePassword)
 
 	// project route
 	rt.Add("/project/getList", controller.Project{}.GetList)
 	rt.Add("/project/getBindServerList", controller.Project{}.GetBindServerList)
 	rt.Add("/project/getBindUserList", controller.Project{}.GetBindUserList)
-	rt.Add("/project/add", controller.Project{}.Add)
-	rt.Add("/project/edit", controller.Project{}.Edit)
-	rt.Add("/project/remove", controller.Project{}.Remove)
-	rt.Add("/project/addServer", controller.Project{}.AddServer)
-	rt.Add("/project/addUser", controller.Project{}.AddUser)
-	rt.Add("/project/removeProjectServer", controller.Project{}.RemoveProjectServer)
-	rt.Add("/project/removeProjectUser", controller.Project{}.RemoveProjectUser)
+	rt.Add("/project/add", controller.Project{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/project/edit", controller.Project{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/project/remove", controller.Project{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/project/addServer", controller.Project{}.AddServer).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/project/addUser", controller.Project{}.AddUser).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/project/removeProjectServer", controller.Project{}.RemoveProjectServer).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/project/removeProjectUser", controller.Project{}.RemoveProjectUser).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 
 	// deploy route
 	rt.Add("/deploy/getList", controller.Deploy{}.GetList)
@@ -53,10 +54,10 @@ func Init() {
 	rt.Add("/server/getInstallPreview", controller.Server{}.GetInstallPreview)
 	rt.Add("/server/getInstallList", controller.Server{}.GetInstallList)
 	rt.Add("/server/getOption", controller.Server{}.GetOption)
-	rt.Add("/server/add", controller.Server{}.Add)
-	rt.Add("/server/edit", controller.Server{}.Edit)
-	rt.Add("/server/remove", controller.Server{}.Remove)
-	rt.Add("/server/install", controller.Server{}.Install)
+	rt.Add("/server/add", controller.Server{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/server/edit", controller.Server{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/server/remove", controller.Server{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/server/install", controller.Server{}.Install).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 
 	// template route
 	rt.Add("/template/getList", controller.Template{}.GetList)
@@ -73,9 +74,9 @@ func Init() {
 	// projectGroup route
 	rt.Add("/group/getList", controller.Group{}.GetList)
 	rt.Add("/group/getOption", controller.Group{}.GetOption)
-	rt.Add("/group/add", controller.Group{}.Add)
-	rt.Add("/group/edit", controller.Group{}.Edit)
-	rt.Add("/group/remove", controller.Group{}.Remove)
+	rt.Add("/group/add", controller.Group{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/group/edit", controller.Group{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/group/remove", controller.Group{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager})
 
 	// role route
 	rt.Add("/role/getOption", controller.Role{}.GetOption)
