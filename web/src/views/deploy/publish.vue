@@ -59,7 +59,7 @@
           </el-radio-group>
         </el-col>
         <el-col :span="16" class="project-detail">
-          <el-row v-for="(item, index) in publishTraceList" :key="index">
+          <el-row v-for="(item, index) in publishLocalTraceList" :key="index">
             <el-row v-if="item.type === 2">
               <el-row style="margin:5px 0">git同步信息</el-row>
               <el-row style="margin:5px 0">时间: {{ item.createTime }}</el-row>
@@ -71,23 +71,12 @@
             </el-row>
             <el-row v-if="item.type === 3">
               <hr>
-              <el-row style="margin:5px 0">脚本信息</el-row>
-              <el-row>script: {{ item.script }}</el-row>
+              <el-row style="margin:5px 0">获取代码后脚本信息</el-row>
+              <el-row style="margin:5px 0">时间: {{ item.createTime }}</el-row>
+              <el-row>脚本: <pre v-html="formatDetail(item.script)" /></el-row>
               <el-row style="margin:5px 0">
                 <el-tag v-if="item.state === 0" type="danger" effect="plain">失败</el-tag>
-                <span v-html="formatDetail(item.detail)" />
-              </el-row>
-            </el-row>
-            <el-row v-if="item.type === 5">
-              <hr>
-              <el-row>
-                <el-row style="margin:5px 0">remote服务器信息</el-row>
-                <el-row style="margin:5px 0">服务器: {{ item.serverName }}</el-row>
-                <el-row style="margin:5px 0">时间: {{ item.createTime }}</el-row>
-                <el-row style="margin:5px 0">
-                  <el-tag v-if="item.state === 0" type="danger" effect="plain">失败</el-tag>
-                  <span v-html="formatDetail(item.detail)" />
-                </el-row>
+                <el-row>[goploy ~]# <span v-html="formatDetail(item.detail)" /></el-row>
               </el-row>
             </el-row>
             <el-row v-if="item.type === 6">
@@ -104,6 +93,41 @@
               </el-row>
             </el-row>
           </el-row>
+          <hr>
+          <el-row style="margin:5px 0">目标服务器</el-row>
+          <el-tabs v-model="activeRomoteTracePane">
+            <el-tab-pane v-for="(item, serverName) in publishRemoteTraceList" :key="serverName" :label="serverName" :name="serverName">
+              <el-row v-for="(trace, key) in item" :key="key">
+                <el-row v-if="trace.type === 4">
+                  <el-row style="margin:5px 0">部署前脚本</el-row>
+                  <el-row style="margin:5px 0">时间: {{ trace.createTime }}</el-row>
+                  <el-row>脚本: <pre v-html="formatDetail(trace.script)" /></el-row>
+                  <el-row style="margin:5px 0">
+                    <el-tag v-if="trace.state === 0" type="danger" effect="plain">失败</el-tag>
+                    <el-row>[goploy ~]# <span v-html="formatDetail(trace.detail)" /></el-row>
+                  </el-row>
+                </el-row>
+                <el-row v-else-if="trace.type === 5">
+                  <el-row style="margin:5px 0">rsync同步文件</el-row>
+                  <el-row style="margin:5px 0">时间: {{ trace.createTime }}</el-row>
+                  <el-row>命令: {{ trace.command }}</el-row>
+                  <el-row style="margin:5px 0">
+                    <el-tag v-if="trace.state === 0" type="danger" effect="plain">失败</el-tag>
+                    <span v-html="formatDetail(trace.detail)" />
+                  </el-row>
+                </el-row>
+                <el-row v-else>
+                  <el-row style="margin:5px 0">部署后脚本</el-row>
+                  <el-row style="margin:5px 0">时间: {{ trace.createTime }}</el-row>
+                  <el-row>脚本: <pre v-html="formatDetail(trace.script)" /></el-row>
+                  <el-row style="margin:5px 0">
+                    <el-tag v-if="trace.state === 0" type="danger" effect="plain">失败</el-tag>
+                    <el-row>[goploy ~]# <span v-html="formatDetail(trace.detail)" /></el-row>
+                  </el-row>
+                </el-row>
+              </el-row>
+            </el-tab-pane>
+          </el-tabs>
         </el-col>
       </el-row>
       <div slot="footer" class="dialog-footer">
@@ -180,6 +204,9 @@ export default {
       commitTableData: [],
       gitTraceList: [],
       publishTraceList: [],
+      publishLocalTraceList: [],
+      publishRemoteTraceList: {},
+      activeRomoteTracePane: '',
       gitLog: [],
       remoteLog: {}
     }
@@ -290,6 +317,17 @@ export default {
           if (element.ext !== '') Object.assign(element, JSON.parse(element.ext))
           return element
         })
+
+        this.publishLocalTraceList = this.publishTraceList.filter(element => element.type < 4)
+        this.publishRemoteTraceList = {}
+        for (const trace of this.publishTraceList) {
+          if (trace.type < 4) continue
+          if (!this.publishRemoteTraceList[trace.serverName]) {
+            this.publishRemoteTraceList[trace.serverName] = []
+          }
+          this.publishRemoteTraceList[trace.serverName].push(trace)
+        }
+        this.activeRomoteTracePane = Object.keys(this.publishRemoteTraceList)[0]
       })
     },
 
@@ -371,7 +409,7 @@ export default {
 <style rel="stylesheet/scss" lang="scss" scoped>
 @import "@/styles/mixin.scss";
 .project-detail {
-  height:500px;
+  height:580px;
   overflow-y: auto;
   @include scrollBar();
 }

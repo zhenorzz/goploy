@@ -713,7 +713,12 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 					Message:  outbuf.String(),
 				},
 			}
-
+			ext, _ := json.Marshal(struct {
+				ServerID   uint32 `json:"serverId"`
+				ServerName string `json:"serverName"`
+				Command    string`json:"command"`
+			}{projectServer.ServerID, projectServer.ServerName, "rsync " + strings.Join(rsyncOption, " ")})
+			publishTraceModel.Ext = string(ext)
 			publishTraceModel.Detail = outbuf.String()
 			publishTraceModel.State = model.Success
 			publishTraceModel.AddRow()
