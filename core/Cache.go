@@ -13,7 +13,7 @@ import (
 var Cache = cache.New(24*time.Hour, 48*time.Hour)
 
 // GetUserInfo return model.User and error
-func GetUserInfo(UserID uint32) (model.User, error) {
+func GetUserInfo(UserID int64) (model.User, error) {
 	var userData model.User
 	var err error
 	if x, found := Cache.Get("userInfo:" + strconv.Itoa(int(UserID))); found {

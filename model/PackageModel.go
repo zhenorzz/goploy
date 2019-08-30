@@ -2,7 +2,7 @@ package model
 
 // Package mysql table package
 type Package struct {
-	ID         uint32 `json:"id"`
+	ID         int64  `json:"id"`
 	Name       string `json:"name"`
 	Size       int64  `json:"size"`
 	CreateTime int64  `json:"createTime"`
@@ -87,7 +87,7 @@ func (p Package) GetDataByName() (Package, error) {
 }
 
 // AddRow add one row to table package and add id to p.ID
-func (p Package) AddRow() (uint32, error) {
+func (p Package) AddRow() (int64, error) {
 	result, err := DB.Exec(
 		"INSERT INTO package (name, size, create_time, update_time) VALUES (?, ?, ?, ?)",
 		p.Name,
@@ -99,7 +99,7 @@ func (p Package) AddRow() (uint32, error) {
 		return 0, err
 	}
 	id, err := result.LastInsertId()
-	return uint32(id), err
+	return int64(id), err
 }
 
 // EditRow edit one row to table package

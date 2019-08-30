@@ -89,7 +89,7 @@ func (Package) Upload(w http.ResponseWriter, gp *core.Goploy) {
 			UpdateTime: time.Now().Unix(),
 		}.AddRow()
 	} else {
-		packageID, err := strconv.Atoi(packageIDStr)
+		packageID, err := strconv.ParseInt(packageIDStr, 10, 64)
 		if err != nil {
 			response := core.Response{Code: 1, Message: "packageId不正确"}
 			response.JSON(w)
@@ -97,7 +97,7 @@ func (Package) Upload(w http.ResponseWriter, gp *core.Goploy) {
 		}
 
 		err = model.Package{
-			ID:         uint32(packageID),
+			ID:         packageID,
 			Name:       handler.Filename,
 			Size:       handler.Size,
 			UpdateTime: time.Now().Unix(),

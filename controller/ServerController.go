@@ -45,13 +45,13 @@ func (server Server) GetInstallPreview(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		InstallTraceList model.InstallTraces `json:"installTraceList"`
 	}
-	serverID, err := strconv.Atoi(gp.URLQuery.Get("serverId"))
+	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
 	if err != nil {
 		response := core.Response{Code: 1, Message: "serverId参数错误"}
 		response.JSON(w)
 		return
 	}
-	installTraceList, err := model.InstallTrace{ServerID: uint32(serverID)}.GetListGroupByToken()
+	installTraceList, err := model.InstallTrace{ServerID: serverID}.GetListGroupByToken()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -98,9 +98,9 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		Name    string `json:"name"`
 		IP      string `json:"ip"`
-		Port    uint32 `json:"port"`
+		Port    int  `json:"port"`
 		Owner   string `json:"owner"`
-		GroupID uint32 `json:"groupId"`
+		GroupID int64  `json:"groupId"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -131,12 +131,12 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 // Edit one server
 func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID      uint32 `json:"id"`
+		ID      int64  `json:"id"`
 		Name    string `json:"name"`
 		IP      string `json:"ip"`
-		Port    uint32 `json:"port"`
+		Port    int  `json:"port"`
 		Owner   string `json:"owner"`
-		GroupID uint32 `json:"groupId"`
+		GroupID int64  `json:"groupId"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -167,7 +167,7 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 // Remove one Server
 func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID uint32 `json:"id"`
+		ID int64 `json:"id"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -193,8 +193,8 @@ func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) {
 // Install Server Enviroment
 func (server Server) Install(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ServerID   uint32 `json:"serverId"`
-		TemplateID uint32 `json:"templateId"`
+		ServerID   int64 `json:"serverId"`
+		TemplateID int64 `json:"templateId"`
 	}
 	var reqData ReqData
 	if err := json.Unmarshal(gp.Body, &reqData); err != nil {

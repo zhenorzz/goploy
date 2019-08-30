@@ -15,7 +15,7 @@ import (
 
 // TokenInfo pasre the jwt
 type TokenInfo struct {
-	ID   uint32
+	ID   int64
 	Name string
 }
 
@@ -118,7 +118,7 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		tokenInfo = TokenInfo{
-			ID:   uint32(claims["id"].(float64)),
+			ID:   int64(claims["id"].(float64)),
 			Name: claims["name"].(string),
 		}
 	}
@@ -163,7 +163,7 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (r *route) hasRole(userID uint32) error {
+func (r *route) hasRole(userID int64) error {
 	if len(r.roles) == 0 {
 		return nil
 	}

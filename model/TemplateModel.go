@@ -2,7 +2,7 @@ package model
 
 // Template mysql table template
 type Template struct {
-	ID           uint32 `json:"id"`
+	ID           int64  `json:"id"`
 	Name         string `json:"name"`
 	Remark       string `json:"remark"`
 	PackageIDStr string `json:"packageIdStr"`
@@ -15,7 +15,7 @@ type Template struct {
 type Templates []Template
 
 // AddRow add one row to table template and add id to tpl.ID
-func (tpl Template) AddRow() (uint32, error) {
+func (tpl Template) AddRow() (int64, error) {
 	result, err := DB.Exec(
 		"INSERT INTO template (name, remark, script, package_id_str, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?)",
 		tpl.Name,
@@ -29,7 +29,7 @@ func (tpl Template) AddRow() (uint32, error) {
 		return 0, err
 	}
 	id, err := result.LastInsertId()
-	return uint32(id), err
+	return id, err
 }
 
 // EditRow edit one row to table template

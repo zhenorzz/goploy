@@ -2,17 +2,17 @@ package model
 
 // InstallTrace mysql table for install trace
 type InstallTrace struct {
-	ID           uint32 `json:"id"`
+	ID           int64  `json:"id"`
 	Token        string `json:"token"`
-	ServerID     uint32 `json:"serverId"`
+	ServerID     int64  `json:"serverId"`
 	ServerName   string `json:"serverName"`
 	Detail       string `json:"detail"`
 	State        uint8  `json:"state"`
-	OperatorID   uint32 `json:"operatorId"`
+	OperatorID   int64  `json:"operatorId"`
 	OperatorName string `json:"operatorName"`
-	Type         uint32 `json:"type"`
+	Type         int64  `json:"type"`
 	Ext          string `json:"ext"`
-	InstallState uint32 `json:"installState"`
+	InstallState int64  `json:"installState"`
 	CreateTime   int64  `json:"createTime"`
 	UpdateTime   int64  `json:"updateTime"`
 }
@@ -28,7 +28,7 @@ const (
 )
 
 // AddRow add one row to table deploy and add id to deploy.ID
-func (it InstallTrace) AddRow() (uint32, error) {
+func (it InstallTrace) AddRow() (int64, error) {
 	result, err := DB.Exec(
 		"INSERT INTO install_trace (token, server_id, server_name, detail, state, operator_id, operator_name, type, ext, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		it.Token,
@@ -50,7 +50,7 @@ func (it InstallTrace) AddRow() (uint32, error) {
 	}
 
 	id, err := result.LastInsertId()
-	return uint32(id), err
+	return id, err
 }
 
 // GetListByToken InstallTrace row

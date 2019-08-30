@@ -81,7 +81,7 @@ func (template Template) Add(w http.ResponseWriter, gp *core.Goploy) {
 // Edit one template
 func (template Template) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID           uint32 `json:"id"`
+		ID           int64  `json:"id"`
 		Name         string `json:"name"`
 		Remark       string `json:"remark"`
 		PackageIDStr string `json:"packageIdStr"`
@@ -116,7 +116,7 @@ func (template Template) Edit(w http.ResponseWriter, gp *core.Goploy) {
 // Remove one Template
 func (template Template) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID uint32 `json:"id"`
+		ID int64 `json:"id"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)

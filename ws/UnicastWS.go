@@ -13,22 +13,22 @@ import (
 // UnicastClient stores a client information
 type UnicastClient struct {
 	Conn     *websocket.Conn
-	UserID   uint32
+	UserID   int64
 	UserName string
 }
 
 // UnicastData is message struct
 type UnicastData struct {
-	ToUserID uint32
+	ToUserID int64
 	Message  interface{}
 }
 
 // ProjectMessage is publish project message struct
 type ProjectMessage struct {
-	ProjectID  uint32 `json:"projectId"`
-	ServerID   uint32 `json:"serverId"`
+	ProjectID  int64  `json:"projectId"`
+	ServerID   int64  `json:"serverId"`
 	ServerName string `json:"serverName"`
-	UserID     uint32 `json:"userId"`
+	UserID     int64  `json:"userId"`
 	State      uint8  `json:"state"`
 	Message    string `json:"message"`
 	DataType   uint8  `json:"dataType"`
@@ -36,8 +36,8 @@ type ProjectMessage struct {
 
 // InstallMessage is server install message struct
 type InstallMessage struct {
-	ServerID uint32 `json:"serverId"`
-	UserID   uint32 `json:"userId"`
+	ServerID int64  `json:"serverId"`
+	UserID   int64  `json:"userId"`
 	State    uint8  `json:"state"`
 	Message  string `json:"message"`
 	DataType uint8  `json:"dataType"`

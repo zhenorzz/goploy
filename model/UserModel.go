@@ -12,7 +12,7 @@ import (
 
 // User mysql table user
 type User struct {
-	ID             uint32 `json:"id"`
+	ID             int64  `json:"id"`
 	Account        string `json:"account"`
 	Password       string `json:"password"`
 	Name           string `json:"name"`
@@ -142,7 +142,7 @@ func (u User) GetAll() (Users, error) {
 }
 
 // AddRow add one row to table user and add id to u.ID
-func (u User) AddRow() (uint32, error) {
+func (u User) AddRow() (int64, error) {
 	var count int
 	err := DB.QueryRow("SELECT COUNT(*) AS count FROM user WHERE account = ?", u.Account).Scan(&count)
 	fmt.Println(count)
@@ -178,7 +178,7 @@ func (u User) AddRow() (uint32, error) {
 		return 0, err
 	}
 	id, err := result.LastInsertId()
-	return uint32(id), err
+	return id, err
 }
 
 // EditRow edit one row to table server

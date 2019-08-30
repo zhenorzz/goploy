@@ -31,7 +31,7 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		Project model.Projects `json:"projectList"`
 	}
-	groupID, err := strconv.Atoi(gp.URLQuery.Get("groupId"))
+	groupID, err := strconv.ParseInt(gp.URLQuery.Get("groupId"), 10, 64)
 	if err != nil {
 		response := core.Response{Code: 1, Message: "groupId参数错误"}
 		response.JSON(w)
@@ -43,7 +43,7 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	projects, err := model.ProjectUser{
 		UserID: gp.TokenInfo.ID,
 		Project: model.Project{
-			GroupID: uint32(groupID),
+			GroupID: groupID,
 			Name:    projectName,
 		}}.GetDepolyListByUserID()
 	if err != nil {
@@ -63,14 +63,14 @@ func (deploy Deploy) GetPreview(w http.ResponseWriter, gp *core.Goploy) {
 		GitTraceList model.PublishTraces `json:"gitTraceList"`
 	}
 
-	projectID, err := strconv.Atoi(gp.URLQuery.Get("projectId"))
+	projectID, err := strconv.ParseInt(gp.URLQuery.Get("projectId"), 10, 64)
 	if err != nil {
 		response := core.Response{Code: 1, Message: "id参数错误"}
 		response.JSON(w)
 		return
 	}
 
-	gitTraceList, err := model.PublishTrace{ProjectID: uint32(projectID)}.GetPreviewByProjectID()
+	gitTraceList, err := model.PublishTrace{ProjectID: projectID}.GetPreviewByProjectID()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -110,14 +110,14 @@ func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) {
 		CommitList []string `json:"commitList"`
 	}
 
-	id, err := strconv.Atoi(gp.URLQuery.Get("id"))
+	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
 		response := core.Response{Code: 1, Message: "id参数错误"}
 		response.JSON(w)
 		return
 	}
 
-	project, err := model.Project{ID: uint32(id)}.GetData()
+	project, err := model.Project{ID: id}.GetData()
 	if err != nil {
 		response := core.Response{Code: 1, Message: err.Error()}
 		response.JSON(w)
@@ -143,7 +143,7 @@ func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) {
 // Publish the project
 func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ProjectID uint32 `json:"projectId"`
+		ProjectID int64 `json:"projectId"`
 	}
 	var reqData ReqData
 	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
@@ -184,7 +184,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 // Rollback the project
 func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ProjectID uint32 `json:"projectId"`
+		ProjectID int64  `json:"projectId"`
 		Commit    string `json:"commit"`
 	}
 	var reqData ReqData
@@ -661,7 +661,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	}
 
 	ext, _ := json.Marshal(struct {
-		ServerID   uint32 `json:"serverId"`
+		ServerID   int64  `json:"serverId"`
 		ServerName string `json:"serverName"`
 	}{projectServer.ServerID, projectServer.ServerName})
 	publishTraceModel.Ext = string(ext)
@@ -714,9 +714,9 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 				},
 			}
 			ext, _ := json.Marshal(struct {
-				ServerID   uint32 `json:"serverId"`
+				ServerID   int64  `json:"serverId"`
 				ServerName string `json:"serverName"`
-				Command    string`json:"command"`
+				Command    string `json:"command"`
 			}{projectServer.ServerID, projectServer.ServerName, "rsync " + strings.Join(rsyncOption, " ")})
 			publishTraceModel.Ext = string(ext)
 			publishTraceModel.Detail = outbuf.String()
@@ -747,7 +747,7 @@ func remoteSync(tokenInfo core.TokenInfo, project model.Project, projectServer m
 	}
 	publishTraceModel.Type = model.AfterDeploy
 	ext, _ = json.Marshal(struct {
-		ServerID   uint32 `json:"serverId"`
+		ServerID   int64  `json:"serverId"`
 		ServerName string `json:"serverName"`
 		Script     string `json:"script"`
 	}{projectServer.ServerID, projectServer.ServerName, project.AfterDeployScript})

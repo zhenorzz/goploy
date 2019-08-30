@@ -68,7 +68,7 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {
 func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 	type RepData struct {
 		UserInfo struct {
-			ID      uint32 `json:"id"`
+			ID      int64  `json:"id"`
 			Account string `json:"account"`
 			Name    string `json:"name"`
 			Role    string `json:"role"`
@@ -169,7 +169,7 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 // Edit one user
 func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID             uint32 `json:"id"`
+		ID             int64  `json:"id"`
 		Password       string `json:"password"`
 		Name           string `json:"name"`
 		Mobile         string `json:"mobile"`
@@ -206,7 +206,7 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 // Remove one User
 func (user User) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID uint32 `json:"id"`
+		ID int64 `json:"id"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)

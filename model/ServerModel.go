@@ -6,13 +6,13 @@ import (
 
 // Server mysql table server
 type Server struct {
-	ID               uint32 `json:"id"`
+	ID               int64  `json:"id"`
 	LastInstallToken string `json:"lastInstallToken"`
 	Name             string `json:"name"`
 	IP               string `json:"ip"`
-	Port             uint32 `json:"port"`
+	Port             int    `json:"port"`
 	Owner            string `json:"owner"`
-	GroupID          uint32 `json:"groupId"`
+	GroupID          int64  `json:"groupId"`
 	CreateTime       int64  `json:"createTime"`
 	UpdateTime       int64  `json:"updateTime"`
 }
@@ -92,7 +92,7 @@ func (s Server) GetData() (Server, error) {
 }
 
 // AddRow add one row to table server and add id to s.ID
-func (s Server) AddRow() (uint32, error) {
+func (s Server) AddRow() (int64, error) {
 	result, err := DB.Exec(
 		"INSERT INTO server (name, ip, port, owner, group_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		s.Name,
@@ -107,7 +107,7 @@ func (s Server) AddRow() (uint32, error) {
 		return 0, err
 	}
 	id, err := result.LastInsertId()
-	return uint32(id), err
+	return id, err
 }
 
 // EditRow edit one row to table server

@@ -12,7 +12,7 @@ import (
 // HasPublishAuth check the user has publish auth
 func HasPublishAuth(w http.ResponseWriter, gp *core.Goploy) error {
 	type ReqData struct {
-		ProjectID uint32 `json:"projectId"`
+		ProjectID int64 `json:"projectId"`
 	}
 	var reqData ReqData
 	if err := json.Unmarshal(gp.Body, &reqData); err != nil {

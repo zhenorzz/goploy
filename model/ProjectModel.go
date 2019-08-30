@@ -7,8 +7,8 @@ import (
 
 // Project mysql table project
 type Project struct {
-	ID                uint32 `json:"id"`
-	GroupID           uint32 `json:"groupId"`
+	ID                int64  `json:"id"`
+	GroupID           int64  `json:"groupId"`
 	Name              string `json:"name"`
 	URL               string `json:"url"`
 	Path              string `json:"path"`
@@ -17,9 +17,9 @@ type Project struct {
 	AfterPullScript   string `json:"afterPullScript"`
 	AfterDeployScript string `json:"afterDeployScript"`
 	RsyncOption       string `json:"rsyncOption"`
-	PublisherID       uint32 `json:"publisherId"`
+	PublisherID       int64  `json:"publisherId"`
 	PublisherName     string `json:"publisherName"`
-	PublishState      uint32 `json:"publishState"`
+	PublishState      uint8  `json:"publishState"`
 	LastPublishToken  string `json:"lastPublishToken"`
 	State             uint8  `json:"state"`
 	CreateTime        int64  `json:"createTime"`
@@ -30,7 +30,7 @@ type Project struct {
 type Projects []Project
 
 // AddRow add one row to table project and add id to p.ID
-func (p Project) AddRow() (uint32, error) {
+func (p Project) AddRow() (int64, error) {
 	result, err := DB.Exec(
 		`INSERT INTO project (
 			group_id,
@@ -61,7 +61,7 @@ func (p Project) AddRow() (uint32, error) {
 		return 0, err
 	}
 	id, err := result.LastInsertId()
-	return uint32(id), err
+	return id, err
 }
 
 // EditRow edit one row to table project

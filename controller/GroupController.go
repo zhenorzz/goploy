@@ -74,7 +74,7 @@ func (group Group) Add(w http.ResponseWriter, gp *core.Goploy) {
 // Edit one Group
 func (group Group) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID   uint32 `json:"id"`
+		ID   int64  `json:"id"`
 		Name string `json:"name"`
 	}
 	var reqData ReqData
@@ -103,7 +103,7 @@ func (group Group) Edit(w http.ResponseWriter, gp *core.Goploy) {
 // Remove one Server
 func (group Group) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID uint32 `json:"id"`
+		ID int64 `json:"id"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)

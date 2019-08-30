@@ -2,12 +2,12 @@ package model
 
 // ProjectServer project server relationship
 type ProjectServer struct {
-	ID          uint32 `json:"id"`
-	ProjectID   uint32 `json:"projectId"`
-	ServerID    uint32 `json:"serverId"`
+	ID          int64  `json:"id"`
+	ProjectID   int64  `json:"projectId"`
+	ServerID    int64  `json:"serverId"`
 	ServerName  string `json:"serverName"`
 	ServerIP    string `json:"serverIP"`
-	ServerPort  uint32 `json:"serverPort"`
+	ServerPort  int64  `json:"serverPort"`
 	ServerOwner string `json:"serverOwner"`
 	CreateTime  int64  `json:"createTime"`
 	UpdateTime  int64  `json:"updateTime"`

@@ -2,17 +2,17 @@ package model
 
 // PublishTrace mysql table for rsync trace
 type PublishTrace struct {
-	ID            uint32 `json:"id"`
+	ID            int64  `json:"id"`
 	Token         string `json:"token"`
-	ProjectID     uint32 `json:"projectId"`
+	ProjectID     int64  `json:"projectId"`
 	ProjectName   string `json:"projectName"`
 	Detail        string `json:"detail"`
-	State         uint8  `json:"state"`
-	PublisherID   uint32 `json:"publisherId"`
+	State         int    `json:"state"`
+	PublisherID   int64  `json:"publisherId"`
 	PublisherName string `json:"publisherName"`
-	Type          uint32 `json:"type"`
+	Type          int    `json:"type"`
 	Ext           string `json:"ext"`
-	PublishState  uint32 `json:"publishState"`
+	PublishState  int    `json:"publishState"`
 	CreateTime    int64  `json:"createTime"`
 	UpdateTime    int64  `json:"updateTime"`
 }
@@ -36,7 +36,7 @@ const (
 )
 
 // AddRow add one row to table deploy and add id to deploy.ID
-func (pt PublishTrace) AddRow() (uint32, error) {
+func (pt PublishTrace) AddRow() (int64, error) {
 	result, err := DB.Exec(
 		"INSERT INTO publish_trace (token, project_id, project_name, detail, state, publisher_id, publisher_name, type, ext, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		pt.Token,
@@ -58,7 +58,7 @@ func (pt PublishTrace) AddRow() (uint32, error) {
 	}
 
 	id, err := result.LastInsertId()
-	return uint32(id), err
+	return id, err
 }
 
 // GetListByToken PublishTrace row

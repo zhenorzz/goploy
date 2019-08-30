@@ -3,9 +3,9 @@ package model
 // ProjectUser project user relationship
 type ProjectUser struct {
 	Project
-	ID         uint32 `json:"id"`
-	ProjectID  uint32 `json:"projectId"`
-	UserID     uint32 `json:"userId"`
+	ID         int64  `json:"id"`
+	ProjectID  int64  `json:"projectId"`
+	UserID     int64  `json:"userId"`
 	UserName   string `json:"userName"`
 	CreateTime int64  `json:"createTime"`
 	UpdateTime int64  `json:"updateTime"`

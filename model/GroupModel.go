@@ -6,7 +6,7 @@ import (
 
 // Group mysql table group
 type Group struct {
-	ID         uint32 `json:"id"`
+	ID         int64  `json:"id"`
 	Name       string `json:"name"`
 	CreateTime int64  `json:"createTime"`
 	UpdateTime int64  `json:"updateTime"`
@@ -16,7 +16,7 @@ type Group struct {
 type Groups []Group
 
 // AddRow add one row to table Group
-func (g Group) AddRow() (uint32, error) {
+func (g Group) AddRow() (int64, error) {
 	result, err := DB.Exec(
 		"INSERT INTO `group` (name, create_time, update_time) VALUES (?, ?, ?)",
 		g.Name,
@@ -27,7 +27,7 @@ func (g Group) AddRow() (uint32, error) {
 		return 0, err
 	}
 	id, err := result.LastInsertId()
-	return uint32(id), err
+	return id, err
 }
 
 // EditRow edit one row to table group
