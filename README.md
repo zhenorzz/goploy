@@ -10,8 +10,8 @@
 5. web http://ip:port  (账号:密码 admin:admin!@#)
 
 ## 后端开发说明
-1. 安装go，推荐1.11以上
-2. 项目使用dep管理依赖，安装好dep之后，dep ensure -v
+1. 安装go，必须是1.11以上
+2. 项目使用go mod管理
 3. 运行go run main.go
 
 ## 前端开发说明
