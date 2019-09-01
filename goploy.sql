@@ -218,7 +218,7 @@ CREATE TABLE `install_trace` (
   `type` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '1rsync 2script',
   `create_time` int(10) unsigned NOT NULL DEFAULT '0',
   `update_time` int(10) unsigned NOT NULL DEFAULT '0',
-  `ext` json NOT NULL,
+  `ext` text NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   KEY `project_id` (`server_id`) USING BTREE COMMENT 'project_id'
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

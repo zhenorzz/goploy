@@ -61,40 +61,42 @@
       </div>
     </el-dialog>
     <el-dialog title="安装模板" :visible.sync="templateDialogVisible">
-      <el-form ref="templateForm" :rules="templateFormRules" :model="templateFormData" label-width="90px">
-        <el-form-item label="选择模板" prop="templateId">
-          <el-select v-model="templateFormData.templateId" placeholder="选择模板" style="width:100%">
-            <el-option
-              v-for="(item, index) in templateOption"
-              :key="index"
-              :label="item.name"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <el-row>
-        <el-collapse accordion @change="handleTokenChange">
-          <el-collapse-item v-for="(item, index) in installPreviewList" :key="index" :name="item.token">
-            <template slot="title">
-              <span style="margin-right: 10px">token: {{ item.token }}</span>
-              <el-tag v-if="item.installState === 1" type="success" effect="plain">成功</el-tag>
-              <el-tag v-else type="danger" effect="plain">失败</el-tag>
-            </template>
-            <el-row v-for="(installItem, key) in installTraceList" :key="key">
-              <el-row style="margin:5px 0">
-                <el-row v-if="installItem.type === 1">
-                  同步安装包: {{ installItem.command }}
+      <el-row class="template-dialog">
+        <el-form ref="templateForm" :rules="templateFormRules" :model="templateFormData" label-width="90px">
+          <el-form-item label="选择模板" prop="templateId">
+            <el-select v-model="templateFormData.templateId" placeholder="选择模板" style="width:100%">
+              <el-option
+                v-for="(item, index) in templateOption"
+                :key="index"
+                :label="item.name"
+                :value="item.id"
+              />
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <el-row>
+          <el-collapse accordion @change="handleTokenChange">
+            <el-collapse-item v-for="(item, index) in installPreviewList.slice().reverse()" :key="index" :name="item.token">
+              <template slot="title">
+                <span style="margin-right: 10px">token: {{ item.token }}</span>
+                <el-tag v-if="item.installState === 1" type="success" effect="plain">成功</el-tag>
+                <el-tag v-else type="danger" effect="plain">失败</el-tag>
+              </template>
+              <el-row v-for="(installItem, key) in installTraceList" :key="key">
+                <el-row style="margin:5px 0">
+                  <el-row v-if="installItem.type === 1">
+                    同步安装包: {{ installItem.command }}
+                  </el-row>
+                  <el-row v-else-if="installItem.type === 2">
+                    脚本：<pre v-html="formatDetail(installItem.script)" />
+                  </el-row>
+                  <el-tag v-show="installItem['state'] === 0" type="danger" effect="plain">失败</el-tag>
+                  结果：[goploy~]# <span v-html="installItem['detail']" />
                 </el-row>
-                <el-row v-else-if="installItem.type === 2">
-                  运行脚本：{{ installItem.script }}
-                </el-row>
-                <el-tag v-show="installItem['state'] === 0" type="danger" effect="plain">失败</el-tag>
-                返回结果：<span v-html="installItem['detail']" />
               </el-row>
-            </el-row>
-          </el-collapse-item>
-        </el-collapse>
+            </el-collapse-item>
+          </el-collapse>
+        </el-row>
       </el-row>
       <div slot="footer" class="dialog-footer">
         <el-button @click="templateDialogVisible = false">取 消</el-button>
@@ -372,3 +374,12 @@ export default {
   }
 }
 </script>
+<style lang="scss" scoped>
+@import "@/styles/mixin.scss";
+.template-dialog {
+  padding-right: 10px;
+  height:580px;
+  overflow-y: auto;
+  @include scrollBar();
+}
+</style>
