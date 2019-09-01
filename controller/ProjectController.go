@@ -1,8 +1,11 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
+	"os"
+	"os/exec"
 	"strconv"
 	"time"
 
@@ -158,7 +161,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-
+	go repoCreate(projectID)
 	response := core.Response{Message: "添加成功"}
 	response.JSON(w)
 }
@@ -210,6 +213,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
+	go repoCreate(reqData.ID)
 	response := core.Response{Message: "修改成功"}
 	response.JSON(w)
 }
@@ -358,4 +362,45 @@ func (project Project) RemoveProjectUser(w http.ResponseWriter, gp *core.Goploy)
 	}
 	response := core.Response{Message: "删除成功"}
 	response.JSON(w)
+}
+
+func repoCreate(projectID int64) {
+	project, err := model.Project{ID: projectID}.GetData()
+	if err != nil {
+		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" 无此项目")
+		return
+	}
+	srcPath := core.RepositoryPath + project.Name
+	if _, err := os.Stat(srcPath); err != nil {
+		if err := os.RemoveAll(srcPath); err != nil {
+			core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" 项目移除失败")
+			return
+		}
+		repo := project.URL
+		cmd := exec.Command("git", "clone", repo, srcPath)
+		var out bytes.Buffer
+		cmd.Stdout = &out
+
+		if err := cmd.Run(); err != nil {
+			core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" 项目初始化失败:"+err.Error())
+			return
+		}
+
+		if project.Branch != "master" {
+			checkout := exec.Command("git", "checkout", "-b", project.Branch, "origin/"+project.Branch)
+			checkout.Dir = srcPath
+			var checkoutOutbuf, checkoutErrbuf bytes.Buffer
+			checkout.Stdout = &checkoutOutbuf
+			checkout.Stderr = &checkoutErrbuf
+			if err := checkout.Run(); err != nil {
+				core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+checkoutErrbuf.String())
+				os.RemoveAll(srcPath)
+				return
+			}
+
+		}
+		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" 项目初始化成功")
+
+	}
+	return
 }

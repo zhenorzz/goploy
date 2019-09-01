@@ -53,7 +53,7 @@
               <el-input v-model="formData.branch" autocomplete="off" />
             </el-form-item>
             <el-form-item label="rsync选项" prop="rsyncOption">
-              <el-input v-model="formData.rsyncOption" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
+              <el-input v-model="formData.rsyncOption" type="textarea" :rows="4" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
             </el-form-item>
             <el-form-item label="绑定分组" prop="groupId">
               <el-select v-model="formData.groupId" placeholder="选择分组" style="width:100%">

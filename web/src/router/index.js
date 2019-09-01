@@ -146,7 +146,7 @@ export const asyncRoutes = [
       component: () => import('@/views/member/list'),
       meta: {
         title: '成员列表',
-        icon: 'list',
+        icon: 'user',
         roles: ['admin']
       }
     }]
