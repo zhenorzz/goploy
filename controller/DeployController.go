@@ -235,6 +235,13 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 		UpdateTime:    time.Now().Unix(),
 	}
 
+	if err := gitCreate(tokenInfo, project); err != nil {
+		publishTraceModel.Detail = err.Error()
+		publishTraceModel.State = model.Fail
+		publishTraceModel.AddRow()
+		return
+	}
+
 	stdout, err := gitSync(tokenInfo, project)
 	if err != nil {
 		publishTraceModel.Detail = err.Error()
@@ -308,6 +315,90 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 	for _, projectServer := range projectServers {
 		go remoteSync(tokenInfo, project, projectServer)
 	}
+}
+
+func gitCreate(tokenInfo core.TokenInfo, project model.Project) error {
+	srcPath := core.RepositoryPath + project.Name
+	if _, err := os.Stat(srcPath); err != nil {
+		if err := os.RemoveAll(srcPath); err != nil {
+			return err
+		}
+		repo := project.URL
+		cmd := exec.Command("git", "clone", repo, srcPath)
+		var out bytes.Buffer
+		cmd.Stdout = &out
+		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化 git clone")
+		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
+			ToUserID: tokenInfo.ID,
+			Message: ws.ProjectMessage{
+				ProjectID: project.ID,
+				UserID:    tokenInfo.ID,
+				DataType:  ws.LocalType,
+				State:     ws.Success,
+				Message:   "项目初始化 git clone",
+			},
+		}
+		if err := cmd.Run(); err != nil {
+			core.Log(core.ERROR, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化失败:"+err.Error())
+			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
+				ToUserID: tokenInfo.ID,
+				Message: ws.ProjectMessage{
+					ProjectID: project.ID,
+					UserID:    tokenInfo.ID,
+					DataType:  ws.LocalType,
+					State:     ws.Fail,
+					Message:   "项目初始化失败",
+				},
+			}
+			return errors.New("项目初始化失败")
+		}
+
+		if project.Branch != "master" {
+			checkout := exec.Command("git", "checkout", "-b", project.Branch, "origin/"+project.Branch)
+			checkout.Dir = srcPath
+			var checkoutOutbuf, checkoutErrbuf bytes.Buffer
+			checkout.Stdout = &checkoutOutbuf
+			checkout.Stderr = &checkoutErrbuf
+			if err := checkout.Run(); err != nil {
+				core.Log(core.ERROR, checkoutErrbuf.String())
+				ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
+					ToUserID: tokenInfo.ID,
+					Message: ws.ProjectMessage{
+						ProjectID: project.ID,
+						UserID:    tokenInfo.ID,
+						DataType:  ws.LocalType,
+						State:     ws.Fail,
+						Message:   checkoutErrbuf.String(),
+					},
+				}
+				os.RemoveAll(srcPath)
+				return errors.New(checkoutErrbuf.String())
+			}
+			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
+				ToUserID: tokenInfo.ID,
+				Message: ws.ProjectMessage{
+					ProjectID: project.ID,
+					UserID:    tokenInfo.ID,
+					DataType:  ws.LocalType,
+					State:     ws.Success,
+					Message:   checkoutOutbuf.String(),
+				},
+			}
+		}
+
+		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化成功")
+		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
+			ToUserID: tokenInfo.ID,
+			Message: ws.ProjectMessage{
+				ProjectID: project.ID,
+				UserID:    tokenInfo.ID,
+				DataType:  ws.LocalType,
+				State:     ws.Success,
+				Message:   "项目初始化成功",
+			},
+		}
+	}
+	return nil
 }
 
 func gitSync(tokenInfo core.TokenInfo, project model.Project) (string, error) {
