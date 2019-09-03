@@ -9,10 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"goploy/core"
 	"goploy/model"
+	"goploy/utils"
 	"goploy/ws"
+
+	"github.com/google/uuid"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -342,7 +344,7 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 	var connectError error
 	var scriptError error
 	for attempt := 0; attempt < 3; attempt++ {
-		session, connectError = connect(server.Owner, "", server.IP, int(server.Port))
+		session, connectError = utils.ConnectSSH(server.Owner, "", server.IP, int(server.Port))
 		if connectError != nil {
 			core.Log(core.ERROR, connectError.Error())
 			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
