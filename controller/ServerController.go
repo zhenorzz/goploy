@@ -270,16 +270,6 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 		cmd.Stdout = &outbuf
 		cmd.Stderr = &errbuf
 		core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(server.ID), 10)+" rsync "+strings.Join(rsyncOption, " "))
-		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-			ToUserID: tokenInfo.ID,
-			Message: ws.InstallMessage{
-				ServerID: server.ID,
-				UserID:   tokenInfo.ID,
-				DataType: ws.RsyncType,
-				State:    ws.Success,
-				Message:  "rsync " + strings.Join(rsyncOption, " "),
-			},
-		}
 		var rsyncError error
 		// 失败重试三次
 		for attempt := 0; attempt < 3; attempt++ {
@@ -287,16 +277,6 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 			if rsyncError != nil {
 				core.Log(core.ERROR, errbuf.String())
 			} else {
-				ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-					ToUserID: tokenInfo.ID,
-					Message: ws.InstallMessage{
-						ServerID: server.ID,
-						UserID:   tokenInfo.ID,
-						DataType: ws.RsyncType,
-						State:    ws.Success,
-						Message:  outbuf.String(),
-					},
-				}
 				ext, _ := json.Marshal(struct {
 					Command string `json:"command"`
 				}{"rsync " + strings.Join(rsyncOption, " ")})
@@ -304,21 +284,16 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 				installTraceModel.Detail = outbuf.String()
 				installTraceModel.State = model.Success
 				installTraceModel.AddRow()
+
+				ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
+					ToUserID: tokenInfo.ID,
+					Message:  installTraceModel,
+				}
 				break
 			}
 		}
 
 		if rsyncError != nil {
-			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-				ToUserID: tokenInfo.ID,
-				Message: ws.InstallMessage{
-					ServerID: server.ID,
-					UserID:   tokenInfo.ID,
-					DataType: ws.RsyncType,
-					State:    ws.Fail,
-					Message:  "rsync重试失败",
-				},
-			}
 			ext, _ := json.Marshal(struct {
 				Command string `json:"command"`
 			}{"rsync " + strings.Join(rsyncOption, " ")})
@@ -326,20 +301,14 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 			installTraceModel.Detail = errbuf.String()
 			installTraceModel.State = model.Fail
 			installTraceModel.AddRow()
+			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
+				ToUserID: tokenInfo.ID,
+				Message:  installTraceModel,
+			}
 			return
 		}
 	}
 
-	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-		ToUserID: tokenInfo.ID,
-		Message: ws.InstallMessage{
-			ServerID: server.ID,
-			UserID:   tokenInfo.ID,
-			DataType: ws.ScriptType,
-			State:    ws.Success,
-			Message:  "开始连接ssh",
-		},
-	}
 	var session *ssh.Session
 	var connectError error
 	var scriptError error
@@ -347,27 +316,7 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 		session, connectError = utils.ConnectSSH(server.Owner, "", server.IP, int(server.Port))
 		if connectError != nil {
 			core.Log(core.ERROR, connectError.Error())
-			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-				ToUserID: tokenInfo.ID,
-				Message: ws.InstallMessage{
-					ServerID: server.ID,
-					UserID:   tokenInfo.ID,
-					DataType: ws.ScriptType,
-					State:    ws.Fail,
-					Message:  connectError.Error(),
-				},
-			}
 		} else {
-			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-				ToUserID: tokenInfo.ID,
-				Message: ws.InstallMessage{
-					ServerID: server.ID,
-					UserID:   tokenInfo.ID,
-					DataType: ws.ScriptType,
-					State:    ws.Success,
-					Message:  "开始连接成功",
-				},
-			}
 			ext, _ := json.Marshal(struct {
 				SSH string `json:"ssh"`
 			}{"ssh -p" + strconv.Itoa(server.Port) + " " + server.Owner + "@" + server.IP})
@@ -376,16 +325,9 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 			installTraceModel.State = model.Success
 			installTraceModel.Detail = "connected"
 			installTraceModel.AddRow()
-
 			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 				ToUserID: tokenInfo.ID,
-				Message: ws.InstallMessage{
-					ServerID: server.ID,
-					UserID:   tokenInfo.ID,
-					DataType: ws.ScriptType,
-					State:    ws.Success,
-					Message:  "运行:" + template.Script,
-				},
+				Message:  installTraceModel,
 			}
 			defer session.Close()
 			var sshOutbuf, sshErrbuf bytes.Buffer
@@ -395,27 +337,7 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 			templateInstallScript := "echo '" + template.Script + "' > /tmp/template-install.sh;bash /tmp/template-install.sh"
 			if scriptError = session.Run(templateInstallScript); scriptError != nil {
 				core.Log(core.ERROR, scriptError.Error())
-				ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-					ToUserID: tokenInfo.ID,
-					Message: ws.InstallMessage{
-						ServerID: server.ID,
-						UserID:   tokenInfo.ID,
-						DataType: ws.ScriptType,
-						State:    ws.Fail,
-						Message:  scriptError.Error(),
-					},
-				}
 			} else {
-				ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-					ToUserID: tokenInfo.ID,
-					Message: ws.InstallMessage{
-						ServerID: server.ID,
-						UserID:   tokenInfo.ID,
-						DataType: ws.ScriptType,
-						State:    ws.Success,
-						Message:  sshOutbuf.String(),
-					},
-				}
 				ext, _ := json.Marshal(struct {
 					Script string `json:"script"`
 				}{template.Script})
@@ -424,6 +346,10 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 				installTraceModel.State = model.Success
 				installTraceModel.Detail = sshOutbuf.String()
 				installTraceModel.AddRow()
+				ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
+					ToUserID: tokenInfo.ID,
+					Message:  installTraceModel,
+				}
 				break
 			}
 		}
@@ -431,16 +357,6 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 	}
 
 	if connectError != nil {
-		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-			ToUserID: tokenInfo.ID,
-			Message: ws.InstallMessage{
-				ServerID: server.ID,
-				UserID:   tokenInfo.ID,
-				DataType: ws.ScriptType,
-				State:    ws.Fail,
-				Message:  "ssh重连失败",
-			},
-		}
 		ext, _ := json.Marshal(struct {
 			SSH string `json:"ssh"`
 		}{"ssh -p" + strconv.Itoa(server.Port) + " " + server.Owner + "@" + server.IP})
@@ -449,18 +365,12 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 		installTraceModel.State = model.Fail
 		installTraceModel.Detail = connectError.Error()
 		installTraceModel.AddRow()
-		return
-	} else if scriptError != nil {
 		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 			ToUserID: tokenInfo.ID,
-			Message: ws.InstallMessage{
-				ServerID: server.ID,
-				UserID:   tokenInfo.ID,
-				DataType: ws.ScriptType,
-				State:    ws.Fail,
-				Message:  "脚本重试失败",
-			},
+			Message:  installTraceModel,
 		}
+		return
+	} else if scriptError != nil {
 		ext, _ := json.Marshal(struct {
 			Script string `json:"script"`
 		}{template.Script})
@@ -469,6 +379,10 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 		installTraceModel.State = model.Fail
 		installTraceModel.Detail = scriptError.Error()
 		installTraceModel.AddRow()
+		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
+			ToUserID: tokenInfo.ID,
+			Message:  installTraceModel,
+		}
 		return
 	}
 	return

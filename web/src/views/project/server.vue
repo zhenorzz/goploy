@@ -93,16 +93,7 @@
       </div>
     </el-dialog>
     <el-dialog title="安装进度" :visible.sync="installDialogVisible">
-      <el-row ref="publishSchedule" class="project-detail">
-        <el-row>
-          <el-row v-for="(item, key) in remoteLog" :key="key">
-            <el-row style="margin:5px 0">
-              <el-tag v-show="item['state'] === 0" type="danger" effect="plain">失败</el-tag>
-              <span v-html="item['message']" />
-            </el-row>
-          </el-row>
-        </el-row>
-      </el-row>
+      <codemirror :value="installLog" :options="cmOptions" />
     </el-dialog>
   </el-row>
 </template>
@@ -133,16 +124,16 @@ export default {
       tableData: [],
       groupOption: [],
       templateOption: [],
-      remoteLog: [],
       installToken: '',
       installPreviewList: [],
       installTraceList: [],
+      installLog: '',
       tempFormData: {},
       cmOptions: {
         tabSize: 4,
         mode: 'text/x-sh',
-        lineNumbers: true,
-        line: true,
+        lineNumbers: false,
+        line: false,
         scrollbarStyle: 'overlay',
         theme: 'darcula',
         readOnly: true,
@@ -197,7 +188,7 @@ export default {
           intallTrace += '[goploy~]$ ' + element.command + '\n'
           intallTrace += element.detail + '\n'
         } else if (element.type === 2) {
-          intallTrace += '[' + this.templateFormData.serverName + '~]$ ' + element.ssh + '\n'
+          intallTrace += '[goploy~]$ ' + element.ssh + '\n'
           intallTrace += element.detail + '\n'
         } else if (element.type === 3) {
           intallTrace += '[' + this.templateFormData.serverName + '~]$ ' + element.script + '\n'
@@ -338,7 +329,7 @@ export default {
           this.templateFormProps.disabled = true
           this.installDialogVisible = true
           this.templateFormProps.disabled = this.templateDialogVisible = false
-          this.remoteLog = []
+          this.installLog = ''
           this.connectWebSocket().then(server => {
             install(this.templateFormData.serverId, this.templateFormData.templateId).then((response) => {
               this.$message({
@@ -379,14 +370,20 @@ export default {
 
         this.webSocket.onmessage = (e) => {
           const data = JSON.parse(e.data)
-          data.message = this.formatDetail(data.message)
-          this.remoteLog.push(data)
+          Object.assign(data, JSON.parse(data.ext))
+          let intallTrace = ''
+          if (data.type === 1) {
+            intallTrace += '[goploy~]$ ' + data.command + '\n'
+            intallTrace += data.detail + '\n'
+          } else if (data.type === 2) {
+            intallTrace += '[goploy~]$ ' + data.ssh + '\n'
+            intallTrace += data.detail + '\n'
+          } else if (data.type === 3) {
+            intallTrace += '[' + this.templateFormData.serverName + '~]$ ' + data.script + '\n'
+            intallTrace += data.detail + '\n'
+          }
+          this.installLog += intallTrace
         }
-
-        this.$nextTick(() => {
-          const contentBox = this.$refs.publishSchedule
-          contentBox.$el.scrollTop = contentBox.$el.scrollHeight
-        })
       })
     },
 

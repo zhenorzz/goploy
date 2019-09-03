@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gorilla/websocket"
 	"goploy/core"
+
+	"github.com/gorilla/websocket"
 )
 
 // UnicastClient stores a client information
@@ -32,15 +33,6 @@ type ProjectMessage struct {
 	State      uint8  `json:"state"`
 	Message    string `json:"message"`
 	DataType   uint8  `json:"dataType"`
-}
-
-// InstallMessage is server install message struct
-type InstallMessage struct {
-	ServerID int64  `json:"serverId"`
-	UserID   int64  `json:"userId"`
-	State    uint8  `json:"state"`
-	Message  string `json:"message"`
-	DataType uint8  `json:"dataType"`
 }
 
 // UnicastHub is a client struct
