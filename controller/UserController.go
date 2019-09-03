@@ -6,9 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	cache "github.com/patrickmn/go-cache"
 	"goploy/core"
 	"goploy/model"
+
+	cache "github.com/patrickmn/go-cache"
 )
 
 // User 用户字段
@@ -37,7 +38,7 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
-	if userData.State == 0 {
+	if userData.State == model.Disable {
 		response := core.Response{Code: core.AccountDisabled, Message: "账号已被停用"}
 		response.JSON(w)
 		return

@@ -290,7 +290,7 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 	stdout, err := gitRollback(tokenInfo, commit, project)
 	if err != nil {
 		publishTraceModel.Detail = err.Error()
-		publishTraceModel.State = 0
+		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
 		return
 	}
@@ -299,7 +299,7 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 	}{commit})
 	publishTraceModel.Ext = string(ext)
 	publishTraceModel.Detail = stdout
-	publishTraceModel.State = 1
+	publishTraceModel.State = model.Success
 
 	if _, err := publishTraceModel.AddRow(); err != nil {
 		core.Log(core.ERROR, err.Error())

@@ -97,10 +97,11 @@ func (p Project) EditRow() error {
 func (p Project) RemoveRow() error {
 	_, err := DB.Exec(
 		`UPDATE project SET 
-		  state = 0,
+		  state = ?,
 		  update_time = ?
 		WHERE
 		 id = ?`,
+		Disable,
 		p.UpdateTime,
 		p.ID,
 	)

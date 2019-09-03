@@ -215,7 +215,7 @@ CREATE TABLE `install_trace` (
   `state` tinyint(4) unsigned NOT NULL DEFAULT '1',
   `operator_id` int(10) unsigned NOT NULL DEFAULT '0',
   `operator_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `type` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '1rsync 2script',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '1rsync 2ssh 3script',
   `create_time` int(10) unsigned NOT NULL DEFAULT '0',
   `update_time` int(10) unsigned NOT NULL DEFAULT '0',
   `ext` text NOT NULL,

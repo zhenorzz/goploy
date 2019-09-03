@@ -141,10 +141,11 @@ func (s Server) Remove() error {
 	}
 	_, err = tx.Exec(
 		`UPDATE server SET 
-		  state = 0,
+		  state = ?,
 		  update_time = ?
 		WHERE
 		 id = ?`,
+		Disable,
 		s.UpdateTime,
 		s.ID,
 	)

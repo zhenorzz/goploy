@@ -231,10 +231,11 @@ func (u User) EditRow() error {
 func (u User) RemoveRow() error {
 	_, err := DB.Exec(
 		`UPDATE user SET 
-		  state = 0,
+		  state = ?,
 		  update_time = ?
 		WHERE
 		 id = ?`,
+		Disable,
 		u.UpdateTime,
 		u.ID,
 	)

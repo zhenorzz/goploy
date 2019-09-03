@@ -22,6 +22,12 @@ const (
 	Success
 )
 
+// state type
+const (
+	Disable = iota
+	Enable
+)
+
 // DB init when the program start
 var DB *sql.DB
 
