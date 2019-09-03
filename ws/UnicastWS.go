@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/websocket"
-	"github.com/zhenorzz/goploy/core"
+	"goploy/core"
 )
 
 // UnicastClient stores a client information

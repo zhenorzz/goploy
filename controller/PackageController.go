@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/zhenorzz/goploy/core"
-	"github.com/zhenorzz/goploy/model"
+	"goploy/core"
+	"goploy/model"
 )
 
 // Package struct

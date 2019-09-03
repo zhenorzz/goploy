@@ -7,10 +7,10 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
-	"github.com/zhenorzz/goploy/core"
-	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/route"
-	"github.com/zhenorzz/goploy/ws"
+	"goploy/core"
+	"goploy/model"
+	"goploy/route"
+	"goploy/ws"
 )
 
 func main() {

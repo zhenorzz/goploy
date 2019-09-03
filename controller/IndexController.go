@@ -3,8 +3,8 @@ package controller
 import (
 	"net/http"
 
-	"github.com/zhenorzz/goploy/core"
-	"github.com/zhenorzz/goploy/model"
+	"goploy/core"
+	"goploy/model"
 )
 
 // Index struct

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/zhenorzz/goploy/core"
-	"github.com/zhenorzz/goploy/model"
+	"goploy/core"
+	"goploy/model"
 )
 
 // HasPublishAuth check the user has publish auth

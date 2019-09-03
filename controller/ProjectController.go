@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/zhenorzz/goploy/core"
-	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/utils"
+	"goploy/core"
+	"goploy/model"
+	"goploy/utils"
 )
 
 // Project struct

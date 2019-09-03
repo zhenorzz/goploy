@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/zhenorzz/goploy/core"
-	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/ws"
+	"goploy/core"
+	"goploy/model"
+	"goploy/ws"
 	"golang.org/x/crypto/ssh"
 )
 

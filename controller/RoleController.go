@@ -3,7 +3,7 @@ package controller
 import (
 	"net/http"
 
-	"github.com/zhenorzz/goploy/core"
+	"goploy/core"
 )
 
 // Role struct

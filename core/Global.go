@@ -1,6 +1,6 @@
 package core
 
-import "github.com/zhenorzz/goploy/utils"
+import "goploy/utils"
 
 // GolbalPath current path end with /
 var GolbalPath = utils.GetCurrentPath()

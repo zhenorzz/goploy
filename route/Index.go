@@ -1,11 +1,11 @@
 package route
 
 import (
-	"github.com/zhenorzz/goploy/controller"
-	"github.com/zhenorzz/goploy/core"
-	router "github.com/zhenorzz/goploy/core"
-	"github.com/zhenorzz/goploy/middleware"
-	"github.com/zhenorzz/goploy/ws"
+	"goploy/controller"
+	"goploy/core"
+	router "goploy/core"
+	"goploy/middleware"
+	"goploy/ws"
 )
 
 // Init router

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	cache "github.com/patrickmn/go-cache"
-	"github.com/zhenorzz/goploy/core"
-	"github.com/zhenorzz/goploy/model"
+	"goploy/core"
+	"goploy/model"
 )
 
 // User 用户字段
