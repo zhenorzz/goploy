@@ -20,38 +20,38 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {
 		Account  string `json:"account"`
 		Password string `json:"password"`
 	}
-	type RepData struct {
+	type RespData struct {
 		Token string `json:"token"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 	userData, err := model.User{Account: reqData.Account}.GetDataByAccount()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 
 	if userData.State == 0 {
-		response := core.Response{Code: 10000, Message: "账号已被停用"}
+		response := core.Response{Code: core.AccountDisabled, Message: "账号已被停用"}
 		response.JSON(w)
 		return
 	}
 
 	if err := userData.Vaildate(reqData.Password); err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 
 	token, err := userData.CreateToken()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -59,14 +59,14 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {
 
 	core.Cache.Set("userInfo:"+strconv.Itoa(int(userData.ID)), &userData, cache.DefaultExpiration)
 
-	data := RepData{Token: token}
+	data := RespData{Token: token}
 	response := core.Response{Data: data}
 	response.JSON(w)
 }
 
 // Info get user info api
 func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		UserInfo struct {
 			ID      int64  `json:"id"`
 			Account string `json:"account"`
@@ -77,12 +77,12 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 	userData, err := core.GetUserInfo(gp.TokenInfo.ID)
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 
-	data := RepData{}
+	data := RespData{}
 	data.UserInfo.ID = gp.TokenInfo.ID
 	data.UserInfo.Name = userData.Name
 	data.UserInfo.Account = userData.Account
@@ -93,39 +93,39 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 
 // GetList user list
 func (user User) GetList(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		User       model.Users      `json:"userList"`
 		Pagination model.Pagination `json:"pagination"`
 	}
 	userModel := model.Users{}
 	pagination, err := model.NewPagination(gp.URLQuery)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 	users, err := userModel.GetList(pagination)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{User: users, Pagination: *pagination}}
+	response := core.Response{Data: RespData{User: users, Pagination: *pagination}}
 	response.JSON(w)
 }
 
 // GetOption user list
 func (user User) GetOption(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		User model.Users `json:"userList"`
 	}
 	users, err := model.User{}.GetAll()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{User: users}}
+	response := core.Response{Data: RespData{User: users}}
 	response.JSON(w)
 }
 
@@ -142,7 +142,7 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -158,7 +158,7 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 	}.AddRow()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -179,7 +179,7 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -194,7 +194,7 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	}.EditRow()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -211,13 +211,13 @@ func (user User) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 
 	if reqData.ID == 1 {
-		response := core.Response{Code: 1, Message: "请勿删除超管账号"}
+		response := core.Response{Code: core.Deny, Message: "请勿删除超管账号"}
 		response.JSON(w)
 		return
 	}
@@ -228,7 +228,7 @@ func (user User) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	}.RemoveRow()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -245,25 +245,25 @@ func (user User) ChangePassword(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 	userData, err := model.User{ID: gp.TokenInfo.ID}.GetData()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 
 	if err := userData.Vaildate(reqData.OldPassword); err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 
 	if err := (model.User{ID: gp.TokenInfo.ID, Password: reqData.NewPassword}.UpdatePassword()); err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}

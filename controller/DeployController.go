@@ -28,12 +28,12 @@ type Deploy Controller
 
 // GetList deploy list
 func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		Project model.Projects `json:"projectList"`
 	}
 	groupID, err := strconv.ParseInt(gp.URLQuery.Get("groupId"), 10, 64)
 	if err != nil {
-		response := core.Response{Code: 1, Message: "groupId参数错误"}
+		response := core.Response{Code: core.Deny, Message: "groupId参数错误"}
 		response.JSON(w)
 		return
 	}
@@ -47,43 +47,43 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 			Name:    projectName,
 		}}.GetDepolyListByUserID()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 
-	response := core.Response{Data: RepData{Project: projects}}
+	response := core.Response{Data: RespData{Project: projects}}
 	response.JSON(w)
 }
 
 // GetPreview deploy detail
 func (deploy Deploy) GetPreview(w http.ResponseWriter, gp *core.Goploy) {
 
-	type RepData struct {
+	type RespData struct {
 		GitTraceList model.PublishTraces `json:"gitTraceList"`
 	}
 
 	projectID, err := strconv.ParseInt(gp.URLQuery.Get("projectId"), 10, 64)
 	if err != nil {
-		response := core.Response{Code: 1, Message: "id参数错误"}
+		response := core.Response{Code: core.Deny, Message: "id参数错误"}
 		response.JSON(w)
 		return
 	}
 
 	gitTraceList, err := model.PublishTrace{ProjectID: projectID}.GetPreviewByProjectID()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{GitTraceList: gitTraceList}}
+	response := core.Response{Data: RespData{GitTraceList: gitTraceList}}
 	response.JSON(w)
 }
 
 // GetDetail deploy detail
 func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
 
-	type RepData struct {
+	type RespData struct {
 		PublishTraceList model.PublishTraces `json:"publishTraceList"`
 	}
 
@@ -91,35 +91,35 @@ func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
 
 	publishTraceList, err := model.PublishTrace{Token: lastPublishToken}.GetListByToken()
 	if err == sql.ErrNoRows {
-		response := core.Response{Code: 1, Message: "项目尚无构建记录"}
+		response := core.Response{Code: core.Deny, Message: "项目尚无构建记录"}
 		response.JSON(w)
 		return
 	} else if err != nil {
-		response := core.Response{Code: 1, Message: "GitTrace.GetListByToken失败"}
+		response := core.Response{Code: core.Deny, Message: "GitTrace.GetListByToken失败"}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{PublishTraceList: publishTraceList}}
+	response := core.Response{Data: RespData{PublishTraceList: publishTraceList}}
 	response.JSON(w)
 }
 
 // GetCommitList get latest 10 commit list
 func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) {
 
-	type RepData struct {
+	type RespData struct {
 		CommitList []string `json:"commitList"`
 	}
 
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
-		response := core.Response{Code: 1, Message: "id参数错误"}
+		response := core.Response{Code: core.Deny, Message: "id参数错误"}
 		response.JSON(w)
 		return
 	}
 
 	project, err := model.Project{ID: id}.GetData()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -132,11 +132,11 @@ func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) {
 	log.Stdout = &logOutbuf
 	log.Stderr = &logErrbuf
 	if err := log.Run(); err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{CommitList: strings.Split(logOutbuf.String(), "\n")}}
+	response := core.Response{Data: RespData{CommitList: strings.Split(logOutbuf.String(), "\n")}}
 	response.JSON(w)
 }
 
@@ -147,7 +147,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	}
 	var reqData ReqData
 	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -157,7 +157,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	}.GetData()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -165,7 +165,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	projectServers, err := model.ProjectServer{ProjectID: reqData.ProjectID}.GetBindServerListByProjectID()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -189,7 +189,7 @@ func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
 	}
 	var reqData ReqData
 	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -199,7 +199,7 @@ func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
 	}.GetData()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -207,7 +207,7 @@ func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
 	projectServers, err := model.ProjectServer{ProjectID: reqData.ProjectID}.GetBindServerListByProjectID()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}

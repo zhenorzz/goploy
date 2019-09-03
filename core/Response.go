@@ -12,6 +12,15 @@ type Response struct {
 	Data    interface{} `json:"data"`
 }
 
+// respone code
+const (
+	Pass            = 0
+	Deny            = 1
+	AccountDisabled = 10000
+	IllegalRequest  = 10001
+	LoginExpired    = 10086
+)
+
 //JSON response
 func (r *Response) JSON(w http.ResponseWriter) {
 	json.NewEncoder(w).Encode(r)

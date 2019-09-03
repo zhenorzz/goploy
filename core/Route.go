@@ -102,7 +102,7 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 		// check token
 		goployTokenCookie, err := r.Cookie("goploy_token")
 		if err != nil {
-			response := Response{Code: 10001, Message: "非法请求"}
+			response := Response{Code: IllegalRequest, Message: "非法请求"}
 			response.JSON(w)
 			return
 		}
@@ -113,7 +113,7 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if err != nil || !token.Valid {
-			response := Response{Code: 10086, Message: "登录已过期"}
+			response := Response{Code: LoginExpired, Message: "登录已过期"}
 			response.JSON(w)
 			return
 		}
@@ -137,7 +137,7 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 	for _, middleware := range rt.middlewares {
 		err := middleware(w, gp)
 		if err != nil {
-			response := Response{Code: 1, Message: err.Error()}
+			response := Response{Code: Deny, Message: err.Error()}
 			response.JSON(w)
 			return
 		}
@@ -145,14 +145,14 @@ func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
 	for _, route := range rt.Routes {
 		if route.pattern == r.URL.Path {
 			if err := route.hasRole(tokenInfo.ID); err != nil {
-				response := Response{Code: 1, Message: err.Error()}
+				response := Response{Code: Deny, Message: err.Error()}
 				response.JSON(w)
 				return
 			}
 			for _, middleware := range route.middlewares {
 
 				if err := middleware(w, gp); err != nil {
-					response := Response{Code: 1, Message: err.Error()}
+					response := Response{Code: Deny, Message: err.Error()}
 					response.JSON(w)
 					return
 				}

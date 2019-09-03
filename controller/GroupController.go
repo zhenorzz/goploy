@@ -14,33 +14,33 @@ type Group Controller
 
 // GetList Group list
 func (group Group) GetList(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		Groups model.Groups `json:"groupList"`
 	}
 
 	groupList, err := model.Group{}.GetList()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{Groups: groupList}}
+	response := core.Response{Data: RespData{Groups: groupList}}
 	response.JSON(w)
 }
 
 // GetOption Group list
 func (group Group) GetOption(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		Groups model.Groups `json:"groupList"`
 	}
 
 	groupList, err := model.Group{}.GetAll()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{Groups: groupList}}
+	response := core.Response{Data: RespData{Groups: groupList}}
 	response.JSON(w)
 }
 
@@ -52,7 +52,7 @@ func (group Group) Add(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -63,7 +63,7 @@ func (group Group) Add(w http.ResponseWriter, gp *core.Goploy) {
 	}.AddRow()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -80,7 +80,7 @@ func (group Group) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -92,7 +92,7 @@ func (group Group) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	}.EditRow()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -108,7 +108,7 @@ func (group Group) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -118,7 +118,7 @@ func (group Group) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	}.Remove()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}

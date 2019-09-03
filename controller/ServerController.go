@@ -21,75 +21,75 @@ type Server Controller
 
 // GetList server list
 func (server Server) GetList(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		Server model.Servers `json:"serverList"`
 	}
 	userData, err := core.GetUserInfo(gp.TokenInfo.ID)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 	serverList, err := model.Server{}.GetListByManagerGroupStr(userData.ManageGroupStr)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{Server: serverList}}
+	response := core.Response{Data: RespData{Server: serverList}}
 	response.JSON(w)
 }
 
 // GetInstallPreview server install token list
 func (server Server) GetInstallPreview(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		InstallTraceList model.InstallTraces `json:"installTraceList"`
 	}
 	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
 	if err != nil {
-		response := core.Response{Code: 1, Message: "serverId参数错误"}
+		response := core.Response{Code: core.Deny, Message: "serverId参数错误"}
 		response.JSON(w)
 		return
 	}
 	installTraceList, err := model.InstallTrace{ServerID: serverID}.GetListGroupByToken()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{InstallTraceList: installTraceList}}
+	response := core.Response{Data: RespData{InstallTraceList: installTraceList}}
 	response.JSON(w)
 }
 
 // GetInstallList server install list by token
 func (server Server) GetInstallList(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		InstallTraceList model.InstallTraces `json:"installTraceList"`
 	}
 	token := gp.URLQuery.Get("token")
 	installTraceList, err := model.InstallTrace{Token: token}.GetListByToken()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{InstallTraceList: installTraceList}}
+	response := core.Response{Data: RespData{InstallTraceList: installTraceList}}
 	response.JSON(w)
 }
 
 // GetOption server list
 func (server Server) GetOption(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		Server model.Servers `json:"serverList"`
 	}
 
 	serverList, err := model.Server{}.GetAll()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{Server: serverList}}
+	response := core.Response{Data: RespData{Server: serverList}}
 	response.JSON(w)
 }
 
@@ -98,14 +98,14 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		Name    string `json:"name"`
 		IP      string `json:"ip"`
-		Port    int  `json:"port"`
+		Port    int    `json:"port"`
 		Owner   string `json:"owner"`
 		GroupID int64  `json:"groupId"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -120,7 +120,7 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 	}.AddRow()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -134,14 +134,14 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		ID      int64  `json:"id"`
 		Name    string `json:"name"`
 		IP      string `json:"ip"`
-		Port    int  `json:"port"`
+		Port    int    `json:"port"`
 		Owner   string `json:"owner"`
 		GroupID int64  `json:"groupId"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -156,7 +156,7 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	}.EditRow()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -172,7 +172,7 @@ func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -182,7 +182,7 @@ func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	}.Remove()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -198,7 +198,7 @@ func (server Server) Install(w http.ResponseWriter, gp *core.Goploy) {
 	}
 	var reqData ReqData
 	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -207,7 +207,7 @@ func (server Server) Install(w http.ResponseWriter, gp *core.Goploy) {
 	}.GetData()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -217,7 +217,7 @@ func (server Server) Install(w http.ResponseWriter, gp *core.Goploy) {
 	}.GetData()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}

@@ -14,33 +14,33 @@ type Template Controller
 
 // GetList template list
 func (template Template) GetList(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		Template model.Templates `json:"templateList"`
 	}
 
 	templateList, err := model.Template{}.GetList()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{Template: templateList}}
+	response := core.Response{Data: RespData{Template: templateList}}
 	response.JSON(w)
 }
 
 // GetOption template list
 func (template Template) GetOption(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		Template model.Templates `json:"templateList"`
 	}
 
 	templateList, err := model.Template{}.GetAll()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{Template: templateList}}
+	response := core.Response{Data: RespData{Template: templateList}}
 	response.JSON(w)
 }
 
@@ -55,7 +55,7 @@ func (template Template) Add(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 
 	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -69,7 +69,7 @@ func (template Template) Add(w http.ResponseWriter, gp *core.Goploy) {
 	}.AddRow()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -90,7 +90,7 @@ func (template Template) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -105,7 +105,7 @@ func (template Template) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	}.EditRow()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -121,7 +121,7 @@ func (template Template) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -131,7 +131,7 @@ func (template Template) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	}.Remove()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}

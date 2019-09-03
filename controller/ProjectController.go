@@ -19,64 +19,64 @@ type Project Controller
 
 // GetList project list
 func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		Project model.Projects `json:"projectList"`
 	}
 	userData, err := core.GetUserInfo(gp.TokenInfo.ID)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 	projectList, err := model.Project{}.GetListByManagerGroupStr(userData.ManageGroupStr)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{Project: projectList}}
+	response := core.Response{Data: RespData{Project: projectList}}
 	response.JSON(w)
 }
 
 // GetBindServerList project detail
 func (project Project) GetBindServerList(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		ProjectServers model.ProjectServers `json:"projectServerMap"`
 	}
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
-		response := core.Response{Code: 1, Message: "id参数错误"}
+		response := core.Response{Code: core.Deny, Message: "id参数错误"}
 		response.JSON(w)
 		return
 	}
 	projectServersMap, err := model.ProjectServer{ProjectID: id}.GetBindServerListByProjectID()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{ProjectServers: projectServersMap}}
+	response := core.Response{Data: RespData{ProjectServers: projectServersMap}}
 	response.JSON(w)
 }
 
 // GetBindUserList project detail
 func (project Project) GetBindUserList(w http.ResponseWriter, gp *core.Goploy) {
-	type RepData struct {
+	type RespData struct {
 		ProjectUsers model.ProjectUsers `json:"projectUserMap"`
 	}
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
-		response := core.Response{Code: 1, Message: "id参数错误"}
+		response := core.Response{Code: core.Deny, Message: "id参数错误"}
 		response.JSON(w)
 		return
 	}
 	projectUsersMap, err := model.ProjectUser{ProjectID: id}.GetBindUserListByProjectID()
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RepData{ProjectUsers: projectUsersMap}}
+	response := core.Response{Data: RespData{ProjectUsers: projectUsersMap}}
 	response.JSON(w)
 }
 
@@ -98,13 +98,13 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 
 	if _, err := utils.ParseCommandLine(reqData.RsyncOption); err != nil {
-		response := core.Response{Code: 1, Message: "Rsync Option错误，请输入正确的参数格式"}
+		response := core.Response{Code: core.Deny, Message: "Rsync Option错误，请输入正确的参数格式"}
 		response.JSON(w)
 		return
 	}
@@ -124,7 +124,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 	}.AddRow()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -140,7 +140,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 	}
 
 	if err := projectServersModel.AddMany(); err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -157,7 +157,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 	}
 
 	if err := projectUsersModel.AddMany(); err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -183,13 +183,13 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 
 	if _, err := utils.ParseCommandLine(reqData.RsyncOption); err != nil {
-		response := core.Response{Code: 1, Message: "Rsync Option错误，请输入正确的参数格式"}
+		response := core.Response{Code: core.Deny, Message: "Rsync Option错误，请输入正确的参数格式"}
 		response.JSON(w)
 		return
 	}
@@ -209,7 +209,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	}.EditRow()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -226,7 +226,7 @@ func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -236,7 +236,7 @@ func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	}.RemoveRow()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -253,7 +253,7 @@ func (project Project) AddServer(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -271,7 +271,7 @@ func (project Project) AddServer(w http.ResponseWriter, gp *core.Goploy) {
 	}
 
 	if err := projectServersModel.AddMany(); err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -288,7 +288,7 @@ func (project Project) AddUser(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -306,7 +306,7 @@ func (project Project) AddUser(w http.ResponseWriter, gp *core.Goploy) {
 	}
 
 	if err := projectUsersModel.AddMany(); err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -322,7 +322,7 @@ func (project Project) RemoveProjectServer(w http.ResponseWriter, gp *core.Goplo
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -331,7 +331,7 @@ func (project Project) RemoveProjectServer(w http.ResponseWriter, gp *core.Goplo
 	}.DeleteRow()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -347,7 +347,7 @@ func (project Project) RemoveProjectUser(w http.ResponseWriter, gp *core.Goploy)
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -356,7 +356,7 @@ func (project Project) RemoveProjectUser(w http.ResponseWriter, gp *core.Goploy)
 	}.DeleteRow()
 
 	if err != nil {
-		response := core.Response{Code: 1, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
