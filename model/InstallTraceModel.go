@@ -22,9 +22,9 @@ type InstallTraces []InstallTrace
 
 // install trace type
 const (
-	Rsync = 1
-
-	Script = 2
+	Rsync  = 1
+	SSH    = 2
+	Script = 3
 )
 
 // AddRow add one row to table deploy and add id to deploy.ID

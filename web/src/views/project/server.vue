@@ -197,6 +197,9 @@ export default {
           intallTrace += '[goploy~]$ ' + element.command + '\n'
           intallTrace += element.detail + '\n'
         } else if (element.type === 2) {
+          intallTrace += '[' + this.templateFormData.serverName + '~]$ ' + element.ssh + '\n'
+          intallTrace += element.detail + '\n'
+        } else if (element.type === 3) {
           intallTrace += '[' + this.templateFormData.serverName + '~]$ ' + element.script + '\n'
           intallTrace += element.detail + '\n'
         }

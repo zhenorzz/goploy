@@ -368,6 +368,15 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 					Message:  "开始连接成功",
 				},
 			}
+			ext, _ := json.Marshal(struct {
+				SSH string `json:"ssh"`
+			}{"ssh -p" + strconv.Itoa(server.Port) + " " + server.Owner + "@" + server.IP})
+			installTraceModel.Ext = string(ext)
+			installTraceModel.Type = model.SSH
+			installTraceModel.State = model.Success
+			installTraceModel.Detail = "connected"
+			installTraceModel.AddRow()
+
 			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 				ToUserID: tokenInfo.ID,
 				Message: ws.InstallMessage{
@@ -432,6 +441,14 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 				Message:  "ssh重连失败",
 			},
 		}
+		ext, _ := json.Marshal(struct {
+			SSH string `json:"ssh"`
+		}{"ssh -p" + strconv.Itoa(server.Port) + " " + server.Owner + "@" + server.IP})
+		installTraceModel.Ext = string(ext)
+		installTraceModel.Type = model.SSH
+		installTraceModel.State = model.Fail
+		installTraceModel.Detail = connectError.Error()
+		installTraceModel.AddRow()
 		return
 	} else if scriptError != nil {
 		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
