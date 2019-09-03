@@ -82,18 +82,7 @@
                 <el-tag v-if="item.installState === 1" type="success" effect="plain">成功</el-tag>
                 <el-tag v-else type="danger" effect="plain">失败</el-tag>
               </template>
-              <el-row v-for="(installItem, key) in installTraceList" :key="key">
-                <el-row style="margin:5px 0">
-                  <el-row v-if="installItem.type === 1">
-                    同步安装包: {{ installItem.command }}
-                  </el-row>
-                  <el-row v-else-if="installItem.type === 2">
-                    脚本：<pre v-html="formatDetail(installItem.script)" />
-                  </el-row>
-                  <el-tag v-show="installItem['state'] === 0" type="danger" effect="plain">失败</el-tag>
-                  结果：[goploy~]# <span v-html="installItem['detail']" />
-                </el-row>
-              </el-row>
+              <codemirror :value="installTrace" :options="cmOptions" />
             </el-collapse-item>
           </el-collapse>
         </el-row>
@@ -122,8 +111,20 @@ import { getList, getInstallPreview, getInstallList, add, edit, remove, install 
 import { getOption as getGroupOption } from '@/api/group'
 import { getOption as getTemplateOption } from '@/api/template'
 import { parseTime } from '@/utils'
+// require component
+import { codemirror } from 'vue-codemirror'
+import 'codemirror/mode/shell/shell.js'
+import 'codemirror/theme/darcula.css'
+// require styles
+import 'codemirror/lib/codemirror.css'
+import 'codemirror/addon/scroll/simplescrollbars.js'
+import 'codemirror/addon/scroll/simplescrollbars.css'
+import 'codemirror/addon/display/autorefresh.js'
 
 export default {
+  components: {
+    codemirror
+  },
   data() {
     return {
       dialogVisible: false,
@@ -137,6 +138,16 @@ export default {
       installPreviewList: [],
       installTraceList: [],
       tempFormData: {},
+      cmOptions: {
+        tabSize: 4,
+        mode: 'text/x-sh',
+        lineNumbers: true,
+        line: true,
+        scrollbarStyle: 'overlay',
+        theme: 'darcula',
+        readOnly: true,
+        autoRefresh: true
+      },
       formProps: {
         disabled: false
       },
@@ -167,6 +178,7 @@ export default {
       },
       templateFormData: {
         templateId: '',
+        serverName: '',
         serverId: 0
       },
       templateFormRules: {
@@ -176,12 +188,30 @@ export default {
       }
     }
   },
+
+  computed: {
+    installTrace: function() {
+      let intallTrace = ''
+      this.installTraceList.forEach(element => {
+        if (element.type === 1) {
+          intallTrace += '[goploy~]$ ' + element.command + '\n'
+          intallTrace += element.detail + '\n'
+        } else if (element.type === 2) {
+          intallTrace += '[' + this.templateFormData.serverName + '~]$ ' + element.script + '\n'
+          intallTrace += element.detail + '\n'
+        }
+      })
+      return intallTrace
+    }
+  },
+
   created() {
     this.storeFormData()
     this.getList()
     this.getGroupOption()
     this.getTemplateOption()
   },
+
   methods: {
     getList() {
       getList().then((response) => {
@@ -240,11 +270,13 @@ export default {
 
     handleInstall(data) {
       this.templateFormData.serverId = data.id
+      this.templateFormData.serverName = data.name
       getInstallPreview(data.id).then(response => {
         this.installPreviewList = response.data.installTraceList || []
       })
       this.templateDialogVisible = true
     },
+
     handleTokenChange(token) {
       if (token === '') return
       getInstallList(token).then(response => {
