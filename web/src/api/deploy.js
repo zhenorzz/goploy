@@ -43,18 +43,6 @@ export function getPreview(projectId) {
  * @param  {int}    id
  * @return {Promise}
  */
-export function getSyncDetail(gitTraceId) {
-  return request({
-    url: '/deploy/getSyncDetail',
-    method: 'get',
-    params: { gitTraceId }
-  })
-}
-
-/**
- * @param  {int}    id
- * @return {Promise}
- */
 export function getCommitList(id) {
   return request({
     url: '/deploy/getCommitList',

@@ -66,7 +66,7 @@ export function edit(data) {
 export function remove(id) {
   return request({
     url: '/user/remove',
-    method: 'post',
+    method: 'delete',
     data: { id }
   })
 }

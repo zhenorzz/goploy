@@ -40,7 +40,7 @@ export function edit(data) {
 export function remove(id) {
   return request({
     url: '/template/remove',
-    method: 'post',
+    method: 'delete',
     data: { id }
   })
 }
@@ -48,7 +48,7 @@ export function remove(id) {
 export function removePackage(templateId, filename) {
   return request({
     url: '/template/removePackage',
-    method: 'post',
+    method: 'delete',
     data: { templateId, filename }
   })
 }

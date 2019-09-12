@@ -13,6 +13,14 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
+// Method specifies the HTTP method (GET, POST, PUT, etc.).
+const (
+	GET    = "GET"
+	POST   = "POST"
+	PUT    = "PUT"
+	DELETE = "DELETE"
+)
+
 // TokenInfo pasre the jwt
 type TokenInfo struct {
 	ID   int64
@@ -30,6 +38,7 @@ type Goploy struct {
 // 路由定义
 type route struct {
 	pattern     string                                          // 正则表达式
+	method      string                                          // Method specifies the HTTP method (GET, POST, PUT, etc.).
 	roles       []string                                        //允许的角色
 	callback    func(w http.ResponseWriter, gp *Goploy)         //Controller函数
 	middlewares []func(w http.ResponseWriter, gp *Goploy) error //中间件
@@ -49,8 +58,8 @@ func (rt *Router) Start() {
 // Add router
 // pattern path
 // callback  where path should be handle
-func (rt *Router) Add(pattern string, callback func(w http.ResponseWriter, gp *Goploy), middleware ...func(w http.ResponseWriter, gp *Goploy) error) *Router {
-	r := route{pattern: pattern, callback: callback}
+func (rt *Router) Add(pattern, method string, callback func(w http.ResponseWriter, gp *Goploy), middleware ...func(w http.ResponseWriter, gp *Goploy) error) *Router {
+	r := route{pattern: pattern, method: method, callback: callback}
 	for _, m := range middleware {
 		r.middlewares = append(r.middlewares, m)
 	}
@@ -144,6 +153,11 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, route := range rt.Routes {
 		if route.pattern == r.URL.Path {
+			if route.method != r.Method {
+				response := Response{Code: Deny, Message: "Invaild request method"}
+				response.JSON(w)
+				return
+			}
 			if err := route.hasRole(tokenInfo.ID); err != nil {
 				response := Response{Code: Deny, Message: err.Error()}
 				response.JSON(w)

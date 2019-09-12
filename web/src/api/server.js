@@ -62,7 +62,7 @@ export function edit(data) {
 export function remove(id) {
   return request({
     url: '/server/remove',
-    method: 'post',
+    method: 'delete',
     data: { id }
   })
 }

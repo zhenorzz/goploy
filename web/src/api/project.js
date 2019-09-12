@@ -36,18 +36,6 @@ export function getBindUserList(id) {
 }
 
 /**
- * @param  {id} id
- * @return {Promise}
- */
-export function create(id) {
-  return request({
-    url: '/project/create',
-    method: 'post',
-    data: { id }
-  })
-}
-
-/**
  * @param  {string} project
  * @param  {string} owner
  * @param  {string} repository
@@ -80,7 +68,7 @@ export function edit(data) {
 export function remove(id) {
   return request({
     url: '/project/remove',
-    method: 'post',
+    method: 'delete',
     data: { id }
   })
 }
@@ -104,7 +92,7 @@ export function addUser(data) {
 export function removeProjectUser(projectUserId) {
   return request({
     url: '/project/removeProjectUser',
-    method: 'post',
+    method: 'delete',
     data: {
       projectUserId
     }
@@ -114,7 +102,7 @@ export function removeProjectUser(projectUserId) {
 export function removeProjectServer(projectServerId) {
   return request({
     url: '/project/removeProjectServer',
-    method: 'post',
+    method: 'delete',
     data: {
       projectServerId
     }
