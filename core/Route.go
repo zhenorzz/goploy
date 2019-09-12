@@ -43,7 +43,7 @@ type Router struct {
 
 // Start a router
 func (rt *Router) Start() {
-	http.HandleFunc("/", rt.router)
+	http.Handle("/", rt)
 }
 
 // Add router
@@ -76,7 +76,7 @@ func (rt *Router) Middleware(middleware func(w http.ResponseWriter, gp *Goploy) 
 	rt.middlewares = append(rt.middlewares, middleware)
 }
 
-func (rt *Router) router(w http.ResponseWriter, r *http.Request) {
+func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// If in production env, serve file in go server,
 	// else serve file in npm
 	if os.Getenv("ENV") == "production" {
