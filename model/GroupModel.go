@@ -2,7 +2,11 @@ package model
 
 import (
 	"errors"
+
+	sq "github.com/Masterminds/squirrel"
 )
+
+const table = "`group`"
 
 // Group mysql table group
 type Group struct {
@@ -17,13 +21,14 @@ type Groups []Group
 
 // AddRow add one row to table Group
 func (g Group) AddRow() (int64, error) {
-	result, err := DB.Exec(
-		"INSERT INTO `group` (name, create_time, update_time) VALUES (?, ?, ?)",
-		g.Name,
-		g.CreateTime,
-		g.UpdateTime,
-	)
+	result, err := sq.
+		Insert(table).
+		Columns("name", "create_time", "update_time").
+		Values(g.Name, g.CreateTime, g.UpdateTime).
+		RunWith(DB).
+		Exec()
 	if err != nil {
+		println(err.Error())
 		return 0, err
 	}
 	id, err := result.LastInsertId()
@@ -32,11 +37,12 @@ func (g Group) AddRow() (int64, error) {
 
 // EditRow edit one row to table group
 func (g Group) EditRow() error {
-	_, err := DB.Exec(
-		"UPDATE `group` SET name = ? WHERE id = ?",
-		g.Name,
-		g.ID,
-	)
+	_, err := sq.
+		Update(table).
+		Set("name", g.Name).
+		Where(sq.Eq{"id": g.ID}).
+		RunWith(DB).
+		Exec()
 	return err
 }
 
@@ -46,25 +52,25 @@ func (g Group) Remove() error {
 	if err != nil {
 		return errors.New("开启事务失败")
 	}
-	_, err = tx.Exec(
-		"DELETE FROM `group` WHERE id = ?",
-		g.ID,
-	)
+
+	_, err = sq.
+		Delete(table).
+		Where(sq.Eq{"id": g.ID}).
+		RunWith(tx).
+		Exec()
 
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	_, err = tx.Exec(
-		`UPDATE project SET 
-		  group_id = 0,
-		  update_time = ?
-		WHERE
-		 group_id = ?`,
-		g.UpdateTime,
-		g.ID,
-	)
+	_, err = sq.
+		Update("`project`").
+		Set("group_id", 0).
+		Set("update_time", g.UpdateTime).
+		Where(sq.Eq{"group_id": g.ID}).
+		RunWith(tx).
+		Exec()
 
 	if err != nil {
 		tx.Rollback()
@@ -79,10 +85,15 @@ func (g Group) Remove() error {
 
 // GetList Group row
 func (g Group) GetList() (Groups, error) {
-	rows, err := DB.Query("SELECT id, name, create_time, update_time FROM `group`")
+	rows, err := sq.
+		Select("id, name, create_time, update_time").
+		From(table).
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}
+
 	var projectGroups Groups
 	for rows.Next() {
 		var projectGroup Group
@@ -97,7 +108,12 @@ func (g Group) GetList() (Groups, error) {
 
 // GetAll Group row
 func (g Group) GetAll() (Groups, error) {
-	rows, err := DB.Query("SELECT id, name, create_time, update_time FROM `group` ORDER BY id DESC")
+	rows, err := sq.
+		Select("id, name, create_time, update_time").
+		From(table).
+		OrderBy("id DESC").
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}
@@ -115,10 +131,16 @@ func (g Group) GetAll() (Groups, error) {
 
 // GetData to Group
 func (g Group) GetData() (Group, error) {
-	var projectGroup Group
-	err := DB.QueryRow("SELECT name, create_time, update_time FROM `group` WHERE id = ?", g.ID).Scan(&projectGroup.Name, &projectGroup.CreateTime, &projectGroup.UpdateTime)
+	var group Group
+	err := sq.
+		Select("name, create_time, update_time").
+		From(table).
+		Where(sq.Eq{"id": g.ID}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&group.Name, &group.CreateTime, &group.UpdateTime)
 	if err != nil {
-		return projectGroup, errors.New("数据查询失败")
+		return group, errors.New("数据查询失败")
 	}
-	return projectGroup, nil
+	return group, nil
 }
