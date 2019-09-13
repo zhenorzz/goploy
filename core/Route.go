@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"goploy/model"
 	"io/ioutil"
 	"mime"
 	"net/http"
@@ -109,9 +110,9 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var tokenInfo TokenInfo
 	if _, ok := whiteList[r.URL.Path]; !ok {
 		// check token
-		goployTokenCookie, err := r.Cookie("goploy_token")
+		goployTokenCookie, err := r.Cookie(LoginCookieName)
 		if err != nil {
-			response := Response{Code: IllegalRequest, Message: "非法请求"}
+			response := Response{Code: IllegalRequest, Message: "Illegal request"}
 			response.JSON(w)
 			return
 		}
@@ -130,6 +131,13 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			ID:   int64(claims["id"].(float64)),
 			Name: claims["name"].(string),
 		}
+		goployTokenStr, err := model.User{ID: int64(claims["id"].(float64)), Name: claims["name"].(string)}.CreateToken()
+		if err == nil {
+			// update jwt time
+			cookie := http.Cookie{Name: LoginCookieName, Value: goployTokenStr, Path: "/", MaxAge: 86400, HttpOnly: true}
+			http.SetCookie(w, &cookie)
+		}
+
 	}
 
 	// save the body request data bucause ioutil.ReadAll will clear the requestBody

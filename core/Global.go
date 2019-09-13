@@ -18,3 +18,6 @@ const (
 	RoleGroupManager = "group-manager"
 	RoleMember       = "member"
 )
+
+// LoginCookieName jwt cookie name
+const LoginCookieName = "goploy_token"
