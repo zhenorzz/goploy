@@ -1,5 +1,9 @@
 package model
 
+import sq "github.com/Masterminds/squirrel"
+
+const installTraceTable = "`install_trace`"
+
 // InstallTrace mysql table for install trace
 type InstallTrace struct {
 	ID           int64  `json:"id"`
@@ -29,20 +33,12 @@ const (
 
 // AddRow add one row to table deploy and add id to deploy.ID
 func (it InstallTrace) AddRow() (int64, error) {
-	result, err := DB.Exec(
-		"INSERT INTO install_trace (token, server_id, server_name, detail, state, operator_id, operator_name, type, ext, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		it.Token,
-		it.ServerID,
-		it.ServerName,
-		it.Detail,
-		it.State,
-		it.OperatorID,
-		it.OperatorName,
-		it.Type,
-		it.Ext,
-		it.CreateTime,
-		it.UpdateTime,
-	)
+	result, err := sq.
+		Insert(installTraceTable).
+		Columns("token", "server_id", "server_name", "detail", "state", "operator_id", "operator_name", "type", "ext", "create_time", "update_time").
+		Values(it.Token, it.ServerID, it.ServerName, it.Detail, it.State, it.OperatorID, it.OperatorName, it.Type, it.Ext, it.CreateTime, it.UpdateTime).
+		RunWith(DB).
+		Exec()
 
 	if err != nil {
 		println(err.Error())
@@ -55,22 +51,13 @@ func (it InstallTrace) AddRow() (int64, error) {
 
 // GetListByToken InstallTrace row
 func (it InstallTrace) GetListByToken() (InstallTraces, error) {
-	rows, err := DB.Query(
-		`SELECT 
-			id,
-			token,
-			server_id,
-			server_name,
-			detail,
-			state,
-			operator_id,
-			operator_name,
-			type,
-			ext,
-			create_time,
-			update_time
-		FROM install_trace
-		WHERE token = ?`, it.Token)
+	rows, err := sq.
+		Select("id, token, server_id, server_name, detail, state, operator_id, operator_name, type, ext, create_time, update_time").
+		From(installTraceTable).
+		Where(sq.Eq{"token": it.Token}).
+		RunWith(DB).
+		Query()
+
 	if err != nil {
 		return nil, err
 	}
@@ -100,29 +87,15 @@ func (it InstallTrace) GetListByToken() (InstallTraces, error) {
 
 // GetPreviewByProjectID InstallTrace row
 func (it InstallTrace) GetPreviewByProjectID() (InstallTraces, error) {
-	rows, err := DB.Query(
-		`SELECT 
-			id,
-			token,
-			server_id,
-			server_name,
-			detail,
-			state,
-			operator_id,
-			operator_name,
-			type,
-			ext,
-			!EXISTS (SELECT id FROM install_trace AS it where it.state = 0 AND it.token = install_trace.token) as publish_state,
-			create_time,
-			update_time
-		FROM 
-			install_trace
-		WHERE 
-			project_id = ?
-		AND
-			type = ?
-		ORDER BY id DESC
-		LIMIT 15`, it.ServerID, Rsync)
+	rows, err := sq.
+		Select("id,token,server_id,server_name,detail,state,operator_id,operator_name,type,ext,create_time,update_time").
+		Column("!EXISTS (SELECT id FROM install_trace AS it where it.state = 0 AND it.token = install_trace.token) as publish_state").
+		From(installTraceTable).
+		Where(sq.Eq{"project_id": it.ServerID, "type": Rsync}).
+		Limit(15).
+		RunWith(DB).
+		Query()
+
 	if err != nil {
 		return nil, err
 	}
@@ -153,15 +126,12 @@ func (it InstallTrace) GetPreviewByProjectID() (InstallTraces, error) {
 
 // GetListGroupByToken InstallTrace token list
 func (it InstallTrace) GetListGroupByToken() (InstallTraces, error) {
-	rows, err := DB.Query(
-		`SELECT 
-			token,
-			MIN(state) as install_state
-		FROM 
-			install_trace
-		WHERE 
-			server_id = ?
-		GROUP BY token`, it.ServerID)
+	rows, err := sq.
+		Select("token, MIN(state) as install_state").
+		From(installTraceTable).
+		Where(sq.Eq{"server_id": it.ServerID}).
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}

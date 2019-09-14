@@ -6,7 +6,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 )
 
-const table = "`group`"
+const groupTable = "`group`"
 
 // Group mysql table group
 type Group struct {
@@ -22,7 +22,7 @@ type Groups []Group
 // AddRow add one row to table Group
 func (g Group) AddRow() (int64, error) {
 	result, err := sq.
-		Insert(table).
+		Insert(groupTable).
 		Columns("name", "create_time", "update_time").
 		Values(g.Name, g.CreateTime, g.UpdateTime).
 		RunWith(DB).
@@ -38,7 +38,7 @@ func (g Group) AddRow() (int64, error) {
 // EditRow edit one row to table group
 func (g Group) EditRow() error {
 	_, err := sq.
-		Update(table).
+		Update(groupTable).
 		Set("name", g.Name).
 		Where(sq.Eq{"id": g.ID}).
 		RunWith(DB).
@@ -54,7 +54,7 @@ func (g Group) Remove() error {
 	}
 
 	_, err = sq.
-		Delete(table).
+		Delete(groupTable).
 		Where(sq.Eq{"id": g.ID}).
 		RunWith(tx).
 		Exec()
@@ -87,7 +87,7 @@ func (g Group) Remove() error {
 func (g Group) GetList() (Groups, error) {
 	rows, err := sq.
 		Select("id, name, create_time, update_time").
-		From(table).
+		From(groupTable).
 		RunWith(DB).
 		Query()
 	if err != nil {
@@ -110,7 +110,7 @@ func (g Group) GetList() (Groups, error) {
 func (g Group) GetAll() (Groups, error) {
 	rows, err := sq.
 		Select("id, name, create_time, update_time").
-		From(table).
+		From(groupTable).
 		OrderBy("id DESC").
 		RunWith(DB).
 		Query()
@@ -134,7 +134,7 @@ func (g Group) GetData() (Group, error) {
 	var group Group
 	err := sq.
 		Select("name, create_time, update_time").
-		From(table).
+		From(groupTable).
 		Where(sq.Eq{"id": g.ID}).
 		RunWith(DB).
 		QueryRow().

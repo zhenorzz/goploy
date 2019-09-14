@@ -1,5 +1,13 @@
 package model
 
+import (
+	"strings"
+
+	sq "github.com/Masterminds/squirrel"
+)
+
+const packageTable = "`package`"
+
 // Package mysql table package
 type Package struct {
 	ID         int64  `json:"id"`
@@ -14,7 +22,12 @@ type Packages []Package
 
 // GetList package row
 func (p Package) GetList() (Packages, error) {
-	rows, err := DB.Query("SELECT id, name, size, create_time, update_time FROM package order by id desc")
+	rows, err := sq.
+		Select("id, name, size, create_time, update_time").
+		From(packageTable).
+		OrderBy("id DESC").
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +45,12 @@ func (p Package) GetList() (Packages, error) {
 
 // GetListInIDStr package row
 func (p Package) GetListInIDStr(IDStr string) (Packages, error) {
-	rows, err := DB.Query("SELECT id, name, size FROM package where id in (" + IDStr + ")")
+	rows, err := sq.
+		Select("id, name, size").
+		From(packageTable).
+		Where(sq.Eq{"id": strings.Split(IDStr, ",")}).
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +68,12 @@ func (p Package) GetListInIDStr(IDStr string) (Packages, error) {
 
 // GetAll package row
 func (p Package) GetAll() (Packages, error) {
-	rows, err := DB.Query("SELECT id, name, size, create_time, update_time FROM package ORDER BY id DESC")
+	rows, err := sq.
+		Select("id, name, size, create_time, update_time").
+		From(packageTable).
+		OrderBy("id DESC").
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +92,13 @@ func (p Package) GetAll() (Packages, error) {
 // GetData get package information
 func (p Package) GetData() (Package, error) {
 	var pkg Package
-	err := DB.QueryRow("SELECT id, name, size, create_time, update_time FROM package WHERE id = ?", p.ID).Scan(&pkg.ID, &pkg.Name, &pkg.Size, &pkg.CreateTime, &pkg.UpdateTime)
+	err := sq.
+		Select("id, name, size, create_time, update_time").
+		From(packageTable).
+		Where(sq.Eq{"id": p.ID}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&pkg.ID, &pkg.Name, &pkg.Size, &pkg.CreateTime, &pkg.UpdateTime)
 	if err != nil {
 		return pkg, err
 	}
@@ -79,7 +108,13 @@ func (p Package) GetData() (Package, error) {
 // GetDataByName get package information
 func (p Package) GetDataByName() (Package, error) {
 	var pkg Package
-	err := DB.QueryRow("SELECT id, name, size, create_time, update_time FROM package WHERE name = ?", p.Name).Scan(&pkg.ID, &pkg.Name, &pkg.Size, &pkg.CreateTime, &pkg.UpdateTime)
+	err := sq.
+		Select("id, name, size, create_time, update_time").
+		From(packageTable).
+		Where(sq.Eq{"name": p.Name}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&pkg.ID, &pkg.Name, &pkg.Size, &pkg.CreateTime, &pkg.UpdateTime)
 	if err != nil {
 		return pkg, err
 	}
@@ -88,13 +123,12 @@ func (p Package) GetDataByName() (Package, error) {
 
 // AddRow add one row to table package and add id to p.ID
 func (p Package) AddRow() (int64, error) {
-	result, err := DB.Exec(
-		"INSERT INTO package (name, size, create_time, update_time) VALUES (?, ?, ?, ?)",
-		p.Name,
-		p.Size,
-		p.CreateTime,
-		p.UpdateTime,
-	)
+	result, err := sq.
+		Insert(packageTable).
+		Columns("name", "size", "create_time", "update_time").
+		Values(p.Name, p.Size, p.CreateTime, p.UpdateTime).
+		RunWith(DB).
+		Exec()
 	if err != nil {
 		return 0, err
 	}
@@ -104,15 +138,12 @@ func (p Package) AddRow() (int64, error) {
 
 // EditRow edit one row to table package
 func (p Package) EditRow() error {
-	_, err := DB.Exec(
-		`UPDATE package SET 
-		  name = ?,
-		  size = ?
-		WHERE
-		 id = ?`,
-		p.Name,
-		p.Size,
-		p.ID,
-	)
+	_, err := sq.
+		Update(packageTable).
+		Set("name", p.Name).
+		Set("size", p.Size).
+		Where(sq.Eq{"id": p.ID}).
+		RunWith(DB).
+		Exec()
 	return err
 }
