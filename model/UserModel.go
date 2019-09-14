@@ -52,7 +52,7 @@ func (u User) GetDataByAccount() (User, error) {
 	err := sq.
 		Select("id, account, password, name, mobile, role, manage_group_str, state, create_time, update_time").
 		From(userTable).
-		Where(sq.Eq{"id": u.Account}).
+		Where(sq.Eq{"account": u.Account}).
 		RunWith(DB).
 		QueryRow().
 		Scan(&user.ID, &user.Account, &user.Password, &user.Name, &user.Mobile, &user.Role, &user.ManageGroupStr, &user.State, &user.CreateTime, &user.UpdateTime)
@@ -166,7 +166,7 @@ func (u User) EditRow() error {
 		if err != nil {
 			return err
 		}
-		builder.Set("password", hashedPassword)
+		builder = builder.Set("password", hashedPassword)
 	}
 	_, err := builder.RunWith(DB).Exec()
 	return err

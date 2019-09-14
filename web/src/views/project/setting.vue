@@ -10,15 +10,15 @@
       :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="name" label="项目名称" />
-      <el-table-column prop="url" label="项目地址" />
+      <el-table-column prop="name" label="项目名称" width="200" />
+      <el-table-column prop="url" label="项目地址" width="350" />
       <el-table-column prop="path" label="部署路径" />
       <el-table-column prop="group" label="分组" width="100">
         <template slot-scope="scope">
           {{ findGroupName(scope.row.groupId) }}
         </template>
       </el-table-column>
-      <el-table-column prop="environment" width="160" label="环境" />
+      <el-table-column prop="environment" width="120" label="环境" />
       <el-table-column prop="branch" width="160" label="分支" />
       <el-table-column prop="operation" label="操作" width="350">
         <template slot-scope="scope">

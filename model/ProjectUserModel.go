@@ -23,7 +23,7 @@ func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
 	rows, err := sq.
 		Select("project_user.id, project_id, user_id, user.name, project_user.create_time, project_user.update_time").
 		From(projectUserTable).
-		LeftJoin(userTable + " project_user.user_id = user.id").
+		LeftJoin(userTable + " ON project_user.user_id = user.id").
 		Where(sq.Eq{"project_id": pu.ProjectID}).
 		RunWith(DB).
 		Query()
@@ -71,17 +71,17 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 		Select("project_id, project.name, publisher_id, publisher_name, project.group_id, project.environment, project.branch, project.last_publish_token, project.update_time").
 		Column("!EXISTS (SELECT id FROM "+publishTraceTable+" where publish_trace.state = ? AND project.last_publish_token = publish_trace.token) as publish_state", Fail).
 		From(projectUserTable).
-		LeftJoin(projectTable + " project_user.project_id = project.id").
+		LeftJoin(projectTable + " ON project_user.project_id = project.id").
 		Where(sq.Eq{
 			"project_user.user_id": pu.UserID,
 			"project.state":        Enable,
 		})
 	if pu.GroupID != 0 {
-		builder.Where(sq.Eq{"project.group_id": pu.GroupID})
+		builder = builder.Where(sq.Eq{"project.group_id": pu.GroupID})
 	}
 
 	if len(pu.Name) > 0 {
-		builder.Where(sq.Like{"project.name": "%" + pu.Name + "%"})
+		builder = builder.Where(sq.Like{"project.name": "%" + pu.Name + "%"})
 	}
 
 	rows, err := builder.RunWith(DB).Query()
@@ -92,7 +92,17 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 	for rows.Next() {
 		var project Project
 
-		if err := rows.Scan(&project.ID, &project.Name, &project.PublisherID, &project.PublisherName, &project.GroupID, &project.Environment, &project.Branch, &project.PublishState, &project.LastPublishToken, &project.UpdateTime); err != nil {
+		if err := rows.Scan(
+			&project.ID,
+			&project.Name,
+			&project.PublisherID,
+			&project.PublisherName,
+			&project.GroupID,
+			&project.Environment,
+			&project.Branch,
+			&project.LastPublishToken,
+			&project.UpdateTime,
+			&project.PublishState); err != nil {
 			return projects, err
 		}
 		projects = append(projects, project)
@@ -102,12 +112,13 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 
 // GetDataByProjectUser  by  projectid and userid
 func (pu ProjectUser) GetDataByProjectUser() (ProjectUser, error) {
+	println()
 	var projectUser ProjectUser
 	err := sq.
-		Select("id, project_id, user_id ").
+		Select("id, project_id, user_id").
 		From(projectUserTable).
 		Where(sq.Eq{
-			"project_id": pu.UserID,
+			"project_id": pu.ProjectID,
 			"user_id":    pu.UserID,
 		}).
 		RunWith(DB).
@@ -129,7 +140,7 @@ func (pu ProjectUsers) AddMany() error {
 		Columns("project_id", "user_id", "create_time", "update_time")
 
 	for _, row := range pu {
-		builder.Values(row.ProjectID, row.UserID, row.CreateTime, row.UpdateTime)
+		builder = builder.Values(row.ProjectID, row.UserID, row.CreateTime, row.UpdateTime)
 	}
 	_, err := builder.RunWith(DB).Exec()
 	return err

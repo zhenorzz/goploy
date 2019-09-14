@@ -121,9 +121,9 @@ func (pt PublishTrace) GetPreviewByProjectID() (PublishTraces, error) {
 			&publishTrace.PublisherName,
 			&publishTrace.Type,
 			&publishTrace.Ext,
-			&publishTrace.PublishState,
 			&publishTrace.CreateTime,
-			&publishTrace.UpdateTime); err != nil {
+			&publishTrace.UpdateTime,
+			&publishTrace.PublishState); err != nil {
 			return nil, err
 		}
 		publishTraces = append(publishTraces, publishTrace)

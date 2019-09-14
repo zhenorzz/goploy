@@ -129,15 +129,15 @@ func (p Project) GetListByManagerGroupStr(managerGroupStr string) (Projects, err
 	if managerGroupStr == "" {
 		return nil, nil
 	}
-	builer := sq.
+	builder := sq.
 		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"state": Enable}).
 		OrderBy("id DESC")
 	if managerGroupStr != "all" {
-		builer.Where(sq.Eq{"group_id": strings.Split(managerGroupStr, ",")})
+		builder = builder.Where(sq.Eq{"group_id": strings.Split(managerGroupStr, ",")})
 	}
-	rows, err := builer.RunWith(DB).Query()
+	rows, err := builder.RunWith(DB).Query()
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +163,19 @@ func (p Project) GetData() (Project, error) {
 		OrderBy("id DESC").
 		RunWith(DB).
 		QueryRow().
-		Scan(&project.ID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.AfterPullScript, &project.AfterDeployScript, &project.RsyncOption, &project.CreateTime, &project.UpdateTime)
+		Scan(
+			&project.ID,
+			&project.GroupID,
+			&project.Name,
+			&project.URL,
+			&project.Path,
+			&project.Environment,
+			&project.Branch,
+			&project.AfterPullScript,
+			&project.AfterDeployScript,
+			&project.RsyncOption,
+			&project.CreateTime,
+			&project.UpdateTime)
 	if err != nil {
 		return project, err
 	}

@@ -144,7 +144,6 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-
 	projectUsersModel := model.ProjectUsers{}
 	for _, userID := range reqData.UserIDs {
 		projectUserModel := model.ProjectUser{

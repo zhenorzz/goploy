@@ -199,7 +199,6 @@ func (r *route) hasRole(userID int64) error {
 			return nil
 		}
 	}
-
 	return errors.New("无权限进行此操作")
 }
 

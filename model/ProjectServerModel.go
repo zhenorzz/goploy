@@ -25,7 +25,7 @@ func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 	rows, err := sq.
 		Select("project_server.id, project_id, server_id, server.name, server.ip, server.port, server.owner, project_server.create_time, project_server.update_time").
 		From(projectServerTable).
-		LeftJoin(serverTable + " project_server.server_id = server.id").
+		LeftJoin(serverTable + " ON project_server.server_id = server.id").
 		Where(sq.Eq{"project_id": ps.ProjectID}).
 		RunWith(DB).
 		Query()
@@ -65,7 +65,7 @@ func (ps ProjectServers) AddMany() error {
 		Columns("project_id", "server_id", "create_time", "update_time")
 
 	for _, row := range ps {
-		builder.Values(row.ProjectID, row.ServerID, row.CreateTime, row.UpdateTime)
+		builder = builder.Values(row.ProjectID, row.ServerID, row.CreateTime, row.UpdateTime)
 	}
 	_, err := builder.RunWith(DB).Exec()
 	return err

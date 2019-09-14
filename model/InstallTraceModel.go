@@ -89,7 +89,7 @@ func (it InstallTrace) GetListByToken() (InstallTraces, error) {
 func (it InstallTrace) GetPreviewByProjectID() (InstallTraces, error) {
 	rows, err := sq.
 		Select("id,token,server_id,server_name,detail,state,operator_id,operator_name,type,ext,create_time,update_time").
-		Column("!EXISTS (SELECT id FROM " + installTraceTable + " AS it where it.state = 0 AND it.token = install_trace.token) as publish_state").
+		Column("!EXISTS (SELECT id FROM " + installTraceTable + " AS it where it.state = 0 AND it.token = install_trace.token) as install_state").
 		From(installTraceTable).
 		Where(sq.Eq{"project_id": it.ServerID, "type": Rsync}).
 		Limit(15).
@@ -114,9 +114,9 @@ func (it InstallTrace) GetPreviewByProjectID() (InstallTraces, error) {
 			&installTrace.OperatorName,
 			&installTrace.Type,
 			&installTrace.Ext,
-			&installTrace.InstallState,
 			&installTrace.CreateTime,
-			&installTrace.UpdateTime); err != nil {
+			&installTrace.UpdateTime,
+			&installTrace.InstallState); err != nil {
 			return nil, err
 		}
 		installTraces = append(installTraces, installTrace)
@@ -130,6 +130,7 @@ func (it InstallTrace) GetListGroupByToken() (InstallTraces, error) {
 		Select("token, MIN(state) as install_state").
 		From(installTraceTable).
 		Where(sq.Eq{"server_id": it.ServerID}).
+		GroupBy("token").
 		RunWith(DB).
 		Query()
 	if err != nil {
