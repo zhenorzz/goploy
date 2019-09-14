@@ -1,5 +1,9 @@
 package model
 
+import sq "github.com/Masterminds/squirrel"
+
+const projectServerTable = "`project_server`"
+
 // ProjectServer project server relationship
 type ProjectServer struct {
 	ID          int64  `json:"id"`
@@ -18,21 +22,14 @@ type ProjectServers []ProjectServer
 
 // GetBindServerListByProjectID server row
 func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
-	rows, err := DB.Query(
-		`SELECT 
-			project_server.id,
-			project_id,
-			server_id,
-			server.name,
-			server.ip,
-			server.port,
-			server.owner,
-			project_server.create_time,
-			project_server.update_time
-		FROM project_server
-		LEFT JOIN server 
-		ON project_server.server_id = server.id
-		WHERE project_id = ?`, ps.ProjectID)
+	rows, err := sq.
+		Select("project_server.id, project_id, server_id, server.name, server.ip, server.port, server.owner, project_server.create_time, project_server.update_time").
+		From(projectServerTable).
+		LeftJoin(serverTable + " project_server.server_id = server.id").
+		Where(sq.Eq{"project_id": ps.ProjectID}).
+		RunWith(DB).
+		Query()
+
 	if err != nil {
 		return nil, err
 	}
@@ -62,27 +59,24 @@ func (ps ProjectServers) AddMany() error {
 	if len(ps) == 0 {
 		return nil
 	}
-	sqlStr := "INSERT INTO project_server (project_id, server_id, create_time, update_time) VALUES "
-	vals := []interface{}{}
+
+	builder := sq.
+		Insert(projectServerTable).
+		Columns("project_id", "server_id", "create_time", "update_time")
 
 	for _, row := range ps {
-		sqlStr += "(?, ?, ?, ?),"
-		vals = append(vals, row.ProjectID, row.ServerID, row.CreateTime, row.UpdateTime)
+		builder.Values(row.ProjectID, row.ServerID, row.CreateTime, row.UpdateTime)
 	}
-	//trim the last ,
-	sqlStr = sqlStr[0 : len(sqlStr)-1]
-	//prepare the statement
-	stmt, err := DB.Prepare(sqlStr)
-	if err != nil {
-		return err
-	}
-	//format all vals at once
-	_, err = stmt.Exec(vals...)
+	_, err := builder.RunWith(DB).Exec()
 	return err
 }
 
 // DeleteRow edit one row to table server
 func (ps ProjectServer) DeleteRow() error {
-	_, err := DB.Exec(`DELETE FROM project_server WHERE id = ?`, ps.ID)
+	_, err := sq.
+		Delete(projectServerTable).
+		Where(sq.Eq{"id": ps.ID}).
+		RunWith(DB).
+		Exec()
 	return err
 }

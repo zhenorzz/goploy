@@ -11,9 +11,9 @@ import (
 
 // Pagination struct
 type Pagination struct {
-	Page  int `json:"page"`
-	Rows  int `json:"rows"`
-	Total int `json:"total"`
+	Page  uint64 `json:"page"`
+	Rows  uint64 `json:"rows"`
+	Total uint64 `json:"total"`
 }
 
 // state type
@@ -44,11 +44,11 @@ func Init() {
 
 // NewPagination return pagination struct
 func NewPagination(param url.Values) (*Pagination, error) {
-	page, err := strconv.Atoi(param.Get("page"))
+	page, err := strconv.ParseUint(param.Get("page"), 10, 64)
 	if err != nil {
 		return nil, errors.New("page参数错误")
 	}
-	rows, err := strconv.Atoi(param.Get("rows"))
+	rows, err := strconv.ParseUint(param.Get("rows"), 10, 64)
 	if err != nil {
 		return nil, errors.New("rows参数错误")
 	}

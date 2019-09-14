@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -143,6 +144,15 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
+	}
+
+	userInfo, err := model.User{Account: reqData.Account}.GetDataByAccount()
+	if err != nil && err != sql.ErrNoRows {
+		response := core.Response{Message: err.Error()}
+		response.JSON(w)
+	} else if userInfo != (model.User{}) {
+		response := core.Response{Message: "账号已存在"}
+		response.JSON(w)
 	}
 	_, err = model.User{
 		Account:        reqData.Account,

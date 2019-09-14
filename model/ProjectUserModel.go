@@ -1,5 +1,9 @@
 package model
 
+import sq "github.com/Masterminds/squirrel"
+
+const projectUserTable = "`project_user`"
+
 // ProjectUser project user relationship
 type ProjectUser struct {
 	Project
@@ -16,18 +20,13 @@ type ProjectUsers []ProjectUser
 
 // GetBindUserListByProjectID user row
 func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
-	rows, err := DB.Query(
-		`SELECT 
-		    project_user.id,
-			project_id,
-			user_id,
-			user.name,
-			project_user.create_time,
-			project_user.update_time
-		FROM project_user
-		LEFT JOIN user 
-		ON project_user.user_id = user.id
-		WHERE project_id = ?`, pu.ProjectID)
+	rows, err := sq.
+		Select("project_user.id, project_id, user_id, user.name, project_user.create_time, project_user.update_time").
+		From(projectUserTable).
+		LeftJoin(userTable + " project_user.user_id = user.id").
+		Where(sq.Eq{"project_id": pu.ProjectID}).
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}
@@ -45,15 +44,12 @@ func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
 
 // GetListByUserID user row
 func (pu ProjectUser) GetListByUserID() (ProjectUsers, error) {
-	rows, err := DB.Query(
-		`SELECT 
-		    id,
-			project_id,
-			user_id,
-			create_time,
-			update_time
-		FROM project_user
-		WHERE user_id = ?`, pu.UserID)
+	rows, err := sq.
+		Select("id, project_id, user_id, create_time, update_time").
+		From(projectUserTable).
+		Where(sq.Eq{"user_id": pu.UserID}).
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}
@@ -71,44 +67,24 @@ func (pu ProjectUser) GetListByUserID() (ProjectUsers, error) {
 
 // GetDepolyListByUserID user row by status
 func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
-
-	sql := `
-	SELECT 
-		project_id, 
-		project.name, 
-		publisher_id, 
-		publisher_name, 
-		project.group_id, 
-		project.environment, 
-		project.branch, 
-		!EXISTS (SELECT id FROM publish_trace where publish_trace.state = 0 AND project.last_publish_token = publish_trace.token) as publish_state,
-		project.last_publish_token, 
-		project.update_time 
-	FROM 
-		project_user 
-	LEFT JOIN 
-		project 
-	ON 
-		project_user.project_id = project.id
-	WHERE 
-		project_user.user_id = ?
-	AND 
-		project.state = 1`
-
-	var arg []interface{}
-
-	arg = append(arg, pu.UserID)
+	builder := sq.
+		Select("project_id, project.name, publisher_id, publisher_name, project.group_id, project.environment, project.branch, project.last_publish_token, project.update_time").
+		Column("!EXISTS (SELECT id FROM "+publishTraceTable+" where publish_trace.state = ? AND project.last_publish_token = publish_trace.token) as publish_state", Fail).
+		From(projectUserTable).
+		LeftJoin(projectTable + " project_user.project_id = project.id").
+		Where(sq.Eq{
+			"project_user.user_id": pu.UserID,
+			"project.state":        Enable,
+		})
 	if pu.GroupID != 0 {
-		sql += " AND project.group_id = ?"
-		arg = append(arg, pu.GroupID)
+		builder.Where(sq.Eq{"project.group_id": pu.GroupID})
 	}
 
 	if len(pu.Name) > 0 {
-		sql += " AND project.name like ?"
-		arg = append(arg, "%"+pu.Name+"%")
+		builder.Where(sq.Like{"project.name": "%" + pu.Name + "%"})
 	}
 
-	rows, err := DB.Query(sql, arg...)
+	rows, err := builder.RunWith(DB).Query()
 	if err != nil {
 		return nil, err
 	}
@@ -127,15 +103,16 @@ func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
 // GetDataByProjectUser  by  projectid and userid
 func (pu ProjectUser) GetDataByProjectUser() (ProjectUser, error) {
 	var projectUser ProjectUser
-	err := DB.QueryRow(`
-		SELECT 
-			id, project_id, user_id 
-		FROM 
-			project_user
-		WHERE 
-			project_id = ? 
-		AND 
-			user_id = ?`, pu.ProjectID, pu.UserID).Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID)
+	err := sq.
+		Select("id, project_id, user_id ").
+		From(projectUserTable).
+		Where(sq.Eq{
+			"project_id": pu.UserID,
+			"user_id":    pu.UserID,
+		}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID)
 	if err != nil {
 		return projectUser, err
 	}
@@ -147,27 +124,23 @@ func (pu ProjectUsers) AddMany() error {
 	if len(pu) == 0 {
 		return nil
 	}
-	sqlStr := "INSERT INTO project_user (project_id, user_id, create_time, update_time) VALUES "
-	vals := []interface{}{}
+	builder := sq.
+		Insert(projectUserTable).
+		Columns("project_id", "user_id", "create_time", "update_time")
 
 	for _, row := range pu {
-		sqlStr += "(?, ?, ?, ?),"
-		vals = append(vals, row.ProjectID, row.UserID, row.CreateTime, row.UpdateTime)
+		builder.Values(row.ProjectID, row.UserID, row.CreateTime, row.UpdateTime)
 	}
-	//trim the last ,
-	sqlStr = sqlStr[0 : len(sqlStr)-1]
-	//prepare the statement
-	stmt, err := DB.Prepare(sqlStr)
-	if err != nil {
-		return err
-	}
-	//format all vals at once
-	_, err = stmt.Exec(vals...)
+	_, err := builder.RunWith(DB).Exec()
 	return err
 }
 
 // DeleteRow edit one row to table ProjectUser
 func (pu ProjectUser) DeleteRow() error {
-	_, err := DB.Exec(`DELETE FROM project_user WHERE id = ?`, pu.ID)
+	_, err := sq.
+		Delete(projectUserTable).
+		Where(sq.Eq{"id": pu.ID}).
+		RunWith(DB).
+		Exec()
 	return err
 }

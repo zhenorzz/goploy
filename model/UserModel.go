@@ -2,13 +2,15 @@ package model
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
+
+const userTable = "`user`"
 
 // User mysql table user
 type User struct {
@@ -31,32 +33,13 @@ type Users []User
 // GetData add user information to u *User
 func (u User) GetData() (User, error) {
 	var user User
-	err := DB.QueryRow(`
-		SELECT 
-			id, 
-			account, 
-			password,
-			name, 
-			mobile, 
-			role, 
-			manage_group_str,
-			state,
-			create_time, 
-			update_time  
-		FROM 
-			user 
-		WHERE 
-			id = ?`, u.ID).Scan(
-		&user.ID,
-		&user.Account,
-		&user.Password,
-		&user.Name,
-		&user.Mobile,
-		&user.Role,
-		&user.ManageGroupStr,
-		&user.State,
-		&user.CreateTime,
-		&user.UpdateTime)
+	err := sq.
+		Select("id, account, password, name, mobile, role, manage_group_str, state, create_time, update_time").
+		From(userTable).
+		Where(sq.Eq{"id": u.ID}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&user.ID, &user.Account, &user.Password, &user.Name, &user.Mobile, &user.Role, &user.ManageGroupStr, &user.State, &user.CreateTime, &user.UpdateTime)
 	if err != nil {
 		return user, err
 	}
@@ -66,32 +49,13 @@ func (u User) GetData() (User, error) {
 // GetDataByAccount get user information
 func (u User) GetDataByAccount() (User, error) {
 	var user User
-	err := DB.QueryRow(`
-		SELECT 
-			id, 
-			account, 
-			password,
-			name, 
-			mobile, 
-			role, 
-			manage_group_str,
-			state,
-			create_time, 
-			update_time  
-		FROM 
-			user 
-		WHERE 
-		account = ?`, u.Account).Scan(
-		&user.ID,
-		&user.Account,
-		&user.Password,
-		&user.Name,
-		&user.Mobile,
-		&user.Role,
-		&user.ManageGroupStr,
-		&user.State,
-		&user.CreateTime,
-		&user.UpdateTime)
+	err := sq.
+		Select("id, account, password, name, mobile, role, manage_group_str, state, create_time, update_time").
+		From(userTable).
+		Where(sq.Eq{"id": u.Account}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&user.ID, &user.Account, &user.Password, &user.Name, &user.Mobile, &user.Role, &user.ManageGroupStr, &user.State, &user.CreateTime, &user.UpdateTime)
 	if err != nil {
 		return user, err
 	}
@@ -100,10 +64,15 @@ func (u User) GetDataByAccount() (User, error) {
 
 // GetList get many user row
 func (u Users) GetList(pagination *Pagination) (Users, error) {
-	rows, err := DB.Query(
-		"SELECT id, account, name, mobile, role, manage_group_str, create_time, update_time FROM user WHERE state = 1 ORDER BY id DESC LIMIT ?, ?",
-		(pagination.Page-1)*pagination.Rows,
-		pagination.Rows)
+	rows, err := sq.
+		Select("id, account, name, mobile, role, manage_group_str, create_time, update_time").
+		From(userTable).
+		Where(sq.Eq{"state": Enable}).
+		OrderBy("id DESC").
+		Limit(pagination.Rows).
+		Offset((pagination.Page - 1) * pagination.Rows).
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +85,12 @@ func (u Users) GetList(pagination *Pagination) (Users, error) {
 		}
 		users = append(users, user)
 	}
-	err = DB.QueryRow(`SELECT COUNT(*) AS count FROM user`).Scan(&pagination.Total)
+	err = sq.
+		Select("COUNT(*) AS count").
+		From(userTable).
+		RunWith(DB).
+		QueryRow().
+		Scan(&pagination.Total)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +99,13 @@ func (u Users) GetList(pagination *Pagination) (Users, error) {
 
 // GetAll user row
 func (u User) GetAll() (Users, error) {
-	rows, err := DB.Query("SELECT id, account, name, mobile, create_time, update_time FROM user WHERE state = 1 ORDER BY id DESC")
+	rows, err := sq.
+		Select("id, account, name, mobile, create_time, update_time").
+		From(userTable).
+		Where(sq.Eq{"state": Enable}).
+		OrderBy("id DESC").
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}
@@ -143,16 +123,6 @@ func (u User) GetAll() (Users, error) {
 
 // AddRow add one row to table user and add id to u.ID
 func (u User) AddRow() (int64, error) {
-	var count int
-	err := DB.QueryRow("SELECT COUNT(*) AS count FROM user WHERE account = ?", u.Account).Scan(&count)
-	fmt.Println(count)
-	if err != nil {
-		return 0, err
-	}
-	if count > 0 {
-		return 0, errors.New("账号已存在")
-	}
-
 	if u.Password == "" {
 		u.Password = u.Account + "!@#"
 	}
@@ -163,17 +133,13 @@ func (u User) AddRow() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	result, err := DB.Exec(
-		"INSERT INTO user (account, password, name, mobile, role, manage_group_str, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-		u.Account,
-		string(hashedPassword),
-		u.Name,
-		u.Mobile,
-		u.Role,
-		u.ManageGroupStr,
-		u.CreateTime,
-		u.UpdateTime,
-	)
+	result, err := sq.
+		Insert(userTable).
+		Columns("account", "password", "name", "mobile", "role", "manage_group_str", "create_time", "update_time").
+		Values(u.Account, string(hashedPassword), u.Name, u.Mobile, u.Role, u.ManageGroupStr, u.CreateTime, u.UpdateTime).
+		RunWith(DB).
+		Exec()
+
 	if err != nil {
 		return 0, err
 	}
@@ -183,62 +149,40 @@ func (u User) AddRow() (int64, error) {
 
 // EditRow edit one row to table server
 func (u User) EditRow() error {
-	var err error
-	if u.Password == "" {
-		_, err = DB.Exec(
-			`UPDATE user SET 
-			  name = ?,
-			  mobile = ?,
-			  role = ?,
-			  manage_group_str = ?
-			WHERE
-			 id = ?`,
-			u.Name,
-			u.Mobile,
-			u.Role,
-			u.ManageGroupStr,
-			u.ID,
-		)
-	} else {
+	builder := sq.
+		Update(userTable).
+		SetMap(sq.Eq{
+			"name":             u.Name,
+			"mobile":           u.Mobile,
+			"role":             u.Role,
+			"manage_group_str": u.ManageGroupStr,
+			"update_time":      u.UpdateTime,
+		}).
+		Where(sq.Eq{"id": u.ID})
+	if u.Password != "" {
 		password := []byte(u.Password)
 		// Hashing the password with the default cost of 10
 		hashedPassword, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 		if err != nil {
 			return err
 		}
-		_, err = DB.Exec(
-			`UPDATE user SET 
-			  name = ?,
-			  mobile = ?,
-			  role = ?,
-			  manage_group_str = ?,
-			  password = ?
-			WHERE
-			 id = ?`,
-			u.Name,
-			u.Mobile,
-			u.Role,
-			u.ManageGroupStr,
-			hashedPassword,
-			u.ID,
-		)
+		builder.Set("password", hashedPassword)
 	}
-
+	_, err := builder.RunWith(DB).Exec()
 	return err
 }
 
 // RemoveRow User
 func (u User) RemoveRow() error {
-	_, err := DB.Exec(
-		`UPDATE user SET 
-		  state = ?,
-		  update_time = ?
-		WHERE
-		 id = ?`,
-		Disable,
-		u.UpdateTime,
-		u.ID,
-	)
+	_, err := sq.
+		Update(userTable).
+		SetMap(sq.Eq{
+			"state":       Disable,
+			"update_time": u.UpdateTime,
+		}).
+		Where(sq.Eq{"id": u.ID}).
+		RunWith(DB).
+		Exec()
 	return err
 }
 
@@ -250,21 +194,29 @@ func (u User) UpdatePassword() error {
 	if err != nil {
 		return err
 	}
-	_, err = DB.Exec(
-		"UPDATE user SET password = ? where id = ?",
-		string(hashedPassword),
-		u.ID,
-	)
+	_, err = sq.
+		Update(userTable).
+		SetMap(sq.Eq{
+			"password":    string(hashedPassword),
+			"update_time": u.UpdateTime,
+		}).
+		Where(sq.Eq{"id": u.ID}).
+		RunWith(DB).
+		Exec()
 	return err
 }
 
 // UpdateLastLoginTime return err
 func (u User) UpdateLastLoginTime() error {
-	_, err := DB.Exec(
-		"UPDATE user SET last_login_time = ? where id = ?",
-		u.LastLoginTime,
-		u.ID,
-	)
+	_, err := sq.
+		Update(userTable).
+		SetMap(sq.Eq{
+			"last_login_time": u.LastLoginTime,
+		}).
+		Where(sq.Eq{"id": u.ID}).
+		RunWith(DB).
+		Exec()
+
 	return err
 }
 

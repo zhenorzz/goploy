@@ -65,7 +65,7 @@ func (g Group) Remove() error {
 	}
 
 	_, err = sq.
-		Update("`project`").
+		Update(projectTable).
 		Set("group_id", 0).
 		Set("update_time", g.UpdateTime).
 		Where(sq.Eq{"group_id": g.ID}).

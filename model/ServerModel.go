@@ -2,7 +2,12 @@ package model
 
 import (
 	"errors"
+	"strings"
+
+	sq "github.com/Masterminds/squirrel"
 )
+
+const serverTable = "`server`"
 
 // Server mysql table server
 type Server struct {
@@ -22,7 +27,12 @@ type Servers []Server
 
 // GetList server row
 func (s Server) GetList() (Servers, error) {
-	rows, err := DB.Query("SELECT id, name, ip, port, owner, group_id, create_time, update_time FROM server WHERE state = 1")
+	rows, err := sq.
+		Select("id, name, ip, port, owner, group_id, create_time, update_time").
+		From(serverTable).
+		Where(sq.Eq{"state": Enable}).
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}
@@ -40,14 +50,18 @@ func (s Server) GetList() (Servers, error) {
 
 // GetListByManagerGroupStr server row
 func (s Server) GetListByManagerGroupStr(managerGroupStr string) (Servers, error) {
-	sql := "SELECT id, name, ip, port, owner, group_id, create_time, update_time FROM server WHERE state = 1"
 	if managerGroupStr == "" {
 		return nil, nil
-	} else if managerGroupStr != "all" {
-		sql += " AND group_id IN (" + managerGroupStr + ")"
 	}
-	sql += " ORDER BY id DESC"
-	rows, err := DB.Query(sql)
+	builder := sq.
+		Select("id, name, ip, port, owner, group_id, create_time, update_time").
+		From(serverTable).
+		Where(sq.Eq{"state": Enable}).
+		OrderBy("id DESC")
+	if managerGroupStr != "all" {
+		builder.Where(sq.Eq{"group_id": strings.Split(managerGroupStr, ",")})
+	}
+	rows, err := builder.RunWith(DB).Query()
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +79,13 @@ func (s Server) GetListByManagerGroupStr(managerGroupStr string) (Servers, error
 
 // GetAll server row
 func (s Server) GetAll() (Servers, error) {
-	rows, err := DB.Query("SELECT id, name, ip, owner, group_id, create_time, update_time FROM server WHERE state = 1 ORDER BY id DESC")
+	rows, err := sq.
+		Select("id, name, ip, owner, group_id, create_time, update_time").
+		From(serverTable).
+		Where(sq.Eq{"state": Enable}).
+		OrderBy("id DESC").
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +104,14 @@ func (s Server) GetAll() (Servers, error) {
 // GetData add server information to s *Server
 func (s Server) GetData() (Server, error) {
 	var server Server
-	err := DB.QueryRow("SELECT id, name, ip, port, owner, group_id, create_time, update_time FROM server WHERE id = ?", s.ID).Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime)
+	err := sq.
+		Select("id, name, ip, port, owner, group_id, create_time, update_time").
+		From(serverTable).
+		Where(sq.Eq{"id": s.ID}).
+		OrderBy("id DESC").
+		RunWith(DB).
+		QueryRow().
+		Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime)
 	if err != nil {
 		return server, errors.New("数据查询失败")
 	}
@@ -93,16 +120,12 @@ func (s Server) GetData() (Server, error) {
 
 // AddRow add one row to table server and add id to s.ID
 func (s Server) AddRow() (int64, error) {
-	result, err := DB.Exec(
-		"INSERT INTO server (name, ip, port, owner, group_id, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		s.Name,
-		s.IP,
-		s.Port,
-		s.Owner,
-		s.GroupID,
-		s.CreateTime,
-		s.UpdateTime,
-	)
+	result, err := sq.
+		Insert(serverTable).
+		Columns("name", "ip", "port", "owner", "group_id", "create_time", "update_time").
+		Values(s.Name, s.IP, s.Port, s.Owner, s.GroupID, s.CreateTime, s.UpdateTime).
+		RunWith(DB).
+		Exec()
 	if err != nil {
 		return 0, err
 	}
@@ -112,24 +135,19 @@ func (s Server) AddRow() (int64, error) {
 
 // EditRow edit one row to table server
 func (s Server) EditRow() error {
-	_, err := DB.Exec(
-		`UPDATE server SET 
-		  name = ?,
-		  ip = ?,
-		  port = ?,
-		  owner = ?, 
-		  group_id = ?,
-		  update_time = ?
-		WHERE
-		 id = ?`,
-		s.Name,
-		s.IP,
-		s.Port,
-		s.Owner,
-		s.GroupID,
-		s.UpdateTime,
-		s.ID,
-	)
+	_, err := sq.
+		Update(serverTable).
+		SetMap(sq.Eq{
+			"name":        s.Name,
+			"ip":          s.IP,
+			"port":        s.Port,
+			"owner":       s.Owner,
+			"group_id":    s.GroupID,
+			"update_time": s.UpdateTime,
+		}).
+		Where(sq.Eq{"id": s.ID}).
+		RunWith(DB).
+		Exec()
 	return err
 }
 
@@ -139,27 +157,25 @@ func (s Server) Remove() error {
 	if err != nil {
 		return errors.New("开启事务失败")
 	}
-	_, err = tx.Exec(
-		`UPDATE server SET 
-		  state = ?,
-		  update_time = ?
-		WHERE
-		 id = ?`,
-		Disable,
-		s.UpdateTime,
-		s.ID,
-	)
+	_, err = sq.
+		Update(serverTable).
+		SetMap(sq.Eq{
+			"state":       Disable,
+			"update_time": s.UpdateTime,
+		}).
+		Where(sq.Eq{"id": s.ID}).
+		RunWith(tx).
+		Exec()
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
-	_, err = tx.Exec(
-		`DELETE FROM 
-			project_server 
-		WHERE
-		 server_id = ?`,
-		s.ID,
-	)
+
+	_, err = sq.
+		Delete(projectServerTable).
+		Where(sq.Eq{"server_id": s.ID}).
+		RunWith(tx).
+		Exec()
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -173,11 +189,14 @@ func (s Server) Remove() error {
 
 // Install server
 func (s Server) Install() error {
-	_, err := DB.Exec(
-		"UPDATE server SET last_install_token = ?, update_time = ? WHERE id = ?",
-		s.LastInstallToken,
-		s.UpdateTime,
-		s.ID,
-	)
+	_, err := sq.
+		Update(serverTable).
+		SetMap(sq.Eq{
+			"last_install_token": s.LastInstallToken,
+			"update_time":        s.UpdateTime,
+		}).
+		Where(sq.Eq{"id": s.ID}).
+		RunWith(DB).
+		Exec()
 	return err
 }

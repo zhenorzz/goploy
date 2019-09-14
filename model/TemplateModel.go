@@ -1,5 +1,9 @@
 package model
 
+import sq "github.com/Masterminds/squirrel"
+
+const templateTable = "`template`"
+
 // Template mysql table template
 type Template struct {
 	ID           int64  `json:"id"`
@@ -16,15 +20,12 @@ type Templates []Template
 
 // AddRow add one row to table template and add id to tpl.ID
 func (tpl Template) AddRow() (int64, error) {
-	result, err := DB.Exec(
-		"INSERT INTO template (name, remark, script, package_id_str, create_time, update_time) VALUES (?, ?, ?, ?, ?, ?)",
-		tpl.Name,
-		tpl.Remark,
-		tpl.Script,
-		tpl.PackageIDStr,
-		tpl.CreateTime,
-		tpl.UpdateTime,
-	)
+	result, err := sq.
+		Insert(templateTable).
+		Columns("name", "remark", "script", "package_id_str", "create_time", "update_time").
+		Values(tpl.Name, tpl.Remark, tpl.Script, tpl.PackageIDStr, tpl.CreateTime, tpl.UpdateTime).
+		RunWith(DB).
+		Exec()
 	if err != nil {
 		return 0, err
 	}
@@ -34,32 +35,37 @@ func (tpl Template) AddRow() (int64, error) {
 
 // EditRow edit one row to table template
 func (tpl Template) EditRow() error {
-	_, err := DB.Exec(
-		`UPDATE template SET 
-		  name = ?,
-		  remark = ?,
-		  script = ?,
-		  package_id_str = ?
-		WHERE
-		 id = ?`,
-		tpl.Name,
-		tpl.Remark,
-		tpl.Script,
-		tpl.PackageIDStr,
-		tpl.ID,
-	)
+	_, err := sq.
+		Update(templateTable).
+		SetMap(sq.Eq{
+			"name":           tpl.Name,
+			"remark":         tpl.Remark,
+			"script":         tpl.Script,
+			"package_id_str": tpl.PackageIDStr,
+		}).
+		Where(sq.Eq{"id": tpl.ID}).
+		RunWith(DB).
+		Exec()
 	return err
 }
 
 // Remove Template
 func (tpl Template) Remove() error {
-	_, err := DB.Exec(`DELETE FROM template WHERE id = ?`, tpl.ID)
+	_, err := sq.
+		Delete(templateTable).
+		Where(sq.Eq{"server_id": tpl.ID}).
+		RunWith(DB).
+		Exec()
 	return err
 }
 
 // GetList template row
 func (tpl Template) GetList() (Templates, error) {
-	rows, err := DB.Query("SELECT id, name, remark, script, package_id_str, create_time, update_time FROM template")
+	rows, err := sq.
+		Select("id, name, remark, script, package_id_str, create_time, update_time").
+		From(templateTable).
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +83,12 @@ func (tpl Template) GetList() (Templates, error) {
 
 // GetAll template row
 func (tpl Template) GetAll() (Templates, error) {
-	rows, err := DB.Query("SELECT id, name, remark, script, package_id_str, create_time, update_time FROM template ORDER BY id DESC")
+	rows, err := sq.
+		Select("id, name, remark, script, package_id_str, create_time, update_time").
+		From(templateTable).
+		OrderBy("id DESC").
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +107,14 @@ func (tpl Template) GetAll() (Templates, error) {
 // GetData add template information to tpl *Template
 func (tpl Template) GetData() (Template, error) {
 	var template Template
-	err := DB.QueryRow("SELECT id, name, remark, script, package_id_str, create_time, update_time FROM template WHERE id = ?", tpl.ID).Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.PackageIDStr, &template.CreateTime, &template.UpdateTime)
+	err := sq.
+		Select("id, name, remark, script, package_id_str, create_time, update_time").
+		From(templateTable).
+		Where(sq.Eq{"id": tpl.ID}).
+		OrderBy("id DESC").
+		RunWith(DB).
+		QueryRow().
+		Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.PackageIDStr, &template.CreateTime, &template.UpdateTime)
 	if err != nil {
 		return template, err
 	}
