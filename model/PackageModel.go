@@ -21,30 +21,41 @@ type Package struct {
 type Packages []Package
 
 // GetList package row
-func (p Package) GetList() (Packages, error) {
+func (p Package) GetList(pagination Pagination) (Packages, Pagination, error) {
 	rows, err := sq.
 		Select("id, name, size, create_time, update_time").
 		From(packageTable).
+		Limit(pagination.Rows).
+		Offset((pagination.Page - 1) * pagination.Rows).
 		OrderBy("id DESC").
 		RunWith(DB).
 		Query()
 	if err != nil {
-		return nil, err
+		return nil, pagination, err
 	}
 	var packages Packages
 	for rows.Next() {
 		var pkg Package
 
 		if err := rows.Scan(&pkg.ID, &pkg.Name, &pkg.Size, &pkg.CreateTime, &pkg.UpdateTime); err != nil {
-			return nil, err
+			return nil, pagination, err
 		}
 		packages = append(packages, pkg)
 	}
-	return packages, nil
+	err = sq.
+		Select("COUNT(*) AS count").
+		From(packageTable).
+		RunWith(DB).
+		QueryRow().
+		Scan(&pagination.Total)
+	if err != nil {
+		return nil, pagination, err
+	}
+	return packages, pagination, nil
 }
 
-// GetListInIDStr package row
-func (p Package) GetListInIDStr(IDStr string) (Packages, error) {
+// GetAllInIDStr package row
+func (p Package) GetAllInIDStr(IDStr string) (Packages, error) {
 	rows, err := sq.
 		Select("id, name, size").
 		From(packageTable).

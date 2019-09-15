@@ -60,25 +60,37 @@ func (tpl Template) Remove() error {
 }
 
 // GetList template row
-func (tpl Template) GetList() (Templates, error) {
+func (tpl Template) GetList(pagination Pagination) (Templates, Pagination, error) {
 	rows, err := sq.
 		Select("id, name, remark, script, package_id_str, create_time, update_time").
 		From(templateTable).
+		Limit(pagination.Rows).
+		Offset((pagination.Page - 1) * pagination.Rows).
+		OrderBy("id DESC").
 		RunWith(DB).
 		Query()
 	if err != nil {
-		return nil, err
+		return nil, pagination, err
 	}
 	var templates Templates
 	for rows.Next() {
 		var template Template
 
 		if err := rows.Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.PackageIDStr, &template.CreateTime, &template.UpdateTime); err != nil {
-			return nil, err
+			return nil, pagination, err
 		}
 		templates = append(templates, template)
 	}
-	return templates, nil
+	err = sq.
+		Select("COUNT(*) AS count").
+		From(templateTable).
+		RunWith(DB).
+		QueryRow().
+		Scan(&pagination.Total)
+	if err != nil {
+		return nil, pagination, err
+	}
+	return templates, pagination, nil
 }
 
 // GetAll template row

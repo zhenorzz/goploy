@@ -35,6 +35,16 @@
             </template>
           </el-table-column>
         </el-table>
+        <el-row type="flex" justify="end" style="margin-top: 10px;">
+          <el-pagination
+            hide-on-single-page
+            :total="tplPagination.total"
+            :page-size="tplPagination.rows"
+            background
+            layout="prev, pager, next"
+            @current-change="handleTplPageChange"
+          />
+        </el-row>
       </el-tab-pane>
       <el-tab-pane label="安装包" name="package">
         <el-table
@@ -64,6 +74,16 @@
             </template>
           </el-table-column>
         </el-table>
+        <el-row type="flex" justify="end" style="margin-top: 10px;">
+          <el-pagination
+            hide-on-single-page
+            :total="pkgPagination.total"
+            :page-size="pkgPagination.rows"
+            background
+            layout="prev, pager, next"
+            @current-change="handlePkgPageChange"
+          />
+        </el-row>
       </el-tab-pane>
     </el-tabs>
     <el-dialog title="模板设置" :visible.sync="dialogVisible">
@@ -133,7 +153,17 @@ export default {
       dialogVisible: false,
       activeTableName: 'template',
       templateTableData: [],
+      tplPagination: {
+        page: 1,
+        rows: 11,
+        total: 0
+      },
       packageTableData: [],
+      pkgPagination: {
+        page: 1,
+        rows: 11,
+        total: 0
+      },
       packageOption: [],
       action: process.env.VUE_APP_BASE_API + '/package/upload',
       tempFormData: {},
@@ -173,18 +203,24 @@ export default {
   },
   methods: {
     getTemplateList() {
-      getTemplateList().then((response) => {
+      getTemplateList(this.tplPagination).then((response) => {
         const templateList = response.data.templateList || []
         templateList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
           element.updateTime = parseTime(element.updateTime)
         })
         this.templateTableData = templateList
+        this.tplPagination = response.data.pagination
       })
     },
 
+    handleTplPageChange(val) {
+      this.tplPagination.page = val
+      this.getTemplateList()
+    },
+
     getPackageList() {
-      getPackageList().then((response) => {
+      getPackageList(this.pkgPagination).then((response) => {
         const packageList = response.data.packageList || []
         packageList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
@@ -192,7 +228,13 @@ export default {
           element.humanSize = humanSize(element.size)
         })
         this.packageOption = this.packageTableData = packageList
+        this.pkgPagination = response.data.pagination
       })
+    },
+
+    handlePkgPageChange(val) {
+      this.pkgPagination.page = val
+      this.getPackageList()
     },
 
     beforeUpload(file) {

@@ -17,16 +17,22 @@ type Package Controller
 // GetList  list
 func (Package) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RespData struct {
-		Package model.Packages `json:"packageList"`
+		Package    model.Packages   `json:"packageList"`
+		Pagination model.Pagination `json:"pagination"`
 	}
-
-	packageList, err := model.Package{}.GetList()
+	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RespData{Package: packageList}}
+	packageList, pagination, err := model.Package{}.GetList(pagination)
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Data: RespData{Package: packageList, Pagination: pagination}}
 	response.JSON(w)
 }
 

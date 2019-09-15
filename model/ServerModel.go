@@ -31,6 +31,9 @@ func (s Server) GetList(pagination Pagination) (Servers, Pagination, error) {
 		Select("id, name, ip, port, owner, group_id, create_time, update_time").
 		From(serverTable).
 		Where(sq.Eq{"state": Enable}).
+		Limit(pagination.Rows).
+		Offset((pagination.Page - 1) * pagination.Rows).
+		OrderBy("id DESC").
 		RunWith(DB).
 		Query()
 	if err != nil {
@@ -67,6 +70,8 @@ func (s Server) GetListByManagerGroupStr(pagination Pagination, managerGroupStr 
 		Select("id, name, ip, port, owner, group_id, create_time, update_time").
 		From(serverTable).
 		Where(sq.Eq{"state": Enable}).
+		Limit(pagination.Rows).
+		Offset((pagination.Page - 1) * pagination.Rows).
 		OrderBy("id DESC")
 	pageBuilder := sq.
 		Select("COUNT(*) AS count").

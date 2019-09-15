@@ -254,7 +254,7 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 		UpdateTime:   time.Now().Unix(),
 	}
 	if template.PackageIDStr != "" {
-		packages, err := model.Package{}.GetListInIDStr(template.PackageIDStr)
+		packages, err := model.Package{}.GetAllInIDStr(template.PackageIDStr)
 		if err != nil {
 			core.Log(core.ERROR, server.LastInstallToken+":"+err.Error())
 			return

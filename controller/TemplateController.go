@@ -15,16 +15,22 @@ type Template Controller
 // GetList template list
 func (template Template) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RespData struct {
-		Template model.Templates `json:"templateList"`
+		Template   model.Templates  `json:"templateList"`
+		Pagination model.Pagination `json:"pagination"`
 	}
-
-	templateList, err := model.Template{}.GetList()
+	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RespData{Template: templateList}}
+	templateList, pagination, err := model.Template{}.GetList(pagination)
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Data: RespData{Template: templateList, Pagination: pagination}}
 	response.JSON(w)
 }
 

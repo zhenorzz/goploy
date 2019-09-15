@@ -105,6 +105,8 @@ func (p Project) GetList(pagination Pagination) (Projects, Pagination, error) {
 		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"state": Enable}).
+		Limit(pagination.Rows).
+		Offset((pagination.Page - 1) * pagination.Rows).
 		OrderBy("id DESC").
 		RunWith(DB).
 		Query()
@@ -143,6 +145,8 @@ func (p Project) GetListByManagerGroupStr(pagination Pagination, managerGroupStr
 		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"state": Enable}).
+		Limit(pagination.Rows).
+		Offset((pagination.Page - 1) * pagination.Rows).
 		OrderBy("id DESC")
 	pageBuilder := sq.
 		Select("COUNT(*) AS count").
