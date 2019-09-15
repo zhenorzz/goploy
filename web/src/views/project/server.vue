@@ -233,11 +233,13 @@ export default {
         this.pagination = response.data.pagination
       })
     },
+
     // 分页事件
     handlePageChange(val) {
       this.pagination.page = val
       this.getList()
     },
+
     getGroupOption() {
       getGroupOption().then((response) => {
         this.groupOption = response.data.groupList || []

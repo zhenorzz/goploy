@@ -20,21 +20,29 @@ type Project Controller
 // GetList project list
 func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RespData struct {
-		Project model.Projects `json:"projectList"`
+		Project    model.Projects   `json:"projectList"`
+		Pagination model.Pagination `json:"pagination"`
 	}
+	pagination, err := model.PaginationFrom(gp.URLQuery)
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
 	userData, err := core.GetUserInfo(gp.TokenInfo.ID)
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	projectList, err := model.Project{}.GetListByManagerGroupStr(userData.ManageGroupStr)
+	projectList, pagination, err := model.Project{}.GetListByManagerGroupStr(pagination, userData.ManageGroupStr)
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RespData{Project: projectList}}
+	response := core.Response{Data: RespData{Project: projectList, Pagination: pagination}}
 	response.JSON(w)
 }
 

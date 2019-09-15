@@ -100,7 +100,7 @@ func (p Project) Publish() error {
 }
 
 // GetList project row
-func (p Project) GetList() (Projects, error) {
+func (p Project) GetList(pagination Pagination) (Projects, Pagination, error) {
 	rows, err := sq.
 		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, create_time, update_time").
 		From(projectTable).
@@ -110,47 +110,69 @@ func (p Project) GetList() (Projects, error) {
 		Query()
 
 	if err != nil {
-		return nil, err
+		return nil, pagination, err
 	}
 	var projects Projects
 	for rows.Next() {
 		var project Project
 
 		if err := rows.Scan(&project.ID, &project.GroupID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.AfterPullScript, &project.AfterDeployScript, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
-			return nil, err
+			return nil, pagination, err
 		}
 		projects = append(projects, project)
 	}
-	return projects, nil
+	err = sq.
+		Select("COUNT(*) AS count").
+		From(projectTable).
+		Where(sq.Eq{"state": Enable}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&pagination.Total)
+	if err != nil {
+		return nil, pagination, err
+	}
+	return projects, pagination, nil
 }
 
 // GetListByManagerGroupStr project row
-func (p Project) GetListByManagerGroupStr(managerGroupStr string) (Projects, error) {
+func (p Project) GetListByManagerGroupStr(pagination Pagination, managerGroupStr string) (Projects, Pagination, error) {
 	if managerGroupStr == "" {
-		return nil, nil
+		return nil, pagination, nil
 	}
 	builder := sq.
 		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"state": Enable}).
 		OrderBy("id DESC")
+	pageBuilder := sq.
+		Select("COUNT(*) AS count").
+		Where(sq.Eq{"state": Enable}).
+		From(projectTable)
 	if managerGroupStr != "all" {
 		builder = builder.Where(sq.Eq{"group_id": strings.Split(managerGroupStr, ",")})
+		pageBuilder = pageBuilder.Where(sq.Eq{"group_id": strings.Split(managerGroupStr, ",")})
 	}
 	rows, err := builder.RunWith(DB).Query()
 	if err != nil {
-		return nil, err
+		return nil, pagination, err
 	}
 	var projects Projects
 	for rows.Next() {
 		var project Project
 
 		if err := rows.Scan(&project.ID, &project.GroupID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.AfterPullScript, &project.AfterDeployScript, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
-			return nil, err
+			return nil, pagination, err
 		}
 		projects = append(projects, project)
 	}
-	return projects, nil
+	err = pageBuilder.
+		RunWith(DB).
+		QueryRow().
+		Scan(&pagination.Total)
+	if err != nil {
+		return nil, pagination, err
+	}
+	return projects, pagination, nil
 }
 
 // GetData add project information to p *Project

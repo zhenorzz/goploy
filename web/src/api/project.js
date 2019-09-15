@@ -3,11 +3,11 @@ import request from '@/utils/request'
 /**
  * @return {Promise}
  */
-export function getList() {
+export function getList(pagination) {
   return request({
     url: '/project/getList',
     method: 'get',
-    params: {}
+    params: { ...pagination }
   })
 }
 

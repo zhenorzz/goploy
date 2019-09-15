@@ -29,6 +29,16 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-row type="flex" justify="end" style="margin-top: 10px;">
+      <el-pagination
+        hide-on-single-page
+        :total="pagination.total"
+        :page-size="pagination.rows"
+        background
+        layout="prev, pager, next"
+        @current-change="handlePageChange"
+      />
+    </el-row>
     <el-dialog title="项目设置" :visible.sync="dialogVisible" width="60%">
       <el-form ref="form" :rules="formRules" :model="formData" label-width="120px">
         <el-row>
@@ -228,6 +238,11 @@ export default {
       userOption: [],
       groupOption: [],
       tableData: [],
+      pagination: {
+        page: 1,
+        rows: 11,
+        total: 0
+      },
       tableServerData: [],
       tableUserData: [],
       formProps: {
@@ -523,13 +538,14 @@ export default {
     },
 
     getProjectList() {
-      getList().then((response) => {
+      getList(this.pagination).then((response) => {
         const projectList = response.data.projectList
         projectList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
           element.updateTime = parseTime(element.updateTime)
         })
         this.tableData = projectList
+        this.pagination = response.data.pagination
       }).catch(() => {
       })
     },
@@ -552,6 +568,12 @@ export default {
           element.updateTime = parseTime(element.updateTime)
         })
       })
+    },
+
+    // 分页事件
+    handlePageChange(val) {
+      this.pagination.page = val
+      this.getProjectList()
     },
 
     findGroupName(groupId) {
