@@ -24,21 +24,30 @@ type Server Controller
 // GetList server list
 func (server Server) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RespData struct {
-		Server model.Servers `json:"serverList"`
+		Server     model.Servers    `json:"serverList"`
+		Pagination model.Pagination `json:"pagination"`
 	}
+	pagination, err := model.PaginationFrom(gp.URLQuery)
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
 	userData, err := core.GetUserInfo(gp.TokenInfo.ID)
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	serverList, err := model.Server{}.GetListByManagerGroupStr(userData.ManageGroupStr)
+
+	serverList, pagination, err := model.Server{}.GetListByManagerGroupStr(pagination, userData.ManageGroupStr)
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RespData{Server: serverList}}
+	response := core.Response{Data: RespData{Server: serverList, Pagination: pagination}}
 	response.JSON(w)
 }
 

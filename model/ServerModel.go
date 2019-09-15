@@ -26,7 +26,7 @@ type Server struct {
 type Servers []Server
 
 // GetList server row
-func (s Server) GetList() (Servers, error) {
+func (s Server) GetList(pagination Pagination) (Servers, Pagination, error) {
 	rows, err := sq.
 		Select("id, name, ip, port, owner, group_id, create_time, update_time").
 		From(serverTable).
@@ -34,47 +34,70 @@ func (s Server) GetList() (Servers, error) {
 		RunWith(DB).
 		Query()
 	if err != nil {
-		return nil, err
+		return nil, pagination, err
 	}
 	var servers Servers
 	for rows.Next() {
 		var server Server
 
 		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime); err != nil {
-			return nil, err
+			return nil, pagination, err
 		}
 		servers = append(servers, server)
 	}
-	return servers, nil
+	err = sq.
+		Select("COUNT(*) AS count").
+		From(serverTable).
+		Where(sq.Eq{"state": Enable}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&pagination.Total)
+	if err != nil {
+		return nil, pagination, err
+	}
+	return servers, pagination, nil
 }
 
 // GetListByManagerGroupStr server row
-func (s Server) GetListByManagerGroupStr(managerGroupStr string) (Servers, error) {
+func (s Server) GetListByManagerGroupStr(pagination Pagination, managerGroupStr string) (Servers, Pagination, error) {
 	if managerGroupStr == "" {
-		return nil, nil
+		return nil, pagination, nil
 	}
 	builder := sq.
 		Select("id, name, ip, port, owner, group_id, create_time, update_time").
 		From(serverTable).
 		Where(sq.Eq{"state": Enable}).
 		OrderBy("id DESC")
+	pageBuilder := sq.
+		Select("COUNT(*) AS count").
+		Where(sq.Eq{"state": Enable}).
+		From(serverTable)
 	if managerGroupStr != "all" {
-		builder.Where(sq.Eq{"group_id": strings.Split(managerGroupStr, ",")})
+		builder = builder.Where(sq.Eq{"group_id": strings.Split(managerGroupStr, ",")})
+		pageBuilder = pageBuilder.Where(sq.Eq{"group_id": strings.Split(managerGroupStr, ",")})
 	}
 	rows, err := builder.RunWith(DB).Query()
 	if err != nil {
-		return nil, err
+		return nil, pagination, err
 	}
 	var servers Servers
 	for rows.Next() {
 		var server Server
 
 		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime); err != nil {
-			return nil, err
+			return nil, pagination, err
 		}
 		servers = append(servers, server)
 	}
-	return servers, nil
+	err = pageBuilder.
+		RunWith(DB).
+		QueryRow().
+		Scan(&pagination.Total)
+	if err != nil {
+		return nil, pagination, err
+	}
+
+	return servers, pagination, nil
 }
 
 // GetAll server row

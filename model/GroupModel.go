@@ -84,26 +84,40 @@ func (g Group) Remove() error {
 }
 
 // GetList Group row
-func (g Group) GetList() (Groups, error) {
+func (g Group) GetList(pagination Pagination) (Groups, Pagination, error) {
 	rows, err := sq.
 		Select("id, name, create_time, update_time").
 		From(groupTable).
+		OrderBy("id DESC").
+		Limit(pagination.Rows).
+		Offset((pagination.Page - 1) * pagination.Rows).
 		RunWith(DB).
 		Query()
 	if err != nil {
-		return nil, err
+		return nil, pagination, err
 	}
 
-	var projectGroups Groups
+	var groups Groups
 	for rows.Next() {
-		var projectGroup Group
+		var group Group
 
-		if err := rows.Scan(&projectGroup.ID, &projectGroup.Name, &projectGroup.CreateTime, &projectGroup.UpdateTime); err != nil {
-			return nil, err
+		if err := rows.Scan(&group.ID, &group.Name, &group.CreateTime, &group.UpdateTime); err != nil {
+			return nil, pagination, err
 		}
-		projectGroups = append(projectGroups, projectGroup)
+		groups = append(groups, group)
 	}
-	return projectGroups, nil
+
+	err = sq.
+		Select("COUNT(*) AS count").
+		From(groupTable).
+		RunWith(DB).
+		QueryRow().
+		Scan(&pagination.Total)
+	if err != nil {
+		return nil, pagination, err
+	}
+
+	return groups, pagination, nil
 }
 
 // GetAll Group row

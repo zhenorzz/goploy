@@ -21,6 +21,16 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-row type="flex" justify="end" style="margin-top: 10px;">
+      <el-pagination
+        hide-on-single-page
+        :total="pagination.total"
+        :page-size="pagination.rows"
+        background
+        layout="prev, pager, next"
+        @current-change="handlePageChange"
+      />
+    </el-row>
     <el-dialog title="分组设置" :visible.sync="dialogVisible">
       <el-form ref="form" :rules="formRules" :model="formData" label-width="80px">
         <el-form-item label="名称" prop="name">
@@ -43,6 +53,11 @@ export default {
     return {
       dialogVisible: false,
       tableData: [],
+      pagination: {
+        page: 1,
+        rows: 11,
+        total: 0
+      },
       tempFormData: {},
       formProps: {
         disabled: false
@@ -63,14 +78,21 @@ export default {
   },
   methods: {
     getList() {
-      getList().then((response) => {
+      getList(this.pagination).then((response) => {
         const groupList = response.data.groupList || []
         groupList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
           element.updateTime = parseTime(element.updateTime)
         })
         this.tableData = groupList
+        this.pagination = response.data.pagination
       })
+    },
+
+    // 分页事件
+    handlePageChange(val) {
+      this.pagination.page = val
+      this.getList()
     },
 
     handleAdd() {

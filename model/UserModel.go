@@ -63,7 +63,7 @@ func (u User) GetDataByAccount() (User, error) {
 }
 
 // GetList get many user row
-func (u Users) GetList(pagination *Pagination) (Users, error) {
+func (u Users) GetList(pagination Pagination) (Users, Pagination, error) {
 	rows, err := sq.
 		Select("id, account, name, mobile, role, manage_group_str, create_time, update_time").
 		From(userTable).
@@ -74,27 +74,28 @@ func (u Users) GetList(pagination *Pagination) (Users, error) {
 		RunWith(DB).
 		Query()
 	if err != nil {
-		return nil, err
+		return nil, pagination, err
 	}
 	var users Users
 	for rows.Next() {
 		var user User
 
 		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.Role, &user.ManageGroupStr, &user.CreateTime, &user.UpdateTime); err != nil {
-			return users, err
+			return users, pagination, err
 		}
 		users = append(users, user)
 	}
 	err = sq.
 		Select("COUNT(*) AS count").
 		From(userTable).
+		Where(sq.Eq{"state": Enable}).
 		RunWith(DB).
 		QueryRow().
 		Scan(&pagination.Total)
 	if err != nil {
-		return nil, err
+		return nil, pagination, err
 	}
-	return users, nil
+	return users, pagination, nil
 }
 
 // GetAll user row

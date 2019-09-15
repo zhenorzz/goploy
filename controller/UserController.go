@@ -96,20 +96,19 @@ func (user User) GetList(w http.ResponseWriter, gp *core.Goploy) {
 		User       model.Users      `json:"userList"`
 		Pagination model.Pagination `json:"pagination"`
 	}
-	userModel := model.Users{}
-	pagination, err := model.NewPagination(gp.URLQuery)
+	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	users, err := userModel.GetList(pagination)
+	users, pagination, err := model.Users{}.GetList(pagination)
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RespData{User: users, Pagination: *pagination}}
+	response := core.Response{Data: RespData{User: users, Pagination: pagination}}
 	response.JSON(w)
 }
 

@@ -42,16 +42,16 @@ func Init() {
 	}
 }
 
-// NewPagination return pagination struct
-func NewPagination(param url.Values) (*Pagination, error) {
+// PaginationFrom param return pagination struct
+func PaginationFrom(param url.Values) (Pagination, error) {
 	page, err := strconv.ParseUint(param.Get("page"), 10, 64)
 	if err != nil {
-		return nil, errors.New("page参数错误")
+		return Pagination{}, errors.New("Invalid page")
 	}
 	rows, err := strconv.ParseUint(param.Get("rows"), 10, 64)
 	if err != nil {
-		return nil, errors.New("rows参数错误")
+		return Pagination{}, errors.New("Invalid rows")
 	}
 	pagination := Pagination{Page: page, Rows: rows}
-	return &pagination, nil
+	return pagination, nil
 }

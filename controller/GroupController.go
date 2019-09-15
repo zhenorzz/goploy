@@ -15,16 +15,22 @@ type Group Controller
 // GetList Group list
 func (group Group) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RespData struct {
-		Groups model.Groups `json:"groupList"`
+		Groups     model.Groups     `json:"groupList"`
+		Pagination model.Pagination `json:"pagination"`
 	}
-
-	groupList, err := model.Group{}.GetList()
+	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RespData{Groups: groupList}}
+	groupList, pagination, err := model.Group{}.GetList(pagination)
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Data: RespData{Groups: groupList, Pagination: pagination}}
 	response.JSON(w)
 }
 

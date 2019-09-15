@@ -25,7 +25,7 @@
     </el-table>
     <el-row type="flex" justify="end" style="margin-top: 10px;">
       <el-pagination
-        v-show="pagination.total>pagination.rows"
+        hide-on-single-page
         :total="pagination.total"
         :page-size="pagination.rows"
         background
