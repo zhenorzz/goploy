@@ -181,8 +181,14 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			route.callback(w, gp)
+			return
 		}
 	}
+
+	response := Response{Code: Deny, Message: "No such method"}
+	response.JSON(w)
+	return
+
 }
 
 func (r *route) hasRole(userID int64) error {

@@ -22,6 +22,9 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {
 		Account  string `json:"account"`
 		Password string `json:"password"`
 	}
+	type RespData struct {
+		Token string `json:"token"`
+	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
@@ -59,7 +62,7 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {
 	core.Cache.Set("userInfo:"+strconv.Itoa(int(userData.ID)), &userData, cache.DefaultExpiration)
 	cookie := http.Cookie{Name: core.LoginCookieName, Value: token, Path: "/", MaxAge: 86400, HttpOnly: true}
 	http.SetCookie(w, &cookie)
-	response := core.Response{}
+	response := core.Response{Data: RespData{Token: token}}
 	response.JSON(w)
 }
 
@@ -80,7 +83,6 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-
 	data := RespData{}
 	data.UserInfo.ID = gp.TokenInfo.ID
 	data.UserInfo.Name = userData.Name
