@@ -11,8 +11,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"gotest.tools/assert"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 )
@@ -20,12 +18,19 @@ import (
 func TestApi(t *testing.T) {
 	godotenv.Load("../.env")
 	model.Init()
-	// userLogin(t)
-	userInfo(t)
+	// user login have token
+	userLogin(t)
+	t.Run("user/info", userInfo)
+	t.Run("user/getList", getUserList)
+	t.Run("user/getOption", getUserOption)
+	t.Run("user/add", addUser)
+	t.Run("user/edit", editUser)
+	t.Run("user/remove", removeUser)
+	t.Run("user/changePassword", changeUserPassword)
 }
 
 var handler = route.Init()
-var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1Njg2OTIwODYsImlkIjoxLCJuYW1lIjoi6LaF566hIiwibmJmIjoxNTY4NjA1Njg2fQ.PdC3HJx5F-Ig17Oo3m2xQdO1hIzNpgCdi5BK69XLFEQ"
+var token = ""
 
 func request(t *testing.T, method, url string, body interface{}) {
 	buf := new(bytes.Buffer)
@@ -41,30 +46,26 @@ func request(t *testing.T, method, url string, body interface{}) {
 	r := httptest.NewRecorder()
 	handler.ServeHTTP(r, req)
 	// 检测返回的状态码
-	assert.Equal(t, r.Code, http.StatusOK)
+	if r.Code != http.StatusOK {
+		t.Fatalf("http request error, code: %d", r.Code)
+	}
+
 	var resp core.Response
-	assert.NilError(t, json.NewDecoder(r.Body).Decode(&resp))
-	assert.Equal(t, resp.Code, core.Pass, resp.Message)
+
+	// 检测返回的json格式
+	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
+		t.Fatal(err.Error())
+	}
+
+	// 检测接口返回值
+	if resp.Code != core.Pass {
+		t.Fatalf("http response error, content: %v", resp)
+	}
+
 	if url == "/user/login" {
 		type RespData struct {
 			Token string `json:"token"`
 		}
 		token = resp.Data.(map[string]interface{})["token"].(string)
 	}
-}
-
-func userLogin(t *testing.T) {
-	//创建一个请求
-	body := struct {
-		Account  string `json:"account"`
-		Password string `json:"password"`
-	}{
-		Account:  "admin",
-		Password: "admin!@#",
-	}
-	request(t, "POST", "/user/login", body)
-}
-
-func userInfo(t *testing.T) {
-	request(t, "GET", "/user/info", nil)
 }

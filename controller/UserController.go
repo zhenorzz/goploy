@@ -3,6 +3,7 @@ package controller
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -149,12 +150,15 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 
 	userInfo, err := model.User{Account: reqData.Account}.GetDataByAccount()
 	if err != nil && err != sql.ErrNoRows {
-		response := core.Response{Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
+		return
 	} else if userInfo != (model.User{}) {
-		response := core.Response{Message: "账号已存在"}
+		response := core.Response{Code: core.Deny, Message: "账号已存在"}
 		response.JSON(w)
+		return
 	}
+	println(fmt.Sprintf("%v", userInfo))
 	_, err = model.User{
 		Account:        reqData.Account,
 		Password:       reqData.Password,
