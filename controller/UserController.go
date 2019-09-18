@@ -3,7 +3,6 @@ package controller
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -133,7 +132,7 @@ func (user User) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 // Add one user
 func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		Account        string `json:"account"`
+		Account        string `json:"account" validate:"required"`
 		Password       string `json:"password"`
 		Name           string `json:"name"`
 		Mobile         string `json:"mobile"`
@@ -141,8 +140,7 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 		ManageGroupStr string `json:"manageGroupStr"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
@@ -158,7 +156,6 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	println(fmt.Sprintf("%v", userInfo))
 	_, err = model.User{
 		Account:        reqData.Account,
 		Password:       reqData.Password,

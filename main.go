@@ -8,6 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 	"goploy/core"
+	"goploy/controller"
 	"goploy/model"
 	"goploy/route"
 	"goploy/ws"
@@ -15,6 +16,7 @@ import (
 
 func main() {
 	godotenv.Load(core.GolbalPath + ".env")
+	controller.Init()
 	model.Init()
 	ws.Init()
 	route.Init()
