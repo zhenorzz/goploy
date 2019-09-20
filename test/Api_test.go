@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"goploy/controller"
 	"goploy/core"
 	"goploy/model"
 	"goploy/route"
@@ -18,7 +17,7 @@ import (
 
 func TestApi(t *testing.T) {
 	godotenv.Load("../.env")
-	controller.Init()
+	core.CreateValidator()
 	model.Init()
 	// user login have token
 	userLogin(t)

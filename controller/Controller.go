@@ -2,21 +2,12 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
-
+	"errors"
+	"goploy/core"
 	"gopkg.in/go-playground/validator.v9"
 )
-
-// use a single instance of Validate, it caches struct info
-var validate *validator.Validate
-
 // Controller struct
 type Controller struct {
-}
-
-// Init DB open
-func Init() {
-	validate = validator.New()
 }
 
 func verify(data []byte, v interface{}) error {
@@ -25,9 +16,9 @@ func verify(data []byte, v interface{}) error {
 		return err
 	}
 
-	if err := validate.Struct(v); err != nil {
+	if err := core.Validate.Struct(v); err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
-			return fmt.Errorf("%s %s", err.Field(), err.Tag())
+			return errors.New(err.Translate(core.Trans))
 		}
 	}
 	return nil

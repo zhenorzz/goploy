@@ -8,7 +8,6 @@ import (
 )
 
 func userLogin(t *testing.T) {
-	//创建一个请求
 	body := struct {
 		Account  string `json:"account"`
 		Password string `json:"password"`
@@ -32,7 +31,14 @@ func getUserOption(t *testing.T) {
 }
 
 func addUser(t *testing.T) {
-	request(t, router.POST, "/user/add", nil)
+	body := struct {
+		Account  string `json:"account"`
+		Password string `json:"password"`
+	}{
+		Account:  "admin",
+		Password: "admin",
+	}
+	request(t, router.POST, "/user/add", body)
 }
 
 func editUser(t *testing.T) {

@@ -132,8 +132,8 @@ func (user User) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 // Add one user
 func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		Account        string `json:"account" validate:"required"`
-		Password       string `json:"password"`
+		Account        string `json:"account" validate:"required,min=5,max=12"`
+		Password       string `json:"password" validate:"required,password"`
 		Name           string `json:"name"`
 		Mobile         string `json:"mobile"`
 		Role           string `json:"role"`
