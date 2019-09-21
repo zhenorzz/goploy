@@ -11,7 +11,7 @@ import (
 // Init router
 func Init() *router.Router {
 	var rt = new(router.Router)
-	// rt.Middleware(exaplme)
+	// rt.Middleware(example)
 
 	// home route
 	rt.Add("/index/get", router.GET, controller.Index{}.Get)

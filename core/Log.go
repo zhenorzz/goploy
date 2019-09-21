@@ -36,6 +36,6 @@ func Log(lv LogLevel, content string) {
 	if nil != err {
 		fmt.Println(err)
 	}
-	loger := log.New(logFile, string(lv), log.LstdFlags|log.Llongfile)
-	loger.Output(2, content)
+	logger := log.New(logFile, string(lv), log.LstdFlags|log.Llongfile)
+	logger.Output(2, content)
 }

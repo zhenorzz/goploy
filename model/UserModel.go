@@ -6,7 +6,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -221,7 +221,7 @@ func (u User) UpdateLastLoginTime() error {
 	return err
 }
 
-// Vaildate if user exists
+// Validate if user exists
 func (u User) Vaildate(inputPassword string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(inputPassword))
 	if err != nil {

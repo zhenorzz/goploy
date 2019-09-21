@@ -16,9 +16,9 @@ var Trans ut.Translator
 // CreateValidator create a single Validator
 func CreateValidator() {
 
-	en := en.New()
-	uni := ut.New(en, en)
-	Trans, _ = uni.GetTranslator("en")
+	english := en.New()
+	uni := ut.New(english, english)
+	Trans, _ = uni.GetTranslator("english")
 	Validate = validator.New()
 	en_translations.RegisterDefaultTranslations(Validate, Trans)
 

@@ -33,7 +33,7 @@ func GetCurrentPath() string {
 	if i < 0 {
 		panic(err)
 	}
-	return string(path[0 : i+1])
+	return path[0 : i+1]
 }
 
 // ParseCommandLine parse cmd arg
@@ -92,7 +92,7 @@ func ParseCommandLine(command string) ([]string, error) {
 	}
 
 	if state == "quotes" {
-		return []string{}, fmt.Errorf("Unclosed quote in command line: %s", command)
+		return []string{}, fmt.Errorf("unclosed quote in command line: %s", command)
 	}
 
 	if current != "" {

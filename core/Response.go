@@ -12,7 +12,7 @@ type Response struct {
 	Data    interface{} `json:"data"`
 }
 
-// respone code
+// response code
 const (
 	Pass            = 0
 	Deny            = 1

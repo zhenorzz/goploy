@@ -144,7 +144,7 @@ func (p Package) AddRow() (int64, error) {
 		return 0, err
 	}
 	id, err := result.LastInsertId()
-	return int64(id), err
+	return id, err
 }
 
 // EditRow edit one row to table package

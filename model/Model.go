@@ -46,11 +46,11 @@ func Init() {
 func PaginationFrom(param url.Values) (Pagination, error) {
 	page, err := strconv.ParseUint(param.Get("page"), 10, 64)
 	if err != nil {
-		return Pagination{}, errors.New("Invalid page")
+		return Pagination{}, errors.New("invalid page")
 	}
 	rows, err := strconv.ParseUint(param.Get("rows"), 10, 64)
 	if err != nil {
-		return Pagination{}, errors.New("Invalid rows")
+		return Pagination{}, errors.New("invalid rows")
 	}
 	pagination := Pagination{Page: page, Rows: rows}
 	return pagination, nil

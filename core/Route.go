@@ -22,7 +22,7 @@ const (
 	DELETE = "DELETE"
 )
 
-// TokenInfo pasre the jwt
+// TokenInfo parse the jwt
 type TokenInfo struct {
 	ID   int64
 	Name string
@@ -45,7 +45,7 @@ type route struct {
 	middlewares []func(w http.ResponseWriter, gp *Goploy) error //中间件
 }
 
-// Router is route slice and golbal middlewares
+// Router is route slice and global middlewares
 type Router struct {
 	Routes      []route
 	middlewares []func(w http.ResponseWriter, gp *Goploy) error //中间件
@@ -68,20 +68,20 @@ func (rt *Router) Add(pattern, method string, callback func(w http.ResponseWrite
 	return rt
 }
 
-// Roles Add many permision to the route
+// Roles Add many permission to the route
 func (rt *Router) Roles(role []string) *Router {
 	rt.Routes[len(rt.Routes)-1].roles = append(rt.Routes[len(rt.Routes)-1].roles, role...)
 	return rt
 }
 
-// Role Add permision to the route
+// Role Add permission to the route
 func (rt *Router) Role(role string) *Router {
 	rt.Routes[len(rt.Routes)-1].roles = append(rt.Routes[len(rt.Routes)-1].roles, role)
 	return rt
 }
 
-// Middleware golbal Middleware handle function
-// Example handle praseToken
+// Middleware global Middleware handle function
+// Example handle parseToken
 func (rt *Router) Middleware(middleware func(w http.ResponseWriter, gp *Goploy) error) {
 	rt.middlewares = append(rt.middlewares, middleware)
 }
@@ -91,14 +91,14 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// else serve file in npm
 	if os.Getenv("ENV") == "production" {
 		if "/" == r.URL.Path {
-			http.ServeFile(w, r, GolbalPath+"web/dist/index.html")
+			http.ServeFile(w, r, GlobalPath+"web/dist/index.html")
 			return
 		}
-		files, _ := ioutil.ReadDir(GolbalPath + "web/dist")
+		files, _ := ioutil.ReadDir(GlobalPath + "web/dist")
 		for _, file := range files {
 			pattern := "^" + file.Name()
 			if match, _ := regexp.MatchString(pattern, r.URL.Path[1:]); match {
-				http.ServeFile(w, r, GolbalPath+"web/dist"+r.URL.Path)
+				http.ServeFile(w, r, GlobalPath+"web/dist"+r.URL.Path)
 				return
 			}
 		}
@@ -116,9 +116,9 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			response.JSON(w)
 			return
 		}
-		unPraseToken := goployTokenCookie.Value
+		unParseToken := goployTokenCookie.Value
 		claims := jwt.MapClaims{}
-		token, err := jwt.ParseWithClaims(unPraseToken, claims, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(unParseToken, claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(os.Getenv("SIGN_KEY")), nil
 		})
 

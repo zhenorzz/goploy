@@ -35,7 +35,7 @@ var token = ""
 
 func request(t *testing.T, method, url string, body interface{}) {
 	buf := new(bytes.Buffer)
-	json.NewEncoder(buf).Encode(body)
+	_ = json.NewEncoder(buf).Encode(body)
 	req, err := http.NewRequest(method, url, buf)
 	if err != nil {
 		t.Fatal(err)

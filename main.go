@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	godotenv.Load(core.GolbalPath + ".env")
+	godotenv.Load(core.GlobalPath + ".env")
 	core.CreateValidator()
 	model.Init()
 	ws.Init()

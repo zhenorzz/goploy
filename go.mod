@@ -15,6 +15,7 @@ require (
 	github.com/leodido/go-urn v1.1.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.8.1 // indirect
+	github.com/rogpeppe/godef v1.1.1 // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/sys v0.0.0-20190712062909-fae7ac547cb7
 	google.golang.org/appengine v1.6.1
