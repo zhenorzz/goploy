@@ -139,6 +139,9 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 		Role           string `json:"role" validate:"role"`
 		ManageGroupStr string `json:"manageGroupStr"`
 	}
+	type RespData struct {
+		ID int64 `json:"id"`
+	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
@@ -156,7 +159,7 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	_, err = model.User{
+	id, err := model.User{
 		Account:        reqData.Account,
 		Password:       reqData.Password,
 		Name:           reqData.Name,
@@ -172,7 +175,7 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Message: "添加成功"}
+	response := core.Response{Message: "添加成功", Data: RespData{ID: id}}
 	response.JSON(w)
 }
 

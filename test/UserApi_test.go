@@ -15,7 +15,8 @@ func userLogin(t *testing.T) {
 		Account:  "admin",
 		Password: "admin!@#",
 	}
-	request(t, router.POST, "/user/login", body)
+	resp := request(t, router.POST, "/user/login", body)
+	token = resp.Data.(map[string]interface{})["token"].(string)
 }
 
 func userInfo(t *testing.T) {
@@ -23,7 +24,7 @@ func userInfo(t *testing.T) {
 }
 
 func getUserList(t *testing.T) {
-	request(t, router.GET, "/user/getList", nil)
+	request(t, router.GET, "/user/getList?page=1&rows=10", nil)
 }
 
 func getUserOption(t *testing.T) {
@@ -45,11 +46,27 @@ func addUser(t *testing.T) {
 		Role:           "admin",
 		ManageGroupStr: "all",
 	}
-	request(t, router.POST, "/user/add", body)
+	resp := request(t, router.POST, "/user/add", body)
+	userID = int64(resp.Data.(map[string]interface{})["id"].(float64))
 }
 
 func editUser(t *testing.T) {
-	request(t, router.POST, "/user/edit", nil)
+	body := struct {
+		ID             int64  `json:"id"`
+		Password       string `json:"password"`
+		Name           string `json:"name"`
+		Mobile         string `json:"mobile"`
+		Role           string `json:"role"`
+		ManageGroupStr string `json:"manageGroupStr"`
+	}{
+		ID:             userID,
+		Password:       "admin!@#",
+		Name:           "change_name",
+		Mobile:         "13800138000",
+		Role:           "admin",
+		ManageGroupStr: "all",
+	}
+	request(t, router.POST, "/user/edit", body)
 }
 
 func removeUser(t *testing.T) {

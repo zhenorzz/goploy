@@ -23,19 +23,22 @@ func TestApi(t *testing.T) {
 	model.Init()
 	// user login have token
 	userLogin(t)
+	addUser(t)
 	t.Run("user/info", userInfo)
 	t.Run("user/getList", getUserList)
 	t.Run("user/getOption", getUserOption)
-	t.Run("user/add", addUser)
 	t.Run("user/edit", editUser)
 	t.Run("user/remove", removeUser)
 	t.Run("user/changePassword", changeUserPassword)
 }
 
 var handler = route.Init()
-var token = ""
+var (
+	token string
+	userID int64
+)
 
-func request(t *testing.T, method, url string, body interface{}) {
+func request(t *testing.T, method, url string, body interface{}) core.Response {
 	buf := new(bytes.Buffer)
 	_ = json.NewEncoder(buf).Encode(body)
 	req, err := http.NewRequest(method, url, buf)
@@ -64,13 +67,7 @@ func request(t *testing.T, method, url string, body interface{}) {
 	if resp.Code != core.Pass {
 		t.Fatalf("http response error, content: %v", resp)
 	}
-
-	if url == "/user/login" {
-		type RespData struct {
-			Token string `json:"token"`
-		}
-		token = resp.Data.(map[string]interface{})["token"].(string)
-	}
+	return resp
 }
 
 func getRandomStringOf(length int) string {
