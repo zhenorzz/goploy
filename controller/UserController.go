@@ -135,7 +135,7 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 		Account        string `json:"account" validate:"min=5,max=12"`
 		Password       string `json:"password" validate:"omitempty,password"`
 		Name           string `json:"name" validate:"required"`
-		Mobile         string `json:"mobile" validate:"omitempty,len=11"`
+		Mobile         string `json:"mobile" validate:"omitempty,len=11,numeric"`
 		Role           string `json:"role" validate:"role"`
 		ManageGroupStr string `json:"manageGroupStr"`
 	}
@@ -179,21 +179,21 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 // Edit one user
 func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID             int64  `json:"id"`
-		Password       string `json:"password"`
-		Name           string `json:"name"`
-		Mobile         string `json:"mobile"`
-		Role           string `json:"role"`
+		ID             int64  `json:"id" validate:"gt=0"`
+		Password       string `json:"password" validate:"omitempty,password"`
+		Name           string `json:"name" validate:"required"`
+		Mobile         string `json:"mobile" validate:"omitempty,len=11,numeric"`
+		Role           string `json:"role" validate:"role"`
 		ManageGroupStr string `json:"manageGroupStr"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	err = model.User{
+
+	err := model.User{
 		ID:             reqData.ID,
 		Password:       reqData.Password,
 		Name:           reqData.Name,
@@ -216,23 +216,21 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 // Remove one User
 func (user User) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID int64 `json:"id"`
+		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-
 	if reqData.ID == 1 {
 		response := core.Response{Code: core.Deny, Message: "请勿删除超管账号"}
 		response.JSON(w)
 		return
 	}
 
-	err = model.User{
+	err := model.User{
 		ID:         reqData.ID,
 		UpdateTime: time.Now().Unix(),
 	}.RemoveRow()
@@ -249,12 +247,11 @@ func (user User) Remove(w http.ResponseWriter, gp *core.Goploy) {
 // ChangePassword doc
 func (user User) ChangePassword(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		OldPassword string `json:"oldPwd"`
-		NewPassword string `json:"newPwd"`
+		OldPassword string `json:"oldPwd" validate:"password"`
+		NewPassword string `json:"newPwd" validate:"password"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return

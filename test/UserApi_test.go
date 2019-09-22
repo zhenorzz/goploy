@@ -39,10 +39,11 @@ func addUser(t *testing.T) {
 		Role           string `json:"role"`
 		ManageGroupStr string `json:"manageGroupStr"`
 	}{
-		Account:  "admin",
-		Password: "admin!@#",
-		Name:     "name",
-		Role:     "admin",
+		Account:        getRandomStringOf(5),
+		Password:       "admin!@#",
+		Name:           "name",
+		Role:           "admin",
+		ManageGroupStr: "all",
 	}
 	request(t, router.POST, "/user/add", body)
 }

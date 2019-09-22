@@ -7,9 +7,11 @@ import (
 	"goploy/core"
 	"goploy/model"
 	"goploy/route"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -69,4 +71,15 @@ func request(t *testing.T, method, url string, body interface{}) {
 		}
 		token = resp.Data.(map[string]interface{})["token"].(string)
 	}
+}
+
+func getRandomStringOf(length int) string {
+	str := "0123456789abcdefghijklmnopqrstuvwxyz"
+	bs := []byte(str)
+	var result []byte
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < length; i++ {
+		result = append(result, bs[r.Intn(len(bs))])
+	}
+	return string(result)
 }
