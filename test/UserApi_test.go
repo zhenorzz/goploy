@@ -32,11 +32,17 @@ func getUserOption(t *testing.T) {
 
 func addUser(t *testing.T) {
 	body := struct {
-		Account  string `json:"account"`
-		Password string `json:"password"`
+		Account        string `json:"account"`
+		Password       string `json:"password"`
+		Name           string `json:"name"`
+		Mobile         string `json:"mobile"`
+		Role           string `json:"role"`
+		ManageGroupStr string `json:"manageGroupStr"`
 	}{
 		Account:  "admin",
-		Password: "admin",
+		Password: "admin!@#",
+		Name:     "name",
+		Role:     "admin",
 	}
 	request(t, router.POST, "/user/add", body)
 }

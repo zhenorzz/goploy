@@ -10,7 +10,7 @@ import (
 	"goploy/core"
 	"goploy/model"
 
-	cache "github.com/patrickmn/go-cache"
+	"github.com/patrickmn/go-cache"
 )
 
 // User 用户字段
@@ -19,8 +19,8 @@ type User Controller
 // Login user login api
 func (user User) Login(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		Account  string `json:"account"`
-		Password string `json:"password"`
+		Account  string `json:"account" validate:"min=5,max=12"`
+		Password string `json:"password" validate:"password"`
 	}
 	type RespData struct {
 		Token string `json:"token"`
@@ -132,11 +132,11 @@ func (user User) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 // Add one user
 func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		Account        string `json:"account" validate:"required,min=5,max=12"`
-		Password       string `json:"password" validate:"required,password"`
-		Name           string `json:"name"`
-		Mobile         string `json:"mobile"`
-		Role           string `json:"role"`
+		Account        string `json:"account" validate:"min=5,max=12"`
+		Password       string `json:"password" validate:"omitempty,password"`
+		Name           string `json:"name" validate:"required"`
+		Mobile         string `json:"mobile" validate:"omitempty,len=11"`
+		Role           string `json:"role" validate:"role"`
 		ManageGroupStr string `json:"manageGroupStr"`
 	}
 	var reqData ReqData
