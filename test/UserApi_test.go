@@ -70,9 +70,21 @@ func editUser(t *testing.T) {
 }
 
 func removeUser(t *testing.T) {
-	request(t, router.DELETE, "/user/remove", nil)
+	body := struct {
+		ID int64 `json:"id"`
+	}{
+		ID: userID,
+	}
+	request(t, router.DELETE, "/user/remove", body)
 }
 
 func changeUserPassword(t *testing.T) {
-	request(t, router.POST, "/user/changePassword", nil)
+	body := struct {
+		OldPassword string `json:"oldPwd"`
+		NewPassword string `json:"newPwd"`
+	}{
+		OldPassword: "admin!@#",
+		NewPassword: "admin!@#",
+	}
+	request(t, router.POST, "/user/changePassword", body)
 }

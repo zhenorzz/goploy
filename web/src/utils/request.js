@@ -58,6 +58,7 @@ service.interceptors.response.use(
             location.reload()
           })
         })
+        return Promise.reject('error')
       } else {
         return Promise.reject('error')
       }

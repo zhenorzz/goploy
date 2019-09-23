@@ -21,20 +21,24 @@ func TestApi(t *testing.T) {
 	godotenv.Load("../.env")
 	core.CreateValidator()
 	model.Init()
-	// user login have token
+	// <setup code>
 	userLogin(t)
 	addUser(t)
+	// <logic code>
 	t.Run("user/info", userInfo)
 	t.Run("user/getList", getUserList)
 	t.Run("user/getOption", getUserOption)
 	t.Run("user/edit", editUser)
-	t.Run("user/remove", removeUser)
 	t.Run("user/changePassword", changeUserPassword)
+	// <tear-down code>
+	removeUser(t)
 }
 
 var handler = route.Init()
 var (
+	// set when user login
 	token string
+	// set when user is added
 	userID int64
 )
 
