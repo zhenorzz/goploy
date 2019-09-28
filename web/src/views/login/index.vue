@@ -1,8 +1,11 @@
 <template>
   <div class="login-container">
-    <el-row class="login-mark">
-      <el-row class="main-mark">代码部署平台</el-row>
-      <el-row class="sub-mark">Goploy</el-row>
+    <el-row class="login-mark" type="flex" align="middle">
+      <img src="@/assets/images/logo.png" width="70" height="70">
+      <el-row>
+        <el-row class="main-mark">代码部署平台</el-row>
+        <el-row class="sub-mark">Goploy</el-row>
+      </el-row>
     </el-row>
     <el-form
       ref="loginForm"
