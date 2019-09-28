@@ -1,12 +1,23 @@
 <template>
   <div class="login-container">
-    <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
-
+    <el-row class="login-mark">
+      <el-row class="main-mark">代码部署平台</el-row>
+      <el-row class="sub-mark">Goploy</el-row>
+    </el-row>
+    <el-form
+      ref="loginForm"
+      :model="loginForm"
+      :rules="loginRules"
+      class="login-form"
+      auto-complete="on"
+      label-position="left"
+    >
       <div class="title-container">
-        <h3 class="title">代码发布</h3>
+        <h3 class="title">登录</h3>
+        <h4 class="sub-title">SIGN IN</h4>
       </div>
 
-      <el-form-item prop="account">
+      <el-form-item prop="account" class="login-form-input">
         <span class="svg-container">
           <svg-icon icon-class="user" />
         </span>
@@ -22,7 +33,7 @@
         />
       </el-form-item>
 
-      <el-form-item prop="password">
+      <el-form-item prop="password" class="login-form-input">
         <span class="svg-container">
           <svg-icon icon-class="password" />
         </span>
@@ -42,8 +53,15 @@
           <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
         </span>
       </el-form-item>
-      <el-button :loading="loading" size="medium" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">登 录</el-button>
 
+      <el-button
+        :loading="loading"
+        size="medium"
+        type="primary"
+        class="login-form-btn"
+        style="width:100%;margin-bottom:30px;"
+        @click.native.prevent="handleLogin"
+      >登 录</el-button>
     </el-form>
   </div>
 </template>
@@ -132,9 +150,9 @@ export default {
 /* 修复input 背景不协调 和光标变色 */
 /* Detail see https://github.com/PanJiaChen/vue-element-admin/pull/927 */
 
-$bg:#283443;
-$light_gray:#fff;
-$cursor: #fff;
+$bg: #fff;
+$light_gray: #fff;
+$cursor: #2f2f2f;
 
 @supports (-webkit-mask: none) and (not (cater-color: $cursor)) {
   .login-container .el-input input {
@@ -146,17 +164,17 @@ $cursor: #fff;
 .login-container {
   .el-input {
     display: inline-block;
-    height: 47px;
+    height: 52px;
     width: 85%;
 
     input {
-      background: transparent;
+      background: $bg;
       border: 0px;
       -webkit-appearance: none;
       border-radius: 0px;
       padding: 12px 5px 12px 15px;
-      color: $light_gray;
-      height: 47px;
+      color: #2f2f2f;
+      height: 50px;
       caret-color: $cursor;
 
       &:-webkit-autofill {
@@ -165,34 +183,75 @@ $cursor: #fff;
       }
     }
   }
-
+  .el-form-item__error {
+    padding-top: 4px;
+  }
   .el-form-item {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
-    color: #454545;
+    background: #fff;
   }
 }
 </style>
 
 <style lang="scss" scoped>
-$bg:#2d3a4b;
-$dark_gray:#889aa4;
-$light_gray:#eee;
+$bg: #fff;
+$dark_gray: #889aa4;
+$light_gray: #eee;
 
 .login-container {
+  display: flex;
+  flex-direction:column;
   min-height: 100%;
   width: 100%;
   background-color: $bg;
+  background-image: url("~@/assets/images/background.jpg");
+  background-position: left bottom;
+  background-size: cover;
+	width: 100%;
   overflow: hidden;
+  .login-mark {
+    margin-top: 58px;
+    margin-left: 87px;
+    .main-mark {
+      height: 30px;
+      font-size: 30px;
+      font-family: PingFang SC;
+      font-weight: 500;
+      letter-spacing: 8px;
+      color: rgba(105, 116, 139, 1);
+      line-height: 30px;
+    }
+    .sub-mark {
+      margin-top: 5px;
+      margin-left: 2px;
+      height: 23px;
+      font-size: 12px;
+      font-family: PingFang SC;
+      font-weight: 400;
+      letter-spacing: 4px;
+      color: rgba(193, 201, 215, 1);
+      line-height: 23px;
+      opacity: 0.81;
+    }
+  }
 
   .login-form {
-    position: relative;
+    flex: 1;
+    align-self: center;
+    bottom: 0;
     width: 520px;
-    max-width: 100%;
-    padding: 160px 35px 0;
-    margin: 0 auto;
+    padding: 50px 35px;
     overflow: hidden;
+    &-input {
+      border: 1px solid rgba(229, 230, 231, 1);
+      border-radius: 35px;
+    }
+    &-btn {
+      margin-top:20px;
+      height: 50px;
+      border-radius:39px;
+      font-size: 20px;
+      background-color: #2580FA;
+    }
   }
 
   .tips {
@@ -208,31 +267,44 @@ $light_gray:#eee;
   }
 
   .svg-container {
-    padding: 6px 5px 6px 15px;
-    color: $dark_gray;
+    padding: 6px 5px 6px 20px;
+    color: #c1c9d7;
+    font-size: 16px;
     vertical-align: middle;
-    width: 30px;
+    width: 40px;
     display: inline-block;
   }
 
   .title-container {
     position: relative;
+    padding-left: 5px;
 
     .title {
-      font-size: 26px;
-      color: $light_gray;
-      margin: 0px auto 40px auto;
-      text-align: center;
-      font-weight: bold;
+      margin: 20px 0;
+      display: inline-block;
+      width: 80px;
+      font-size: 40px;
+      font-family: PingFang SC;
+      font-weight: 500;
+      color: rgba(47, 47, 47, 1);
+    }
+    .sub-title {
+      margin: 20px 0 20px 5px;
+      display: inline-block;
+      font-size: 17px;
+      font-family: PingFang SC;
+      font-weight: 500;
+      color: rgba(206, 212, 223, 1);
+      opacity: 0.82;
     }
   }
 
   .show-pwd {
     position: absolute;
-    right: 10px;
-    top: 7px;
+    right: 20px;
+    top: 14px;
     font-size: 16px;
-    color: $dark_gray;
+    color: #c1c9d7;
     cursor: pointer;
     user-select: none;
   }
