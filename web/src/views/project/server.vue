@@ -173,7 +173,7 @@ export default {
           { required: true, message: '请输入服务器ip', trigger: 'blur' }
         ],
         port: [
-          { required: true, message: '请输入服务器port', trigger: 'blur' }
+          { type: 'number', required: true, min: 0, max: 65535, message: '请输入正确服务器端口', trigger: 'blur' }
         ],
         owner: [
           { required: true, message: '请输入SSH-KEY的所有者', trigger: 'blur' }

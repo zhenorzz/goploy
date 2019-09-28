@@ -24,14 +24,25 @@ func TestApi(t *testing.T) {
 	// <setup code>
 	userLogin(t)
 	addUser(t)
+	addServer(t)
 	// <logic code>
+	// user
 	t.Run("user/info", userInfo)
 	t.Run("user/getList", getUserList)
 	t.Run("user/getOption", getUserOption)
 	t.Run("user/edit", editUser)
 	t.Run("user/changePassword", changeUserPassword)
+
+	// server
+	t.Run("server/getList", getServerList)
+	t.Run("server/getInstallPreview", GetServerInstallPreview)
+	t.Run("server/getInstallList", getServerInstallList)
+	t.Run("server/getOption", getServerOption)
+	t.Run("server/edit", editServer)
+
 	// <tear-down code>
 	removeUser(t)
+	removeServer(t)
 }
 
 var handler = route.Init()
@@ -40,6 +51,8 @@ var (
 	token string
 	// set when user is added
 	userID int64
+	// set when server is added
+	serverID int64
 )
 
 func request(t *testing.T, method, url string, body interface{}) core.Response {

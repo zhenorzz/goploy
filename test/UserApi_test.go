@@ -3,8 +3,6 @@ package test
 import (
 	router "goploy/core"
 	"testing"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
 func userLogin(t *testing.T) {

@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"gopkg.in/go-playground/validator.v9"
 	"net/http"
 	"os/exec"
 	"strconv"
@@ -78,6 +79,13 @@ func (server Server) GetInstallList(w http.ResponseWriter, gp *core.Goploy) {
 		InstallTraceList model.InstallTraces `json:"installTraceList"`
 	}
 	token := gp.URLQuery.Get("token")
+	if err := core.Validate.Var(token, "uuid4"); err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			response := core.Response{Code: core.Deny, Message: "token" + err.Translate(core.Trans)}
+			response.JSON(w)
+			return
+		}
+	}
 	installTraceList, err := model.InstallTrace{Token: token}.GetListByToken()
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
@@ -107,20 +115,23 @@ func (server Server) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 // Add one server
 func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		Name    string `json:"name"`
-		IP      string `json:"ip"`
-		Port    int    `json:"port"`
-		Owner   string `json:"owner"`
-		GroupID int64  `json:"groupId"`
+		Name    string `json:"name" validate:"required"`
+		IP      string `json:"ip" validate:"ip4_addr"`
+		Port    int    `json:"port" validate:"min=0,max=65535"`
+		Owner   string `json:"owner" validate:"required"`
+		GroupID int64  `json:"groupId" validate:"min=0"`
+	}
+	type RespData struct {
+		ID int64 `json:"id"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	_, err = model.Server{
+
+	id, err := model.Server{
 		Name:       reqData.Name,
 		IP:         reqData.IP,
 		Port:       reqData.Port,
@@ -135,28 +146,27 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Message: "添加成功"}
+	response := core.Response{Message: "添加成功", Data: RespData{ID: id}}
 	response.JSON(w)
 }
 
 // Edit one server
 func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID      int64  `json:"id"`
-		Name    string `json:"name"`
-		IP      string `json:"ip"`
-		Port    int    `json:"port"`
-		Owner   string `json:"owner"`
-		GroupID int64  `json:"groupId"`
+		ID      int64  `json:"id" validate:"gt=0"`
+		Name    string `json:"name" validate:"required"`
+		IP      string `json:"ip" validate:"ip4_addr"`
+		Port    int    `json:"port" validate:"min=0,max=65535"`
+		Owner   string `json:"owner" validate:"required"`
+		GroupID int64  `json:"groupId" validate:"min=0"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	err = model.Server{
+	err := model.Server{
 		ID:         reqData.ID,
 		Name:       reqData.Name,
 		IP:         reqData.IP,
@@ -178,16 +188,15 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) {
 // Remove one Server
 func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID int64 `json:"id"`
+		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	err = model.Server{
+	err := model.Server{
 		ID:         reqData.ID,
 		UpdateTime: time.Now().Unix(),
 	}.Remove()
@@ -201,14 +210,14 @@ func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	response.JSON(w)
 }
 
-// Install Server Enviroment
+// Install Server Environment
 func (server Server) Install(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ServerID   int64 `json:"serverId"`
-		TemplateID int64 `json:"templateId"`
+		ServerID   int64 `json:"serverId" validate:"gt=0"`
+		TemplateID int64 `json:"templateId" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
