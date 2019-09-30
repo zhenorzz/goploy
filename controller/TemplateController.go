@@ -53,19 +53,24 @@ func (template Template) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 // Add one template
 func (template Template) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		Name         string `json:"name"`
+		Name         string `json:"name" validate:"required"`
 		Remark       string `json:"remark"`
 		PackageIDStr string `json:"packageIdStr"`
-		Script       string `json:"script"`
+		Script       string `json:"script" validate:"required"`
 	}
+	type RespData struct {
+		ID int64 `json:"id"`
+	}
+
 	var reqData ReqData
 
-	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	_, err := model.Template{
+
+	id, err := model.Template{
 		Name:         reqData.Name,
 		Remark:       reqData.Remark,
 		PackageIDStr: reqData.PackageIDStr,
@@ -80,27 +85,26 @@ func (template Template) Add(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
-	response := core.Response{Message: "添加成功"}
+	response := core.Response{Message: "添加成功", Data: RespData{ID: id}}
 	response.JSON(w)
 }
 
 // Edit one template
 func (template Template) Edit(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID           int64  `json:"id"`
-		Name         string `json:"name"`
+		ID           int64  `json:"id" validate:"gt=0"`
+		Name         string `json:"name" validate:"required"`
 		Remark       string `json:"remark"`
 		PackageIDStr string `json:"packageIdStr"`
-		Script       string `json:"script"`
+		Script       string `json:"script" validate:"required"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	err = model.Template{
+	err := model.Template{
 		ID:           reqData.ID,
 		Name:         reqData.Name,
 		Remark:       reqData.Remark,
@@ -122,7 +126,7 @@ func (template Template) Edit(w http.ResponseWriter, gp *core.Goploy) {
 // Remove one Template
 func (template Template) Remove(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		ID int64 `json:"id"`
+		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)

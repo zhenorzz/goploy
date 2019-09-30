@@ -53,7 +53,7 @@ func (tpl Template) EditRow() error {
 func (tpl Template) Remove() error {
 	_, err := sq.
 		Delete(templateTable).
-		Where(sq.Eq{"server_id": tpl.ID}).
+		Where(sq.Eq{"id": tpl.ID}).
 		RunWith(DB).
 		Exec()
 	return err
