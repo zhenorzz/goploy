@@ -22,12 +22,19 @@ type Project struct {
 	RsyncOption       string `json:"rsyncOption"`
 	PublisherID       int64  `json:"publisherId"`
 	PublisherName     string `json:"publisherName"`
-	PublishState      uint8  `json:"publishState"`
+	DeployState       uint8  `json:"deployState"`
 	LastPublishToken  string `json:"lastPublishToken"`
 	State             uint8  `json:"state"`
 	CreateTime        int64  `json:"createTime"`
 	UpdateTime        int64  `json:"updateTime"`
 }
+
+const (
+	ProjectNotDeploy = 0
+	ProjectDeploying = 1
+	ProjectSuccess   = 2
+	ProjectFail      = 3
+)
 
 // Projects many project
 type Projects []Project
@@ -90,12 +97,43 @@ func (p Project) Publish() error {
 		SetMap(sq.Eq{
 			"publisher_id":       p.PublisherID,
 			"publisher_name":     p.PublisherName,
+			"deploy_state":       p.DeployState,
 			"last_publish_token": p.LastPublishToken,
 			"update_time":        p.UpdateTime,
 		}).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
 		Exec()
+	return err
+}
+
+// DeploySuccess return err
+func (p Project) DeploySuccess() error {
+	_, err := sq.
+		Update(projectTable).
+		SetMap(sq.Eq{
+			"deploy_state": ProjectSuccess,
+			"update_time":  p.UpdateTime,
+		}).
+		Where(sq.Eq{"id": p.ID}).
+		RunWith(DB).
+		Exec()
+
+	return err
+}
+
+// DeploySuccess return err
+func (p Project) DeployFail() error {
+	_, err := sq.
+		Update(projectTable).
+		SetMap(sq.Eq{
+			"deploy_state": ProjectFail,
+			"update_time":  p.UpdateTime,
+		}).
+		Where(sq.Eq{"id": p.ID}).
+		RunWith(DB).
+		Exec()
+
 	return err
 }
 

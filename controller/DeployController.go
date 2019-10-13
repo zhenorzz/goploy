@@ -170,6 +170,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	}
 	project.PublisherID = gp.TokenInfo.ID
 	project.PublisherName = gp.TokenInfo.Name
+	project.DeployState = model.ProjectDeploying
 	project.LastPublishToken = uuid.New().String()
 	project.UpdateTime = time.Now().Unix()
 	_ = project.Publish()
@@ -212,6 +213,7 @@ func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
 	}
 	project.PublisherID = gp.TokenInfo.ID
 	project.PublisherName = gp.TokenInfo.Name
+	project.DeployState = model.ProjectDeploying
 	project.LastPublishToken = uuid.New().String()
 	project.UpdateTime = time.Now().Unix()
 	_ = project.Publish()
@@ -241,80 +243,68 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 		UpdateTime:    time.Now().Unix(),
 	}
 
-	if err := gitCreate(project); err != nil {
+	gitPullMessage, gitCommitID, err := gitSync(project)
+
+	if err != nil {
+		project.DeployFail()
 		publishTraceModel.Detail = err.Error()
 		publishTraceModel.State = model.Fail
-		publishTraceModel.AddRow()
 		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 			ToUserID: tokenInfo.ID,
 			Message: ws.ProjectMessage{
 				ProjectID:   project.ID,
 				ProjectName: project.Name,
 				UserID:      tokenInfo.ID,
-				State:       ws.Fail,
+				State:       model.ProjectFail,
 				Message:     err.Error(),
 			},
 		}
+		if _, err := publishTraceModel.AddRow(); err != nil {
+			core.Log(core.ERROR, err.Error())
+		}
 		return
+	} else {
+		ext, _ := json.Marshal(struct {
+			Commit string `json:"commit"`
+		}{gitCommitID})
+		publishTraceModel.Ext = string(ext)
+		publishTraceModel.Detail = gitPullMessage
+		publishTraceModel.State = model.Success
+		if _, err := publishTraceModel.AddRow(); err != nil {
+			core.Log(core.ERROR, err.Error())
+		}
 	}
 
-	stdout, err := gitSync(project)
-	if err != nil {
-		publishTraceModel.Detail = err.Error()
-		publishTraceModel.State = model.Fail
-		publishTraceModel.AddRow()
-		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-			ToUserID: tokenInfo.ID,
-			Message: ws.ProjectMessage{
-				ProjectID:   project.ID,
-				ProjectName: project.Name,
-				UserID:      tokenInfo.ID,
-				State:       ws.Fail,
-				Message:     err.Error(),
-			},
-		}
-		return
-	}
-
-	commit, err := gitCommitID(project)
-	if err != nil {
-		publishTraceModel.Detail = err.Error()
-		publishTraceModel.State = model.Fail
-		publishTraceModel.AddRow()
-		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-			ToUserID: tokenInfo.ID,
-			Message: ws.ProjectMessage{
-				ProjectID:   project.ID,
-				ProjectName: project.Name,
-				UserID:      tokenInfo.ID,
-				State:       ws.Fail,
-				Message:     err.Error(),
-			},
-		}
-		return
-	}
-	ext, _ := json.Marshal(struct {
-		Commit string `json:"commit"`
-	}{commit})
-	publishTraceModel.Ext = string(ext)
-	publishTraceModel.Detail = stdout
-	publishTraceModel.State = model.Success
-	if _, err := publishTraceModel.AddRow(); err != nil {
-		core.Log(core.ERROR, err.Error())
-	}
 	if project.AfterPullScript != "" {
-		if err := runAfterPullScript(tokenInfo, project); err != nil {
+		outputString, err := runAfterPullScript(project)
+		publishTraceModel.Type = model.AfterPull
+		ext, _ := json.Marshal(struct {
+			Script string `json:"script"`
+		}{project.AfterPullScript})
+		publishTraceModel.Ext = string(ext)
+		if err != nil {
+			project.DeployFail()
+			publishTraceModel.Detail = err.Error()
+			publishTraceModel.State = model.Fail
 			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 				ToUserID: tokenInfo.ID,
 				Message: ws.ProjectMessage{
 					ProjectID:   project.ID,
 					ProjectName: project.Name,
 					UserID:      tokenInfo.ID,
-					State:       ws.Fail,
+					State:       model.ProjectFail,
 					Message:     err.Error(),
 				},
 			}
+			if _, err := publishTraceModel.AddRow(); err != nil {
+				core.Log(core.ERROR, err.Error())
+			}
 			return
+		}
+		publishTraceModel.Detail = outputString
+		publishTraceModel.State = model.Success
+		if _, err := publishTraceModel.AddRow(); err != nil {
+			core.Log(core.ERROR, err.Error())
 		}
 	}
 
@@ -326,13 +316,16 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 	message := ""
 	for i := 0; i < len(projectServers); i++ {
 		syncMessage := <-ch
-		if syncMessage.State == 0 {
+		if syncMessage.State == model.ProjectFail {
 			message += syncMessage.serverName + " error message: " + syncMessage.Detail
 		}
 	}
-	state := ws.Fail
+	state := model.ProjectFail
 	if message == "" {
-		state = ws.Success
+		project.DeploySuccess()
+		state = model.ProjectSuccess
+	} else {
+		project.DeployFail()
 	}
 	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
 		ToUserID: tokenInfo.ID,
@@ -344,7 +337,6 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 			Message:     message,
 		},
 	}
-
 }
 
 func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project, projectServers model.ProjectServers) {
@@ -363,6 +355,16 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 		publishTraceModel.Detail = err.Error()
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
+		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
+			ToUserID: tokenInfo.ID,
+			Message: ws.ProjectMessage{
+				ProjectID:   project.ID,
+				ProjectName: project.Name,
+				UserID:      tokenInfo.ID,
+				State:       model.ProjectFail,
+				Message:     err.Error(),
+			},
+		}
 		return
 	}
 	ext, _ := json.Marshal(struct {
@@ -377,8 +379,35 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 	}
 
 	if project.AfterPullScript != "" {
-		if err := runAfterPullScript(tokenInfo, project); err != nil {
+		outputString, err := runAfterPullScript(project)
+		publishTraceModel.Type = model.AfterPull
+		ext, _ := json.Marshal(struct {
+			Script string `json:"script"`
+		}{project.AfterPullScript})
+		publishTraceModel.Ext = string(ext)
+		if err != nil {
+			project.DeployFail()
+			publishTraceModel.Detail = err.Error()
+			publishTraceModel.State = model.Fail
+			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
+				ToUserID: tokenInfo.ID,
+				Message: ws.ProjectMessage{
+					ProjectID:   project.ID,
+					ProjectName: project.Name,
+					UserID:      tokenInfo.ID,
+					State:       model.ProjectFail,
+					Message:     err.Error(),
+				},
+			}
+			if _, err := publishTraceModel.AddRow(); err != nil {
+				core.Log(core.ERROR, err.Error())
+			}
 			return
+		}
+		publishTraceModel.Detail = outputString
+		publishTraceModel.State = model.Success
+		if _, err := publishTraceModel.AddRow(); err != nil {
+			core.Log(core.ERROR, err.Error())
 		}
 	}
 
@@ -386,6 +415,46 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 	for _, projectServer := range projectServers {
 		go remoteSync(ch, tokenInfo, project, projectServer)
 	}
+
+	message := ""
+	for i := 0; i < len(projectServers); i++ {
+		syncMessage := <-ch
+		if syncMessage.State == model.ProjectFail {
+			message += syncMessage.serverName + " error message: " + syncMessage.Detail
+		}
+	}
+	state := model.ProjectFail
+	if message == "" {
+		project.DeploySuccess()
+		state = model.ProjectSuccess
+	} else {
+		project.DeployFail()
+	}
+	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
+		ToUserID: tokenInfo.ID,
+		Message: ws.ProjectMessage{
+			ProjectID:   project.ID,
+			ProjectName: project.Name,
+			UserID:      tokenInfo.ID,
+			State:       uint8(state),
+			Message:     message,
+		},
+	}
+}
+func gitSync(project model.Project) (string, string, error) {
+	if err := gitCreate(project); err != nil {
+		return "", "", err
+	}
+	stdout, err := gitPull(project)
+	if err != nil {
+		return  "", "", err
+	}
+
+	commit, err := gitCommitID(project)
+	if err != nil {
+		return "", "", err
+	}
+	return stdout, commit, err
 }
 
 func gitCreate(project model.Project) error {
@@ -421,7 +490,7 @@ func gitCreate(project model.Project) error {
 	return nil
 }
 
-func gitSync(project model.Project) (string, error) {
+func gitPull(project model.Project) (string, error) {
 	srcPath := core.RepositoryPath + project.Name
 
 	clean := exec.Command("git", "clean", "-f")
@@ -482,21 +551,7 @@ func gitCommitID(project model.Project) (string, error) {
 	return gitOutbuf.String(), nil
 }
 
-func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
-	publishTraceModel := model.PublishTrace{
-		Token:         project.LastPublishToken,
-		ProjectID:     project.ID,
-		ProjectName:   project.Name,
-		PublisherID:   tokenInfo.ID,
-		PublisherName: tokenInfo.Name,
-		Type:          model.AfterPull,
-		CreateTime:    time.Now().Unix(),
-		UpdateTime:    time.Now().Unix(),
-	}
-	ext, _ := json.Marshal(struct {
-		Script string `json:"script"`
-	}{project.AfterPullScript})
-	publishTraceModel.Ext = string(ext)
+func runAfterPullScript(project model.Project) (string, error) {
 	srcPath := core.RepositoryPath + project.Name
 	scriptName := srcPath + "/after-pull.sh"
 	ioutil.WriteFile(scriptName, []byte(project.AfterPullScript), 0755)
@@ -508,21 +563,11 @@ func runAfterPullScript(tokenInfo core.TokenInfo, project model.Project) error {
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+project.AfterPullScript)
 	if err := handler.Run(); err != nil {
 		core.Log(core.ERROR, err.Error())
-		publishTraceModel.Detail = err.Error()
-		publishTraceModel.State = model.Fail
-		if _, err := publishTraceModel.AddRow(); err != nil {
-			core.Log(core.ERROR, err.Error())
-		}
-		return err
-	}
-	publishTraceModel.Detail = outbuf.String()
-	publishTraceModel.State = model.Success
-	os.Remove(scriptName)
-	if _, err := publishTraceModel.AddRow(); err != nil {
-		core.Log(core.ERROR, err.Error())
+		return "", err
 	}
 
-	return nil
+	os.Remove(scriptName)
+	return outbuf.String(), nil
 }
 
 func remoteSync(chInput chan<- SyncMessage, tokenInfo core.TokenInfo, project model.Project, projectServer model.ProjectServer) {
@@ -581,7 +626,7 @@ func remoteSync(chInput chan<- SyncMessage, tokenInfo core.TokenInfo, project mo
 			serverName: projectServer.ServerName,
 			ProjectID:  project.ID,
 			Detail:     errbuf.String(),
-			State:      ws.Fail,
+			State:      model.ProjectFail,
 		}
 		return
 	}
@@ -590,7 +635,7 @@ func remoteSync(chInput chan<- SyncMessage, tokenInfo core.TokenInfo, project mo
 		chInput <- SyncMessage{
 			serverName: projectServer.ServerName,
 			ProjectID:  project.ID,
-			State:      ws.Success,
+			State:      model.ProjectSuccess,
 		}
 		return
 	}
@@ -636,7 +681,7 @@ func remoteSync(chInput chan<- SyncMessage, tokenInfo core.TokenInfo, project mo
 			serverName: projectServer.ServerName,
 			ProjectID:  project.ID,
 			Detail:     connectError.Error(),
-			State:      ws.Fail,
+			State:      model.ProjectFail,
 		}
 		return
 	} else if scriptError != nil {
@@ -647,14 +692,14 @@ func remoteSync(chInput chan<- SyncMessage, tokenInfo core.TokenInfo, project mo
 			serverName: projectServer.ServerName,
 			ProjectID:  project.ID,
 			Detail:     scriptError.Error(),
-			State:      ws.Fail,
+			State:      model.ProjectFail,
 		}
 		return
 	}
 	chInput <- SyncMessage{
 		serverName: projectServer.ServerName,
 		ProjectID:  project.ID,
-		State:      ws.Success,
+		State:      model.ProjectSuccess,
 	}
 	return
 }

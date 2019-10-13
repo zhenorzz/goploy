@@ -68,8 +68,7 @@ func (pu ProjectUser) GetListByUserID() (ProjectUsers, error) {
 // GetDeployListByUserID user row by status
 func (pu ProjectUser) GetDeployListByUserID() (Projects, error) {
 	builder := sq.
-		Select("project_id, project.name, publisher_id, publisher_name, project.group_id, project.environment, project.branch, project.last_publish_token, project.update_time").
-		Column("!EXISTS (SELECT id FROM "+publishTraceTable+" where publish_trace.state = ? AND project.last_publish_token = publish_trace.token) as publish_state", Fail).
+		Select("project_id, project.name, publisher_id, publisher_name, project.group_id, project.environment, project.branch, project.last_publish_token, project.deploy_state, project.update_time").
 		From(projectUserTable).
 		LeftJoin(projectTable + " ON project_user.project_id = project.id").
 		Where(sq.Eq{
@@ -101,8 +100,8 @@ func (pu ProjectUser) GetDeployListByUserID() (Projects, error) {
 			&project.Environment,
 			&project.Branch,
 			&project.LastPublishToken,
-			&project.UpdateTime,
-			&project.PublishState); err != nil {
+			&project.DeployState,
+			&project.UpdateTime); err != nil {
 			return projects, err
 		}
 		projects = append(projects, project)

@@ -29,10 +29,11 @@
       <el-table-column prop="environment" label="环境" />
       <el-table-column prop="branch" label="分支" />
       <el-table-column prop="publisherName" label="构建者" width="160" />
-      <el-table-column prop="publishState" label="状态" width="70">
+      <el-table-column prop="deployState" label="构建状态" width="70">
         <template slot-scope="scope">
-          <el-tag v-if="scope.row.publishState === 1" type="success" effect="plain">成功</el-tag>
-          <el-tag v-if="scope.row.publishState === 2" type="info" effect="plain">构建中</el-tag>
+          <el-tag v-if="scope.row.deployState === 0" type="info" effect="plain">未构建</el-tag>
+          <el-tag v-else-if="scope.row.deployState === 1" type="warning" effect="plain">构建中</el-tag>
+          <el-tag v-else-if="scope.row.deployState === 2" type="success" effect="plain">成功</el-tag>
           <el-tag v-else type="danger" effect="plain">失败</el-tag>
         </template>
       </el-table-column>
@@ -219,7 +220,7 @@ export default {
           const data = JSON.parse(e.data)
           console.log(data)
           data.message = this.formatDetail(data.message)
-          if (data.state === 0) {
+          if (data.state === 3) {
             this.$notify.error({
               title: data.projectName,
               dangerouslyUseHTMLString: true,
@@ -227,6 +228,8 @@ export default {
               duration: 0
             })
           }
+          const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
+          this.tableData[projectIndex].deployState = data.state
         }
       })
     },
@@ -265,7 +268,7 @@ export default {
         this.connectWebSocket().then(server => {
           publish(id).then((response) => {
             const projectIndex = this.tableData.findIndex(element => element.id === id)
-            this.tableData[projectIndex].publishState = 2
+            this.tableData[projectIndex].deployState = 1
           })
         })
       }).catch(() => {
