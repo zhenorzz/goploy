@@ -17,9 +17,9 @@
       stripe
       highlight-current-row
       :data="tableData"
-      style="width: 100%"
+      style="width: 100%;margin-top: 5px;"
     >
-      <el-table-column prop="id" label="ID" width="160" />
+      <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="name" label="项目名称" />
       <el-table-column prop="group" label="分组">
         <template slot-scope="scope">
@@ -29,9 +29,10 @@
       <el-table-column prop="environment" label="环境" />
       <el-table-column prop="branch" label="分支" />
       <el-table-column prop="publisherName" label="构建者" width="160" />
-      <el-table-column prop="publishState" label="状态" width="60">
+      <el-table-column prop="publishState" label="状态" width="70">
         <template slot-scope="scope">
           <el-tag v-if="scope.row.publishState === 1" type="success" effect="plain">成功</el-tag>
+          <el-tag v-if="scope.row.publishState === 2" type="info" effect="plain">构建中</el-tag>
           <el-tag v-else type="danger" effect="plain">失败</el-tag>
         </template>
       </el-table-column>
@@ -134,33 +135,6 @@
         <el-button @click="dialogVisible = false">取 消</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="构建进度" :visible.sync="publishDialogVisible">
-      <el-row ref="publishSchedule" class="project-detail">
-        <el-row>
-          <el-row style="margin:5px 0">git同步信息</el-row>
-          <el-row v-for="(item, index) in gitLog" :key="index">
-            <el-row style="margin:5px 0">
-              <el-tag v-show="item['state'] === 0" type="danger" effect="plain">失败</el-tag>
-              <span v-html="item['message']" />
-            </el-row>
-          </el-row>
-        </el-row>
-        <hr>
-        <el-row>
-          <el-row style="margin:5px 0">remote服务器信息</el-row>
-          <el-row v-for="(serverLog, index) in remoteLog" :key="index">
-            <el-row style="margin:5px 0">服务器: {{ index }}</el-row>
-            <el-row v-for="(item, serverIndex) in serverLog" :key="serverIndex">
-              <el-row style="margin:5px 0">
-                <el-tag v-show="item['state'] === 0" type="danger" effect="plain">失败</el-tag>
-                <span v-html="item['message']" />
-              </el-row>
-            </el-row>
-            <hr>
-          </el-row>
-        </el-row>
-      </el-row>
-    </el-dialog>
     <el-dialog title="commit管理" :visible.sync="commitDialogVisible">
       <el-table
         border
@@ -196,7 +170,6 @@ export default {
       groupOption: [],
       projectName: '',
       publishToken: '',
-      publishDialogVisible: false,
       commitDialogVisible: false,
       dialogVisible: false,
       webSocket: null,
@@ -206,9 +179,7 @@ export default {
       publishTraceList: [],
       publishLocalTraceList: [],
       publishRemoteTraceList: {},
-      activeRomoteTracePane: '',
-      gitLog: [],
-      remoteLog: {}
+      activeRomoteTracePane: ''
     }
   },
   created() {
@@ -246,20 +217,16 @@ export default {
 
         this.webSocket.onmessage = (e) => {
           const data = JSON.parse(e.data)
+          console.log(data)
           data.message = this.formatDetail(data.message)
-          if (data.dataType === 1) {
-            this.gitLog.push(data)
-          } else {
-            if (!this.remoteLog[data.serverName]) {
-              this.$set(this.remoteLog, data.serverName, [])
-            }
-            this.remoteLog[data.serverName].push(data)
+          if (data.state === 0) {
+            this.$notify.error({
+              title: data.projectName,
+              dangerouslyUseHTMLString: true,
+              message: data.message,
+              duration: 0
+            })
           }
-
-          this.$nextTick(() => {
-            const contentBox = this.$refs.publishSchedule
-            contentBox.$el.scrollTop = contentBox.$el.scrollHeight
-          })
         }
       })
     },
@@ -295,10 +262,10 @@ export default {
       }).then(() => {
         this.gitLog = []
         this.remoteLog = {}
-        this.publishDialogVisible = true
         this.connectWebSocket().then(server => {
           publish(id).then((response) => {
-            setTimeout(() => { this.getList() }, 1000)
+            const projectIndex = this.tableData.findIndex(element => element.id === id)
+            this.tableData[projectIndex].publishState = 2
           })
         })
       }).catch(() => {

@@ -26,13 +26,11 @@ type UnicastData struct {
 
 // ProjectMessage is publish project message struct
 type ProjectMessage struct {
-	ProjectID  int64  `json:"projectId"`
-	ServerID   int64  `json:"serverId"`
-	ServerName string `json:"serverName"`
-	UserID     int64  `json:"userId"`
-	State      uint8  `json:"state"`
-	Message    string `json:"message"`
-	DataType   uint8  `json:"dataType"`
+	ProjectID   int64  `json:"projectId"`
+	ProjectName string `json:"projectName"`
+	UserID      int64  `json:"userId"`
+	State       uint8  `json:"state"`
+	Message     string `json:"message"`
 }
 
 // UnicastHub is a client struct
