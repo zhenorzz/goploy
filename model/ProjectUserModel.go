@@ -65,8 +65,8 @@ func (pu ProjectUser) GetListByUserID() (ProjectUsers, error) {
 	return projectUsers, nil
 }
 
-// GetDepolyListByUserID user row by status
-func (pu ProjectUser) GetDepolyListByUserID() (Projects, error) {
+// GetDeployListByUserID user row by status
+func (pu ProjectUser) GetDeployListByUserID() (Projects, error) {
 	builder := sq.
 		Select("project_id, project.name, publisher_id, publisher_name, project.group_id, project.environment, project.branch, project.last_publish_token, project.update_time").
 		Column("!EXISTS (SELECT id FROM "+publishTraceTable+" where publish_trace.state = ? AND project.last_publish_token = publish_trace.token) as publish_state", Fail).

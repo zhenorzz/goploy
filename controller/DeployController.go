@@ -44,7 +44,7 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 		Project: model.Project{
 			GroupID: groupID,
 			Name:    projectName,
-		}}.GetDepolyListByUserID()
+		}}.GetDeployListByUserID()
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)

@@ -374,7 +374,7 @@ func (project Project) RemoveProjectUser(w http.ResponseWriter, gp *core.Goploy)
 func repoCreate(projectID int64) {
 	project, err := model.Project{ID: projectID}.GetData()
 	if err != nil {
-		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" 无此项目")
+		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(projectID, 10)+" 无此项目")
 		return
 	}
 	srcPath := core.RepositoryPath + project.Name
