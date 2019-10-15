@@ -1,5 +1,5 @@
 <div align=center>
-<img src="https://goploy/blob/master/logo.png" alt="logo" title="logo" />
+<img src="https://github.com/zhenorzz/goploy/blob/master/logo.png" alt="logo" title="logo" />
 </div>
 
 ## 使用说明
@@ -20,10 +20,10 @@
 3. npm run dev
 
 ## 原理图
-![原理图](https://goploy/blob/master/goploy.png)
+![原理图](https://github.com/zhenorzz/goploy/blob/master/goploy.png)
 
 ## 预览
-![预览](https://goploy/blob/master/snapshot.gif)
+![预览](https://github.com/zhenorzz/goploy/blob/master/snapshot.gif)
 有不懂的看可以发issue
 
 欢迎大家合作开发
