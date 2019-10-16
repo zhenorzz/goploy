@@ -109,7 +109,7 @@ func (pu ProjectUser) GetDeployListByUserID() (Projects, error) {
 	return projects, nil
 }
 
-// GetDataByProjectUser  by  projectid and userid
+// GetDataByProjectUser  by  project id and user id
 func (pu ProjectUser) GetDataByProjectUser() (ProjectUser, error) {
 	println()
 	var projectUser ProjectUser

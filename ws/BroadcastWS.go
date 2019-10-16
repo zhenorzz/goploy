@@ -11,21 +11,21 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// UnicastClient stores a client information
-type UnicastClient struct {
-	Conn     *websocket.Conn
-	UserID   int64
-	UserName string
+// BroadcastClient stores a client information
+type BroadcastClient struct {
+	Conn       *websocket.Conn
+	UserID     int64
+	UserName   string
 }
 
-// UnicastData is message struct
-type UnicastData struct {
-	ToUserID int64
-	Message  interface{}
+// BroadcastData is message struct
+type BroadcastData struct {
+	Type    int
+	Message interface{}
 }
 
 // ProjectMessage is publish project message struct
-type ProjectMessage struct {
+type ProjectMessage1 struct {
 	ProjectID   int64  `json:"projectId"`
 	ProjectName string `json:"projectName"`
 	UserID      int64  `json:"userId"`
@@ -33,38 +33,42 @@ type ProjectMessage struct {
 	Message     string `json:"message"`
 }
 
-// UnicastHub is a client struct
-type UnicastHub struct {
+// BroadcastHub is a client struct
+type BroadcastHub struct {
 	// Registered clients.
-	clients map[*UnicastClient]bool
+	clients map[*BroadcastClient]bool
 
 	// Inbound messages from the clients.
-	UnicastData chan *UnicastData
+	BroadcastData chan *BroadcastData
 
 	// Register requests from the clients.
-	Register chan *UnicastClient
+	Register chan *BroadcastClient
 
 	// Unregister requests from clients.
-	Unregister chan *UnicastClient
+	Unregister chan *BroadcastClient
 }
 
-var unicastHub *UnicastHub
+const (
+	TypeProject = 1
+)
 
-// GetUnicastHub it will only init once in main.go
-func GetUnicastHub() *UnicastHub {
-	if unicastHub == nil {
-		unicastHub = &UnicastHub{
-			UnicastData: make(chan *UnicastData),
-			clients:     make(map[*UnicastClient]bool),
-			Register:    make(chan *UnicastClient),
-			Unregister:  make(chan *UnicastClient),
+var broadcastHub *BroadcastHub
+
+// GetBroadcastHub it will only init once in main.go
+func GetBroadcastHub() *BroadcastHub {
+	if broadcastHub == nil {
+		broadcastHub = &BroadcastHub{
+			BroadcastData: make(chan *BroadcastData),
+			clients:       make(map[*BroadcastClient]bool),
+			Register:      make(chan *BroadcastClient),
+			Unregister:    make(chan *BroadcastClient),
 		}
 	}
-	return unicastHub
+	return broadcastHub
 }
 
-// Unicast the publish information in websocket
-func (hub *UnicastHub) Unicast(w http.ResponseWriter, gp *core.Goploy) {
+// Broadcast the publish information in websocket
+func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
@@ -78,7 +82,7 @@ func (hub *UnicastHub) Unicast(w http.ResponseWriter, gp *core.Goploy) {
 		log.Print("upgrade:", err)
 		return
 	}
-	hub.Register <- &UnicastClient{
+	hub.Register <- &BroadcastClient{
 		Conn:     c,
 		UserID:   gp.TokenInfo.ID,
 		UserName: gp.TokenInfo.Name,
@@ -86,7 +90,7 @@ func (hub *UnicastHub) Unicast(w http.ResponseWriter, gp *core.Goploy) {
 }
 
 // Run goroutine run the sync hub
-func (hub *UnicastHub) Run() {
+func (hub *BroadcastHub) Run() {
 	for {
 		select {
 		case client := <-hub.Register:
@@ -96,11 +100,17 @@ func (hub *UnicastHub) Run() {
 				delete(hub.clients, client)
 				client.Conn.Close()
 			}
-		case broadcast := <-hub.UnicastData:
+		case broadcast := <-hub.BroadcastData:
 			for client := range hub.clients {
-				if client.UserID != broadcast.ToUserID {
+				if broadcast.Type == TypeProject {
+					projectMessage := broadcast.Message.(ProjectMessage)
+					if ok := core.UserHasProject(client.UserID, projectMessage.ProjectID); !ok {
+						continue
+					}
+				} else {
 					continue
 				}
+
 				if err := client.Conn.WriteJSON(broadcast.Message); websocket.IsCloseError(err) {
 					hub.Unregister <- client
 				}
