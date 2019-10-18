@@ -6,7 +6,7 @@ import (
 
 	"goploy/model"
 
-	cache "github.com/patrickmn/go-cache"
+	"github.com/patrickmn/go-cache"
 )
 
 // Cache uint
@@ -36,7 +36,7 @@ func GetUserProject(userID int64) (model.ProjectUsers, error) {
 	if x, found := Cache.Get("projectUser:" + strconv.Itoa(int(userID))); found {
 		projectUsers = *x.(*model.ProjectUsers)
 	} else {
-		projectUsers, err = model.ProjectUser{ID: userID}.GetListByUserID()
+		projectUsers, err = model.ProjectUser{UserID: userID}.GetListByUserID()
 		if err != nil {
 			return projectUsers, err
 		}
@@ -53,7 +53,7 @@ func UserHasProject(userID int64, projectID int64) bool {
 	}
 
 	for _, projectUser := range projectUsers {
-		if projectUser.UserID == userID {
+		if projectUser.ProjectID == projectID {
 			return true
 		}
 	}

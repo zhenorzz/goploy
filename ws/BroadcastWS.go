@@ -13,9 +13,9 @@ import (
 
 // BroadcastClient stores a client information
 type BroadcastClient struct {
-	Conn       *websocket.Conn
-	UserID     int64
-	UserName   string
+	Conn     *websocket.Conn
+	UserID   int64
+	UserName string
 }
 
 // BroadcastData is message struct
@@ -25,7 +25,7 @@ type BroadcastData struct {
 }
 
 // ProjectMessage is publish project message struct
-type ProjectMessage1 struct {
+type ProjectMessage struct {
 	ProjectID   int64  `json:"projectId"`
 	ProjectName string `json:"projectName"`
 	UserID      int64  `json:"userId"`

@@ -161,6 +161,12 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
+	if project.DeployState == model.ProjectDeploying {
+		response := core.Response{Code: core.Deny, Message: "项目正在构建，请稍后再试"}
+		response.JSON(w)
+		return
+	}
+
 	projectServers, err := model.ProjectServer{ProjectID: reqData.ProjectID}.GetBindServerListByProjectID()
 
 	if err != nil {
@@ -204,6 +210,12 @@ func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
+	if project.DeployState == model.ProjectDeploying {
+		response := core.Response{Code: core.Deny, Message: "项目正在构建，请稍后再试"}
+		response.JSON(w)
+		return
+	}
+
 	projectServers, err := model.ProjectServer{ProjectID: reqData.ProjectID}.GetBindServerListByProjectID()
 
 	if err != nil {
@@ -232,6 +244,15 @@ type SyncMessage struct {
 }
 
 func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers model.ProjectServers) {
+	ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
+		Type: ws.TypeProject,
+		Message: ws.ProjectMessage{
+			ProjectID:   project.ID,
+			ProjectName: project.Name,
+			UserID:      tokenInfo.ID,
+			State:       model.ProjectDeploying,
+		},
+	}
 	publishTraceModel := model.PublishTrace{
 		Token:         project.LastPublishToken,
 		ProjectID:     project.ID,
@@ -249,8 +270,8 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 		project.DeployFail()
 		publishTraceModel.Detail = err.Error()
 		publishTraceModel.State = model.Fail
-		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-			ToUserID: tokenInfo.ID,
+		ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
+			Type: ws.TypeProject,
 			Message: ws.ProjectMessage{
 				ProjectID:   project.ID,
 				ProjectName: project.Name,
@@ -286,8 +307,8 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 			project.DeployFail()
 			publishTraceModel.Detail = err.Error()
 			publishTraceModel.State = model.Fail
-			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-				ToUserID: tokenInfo.ID,
+			ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
+				Type: ws.TypeProject,
 				Message: ws.ProjectMessage{
 					ProjectID:   project.ID,
 					ProjectName: project.Name,
@@ -327,8 +348,10 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 	} else {
 		project.DeployFail()
 	}
-	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-		ToUserID: tokenInfo.ID,
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy success")
+
+	ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
+		Type: ws.TypeProject,
 		Message: ws.ProjectMessage{
 			ProjectID:   project.ID,
 			ProjectName: project.Name,
@@ -337,9 +360,19 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 			Message:     message,
 		},
 	}
+
 }
 
 func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project, projectServers model.ProjectServers) {
+	ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
+		Type: ws.TypeProject,
+		Message: ws.ProjectMessage{
+			ProjectID:   project.ID,
+			ProjectName: project.Name,
+			UserID:      tokenInfo.ID,
+			State:       model.ProjectDeploying,
+		},
+	}
 	publishTraceModel := model.PublishTrace{
 		Token:         project.LastPublishToken,
 		ProjectID:     project.ID,
@@ -355,8 +388,8 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 		publishTraceModel.Detail = err.Error()
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
-		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-			ToUserID: tokenInfo.ID,
+		ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
+			Type: ws.TypeProject,
 			Message: ws.ProjectMessage{
 				ProjectID:   project.ID,
 				ProjectName: project.Name,
@@ -389,8 +422,8 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 			project.DeployFail()
 			publishTraceModel.Detail = err.Error()
 			publishTraceModel.State = model.Fail
-			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-				ToUserID: tokenInfo.ID,
+			ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
+				Type: ws.TypeProject,
 				Message: ws.ProjectMessage{
 					ProjectID:   project.ID,
 					ProjectName: project.Name,
@@ -430,8 +463,9 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 	} else {
 		project.DeployFail()
 	}
-	ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-		ToUserID: tokenInfo.ID,
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" rollback success")
+	ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
+		Type: ws.TypeProject,
 		Message: ws.ProjectMessage{
 			ProjectID:   project.ID,
 			ProjectName: project.Name,
@@ -447,7 +481,7 @@ func gitSync(project model.Project) (string, string, error) {
 	}
 	stdout, err := gitPull(project)
 	if err != nil {
-		return  "", "", err
+		return "", "", err
 	}
 
 	commit, err := gitCommitID(project)

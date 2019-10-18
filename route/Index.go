@@ -18,7 +18,7 @@ func Init() *router.Router {
 
 	// websocket route
 	rt.Add("/ws/unicast", router.GET, ws.GetUnicastHub().Unicast)
-	rt.Add("/ws/unicast", router.GET, ws.GetBroadcastHub().Broadcast)
+	rt.Add("/ws/broadcast", router.GET, ws.GetBroadcastHub().Broadcast)
 
 	// user route
 	rt.Add("/user/login", router.POST, controller.User{}.Login)
