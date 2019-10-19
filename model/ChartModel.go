@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -48,6 +47,5 @@ func (c *Charts) Query(date string) error {
 		}
 		*c = append(*c, chart)
 	}
-	fmt.Println(c)
 	return nil
 }

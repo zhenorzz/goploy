@@ -41,7 +41,6 @@ func (it InstallTrace) AddRow() (int64, error) {
 		Exec()
 
 	if err != nil {
-		println(err.Error())
 		return 0, err
 	}
 

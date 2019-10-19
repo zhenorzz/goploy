@@ -111,7 +111,6 @@ func (pu ProjectUser) GetDeployListByUserID() (Projects, error) {
 
 // GetDataByProjectUser  by  project id and user id
 func (pu ProjectUser) GetDataByProjectUser() (ProjectUser, error) {
-	println()
 	var projectUser ProjectUser
 	err := sq.
 		Select("id, project_id, user_id").

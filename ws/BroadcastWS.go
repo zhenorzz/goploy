@@ -2,7 +2,6 @@ package ws
 
 // 单播
 import (
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -80,7 +79,7 @@ func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) {
 	}
 	c, err := upgrader.Upgrade(w, gp.Request, nil)
 	if err != nil {
-		log.Print("upgrade:", err)
+		core.Log(core.ERROR, err.Error())
 		return
 	}
 	c.SetReadLimit(maxMessageSize)
@@ -96,7 +95,7 @@ func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) {
 		_, _, err := c.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-				log.Printf("error: %v", err)
+				core.Log(core.ERROR, err.Error())
 			}
 			break
 		}

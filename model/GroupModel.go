@@ -28,7 +28,6 @@ func (g Group) AddRow() (int64, error) {
 		RunWith(DB).
 		Exec()
 	if err != nil {
-		println(err.Error())
 		return 0, err
 	}
 	id, err := result.LastInsertId()
