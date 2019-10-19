@@ -179,12 +179,16 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	project.DeployState = model.ProjectDeploying
 	project.LastPublishToken = uuid.New().String()
 	project.UpdateTime = time.Now().Unix()
-	_ = project.Publish()
-
-	go execSync(gp.TokenInfo, project, projectServers)
-
+	err = project.Publish()
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
 	response := core.Response{Message: "部署中，请稍后"}
 	response.JSON(w)
+
+	go execSync(gp.TokenInfo, project, projectServers)
 }
 
 // Rollback the project
@@ -228,12 +232,16 @@ func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
 	project.DeployState = model.ProjectDeploying
 	project.LastPublishToken = uuid.New().String()
 	project.UpdateTime = time.Now().Unix()
-	_ = project.Publish()
-
-	go execRollback(gp.TokenInfo, reqData.Commit, project, projectServers)
-
+	err = project.Publish()
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
 	response := core.Response{Message: "重新构建中，请稍后"}
 	response.JSON(w)
+	go execRollback(gp.TokenInfo, reqData.Commit, project, projectServers)
+
 }
 
 type SyncMessage struct {
@@ -244,6 +252,7 @@ type SyncMessage struct {
 }
 
 func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers model.ProjectServers) {
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy start")
 	ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
 		Type: ws.TypeProject,
 		Message: ws.ProjectMessage{
@@ -360,7 +369,6 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 			Message:     message,
 		},
 	}
-
 }
 
 func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project, projectServers model.ProjectServers) {
