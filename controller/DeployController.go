@@ -369,6 +369,7 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 			Message:     message,
 		},
 	}
+	return
 }
 
 func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project, projectServers model.ProjectServers) {
@@ -482,6 +483,7 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 			Message:     message,
 		},
 	}
+	return
 }
 func gitSync(project model.Project) (string, string, error) {
 	if err := gitCreate(project); err != nil {
