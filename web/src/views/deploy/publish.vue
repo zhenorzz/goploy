@@ -40,9 +40,9 @@
       <el-table-column prop="updateTime" label="上次构建时间" width="160" />
       <el-table-column prop="operation" label="操作" width="220">
         <template slot-scope="scope">
-          <el-button type="primary" @click="publish(scope.row.id)">构建</el-button>
+          <el-button :disabled="scope.row.deployState === 1" type="primary" @click="publish(scope.row.id)">构建</el-button>
           <el-button type="success" @click="handleDetail(scope.row)">详情</el-button>
-          <el-button type="danger" @click="handleRollback(scope.row.id)">回滚</el-button>
+          <el-button :disabled="scope.row.deployState === 1" type="danger" @click="handleRollback(scope.row.id)">回滚</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -186,6 +186,7 @@ export default {
   created() {
     this.getList()
     this.getGroupOption()
+    this.connectWebSocket()
     // // 路由跳转时结束websocket链接
     this.$router.afterEach(() => {
       this.webSocket && this.webSocket.close()
@@ -199,7 +200,7 @@ export default {
       }
 
       return new Promise((resolve, reject) => {
-        this.webSocket = new WebSocket('ws://' + window.location.host + process.env.VUE_APP_BASE_API + '/ws/unicast')
+        this.webSocket = new WebSocket('ws://' + window.location.host + process.env.VUE_APP_BASE_API + '/ws/broadcast')
 
         this.webSocket.onopen = () => {
           console.log('socket connection is opened [state = ' + this.webSocket.readyState + ']: ' + this.webSocket.url)
@@ -343,18 +344,11 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.gitLog = []
-        this.remoteLog = {}
-        this.dialogVisible = false
-        this.publishDialogVisible = true
         this.connectWebSocket().then(server => {
           rollback(data.projectId, data.commit).then((response) => {
-            this.$message({
-              message: response.message,
-              type: 'success',
-              duration: 5 * 1000
-            })
-            setTimeout(() => { this.getList() }, 1000)
+            const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
+            this.tableData[projectIndex].deployState = 1
+            this.commitDialogVisible = false
           })
         })
       }).catch(() => {
