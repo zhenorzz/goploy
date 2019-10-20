@@ -67,7 +67,7 @@
             </el-form-item>
             <el-form-item label="绑定分组" prop="groupId">
               <el-select v-model="formData.groupId" placeholder="选择分组" style="width:100%">
-                <el-option label="默认" :value="0" />
+                <el-option v-if="hasGroupManagerPermission()" label="默认" :value="0" />
                 <el-option
                   v-for="(item, index) in groupOption"
                   :key="index"
@@ -86,8 +86,8 @@
                 />
               </el-select>
             </el-form-item>
-            <el-form-item v-show="formProps.showUsers" label="绑定组员" prop="userIds">
-              <el-select v-model="formData.userIds" multiple placeholder="选择组员，可多选" style="width:100%">
+            <el-form-item v-show="formProps.showUsers" label="绑定用户" prop="userIds">
+              <el-select v-model="formData.userIds" multiple placeholder="选择用户，可多选" style="width:100%">
                 <el-option
                   v-for="(item, index) in userOption"
                   :key="index"
@@ -182,8 +182,8 @@
     </el-dialog>
     <el-dialog title="添加用户" :visible.sync="dialogAddUserVisible">
       <el-form ref="addUserForm" :rules="addUserFormRules" :model="addUserFormData">
-        <el-form-item label="绑定组员" label-width="120px" prop="userIds">
-          <el-select v-model="addUserFormData.userIds" multiple placeholder="选择组员，可多选">
+        <el-form-item label="绑定用户" label-width="120px" prop="userIds">
+          <el-select v-model="addUserFormData.userIds" multiple placeholder="选择用户，可多选">
             <el-option
               v-for="(item, index) in userOption"
               :key="index"
@@ -202,7 +202,7 @@
 </template>
 <script>
 
-import { getOption as getUserOption } from '@/api/user'
+import { getMemberOption } from '@/api/user'
 import { getOption as getServerOption } from '@/api/server'
 import { getOption as getGroupOption } from '@/api/group'
 import { getList, getBindServerList, getBindUserList, add, edit, create, remove, addServer, addUser, removeProjectServer, removeProjectUser } from '@/api/project'
@@ -253,7 +253,7 @@ export default {
       tempFormData: {},
       formData: {
         id: 0,
-        groupId: 0,
+        groupId: '',
         name: '',
         url: '',
         path: '',
@@ -280,6 +280,9 @@ export default {
         ],
         branch: [
           { required: true, message: '请输入分支名称', trigger: ['blur'] }
+        ],
+        groupId: [
+          { required: true, message: '请选择分组', trigger: 'blur' }
         ],
         serverIds: [
           { type: 'array', message: '请选择服务器', trigger: 'change' }
@@ -529,7 +532,7 @@ export default {
       getServerOption().then((response) => {
         this.serverOption = response.data.serverList || []
       })
-      getUserOption().then((response) => {
+      getMemberOption().then((response) => {
         this.userOption = response.data.userList || []
       })
       getGroupOption().then((response) => {

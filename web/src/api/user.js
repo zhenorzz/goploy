@@ -40,6 +40,16 @@ export function getOption() {
 }
 
 /**
+ * @return {Promise}
+ */
+export function getMemberOption() {
+  return request({
+    url: '/user/getMemberOption',
+    method: 'get'
+  })
+}
+
+/**
  * @param  {string} account
  * @param  {string} password
  * @param  {string} name

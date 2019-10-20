@@ -122,6 +122,31 @@ func (u User) GetAll() (Users, error) {
 	return users, nil
 }
 
+// GetAll user row
+func (u User) GetAllByRole() (Users, error) {
+	rows, err := sq.
+		Select("id, account, name, mobile, create_time, update_time").
+		From(userTable).
+		Where(sq.Eq{"role": u.Role}).
+		Where(sq.Eq{"state": Enable}).
+		OrderBy("id DESC").
+		RunWith(DB).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	var users Users
+	for rows.Next() {
+		var user User
+
+		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.CreateTime, &user.UpdateTime); err != nil {
+			return users, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}
+
 // AddRow add one row to table user and add id to u.ID
 func (u User) AddRow() (int64, error) {
 	if u.Password == "" {

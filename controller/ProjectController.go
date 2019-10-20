@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	"goploy/core"
@@ -30,13 +31,13 @@ func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
-	userData, err := core.GetUserInfo(gp.UserInfo.ID)
-	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+	var projectList model.Projects
+	if gp.UserInfo.Role == core.RoleAdmin || gp.UserInfo.Role == core.RoleManager {
+		projectList, pagination, err = model.Project{}.GetList(pagination)
+	} else {
+		projectList, pagination, err = model.Project{}.GetListInGroupIDs(strings.Split(gp.UserInfo.ManageGroupStr, ","), pagination)
 	}
-	projectList, pagination, err := model.Project{}.GetListByManagerGroupStr(pagination, userData.ManageGroupStr)
+
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)

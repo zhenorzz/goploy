@@ -122,6 +122,21 @@ func (user User) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 	response.JSON(w)
 }
 
+// GetOption user list
+func (user User) GetMemberOption(w http.ResponseWriter, gp *core.Goploy) {
+	type RespData struct {
+		User model.Users `json:"userList"`
+	}
+	users, err := model.User{Role: core.RoleMember}.GetAllByRole()
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Data: RespData{User: users}}
+	response.JSON(w)
+}
+
 // Add one user
 func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {

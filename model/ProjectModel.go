@@ -1,8 +1,6 @@
 package model
 
 import (
-	"strings"
-
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -175,25 +173,20 @@ func (p Project) GetList(pagination Pagination) (Projects, Pagination, error) {
 }
 
 // GetListByManagerGroupStr project row
-func (p Project) GetListByManagerGroupStr(pagination Pagination, managerGroupStr string) (Projects, Pagination, error) {
-	if managerGroupStr == "" {
-		return nil, pagination, nil
-	}
+func (p Project) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Projects, Pagination, error) {
 	builder := sq.
 		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, create_time, update_time").
 		From(projectTable).
+		Where(sq.Eq{"group_id": groupIDs}).
 		Where(sq.Eq{"state": Enable}).
 		Limit(pagination.Rows).
 		Offset((pagination.Page - 1) * pagination.Rows).
 		OrderBy("id DESC")
 	pageBuilder := sq.
 		Select("COUNT(*) AS count").
+		Where(sq.Eq{"group_id": groupIDs}).
 		Where(sq.Eq{"state": Enable}).
 		From(projectTable)
-	if managerGroupStr != "all" {
-		builder = builder.Where(sq.Eq{"group_id": strings.Split(managerGroupStr, ",")})
-		pageBuilder = pageBuilder.Where(sq.Eq{"group_id": strings.Split(managerGroupStr, ",")})
-	}
 	rows, err := builder.RunWith(DB).Query()
 	if err != nil {
 		return nil, pagination, err

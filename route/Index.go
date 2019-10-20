@@ -25,6 +25,7 @@ func Init() *router.Router {
 	rt.Add("/user/info", router.GET, controller.User{}.Info)
 	rt.Add("/user/getList", router.GET, controller.User{}.GetList)
 	rt.Add("/user/getOption", router.GET, controller.User{}.GetOption)
+	rt.Add("/user/getMemberOption", router.GET, controller.User{}.GetMemberOption)
 	rt.Add("/user/add", router.POST, controller.User{}.Add).Role(core.RoleAdmin)
 	rt.Add("/user/edit", router.POST, controller.User{}.Edit).Role(core.RoleAdmin)
 	rt.Add("/user/remove", router.DELETE, controller.User{}.Remove).Role(core.RoleAdmin)
