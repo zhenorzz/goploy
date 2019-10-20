@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-	"strings"
-
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -62,25 +60,20 @@ func (s Server) GetList(pagination Pagination) (Servers, Pagination, error) {
 }
 
 // GetListByManagerGroupStr server row
-func (s Server) GetListByManagerGroupStr(pagination Pagination, managerGroupStr string) (Servers, Pagination, error) {
-	if managerGroupStr == "" {
-		return nil, pagination, nil
-	}
+func (s Server) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Servers, Pagination, error) {
 	builder := sq.
 		Select("id, name, ip, port, owner, group_id, create_time, update_time").
 		From(serverTable).
 		Where(sq.Eq{"state": Enable}).
+		Where(sq.Eq{"group_id": groupIDs}).
 		Limit(pagination.Rows).
 		Offset((pagination.Page - 1) * pagination.Rows).
 		OrderBy("id DESC")
 	pageBuilder := sq.
 		Select("COUNT(*) AS count").
 		Where(sq.Eq{"state": Enable}).
+		Where(sq.Eq{"group_id": groupIDs}).
 		From(serverTable)
-	if managerGroupStr != "all" {
-		builder = builder.Where(sq.Eq{"group_id": strings.Split(managerGroupStr, ",")})
-		pageBuilder = pageBuilder.Where(sq.Eq{"group_id": strings.Split(managerGroupStr, ",")})
-	}
 	rows, err := builder.RunWith(DB).Query()
 	if err != nil {
 		return nil, pagination, err

@@ -55,7 +55,7 @@
         </el-form-item>
         <el-form-item label="绑定分组" prop="groupId">
           <el-select v-model="formData.groupId" placeholder="选择分组" style="width:100%">
-            <el-option label="默认" :value="0" />
+            <el-option v-if="hasGroupManagerPermission()" label="默认" :value="0" />
             <el-option
               v-for="(item, index) in groupOption"
               :key="index"
@@ -163,7 +163,7 @@ export default {
         ip: '',
         port: 22,
         owner: '',
-        groupId: 0
+        groupId: ''
       },
       formRules: {
         name: [
@@ -177,6 +177,9 @@ export default {
         ],
         owner: [
           { required: true, message: '请输入SSH-KEY的所有者', trigger: 'blur' }
+        ],
+        groupId: [
+          { required: true, message: '请选择分组', trigger: 'blur' }
         ]
       },
       templateFormProps: {

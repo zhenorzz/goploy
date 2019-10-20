@@ -35,14 +35,13 @@ func (server Server) GetList(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
-	userData, err := core.GetUserInfo(gp.UserInfo.ID)
-	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+	var serverList model.Servers
+	if gp.UserInfo.Role == core.RoleAdmin || gp.UserInfo.Role == core.RoleManager {
+		serverList, pagination, err = model.Server{}.GetList(pagination)
+	} else {
+		serverList, pagination, err = model.Server{}.GetListInGroupIDs(strings.Split(gp.UserInfo.ManageGroupStr, ","), pagination)
 	}
 
-	serverList, pagination, err := model.Server{}.GetListByManagerGroupStr(pagination, userData.ManageGroupStr)
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
@@ -97,7 +96,7 @@ func (server Server) GetInstallList(w http.ResponseWriter, gp *core.Goploy) {
 }
 
 // GetOption server list
-func (server Server) GetOption(w http.ResponseWriter, gp *core.Goploy) {
+func (server Server) GetOption(w http.ResponseWriter, _ *core.Goploy) {
 	type RespData struct {
 		Server model.Servers `json:"serverList"`
 	}

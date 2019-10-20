@@ -158,6 +158,30 @@ func (g Group) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Grou
 }
 
 // GetAll Group row
+func (g Group) GetAllInGroupIDs(groupIDs []string) (Groups, error) {
+	rows, err := sq.
+		Select("id, name, create_time, update_time").
+		From(groupTable).
+		Where(sq.Eq{"id": groupIDs}).
+		OrderBy("id DESC").
+		RunWith(DB).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	var projectGroups Groups
+	for rows.Next() {
+		var projectGroup Group
+
+		if err := rows.Scan(&projectGroup.ID, &projectGroup.Name, &projectGroup.CreateTime, &projectGroup.UpdateTime); err != nil {
+			return nil, err
+		}
+		projectGroups = append(projectGroups, projectGroup)
+	}
+	return projectGroups, nil
+}
+
+// GetAll Group row
 func (g Group) GetAll() (Groups, error) {
 	rows, err := sq.
 		Select("id, name, create_time, update_time").

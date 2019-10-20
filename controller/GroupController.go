@@ -25,9 +25,7 @@ func (group Group) GetList(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	var (
-		groupList model.Groups
-	)
+	var groupList model.Groups
 	if gp.UserInfo.Role == core.RoleAdmin || gp.UserInfo.Role == core.RoleManager {
 		groupList, pagination, err = model.Group{}.GetList(pagination)
 	} else {
@@ -47,8 +45,16 @@ func (group Group) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 	type RespData struct {
 		Groups model.Groups `json:"groupList"`
 	}
+	var (
+		groupList model.Groups
+		err error
+	)
+	if gp.UserInfo.Role == core.RoleAdmin || gp.UserInfo.Role == core.RoleManager {
+		groupList, err = model.Group{}.GetAll()
+	} else {
+		groupList, err = model.Group{}.GetAllInGroupIDs(strings.Split(gp.UserInfo.ManageGroupStr, ","))
+	}
 
-	groupList, err := model.Group{}.GetAll()
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
