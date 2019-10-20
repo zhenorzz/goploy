@@ -35,7 +35,7 @@ func (server Server) GetList(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
-	userData, err := core.GetUserInfo(gp.TokenInfo.ID)
+	userData, err := core.GetUserInfo(gp.UserInfo.ID)
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
@@ -245,19 +245,19 @@ func (server Server) Install(w http.ResponseWriter, gp *core.Goploy) {
 	serverInfo.UpdateTime = time.Now().Unix()
 	serverInfo.Install()
 
-	go remoteInstall(gp.TokenInfo, serverInfo, templateInfo)
+	go remoteInstall(gp.UserInfo, serverInfo, templateInfo)
 
 	response := core.Response{Message: "正在安装"}
 	response.JSON(w)
 }
 
-func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model.Template) {
+func remoteInstall(userInfo model.User, server model.Server, template model.Template) {
 	installTraceModel := model.InstallTrace{
 		Token:        server.LastInstallToken,
 		ServerID:     server.ID,
 		ServerName:   server.Name,
-		OperatorID:   tokenInfo.ID,
-		OperatorName: tokenInfo.Name,
+		OperatorID:   userInfo.ID,
+		OperatorName: userInfo.Name,
 		Type:         model.Rsync,
 		CreateTime:   time.Now().Unix(),
 		UpdateTime:   time.Now().Unix(),
@@ -274,7 +274,7 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 		rsyncOption := []string{
 			"-rtv",
 			"-e",
-			"ssh -p " + strconv.Itoa(int(server.Port)) + " -o StrictHostKeyChecking=no",
+			"ssh -p " + strconv.Itoa(server.Port) + " -o StrictHostKeyChecking=no",
 			"--include",
 			"'*/'",
 		}
@@ -304,7 +304,7 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 				installTraceModel.AddRow()
 
 				ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-					ToUserID: tokenInfo.ID,
+					ToUserID: userInfo.ID,
 					Message:  installTraceModel,
 				}
 				break
@@ -320,7 +320,7 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 			installTraceModel.State = model.Fail
 			installTraceModel.AddRow()
 			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-				ToUserID: tokenInfo.ID,
+				ToUserID: userInfo.ID,
 				Message:  installTraceModel,
 			}
 			return
@@ -331,7 +331,7 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 	var connectError error
 	var scriptError error
 	for attempt := 0; attempt < 3; attempt++ {
-		session, connectError = utils.ConnectSSH(server.Owner, "", server.IP, int(server.Port))
+		session, connectError = utils.ConnectSSH(server.Owner, "", server.IP, server.Port)
 		if connectError != nil {
 			core.Log(core.ERROR, connectError.Error())
 		} else {
@@ -344,10 +344,9 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 			installTraceModel.Detail = "connected"
 			installTraceModel.AddRow()
 			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-				ToUserID: tokenInfo.ID,
+				ToUserID: userInfo.ID,
 				Message:  installTraceModel,
 			}
-			defer session.Close()
 			var sshOutbuf, sshErrbuf bytes.Buffer
 			session.Stdout = &sshOutbuf
 			session.Stderr = &sshErrbuf
@@ -365,7 +364,7 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 				installTraceModel.Detail = sshOutbuf.String()
 				installTraceModel.AddRow()
 				ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-					ToUserID: tokenInfo.ID,
+					ToUserID: userInfo.ID,
 					Message:  installTraceModel,
 				}
 				break
@@ -373,7 +372,9 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 		}
 
 	}
-
+	if session != nil {
+		defer session.Close()
+	}
 	if connectError != nil {
 		ext, _ := json.Marshal(struct {
 			SSH string `json:"ssh"`
@@ -384,7 +385,7 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 		installTraceModel.Detail = connectError.Error()
 		installTraceModel.AddRow()
 		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-			ToUserID: tokenInfo.ID,
+			ToUserID: userInfo.ID,
 			Message:  installTraceModel,
 		}
 		return
@@ -398,7 +399,7 @@ func remoteInstall(tokenInfo core.TokenInfo, server model.Server, template model
 		installTraceModel.Detail = scriptError.Error()
 		installTraceModel.AddRow()
 		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-			ToUserID: tokenInfo.ID,
+			ToUserID: userInfo.ID,
 			Message:  installTraceModel,
 		}
 		return

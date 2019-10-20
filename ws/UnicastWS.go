@@ -71,8 +71,8 @@ func (hub *UnicastHub) Unicast(w http.ResponseWriter, gp *core.Goploy) {
 	}
 	hub.Register <- &UnicastClient{
 		Conn:     c,
-		UserID:   gp.TokenInfo.ID,
-		UserName: gp.TokenInfo.Name,
+		UserID:   gp.UserInfo.ID,
+		UserName: gp.UserInfo.Name,
 	}
 }
 

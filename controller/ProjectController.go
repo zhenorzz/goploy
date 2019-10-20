@@ -30,7 +30,7 @@ func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
-	userData, err := core.GetUserInfo(gp.TokenInfo.ID)
+	userData, err := core.GetUserInfo(gp.UserInfo.ID)
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)

@@ -76,18 +76,11 @@ func (user User) Info(w http.ResponseWriter, gp *core.Goploy) {
 			Role    string `json:"role"`
 		} `json:"userInfo"`
 	}
-	userData, err := core.GetUserInfo(gp.TokenInfo.ID)
-
-	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
-	}
 	data := RespData{}
-	data.UserInfo.ID = gp.TokenInfo.ID
-	data.UserInfo.Name = userData.Name
-	data.UserInfo.Account = userData.Account
-	data.UserInfo.Role = userData.Role
+	data.UserInfo.ID = gp.UserInfo.ID
+	data.UserInfo.Name = gp.UserInfo.Name
+	data.UserInfo.Account = gp.UserInfo.Account
+	data.UserInfo.Role = gp.UserInfo.Role
 	response := core.Response{Data: data}
 	response.JSON(w)
 }
@@ -259,7 +252,7 @@ func (user User) ChangePassword(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	userData, err := model.User{ID: gp.TokenInfo.ID}.GetData()
+	userData, err := model.User{ID: gp.UserInfo.ID}.GetData()
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
@@ -272,7 +265,7 @@ func (user User) ChangePassword(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
-	if err := (model.User{ID: gp.TokenInfo.ID, Password: reqData.NewPassword}.UpdatePassword()); err != nil {
+	if err := (model.User{ID: gp.UserInfo.ID, Password: reqData.NewPassword}.UpdatePassword()); err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return

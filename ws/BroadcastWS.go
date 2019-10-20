@@ -87,8 +87,8 @@ func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) {
 	c.SetPongHandler(func(string) error { c.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	hub.Register <- &BroadcastClient{
 		Conn:     c,
-		UserID:   gp.TokenInfo.ID,
-		UserName: gp.TokenInfo.Name,
+		UserID:   gp.UserInfo.ID,
+		UserName: gp.UserInfo.Name,
 	}
 	// you must read message to trigger pong handler
 	for {

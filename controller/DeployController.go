@@ -40,7 +40,7 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	projectName := gp.URLQuery.Get("projectName")
 
 	projects, err := model.ProjectUser{
-		UserID: gp.TokenInfo.ID,
+		UserID: gp.UserInfo.ID,
 		Project: model.Project{
 			GroupID: groupID,
 			Name:    projectName,
@@ -174,8 +174,8 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	project.PublisherID = gp.TokenInfo.ID
-	project.PublisherName = gp.TokenInfo.Name
+	project.PublisherID = gp.UserInfo.ID
+	project.PublisherName = gp.UserInfo.Name
 	project.DeployState = model.ProjectDeploying
 	project.LastPublishToken = uuid.New().String()
 	project.UpdateTime = time.Now().Unix()
@@ -188,7 +188,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	response := core.Response{Message: "部署中，请稍后"}
 	response.JSON(w)
 
-	go execSync(gp.TokenInfo, project, projectServers)
+	go execSync(gp.UserInfo, project, projectServers)
 }
 
 // Rollback the project
@@ -227,8 +227,8 @@ func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	project.PublisherID = gp.TokenInfo.ID
-	project.PublisherName = gp.TokenInfo.Name
+	project.PublisherID = gp.UserInfo.ID
+	project.PublisherName = gp.UserInfo.Name
 	project.DeployState = model.ProjectDeploying
 	project.LastPublishToken = uuid.New().String()
 	project.UpdateTime = time.Now().Unix()
@@ -240,7 +240,7 @@ func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
 	}
 	response := core.Response{Message: "重新构建中，请稍后"}
 	response.JSON(w)
-	go execRollback(gp.TokenInfo, reqData.Commit, project, projectServers)
+	go execRollback(gp.UserInfo, reqData.Commit, project, projectServers)
 
 }
 
@@ -251,14 +251,14 @@ type SyncMessage struct {
 	State      int
 }
 
-func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers model.ProjectServers) {
+func execSync(userInfo model.User, project model.Project, projectServers model.ProjectServers) {
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy start")
 	ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
 		Type: ws.TypeProject,
 		Message: ws.ProjectMessage{
 			ProjectID:   project.ID,
 			ProjectName: project.Name,
-			UserID:      tokenInfo.ID,
+			UserID:      userInfo.ID,
 			State:       model.ProjectDeploying,
 		},
 	}
@@ -266,8 +266,8 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 		Token:         project.LastPublishToken,
 		ProjectID:     project.ID,
 		ProjectName:   project.Name,
-		PublisherID:   tokenInfo.ID,
-		PublisherName: tokenInfo.Name,
+		PublisherID:   userInfo.ID,
+		PublisherName: userInfo.Name,
 		Type:          model.Pull,
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
@@ -284,7 +284,7 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 			Message: ws.ProjectMessage{
 				ProjectID:   project.ID,
 				ProjectName: project.Name,
-				UserID:      tokenInfo.ID,
+				UserID:      userInfo.ID,
 				State:       model.ProjectFail,
 				Message:     err.Error(),
 			},
@@ -321,7 +321,7 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 				Message: ws.ProjectMessage{
 					ProjectID:   project.ID,
 					ProjectName: project.Name,
-					UserID:      tokenInfo.ID,
+					UserID:      userInfo.ID,
 					State:       model.ProjectFail,
 					Message:     err.Error(),
 				},
@@ -340,7 +340,7 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 
 	ch := make(chan SyncMessage, len(projectServers))
 	for _, projectServer := range projectServers {
-		go remoteSync(ch, tokenInfo, project, projectServer)
+		go remoteSync(ch, userInfo, project, projectServer)
 	}
 
 	message := ""
@@ -364,7 +364,7 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 		Message: ws.ProjectMessage{
 			ProjectID:   project.ID,
 			ProjectName: project.Name,
-			UserID:      tokenInfo.ID,
+			UserID:      userInfo.ID,
 			State:       uint8(state),
 			Message:     message,
 		},
@@ -372,13 +372,13 @@ func execSync(tokenInfo core.TokenInfo, project model.Project, projectServers mo
 	return
 }
 
-func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project, projectServers model.ProjectServers) {
+func execRollback(userInfo model.User, commit string, project model.Project, projectServers model.ProjectServers) {
 	ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
 		Type: ws.TypeProject,
 		Message: ws.ProjectMessage{
 			ProjectID:   project.ID,
 			ProjectName: project.Name,
-			UserID:      tokenInfo.ID,
+			UserID:      userInfo.ID,
 			State:       model.ProjectDeploying,
 		},
 	}
@@ -386,8 +386,8 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 		Token:         project.LastPublishToken,
 		ProjectID:     project.ID,
 		ProjectName:   project.Name,
-		PublisherID:   tokenInfo.ID,
-		PublisherName: tokenInfo.Name,
+		PublisherID:   userInfo.ID,
+		PublisherName: userInfo.Name,
 		Type:          model.Pull,
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
@@ -402,7 +402,7 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 			Message: ws.ProjectMessage{
 				ProjectID:   project.ID,
 				ProjectName: project.Name,
-				UserID:      tokenInfo.ID,
+				UserID:      userInfo.ID,
 				State:       model.ProjectFail,
 				Message:     err.Error(),
 			},
@@ -436,7 +436,7 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 				Message: ws.ProjectMessage{
 					ProjectID:   project.ID,
 					ProjectName: project.Name,
-					UserID:      tokenInfo.ID,
+					UserID:      userInfo.ID,
 					State:       model.ProjectFail,
 					Message:     err.Error(),
 				},
@@ -455,7 +455,7 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 
 	ch := make(chan SyncMessage, len(projectServers))
 	for _, projectServer := range projectServers {
-		go remoteSync(ch, tokenInfo, project, projectServer)
+		go remoteSync(ch, userInfo, project, projectServer)
 	}
 
 	message := ""
@@ -478,7 +478,7 @@ func execRollback(tokenInfo core.TokenInfo, commit string, project model.Project
 		Message: ws.ProjectMessage{
 			ProjectID:   project.ID,
 			ProjectName: project.Name,
-			UserID:      tokenInfo.ID,
+			UserID:      userInfo.ID,
 			State:       uint8(state),
 			Message:     message,
 		},
@@ -614,7 +614,7 @@ func runAfterPullScript(project model.Project) (string, error) {
 	return outbuf.String(), nil
 }
 
-func remoteSync(chInput chan<- SyncMessage, tokenInfo core.TokenInfo, project model.Project, projectServer model.ProjectServer) {
+func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.Project, projectServer model.ProjectServer) {
 	srcPath := core.RepositoryPath + project.Name + "/"
 	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
 	destPath := remoteMachine + ":" + project.Path
@@ -622,8 +622,8 @@ func remoteSync(chInput chan<- SyncMessage, tokenInfo core.TokenInfo, project mo
 		Token:         project.LastPublishToken,
 		ProjectID:     project.ID,
 		ProjectName:   project.Name,
-		PublisherID:   tokenInfo.ID,
-		PublisherName: tokenInfo.Name,
+		PublisherID:   userInfo.ID,
+		PublisherName: userInfo.Name,
 		Type:          model.Deploy,
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
@@ -699,7 +699,6 @@ func remoteSync(chInput chan<- SyncMessage, tokenInfo core.TokenInfo, project mo
 		if connectError != nil {
 			core.Log(core.ERROR, connectError.Error())
 		} else {
-			defer session.Close()
 			var sshOutbuf, sshErrbuf bytes.Buffer
 			session.Stdout = &sshOutbuf
 			session.Stderr = &sshErrbuf
@@ -716,7 +715,9 @@ func remoteSync(chInput chan<- SyncMessage, tokenInfo core.TokenInfo, project mo
 		}
 
 	}
-
+	if session != nil {
+		defer session.Close()
+	}
 	if connectError != nil {
 		publishTraceModel.Detail = connectError.Error()
 		publishTraceModel.State = model.Fail

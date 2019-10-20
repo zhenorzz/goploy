@@ -22,18 +22,12 @@ const (
 	DELETE = "DELETE"
 )
 
-// TokenInfo parse the jwt
-type TokenInfo struct {
-	ID   int64
-	Name string
-}
-
 // Goploy callback param
 type Goploy struct {
-	TokenInfo TokenInfo
-	Request   *http.Request
-	URLQuery  url.Values
-	Body      []byte
+	UserInfo model.User
+	Request  *http.Request
+	URLQuery url.Values
+	Body     []byte
 }
 
 // 路由定义
@@ -107,7 +101,7 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		"/user/login":        {},
 		"/user/isShowPhrase": {},
 	}
-	var tokenInfo TokenInfo
+	var userInfo model.User
 	if _, ok := whiteList[r.URL.Path]; !ok {
 		// check token
 		goployTokenCookie, err := r.Cookie(LoginCookieName)
@@ -127,10 +121,13 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			response.JSON(w)
 			return
 		}
-		tokenInfo = TokenInfo{
-			ID:   int64(claims["id"].(float64)),
-			Name: claims["name"].(string),
+		userInfo, err = GetUserInfo(int64(claims["id"].(float64)))
+		if err != nil || !token.Valid {
+			response := Response{Code: Deny, Message: "获取用户信息失败"}
+			response.JSON(w)
+			return
 		}
+
 		goployTokenStr, err := model.User{ID: int64(claims["id"].(float64)), Name: claims["name"].(string)}.CreateToken()
 		if err == nil {
 			// update jwt time
@@ -140,16 +137,16 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	// save the body request data bucause ioutil.ReadAll will clear the requestBody
+	// save the body request data because ioutil.ReadAll will clear the requestBody
 	var body []byte
 	if hasContentType(r, "application/json") {
 		body, _ = ioutil.ReadAll(r.Body)
 	}
 	gp := &Goploy{
-		TokenInfo: tokenInfo,
-		Request:   r,
-		URLQuery:  r.URL.Query(),
-		Body:      body,
+		UserInfo: userInfo,
+		Request:  r,
+		URLQuery: r.URL.Query(),
+		Body:     body,
 	}
 	for _, middleware := range rt.middlewares {
 		err := middleware(w, gp)
@@ -166,7 +163,7 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				response.JSON(w)
 				return
 			}
-			if err := route.hasRole(tokenInfo.ID); err != nil {
+			if err := route.hasRole(userInfo.Role); err != nil {
 				response := Response{Code: Deny, Message: err.Error()}
 				response.JSON(w)
 				return
@@ -191,17 +188,13 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (r *route) hasRole(userID int64) error {
+func (r *route) hasRole(userRole string) error {
 	if len(r.roles) == 0 {
 		return nil
 	}
-	userInfo, err := GetUserInfo(userID)
-	if err != nil {
-		return err
-	}
 
 	for _, role := range r.roles {
-		if role == userInfo.Role {
+		if role == userRole {
 			return nil
 		}
 	}
