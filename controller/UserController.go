@@ -122,12 +122,12 @@ func (user User) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 	response.JSON(w)
 }
 
-// GetOption user list
-func (user User) GetMemberOption(w http.ResponseWriter, gp *core.Goploy) {
+// GetProjectOption user list
+func (user User) GetCanBindProjectUser(w http.ResponseWriter, gp *core.Goploy) {
 	type RespData struct {
 		User model.Users `json:"userList"`
 	}
-	users, err := model.User{Role: core.RoleMember}.GetAllByRole()
+	users, err := model.User{}.GetCanBindProjectUser()
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)

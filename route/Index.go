@@ -25,7 +25,7 @@ func Init() *router.Router {
 	rt.Add("/user/info", router.GET, controller.User{}.Info)
 	rt.Add("/user/getList", router.GET, controller.User{}.GetList)
 	rt.Add("/user/getOption", router.GET, controller.User{}.GetOption)
-	rt.Add("/user/getMemberOption", router.GET, controller.User{}.GetMemberOption)
+	rt.Add("/user/getCanBindProjectUser", router.GET, controller.User{}.GetCanBindProjectUser)
 	rt.Add("/user/add", router.POST, controller.User{}.Add).Role(core.RoleAdmin)
 	rt.Add("/user/edit", router.POST, controller.User{}.Edit).Role(core.RoleAdmin)
 	rt.Add("/user/remove", router.DELETE, controller.User{}.Remove).Role(core.RoleAdmin)
@@ -76,6 +76,7 @@ func Init() *router.Router {
 	// projectGroup route
 	rt.Add("/group/getList", router.GET, controller.Group{}.GetList).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/group/getOption", router.GET, controller.Group{}.GetOption)
+	rt.Add("/group/getDeployOption", router.GET, controller.Group{}.GetDeployOption)
 	rt.Add("/group/add", router.POST, controller.Group{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/group/edit", router.POST, controller.Group{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/group/remove", router.DELETE, controller.Group{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager})

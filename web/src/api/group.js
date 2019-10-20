@@ -21,6 +21,16 @@ export function getOption() {
   })
 }
 
+/**
+ * @return {Promise}
+ */
+export function getDeployOption() {
+  return request({
+    url: '/group/getDeployOption',
+    method: 'get'
+  })
+}
+
 export function add(data) {
   return request({
     url: '/group/add',

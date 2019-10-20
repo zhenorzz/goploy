@@ -42,9 +42,9 @@ export function getOption() {
 /**
  * @return {Promise}
  */
-export function getMemberOption() {
+export function getCanBindProjectUser() {
   return request({
-    url: '/user/getMemberOption',
+    url: '/user/getCanBindProjectUser',
     method: 'get'
   })
 }

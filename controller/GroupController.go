@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -53,6 +54,42 @@ func (group Group) GetOption(w http.ResponseWriter, gp *core.Goploy) {
 		groupList, err = model.Group{}.GetAll()
 	} else {
 		groupList, err = model.Group{}.GetAllInGroupIDs(strings.Split(gp.UserInfo.ManageGroupStr, ","))
+	}
+
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Data: RespData{Groups: groupList}}
+	response.JSON(w)
+}
+
+// GetOption Group list
+func (group Group) GetDeployOption(w http.ResponseWriter, gp *core.Goploy) {
+	type RespData struct {
+		Groups model.Groups `json:"groupList"`
+	}
+	var (
+		groupList model.Groups
+		err error
+	)
+	if gp.UserInfo.Role == core.RoleAdmin || gp.UserInfo.Role == core.RoleManager {
+		groupList, err = model.Group{}.GetAll()
+	} else {
+		projects, err := model.ProjectUser{
+			UserID: gp.UserInfo.ID,
+		}.GetDeployList()
+		if err != nil {
+			response := core.Response{Code: core.Deny, Message: err.Error()}
+			response.JSON(w)
+			return
+		}
+		groupIDs :=  strings.Split(gp.UserInfo.ManageGroupStr, ",")
+		for _, project := range projects {
+			groupIDs = append(groupIDs, strconv.FormatInt(project.GroupID, 10))
+		}
+		groupList, err = model.Group{}.GetAllInGroupIDs(groupIDs)
 	}
 
 	if err != nil {

@@ -65,8 +65,8 @@ func (pu ProjectUser) GetListByUserID() (ProjectUsers, error) {
 	return projectUsers, nil
 }
 
-// GetDeployListByUserID user row by status
-func (pu ProjectUser) GetDeployListByUserID() (Projects, error) {
+// GetDeployList user row by status
+func (pu ProjectUser) GetDeployList() (Projects, error) {
 	builder := sq.
 		Select("project_id, project.name, publisher_id, publisher_name, project.group_id, project.environment, project.branch, project.last_publish_token, project.deploy_state, project.update_time").
 		From(projectUserTable).

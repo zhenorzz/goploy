@@ -30,7 +30,8 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	type RespData struct {
 		Project model.Projects `json:"projectList"`
 	}
-	groupID, err := strconv.ParseInt(gp.URLQuery.Get("groupId"), 10, 64)
+	groupIDStr := gp.URLQuery.Get("groupId")
+	groupID, err := strconv.ParseInt(groupIDStr, 10, 64)
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: "groupId参数错误"}
 		response.JSON(w)
@@ -39,12 +40,46 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 
 	projectName := gp.URLQuery.Get("projectName")
 
-	projects, err := model.ProjectUser{
-		UserID: gp.UserInfo.ID,
-		Project: model.Project{
+	var projects model.Projects
+	if gp.UserInfo.Role == core.RoleAdmin || gp.UserInfo.Role == core.RoleManager {
+		projects, err = model.Project{
 			GroupID: groupID,
 			Name:    projectName,
-		}}.GetDeployListByUserID()
+		}.GetDeployList()
+	} else if gp.UserInfo.Role == core.RoleGroupManager {
+		projectList, err := model.Project{
+			GroupID: groupID,
+			Name:    projectName,
+		}.GetDeployListInGroupIds(strings.Split(gp.UserInfo.ManageGroupStr, ","))
+		if err != nil {
+			response := core.Response{Code: core.Deny, Message: err.Error()}
+			response.JSON(w)
+			return
+		}
+		projects = append(projects, projectList...)
+		projectList, err = model.ProjectUser{
+			UserID: gp.UserInfo.ID,
+			Project: model.Project{
+				GroupID: groupID,
+				Name:    projectName,
+			},
+		}.GetDeployList()
+		if err != nil {
+			response := core.Response{Code: core.Deny, Message: err.Error()}
+			response.JSON(w)
+			return
+		}
+		projects = append(projects, projectList...)
+	} else {
+		projects, err = model.ProjectUser{
+			UserID: gp.UserInfo.ID,
+			Project: model.Project{
+				GroupID: groupID,
+				Name:    projectName,
+			},
+		}.GetDeployList()
+	}
+
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)

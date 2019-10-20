@@ -161,7 +161,7 @@
 </template>
 <script>
 import { getList, getDetail, getPreview, getCommitList, publish, rollback } from '@/api/deploy'
-import { getOption as getGroupOption } from '@/api/group'
+import { getDeployOption as getDeployGroupOption } from '@/api/group'
 import { parseTime } from '@/utils'
 
 export default {
@@ -185,7 +185,7 @@ export default {
   },
   created() {
     this.getList()
-    this.getGroupOption()
+    this.getDeployGroupOption()
     this.connectWebSocket()
     // // 路由跳转时结束websocket链接
     this.$router.afterEach(() => {
@@ -241,8 +241,8 @@ export default {
       this.getList()
     },
 
-    getGroupOption() {
-      getGroupOption().then((response) => {
+    getDeployGroupOption() {
+      getDeployGroupOption().then((response) => {
         this.groupOption = response.data.groupList || []
       })
     },

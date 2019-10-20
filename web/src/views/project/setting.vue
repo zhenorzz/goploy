@@ -202,7 +202,7 @@
 </template>
 <script>
 
-import { getMemberOption } from '@/api/user'
+import { getCanBindProjectUser } from '@/api/user'
 import { getOption as getServerOption } from '@/api/server'
 import { getOption as getGroupOption } from '@/api/group'
 import { getList, getBindServerList, getBindUserList, add, edit, create, remove, addServer, addUser, removeProjectServer, removeProjectUser } from '@/api/project'
@@ -532,7 +532,7 @@ export default {
       getServerOption().then((response) => {
         this.serverOption = response.data.serverList || []
       })
-      getMemberOption().then((response) => {
+      getCanBindProjectUser().then((response) => {
         this.userOption = response.data.userList || []
       })
       getGroupOption().then((response) => {

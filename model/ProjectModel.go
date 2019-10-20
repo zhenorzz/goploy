@@ -210,6 +210,88 @@ func (p Project) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Pr
 	return projects, pagination, nil
 }
 
+// GetDeployList deploy row
+func (p Project) GetDeployList() (Projects, error) {
+	builder := sq.
+		Select("id, name, publisher_id, publisher_name, group_id, environment, branch, last_publish_token, deploy_state, update_time").
+		From(projectTable).
+		Where(sq.Eq{"state": Enable}).
+		OrderBy("id DESC")
+	if p.GroupID != 0 {
+		builder = builder.Where(sq.Eq{"project.group_id": p.GroupID})
+	}
+	if len(p.Name) > 0 {
+		builder = builder.Where(sq.Like{"project.name": "%" + p.Name + "%"})
+	}
+	rows, err := builder.RunWith(DB).Query()
+	if err != nil {
+		return nil, err
+	}
+	var projects Projects
+	for rows.Next() {
+		var project Project
+
+		if err := rows.Scan(
+			&project.ID,
+			&project.Name,
+			&project.PublisherID,
+			&project.PublisherName,
+			&project.GroupID,
+			&project.Environment,
+			&project.Branch,
+			&project.LastPublishToken,
+			&project.DeployState,
+			&project.UpdateTime); err != nil {
+			return projects, err
+		}
+		projects = append(projects, project)
+	}
+
+	return projects, nil
+}
+
+// GetDeployList deploy row
+func (p Project) GetDeployListInGroupIds(groupIds []string) (Projects, error) {
+	builder := sq.
+		Select("id, name, publisher_id, publisher_name, group_id, environment, branch, last_publish_token, deploy_state, update_time").
+		From(projectTable).
+		Where(sq.Eq{"state": Enable}).
+		OrderBy("id DESC")
+	if p.GroupID != 0 {
+		builder = builder.Where(sq.Eq{"group_id": p.GroupID})
+	} else {
+		builder = builder.Where(sq.Eq{"group_id": groupIds})
+	}
+	if len(p.Name) > 0 {
+		builder = builder.Where(sq.Like{"project.name": "%" + p.Name + "%"})
+	}
+	rows, err := builder.RunWith(DB).Query()
+	if err != nil {
+		return nil, err
+	}
+	var projects Projects
+	for rows.Next() {
+		var project Project
+
+		if err := rows.Scan(
+			&project.ID,
+			&project.Name,
+			&project.PublisherID,
+			&project.PublisherName,
+			&project.GroupID,
+			&project.Environment,
+			&project.Branch,
+			&project.LastPublishToken,
+			&project.DeployState,
+			&project.UpdateTime); err != nil {
+			return projects, err
+		}
+		projects = append(projects, project)
+	}
+
+	return projects, nil
+}
+
 // GetData add project information to p *Project
 func (p Project) GetData() (Project, error) {
 	var project Project
