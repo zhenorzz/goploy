@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"goploy/core"
@@ -24,7 +25,14 @@ func (group Group) GetList(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	groupList, pagination, err := model.Group{}.GetList(pagination)
+	var (
+		groupList model.Groups
+	)
+	if gp.UserInfo.Role == core.RoleAdmin || gp.UserInfo.Role == core.RoleManager {
+		groupList, pagination, err = model.Group{}.GetList(pagination)
+	} else {
+		groupList, pagination, err = model.Group{}.GetListInGroupIDs(strings.Split(gp.UserInfo.ManageGroupStr, ","), pagination)
+	}
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)

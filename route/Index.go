@@ -73,7 +73,7 @@ func Init() *router.Router {
 	rt.Add("/package/upload", router.POST, controller.Package{}.Upload)
 
 	// projectGroup route
-	rt.Add("/group/getList", router.GET, controller.Group{}.GetList)
+	rt.Add("/group/getList", router.GET, controller.Group{}.GetList).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/group/getOption", router.GET, controller.Group{}.GetOption)
 	rt.Add("/group/add", router.POST, controller.Group{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/group/edit", router.POST, controller.Group{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})

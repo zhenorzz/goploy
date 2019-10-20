@@ -1,7 +1,7 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd">添加</el-button>
+      <el-button v-show="hasManagerPermission()" type="primary" icon="el-icon-plus" @click="handleAdd">添加</el-button>
     </el-row>
     <el-table
       border

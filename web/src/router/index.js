@@ -105,7 +105,7 @@ export const asyncRoutes = [
         meta: {
           title: '分组设置',
           icon: 'list',
-          roles: ['admin', 'manager']
+          roles: ['admin', 'manager', 'group-manager']
         }
       },
       {

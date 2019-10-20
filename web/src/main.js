@@ -11,7 +11,8 @@ import '@/styles/index.scss' // global css
 import App from './App'
 import store from './store'
 import router from './router'
-
+import mixin from '@/mixin'
+import global from '@/global' // global config
 import '@/icons' // icon
 import '@/permission' // permission control
 
@@ -19,6 +20,8 @@ import '@/permission' // permission control
 Vue.use(ElementUI, { locale, size: 'mini' })
 
 Vue.config.productionTip = false
+Vue.prototype.$global = global
+Vue.mixin(mixin)
 
 new Vue({
   el: '#app',

@@ -119,6 +119,44 @@ func (g Group) GetList(pagination Pagination) (Groups, Pagination, error) {
 	return groups, pagination, nil
 }
 
+// GetList Group row
+func (g Group) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Groups, Pagination, error) {
+	rows, err := sq.
+		Select("id, name, create_time, update_time").
+		From(groupTable).
+		Where(sq.Eq{"id": groupIDs}).
+		OrderBy("id DESC").
+		Limit(pagination.Rows).
+		Offset((pagination.Page - 1) * pagination.Rows).
+		RunWith(DB).
+		Query()
+	if err != nil {
+		return nil, pagination, err
+	}
+
+	var groups Groups
+	for rows.Next() {
+		var group Group
+
+		if err := rows.Scan(&group.ID, &group.Name, &group.CreateTime, &group.UpdateTime); err != nil {
+			return nil, pagination, err
+		}
+		groups = append(groups, group)
+	}
+
+	err = sq.
+		Select("COUNT(*) AS count").
+		From(groupTable).
+		RunWith(DB).
+		QueryRow().
+		Scan(&pagination.Total)
+	if err != nil {
+		return nil, pagination, err
+	}
+
+	return groups, pagination, nil
+}
+
 // GetAll Group row
 func (g Group) GetAll() (Groups, error) {
 	rows, err := sq.
