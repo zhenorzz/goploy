@@ -17,7 +17,7 @@
       <el-table-column prop="operation" label="操作" width="150">
         <template slot-scope="scope">
           <el-button size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button size="small" type="danger" @click="handleRemove(scope.row)">删除</el-button>
+          <el-button :disabled="!hasGroupManagerPermission()" size="small" type="danger" @click="handleRemove(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
