@@ -28,35 +28,3 @@ func GetUserInfo(userID int64) (model.User, error) {
 	}
 	return userData, nil
 }
-
-// GetUserInfo return model.User and error
-func GetUserProject(userID int64) (model.ProjectUsers, error) {
-	var projectUsers model.ProjectUsers
-	var err error
-	if x, found := Cache.Get("projectUser:" + strconv.Itoa(int(userID))); found {
-		projectUsers = *x.(*model.ProjectUsers)
-	} else {
-		projectUsers, err = model.ProjectUser{UserID: userID}.GetListByUserID()
-		if err != nil {
-			return projectUsers, err
-		}
-
-		Cache.Set("projectUser:"+strconv.Itoa(int(userID)), &projectUsers, cache.DefaultExpiration)
-	}
-	return projectUsers, nil
-}
-
-func UserHasProject(userID int64, projectID int64) bool {
-	projectUsers, err := GetUserProject(userID)
-	if err != nil {
-		return false
-	}
-
-	for _, projectUser := range projectUsers {
-		if projectUser.ProjectID == projectID {
-			return true
-		}
-	}
-
-	return false
-}

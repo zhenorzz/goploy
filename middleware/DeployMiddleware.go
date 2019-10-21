@@ -19,7 +19,7 @@ func HasPublishAuth(w http.ResponseWriter, gp *core.Goploy) error {
 		return err
 	}
 
-	_, err := model.ProjectUser{ProjectID: reqData.ProjectID, UserID: gp.UserInfo.ID}.GetDataByProjectUser()
+	_, err := model.Project{ID: reqData.ProjectID}.GetUserProjectData(gp.UserInfo.ID, gp.UserInfo.Role, gp.UserInfo.ManageGroupStr)
 	if err != nil {
 		return errors.New("无权限进行此操作")
 	}

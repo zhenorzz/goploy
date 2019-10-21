@@ -79,7 +79,7 @@ func (group Group) GetDeployOption(w http.ResponseWriter, gp *core.Goploy) {
 	} else {
 		projects, err := model.ProjectUser{
 			UserID: gp.UserInfo.ID,
-		}.GetDeployList()
+		}.GetListLeftJoinProjectByUserID()
 		if err != nil {
 			response := core.Response{Code: core.Deny, Message: err.Error()}
 			response.JSON(w)

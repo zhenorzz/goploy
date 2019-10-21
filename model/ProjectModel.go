@@ -210,19 +210,40 @@ func (p Project) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Pr
 	return projects, pagination, nil
 }
 
-// GetDeployList deploy row
-func (p Project) GetDeployList() (Projects, error) {
-	builder := sq.
-		Select("id, name, publisher_id, publisher_name, group_id, environment, branch, last_publish_token, deploy_state, update_time").
-		From(projectTable).
-		Where(sq.Eq{"state": Enable}).
-		OrderBy("id DESC")
+func (p Project) GetUserProjectList(userID int64, userRole string, groupIDStr string) (Projects, error) {
+	var builder sq.SelectBuilder
+	if userRole == "admin" || userRole == "manager" {
+		builder = sq.
+			Select("id, name, publisher_id, publisher_name, group_id, environment, branch, last_publish_token, deploy_state, update_time").
+			From(projectTable).
+			Where(sq.Eq{"state": Enable}).
+			OrderBy("id DESC")
+	} else if userRole == "group-manager" {
+		builder = sq.
+			Select("id, name, publisher_id, publisher_name, group_id, environment, branch, last_publish_token, deploy_state, update_time").
+			From(projectTable).
+			Where("group_id IN (?) or id in (select project_id from "+projectUserTable+" where user_id = ?)", groupIDStr, userID).
+			Where(sq.Eq{"state": Enable}).
+			OrderBy("id DESC")
+	} else {
+		builder = sq.
+			Select("project_id, project.name, publisher_id, publisher_name, project.group_id, project.environment, project.branch, project.last_publish_token, project.deploy_state, project.update_time").
+			From(projectUserTable).
+			LeftJoin(projectTable + " ON project_user.project_id = project.id").
+			Where(sq.Eq{
+				"project_user.user_id": userID,
+				"project.state":        Enable,
+			}).
+			OrderBy("project_id DESC")
+	}
+
 	if p.GroupID != 0 {
 		builder = builder.Where(sq.Eq{"project.group_id": p.GroupID})
 	}
 	if len(p.Name) > 0 {
 		builder = builder.Where(sq.Like{"project.name": "%" + p.Name + "%"})
 	}
+
 	rows, err := builder.RunWith(DB).Query()
 	if err != nil {
 		return nil, err
@@ -248,47 +269,7 @@ func (p Project) GetDeployList() (Projects, error) {
 	}
 
 	return projects, nil
-}
 
-// GetDeployList deploy row
-func (p Project) GetGroupManagerDeployList(userID int64, groupIDStr string) (Projects, error) {
-	builder := sq.
-		Select("id, name, publisher_id, publisher_name, group_id, environment, branch, last_publish_token, deploy_state, update_time").
-		From(projectTable).
-		Where("group_id IN (?) or id in (select project_id from "+projectUserTable+" where user_id = ?)", groupIDStr, userID).
-		Where(sq.Eq{"state": Enable}).
-		OrderBy("id DESC")
-	if p.GroupID != 0 {
-		builder = builder.Where(sq.Eq{"project.group_id": p.GroupID})
-	}
-	if len(p.Name) > 0 {
-		builder = builder.Where(sq.Like{"project.name": "%" + p.Name + "%"})
-	}
-	rows, err := builder.RunWith(DB).Query()
-	if err != nil {
-		return nil, err
-	}
-	var projects Projects
-	for rows.Next() {
-		var project Project
-
-		if err := rows.Scan(
-			&project.ID,
-			&project.Name,
-			&project.PublisherID,
-			&project.PublisherName,
-			&project.GroupID,
-			&project.Environment,
-			&project.Branch,
-			&project.LastPublishToken,
-			&project.DeployState,
-			&project.UpdateTime); err != nil {
-			return projects, err
-		}
-		projects = append(projects, project)
-	}
-
-	return projects, nil
 }
 
 // GetData add project information to p *Project
@@ -315,6 +296,52 @@ func (p Project) GetData() (Project, error) {
 			&project.DeployState,
 			&project.CreateTime,
 			&project.UpdateTime)
+	if err != nil {
+		return project, err
+	}
+	return project, nil
+}
+
+func (p Project) GetUserProjectData(userID int64, userRole string, groupIDStr string) (Project, error) {
+	var builder sq.SelectBuilder
+	if userRole == "admin" || userRole == "manager" {
+		builder = sq.
+			Select("id, name, publisher_id, publisher_name, group_id, environment, branch, last_publish_token, deploy_state, update_time").
+			From(projectTable).
+			Where(sq.Eq{"id": p.ID}).
+			Where(sq.Eq{"state": Enable})
+	} else if userRole == "group-manager" {
+		builder = sq.
+			Select("id, name, publisher_id, publisher_name, group_id, environment, branch, last_publish_token, deploy_state, update_time").
+			From(projectTable).
+			Where("group_id IN (?) or id in (select project_id from "+projectUserTable+" where user_id = ?)", groupIDStr, userID).
+			Where(sq.Eq{"id": p.ID}).
+			Where(sq.Eq{"state": Enable})
+	} else {
+		builder = sq.
+			Select("project_id, project.name, publisher_id, publisher_name, project.group_id, project.environment, project.branch, project.last_publish_token, project.deploy_state, project.update_time").
+			From(projectUserTable).
+			LeftJoin(projectTable + " ON project_user.project_id = project.id").
+			Where(sq.Eq{
+				"project_user.project_id": p.ID,
+				"project_user.user_id": userID,
+				"project.state":        Enable,
+			})
+	}
+	var project Project
+	err :=builder.
+		RunWith(DB).
+		QueryRow().
+		Scan(&project.ID,
+		&project.Name,
+		&project.PublisherID,
+		&project.PublisherName,
+		&project.GroupID,
+		&project.Environment,
+		&project.Branch,
+		&project.LastPublishToken,
+		&project.DeployState,
+		&project.UpdateTime)
 	if err != nil {
 		return project, err
 	}

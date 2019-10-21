@@ -2,6 +2,7 @@ package ws
 
 // 单播
 import (
+	"goploy/model"
 	"net/http"
 	"strings"
 	"time"
@@ -14,8 +15,7 @@ import (
 // BroadcastClient stores a client information
 type BroadcastClient struct {
 	Conn     *websocket.Conn
-	UserID   int64
-	UserName string
+	UserInfo model.User
 }
 
 // BroadcastData is message struct
@@ -87,8 +87,7 @@ func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) {
 	c.SetPongHandler(func(string) error { c.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	hub.Register <- &BroadcastClient{
 		Conn:     c,
-		UserID:   gp.UserInfo.ID,
-		UserName: gp.UserInfo.Name,
+		UserInfo:   gp.UserInfo,
 	}
 	// you must read message to trigger pong handler
 	for {
@@ -118,7 +117,8 @@ func (hub *BroadcastHub) Run() {
 			for client := range hub.clients {
 				if broadcast.Type == TypeProject {
 					projectMessage := broadcast.Message.(ProjectMessage)
-					if ok := core.UserHasProject(client.UserID, projectMessage.ProjectID); !ok {
+					_, err := model.Project{ID: projectMessage.ProjectID}.GetUserProjectData(client.UserInfo.ID, client.UserInfo.Role, client.UserInfo.ManageGroupStr)
+					if err != nil {
 						continue
 					}
 				} else {

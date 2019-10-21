@@ -41,25 +41,10 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	projectName := gp.URLQuery.Get("projectName")
 
 	var projects model.Projects
-	if gp.UserInfo.Role == core.RoleAdmin || gp.UserInfo.Role == core.RoleManager {
-		projects, err = model.Project{
-			GroupID: groupID,
-			Name:    projectName,
-		}.GetDeployList()
-	} else if gp.UserInfo.Role == core.RoleGroupManager {
-		projects, err = model.Project{
-			GroupID: groupID,
-			Name:    projectName,
-		}.GetGroupManagerDeployList(gp.UserInfo.ID, gp.UserInfo.ManageGroupStr)
-	} else {
-		projects, err = model.ProjectUser{
-			UserID: gp.UserInfo.ID,
-			Project: model.Project{
-				GroupID: groupID,
-				Name:    projectName,
-			},
-		}.GetDeployList()
-	}
+	projects, err = model.Project{
+		GroupID: groupID,
+		Name:    projectName,
+	}.GetUserProjectList(gp.UserInfo.ID, gp.UserInfo.Role, gp.UserInfo.ManageGroupStr)
 
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}

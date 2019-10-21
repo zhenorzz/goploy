@@ -65,8 +65,8 @@ func (pu ProjectUser) GetListByUserID() (ProjectUsers, error) {
 	return projectUsers, nil
 }
 
-// GetDeployList user row by status
-func (pu ProjectUser) GetDeployList() (Projects, error) {
+// GetListLeftJoinProjectByUserID user row by status
+func (pu ProjectUser) GetListLeftJoinProjectByUserID() (Projects, error) {
 	builder := sq.
 		Select("project_id, project.name, publisher_id, publisher_name, project.group_id, project.environment, project.branch, project.last_publish_token, project.deploy_state, project.update_time").
 		From(projectUserTable).
@@ -107,25 +107,6 @@ func (pu ProjectUser) GetDeployList() (Projects, error) {
 		projects = append(projects, project)
 	}
 	return projects, nil
-}
-
-// GetDataByProjectUser  by  project id and user id
-func (pu ProjectUser) GetDataByProjectUser() (ProjectUser, error) {
-	var projectUser ProjectUser
-	err := sq.
-		Select("id, project_id, user_id").
-		From(projectUserTable).
-		Where(sq.Eq{
-			"project_id": pu.ProjectID,
-			"user_id":    pu.UserID,
-		}).
-		RunWith(DB).
-		QueryRow().
-		Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID)
-	if err != nil {
-		return projectUser, err
-	}
-	return projectUser, nil
 }
 
 // AddMany add many row to table project_server
