@@ -47,29 +47,10 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 			Name:    projectName,
 		}.GetDeployList()
 	} else if gp.UserInfo.Role == core.RoleGroupManager {
-		projectList, err := model.Project{
+		projects, err = model.Project{
 			GroupID: groupID,
 			Name:    projectName,
-		}.GetDeployListInGroupIds(strings.Split(gp.UserInfo.ManageGroupStr, ","))
-		if err != nil {
-			response := core.Response{Code: core.Deny, Message: err.Error()}
-			response.JSON(w)
-			return
-		}
-		projects = append(projects, projectList...)
-		projectList, err = model.ProjectUser{
-			UserID: gp.UserInfo.ID,
-			Project: model.Project{
-				GroupID: groupID,
-				Name:    projectName,
-			},
-		}.GetDeployList()
-		if err != nil {
-			response := core.Response{Code: core.Deny, Message: err.Error()}
-			response.JSON(w)
-			return
-		}
-		projects = append(projects, projectList...)
+		}.GetGroupManagerDeployList(gp.UserInfo.ID, gp.UserInfo.ManageGroupStr)
 	} else {
 		projects, err = model.ProjectUser{
 			UserID: gp.UserInfo.ID,

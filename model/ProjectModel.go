@@ -251,16 +251,15 @@ func (p Project) GetDeployList() (Projects, error) {
 }
 
 // GetDeployList deploy row
-func (p Project) GetDeployListInGroupIds(groupIds []string) (Projects, error) {
+func (p Project) GetGroupManagerDeployList(userID int64, groupIDStr string) (Projects, error) {
 	builder := sq.
 		Select("id, name, publisher_id, publisher_name, group_id, environment, branch, last_publish_token, deploy_state, update_time").
 		From(projectTable).
+		Where("group_id IN (?) or id in (select project_id from "+projectUserTable+" where user_id = ?)", groupIDStr, userID).
 		Where(sq.Eq{"state": Enable}).
 		OrderBy("id DESC")
 	if p.GroupID != 0 {
-		builder = builder.Where(sq.Eq{"group_id": p.GroupID})
-	} else {
-		builder = builder.Where(sq.Eq{"group_id": groupIds})
+		builder = builder.Where(sq.Eq{"project.group_id": p.GroupID})
 	}
 	if len(p.Name) > 0 {
 		builder = builder.Where(sq.Like{"project.name": "%" + p.Name + "%"})
