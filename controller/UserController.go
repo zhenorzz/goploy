@@ -140,12 +140,13 @@ func (user User) GetCanBindProjectUser(w http.ResponseWriter, gp *core.Goploy) {
 // Add one user
 func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
-		Account        string `json:"account" validate:"min=5,max=12"`
-		Password       string `json:"password" validate:"omitempty,password"`
-		Name           string `json:"name" validate:"required"`
-		Mobile         string `json:"mobile" validate:"omitempty,len=11,numeric"`
-		Role           string `json:"role" validate:"role"`
-		ManageGroupStr string `json:"manageGroupStr"`
+		Account        string  `json:"account" validate:"min=5,max=12"`
+		Password       string  `json:"password" validate:"omitempty,password"`
+		Name           string  `json:"name" validate:"required"`
+		Mobile         string  `json:"mobile" validate:"omitempty,len=11,numeric"`
+		Role           string  `json:"role" validate:"role"`
+		ManageGroupStr string  `json:"manageGroupStr"`
+		ProjectIDs     []int64 `json:"projectIds"`
 	}
 	type RespData struct {
 		ID int64 `json:"id"`
@@ -179,6 +180,22 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) {
 	}.AddRow()
 
 	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
+	projectUsersModel := model.ProjectUsers{}
+	for _, projectID := range reqData.ProjectIDs {
+		projectUserModel := model.ProjectUser{
+			ProjectID:  projectID,
+			UserID:     id,
+			CreateTime: time.Now().Unix(),
+			UpdateTime: time.Now().Unix(),
+		}
+		projectUsersModel = append(projectUsersModel, projectUserModel)
+	}
+	if err := projectUsersModel.AddMany(); err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return

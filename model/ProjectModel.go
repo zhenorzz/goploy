@@ -272,6 +272,42 @@ func (p Project) GetUserProjectList(userID int64, userRole string, groupIDStr st
 
 }
 
+// GetAll Group row
+func (p Project) GetAll() (Projects, error) {
+	rows, err := sq.
+		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, deploy_state, create_time, update_time").
+		From(projectTable).
+		OrderBy("id DESC").
+		RunWith(DB).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	var projects Projects
+	for rows.Next() {
+		var project Project
+
+		if err := rows.Scan(
+			&project.ID,
+			&project.GroupID,
+			&project.Name,
+			&project.URL,
+			&project.Path,
+			&project.Environment,
+			&project.Branch,
+			&project.AfterPullScript,
+			&project.AfterDeployScript,
+			&project.RsyncOption,
+			&project.DeployState,
+			&project.CreateTime,
+			&project.UpdateTime); err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+	return projects, nil
+}
+
 // GetData add project information to p *Project
 func (p Project) GetData() (Project, error) {
 	var project Project

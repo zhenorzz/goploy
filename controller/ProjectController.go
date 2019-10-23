@@ -47,6 +47,23 @@ func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	response.JSON(w)
 }
 
+// GetOption Project list
+func (project Project) GetOption(w http.ResponseWriter, gp *core.Goploy) {
+	type RespData struct {
+		Projects model.Projects `json:"projectList"`
+	}
+
+	projectList, err := model.Project{}.GetAll()
+
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Data: RespData{Projects: projectList}}
+	response.JSON(w)
+}
+
 // GetBindServerList project detail
 func (project Project) GetBindServerList(w http.ResponseWriter, gp *core.Goploy) {
 	type RespData struct {

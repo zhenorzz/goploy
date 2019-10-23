@@ -72,6 +72,16 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item v-show="formData.role==='member'" label="项目" prop="projectIds">
+          <el-cascader
+            v-model="formProps.projectIds"
+            style="width: 100%"
+            :options="projectOption"
+            :props="{ multiple: true }"
+            collapse-tags
+            clearable
+          />
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
@@ -85,6 +95,7 @@ import { validUsername, validPassword } from '@/utils/validate'
 import { getList, add, edit, remove } from '@/api/user'
 import { getOption as getRoleOption } from '@/api/role'
 import { getOption as getGroupOption } from '@/api/group'
+import { getOption as getProjectOption } from '@/api/project'
 import { parseTime } from '@/utils'
 
 export default {
@@ -109,6 +120,7 @@ export default {
       dialogVisible: false,
       roleOption: [],
       groupOption: [],
+      projectOption: [],
       tableData: [],
       tempFormData: {},
       pagination: {
@@ -117,7 +129,8 @@ export default {
         total: 0
       },
       formProps: {
-        disabled: false
+        disabled: false,
+        projectIds: []
       },
       formData: {
         id: 0,
@@ -127,7 +140,8 @@ export default {
         mobile: '',
         role: 'member',
         groupIds: [],
-        manageGroupStr: ''
+        manageGroupStr: '',
+        projectIds: []
       },
       formRules: {
         account: [
@@ -173,6 +187,29 @@ export default {
     getGroupOption() {
       getGroupOption().then((response) => {
         this.groupOption = response.data.groupList || []
+        if (this.groupOption.length !== 0) {
+          getProjectOption().then(response => {
+            this.projectOption = this.groupOption.map(element => {
+              return {
+                value: element.id,
+                label: element.name,
+                children: []
+              }
+            })
+            this.projectOption.unshift({
+              value: 0,
+              label: '默认',
+              children: []
+            })
+            response.data.projectList.forEach(element => {
+              const groupIndex = this.projectOption.findIndex(group => group.value === element.groupId)
+              this.projectOption[groupIndex].children.push({
+                value: element.id,
+                label: element.name
+              })
+            })
+          })
+        }
       })
     },
 
@@ -229,13 +266,18 @@ export default {
     submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
+          this.formData.projectIds = []
           if (this.formData.role === 'admin' || this.formData.role === 'manager') {
             this.formData.manageGroupStr = 'all'
           } else if (this.formData.role === 'group-manager') {
             this.formData.manageGroupStr = this.formData.groupIds.sort((x, y) => x - y).join(',')
           } else {
             this.formData.manageGroupStr = ''
+            this.formProps.projectIds.forEach(element => {
+              this.formData.projectIds.push(element[1])
+            })
           }
+
           if (this.formData.id === 0) {
             this.add()
           } else {

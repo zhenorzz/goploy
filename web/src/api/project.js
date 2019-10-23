@@ -12,6 +12,17 @@ export function getList(pagination) {
 }
 
 /**
+ * @return {Promise}
+ */
+export function getOption() {
+  return request({
+    url: '/project/getOption',
+    method: 'get',
+    params: { }
+  })
+}
+
+/**
  * @param  {id} id
  * @return {Promise}
  */
