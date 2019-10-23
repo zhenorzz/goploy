@@ -167,7 +167,7 @@ $cursor: #2f2f2f;
 .login-container {
   .el-input {
     display: inline-block;
-    height: 52px;
+    height: 42px;
     width: 85%;
 
     input {
@@ -177,7 +177,7 @@ $cursor: #2f2f2f;
       border-radius: 0px;
       padding: 12px 5px 12px 15px;
       color: #2f2f2f;
-      height: 50px;
+      height: 40px;
       caret-color: $cursor;
 
       &:-webkit-autofill {
@@ -249,10 +249,10 @@ $light_gray: #eee;
       border-radius: 35px;
     }
     &-btn {
-      margin-top:20px;
-      height: 50px;
+       margin-top:15px;
+      height: 40px;
       border-radius:39px;
-      font-size: 20px;
+      font-size: 16px;
       background-color: #2580FA;
     }
   }
@@ -286,7 +286,7 @@ $light_gray: #eee;
       margin: 20px 0;
       display: inline-block;
       width: 80px;
-      font-size: 40px;
+      font-size: 36px;
       font-family: PingFang SC;
       font-weight: 500;
       color: rgba(47, 47, 47, 1);
@@ -294,7 +294,7 @@ $light_gray: #eee;
     .sub-title {
       margin: 20px 0 20px 5px;
       display: inline-block;
-      font-size: 17px;
+      font-size: 14px;
       font-family: PingFang SC;
       font-weight: 500;
       color: rgba(206, 212, 223, 1);
@@ -305,7 +305,7 @@ $light_gray: #eee;
   .show-pwd {
     position: absolute;
     right: 20px;
-    top: 14px;
+    top: 10px;
     font-size: 16px;
     color: #c1c9d7;
     cursor: pointer;
