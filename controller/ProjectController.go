@@ -106,6 +106,27 @@ func (project Project) GetBindUserList(w http.ResponseWriter, gp *core.Goploy) {
 	response.JSON(w)
 }
 
+// GetBindUserList project detail
+func (project Project) GetBindProjectList(w http.ResponseWriter, gp *core.Goploy) {
+	type RespData struct {
+		ProjectUsers model.ProjectUsers `json:"projectUserMap"`
+	}
+	userID, err := strconv.ParseInt(gp.URLQuery.Get("userId"), 10, 64)
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: "id参数错误"}
+		response.JSON(w)
+		return
+	}
+	projectUsersMap, err := model.ProjectUser{UserID: userID}.GetBindProjectListByUserID()
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Data: RespData{ProjectUsers: projectUsersMap}}
+	response.JSON(w)
+}
+
 // Add one project
 func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {

@@ -213,6 +213,7 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		Mobile         string `json:"mobile" validate:"omitempty,len=11,numeric"`
 		Role           string `json:"role" validate:"role"`
 		ManageGroupStr string `json:"manageGroupStr"`
+		ProjectIDs     []int64 `json:"projectIds"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
@@ -237,7 +238,33 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
-	response := core.Response{Message: "添加成功"}
+	err = model.ProjectUser{
+		UserID:     reqData.ID,
+	}.DeleteByUserID()
+
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
+	projectUsersModel := model.ProjectUsers{}
+	for _, projectID := range reqData.ProjectIDs {
+		projectUserModel := model.ProjectUser{
+			ProjectID:  projectID,
+			UserID:     reqData.ID,
+			CreateTime: time.Now().Unix(),
+			UpdateTime: time.Now().Unix(),
+		}
+		projectUsersModel = append(projectUsersModel, projectUserModel)
+	}
+	if err := projectUsersModel.AddMany(); err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
+	response := core.Response{Message: "修改成功"}
 	response.JSON(w)
 }
 

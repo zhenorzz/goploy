@@ -7,12 +7,13 @@ const projectUserTable = "`project_user`"
 // ProjectUser project user relationship
 type ProjectUser struct {
 	Project
-	ID         int64  `json:"id"`
-	ProjectID  int64  `json:"projectId"`
-	UserID     int64  `json:"userId"`
-	UserName   string `json:"userName"`
-	CreateTime int64  `json:"createTime"`
-	UpdateTime int64  `json:"updateTime"`
+	ID          int64  `json:"id"`
+	ProjectID   int64  `json:"projectId"`
+	ProjectName string `json:"projectName"`
+	UserID      int64  `json:"userId"`
+	UserName    string `json:"userName"`
+	CreateTime  int64  `json:"createTime"`
+	UpdateTime  int64  `json:"updateTime"`
 }
 
 // ProjectUsers project user relationship
@@ -35,6 +36,30 @@ func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
 		var projectUser ProjectUser
 
 		if err := rows.Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID, &projectUser.UserName, &projectUser.CreateTime, &projectUser.UpdateTime); err != nil {
+			return projectUsers, err
+		}
+		projectUsers = append(projectUsers, projectUser)
+	}
+	return projectUsers, nil
+}
+
+// GetBindUserListByProjectID user row
+func (pu ProjectUser) GetBindProjectListByUserID() (ProjectUsers, error) {
+	rows, err := sq.
+		Select("project_user.id, project_id, user_id, project.name, project.group_id, project_user.create_time, project_user.update_time").
+		From(projectUserTable).
+		LeftJoin(projectTable + " ON project_user.project_id = project.id").
+		Where(sq.Eq{"user_id": pu.UserID}).
+		RunWith(DB).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	var projectUsers ProjectUsers
+	for rows.Next() {
+		var projectUser ProjectUser
+
+		if err := rows.Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID, &projectUser.ProjectName, &projectUser.GroupID, &projectUser.CreateTime, &projectUser.UpdateTime); err != nil {
 			return projectUsers, err
 		}
 		projectUsers = append(projectUsers, projectUser)
@@ -130,6 +155,16 @@ func (pu ProjectUser) DeleteRow() error {
 	_, err := sq.
 		Delete(projectUserTable).
 		Where(sq.Eq{"id": pu.ID}).
+		RunWith(DB).
+		Exec()
+	return err
+}
+
+// DeleteRow edit one row to table ProjectUser
+func (pu ProjectUser) DeleteByUserID() error {
+	_, err := sq.
+		Delete(projectUserTable).
+		Where(sq.Eq{"user_id": pu.UserID}).
 		RunWith(DB).
 		Exec()
 	return err

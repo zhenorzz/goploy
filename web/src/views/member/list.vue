@@ -56,10 +56,22 @@
               :value="role"
             />
           </el-select>
+          <el-popover
+            placement="top-start"
+            title="权限说明"
+            width="300"
+            trigger="hover"
+          >
+            <p>admin具有一切权限</p>
+            <p>manager不具有成员管理</p>
+            <p>group-manager管理和构建分组的项目，也能绑定不属于分组的项目(只能构建)</p>
+            <p>member只允许构建绑定的项目</p>
+            <el-button slot="reference" type="text" icon="el-icon-question" style="color: #666;" />
+          </el-popover>
         </el-form-item>
         <el-form-item v-show="formData.role==='group-manager'" label="管理分组" prop="groupId">
           <el-select
-            v-model="formData.groupIds"
+            v-model="formProps.groupIds"
             multiple
             placeholder="选择分组"
             style="width:100%"
@@ -72,11 +84,11 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item v-show="formData.role==='member'" label="项目" prop="projectIds">
+        <el-form-item v-show="formData.role==='member' || formData.role==='group-manager'" label="绑定项目" prop="projectIds">
           <el-cascader
             v-model="formProps.projectIds"
             style="width: 100%"
-            :options="projectOption"
+            :options="filterProjectOption"
             :props="{ multiple: true }"
             collapse-tags
             clearable
@@ -95,7 +107,7 @@ import { validUsername, validPassword } from '@/utils/validate'
 import { getList, add, edit, remove } from '@/api/user'
 import { getOption as getRoleOption } from '@/api/role'
 import { getOption as getGroupOption } from '@/api/group'
-import { getOption as getProjectOption } from '@/api/project'
+import { getOption as getProjectOption, getBindProjectList } from '@/api/project'
 import { parseTime } from '@/utils'
 
 export default {
@@ -130,7 +142,9 @@ export default {
       },
       formProps: {
         disabled: false,
-        projectIds: []
+        groupIds: [],
+        projectIds: [],
+        projectOption: []
       },
       formData: {
         id: 0,
@@ -139,7 +153,6 @@ export default {
         name: '',
         mobile: '',
         role: 'member',
-        groupIds: [],
         manageGroupStr: '',
         projectIds: []
       },
@@ -157,6 +170,11 @@ export default {
           { required: true, message: '请选择角色', trigger: 'change' }
         ]
       }
+    }
+  },
+  computed: {
+    filterProjectOption: function() {
+      return this.projectOption.filter(element => this.formProps.groupIds.indexOf(element.value) === -1)
     }
   },
   created() {
@@ -227,8 +245,16 @@ export default {
     handleEdit(data) {
       this.restoreFormData()
       this.formData = Object.assign(this.formData, data)
-      this.formData.groupIds = data.manageGroupStr.split(',').filter(element => element !== '' && element !== 'all').map(element => {
+      this.formProps.groupIds = data.manageGroupStr.split(',').filter(element => element !== '' && element !== 'all').map(element => {
         return parseInt(element)
+      })
+      getBindProjectList(data.id).then((response) => {
+        this.formData.projectIds = response.data.projectUserMap ? response.data.projectUserMap.map(element => {
+          return element.projectId
+        }) : []
+        this.formProps.projectIds = response.data.projectUserMap ? response.data.projectUserMap.map(element => {
+          return [element.groupId, element.projectId]
+        }) : []
       })
       this.dialogVisible = true
     },
@@ -266,18 +292,19 @@ export default {
     submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
-          this.formData.projectIds = []
           if (this.formData.role === 'admin' || this.formData.role === 'manager') {
             this.formData.manageGroupStr = 'all'
           } else if (this.formData.role === 'group-manager') {
-            this.formData.manageGroupStr = this.formData.groupIds.sort((x, y) => x - y).join(',')
+            this.formData.manageGroupStr = this.formProps.groupIds.sort((x, y) => x - y).join(',')
           } else {
             this.formData.manageGroupStr = ''
+          }
+          this.formData.projectIds = []
+          if (this.formData.role === 'group-manager' || this.formData.role === 'member') {
             this.formProps.projectIds.forEach(element => {
               this.formData.projectIds.push(element[1])
             })
           }
-
           if (this.formData.id === 0) {
             this.add()
           } else {

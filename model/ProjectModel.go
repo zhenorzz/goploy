@@ -277,6 +277,7 @@ func (p Project) GetAll() (Projects, error) {
 	rows, err := sq.
 		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, deploy_state, create_time, update_time").
 		From(projectTable).
+		Where(sq.Eq{"state": Enable}).
 		OrderBy("id DESC").
 		RunWith(DB).
 		Query()

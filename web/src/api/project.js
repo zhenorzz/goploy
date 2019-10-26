@@ -47,6 +47,18 @@ export function getBindUserList(id) {
 }
 
 /**
+ * @param  {id} id
+ * @return {Promise}
+ */
+export function getBindProjectList(userId) {
+  return request({
+    url: '/project/getBindProjectList',
+    method: 'get',
+    params: { userId }
+  })
+}
+
+/**
  * @param  {string} project
  * @param  {string} owner
  * @param  {string} repository
