@@ -22,6 +22,8 @@ type Project struct {
 	PublisherName     string `json:"publisherName"`
 	DeployState       uint8  `json:"deployState"`
 	LastPublishToken  string `json:"lastPublishToken"`
+	NotifyType        uint8  `json:"notifyType"`
+	NotifyTarget      string `json:"notifyTarget"`
 	State             uint8  `json:"state"`
 	CreateTime        int64  `json:"createTime"`
 	UpdateTime        int64  `json:"updateTime"`
@@ -41,8 +43,8 @@ type Projects []Project
 func (p Project) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(projectTable).
-		Columns("group_id", "name", "url", "path", "environment", "branch", "after_pull_script", "after_deploy_script", "rsync_option", "create_time", "update_time").
-		Values(p.GroupID, p.Name, p.URL, p.Path, p.Environment, p.Branch, p.AfterPullScript, p.AfterDeployScript, p.RsyncOption, p.CreateTime, p.UpdateTime).
+		Columns("group_id", "name", "url", "path", "environment", "branch", "after_pull_script", "after_deploy_script", "rsync_option", "notify_type", "notify_target", "create_time", "update_time").
+		Values(p.GroupID, p.Name, p.URL, p.Path, p.Environment, p.Branch, p.AfterPullScript, p.AfterDeployScript, p.RsyncOption, p.NotifyType, p.NotifyTarget, p.CreateTime, p.UpdateTime).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -66,6 +68,8 @@ func (p Project) EditRow() error {
 			"after_pull_script":   p.AfterPullScript,
 			"after_deploy_script": p.AfterDeployScript,
 			"rsync_option":        p.RsyncOption,
+			"notify_type":         p.NotifyType,
+			"notify_target":       p.NotifyTarget,
 			"update_time":         p.UpdateTime,
 		}).
 		Where(sq.Eq{"id": p.ID}).
@@ -138,7 +142,7 @@ func (p Project) DeployFail() error {
 // GetList project row
 func (p Project) GetList(pagination Pagination) (Projects, Pagination, error) {
 	rows, err := sq.
-		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, create_time, update_time").
+		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, notify_type, notify_target, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"state": Enable}).
 		Limit(pagination.Rows).
@@ -154,7 +158,22 @@ func (p Project) GetList(pagination Pagination) (Projects, Pagination, error) {
 	for rows.Next() {
 		var project Project
 
-		if err := rows.Scan(&project.ID, &project.GroupID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.AfterPullScript, &project.AfterDeployScript, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
+		if err := rows.Scan(
+			&project.ID,
+			&project.GroupID,
+			&project.Name,
+			&project.URL,
+			&project.Path,
+			&project.Environment,
+			&project.Branch,
+			&project.AfterPullScript,
+			&project.AfterDeployScript,
+			&project.RsyncOption,
+			&project.NotifyType,
+			&project.NotifyTarget,
+			&project.CreateTime,
+			&project.UpdateTime,
+		); err != nil {
 			return nil, pagination, err
 		}
 		projects = append(projects, project)
@@ -175,7 +194,7 @@ func (p Project) GetList(pagination Pagination) (Projects, Pagination, error) {
 // GetListByManagerGroupStr project row
 func (p Project) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Projects, Pagination, error) {
 	builder := sq.
-		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, create_time, update_time").
+		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, notify_type, notify_target, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"group_id": groupIDs}).
 		Where(sq.Eq{"state": Enable}).
@@ -195,7 +214,22 @@ func (p Project) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Pr
 	for rows.Next() {
 		var project Project
 
-		if err := rows.Scan(&project.ID, &project.GroupID, &project.Name, &project.URL, &project.Path, &project.Environment, &project.Branch, &project.AfterPullScript, &project.AfterDeployScript, &project.RsyncOption, &project.CreateTime, &project.UpdateTime); err != nil {
+		if err := rows.Scan(
+			&project.ID,
+			&project.GroupID,
+			&project.Name,
+			&project.URL,
+			&project.Path,
+			&project.Environment,
+			&project.Branch,
+			&project.AfterPullScript,
+			&project.AfterDeployScript,
+			&project.RsyncOption,
+			&project.NotifyType,
+			&project.NotifyTarget,
+			&project.CreateTime,
+			&project.UpdateTime,
+		); err != nil {
 			return nil, pagination, err
 		}
 		projects = append(projects, project)
@@ -313,7 +347,7 @@ func (p Project) GetAll() (Projects, error) {
 func (p Project) GetData() (Project, error) {
 	var project Project
 	err := sq.
-		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, deploy_state, create_time, update_time").
+		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, deploy_state, notify_type, notify_target, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"id": p.ID}).
 		OrderBy("id DESC").
@@ -331,6 +365,8 @@ func (p Project) GetData() (Project, error) {
 			&project.AfterDeployScript,
 			&project.RsyncOption,
 			&project.DeployState,
+			&project.NotifyType,
+			&project.NotifyTarget,
 			&project.CreateTime,
 			&project.UpdateTime)
 	if err != nil {
@@ -361,24 +397,24 @@ func (p Project) GetUserProjectData(userID int64, userRole string, groupIDStr st
 			LeftJoin(projectTable + " ON project_user.project_id = project.id").
 			Where(sq.Eq{
 				"project_user.project_id": p.ID,
-				"project_user.user_id": userID,
-				"project.state":        Enable,
+				"project_user.user_id":    userID,
+				"project.state":           Enable,
 			})
 	}
 	var project Project
-	err :=builder.
+	err := builder.
 		RunWith(DB).
 		QueryRow().
 		Scan(&project.ID,
-		&project.Name,
-		&project.PublisherID,
-		&project.PublisherName,
-		&project.GroupID,
-		&project.Environment,
-		&project.Branch,
-		&project.LastPublishToken,
-		&project.DeployState,
-		&project.UpdateTime)
+			&project.Name,
+			&project.PublisherID,
+			&project.PublisherName,
+			&project.GroupID,
+			&project.Environment,
+			&project.Branch,
+			&project.LastPublishToken,
+			&project.DeployState,
+			&project.UpdateTime)
 	if err != nil {
 		return project, err
 	}

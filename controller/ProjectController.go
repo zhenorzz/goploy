@@ -141,6 +141,8 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		RsyncOption       string  `json:"rsyncOption"`
 		ServerIDs         []int64 `json:"serverIds"`
 		UserIDs           []int64 `json:"userIds"`
+		NotifyType        uint8   `json:"notifyType"`
+		NotifyTarget      string  `json:"notifyTarget"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -166,6 +168,8 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		AfterPullScript:   reqData.AfterPullScript,
 		AfterDeployScript: reqData.AfterDeployScript,
 		RsyncOption:       reqData.RsyncOption,
+		NotifyType:        reqData.NotifyType,
+		NotifyTarget:      reqData.NotifyTarget,
 		CreateTime:        time.Now().Unix(),
 		UpdateTime:        time.Now().Unix(),
 	}.AddRow()
@@ -225,6 +229,8 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		AfterPullScript   string `json:"afterPullscript"`
 		AfterDeployScript string `json:"afterDeployscript"`
 		RsyncOption       string `json:"rsyncOption"`
+		NotifyType        uint8   `json:"notifyType"`
+		NotifyTarget      string  `json:"notifyTarget"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -251,6 +257,8 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		AfterPullScript:   reqData.AfterPullScript,
 		AfterDeployScript: reqData.AfterDeployScript,
 		RsyncOption:       reqData.RsyncOption,
+		NotifyType:        reqData.NotifyType,
+		NotifyTarget:      reqData.NotifyTarget,
 		UpdateTime:        time.Now().Unix(),
 	}.EditRow()
 

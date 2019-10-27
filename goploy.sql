@@ -54,10 +54,12 @@ CREATE TABLE `project`  (
   `after_deploy_script` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '脚本路径',
   `rsync_option` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'rsync 参数',
   `state` tinyint(4) UNSIGNED NOT NULL DEFAULT 1 COMMENT '0=>失效 1=>生效',
-  `deploy` tinyint(4) UNSIGNED NOT NULL DEFAULT 0 COMMENT '0=>未构建 1=>构建中 2=>成功 3=>失败',
+  `deploy_state` tinyint(4) UNSIGNED NOT NULL DEFAULT 0 COMMENT '0=>未构建 1=>构建中 2=>成功 3=>失败',
   `publisher_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `publisher_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `last_publish_token` char(36) CHARACTER SET utf8mb4 NOT NULL DEFAULT '',
+  `notify_type` tinyint(4) UNSIGNED NOT NULL DEFAULT 0 COMMENT '1=>企业微信 2=>钉钉',
+  `notify_target` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '推送目标，目前只支持webhook',
   `create_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
   `update_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE

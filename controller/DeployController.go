@@ -293,6 +293,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 		if _, err := publishTraceModel.AddRow(); err != nil {
 			core.Log(core.ERROR, err.Error())
 		}
+		go notify(project, model.ProjectFail, err.Error())
 		return
 	} else {
 		ext, _ := json.Marshal(struct {
@@ -330,6 +331,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 			if _, err := publishTraceModel.AddRow(); err != nil {
 				core.Log(core.ERROR, err.Error())
 			}
+			go notify(project, model.ProjectFail, err.Error())
 			return
 		}
 		publishTraceModel.Detail = outputString
@@ -355,10 +357,13 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 	if message == "" {
 		project.DeploySuccess()
 		state = model.ProjectSuccess
+		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy success")
+
 	} else {
 		project.DeployFail()
+		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy fail")
+
 	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy success")
 
 	ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
 		Type: ws.TypeProject,
@@ -370,6 +375,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 			Message:     message,
 		},
 	}
+	go notify(project, state, message)
 	return
 }
 
@@ -408,6 +414,7 @@ func execRollback(userInfo model.User, commit string, project model.Project, pro
 				Message:     err.Error(),
 			},
 		}
+		go notify(project, model.ProjectFail, err.Error())
 		return
 	}
 	ext, _ := json.Marshal(struct {
@@ -445,6 +452,7 @@ func execRollback(userInfo model.User, commit string, project model.Project, pro
 			if _, err := publishTraceModel.AddRow(); err != nil {
 				core.Log(core.ERROR, err.Error())
 			}
+			go notify(project, model.ProjectFail, err.Error())
 			return
 		}
 		publishTraceModel.Detail = outputString
@@ -484,6 +492,7 @@ func execRollback(userInfo model.User, commit string, project model.Project, pro
 			Message:     message,
 		},
 	}
+	go notify(project, state, message)
 	return
 }
 func gitSync(project model.Project) (string, string, error) {
@@ -748,4 +757,38 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 		State:      model.ProjectSuccess,
 	}
 	return
+}
+
+func notify(project model.Project, deployState int, detail string) {
+	if project.NotifyType == 0 {
+		return
+	} else if project.NotifyType == 1 {
+		type markdown struct {
+			Content string `json:"content"`
+		}
+		type message struct {
+			Msgtype  string   `json:"msgtype"`
+			Markdown markdown `json:"markdown"`
+		}
+		content := "构建项目<font color=\"warning\">" + project.Name + "</font>，请相关同事注意。\n "
+
+		if deployState == model.ProjectFail {
+			content += ">状态:<font color=\"red\"> 失败</font> \n "
+			content += ">详情：<font color=\"comment\">" + detail + "</font>"
+		} else {
+			content += ">状态:<font color=\"green\"> 成功</font>"
+		}
+
+		msg := message{
+			Msgtype: "markdown",
+			Markdown: markdown{
+				Content: content,
+			},
+		}
+		b, _ := json.Marshal(msg)
+		_, err := http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))
+		if err != nil {
+			core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10) + " " +err.Error())
+		}
+	}
 }

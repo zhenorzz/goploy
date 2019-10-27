@@ -96,6 +96,15 @@
                 />
               </el-select>
             </el-form-item>
+            <el-form-item label="构建通知" prop="notifyTarget">
+              <el-row type="flex">
+                <el-select v-model="formData.notifyType" clearable>
+                  <el-option label="企业微信" :value="1" />
+                  <el-option label="钉钉" :value="2" />
+                </el-select>
+                <el-input v-model="formData.notifyTarget" autocomplete="off" placeholder="webhook链接" />
+              </el-row>
+            </el-form-item>
           </el-col>
           <el-col :span="16">
             <el-form-item label="拉取后运行脚本" prop="afterPullScrpit">
@@ -220,6 +229,15 @@ export default {
     codemirror
   },
   data() {
+    const validateNotifyTarget = (rule, value, callback) => {
+      if (value !== '' && this.formData.notifyType !== '') {
+        callback()
+      } else if (value === '' && this.formData.notifyType === '') {
+        callback()
+      } else {
+        callback(new Error('请选择推送类型'))
+      }
+    }
     return {
       cmOptions: {
         tabSize: 4,
@@ -263,7 +281,9 @@ export default {
         branch: 'master',
         rsyncOption: '-rtv --exclude .git --delete-after',
         serverIds: [],
-        userIds: []
+        userIds: [],
+        notifyType: '',
+        notifyTarget: ''
       },
       formRules: {
         name: [
@@ -289,6 +309,9 @@ export default {
         ],
         userIds: [
           { type: 'array', message: '请选择组员', trigger: 'change' }
+        ],
+        notifyTarget: [
+          { validator: validateNotifyTarget, trigger: 'blur' }
         ]
       },
       addServerFormProps: {
@@ -330,6 +353,9 @@ export default {
 
     handleEdit(data) {
       this.formData = Object.assign({}, data)
+      if (this.formData.notifyType === 0) {
+        this.formData.notifyType = ''
+      }
       this.formData.serverIds = []
       this.formData.userIds = []
       this.formProps.showServers = this.formProps.showUsers = false
@@ -389,6 +415,9 @@ export default {
 
     submit() {
       this.$refs.form.validate((valid) => {
+        if (this.formData.notifyType === '') {
+          this.formData.notifyType = 0
+        }
         if (valid) {
           if (this.formData.id === 0) {
             this.add()
