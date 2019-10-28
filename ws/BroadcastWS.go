@@ -107,14 +107,16 @@ func (hub *BroadcastHub) Run() {
 	for {
 		select {
 		case client := <-hub.Register:
+			core.Log(core.TRACE, "register")
 			hub.clients[client] = true
 		case client := <-hub.Unregister:
+			core.Log(core.TRACE, "Unregister")
 			if _, ok := hub.clients[client]; ok {
 				delete(hub.clients, client)
 				client.Conn.Close()
 			}
 		case broadcast := <-hub.BroadcastData:
-			core.Log(core.TRACE, "这里")
+			core.Log(core.TRACE, "BroadcastData")
 			for client := range hub.clients {
 				if broadcast.Type == TypeProject {
 					projectMessage := broadcast.Message.(ProjectMessage)
@@ -130,6 +132,7 @@ func (hub *BroadcastHub) Run() {
 				}
 			}
 		case <-ticker.C:
+			core.Log(core.TRACE, "ticker")
 			for client := range hub.clients {
 				if err := client.Conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 					hub.Unregister <- client
