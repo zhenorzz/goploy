@@ -190,6 +190,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	response.JSON(w)
 
 	go execSync(gp.UserInfo, project, projectServers)
+	return
 }
 
 // Rollback the project
@@ -242,7 +243,7 @@ func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
 	response := core.Response{Message: "重新构建中，请稍后"}
 	response.JSON(w)
 	go execRollback(gp.UserInfo, reqData.Commit, project, projectServers)
-
+	return
 }
 
 type SyncMessage struct {
@@ -263,6 +264,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 			State:       model.ProjectDeploying,
 		},
 	}
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy 1")
 	publishTraceModel := model.PublishTrace{
 		Token:         project.LastPublishToken,
 		ProjectID:     project.ID,
@@ -275,7 +277,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 	}
 
 	gitPullMessage, gitCommitID, err := gitSync(project)
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy 1")
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy 2")
 	if err != nil {
 		project.DeployFail()
 		publishTraceModel.Detail = err.Error()
@@ -306,7 +308,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 			core.Log(core.ERROR, err.Error())
 		}
 	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy 2")
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy 3")
 	if project.AfterPullScript != "" {
 		outputString, err := runAfterPullScript(project)
 		publishTraceModel.Type = model.AfterPull
