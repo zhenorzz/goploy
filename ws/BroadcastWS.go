@@ -5,7 +5,6 @@ import (
 	"goploy/model"
 	"net/http"
 	"strings"
-	"time"
 
 	"goploy/core"
 
@@ -82,28 +81,15 @@ func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) {
 		core.Log(core.ERROR, err.Error())
 		return
 	}
-	c.SetReadLimit(maxMessageSize)
-	c.SetReadDeadline(time.Now().Add(pongWait))
-	c.SetPongHandler(func(string) error { c.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+
 	hub.Register <- &BroadcastClient{
 		Conn:     c,
 		UserInfo:   gp.UserInfo,
-	}
-	// you must read message to trigger pong handler
-	for {
-		_, _, err := c.ReadMessage()
-		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-				core.Log(core.ERROR, err.Error())
-			}
-			break
-		}
 	}
 }
 
 // Run goroutine run the sync hub
 func (hub *BroadcastHub) Run() {
-	ticker := time.NewTicker(pingPeriod)
 	for {
 		select {
 		case client := <-hub.Register:
@@ -128,13 +114,6 @@ func (hub *BroadcastHub) Run() {
 					continue
 				}
 				if err := client.Conn.WriteJSON(broadcast.Message); websocket.IsCloseError(err) {
-					hub.Unregister <- client
-				}
-			}
-		case <-ticker.C:
-			core.Log(core.TRACE, "ticker")
-			for client := range hub.clients {
-				if err := client.Conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 					hub.Unregister <- client
 				}
 			}
