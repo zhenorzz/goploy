@@ -264,7 +264,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 			State:       model.ProjectDeploying,
 		},
 	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy 1")
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy 2")
 	publishTraceModel := model.PublishTrace{
 		Token:         project.LastPublishToken,
 		ProjectID:     project.ID,
@@ -277,7 +277,6 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 	}
 
 	gitPullMessage, gitCommitID, err := gitSync(project)
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy 2")
 	if err != nil {
 		project.DeployFail()
 		publishTraceModel.Detail = err.Error()
@@ -308,7 +307,6 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 			core.Log(core.ERROR, err.Error())
 		}
 	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy 3")
 	if project.AfterPullScript != "" {
 		outputString, err := runAfterPullScript(project)
 		publishTraceModel.Type = model.AfterPull

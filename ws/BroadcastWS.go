@@ -4,6 +4,7 @@ package ws
 import (
 	"goploy/model"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -119,12 +120,13 @@ func (hub *BroadcastHub) Run() {
 					projectMessage := broadcast.Message.(ProjectMessage)
 					_, err := model.Project{ID: projectMessage.ProjectID}.GetUserProjectData(client.UserInfo.ID, client.UserInfo.Role, client.UserInfo.ManageGroupStr)
 					if err != nil {
+						core.Log(core.TRACE, "projectID:"+strconv.FormatInt(projectMessage.ProjectID, 10)+err.Error())
 						continue
 					}
 				} else {
 					continue
 				}
-
+				core.Log(core.TRACE, "到这里了")
 				if err := client.Conn.WriteJSON(broadcast.Message); websocket.IsCloseError(err) {
 					hub.Unregister <- client
 				}
