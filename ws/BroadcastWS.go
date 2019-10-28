@@ -93,16 +93,13 @@ func (hub *BroadcastHub) Run() {
 	for {
 		select {
 		case client := <-hub.Register:
-			core.Log(core.TRACE, "register")
 			hub.clients[client] = true
 		case client := <-hub.Unregister:
-			core.Log(core.TRACE, "Unregister")
 			if _, ok := hub.clients[client]; ok {
 				delete(hub.clients, client)
 				client.Conn.Close()
 			}
 		case broadcast := <-hub.BroadcastData:
-			core.Log(core.TRACE, "BroadcastData")
 			for client := range hub.clients {
 				if broadcast.Type == TypeProject {
 					projectMessage := broadcast.Message.(ProjectMessage)
