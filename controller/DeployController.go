@@ -264,7 +264,6 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 			State:       model.ProjectDeploying,
 		},
 	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy 2")
 	publishTraceModel := model.PublishTrace{
 		Token:         project.LastPublishToken,
 		ProjectID:     project.ID,
