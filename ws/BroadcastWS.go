@@ -5,6 +5,7 @@ import (
 	"goploy/model"
 	"net/http"
 	"strings"
+	"time"
 
 	"goploy/core"
 
@@ -45,6 +46,8 @@ type BroadcastHub struct {
 
 	// Unregister requests from clients.
 	Unregister chan *BroadcastClient
+	// ping pong ticker
+	ticker chan *BroadcastClient
 }
 
 const (
@@ -61,6 +64,7 @@ func GetBroadcastHub() *BroadcastHub {
 			clients:       make(map[*BroadcastClient]bool),
 			Register:      make(chan *BroadcastClient),
 			Unregister:    make(chan *BroadcastClient),
+			ticker:        make(chan *BroadcastClient),
 		}
 	}
 	return broadcastHub
@@ -81,11 +85,44 @@ func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) {
 		core.Log(core.ERROR, err.Error())
 		return
 	}
-
-	hub.Register <- &BroadcastClient{
+	c.SetReadLimit(maxMessageSize)
+	c.SetReadDeadline(time.Now().Add(pongWait))
+	c.SetPongHandler(func(string) error { c.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	broadcastClient := &BroadcastClient{
 		Conn:     c,
-		UserInfo:   gp.UserInfo,
+		UserInfo: gp.UserInfo,
 	}
+	hub.Register <- broadcastClient
+
+	ticker := time.NewTicker(pingPeriod)
+	stop := make(chan bool, 1)
+	go func(ticker *time.Ticker) {
+		for {
+			select {
+			case <-ticker.C:
+				hub.ticker <- broadcastClient
+			case <-stop:
+				return
+			}
+		}
+	}(ticker)
+	// you must read message to trigger pong handler
+	for {
+		_, _, err := c.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
+				core.Log(core.ERROR, err.Error())
+			}
+			break
+		}
+	}
+
+	defer func() {
+		hub.Unregister <- broadcastClient
+		c.Close()
+		ticker.Stop()
+		stop <- true
+	}()
 }
 
 // Run goroutine run the sync hub
@@ -111,6 +148,12 @@ func (hub *BroadcastHub) Run() {
 					continue
 				}
 				if err := client.Conn.WriteJSON(broadcast.Message); websocket.IsCloseError(err) {
+					hub.Unregister <- client
+				}
+			}
+		case client := <-hub.ticker:
+			if _, ok := hub.clients[client]; ok {
+				if err := client.Conn.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 					hub.Unregister <- client
 				}
 			}
