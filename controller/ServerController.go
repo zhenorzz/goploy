@@ -112,6 +112,32 @@ func (server Server) GetOption(w http.ResponseWriter, _ *core.Goploy) {
 }
 
 // Add one server
+func (server Server) Check(w http.ResponseWriter, gp *core.Goploy) {
+	type ReqData struct {
+		IP    string `json:"ip" validate:"ip4_addr"`
+		Port  int    `json:"port" validate:"min=0,max=65535"`
+		Owner string `json:"owner" validate:"required"`
+	}
+	type RespData struct {
+		ID int64 `json:"id"`
+	}
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	_, err := utils.ConnectSSH(reqData.Owner, "", reqData.IP, reqData.Port)
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	response := core.Response{Message: "连接成功"}
+	response.JSON(w)
+}
+
+// Add one server
 func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {
 		Name    string `json:"name" validate:"required"`

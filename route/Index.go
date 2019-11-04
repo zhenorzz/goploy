@@ -58,6 +58,7 @@ func Init() *router.Router {
 	rt.Add("/server/getInstallPreview", router.GET, controller.Server{}.GetInstallPreview)
 	rt.Add("/server/getInstallList", router.GET, controller.Server{}.GetInstallList)
 	rt.Add("/server/getOption", router.GET, controller.Server{}.GetOption)
+	rt.Add("/server/check", router.POST, controller.Server{}.Check).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/server/add", router.POST, controller.Server{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/server/edit", router.POST, controller.Server{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/server/remove", router.DELETE, controller.Server{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})

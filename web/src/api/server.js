@@ -59,6 +59,15 @@ export function edit(data) {
   })
 }
 
+export function check(data) {
+  return request({
+    timeout: 100000,
+    url: '/server/check',
+    method: 'post',
+    data
+  })
+}
+
 export function remove(id) {
   return request({
     url: '/server/remove',

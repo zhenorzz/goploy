@@ -40,7 +40,7 @@
       />
     </el-row>
     <el-dialog title="服务器设置" :visible.sync="dialogVisible">
-      <el-form ref="form" :rules="formRules" :model="formData" label-width="120px">
+      <el-form ref="form" v-loading="formProps.loading" :element-loading-text="formProps.loadingMessage" :rules="formRules" :model="formData" label-width="120px">
         <el-form-item label="服务器名称" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
@@ -66,8 +66,13 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button :disabled="formProps.disabled" type="primary" @click="submit">确 定</el-button>
+        <el-row type="flex" justify="space-between">
+          <el-button type="success" @click="check">测试连接</el-button>
+          <el-row>
+            <el-button @click="dialogVisible = false">取 消</el-button>
+            <el-button :disabled="formProps.disabled" type="primary" @click="submit">确 定</el-button>
+          </el-row>
+        </el-row>
       </div>
     </el-dialog>
     <el-dialog title="安装模板" :visible.sync="templateDialogVisible">
@@ -108,7 +113,7 @@
   </el-row>
 </template>
 <script>
-import { getList, getInstallPreview, getInstallList, add, edit, remove, install } from '@/api/server'
+import { getList, getInstallPreview, getInstallList, add, edit, check, remove, install } from '@/api/server'
 import { getOption as getGroupOption } from '@/api/group'
 import { getOption as getTemplateOption } from '@/api/template'
 import { parseTime } from '@/utils'
@@ -155,6 +160,8 @@ export default {
         autoRefresh: true
       },
       formProps: {
+        loading: false,
+        loadingMessage: '测试连接中，请稍后',
         disabled: false
       },
       formData: {
@@ -306,6 +313,24 @@ export default {
         })
       })
     },
+
+    check() {
+      this.$refs.form.validate((valid) => {
+        if (valid) {
+          this.formProps.loading = true
+          check(this.formData).then(response => {
+            this.$message({
+              message: response.message,
+              type: 'success',
+              duration: 5 * 1000
+            })
+          }).finally(_ => { this.formProps.loading = false })
+        } else {
+          return false
+        }
+      })
+    },
+
     submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
