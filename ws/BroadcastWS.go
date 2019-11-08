@@ -29,6 +29,7 @@ type ProjectMessage struct {
 	ProjectID   int64  `json:"projectId"`
 	ProjectName string `json:"projectName"`
 	UserID      int64  `json:"userId"`
+	Username    string `json:"username"`
 	State       uint8  `json:"state"`
 	Message     string `json:"message"`
 }

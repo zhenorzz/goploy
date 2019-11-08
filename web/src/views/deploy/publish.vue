@@ -231,6 +231,8 @@ export default {
           }
           const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
           this.tableData[projectIndex].deployState = data.state
+          this.tableData[projectIndex].publisherName = data.username
+          this.tableData[projectIndex].updateTime = parseTime(new Date())
         }
       })
     },
