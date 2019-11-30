@@ -3,14 +3,11 @@
 </div>
 
 ## 使用说明
-1. 导入根目录goploy.sql
-2. cp .env.example .env
-3. 修改.env里面的配置
-4. 运行./goploy or goploy.exe
-5. web http://ip:port  (账号:密码 admin:admin!@#)
+1. 运行./goploy or goploy.exe or goploy.mac (运行不了可能需要 chmod a+x, 再不行就发issue或加群)
+2. web http://ip:port  (账号:密码 admin:admin!@#)
 
 ## 后端开发说明
-1. 安装go，必须是1.11以上
+1. 安装go，必须是1.13以上
 2. 项目使用go mod管理
 3. 运行go run main.go
 
