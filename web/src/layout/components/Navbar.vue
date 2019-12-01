@@ -5,6 +5,9 @@
     <breadcrumb class="breadcrumb-container" />
 
     <div class="right-menu">
+      <iframe src="https://ghbtns.com/github-btn.html?user=zhenorzz&type=follow&count=true" frameborder="0" scrolling="0" width="130px" height="20px" style="position: relative; top: 5px;" />
+      <iframe src="https://ghbtns.com/github-btn.html?user=zhenorzz&repo=goploy&type=star&count=true" frameborder="0" scrolling="0" width="80px" height="20px" style="position: relative; top: 5px;" />
+      <iframe src="https://ghbtns.com/github-btn.html?user=zhenorzz&repo=goploy&type=fork&count=true" frameborder="0" scrolling="0" width="80px" height="20px" style="position: relative; top: 5px;" />
       <el-dropdown class="user-container" trigger="click" size="medium">
         <div class="user-wrapper">
           {{ name }}
@@ -86,7 +89,19 @@ export default {
     &:focus {
       outline: none;
     }
-
+    .star-btn {
+      padding: 3px 5px;
+      font-size: 12px;
+      line-height: 20px;
+      color: #24292e;
+      background-color: #eff3f6;
+      background-image: linear-gradient(-180deg,#fafbfc,#eff3f6 90%);
+      border: 1px solid rgba(2i7,31,35,.2);
+      border-radius: .25em;
+      span {
+        font-size: 14px !important;
+      }
+    }
     .right-menu-item {
       display: inline-block;
       padding: 0 8px;
