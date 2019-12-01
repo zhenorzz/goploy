@@ -325,6 +325,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 					ProjectID:   project.ID,
 					ProjectName: project.Name,
 					UserID:      userInfo.ID,
+					Username:    userInfo.Name,
 					State:       model.ProjectFail,
 					Message:     err.Error(),
 				},
