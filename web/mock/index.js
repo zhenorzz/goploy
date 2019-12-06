@@ -16,7 +16,7 @@ const users = {
   }
 }
 
-const user = [
+const api = [
   // user login
   {
     url: '/user/login',
@@ -95,7 +95,7 @@ const user = [
 ]
 
 const mocks = [
-  ...user
+  ...api
 ]
 
 // for front mock
