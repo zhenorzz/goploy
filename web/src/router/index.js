@@ -79,6 +79,21 @@ export const asyncRoutes = [
     }]
   },
   {
+    path: '/toolbox',
+    name: '工具箱',
+    component: Layout,
+    redirect: '/toolbox/json',
+    children: [{
+      path: 'json',
+      name: 'JSON格式化',
+      component: () => import('@/views/toolbox/json'),
+      meta: {
+        title: 'JSON格式化',
+        icon: 'json'
+      }
+    }]
+  },
+  {
     path: '/project',
     name: '项目管理',
     component: Layout,
