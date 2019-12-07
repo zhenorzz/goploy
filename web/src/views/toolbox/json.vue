@@ -1,15 +1,22 @@
 <template>
-  <el-row id="wrapper" class="app-container">
-    json
+  <el-row class="tree-container">
+    <el-col :span="10" class="input-container">
+      <div ref="jsonStringInput" class="json-string-input" contenteditable="true" placeholder="在此输入json字符串" @input="handleInput" />
+    </el-col>
+    <el-col :span="14" class="json-container">
+      <div ref="jsonPrettyString" />
+    </el-col>
   </el-row>
 </template>
 <script>
 import './jsonTree.css'
 import { jsonTree } from './jsonTree'
+import { debounce } from '@/utils'
 export default {
 
   data() {
     return {
+      tree: undefined
     }
   },
   computed: {
@@ -19,41 +26,61 @@ export default {
 
   },
   mounted() {
+    this.$refs.jsonStringInput.focus()
     // Get DOM-element for inserting json-tree
-    var wrapper = document.getElementById('wrapper')
 
-    // Get json-data by javascript-object
-    var data = {
-      'firstName': 'John',
-      'lastName': 'Smith',
-      'isAlive': true,
-      'age': 25,
-      'company': null,
-      'height_cm': 167.64,
-      'address': {
-        'streetAddress': '21 2nd Street',
-        'city': 'New York',
-        'state': 'NY',
-        'postalCode': '10021-3100'
-      },
-      'phoneNumbers': [
-        {
-          'type': 'home',
-          'number': '212 555-1234'
-        },
-        {
-          'type': 'fax',
-          'number': '646 555-4567'
-        }
-      ]
-    }
+    // var wrapper = this.$refs.jsonPrettyString
 
-    var tree = jsonTree.create(data, wrapper)
-
-    // Expand all (or selected) child nodes of root (optional)
-    tree.expand()
+    // var tree = jsonTree.create({}, wrapper)
+    // tree.loadData
+    // // Expand all (or selected) child nodes of root (optional)
+    // tree.expand()
   },
   methods: {
+    handleInput: debounce(function(event) {
+      const wrapper = this.$refs.jsonPrettyString
+      const text = event.target.innerText.replace(/<[^>]+>/g, '')
+      if (text.length === 0) {
+        wrapper.innerText = ''
+        return
+      }
+      try {
+        const data = JSON.parse(text)
+
+        if (this.tree) {
+          this.tree.loadData(data)
+        } else {
+          this.tree = jsonTree.create(data, wrapper)
+        }
+        this.tree.expand()
+      } catch (error) {
+        wrapper.innerText = error.message
+      }
+    })
   }
 }
 </script>
+<style lang="scss" scoped>
+.tree-container {
+  height: calc(100vh - 50px);
+  .input-container {
+    height: 100%;
+  }
+  .json-string-input {
+    padding: 20px 30px;
+    height: 100%;
+    &:empty:before{
+      content: attr(placeholder);
+      color:#bbb;
+    }
+    &:focus:before{
+      content:none;
+    }
+  }
+  .json-container {
+    height: 100%;
+    border-left: solid 1px #f6f6f6;
+  }
+}
+
+</style>
