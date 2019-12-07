@@ -85,6 +85,7 @@ export default {
   .json-string-input {
     height: 100%;
     >>> textarea {
+      font-size: 16px;
       border-radius: 0;
       padding: 20px 30px;
       height: 100%;
