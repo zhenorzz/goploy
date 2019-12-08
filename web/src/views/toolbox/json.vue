@@ -4,13 +4,22 @@
       <el-input ref="jsonStringInput" v-model="inputContent" :autosize="false" type="textarea" class="json-string-input" contenteditable="true" placeholder="在此输入json字符串" @input="handleInput" />
     </el-col>
     <el-col :span="14" class="json-container">
-      <div class="json-helper">
-        <el-button type="text" size="medium" @click="expandAll">展开所有</el-button>
-        <el-button type="text" size="medium" @click="collapseAll">收起所有</el-button>
-        <el-button type="text" size="medium">高亮查找</el-button>
-        <el-button type="text" size="medium">取消高亮</el-button>
-        <el-button type="text" size="medium">查看JSON</el-button>
-      </div>
+      <el-row class="json-helper" type="flex" justify="space-between" align="middle">
+        <el-row>
+          <el-button type="text" size="medium" @click="expandAll">展开所有</el-button>
+          <el-button type="text" size="medium" @click="collapseAll">收起所有</el-button>
+          <el-button type="text" size="medium" @click="unmarkAll">取消高亮</el-button>
+        </el-row>
+        <el-row>
+          <el-tooltip class="item" effect="dark" placement="bottom-end">
+            <el-button type="text" icon="el-icon-question" />
+            <div slot="content">
+              1.按住ALT点击label可以实现高亮<br>
+              2.按住SHIFT可以查看JSON路径
+            </div>
+          </el-tooltip>
+        </el-row>
+      </el-row>
       <div ref="jsonPrettyString" />
     </el-col>
   </el-row>
@@ -72,6 +81,10 @@ export default {
 
     collapseAll() {
       this.tree && this.tree.collapse()
+    },
+
+    unmarkAll() {
+      this.tree && this.tree.unmarkAll()
     }
   }
 }
@@ -84,7 +97,7 @@ export default {
   }
   .json-string-input {
     height: 100%;
-    >>> textarea {
+     textarea {
       font-size: 16px;
       border-radius: 0;
       padding: 20px 30px;
@@ -105,4 +118,15 @@ export default {
   }
 }
 
+</style>
+<style lang="scss">
+.json-string-input {
+  .el-textarea__inner {
+    font-size: 16px;
+    border-radius: 0;
+    padding: 20px 30px;
+    height: 100%;
+    resize: none;
+  }
+}
 </style>
