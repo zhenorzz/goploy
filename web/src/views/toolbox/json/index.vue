@@ -44,14 +44,6 @@ export default {
   },
   mounted() {
     this.$refs.jsonStringInput.focus()
-    // Get DOM-element for inserting json-tree
-
-    // var wrapper = this.$refs.jsonPrettyString
-
-    // var tree = jsonTree.create({}, wrapper)
-    // tree.loadData
-    // // Expand all (or selected) child nodes of root (optional)
-    // tree.expand()
   },
   methods: {
     handleInput: debounce(function() {
