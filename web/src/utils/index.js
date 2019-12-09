@@ -47,6 +47,19 @@ export function parseTime(time, cFormat) {
 }
 
 /**
+ * Parse the string to time
+ * @param {(Object|string|number)} time
+ * @param {string} cFormat
+ * @returns {string}
+ */
+export function parseDate(date) {
+  date = date.substring(0, 19)
+  date = date.replace(/-/g, '/')
+  const timestamp = new Date(date).getTime()
+  return timestamp / 1000
+}
+
+/**
  * @param {number} time
  * @param {string} option
  * @returns {string}
