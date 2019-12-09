@@ -20,7 +20,7 @@
           </el-tooltip>
         </el-row>
       </el-row>
-      <div ref="jsonPrettyString" />
+      <div ref="jsonPrettyString" class="json-pretty-string" />
     </el-col>
   </el-row>
 </template>
@@ -82,6 +82,7 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
+@import "@/styles/mixin.scss";
 .tree-container {
   height: calc(100vh - 50px);
   .input-container {
@@ -107,6 +108,11 @@ export default {
   .json-container {
     height: 100%;
     border-left: solid 1px #EBEEF5;
+    .json-pretty-string {
+      overflow-y:auto;
+      height: 100%;
+      @include scrollBar();
+    }
   }
 }
 
