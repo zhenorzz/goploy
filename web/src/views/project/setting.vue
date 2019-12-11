@@ -107,10 +107,12 @@
             </el-form-item>
           </el-col>
           <el-col :span="16">
-            <el-form-item label="拉取后运行脚本" prop="afterPullScrpit">
+            <el-form-item prop="afterPullScrpit">
+              <span slot="label">拉取后运行脚本<br>(已切换至项目)</span>
               <codemirror v-model="formData.afterPullScript" :options="cmOptions" />
             </el-form-item>
-            <el-form-item label="部署后运行脚本" prop="afterDeployScrpit">
+            <el-form-item prop="afterDeployScrpit">
+              <span slot="label">部署后运行脚本<br>(手动切换项目)</span>
               <codemirror v-model="formData.afterDeployScript" :options="cmOptions" />
             </el-form-item>
           </el-col>
