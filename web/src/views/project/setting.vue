@@ -415,10 +415,10 @@ export default {
 
     submit() {
       this.$refs.form.validate((valid) => {
-        if (this.formData.notifyType === '') {
-          this.formData.notifyType = 0
-        }
         if (valid) {
+          if (this.formData.notifyType === '') {
+            this.formData.notifyType = 0
+          }
           if (this.formData.id === 0) {
             this.add()
           } else {

@@ -40,7 +40,7 @@
       <el-table-column prop="updateTime" label="上次构建时间" width="160" />
       <el-table-column prop="operation" label="操作" width="220">
         <template slot-scope="scope">
-          <el-button :disabled="scope.row.deployState === 1" type="primary" @click="publish(scope.row.id)">构建</el-button>
+          <el-button :disabled="scope.row.deployState === 1" type="primary" @click="publish(scope.row)">构建</el-button>
           <el-button type="success" @click="handleDetail(scope.row)">详情</el-button>
           <el-button :disabled="scope.row.deployState === 1" type="danger" @click="handleRollback(scope.row.id)">回滚</el-button>
         </template>
@@ -262,8 +262,9 @@ export default {
       })
     },
 
-    publish(id) {
-      this.$confirm('此操作将部署该项目, 是否继续?', '提示', {
+    publish(data) {
+      const id = data.id
+      this.$confirm('此操作将部署' + data.name + ', 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
