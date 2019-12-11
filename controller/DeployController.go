@@ -554,6 +554,7 @@ func gitCreate(project model.Project) error {
 func gitPull(project model.Project) (string, error) {
 	srcPath := core.RepositoryPath + project.Name
 
+	// git clean removes all untracked files
 	clean := exec.Command("git", "clean", "-f")
 	clean.Dir = srcPath
 	var cleanOutbuf, cleanErrbuf bytes.Buffer
@@ -564,6 +565,19 @@ func gitPull(project model.Project) (string, error) {
 		core.Log(core.ERROR, cleanErrbuf.String())
 		return "", errors.New(cleanErrbuf.String())
 	}
+
+	// git checkout clears all unstaged changes.
+	checkout := exec.Command("git", "checkout", "--", ".")
+	checkout.Dir = srcPath
+	var checkoutOutbuf, checkoutErrbuf bytes.Buffer
+	checkout.Stdout = &checkoutOutbuf
+	checkout.Stderr = &checkoutErrbuf
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git checkout -- .")
+	if err := checkout.Run(); err != nil {
+		core.Log(core.ERROR, checkoutErrbuf.String())
+		return "", errors.New(checkoutErrbuf.String())
+	}
+
 	pull := exec.Command("git", "pull")
 	pull.Dir = srcPath
 	var pullOutbuf, pullErrbuf bytes.Buffer
@@ -623,8 +637,8 @@ func runAfterPullScript(project model.Project) (string, error) {
 	handler.Stderr = &errbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+project.AfterPullScript)
 	if err := handler.Run(); err != nil {
-		core.Log(core.ERROR, err.Error())
-		return "", err
+		core.Log(core.ERROR, errbuf.String())
+		return "", errors.New(errbuf.String())
 	}
 
 	os.Remove(scriptName)
@@ -795,7 +809,7 @@ func notify(project model.Project, deployState int, detail string) {
 		b, _ := json.Marshal(msg)
 		_, err := http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))
 		if err != nil {
-			core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10) + " " +err.Error())
+			core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
 		}
 	}
 }
