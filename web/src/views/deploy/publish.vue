@@ -20,13 +20,18 @@
       style="width: 100%;margin-top: 5px;"
     >
       <el-table-column prop="id" label="ID" width="60" />
-      <el-table-column prop="name" label="项目名称" />
+      <el-table-column prop="name" label="项目名称">
+        <template slot-scope="scope">
+          <b v-if="scope.row.environment === '生产环境'" style="color: #F56C6C">{{ scope.row.name }} - {{ scope.row.environment }}</b>
+          <b v-else-if="scope.row.environment === '测试环境'" style="color: #E6A23C">{{ scope.row.name }} - {{ scope.row.environment }}</b>
+          <b v-else style="color: #909399">{{ scope.row.name }} - {{ scope.row.environment }}</b>
+        </template>
+      </el-table-column>
       <el-table-column prop="group" label="分组">
         <template slot-scope="scope">
           {{ findGroupName(scope.row.groupId) }}
         </template>
       </el-table-column>
-      <el-table-column prop="environment" label="环境" />
       <el-table-column prop="branch" label="分支" />
       <el-table-column prop="publisherName" label="构建者" width="160" />
       <el-table-column prop="deployState" label="构建状态" width="70">
@@ -276,7 +281,7 @@ export default {
       this.$confirm('', '提示', {
         message: h('p', null, [
           h('span', null, '此操作将部署 ' + data.name),
-          h('i', { style: color }, '(' + data.environment + ')'),
+          h('b', { style: color }, '(' + data.environment + ')'),
           h('span', null, ', 是否继续? ')
         ]),
         confirmButtonText: '确定',
