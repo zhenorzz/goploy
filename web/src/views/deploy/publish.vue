@@ -264,7 +264,21 @@ export default {
 
     publish(data) {
       const id = data.id
-      this.$confirm('此操作将部署' + data.name + ', 是否继续?', '提示', {
+      const h = this.$createElement
+      let color = ''
+      if (data.environment === '生产环境') {
+        color = 'color: #F56C6C'
+      } else if (data.environment === '测试环境') {
+        color = 'color: #E6A23C'
+      } else {
+        color = 'color: #909399'
+      }
+      this.$confirm('', '提示', {
+        message: h('p', null, [
+          h('span', null, '此操作将部署 ' + data.name),
+          h('i', { style: color }, '(' + data.environment + ')'),
+          h('span', null, ', 是否继续? ')
+        ]),
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
