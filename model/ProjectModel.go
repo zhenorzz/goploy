@@ -19,6 +19,7 @@ type Project struct {
 	AfterPullScript   string `json:"afterPullScript"`
 	AfterDeployScript string `json:"afterDeployScript"`
 	RsyncOption       string `json:"rsyncOption"`
+	AutoDeploy        uint8  `json:"autoDeploy"`
 	PublisherID       int64  `json:"publisherId"`
 	PublisherName     string `json:"publisherName"`
 	DeployState       uint8  `json:"deployState"`
@@ -44,8 +45,8 @@ type Projects []Project
 func (p Project) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(projectTable).
-		Columns("group_id", "name", "git_name", "url", "path", "environment", "branch", "after_pull_script", "after_deploy_script", "rsync_option", "notify_type", "notify_target", "create_time", "update_time").
-		Values(p.GroupID, p.Name, p.GitName, p.URL, p.Path, p.Environment, p.Branch, p.AfterPullScript, p.AfterDeployScript, p.RsyncOption, p.NotifyType, p.NotifyTarget, p.CreateTime, p.UpdateTime).
+		Columns("group_id", "name", "git_name", "url", "path", "environment", "branch", "after_pull_script", "after_deploy_script", "rsync_option", "auto_deploy", "notify_type", "notify_target", "create_time", "update_time").
+		Values(p.GroupID, p.Name, p.GitName, p.URL, p.Path, p.Environment, p.Branch, p.AfterPullScript, p.AfterDeployScript, p.RsyncOption, p.AutoDeploy, p.NotifyType, p.NotifyTarget, p.CreateTime, p.UpdateTime).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -70,6 +71,7 @@ func (p Project) EditRow() error {
 			"after_pull_script":   p.AfterPullScript,
 			"after_deploy_script": p.AfterDeployScript,
 			"rsync_option":        p.RsyncOption,
+			"auto_deploy":         p.AutoDeploy,
 			"notify_type":         p.NotifyType,
 			"notify_target":       p.NotifyTarget,
 			"update_time":         p.UpdateTime,
@@ -349,7 +351,7 @@ func (p Project) GetAll() (Projects, error) {
 func (p Project) GetData() (Project, error) {
 	var project Project
 	err := sq.
-		Select("id, group_id, name, git_name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, deploy_state, notify_type, notify_target, create_time, update_time").
+		Select("id, group_id, name, git_name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -366,6 +368,7 @@ func (p Project) GetData() (Project, error) {
 			&project.AfterPullScript,
 			&project.AfterDeployScript,
 			&project.RsyncOption,
+			&project.AutoDeploy,
 			&project.DeployState,
 			&project.NotifyType,
 			&project.NotifyTarget,
@@ -381,7 +384,7 @@ func (p Project) GetData() (Project, error) {
 func (p Project) GetDataByName() (Project, error) {
 	var project Project
 	err := sq.
-		Select("id, group_id, name, git_name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, deploy_state, notify_type, notify_target, create_time, update_time").
+		Select("id, group_id, name, git_name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"name": p.Name}).
 		RunWith(DB).
@@ -398,6 +401,7 @@ func (p Project) GetDataByName() (Project, error) {
 			&project.AfterPullScript,
 			&project.AfterDeployScript,
 			&project.RsyncOption,
+			&project.AutoDeploy,
 			&project.DeployState,
 			&project.NotifyType,
 			&project.NotifyTarget,
@@ -413,7 +417,7 @@ func (p Project) GetDataByName() (Project, error) {
 func (p Project) GetDataByGitName() (Project, error) {
 	var project Project
 	err := sq.
-		Select("id, group_id, name, git_name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, deploy_state, notify_type, notify_target, create_time, update_time").
+		Select("id, group_id, name, git_name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"git_name": p.GitName}).
 		RunWith(DB).
@@ -430,6 +434,7 @@ func (p Project) GetDataByGitName() (Project, error) {
 			&project.AfterPullScript,
 			&project.AfterDeployScript,
 			&project.RsyncOption,
+			&project.AutoDeploy,
 			&project.DeployState,
 			&project.NotifyType,
 			&project.NotifyTarget,

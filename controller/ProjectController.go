@@ -140,6 +140,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		AfterPullScript   string  `json:"afterPullScript"`
 		AfterDeployScript string  `json:"afterDeployScript"`
 		RsyncOption       string  `json:"rsyncOption"`
+		AutoDeploy        uint8   `json:"autoDeploy"`
 		ServerIDs         []int64 `json:"serverIds"`
 		UserIDs           []int64 `json:"userIds"`
 		NotifyType        uint8   `json:"notifyType"`
@@ -184,6 +185,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		AfterPullScript:   reqData.AfterPullScript,
 		AfterDeployScript: reqData.AfterDeployScript,
 		RsyncOption:       reqData.RsyncOption,
+		AutoDeploy:        reqData.AutoDeploy,
 		NotifyType:        reqData.NotifyType,
 		NotifyTarget:      reqData.NotifyTarget,
 		CreateTime:        time.Now().Unix(),
@@ -245,6 +247,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		AfterPullScript   string `json:"afterPullScript"`
 		AfterDeployScript string `json:"afterDeployScript"`
 		RsyncOption       string `json:"rsyncOption"`
+		AutoDeploy        uint8  `json:"autoDeploy"`
 		NotifyType        uint8  `json:"notifyType"`
 		NotifyTarget      string `json:"notifyTarget"`
 	}
@@ -284,7 +287,6 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		}
 	}
 
-
 	err = model.Project{
 		ID:                reqData.ID,
 		GroupID:           reqData.GroupID,
@@ -297,6 +299,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		AfterPullScript:   reqData.AfterPullScript,
 		AfterDeployScript: reqData.AfterDeployScript,
 		RsyncOption:       reqData.RsyncOption,
+		AutoDeploy:        reqData.AutoDeploy,
 		NotifyType:        reqData.NotifyType,
 		NotifyTarget:      reqData.NotifyTarget,
 		UpdateTime:        time.Now().Unix(),

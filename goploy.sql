@@ -54,6 +54,7 @@ CREATE TABLE `project`  (
   `after_pull_script` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '脚本路径',
   `after_deploy_script` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '脚本路径',
   `rsync_option` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'rsync 参数',
+  `auto_deploy` tinyint(4) UNSIGNED NOT NULL DEFAULT 1 COMMENT '0=>关闭 1=>Webhook',
   `state` tinyint(4) UNSIGNED NOT NULL DEFAULT 1 COMMENT '0=>失效 1=>生效',
   `deploy_state` tinyint(4) UNSIGNED NOT NULL DEFAULT 0 COMMENT '0=>未构建 1=>构建中 2=>成功 3=>失败',
   `publisher_id` int(10) UNSIGNED NOT NULL DEFAULT 0,

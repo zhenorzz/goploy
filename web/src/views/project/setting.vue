@@ -107,6 +107,18 @@
               <codemirror ref="afterDeployScrpit" v-model="formData.afterDeployScript" :options="cmOptions" placeholder="已切换至项目目录..." />
             </el-form-item>
           </el-tab-pane>
+          <el-tab-pane label="构建触发器" name="autoDeploy">
+            <el-row style="margin: 10px">构建触发器：达成某种条件后自动构建发布项目</el-row>
+            <el-radio-group v-model="formData.autoDeploy" style="margin: 10px">
+              <el-radio :label="0">关闭</el-radio>
+              <el-radio :label="1">webhook</el-radio>
+            </el-radio-group>
+            <el-row v-show="formData.autoDeploy===1" style="margin: 10px">
+              前往GitLab、GitHub或Gitee的webhook（可前往谷歌查找各自webhook所在的位置）<br>
+              填入连接http(s)://your.domin/deploy/webhook <br>
+              勾选push event即可
+            </el-row>
+          </el-tab-pane>
           <el-tab-pane label="高级配置" name="advance">
             <el-form-item label="构建通知" prop="notifyTarget">
               <el-row type="flex">
@@ -289,6 +301,7 @@ export default {
         rsyncOption: '-rtv --exclude .git --delete-after',
         serverIds: [],
         userIds: [],
+        autoDeploy: 0,
         notifyType: 0,
         notifyTarget: ''
       },
