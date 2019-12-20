@@ -11,6 +11,7 @@ type Project struct {
 	ID                int64  `json:"id"`
 	GroupID           int64  `json:"groupId"`
 	Name              string `json:"name"`
+	GitName           string `json:"gitName"`
 	URL               string `json:"url"`
 	Path              string `json:"path"`
 	Environment       string `json:"environment"`
@@ -43,8 +44,8 @@ type Projects []Project
 func (p Project) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(projectTable).
-		Columns("group_id", "name", "url", "path", "environment", "branch", "after_pull_script", "after_deploy_script", "rsync_option", "notify_type", "notify_target", "create_time", "update_time").
-		Values(p.GroupID, p.Name, p.URL, p.Path, p.Environment, p.Branch, p.AfterPullScript, p.AfterDeployScript, p.RsyncOption, p.NotifyType, p.NotifyTarget, p.CreateTime, p.UpdateTime).
+		Columns("group_id", "name", "git_name", "url", "path", "environment", "branch", "after_pull_script", "after_deploy_script", "rsync_option", "notify_type", "notify_target", "create_time", "update_time").
+		Values(p.GroupID, p.Name, p.GitName, p.URL, p.Path, p.Environment, p.Branch, p.AfterPullScript, p.AfterDeployScript, p.RsyncOption, p.NotifyType, p.NotifyTarget, p.CreateTime, p.UpdateTime).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -61,6 +62,7 @@ func (p Project) EditRow() error {
 		SetMap(sq.Eq{
 			"group_id":            p.GroupID,
 			"name":                p.Name,
+			"git_name":            p.GitName,
 			"url":                 p.URL,
 			"path":                p.Path,
 			"environment":         p.Environment,
@@ -347,16 +349,80 @@ func (p Project) GetAll() (Projects, error) {
 func (p Project) GetData() (Project, error) {
 	var project Project
 	err := sq.
-		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, deploy_state, notify_type, notify_target, create_time, update_time").
+		Select("id, group_id, name, git_name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, deploy_state, notify_type, notify_target, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"id": p.ID}).
-		OrderBy("id DESC").
 		RunWith(DB).
 		QueryRow().
 		Scan(
 			&project.ID,
 			&project.GroupID,
 			&project.Name,
+			&project.GitName,
+			&project.URL,
+			&project.Path,
+			&project.Environment,
+			&project.Branch,
+			&project.AfterPullScript,
+			&project.AfterDeployScript,
+			&project.RsyncOption,
+			&project.DeployState,
+			&project.NotifyType,
+			&project.NotifyTarget,
+			&project.CreateTime,
+			&project.UpdateTime)
+	if err != nil {
+		return project, err
+	}
+	return project, nil
+}
+
+// GetData add project information to p *Project
+func (p Project) GetDataByName() (Project, error) {
+	var project Project
+	err := sq.
+		Select("id, group_id, name, git_name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, deploy_state, notify_type, notify_target, create_time, update_time").
+		From(projectTable).
+		Where(sq.Eq{"name": p.Name}).
+		RunWith(DB).
+		QueryRow().
+		Scan(
+			&project.ID,
+			&project.GroupID,
+			&project.Name,
+			&project.GitName,
+			&project.URL,
+			&project.Path,
+			&project.Environment,
+			&project.Branch,
+			&project.AfterPullScript,
+			&project.AfterDeployScript,
+			&project.RsyncOption,
+			&project.DeployState,
+			&project.NotifyType,
+			&project.NotifyTarget,
+			&project.CreateTime,
+			&project.UpdateTime)
+	if err != nil {
+		return project, err
+	}
+	return project, nil
+}
+
+// GetData add project information to p *Project
+func (p Project) GetDataByGitName() (Project, error) {
+	var project Project
+	err := sq.
+		Select("id, group_id, name, git_name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, deploy_state, notify_type, notify_target, create_time, update_time").
+		From(projectTable).
+		Where(sq.Eq{"git_name": p.GitName}).
+		RunWith(DB).
+		QueryRow().
+		Scan(
+			&project.ID,
+			&project.GroupID,
+			&project.Name,
+			&project.GitName,
 			&project.URL,
 			&project.Path,
 			&project.Environment,

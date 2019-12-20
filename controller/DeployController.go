@@ -193,6 +193,15 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	return
 }
 
+// Publish the project
+func (deploy Deploy) Webhook(w http.ResponseWriter, gp *core.Goploy) {
+	//core.Log(core.TRACE,  string(gp.Body))
+	projectName := gp.URLQuery.Get("project_name")
+	response := core.Response{Message: projectName}
+	response.JSON(w)
+	return
+}
+
 // Rollback the project
 func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
 	type ReqData struct {

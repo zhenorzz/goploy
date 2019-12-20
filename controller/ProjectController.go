@@ -2,6 +2,7 @@ package controller
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -136,8 +137,8 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		Path              string  `json:"path"`
 		Environment       string  `json:"Environment"`
 		Branch            string  `json:"branch"`
-		AfterPullScript   string  `json:"afterPullscript"`
-		AfterDeployScript string  `json:"afterDeployscript"`
+		AfterPullScript   string  `json:"afterPullScript"`
+		AfterDeployScript string  `json:"afterDeployScript"`
 		RsyncOption       string  `json:"rsyncOption"`
 		ServerIDs         []int64 `json:"serverIds"`
 		UserIDs           []int64 `json:"userIds"`
@@ -152,8 +153,22 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
+	gitName, err := utils.GetGitName(reqData.URL)
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	println(gitName)
 	if _, err := utils.ParseCommandLine(reqData.RsyncOption); err != nil {
 		response := core.Response{Code: core.Deny, Message: "Rsync Option错误，请输入正确的参数格式"}
+		response.JSON(w)
+		return
+	}
+
+	_, err = model.Project{Name: reqData.Name}.GetDataByName()
+	if err != sql.ErrNoRows {
+		response := core.Response{Code: core.Deny, Message: "项目名称已存在"}
 		response.JSON(w)
 		return
 	}
@@ -162,6 +177,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		GroupID:           reqData.GroupID,
 		Name:              reqData.Name,
 		URL:               reqData.URL,
+		GitName:           gitName,
 		Path:              reqData.Path,
 		Environment:       reqData.Environment,
 		Branch:            reqData.Branch,
@@ -226,14 +242,21 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		Path              string `json:"path"`
 		Environment       string `json:"Environment"`
 		Branch            string `json:"branch"`
-		AfterPullScript   string `json:"afterPullscript"`
-		AfterDeployScript string `json:"afterDeployscript"`
+		AfterPullScript   string `json:"afterPullScript"`
+		AfterDeployScript string `json:"afterDeployScript"`
 		RsyncOption       string `json:"rsyncOption"`
-		NotifyType        uint8   `json:"notifyType"`
-		NotifyTarget      string  `json:"notifyTarget"`
+		NotifyType        uint8  `json:"notifyType"`
+		NotifyTarget      string `json:"notifyTarget"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
+	if err != nil {
+		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
+	gitName, err := utils.GetGitName(reqData.URL)
 	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
@@ -246,6 +269,22 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
+	projectData, err := model.Project{Name: reqData.Name}.GetDataByName()
+	if err != nil {
+		if err != sql.ErrNoRows {
+			response := core.Response{Code: core.Deny, Message: err.Error()}
+			response.JSON(w)
+			return
+		}
+	} else {
+		if projectData.ID != reqData.ID {
+			response := core.Response{Code: core.Deny, Message: "项目名称已存在"}
+			response.JSON(w)
+			return
+		}
+	}
+
+
 	err = model.Project{
 		ID:                reqData.ID,
 		GroupID:           reqData.GroupID,
@@ -254,6 +293,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		Path:              reqData.Path,
 		Environment:       reqData.Environment,
 		Branch:            reqData.Branch,
+		GitName:           gitName,
 		AfterPullScript:   reqData.AfterPullScript,
 		AfterDeployScript: reqData.AfterDeployScript,
 		RsyncOption:       reqData.RsyncOption,

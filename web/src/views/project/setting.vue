@@ -39,10 +39,10 @@
         @current-change="handlePageChange"
       />
     </el-row>
-    <el-dialog title="项目设置" :visible.sync="dialogVisible" width="60%">
-      <el-form ref="form" :rules="formRules" :model="formData" label-width="120px">
-        <el-row>
-          <el-col :span="8">
+    <el-dialog title="项目设置" :visible.sync="dialogVisible" width="60%" class="project-setting-dialog">
+      <el-form ref="form" :rules="formRules" :model="formData" label-width="90px">
+        <el-tabs v-model="formProps.tab" @tab-click="handleTabClick">
+          <el-tab-pane label="基本配置" name="base">
             <el-form-item label="项目名称" prop="name">
               <el-input v-model="formData.name" autocomplete="off" />
             </el-form-item>
@@ -96,27 +96,30 @@
                 />
               </el-select>
             </el-form-item>
+          </el-tab-pane>
+          <el-tab-pane label="拉取后运行脚本" name="afterPullScrpit">
+            <el-form-item prop="afterPullScrpit" label-width="0px">
+              <codemirror ref="afterPullScrpit" v-model="formData.afterPullScript" :options="cmOptions" placeholder="已切换至项目目录..." />
+            </el-form-item>
+          </el-tab-pane>
+          <el-tab-pane label="部署后运行脚本" name="afterDeployScrpit">
+            <el-form-item prop="afterDeployScrpit" label-width="0px">
+              <codemirror ref="afterDeployScrpit" v-model="formData.afterDeployScript" :options="cmOptions" placeholder="已切换至项目目录..." />
+            </el-form-item>
+          </el-tab-pane>
+          <el-tab-pane label="高级配置" name="advance">
             <el-form-item label="构建通知" prop="notifyTarget">
               <el-row type="flex">
                 <el-select v-model="formData.notifyType" clearable>
+                  <el-option label="无" :value="0" />
                   <el-option label="企业微信" :value="1" />
                   <el-option label="钉钉" :value="2" />
                 </el-select>
                 <el-input v-model="formData.notifyTarget" autocomplete="off" placeholder="webhook链接" />
               </el-row>
             </el-form-item>
-          </el-col>
-          <el-col :span="16">
-            <el-form-item prop="afterPullScrpit">
-              <span slot="label">拉取后运行脚本<br>(已切换至项目)</span>
-              <codemirror v-model="formData.afterPullScript" :options="cmOptions" />
-            </el-form-item>
-            <el-form-item prop="afterDeployScrpit">
-              <span slot="label">部署后运行脚本<br>(已切换至项目)</span>
-              <codemirror v-model="formData.afterDeployScript" :options="cmOptions" />
-            </el-form-item>
-          </el-col>
-        </el-row>
+          </el-tab-pane>
+        </el-tabs>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
@@ -216,7 +219,7 @@
 import { getCanBindProjectUser } from '@/api/user'
 import { getOption as getServerOption } from '@/api/server'
 import { getOption as getGroupOption } from '@/api/group'
-import { getList, getBindServerList, getBindUserList, add, edit, create, remove, addServer, addUser, removeProjectServer, removeProjectUser } from '@/api/project'
+import { getList, getBindServerList, getBindUserList, add, edit, remove, addServer, addUser, removeProjectServer, removeProjectUser } from '@/api/project'
 import { parseTime } from '@/utils'
 // require component
 import { codemirror } from 'vue-codemirror'
@@ -226,15 +229,16 @@ import 'codemirror/theme/darcula.css'
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/addon/scroll/simplescrollbars.js'
 import 'codemirror/addon/scroll/simplescrollbars.css'
+import 'codemirror/addon/display/placeholder.js'
 export default {
   components: {
     codemirror
   },
   data() {
     const validateNotifyTarget = (rule, value, callback) => {
-      if (value !== '' && this.formData.notifyType !== '') {
+      if (value !== 0 && this.formData.notifyType !== '') {
         callback()
-      } else if (value === '' && this.formData.notifyType === '') {
+      } else if (value === 0 && this.formData.notifyType === '') {
         callback()
       } else {
         callback(new Error('请选择推送类型'))
@@ -268,7 +272,8 @@ export default {
       formProps: {
         disabled: false,
         showServers: true,
-        showUsers: true
+        showUsers: true,
+        tab: 'base'
       },
       tempFormData: {},
       formData: {
@@ -284,7 +289,7 @@ export default {
         rsyncOption: '-rtv --exclude .git --delete-after',
         serverIds: [],
         userIds: [],
-        notifyType: '',
+        notifyType: 0,
         notifyTarget: ''
       },
       formRules: {
@@ -355,9 +360,6 @@ export default {
 
     handleEdit(data) {
       this.formData = Object.assign({}, data)
-      if (this.formData.notifyType === 0) {
-        this.formData.notifyType = ''
-      }
       this.formData.serverIds = []
       this.formData.userIds = []
       this.formProps.showServers = this.formProps.showUsers = false
@@ -384,6 +386,16 @@ export default {
           message: '已取消删除'
         })
       })
+    },
+
+    handleTabClick(vueEvent) {
+      const name = vueEvent.name
+      // 需要刷新 不然无法出现光标
+      if (name === 'afterPullScrpit') {
+        this.$refs.afterPullScrpit.refresh()
+      } else if (name === 'afterDeployScrpit') {
+        this.$refs.afterDeployScrpit.refresh()
+      }
     },
 
     handleServer(data) {
@@ -418,9 +430,6 @@ export default {
     submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
-          if (this.formData.notifyType === '') {
-            this.formData.notifyType = 0
-          }
           if (this.formData.id === 0) {
             this.add()
           } else {
@@ -459,16 +468,6 @@ export default {
         this.getProjectList()
       }).finally(() => {
         this.formProps.disabled = false
-      })
-    },
-
-    create(projectId) {
-      create(projectId).then((response) => {
-        this.$message({
-          message: response.message,
-          type: 'success',
-          duration: 5 * 1000
-        })
       })
     },
 
@@ -625,10 +624,23 @@ export default {
   }
 }
 </script>
+<style lang="scss" scoped>
+
+.project-setting-dialog {
+  >>> .el-dialog__body {
+    padding-top: 10px;
+  }
+}
+
+</style>
+
 <style>
 .CodeMirror {
   border-radius: 4px;
   border: 1px solid #DCDFE6;
-  height: 200px;
+  height: 400px;
+}
+.CodeMirror-placeholder {
+  color: #888 !important;
 }
 </style>

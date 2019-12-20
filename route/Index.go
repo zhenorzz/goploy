@@ -52,6 +52,7 @@ func Init() *router.Router {
 	rt.Add("/deploy/getPreview", router.GET, controller.Deploy{}.GetPreview)
 	rt.Add("/deploy/publish", router.POST, controller.Deploy{}.Publish, middleware.HasPublishAuth)
 	rt.Add("/deploy/rollback", router.POST, controller.Deploy{}.Rollback, middleware.HasPublishAuth)
+	rt.Add("/deploy/webhook", router.POST, controller.Deploy{}.Webhook)
 
 	// server route
 	rt.Add("/server/getList", router.GET, controller.Server{}.GetList)

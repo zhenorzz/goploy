@@ -100,6 +100,7 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	whiteList := map[string]struct{}{
 		"/user/login":        {},
 		"/user/isShowPhrase": {},
+		"/deploy/webhook": {},
 	}
 	var userInfo model.User
 	if _, ok := whiteList[r.URL.Path]; !ok {
