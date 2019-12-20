@@ -734,8 +734,9 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 			session.Stdout = &sshOutbuf
 			session.Stderr = &sshErrbuf
 			sshOutbuf.Reset()
-			afterDeployScript := "echo '" + project.AfterDeployScript + "' > /tmp/after-deploy.sh;bash /tmp/after-deploy.sh"
-			if scriptError = session.Run(afterDeployScript); scriptError != nil {
+			afterDeployScript :=  "cd " + project.Path + "\n" + project.AfterDeployScript
+			afterDeployCommand := "echo '" + afterDeployScript + "' > /tmp/after-deploy.sh;bash /tmp/after-deploy.sh"
+			if scriptError = session.Run(afterDeployCommand); scriptError != nil {
 				core.Log(core.ERROR, scriptError.Error())
 			} else {
 				publishTraceModel.Detail = sshOutbuf.String()
