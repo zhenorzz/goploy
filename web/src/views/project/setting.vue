@@ -115,7 +115,7 @@
             </el-radio-group>
             <el-row v-show="formData.autoDeploy===1" style="margin: 10px">
               前往GitLab、GitHub或Gitee的webhook（可前往谷歌查找各自webhook所在的位置）<br>
-              填入连接http(s)://your.domin/deploy/webhook <br>
+              填入连接<span style="color: red">http(s)://域名(IP)/deploy/webhook</span><br>
               勾选push event即可
             </el-row>
           </el-tab-pane>

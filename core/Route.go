@@ -199,7 +199,7 @@ func (r *route) hasRole(userRole string) error {
 			return nil
 		}
 	}
-	return errors.New("无权限进行此操作")
+	return errors.New("no permission")
 }
 
 func hasContentType(r *http.Request, mimetype string) bool {

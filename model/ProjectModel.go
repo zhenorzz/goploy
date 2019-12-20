@@ -38,6 +38,11 @@ const (
 	ProjectFail      = 3
 )
 
+const (
+	ProjectManualDeploy = 0
+	ProjectWebhookDeploy = 1
+)
+
 // Projects many project
 type Projects []Project
 
@@ -347,6 +352,49 @@ func (p Project) GetAll() (Projects, error) {
 	return projects, nil
 }
 
+// GetAll Group row
+func (p Project) GetAllByDeployWebhook() (Projects, error) {
+	rows, err := sq.
+		Select("id, group_id, name, git_name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, create_time, update_time").
+		From(projectTable).
+		Where(sq.Eq{"git_name": p.GitName}).
+		Where(sq.Eq{"branch": p.Branch}).
+		Where(sq.Eq{"auto_deploy": ProjectWebhookDeploy}).
+		Where(sq.Eq{"state": Enable}).
+		OrderBy("id DESC").
+		RunWith(DB).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	var projects Projects
+	for rows.Next() {
+		var project Project
+		if err := rows.Scan(
+			&project.ID,
+			&project.GroupID,
+			&project.Name,
+			&project.GitName,
+			&project.URL,
+			&project.Path,
+			&project.Environment,
+			&project.Branch,
+			&project.AfterPullScript,
+			&project.AfterDeployScript,
+			&project.RsyncOption,
+			&project.AutoDeploy,
+			&project.DeployState,
+			&project.NotifyType,
+			&project.NotifyTarget,
+			&project.CreateTime,
+			&project.UpdateTime); err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+	return projects, nil
+}
+
 // GetData add project information to p *Project
 func (p Project) GetData() (Project, error) {
 	var project Project
@@ -387,39 +435,6 @@ func (p Project) GetDataByName() (Project, error) {
 		Select("id, group_id, name, git_name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"name": p.Name}).
-		RunWith(DB).
-		QueryRow().
-		Scan(
-			&project.ID,
-			&project.GroupID,
-			&project.Name,
-			&project.GitName,
-			&project.URL,
-			&project.Path,
-			&project.Environment,
-			&project.Branch,
-			&project.AfterPullScript,
-			&project.AfterDeployScript,
-			&project.RsyncOption,
-			&project.AutoDeploy,
-			&project.DeployState,
-			&project.NotifyType,
-			&project.NotifyTarget,
-			&project.CreateTime,
-			&project.UpdateTime)
-	if err != nil {
-		return project, err
-	}
-	return project, nil
-}
-
-// GetData add project information to p *Project
-func (p Project) GetDataByGitName() (Project, error) {
-	var project Project
-	err := sq.
-		Select("id, group_id, name, git_name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, create_time, update_time").
-		From(projectTable).
-		Where(sq.Eq{"git_name": p.GitName}).
 		RunWith(DB).
 		QueryRow().
 		Scan(

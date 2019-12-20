@@ -21,7 +21,27 @@ func HasPublishAuth(w http.ResponseWriter, gp *core.Goploy) error {
 
 	_, err := model.Project{ID: reqData.ProjectID}.GetUserProjectData(gp.UserInfo.ID, gp.UserInfo.Role, gp.UserInfo.ManageGroupStr)
 	if err != nil {
-		return errors.New("无权限进行此操作")
+		return errors.New("no permission")
 	}
 	return nil
+}
+
+// HasPublishAuth check the user has publish auth
+func FilterEvent(w http.ResponseWriter, gp *core.Goploy) error {
+	XGitHubEvent := gp.Request.Header.Get("X-GitHub-Event")
+	if len(XGitHubEvent) != 0 && XGitHubEvent == "push" {
+		return nil
+	}
+
+	XGitLabEvent := gp.Request.Header.Get("X-Gitlab-Event")
+	if len(XGitLabEvent) != 0 && XGitLabEvent == "Push Hook" {
+		return nil
+	}
+
+	XGiteeEvent := gp.Request.Header.Get("X-Gitee-Event")
+	if len(XGiteeEvent) != 0 && XGiteeEvent == "Push Hook" {
+		return nil
+	}
+
+	return errors.New("")
 }
