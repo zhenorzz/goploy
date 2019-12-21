@@ -193,67 +193,63 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	return
 }
 
-// Publish the project
+//Webhook
 func (deploy Deploy) Webhook(w http.ResponseWriter, gp *core.Goploy) {
 	projectName := gp.URLQuery.Get("project_name")
-	println(projectName)
-	//core.Log(core.TRACE,  string(gp.Body))
-	XGitHubEvent := gp.Request.Header.Get("X-GitHub-Event")
-	branch := ""
-	if len(XGitHubEvent) != 0 {
-		type ReqData struct {
-			Ref        string     `json:"ref"`
-		}
-		var reqData ReqData
-		if err := json.Unmarshal(gp.Body, &reqData); err != nil {
-			core.Log(core.ERROR, "json unmarshal error, err:"+err.Error())
-			return
-		}
-		branch = strings.Split(reqData.Ref, "/")[2]
+	// other event is blocked in deployMiddleware
+	type ReqData struct {
+		Ref string `json:"ref"`
 	}
+	var reqData ReqData
+	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
+		core.Log(core.ERROR, "json unmarshal error, err:"+err.Error())
+		return
+	}
+	branch := strings.Split(reqData.Ref, "/")[2]
+
 	project, err := model.Project{
 		Name: projectName,
 	}.GetDataByName()
 	if err != nil {
-		response := core.Response{Code:core.Deny, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 
 	if project.State != model.Disable {
-		response := core.Response{Code:core.Deny, Message: "project is disabled"}
+		response := core.Response{Code: core.Deny, Message: "project is disabled"}
 		response.JSON(w)
 		return
 	}
 
 	if project.AutoDeploy != model.ProjectWebhookDeploy {
-		response := core.Response{Code:core.Deny, Message: "webhook auto deploy turn off, go to project setting turn on"}
+		response := core.Response{Code: core.Deny, Message: "webhook auto deploy turn off, go to project setting turn on"}
 		response.JSON(w)
 		return
 	}
 
 	if project.Branch != branch {
-		response := core.Response{Code:core.Deny, Message: "receive branch:" + branch + " push event, not equal to current branch"}
+		response := core.Response{Code: core.Deny, Message: "receive branch:" + branch + " push event, not equal to current branch"}
 		response.JSON(w)
 		return
 	}
 
 	if project.DeployState == model.ProjectDeploying {
-		response := core.Response{Code:core.Deny, Message: "project is deploying"}
+		response := core.Response{Code: core.Deny, Message: "project is deploying"}
 		response.JSON(w)
 		return
 	}
 
 	gp.UserInfo, err = model.User{ID: 1}.GetData()
 	if err != nil {
-		response := core.Response{Code:core.Deny, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
 
 	projectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
 	if err != nil {
-		response := core.Response{Code:core.Deny, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
@@ -264,7 +260,7 @@ func (deploy Deploy) Webhook(w http.ResponseWriter, gp *core.Goploy) {
 	project.UpdateTime = time.Now().Unix()
 	err = project.Publish()
 	if err != nil {
-		response := core.Response{Code:core.Deny, Message: err.Error()}
+		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}

@@ -28,20 +28,14 @@ func HasPublishAuth(w http.ResponseWriter, gp *core.Goploy) error {
 
 // HasPublishAuth check the user has publish auth
 func FilterEvent(w http.ResponseWriter, gp *core.Goploy) error {
-	XGitHubEvent := gp.Request.Header.Get("X-GitHub-Event")
-	if len(XGitHubEvent) != 0 && XGitHubEvent == "push" {
-		return nil
-	}
 
-	XGitLabEvent := gp.Request.Header.Get("X-Gitlab-Event")
-	if len(XGitLabEvent) != 0 && XGitLabEvent == "Push Hook" {
+	if XGitHubEvent := gp.Request.Header.Get("X-GitHub-Event"); len(XGitHubEvent) != 0 && XGitHubEvent == "push" {
 		return nil
-	}
-
-	XGiteeEvent := gp.Request.Header.Get("X-Gitee-Event")
-	if len(XGiteeEvent) != 0 && XGiteeEvent == "Push Hook" {
+	} else if XGitLabEvent := gp.Request.Header.Get("X-Gitlab-Event"); len(XGitLabEvent) != 0 && XGitLabEvent == "Push Hook" {
 		return nil
+	} else if XGiteeEvent := gp.Request.Header.Get("X-Gitee-Event");len(XGiteeEvent) != 0 && XGiteeEvent == "Push Hook" {
+		return nil
+	} else {
+		return errors.New("only receive push event")
 	}
-
-	return errors.New("")
 }
