@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -170,31 +169,4 @@ func ConnectSSH(user, password, host string, port int) (*ssh.Session, error) {
 	}
 
 	return session, nil
-}
-
-func GetGitName(url string) (string, error) {
-	if len(url) < 10 {
-		return "", errors.New("git url is too short")
-	}
-
-	dotGitPosStart := strings.Index(url, ".git")
-	if dotGitPosStart == -1 {
-		return "", errors.New("git url should end of .git")
-	}
-
-	url = url[:dotGitPosStart]
-	// 代表用得是 ssh key
-	if strings.Index(url, "git@") != -1 {
-		urlSplitByColon := strings.Split(url, ":")
-		if len(urlSplitByColon) != 2 {
-			return "", errors.New("git@ protocol format error")
-		}
-		return urlSplitByColon[1], nil
-	} else {
-		urlSplitBySlash := strings.Split(url, "/")
-
-
-		gitName := urlSplitBySlash[len(urlSplitBySlash)-2] + "/" + urlSplitBySlash[len(urlSplitBySlash)-1]
-		return gitName, nil
-	}
 }

@@ -186,7 +186,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Message: "部署中，请稍后"}
+	response := core.Response{Message: "deploying"}
 	response.JSON(w)
 
 	go execSync(gp.UserInfo, project, projectServers)
@@ -195,12 +195,82 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 
 // Publish the project
 func (deploy Deploy) Webhook(w http.ResponseWriter, gp *core.Goploy) {
+	projectName := gp.URLQuery.Get("project_name")
+	println(projectName)
 	//core.Log(core.TRACE,  string(gp.Body))
 	XGitHubEvent := gp.Request.Header.Get("X-GitHub-Event")
+	branch := ""
 	if len(XGitHubEvent) != 0 {
-		go githubWebhook(gp)
+		type ReqData struct {
+			Ref        string     `json:"ref"`
+		}
+		var reqData ReqData
+		if err := json.Unmarshal(gp.Body, &reqData); err != nil {
+			core.Log(core.ERROR, "json unmarshal error, err:"+err.Error())
+			return
+		}
+		branch = strings.Split(reqData.Ref, "/")[2]
 	}
-	response := core.Response{Message: "成功"}
+	project, err := model.Project{
+		Name: projectName,
+	}.GetDataByName()
+	if err != nil {
+		response := core.Response{Code:core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
+	if project.State != model.Disable {
+		response := core.Response{Code:core.Deny, Message: "project is disabled"}
+		response.JSON(w)
+		return
+	}
+
+	if project.AutoDeploy != model.ProjectWebhookDeploy {
+		response := core.Response{Code:core.Deny, Message: "webhook auto deploy turn off, go to project setting turn on"}
+		response.JSON(w)
+		return
+	}
+
+	if project.Branch != branch {
+		response := core.Response{Code:core.Deny, Message: "receive branch:" + branch + " push event, not equal to current branch"}
+		response.JSON(w)
+		return
+	}
+
+	if project.DeployState == model.ProjectDeploying {
+		response := core.Response{Code:core.Deny, Message: "project is deploying"}
+		response.JSON(w)
+		return
+	}
+
+	gp.UserInfo, err = model.User{ID: 1}.GetData()
+	if err != nil {
+		response := core.Response{Code:core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
+	projectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
+	if err != nil {
+		response := core.Response{Code:core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+	project.PublisherID = gp.UserInfo.ID
+	project.PublisherName = gp.UserInfo.Name
+	project.DeployState = model.ProjectDeploying
+	project.LastPublishToken = uuid.New().String()
+	project.UpdateTime = time.Now().Unix()
+	err = project.Publish()
+	if err != nil {
+		response := core.Response{Code:core.Deny, Message: err.Error()}
+		response.JSON(w)
+		return
+	}
+
+	go execSync(gp.UserInfo, project, projectServers)
+	response := core.Response{Message: "receive push signal"}
 	response.JSON(w)
 	return
 }
@@ -824,64 +894,5 @@ func notify(project model.Project, deployState int, detail string) {
 		if err != nil {
 			core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
 		}
-	}
-}
-
-func githubWebhook(gp *core.Goploy) {
-	type Repository struct {
-		FullName string `json:"full_name"`
-	}
-	type ReqData struct {
-		Ref        string     `json:"ref"`
-		Repository Repository `json:"repository"`
-	}
-
-	var reqData ReqData
-	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
-		core.Log(core.ERROR, "json unmarshal error, err:"+err.Error())
-		return
-	}
-	branch := strings.Split(reqData.Ref, "/")[2]
-	println(branch)
-
-	projects, err := model.Project{
-		GitName: reqData.Repository.FullName,
-		Branch:  branch,
-	}.GetAllByDeployWebhook()
-	if err != nil {
-		core.Log(core.ERROR, "project is no need to deploy, git name:"+reqData.Repository.FullName+",branch:"+branch)
-		return
-	}
-
-	gp.UserInfo, err = model.User{ID: 1}.GetData()
-	if err != nil {
-		core.Log(core.ERROR, "get admin info error, git name:"+reqData.Repository.FullName+",branch:"+branch)
-		return
-	}
-
-	for _, project := range projects {
-		if project.DeployState == model.ProjectDeploying {
-			core.Log(core.ERROR, "project is deploying, project name:"+project.Name)
-			continue
-		}
-
-		projectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
-
-		if err != nil {
-			core.Log(core.ERROR, "get bind server list error, err:"+err.Error())
-			continue
-		}
-		project.PublisherID = gp.UserInfo.ID
-		project.PublisherName = gp.UserInfo.Name
-		project.DeployState = model.ProjectDeploying
-		project.LastPublishToken = uuid.New().String()
-		project.UpdateTime = time.Now().Unix()
-		err = project.Publish()
-		if err != nil {
-			core.Log(core.ERROR, "project publish error, err:"+err.Error())
-			continue
-		}
-
-		go execSync(gp.UserInfo, project, projectServers)
 	}
 }

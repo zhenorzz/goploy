@@ -154,13 +154,6 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
-	gitName, err := utils.GetGitName(reqData.URL)
-	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
-	}
-	println(gitName)
 	if _, err := utils.ParseCommandLine(reqData.RsyncOption); err != nil {
 		response := core.Response{Code: core.Deny, Message: "Rsync Option错误，请输入正确的参数格式"}
 		response.JSON(w)
@@ -178,7 +171,6 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) {
 		GroupID:           reqData.GroupID,
 		Name:              reqData.Name,
 		URL:               reqData.URL,
-		GitName:           gitName,
 		Path:              reqData.Path,
 		Environment:       reqData.Environment,
 		Branch:            reqData.Branch,
@@ -259,13 +251,6 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		return
 	}
 
-	gitName, err := utils.GetGitName(reqData.URL)
-	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
-	}
-
 	if _, err := utils.ParseCommandLine(reqData.RsyncOption); err != nil {
 		response := core.Response{Code: core.Deny, Message: "Rsync Option错误，请输入正确的参数格式"}
 		response.JSON(w)
@@ -295,7 +280,6 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) {
 		Path:              reqData.Path,
 		Environment:       reqData.Environment,
 		Branch:            reqData.Branch,
-		GitName:           gitName,
 		AfterPullScript:   reqData.AfterPullScript,
 		AfterDeployScript: reqData.AfterDeployScript,
 		RsyncOption:       reqData.RsyncOption,
