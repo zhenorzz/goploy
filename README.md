@@ -13,9 +13,10 @@
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg">
   </a>
 </p>
+
 一个web部署系统工具!
 
-支持各种代码发布、回滚，可以通过web来一键完成!
+支持各种代码发布、回滚，可以通过web来一键完成！
 
 完整的安装指引，上手无难度！
 
