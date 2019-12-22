@@ -3,10 +3,10 @@
 </p>
 
 <p align="center">
-  <a href="standard-readme compliant">
+  <a href="#">
       <img src="https://img.shields.io/badge/readme%20style-standard-brightgreen.svg">
   </a>
-  <a href="STAR">
+  <a href="#">
       <img src="https://img.shields.io/badge/give%20me-a%20star-green.svg">
     </a>
   <a href="LICENSE">
