@@ -70,7 +70,11 @@
             <el-row v-if="item.type === 2">
               <el-row style="margin:5px 0">git同步信息</el-row>
               <el-row style="margin:5px 0">时间: {{ item.createTime }}</el-row>
-              <el-row>commit: {{ item.commit }}</el-row>
+              <!-- 用数组的形式 兼容以前版本 -->
+              <el-row>commit: {{ item['commit'] }}</el-row>
+              <el-row>message: {{ item['message'] }}</el-row>
+              <el-row>author: {{ item['author'] }}</el-row>
+              <el-row>date: {{ item['date'] }}</el-row>
               <el-row style="margin:5px 0">
                 <el-tag v-if="item.state === 0" type="danger" effect="plain">失败</el-tag>
                 <span v-html="formatDetail(item.detail)" />
@@ -348,16 +352,8 @@ export default {
     handleRollback(id) {
       getCommitList(id).then(response => {
         this.commitTableData = response.data.commitList.map(element => {
-          const commitInfo = element.split('`')
-          return {
-            projectId: id,
-            commit: commitInfo[0],
-            author: commitInfo[1],
-            date: commitInfo[2],
-            message: commitInfo[3]
-          }
+          return Object.assign(element, { projectId: id })
         })
-
         this.commitDialogVisible = true
       })
     },

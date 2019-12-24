@@ -107,7 +107,7 @@ func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
 func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) {
 
 	type RespData struct {
-		CommitList []string `json:"commitList"`
+		CommitList []Commit `json:"commitList"`
 	}
 
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
@@ -123,20 +123,14 @@ func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) {
 		response.JSON(w)
 		return
 	}
+	commitList, err := gitCommitLog(project, 10)
 
-	srcPath := core.RepositoryPath + project.Name
-
-	log := exec.Command("git", "log", "--pretty=format:%H`%an`%ar`%s", "-n", "10")
-	log.Dir = srcPath
-	var logOutbuf, logErrbuf bytes.Buffer
-	log.Stdout = &logOutbuf
-	log.Stderr = &logErrbuf
-	if err := log.Run(); err != nil {
+	if err != nil {
 		response := core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
 		return
 	}
-	response := core.Response{Data: RespData{CommitList: strings.Split(logOutbuf.String(), "\n")}}
+	response := core.Response{Data: RespData{CommitList: commitList}}
 	response.JSON(w)
 }
 
@@ -354,7 +348,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 		UpdateTime:    time.Now().Unix(),
 	}
 
-	gitPullMessage, gitCommitID, err := gitSync(project)
+	gitPullMessage, gitCommitInfo, err := gitSync(project)
 	if err != nil {
 		project.DeployFail()
 		publishTraceModel.Detail = err.Error()
@@ -376,9 +370,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 		go notify(project, model.ProjectFail, err.Error())
 		return
 	} else {
-		ext, _ := json.Marshal(struct {
-			Commit string `json:"commit"`
-		}{gitCommitID})
+		ext, _ := json.Marshal(gitCommitInfo)
 		publishTraceModel.Ext = string(ext)
 		publishTraceModel.Detail = gitPullMessage
 		publishTraceModel.State = model.Success
@@ -580,20 +572,21 @@ func execRollback(userInfo model.User, commit string, project model.Project, pro
 	go notify(project, state, message)
 	return
 }
-func gitSync(project model.Project) (string, string, error) {
+
+func gitSync(project model.Project) (string, Commit, error) {
 	if err := gitCreate(project); err != nil {
-		return "", "", err
+		return "", Commit{}, err
 	}
 	stdout, err := gitPull(project)
 	if err != nil {
-		return "", "", err
+		return "", Commit{}, err
 	}
 
-	commit, err := gitCommitID(project)
+	commit, err := gitCommitLog(project, 1)
 	if err != nil {
-		return "", "", err
+		return "", Commit{}, err
 	}
-	return stdout, commit, err
+	return stdout, commit[0], err
 }
 
 func gitCreate(project model.Project) error {
@@ -688,20 +681,38 @@ func gitRollback(commit string, project model.Project) (string, error) {
 	return resetOutbuf.String(), nil
 }
 
-func gitCommitID(project model.Project) (string, error) {
-	srcPath := core.RepositoryPath + project.Name
+type Commit struct {
+	Commit  string `json:"commit"`
+	Author  string `json:"author"`
+	Date    string `json:"date"`
+	Message string `json:"message"`
+}
 
-	git := exec.Command("git", "rev-parse", "HEAD")
+func gitCommitLog(project model.Project, number int) ([]Commit, error) {
+	srcPath := core.RepositoryPath + project.Name
+	git := exec.Command("git", "log", "--pretty=format:%H`%an`%ar`%s", "-n", strconv.Itoa(number))
 	git.Dir = srcPath
 	var gitOutbuf, gitErrbuf bytes.Buffer
 	git.Stdout = &gitOutbuf
 	git.Stderr = &gitErrbuf
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git rev-parse HEAD")
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git log --pretty=format:%H`%an`%ar`%s -n "+strconv.Itoa(number))
 	if err := git.Run(); err != nil {
 		core.Log(core.ERROR, gitErrbuf.String())
-		return "", errors.New(gitErrbuf.String())
+		return nil, errors.New(gitErrbuf.String())
 	}
-	return gitOutbuf.String(), nil
+	unformatCommitList := strings.Split(gitOutbuf.String(), "\n")
+	var commitList []Commit
+	for _, commitRow := range unformatCommitList {
+		commitRowSplit := strings.Split(commitRow, "`")
+		commitList = append(commitList, Commit{
+			Commit:  commitRowSplit[0],
+			Author:  commitRowSplit[1],
+			Date:    commitRowSplit[2],
+			Message: commitRowSplit[3],
+		})
+	}
+
+	return commitList, nil
 }
 
 func runAfterPullScript(project model.Project) (string, error) {
