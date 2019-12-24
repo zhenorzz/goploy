@@ -20,6 +20,12 @@
       </el-table-column>
       <el-table-column prop="environment" width="120" label="环境" />
       <el-table-column prop="branch" width="160" label="分支" />
+      <el-table-column width="80" label="自动部署">
+        <template slot-scope="scope">
+          <span v-if="scope.autoDeploy === 0">关闭</span>
+          <span v-else>Webhook</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="operation" label="操作" width="350">
         <template slot-scope="scope">
           <el-button type="primary" @click="handleEdit(scope.row)">编辑</el-button>
