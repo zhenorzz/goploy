@@ -74,7 +74,7 @@
               <el-row>commit: {{ item['commit'] }}</el-row>
               <el-row>message: {{ item['message'] }}</el-row>
               <el-row>author: {{ item['author'] }}</el-row>
-              <el-row>date: {{ item['date'] }}</el-row>
+              <el-row>datetime: {{ item['timestamp'] ? parseTime(item['timestamp']) : '' }}</el-row>
               <el-row style="margin:5px 0">
                 <el-tag v-if="item.state === 0" type="danger" effect="plain">失败</el-tag>
                 <span v-html="formatDetail(item.detail)" />
@@ -154,7 +154,11 @@
       >
         <el-table-column prop="commit" label="commit" width="290" />
         <el-table-column prop="author" label="author" />
-        <el-table-column prop="date" label="date" />
+        <el-table-column label="提交时间">
+          <template slot-scope="scope">
+            {{ parseTime(scope.row.timestamp) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="message" label="message" />
         <el-table-column prop="operation" label="操作" width="75">
           <template slot-scope="scope">
@@ -202,6 +206,7 @@ export default {
     })
   },
   methods: {
+    parseTime,
     connectWebSocket() {
       if (this.webSocket && this.webSocket.readyState < 2) {
         console.log('reusing the socket connection [state = ' + this.webSocket.readyState + ']: ' + this.webSocket.url)

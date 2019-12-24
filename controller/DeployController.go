@@ -682,20 +682,20 @@ func gitRollback(commit string, project model.Project) (string, error) {
 }
 
 type Commit struct {
-	Commit  string `json:"commit"`
-	Author  string `json:"author"`
-	Date    string `json:"date"`
-	Message string `json:"message"`
+	Commit    string `json:"commit"`
+	Author    string `json:"author"`
+	Timestamp int    `json:"timestamp"`
+	Message   string `json:"message"`
 }
 
 func gitCommitLog(project model.Project, number int) ([]Commit, error) {
 	srcPath := core.RepositoryPath + project.Name
-	git := exec.Command("git", "log", "--pretty=format:%H`%an`%ar`%s", "-n", strconv.Itoa(number))
+	git := exec.Command("git", "log", "--pretty=format:%H`%an`%at`%s", "-n", strconv.Itoa(number))
 	git.Dir = srcPath
 	var gitOutbuf, gitErrbuf bytes.Buffer
 	git.Stdout = &gitOutbuf
 	git.Stderr = &gitErrbuf
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git log --pretty=format:%H`%an`%ar`%s -n "+strconv.Itoa(number))
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git log --pretty=format:%H`%an`%at`%s -n "+strconv.Itoa(number))
 	if err := git.Run(); err != nil {
 		core.Log(core.ERROR, gitErrbuf.String())
 		return nil, errors.New(gitErrbuf.String())
@@ -704,11 +704,12 @@ func gitCommitLog(project model.Project, number int) ([]Commit, error) {
 	var commitList []Commit
 	for _, commitRow := range unformatCommitList {
 		commitRowSplit := strings.Split(commitRow, "`")
+		timestamp, _ := strconv.Atoi(commitRowSplit[2])
 		commitList = append(commitList, Commit{
-			Commit:  commitRowSplit[0],
-			Author:  commitRowSplit[1],
-			Date:    commitRowSplit[2],
-			Message: commitRowSplit[3],
+			Commit:    commitRowSplit[0],
+			Author:    commitRowSplit[1],
+			Timestamp: timestamp,
+			Message:   commitRowSplit[3],
 		})
 	}
 
