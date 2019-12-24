@@ -22,7 +22,7 @@
       <el-table-column prop="branch" width="160" label="分支" />
       <el-table-column width="80" label="自动部署">
         <template slot-scope="scope">
-          <span v-if="scope.autoDeploy === 0">关闭</span>
+          <span v-if="scope.row.autoDeploy === 0">关闭</span>
           <span v-else>Webhook</span>
         </template>
       </el-table-column>
