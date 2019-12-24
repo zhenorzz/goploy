@@ -332,7 +332,6 @@ export default {
 
     handleDetail(data) {
       this.dialogVisible = true
-      this.publishToken = data.lastPublishToken
       getPreview(data.id).then((response) => {
         const gitTraceList = response.data.gitTraceList || []
         this.gitTraceList = gitTraceList.map(element => {
@@ -340,8 +339,11 @@ export default {
           element.commit = element['commit'] ? element['commit'].substring(0, 6) : ''
           return element
         })
+        if (this.gitTraceList.length > 0) {
+          this.publishToken = this.gitTraceList[0].token
+          this.getDetail()
+        }
       })
-      this.getDetail()
     },
 
     handleDetailChange(lastPublishToken) {
