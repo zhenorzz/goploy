@@ -149,7 +149,7 @@ func (p Project) DeployFail() error {
 // GetList project row
 func (p Project) GetList(pagination Pagination) (Projects, Pagination, error) {
 	rows, err := sq.
-		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, notify_type, notify_target, create_time, update_time").
+		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, notify_type, notify_target, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"state": Enable}).
 		Limit(pagination.Rows).
@@ -176,6 +176,7 @@ func (p Project) GetList(pagination Pagination) (Projects, Pagination, error) {
 			&project.AfterPullScript,
 			&project.AfterDeployScript,
 			&project.RsyncOption,
+			&project.AutoDeploy,
 			&project.NotifyType,
 			&project.NotifyTarget,
 			&project.CreateTime,
@@ -201,7 +202,7 @@ func (p Project) GetList(pagination Pagination) (Projects, Pagination, error) {
 // GetListByManagerGroupStr project row
 func (p Project) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Projects, Pagination, error) {
 	builder := sq.
-		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, notify_type, notify_target, create_time, update_time").
+		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, notify_type, notify_target, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"group_id": groupIDs}).
 		Where(sq.Eq{"state": Enable}).
@@ -232,6 +233,7 @@ func (p Project) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Pr
 			&project.AfterPullScript,
 			&project.AfterDeployScript,
 			&project.RsyncOption,
+			&project.AutoDeploy,
 			&project.NotifyType,
 			&project.NotifyTarget,
 			&project.CreateTime,
