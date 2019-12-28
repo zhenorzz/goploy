@@ -12,7 +12,12 @@ import (
 func Init() *router.Router {
 	var rt = new(router.Router)
 	// rt.Middleware(example)
-
+	// no need to check login
+	rt.RegisterWhiteList(map[string]struct{}{
+		"/user/login":        {},
+		"/user/isShowPhrase": {},
+		"/deploy/webhook": {},
+	})
 	// home route
 	rt.Add("/index/get", router.GET, controller.Index{}.Get)
 

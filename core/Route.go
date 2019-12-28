@@ -41,13 +41,18 @@ type route struct {
 
 // Router is route slice and global middlewares
 type Router struct {
-	Routes      []route
+	whiteList   map[string]struct{}
+	routes      []route
 	middlewares []func(w http.ResponseWriter, gp *Goploy) error //中间件
 }
 
 // Start a router
 func (rt *Router) Start() {
 	http.Handle("/", rt)
+}
+
+func (rt *Router)RegisterWhiteList(whiteList map[string]struct{})  {
+	rt.whiteList = whiteList
 }
 
 // Add router
@@ -58,19 +63,19 @@ func (rt *Router) Add(pattern, method string, callback func(w http.ResponseWrite
 	for _, m := range middleware {
 		r.middlewares = append(r.middlewares, m)
 	}
-	rt.Routes = append(rt.Routes, r)
+	rt.routes = append(rt.routes, r)
 	return rt
 }
 
 // Roles Add many permission to the route
 func (rt *Router) Roles(role []string) *Router {
-	rt.Routes[len(rt.Routes)-1].roles = append(rt.Routes[len(rt.Routes)-1].roles, role...)
+	rt.routes[len(rt.routes)-1].roles = append(rt.routes[len(rt.routes)-1].roles, role...)
 	return rt
 }
 
 // Role Add permission to the route
 func (rt *Router) Role(role string) *Router {
-	rt.Routes[len(rt.Routes)-1].roles = append(rt.Routes[len(rt.Routes)-1].roles, role)
+	rt.routes[len(rt.routes)-1].roles = append(rt.routes[len(rt.routes)-1].roles, role)
 	return rt
 }
 
@@ -97,13 +102,8 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	whiteList := map[string]struct{}{
-		"/user/login":        {},
-		"/user/isShowPhrase": {},
-		"/deploy/webhook": {},
-	}
 	var userInfo model.User
-	if _, ok := whiteList[r.URL.Path]; !ok {
+	if _, ok := rt.whiteList[r.URL.Path]; !ok {
 		// check token
 		goployTokenCookie, err := r.Cookie(LoginCookieName)
 		if err != nil {
@@ -118,13 +118,13 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if err != nil || !token.Valid {
-			response := Response{Code: LoginExpired, Message: "登录已过期"}
+			response := Response{Code: LoginExpired, Message: "Login expired"}
 			response.JSON(w)
 			return
 		}
 		userInfo, err = GetUserInfo(int64(claims["id"].(float64)))
 		if err != nil || !token.Valid {
-			response := Response{Code: Deny, Message: "获取用户信息失败"}
+			response := Response{Code: Deny, Message: "Get user information error"}
 			response.JSON(w)
 			return
 		}
@@ -157,10 +157,10 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	for _, route := range rt.Routes {
+	for _, route := range rt.routes {
 		if route.pattern == r.URL.Path {
 			if route.method != r.Method {
-				response := Response{Code: Deny, Message: "Invaild request method"}
+				response := Response{Code: Deny, Message: "Invalid request method"}
 				response.JSON(w)
 				return
 			}
