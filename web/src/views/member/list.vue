@@ -205,29 +205,27 @@ export default {
     getGroupOption() {
       getGroupOption().then((response) => {
         this.groupOption = response.data.groupList || []
-        if (this.groupOption.length !== 0) {
-          getProjectOption().then(response => {
-            this.projectOption = this.groupOption.map(element => {
-              return {
-                value: element.id,
-                label: element.name,
-                children: []
-              }
-            })
-            this.projectOption.unshift({
-              value: 0,
-              label: '默认',
+        getProjectOption().then(response => {
+          this.projectOption = this.groupOption.map(element => {
+            return {
+              value: element.id,
+              label: element.name,
               children: []
-            })
-            response.data.projectList.forEach(element => {
-              const groupIndex = this.projectOption.findIndex(group => group.value === element.groupId)
-              this.projectOption[groupIndex].children.push({
-                value: element.id,
-                label: element.name
-              })
+            }
+          })
+          this.projectOption.unshift({
+            value: 0,
+            label: '默认',
+            children: []
+          })
+          response.data.projectList.forEach(element => {
+            const groupIndex = this.projectOption.findIndex(group => group.value === element.groupId)
+            this.projectOption[groupIndex].children.push({
+              value: element.id,
+              label: element.name
             })
           })
-        }
+        })
       })
     },
 
