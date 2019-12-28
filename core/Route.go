@@ -102,14 +102,19 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	response := rt.doRequest(w, r)
+	response.JSON(w)
+	return
+}
+
+func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) Response {
 	var userInfo model.User
 	if _, ok := rt.whiteList[r.URL.Path]; !ok {
 		// check token
 		goployTokenCookie, err := r.Cookie(LoginCookieName)
 		if err != nil {
-			response := Response{Code: IllegalRequest, Message: "Illegal request"}
-			response.JSON(w)
-			return
+			return Response{Code: IllegalRequest, Message: "Illegal request"}
 		}
 		unParseToken := goployTokenCookie.Value
 		claims := jwt.MapClaims{}
@@ -118,15 +123,11 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if err != nil || !token.Valid {
-			response := Response{Code: LoginExpired, Message: "Login expired"}
-			response.JSON(w)
-			return
+			return Response{Code: LoginExpired, Message: "Login expired"}
 		}
 		userInfo, err = GetUserInfo(int64(claims["id"].(float64)))
-		if err != nil || !token.Valid {
-			response := Response{Code: Deny, Message: "Get user information error"}
-			response.JSON(w)
-			return
+		if err != nil {
+			return Response{Code: Deny, Message: "Get user information error"}
 		}
 
 		goployTokenStr, err := model.User{ID: int64(claims["id"].(float64)), Name: claims["name"].(string)}.CreateToken()
@@ -152,42 +153,29 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, middleware := range rt.middlewares {
 		err := middleware(w, gp)
 		if err != nil {
-			response := Response{Code: Deny, Message: err.Error()}
-			response.JSON(w)
-			return
+			return Response{Code: Error, Message: err.Error()}
 		}
 	}
 	for _, route := range rt.routes {
 		if route.pattern == r.URL.Path {
 			if route.method != r.Method {
-				response := Response{Code: Deny, Message: "Invalid request method"}
-				response.JSON(w)
-				return
+				return Response{Code: Deny, Message: "Invalid request method"}
 			}
 			if err := route.hasRole(userInfo.Role); err != nil {
-				response := Response{Code: Deny, Message: err.Error()}
-				response.JSON(w)
-				return
+				return Response{Code: Deny, Message: err.Error()}
 			}
 			for _, middleware := range route.middlewares {
 
 				if err := middleware(w, gp); err != nil {
-					response := Response{Code: Deny, Message: err.Error()}
-					response.JSON(w)
-					return
+					return Response{Code: Error, Message: err.Error()}
 				}
 			}
 
-			response := route.callback(w, gp)
-			response.JSON(w)
-			return
+			return route.callback(w, gp)
 		}
 	}
 
-	response := Response{Code: Deny, Message: "No such method"}
-	response.JSON(w)
-	return
-
+	return Response{Code: Deny, Message: "No such method"}
 }
 
 func (r *route) hasRole(userRole string) error {
