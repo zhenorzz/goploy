@@ -26,20 +26,17 @@ import (
 type Deploy Controller
 
 // GetList deploy list
-func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
+func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) core.Response {
 	type RespData struct {
 		Project model.Projects `json:"projectList"`
 	}
 	groupIDStr := gp.URLQuery.Get("groupId")
 	groupID, err := strconv.ParseInt(groupIDStr, 10, 64)
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: "groupId参数错误"}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	projectName := gp.URLQuery.Get("projectName")
-
 	var projects model.Projects
 	projects, err = model.Project{
 		GroupID: groupID,
@@ -47,17 +44,13 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) {
 	}.GetUserProjectList(gp.UserInfo.ID, gp.UserInfo.Role, gp.UserInfo.ManageGroupStr)
 
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
-
-	response := core.Response{Data: RespData{Project: projects}}
-	response.JSON(w)
+	return core.Response{Data: RespData{Project: projects}}
 }
 
 // GetPreview deploy detail
-func (deploy Deploy) GetPreview(w http.ResponseWriter, gp *core.Goploy) {
+func (deploy Deploy) GetPreview(w http.ResponseWriter, gp *core.Goploy) core.Response {
 
 	type RespData struct {
 		GitTraceList model.PublishTraces `json:"gitTraceList"`
@@ -65,23 +58,18 @@ func (deploy Deploy) GetPreview(w http.ResponseWriter, gp *core.Goploy) {
 
 	projectID, err := strconv.ParseInt(gp.URLQuery.Get("projectId"), 10, 64)
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: "id参数错误"}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	gitTraceList, err := model.PublishTrace{ProjectID: projectID}.GetPreviewByProjectID()
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
-	response := core.Response{Data: RespData{GitTraceList: gitTraceList}}
-	response.JSON(w)
+	return core.Response{Data: RespData{GitTraceList: gitTraceList}}
 }
 
 // GetDetail deploy detail
-func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
+func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) core.Response {
 
 	type RespData struct {
 		PublishTraceList model.PublishTraces `json:"publishTraceList"`
@@ -91,20 +79,15 @@ func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) {
 
 	publishTraceList, err := model.PublishTrace{Token: lastPublishToken}.GetListByToken()
 	if err == sql.ErrNoRows {
-		response := core.Response{Code: core.Deny, Message: "项目尚无构建记录"}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: "No deploy record"}
 	} else if err != nil {
-		response := core.Response{Code: core.Deny, Message: "GitTrace.GetListByToken失败"}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
-	response := core.Response{Data: RespData{PublishTraceList: publishTraceList}}
-	response.JSON(w)
+	return core.Response{Data: RespData{PublishTraceList: publishTraceList}}
 }
 
 // GetCommitList get latest 10 commit list
-func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) {
+func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) core.Response {
 
 	type RespData struct {
 		CommitList []Commit `json:"commitList"`
@@ -112,38 +95,29 @@ func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) {
 
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: "id参数错误"}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	project, err := model.Project{ID: id}.GetData()
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 	commitList, err := gitCommitLog(project, 10)
 
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
-	response := core.Response{Data: RespData{CommitList: commitList}}
-	response.JSON(w)
+	return core.Response{Data: RespData{CommitList: commitList}}
 }
 
 // Publish the project
-func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
+func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ProjectID int64 `json:"projectId"`
 	}
 	var reqData ReqData
 	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	project, err := model.Project{
@@ -151,23 +125,17 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	}.GetData()
 
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	if project.DeployState == model.ProjectDeploying {
-		response := core.Response{Code: core.Deny, Message: "项目正在构建，请稍后再试"}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Deny, Message: "Project is being build by other"}
 	}
 
 	projectServers, err := model.ProjectServer{ProjectID: reqData.ProjectID}.GetBindServerListByProjectID()
 
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 	project.PublisherID = gp.UserInfo.ID
 	project.PublisherName = gp.UserInfo.Name
@@ -176,19 +144,14 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) {
 	project.UpdateTime = time.Now().Unix()
 	err = project.Publish()
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
-	response := core.Response{Message: "deploying"}
-	response.JSON(w)
-
 	go execSync(gp.UserInfo, project, projectServers)
-	return
+	return core.Response{Message: "deploying"}
 }
 
 //Webhook
-func (deploy Deploy) Webhook(w http.ResponseWriter, gp *core.Goploy) {
+func (deploy Deploy) Webhook(w http.ResponseWriter, gp *core.Goploy) core.Response {
 	projectName := gp.URLQuery.Get("project_name")
 	// other event is blocked in deployMiddleware
 	type ReqData struct {
@@ -197,7 +160,7 @@ func (deploy Deploy) Webhook(w http.ResponseWriter, gp *core.Goploy) {
 	var reqData ReqData
 	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
 		core.Log(core.ERROR, "json unmarshal error, err:"+err.Error())
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 	branch := strings.Split(reqData.Ref, "/")[2]
 
@@ -205,47 +168,33 @@ func (deploy Deploy) Webhook(w http.ResponseWriter, gp *core.Goploy) {
 		Name: projectName,
 	}.GetDataByName()
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	if project.State != model.Disable {
-		response := core.Response{Code: core.Deny, Message: "project is disabled"}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Deny, Message: "Project is disabled"}
 	}
 
 	if project.AutoDeploy != model.ProjectWebhookDeploy {
-		response := core.Response{Code: core.Deny, Message: "webhook auto deploy turn off, go to project setting turn on"}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Deny, Message: "Webhook auto deploy turn off, go to project setting turn on"}
 	}
 
 	if project.Branch != branch {
-		response := core.Response{Code: core.Deny, Message: "receive branch:" + branch + " push event, not equal to current branch"}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Deny, Message: "Receive branch:" + branch + " push event, not equal to current branch"}
 	}
 
 	if project.DeployState == model.ProjectDeploying {
-		response := core.Response{Code: core.Deny, Message: "project is deploying"}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Deny, Message: "Project is being build by other"}
 	}
 
 	gp.UserInfo, err = model.User{ID: 1}.GetData()
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	projectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 	project.PublisherID = gp.UserInfo.ID
 	project.PublisherName = gp.UserInfo.Name
@@ -254,28 +203,21 @@ func (deploy Deploy) Webhook(w http.ResponseWriter, gp *core.Goploy) {
 	project.UpdateTime = time.Now().Unix()
 	err = project.Publish()
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
-
 	go execSync(gp.UserInfo, project, projectServers)
-	response := core.Response{Message: "receive push signal"}
-	response.JSON(w)
-	return
+	return core.Response{Message: "receive push signal"}
 }
 
 // Rollback the project
-func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
+func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId"`
 		Commit    string `json:"commit"`
 	}
 	var reqData ReqData
 	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	project, err := model.Project{
@@ -283,23 +225,17 @@ func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
 	}.GetData()
 
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	if project.DeployState == model.ProjectDeploying {
-		response := core.Response{Code: core.Deny, Message: "项目正在构建，请稍后再试"}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Deny, Message: "Project is being build by other"}
 	}
 
 	projectServers, err := model.ProjectServer{ProjectID: reqData.ProjectID}.GetBindServerListByProjectID()
 
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 	project.PublisherID = gp.UserInfo.ID
 	project.PublisherName = gp.UserInfo.Name
@@ -308,14 +244,10 @@ func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) {
 	project.UpdateTime = time.Now().Unix()
 	err = project.Publish()
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
-		response.JSON(w)
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
-	response := core.Response{Message: "重新构建中，请稍后"}
-	response.JSON(w)
 	go execRollback(gp.UserInfo, reqData.Commit, project, projectServers)
-	return
+	return core.Response{Message: "Rollback start"}
 }
 
 type SyncMessage struct {

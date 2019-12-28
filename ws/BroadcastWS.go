@@ -72,7 +72,7 @@ func GetBroadcastHub() *BroadcastHub {
 }
 
 // Broadcast the publish information in websocket
-func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) {
+func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) core.Response {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
@@ -84,7 +84,7 @@ func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) {
 	c, err := upgrader.Upgrade(w, gp.Request, nil)
 	if err != nil {
 		core.Log(core.ERROR, err.Error())
-		return
+		return core.Response{Code: core.Error, Message: err.Error()}
 	}
 	c.SetReadLimit(maxMessageSize)
 	c.SetReadDeadline(time.Now().Add(pongWait))
@@ -109,7 +109,7 @@ func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) {
 	}(ticker)
 	// you must read message to trigger pong handler
 	for {
-		_, _, err := c.ReadMessage()
+		_, _, err = c.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				core.Log(core.ERROR, err.Error())
@@ -124,6 +124,8 @@ func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) {
 		ticker.Stop()
 		stop <- true
 	}()
+
+	return core.Response{Code: core.Error, Message: err.Error()}
 }
 
 // Run goroutine run the sync hub

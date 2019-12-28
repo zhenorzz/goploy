@@ -113,7 +113,7 @@ export default {
       }).then(() => {
         remove(data.id).then((response) => {
           this.$message({
-            message: response.message,
+            message: '删除成功',
             type: 'success',
             duration: 5 * 1000
           })
@@ -146,7 +146,7 @@ export default {
       add(this.formData).then((response) => {
         this.getList()
         this.$message({
-          message: response.message,
+          message: '添加成功',
           type: 'success',
           duration: 5 * 1000
         })
@@ -160,7 +160,7 @@ export default {
       edit(this.formData).then((response) => {
         this.getList()
         this.$message({
-          message: response.message,
+          message: '修改成功',
           type: 'success',
           duration: 5 * 1000
         })

@@ -130,7 +130,7 @@ export default {
           changePassword(this.pwdForm.old, this.pwdForm.new).then(response => {
             this.pwdForm.loading = false
             this.$message({
-              message: response.message,
+              message: '修改成功',
               type: 'success',
               duration: 5 * 1000
             })

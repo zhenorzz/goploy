@@ -16,11 +16,8 @@ func Init() *router.Router {
 	rt.RegisterWhiteList(map[string]struct{}{
 		"/user/login":        {},
 		"/user/isShowPhrase": {},
-		"/deploy/webhook": {},
+		"/deploy/webhook":    {},
 	})
-	// home route
-	rt.Add("/index/get", router.GET, controller.Index{}.Get)
-
 	// websocket route
 	rt.Add("/ws/unicast", router.GET, ws.GetUnicastHub().Unicast)
 	rt.Add("/ws/broadcast", router.GET, ws.GetBroadcastHub().Broadcast)
@@ -50,7 +47,7 @@ func Init() *router.Router {
 	rt.Add("/project/removeProjectServer", router.DELETE, controller.Project{}.RemoveProjectServer).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/project/removeProjectUser", router.DELETE, controller.Project{}.RemoveProjectUser).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 
-	// deploy route
+	//// deploy route
 	rt.Add("/deploy/getList", router.GET, controller.Deploy{}.GetList)
 	rt.Add("/deploy/getDetail", router.GET, controller.Deploy{}.GetDetail)
 	rt.Add("/deploy/getCommitList", router.GET, controller.Deploy{}.GetCommitList)

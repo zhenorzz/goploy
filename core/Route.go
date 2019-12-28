@@ -32,11 +32,11 @@ type Goploy struct {
 
 // 路由定义
 type route struct {
-	pattern     string                                          // 正则表达式
-	method      string                                          // Method specifies the HTTP method (GET, POST, PUT, etc.).
-	roles       []string                                        //允许的角色
-	callback    func(w http.ResponseWriter, gp *Goploy)         //Controller函数
-	middlewares []func(w http.ResponseWriter, gp *Goploy) error //中间件
+	pattern     string                                           // 正则表达式
+	method      string                                           // Method specifies the HTTP method (GET, POST, PUT, etc.).
+	roles       []string                                         //允许的角色
+	callback    func(w http.ResponseWriter, gp *Goploy) Response //Controller函数
+	middlewares []func(w http.ResponseWriter, gp *Goploy) error  //中间件
 }
 
 // Router is route slice and global middlewares
@@ -51,14 +51,14 @@ func (rt *Router) Start() {
 	http.Handle("/", rt)
 }
 
-func (rt *Router)RegisterWhiteList(whiteList map[string]struct{})  {
+func (rt *Router) RegisterWhiteList(whiteList map[string]struct{}) {
 	rt.whiteList = whiteList
 }
 
 // Add router
 // pattern path
 // callback  where path should be handle
-func (rt *Router) Add(pattern, method string, callback func(w http.ResponseWriter, gp *Goploy), middleware ...func(w http.ResponseWriter, gp *Goploy) error) *Router {
+func (rt *Router) Add(pattern, method string, callback func(w http.ResponseWriter, gp *Goploy) Response, middleware ...func(w http.ResponseWriter, gp *Goploy) error) *Router {
 	r := route{pattern: pattern, method: method, callback: callback}
 	for _, m := range middleware {
 		r.middlewares = append(r.middlewares, m)
@@ -178,7 +178,8 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			route.callback(w, gp)
+			response := route.callback(w, gp)
+			response.JSON(w)
 			return
 		}
 	}

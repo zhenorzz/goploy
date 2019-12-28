@@ -393,7 +393,7 @@ export default {
       }).then(() => {
         remove(data.id).then((response) => {
           this.$message({
-            message: response.message,
+            message: '删除成功',
             type: 'success',
             duration: 5 * 1000
           })
@@ -465,7 +465,7 @@ export default {
       add(this.formData).then((response) => {
         this.dialogVisible = false
         this.$message({
-          message: response.message,
+          message: '添加成功',
           type: 'success',
           duration: 5 * 1000
         })
@@ -480,7 +480,7 @@ export default {
       edit(this.formData).then((response) => {
         this.dialogVisible = false
         this.$message({
-          message: response.message,
+          message: '修改成功',
           type: 'success',
           duration: 5 * 1000
         })
@@ -497,7 +497,7 @@ export default {
           addServer(this.addServerFormData).then((response) => {
             this.dialogAddServerVisible = false
             this.$message({
-              message: response.message,
+              message: '添加成功',
               type: 'success',
               duration: 5 * 1000
             })
@@ -518,7 +518,7 @@ export default {
           addUser(this.addUserFormData).then((response) => {
             this.dialogAddUserVisible = false
             this.$message({
-              message: response.message,
+              message: '添加成功',
               type: 'success',
               duration: 5 * 1000
             })
@@ -540,7 +540,7 @@ export default {
       }).then(() => {
         removeProjectServer(data.id).then((response) => {
           this.$message({
-            message: response.message,
+            message: '删除成功',
             type: 'success',
             duration: 5 * 1000
           })
@@ -562,7 +562,7 @@ export default {
       }).then(() => {
         removeProjectUser(data.id).then((response) => {
           this.$message({
-            message: response.message,
+            message: '删除成功',
             type: 'success',
             duration: 5 * 1000
           })
