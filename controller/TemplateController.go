@@ -13,37 +13,37 @@ import (
 type Template Controller
 
 // GetList template list
-func (template Template) GetList(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (template Template) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Template   model.Templates  `json:"templateList"`
 		Pagination model.Pagination `json:"pagination"`
 	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	templateList, pagination, err := model.Template{}.GetList(pagination)
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return core.Response{Data: RespData{Template: templateList, Pagination: pagination}}
+	return &core.Response{Data: RespData{Template: templateList, Pagination: pagination}}
 }
 
 // GetOption template list
-func (template Template) GetOption(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (template Template) GetOption(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Template model.Templates `json:"templateList"`
 	}
 
 	templateList, err := model.Template{}.GetAll()
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return core.Response{Data: RespData{Template: templateList}}
+	return &core.Response{Data: RespData{Template: templateList}}
 }
 
 // Add one template
-func (template Template) Add(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (template Template) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name         string `json:"name" validate:"required"`
 		Remark       string `json:"remark"`
@@ -57,7 +57,7 @@ func (template Template) Add(w http.ResponseWriter, gp *core.Goploy) core.Respon
 	var reqData ReqData
 
 	if err := verify(gp.Body, &reqData); err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	id, err := model.Template{
@@ -70,13 +70,13 @@ func (template Template) Add(w http.ResponseWriter, gp *core.Goploy) core.Respon
 	}.AddRow()
 
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return core.Response{Data: RespData{ID: id}}
+	return &core.Response{Data: RespData{ID: id}}
 }
 
 // Edit one template
-func (template Template) Edit(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (template Template) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"gt=0"`
 		Name         string `json:"name" validate:"required"`
@@ -86,7 +86,7 @@ func (template Template) Edit(w http.ResponseWriter, gp *core.Goploy) core.Respo
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	err := model.Template{
 		ID:           reqData.ID,
@@ -99,20 +99,20 @@ func (template Template) Edit(w http.ResponseWriter, gp *core.Goploy) core.Respo
 	}.EditRow()
 
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return core.Response{}
+	return &core.Response{}
 }
 
 // Remove one Template
-func (template Template) Remove(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (template Template) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	err = model.Template{
 		ID:         reqData.ID,
@@ -120,7 +120,7 @@ func (template Template) Remove(w http.ResponseWriter, gp *core.Goploy) core.Res
 	}.Remove()
 
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return core.Response{Message: "删除成功"}
+	return &core.Response{Message: "删除成功"}
 }

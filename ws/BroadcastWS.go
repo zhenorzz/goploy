@@ -72,7 +72,7 @@ func GetBroadcastHub() *BroadcastHub {
 }
 
 // Broadcast the publish information in websocket
-func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
@@ -84,7 +84,7 @@ func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) core.
 	c, err := upgrader.Upgrade(w, gp.Request, nil)
 	if err != nil {
 		core.Log(core.ERROR, err.Error())
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	c.SetReadLimit(maxMessageSize)
 	c.SetReadDeadline(time.Now().Add(pongWait))
@@ -125,7 +125,7 @@ func (hub *BroadcastHub) Broadcast(w http.ResponseWriter, gp *core.Goploy) core.
 		stop <- true
 	}()
 
-	return core.Response{Code: core.Error, Message: err.Error()}
+	return nil
 }
 
 // Run goroutine run the sync hub

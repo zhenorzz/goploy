@@ -24,5 +24,7 @@ const (
 
 //JSON response
 func (r *Response) JSON(w http.ResponseWriter) {
-	json.NewEncoder(w).Encode(r)
+	if err := json.NewEncoder(w).Encode(r); err != nil {
+		Log(ERROR, err.Error())
+	}
 }

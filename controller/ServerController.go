@@ -23,14 +23,14 @@ import (
 type Server Controller
 
 // GetList server list
-func (server Server) GetList(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (server Server) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Server     model.Servers    `json:"serverList"`
 		Pagination model.Pagination `json:"pagination"`
 	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	var serverList model.Servers
@@ -41,60 +41,60 @@ func (server Server) GetList(w http.ResponseWriter, gp *core.Goploy) core.Respon
 	}
 
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return core.Response{Data: RespData{Server: serverList, Pagination: pagination}}
+	return &core.Response{Data: RespData{Server: serverList, Pagination: pagination}}
 }
 
 // GetInstallPreview server install token list
-func (server Server) GetInstallPreview(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (server Server) GetInstallPreview(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		InstallTraceList model.InstallTraces `json:"installTraceList"`
 	}
 	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	installTraceList, err := model.InstallTrace{ServerID: serverID}.GetListGroupByToken()
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return core.Response{Data: RespData{InstallTraceList: installTraceList}}
+	return &core.Response{Data: RespData{InstallTraceList: installTraceList}}
 }
 
 // GetInstallList server install list by token
-func (server Server) GetInstallList(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (server Server) GetInstallList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		InstallTraceList model.InstallTraces `json:"installTraceList"`
 	}
 	token := gp.URLQuery.Get("token")
 	if err := core.Validate.Var(token, "uuid4"); err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
-			return core.Response{Code: core.Error, Message: "Token" + err.Translate(core.Trans)}
+			return &core.Response{Code: core.Error, Message: "Token" + err.Translate(core.Trans)}
 		}
 	}
 	installTraceList, err := model.InstallTrace{Token: token}.GetListByToken()
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return core.Response{Data: RespData{InstallTraceList: installTraceList}}
+	return &core.Response{Data: RespData{InstallTraceList: installTraceList}}
 }
 
 // GetOption server list
-func (server Server) GetOption(w http.ResponseWriter, _ *core.Goploy) core.Response {
+func (server Server) GetOption(w http.ResponseWriter, _ *core.Goploy) *core.Response {
 	type RespData struct {
 		Server model.Servers `json:"serverList"`
 	}
 
 	serverList, err := model.Server{}.GetAll()
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return core.Response{Data: RespData{Server: serverList}}
+	return &core.Response{Data: RespData{Server: serverList}}
 }
 
 // Add one server
-func (server Server) Check(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (server Server) Check(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		IP    string `json:"ip" validate:"ip4_addr"`
 		Port  int    `json:"port" validate:"min=0,max=65535"`
@@ -105,17 +105,17 @@ func (server Server) Check(w http.ResponseWriter, gp *core.Goploy) core.Response
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	_, err := utils.ConnectSSH(reqData.Owner, "", reqData.IP, reqData.Port)
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return core.Response{Message: "Connected"}
+	return &core.Response{Message: "Connected"}
 }
 
 // Add one server
-func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name    string `json:"name" validate:"required"`
 		IP      string `json:"ip" validate:"ip4_addr"`
@@ -128,7 +128,7 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) core.Response {
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	id, err := model.Server{
@@ -142,14 +142,14 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) core.Response {
 	}.AddRow()
 
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 
 	}
-	return core.Response{Data: RespData{ID: id}}
+	return &core.Response{Data: RespData{ID: id}}
 }
 
 // Edit one server
-func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID      int64  `json:"id" validate:"gt=0"`
 		Name    string `json:"name" validate:"required"`
@@ -160,7 +160,7 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) core.Response 
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	err := model.Server{
 		ID:         reqData.ID,
@@ -173,21 +173,21 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) core.Response 
 	}.EditRow()
 
 	if err != nil {
-		response := core.Response{Code: core.Deny, Message: err.Error()}
+		response := &core.Response{Code: core.Deny, Message: err.Error()}
 		response.JSON(w)
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return core.Response{}
+	return &core.Response{}
 }
 
 // Remove one Server
-func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	err := model.Server{
 		ID:         reqData.ID,
@@ -195,27 +195,27 @@ func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) core.Respons
 	}.Remove()
 
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return core.Response{}
+	return &core.Response{}
 }
 
 // Install Server Environment
-func (server Server) Install(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (server Server) Install(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ServerID   int64 `json:"serverId" validate:"gt=0"`
 		TemplateID int64 `json:"templateId" validate:"gt=0"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	serverInfo, err := model.Server{
 		ID: reqData.ServerID,
 	}.GetData()
 
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	templateInfo, err := model.Template{
@@ -223,7 +223,7 @@ func (server Server) Install(w http.ResponseWriter, gp *core.Goploy) core.Respon
 	}.GetData()
 
 	if err != nil {
-		return core.Response{Code: core.Error, Message: err.Error()}
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	serverInfo.LastInstallToken = uuid.New().String()
 	serverInfo.UpdateTime = time.Now().Unix()
@@ -231,7 +231,7 @@ func (server Server) Install(w http.ResponseWriter, gp *core.Goploy) core.Respon
 
 	go remoteInstall(gp.UserInfo, serverInfo, templateInfo)
 
-	return core.Response{Message: "Installing"}
+	return &core.Response{Message: "Installing"}
 }
 
 func remoteInstall(userInfo model.User, server model.Server, template model.Template) {

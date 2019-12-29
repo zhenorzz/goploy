@@ -32,11 +32,11 @@ type Goploy struct {
 
 // 路由定义
 type route struct {
-	pattern     string                                           // 正则表达式
-	method      string                                           // Method specifies the HTTP method (GET, POST, PUT, etc.).
-	roles       []string                                         //允许的角色
-	callback    func(w http.ResponseWriter, gp *Goploy) Response //Controller函数
-	middlewares []func(w http.ResponseWriter, gp *Goploy) error  //中间件
+	pattern     string                                            // 正则表达式
+	method      string                                            // Method specifies the HTTP method (GET, POST, PUT, etc.).
+	roles       []string                                          //允许的角色
+	callback    func(w http.ResponseWriter, gp *Goploy) *Response //Controller函数
+	middlewares []func(w http.ResponseWriter, gp *Goploy) error   //中间件
 }
 
 // Router is route slice and global middlewares
@@ -58,7 +58,7 @@ func (rt *Router) RegisterWhiteList(whiteList map[string]struct{}) {
 // Add router
 // pattern path
 // callback  where path should be handle
-func (rt *Router) Add(pattern, method string, callback func(w http.ResponseWriter, gp *Goploy) Response, middleware ...func(w http.ResponseWriter, gp *Goploy) error) *Router {
+func (rt *Router) Add(pattern, method string, callback func(w http.ResponseWriter, gp *Goploy) *Response, middleware ...func(w http.ResponseWriter, gp *Goploy) error) *Router {
 	r := route{pattern: pattern, method: method, callback: callback}
 	for _, m := range middleware {
 		r.middlewares = append(r.middlewares, m)
@@ -103,18 +103,26 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	response := rt.doRequest(w, r)
-	response.JSON(w)
+	gp, response := rt.checkLogin(w, r)
+	if response != nil {
+		response.JSON(w)
+		return
+	}
+
+	response = rt.doRequest(w, gp)
+	if response != nil {
+		response.JSON(w)
+	}
 	return
 }
 
-func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) Response {
+func (rt *Router) checkLogin(w http.ResponseWriter, r *http.Request) (*Goploy, *Response) {
 	var userInfo model.User
 	if _, ok := rt.whiteList[r.URL.Path]; !ok {
 		// check token
 		goployTokenCookie, err := r.Cookie(LoginCookieName)
 		if err != nil {
-			return Response{Code: IllegalRequest, Message: "Illegal request"}
+			return nil, &Response{Code: IllegalRequest, Message: "Illegal request"}
 		}
 		unParseToken := goployTokenCookie.Value
 		claims := jwt.MapClaims{}
@@ -123,11 +131,11 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) Response {
 		})
 
 		if err != nil || !token.Valid {
-			return Response{Code: LoginExpired, Message: "Login expired"}
+			return nil, &Response{Code: LoginExpired, Message: "Login expired"}
 		}
 		userInfo, err = GetUserInfo(int64(claims["id"].(float64)))
 		if err != nil {
-			return Response{Code: Deny, Message: "Get user information error"}
+			return nil, &Response{Code: Deny, Message: "Get user information error"}
 		}
 
 		goployTokenStr, err := model.User{ID: int64(claims["id"].(float64)), Name: claims["name"].(string)}.CreateToken()
@@ -150,24 +158,29 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) Response {
 		URLQuery: r.URL.Query(),
 		Body:     body,
 	}
+	return gp, nil
+}
+
+func (rt *Router) doRequest(w http.ResponseWriter, gp *Goploy) *Response {
+
 	for _, middleware := range rt.middlewares {
 		err := middleware(w, gp)
 		if err != nil {
-			return Response{Code: Error, Message: err.Error()}
+			return &Response{Code: Error, Message: err.Error()}
 		}
 	}
 	for _, route := range rt.routes {
-		if route.pattern == r.URL.Path {
-			if route.method != r.Method {
-				return Response{Code: Deny, Message: "Invalid request method"}
+		if route.pattern == gp.Request.URL.Path {
+			if route.method != gp.Request.Method {
+				return &Response{Code: Deny, Message: "Invalid request method"}
 			}
-			if err := route.hasRole(userInfo.Role); err != nil {
-				return Response{Code: Deny, Message: err.Error()}
+			if err := route.hasRole(gp.UserInfo.Role); err != nil {
+				return &Response{Code: Deny, Message: err.Error()}
 			}
 			for _, middleware := range route.middlewares {
 
 				if err := middleware(w, gp); err != nil {
-					return Response{Code: Error, Message: err.Error()}
+					return &Response{Code: Error, Message: err.Error()}
 				}
 			}
 
@@ -175,7 +188,7 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) Response {
 		}
 	}
 
-	return Response{Code: Deny, Message: "No such method"}
+	return &Response{Code: Deny, Message: "No such method"}
 }
 
 func (r *route) hasRole(userRole string) error {

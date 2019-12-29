@@ -54,7 +54,7 @@ func GetUnicastHub() *UnicastHub {
 }
 
 // Unicast the publish information in websocket
-func (hub *UnicastHub) Unicast(w http.ResponseWriter, gp *core.Goploy) core.Response {
+func (hub *UnicastHub) Unicast(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
@@ -65,14 +65,14 @@ func (hub *UnicastHub) Unicast(w http.ResponseWriter, gp *core.Goploy) core.Resp
 	}
 	c, err := upgrader.Upgrade(w, gp.Request, nil)
 	if err != nil {
-		return core.Response{Code: core.Deny, Message: err.Error()}
+		return &core.Response{Code: core.Deny, Message: err.Error()}
 	}
 	hub.Register <- &UnicastClient{
 		Conn:     c,
 		UserID:   gp.UserInfo.ID,
 		UserName: gp.UserInfo.Name,
 	}
-	return core.Response{Message: "unicast connected"}
+	return nil
 }
 
 // Run goroutine run the sync hub
