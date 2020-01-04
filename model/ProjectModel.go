@@ -147,11 +147,12 @@ func (p Project) DeployFail() error {
 }
 
 // GetList project row
-func (p Project) GetList(pagination Pagination) (Projects, Pagination, error) {
+func (p Project) GetListByName(pagination Pagination) (Projects, Pagination, error) {
 	rows, err := sq.
 		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, notify_type, notify_target, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"state": Enable}).
+		Where(sq.Like{"name": "%" + p.Name + "%"}).
 		Limit(pagination.Rows).
 		Offset((pagination.Page - 1) * pagination.Rows).
 		OrderBy("id DESC").
@@ -189,6 +190,7 @@ func (p Project) GetList(pagination Pagination) (Projects, Pagination, error) {
 	err = sq.
 		Select("COUNT(*) AS count").
 		From(projectTable).
+		Where(sq.Like{"name": "%" + p.Name + "%"}).
 		Where(sq.Eq{"state": Enable}).
 		RunWith(DB).
 		QueryRow().
@@ -200,11 +202,12 @@ func (p Project) GetList(pagination Pagination) (Projects, Pagination, error) {
 }
 
 // GetListByManagerGroupStr project row
-func (p Project) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Projects, Pagination, error) {
+func (p Project) GetListByNameInGroupIDs(groupIDs []string, pagination Pagination) (Projects, Pagination, error) {
 	builder := sq.
 		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, notify_type, notify_target, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"group_id": groupIDs}).
+		Where(sq.Like{"name": "%" + p.Name + "%"}).
 		Where(sq.Eq{"state": Enable}).
 		Limit(pagination.Rows).
 		Offset((pagination.Page - 1) * pagination.Rows).
@@ -212,6 +215,7 @@ func (p Project) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Pr
 	pageBuilder := sq.
 		Select("COUNT(*) AS count").
 		Where(sq.Eq{"group_id": groupIDs}).
+		Where(sq.Like{"name": "%" + p.Name + "%"}).
 		Where(sq.Eq{"state": Enable}).
 		From(projectTable)
 	rows, err := builder.RunWith(DB).Query()

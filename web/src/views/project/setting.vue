@@ -1,6 +1,10 @@
 <template>
   <el-row class="app-container">
-    <el-row class="app-bar" type="flex" justify="end">
+    <el-row class="app-bar" type="flex" justify="space-between">
+      <el-row>
+        <el-input v-model="projectName" style="width:200px" placeholder="请输入项目名称" />
+        <el-button type="primary" icon="el-icon-search" @click="searchProjectList">搜索</el-button>
+      </el-row>
       <el-button type="primary" icon="el-icon-plus" @click="handleAdd">添加</el-button>
     </el-row>
     <el-table
@@ -271,6 +275,7 @@ export default {
         scrollbarStyle: 'overlay',
         theme: 'darcula'
       },
+      projectName: '',
       dialogVisible: false,
       dialogServerVisible: false,
       dialogUserVisible: false,
@@ -590,8 +595,8 @@ export default {
     },
 
     getProjectList() {
-      getList(this.pagination).then((response) => {
-        const projectList = response.data.projectList
+      getList(this.pagination, this.projectName).then((response) => {
+        const projectList = response.data.projectList || []
         projectList.forEach((element) => {
           element.createTime = parseTime(element.createTime)
           element.updateTime = parseTime(element.updateTime)
@@ -622,6 +627,10 @@ export default {
       })
     },
 
+    searchProjectList() {
+      this.pagination.page = 1
+      this.getProjectList()
+    },
     // 分页事件
     handlePageChange(val) {
       this.pagination.page = val

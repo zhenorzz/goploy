@@ -29,12 +29,12 @@ func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Res
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-
+	projectName := gp.URLQuery.Get("projectName")
 	var projectList model.Projects
 	if gp.UserInfo.Role == core.RoleAdmin || gp.UserInfo.Role == core.RoleManager {
-		projectList, pagination, err = model.Project{}.GetList(pagination)
+		projectList, pagination, err = model.Project{Name:projectName}.GetListByName(pagination)
 	} else {
-		projectList, pagination, err = model.Project{}.GetListInGroupIDs(strings.Split(gp.UserInfo.ManageGroupStr, ","), pagination)
+		projectList, pagination, err = model.Project{Name:projectName}.GetListByNameInGroupIDs(strings.Split(gp.UserInfo.ManageGroupStr, ","), pagination)
 	}
 
 	if err != nil {
