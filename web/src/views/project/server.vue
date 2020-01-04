@@ -64,6 +64,14 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item label="描述" prop="description">
+          <el-input
+            v-model="formData.description"
+            type="textarea"
+            :autosize="{ minRows: 2}"
+            placeholder="请输入描述"
+          />
+        </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-row type="flex" justify="space-between">
@@ -170,7 +178,8 @@ export default {
         ip: '',
         port: 22,
         owner: '',
-        groupId: ''
+        groupId: '',
+        description: ''
       },
       formRules: {
         name: [
@@ -187,6 +196,9 @@ export default {
         ],
         groupId: [
           { required: true, message: '请选择分组', trigger: 'blur' }
+        ],
+        description: [
+          { max: 255, message: '描述最多255个字符', trigger: 'blur' }
         ]
       },
       templateFormProps: {

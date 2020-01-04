@@ -6,15 +6,16 @@ const projectServerTable = "`project_server`"
 
 // ProjectServer project server relationship
 type ProjectServer struct {
-	ID          int64  `json:"id"`
-	ProjectID   int64  `json:"projectId"`
-	ServerID    int64  `json:"serverId"`
-	ServerName  string `json:"serverName"`
-	ServerIP    string `json:"serverIP"`
-	ServerPort  int64  `json:"serverPort"`
-	ServerOwner string `json:"serverOwner"`
-	CreateTime  int64  `json:"createTime"`
-	UpdateTime  int64  `json:"updateTime"`
+	ID                int64  `json:"id"`
+	ProjectID         int64  `json:"projectId"`
+	ServerID          int64  `json:"serverId"`
+	ServerName        string `json:"serverName"`
+	ServerIP          string `json:"serverIP"`
+	ServerPort        int64  `json:"serverPort"`
+	ServerOwner       string `json:"serverOwner"`
+	ServerDescription string `json:"serverDescription"`
+	CreateTime        int64  `json:"createTime"`
+	UpdateTime        int64  `json:"updateTime"`
 }
 
 // ProjectServers project server relationship
@@ -23,7 +24,7 @@ type ProjectServers []ProjectServer
 // GetBindServerListByProjectID server row
 func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 	rows, err := sq.
-		Select("project_server.id, project_id, server_id, server.name, server.ip, server.port, server.owner, project_server.create_time, project_server.update_time").
+		Select("project_server.id, project_id, server_id, server.name, server.ip, server.port, server.owner, server.description, project_server.create_time, project_server.update_time").
 		From(projectServerTable).
 		LeftJoin(serverTable + " ON project_server.server_id = server.id").
 		Where(sq.Eq{"project_id": ps.ProjectID}).
@@ -45,6 +46,7 @@ func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 			&projectServer.ServerIP,
 			&projectServer.ServerPort,
 			&projectServer.ServerOwner,
+			&projectServer.ServerDescription,
 			&projectServer.CreateTime,
 			&projectServer.UpdateTime); err != nil {
 			return projectServers, err

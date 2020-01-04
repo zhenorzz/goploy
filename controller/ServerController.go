@@ -117,11 +117,12 @@ func (server Server) Check(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 // Add one server
 func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		Name    string `json:"name" validate:"required"`
-		IP      string `json:"ip" validate:"ip4_addr"`
-		Port    int    `json:"port" validate:"min=0,max=65535"`
-		Owner   string `json:"owner" validate:"required"`
-		GroupID int64  `json:"groupId" validate:"min=0"`
+		Name        string `json:"name" validate:"required"`
+		IP          string `json:"ip" validate:"ip4_addr"`
+		Port        int    `json:"port" validate:"min=0,max=65535"`
+		Owner       string `json:"owner" validate:"required"`
+		GroupID     int64  `json:"groupId" validate:"min=0"`
+		Description string `json:"description" validate:"max=255"`
 	}
 	type RespData struct {
 		ID int64 `json:"id"`
@@ -132,13 +133,14 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response 
 	}
 
 	id, err := model.Server{
-		Name:       reqData.Name,
-		IP:         reqData.IP,
-		Port:       reqData.Port,
-		Owner:      reqData.Owner,
-		GroupID:    reqData.GroupID,
-		CreateTime: time.Now().Unix(),
-		UpdateTime: time.Now().Unix(),
+		Name:        reqData.Name,
+		IP:          reqData.IP,
+		Port:        reqData.Port,
+		Owner:       reqData.Owner,
+		GroupID:     reqData.GroupID,
+		Description: reqData.Description,
+		CreateTime:  time.Now().Unix(),
+		UpdateTime:  time.Now().Unix(),
 	}.AddRow()
 
 	if err != nil {
@@ -151,25 +153,27 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response 
 // Edit one server
 func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		ID      int64  `json:"id" validate:"gt=0"`
-		Name    string `json:"name" validate:"required"`
-		IP      string `json:"ip" validate:"ip4_addr"`
-		Port    int    `json:"port" validate:"min=0,max=65535"`
-		Owner   string `json:"owner" validate:"required"`
-		GroupID int64  `json:"groupId" validate:"min=0"`
+		ID          int64  `json:"id" validate:"gt=0"`
+		Name        string `json:"name" validate:"required"`
+		IP          string `json:"ip" validate:"ip4_addr"`
+		Port        int    `json:"port" validate:"min=0,max=65535"`
+		Owner       string `json:"owner" validate:"required"`
+		GroupID     int64  `json:"groupId" validate:"min=0"`
+		Description string `json:"description" validate:"max=255"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	err := model.Server{
-		ID:         reqData.ID,
-		Name:       reqData.Name,
-		IP:         reqData.IP,
-		Port:       reqData.Port,
-		Owner:      reqData.Owner,
-		GroupID:    reqData.GroupID,
-		UpdateTime: time.Now().Unix(),
+		ID:          reqData.ID,
+		Name:        reqData.Name,
+		IP:          reqData.IP,
+		Port:        reqData.Port,
+		Owner:       reqData.Owner,
+		GroupID:     reqData.GroupID,
+		Description: reqData.Description,
+		UpdateTime:  time.Now().Unix(),
 	}.EditRow()
 
 	if err != nil {

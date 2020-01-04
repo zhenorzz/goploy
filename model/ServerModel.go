@@ -16,6 +16,7 @@ type Server struct {
 	Port             int    `json:"port"`
 	Owner            string `json:"owner"`
 	GroupID          int64  `json:"groupId"`
+	Description      string `json:"description"`
 	CreateTime       int64  `json:"createTime"`
 	UpdateTime       int64  `json:"updateTime"`
 }
@@ -26,7 +27,7 @@ type Servers []Server
 // GetList server row
 func (s Server) GetList(pagination Pagination) (Servers, Pagination, error) {
 	rows, err := sq.
-		Select("id, name, ip, port, owner, group_id, create_time, update_time").
+		Select("id, name, ip, port, owner, group_id, description, create_time, update_time").
 		From(serverTable).
 		Where(sq.Eq{"state": Enable}).
 		Limit(pagination.Rows).
@@ -41,7 +42,7 @@ func (s Server) GetList(pagination Pagination) (Servers, Pagination, error) {
 	for rows.Next() {
 		var server Server
 
-		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime); err != nil {
+		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.Description, &server.CreateTime, &server.UpdateTime); err != nil {
 			return nil, pagination, err
 		}
 		servers = append(servers, server)
@@ -62,7 +63,7 @@ func (s Server) GetList(pagination Pagination) (Servers, Pagination, error) {
 // GetListByManagerGroupStr server row
 func (s Server) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Servers, Pagination, error) {
 	builder := sq.
-		Select("id, name, ip, port, owner, group_id, create_time, update_time").
+		Select("id, name, ip, port, owner, group_id, description, create_time, update_time").
 		From(serverTable).
 		Where(sq.Eq{"state": Enable}).
 		Where(sq.Eq{"group_id": groupIDs}).
@@ -82,7 +83,7 @@ func (s Server) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Ser
 	for rows.Next() {
 		var server Server
 
-		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime); err != nil {
+		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.GroupID, &server.Description, &server.CreateTime, &server.UpdateTime); err != nil {
 			return nil, pagination, err
 		}
 		servers = append(servers, server)
@@ -101,7 +102,7 @@ func (s Server) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Ser
 // GetAll server row
 func (s Server) GetAll() (Servers, error) {
 	rows, err := sq.
-		Select("id, name, ip, owner, group_id, create_time, update_time").
+		Select("id, name, ip, owner, group_id, description, create_time, update_time").
 		From(serverTable).
 		Where(sq.Eq{"state": Enable}).
 		OrderBy("id DESC").
@@ -113,8 +114,7 @@ func (s Server) GetAll() (Servers, error) {
 	var servers Servers
 	for rows.Next() {
 		var server Server
-
-		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Owner, &server.GroupID, &server.CreateTime, &server.UpdateTime); err != nil {
+		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Owner, &server.GroupID, &server.Description, &server.CreateTime, &server.UpdateTime); err != nil {
 			return nil, err
 		}
 		servers = append(servers, server)
@@ -143,8 +143,8 @@ func (s Server) GetData() (Server, error) {
 func (s Server) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(serverTable).
-		Columns("name", "ip", "port", "owner", "group_id", "create_time", "update_time").
-		Values(s.Name, s.IP, s.Port, s.Owner, s.GroupID, s.CreateTime, s.UpdateTime).
+		Columns("name", "ip", "port", "owner", "group_id", "description", "create_time", "update_time").
+		Values(s.Name, s.IP, s.Port, s.Owner, s.GroupID, s.Description, s.CreateTime, s.UpdateTime).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -164,6 +164,7 @@ func (s Server) EditRow() error {
 			"port":        s.Port,
 			"owner":       s.Owner,
 			"group_id":    s.GroupID,
+			"description": s.Description,
 			"update_time": s.UpdateTime,
 		}).
 		Where(sq.Eq{"id": s.ID}).

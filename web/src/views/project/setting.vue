@@ -91,7 +91,7 @@
                 <el-option
                   v-for="(item, index) in serverOption"
                   :key="index"
-                  :label="item.name"
+                  :label="item.label"
                   :value="item.id"
                 />
               </el-select>
@@ -159,8 +159,9 @@
         :data="tableServerData"
         style="width: 100%"
       >
-        <el-table-column prop="serverId" label="服务器ID" />
+        <el-table-column prop="serverId" label="服务器ID" width="100" />
         <el-table-column prop="serverName" label="服务器名称" />
+        <el-table-column prop="serverDescription" label="服务器描述" show-overflow-tooltip />
         <el-table-column prop="createTime" width="160" label="绑定时间" />
         <el-table-column prop="updateTime" width="160" label="更新时间" />
         <el-table-column prop="operation" label="操作" width="75">
@@ -205,7 +206,7 @@
             <el-option
               v-for="(item, index) in serverOption"
               :key="index"
-              :label="item.name"
+              :label="item.label"
               :value="item.id"
             />
           </el-select>
@@ -585,6 +586,10 @@ export default {
       this.getProjectList()
       getServerOption().then((response) => {
         this.serverOption = response.data.serverList || []
+        this.serverOption.map(element => {
+          element.label = element.name + (element.description.length > 0 ? '(' + element.description + ')' : '')
+          return element
+        })
       })
       getCanBindProjectUser().then((response) => {
         this.userOption = response.data.userList || []
