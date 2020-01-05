@@ -330,13 +330,17 @@ export default {
       this.$refs.form.validate((valid) => {
         if (valid) {
           this.formProps.loading = true
+          this.formProps.disabled = true
           check(this.formData).then(response => {
             this.$message({
               message: '连接成功',
               type: 'success',
               duration: 5 * 1000
             })
-          }).finally(_ => { this.formProps.loading = false })
+          }).finally(_ => {
+            this.formProps.loading = false
+            this.formProps.disabled = false
+          })
         } else {
           return false
         }
