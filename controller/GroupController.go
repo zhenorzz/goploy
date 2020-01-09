@@ -44,7 +44,7 @@ func (group Group) GetOption(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 	}
 	var (
 		groupList model.Groups
-		err error
+		err       error
 	)
 	if gp.UserInfo.Role == core.RoleAdmin || gp.UserInfo.Role == core.RoleManager {
 		groupList, err = model.Group{}.GetAll()
@@ -65,7 +65,7 @@ func (group Group) GetDeployOption(w http.ResponseWriter, gp *core.Goploy) *core
 	}
 	var (
 		groupList model.Groups
-		err error
+		err       error
 	)
 	if gp.UserInfo.Role == core.RoleAdmin || gp.UserInfo.Role == core.RoleManager {
 		groupList, err = model.Group{}.GetAll()
@@ -76,7 +76,7 @@ func (group Group) GetDeployOption(w http.ResponseWriter, gp *core.Goploy) *core
 		if err != nil {
 			return &core.Response{Code: core.Error, Message: err.Error()}
 		}
-		groupIDs :=  strings.Split(gp.UserInfo.ManageGroupStr, ",")
+		groupIDs := strings.Split(gp.UserInfo.ManageGroupStr, ",")
 		for _, project := range projects {
 			groupIDs = append(groupIDs, strconv.FormatInt(project.GroupID, 10))
 		}
@@ -93,14 +93,17 @@ func (group Group) GetDeployOption(w http.ResponseWriter, gp *core.Goploy) *core
 // Add one Group
 func (group Group) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		Name string `json:"name"`
+		Name string `json:"name" validate:"required"`
+	}
+	type RespData struct {
+		ID int64 `json:"id"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	_, err = model.Group{
+	id, err := model.Group{
 		Name:       reqData.Name,
 		CreateTime: time.Now().Unix(),
 		UpdateTime: time.Now().Unix(),
@@ -109,14 +112,14 @@ func (group Group) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{}
+	return &core.Response{Data: RespData{ID: id}}
 }
 
 // Edit one Group
 func (group Group) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		ID   int64  `json:"id"`
-		Name string `json:"name"`
+		ID   int64  `json:"id" validate:"gt=0"`
+		Name string `json:"name" validate:"required"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -139,7 +142,7 @@ func (group Group) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 // Remove one Server
 func (group Group) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		ID int64 `json:"id"`
+		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)

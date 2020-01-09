@@ -26,6 +26,7 @@ func TestApi(t *testing.T) {
 	addUser(t)
 	addServer(t)
 	addTemplate(t)
+	addGroup(t)
 	// <logic code>
 	// user
 	t.Run("user/info", userInfo)
@@ -46,10 +47,21 @@ func TestApi(t *testing.T) {
 	t.Run("template/getOption", getTemplateOption)
 	t.Run("template/edit", editTemplate)
 
+	// package
+	t.Run("package/getList", getPackageList)
+	t.Run("package/getOption", getPackageOption)
+
+	// group
+	t.Run("group/getList", getGroupList)
+	t.Run("group/getOption", getGroupOption)
+	t.Run("group/getDeployOption", getDeployOption)
+	t.Run("group/edit", editGroup)
+
 	// <tear-down code>
 	removeUser(t)
 	removeServer(t)
 	removeTemplate(t)
+	removeGroup(t)
 }
 
 var handler = route.Init()
@@ -60,8 +72,10 @@ var (
 	userID int64
 	// set when server is added
 	serverID int64
-	// set when server is added
+	// set when template is added
 	templateID int64
+	// set when group is added
+	groupID int64
 )
 
 func request(t *testing.T, method, url string, body interface{}) core.Response {
