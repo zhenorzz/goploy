@@ -32,9 +32,9 @@ func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Res
 	projectName := gp.URLQuery.Get("projectName")
 	var projectList model.Projects
 	if gp.UserInfo.Role == core.RoleAdmin || gp.UserInfo.Role == core.RoleManager {
-		projectList, pagination, err = model.Project{Name:projectName}.GetListByName(pagination)
+		projectList, pagination, err = model.Project{Name: projectName}.GetListByName(pagination)
 	} else {
-		projectList, pagination, err = model.Project{Name:projectName}.GetListByNameInGroupIDs(strings.Split(gp.UserInfo.ManageGroupStr, ","), pagination)
+		projectList, pagination, err = model.Project{Name: projectName}.GetListByNameInGroupIDs(strings.Split(gp.UserInfo.ManageGroupStr, ","), pagination)
 	}
 
 	if err != nil {
@@ -113,6 +113,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 		Name              string  `json:"name"`
 		URL               string  `json:"url"`
 		Path              string  `json:"path"`
+		SymlinkPath       string  `json:"symlinkPath"`
 		Environment       string  `json:"Environment"`
 		Branch            string  `json:"branch"`
 		AfterPullScript   string  `json:"afterPullScript"`
@@ -144,6 +145,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 		Name:              reqData.Name,
 		URL:               reqData.URL,
 		Path:              reqData.Path,
+		SymlinkPath:       reqData.SymlinkPath,
 		Environment:       reqData.Environment,
 		Branch:            reqData.Branch,
 		AfterPullScript:   reqData.AfterPullScript,
@@ -199,6 +201,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 		Name              string `json:"name"`
 		URL               string `json:"url"`
 		Path              string `json:"path"`
+		SymlinkPath       string `json:"symlinkPath"`
 		Environment       string `json:"Environment"`
 		Branch            string `json:"branch"`
 		AfterPullScript   string `json:"afterPullScript"`
@@ -235,6 +238,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 		Name:              reqData.Name,
 		URL:               reqData.URL,
 		Path:              reqData.Path,
+		SymlinkPath:       reqData.SymlinkPath,
 		Environment:       reqData.Environment,
 		Branch:            reqData.Branch,
 		AfterPullScript:   reqData.AfterPullScript,

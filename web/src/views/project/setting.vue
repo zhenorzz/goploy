@@ -107,6 +107,26 @@
               </el-select>
             </el-form-item>
           </el-tab-pane>
+          <el-tab-pane label="软链部署(推荐)" name="symlink">
+            <el-row style="margin: 0 10px">
+              <p>项目先同步到指定目录(rsync 软链目录)，然后ln -s 部署路径 软链目录</p>
+              <p>可以避免项目在同步传输文件的过程中，外部访问到部分正在同步的文件</p>
+            </el-row>
+            <el-form-item label="" label-width="10px">
+              <el-radio-group v-model="formProps.symlink">
+                <el-radio :label="false">关闭</el-radio>
+                <el-radio :label="true">开启</el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item v-show="formProps.symlink" label="目录" prop="symlink_path" label-width="50px">
+              <el-input v-model="formData.symlinkPath" autocomplete="off" />
+            </el-form-item>
+            <el-row v-show="formProps.symlink" style="margin: 0 10px">
+              <p>如果部署路径已存在在目标服务器，请手动删除该目录<span style="color: red">rm -rf 部署路径</span></p>
+              <p>否则软链将会不成功</p>
+              <p>不得随意更换目录，如须手动更换，务必手动迁移原先的目录到目标服务器</p>
+            </el-row>
+          </el-tab-pane>
           <el-tab-pane label="拉取后运行脚本" name="afterPullScrpit">
             <el-form-item prop="afterPullScrpit" label-width="0px">
               <codemirror ref="afterPullScrpit" v-model="formData.afterPullScript" :options="cmOptions" placeholder="已切换至项目目录..." />
@@ -294,6 +314,7 @@ export default {
       tableServerData: [],
       tableUserData: [],
       formProps: {
+        symlink: false,
         disabled: false,
         showServers: true,
         showUsers: true,
@@ -306,6 +327,7 @@ export default {
         name: '',
         url: '',
         path: '',
+        symlinkPath: '',
         afterPullScript: '',
         afterDeployScript: '',
         environment: '生产环境',
@@ -380,6 +402,7 @@ export default {
     handleAdd() {
       this.restoreFormData()
       this.formProps.showServers = this.formProps.showUsers = true
+      this.formProps.symlink = false
       this.dialogVisible = true
     },
 
@@ -387,6 +410,7 @@ export default {
       this.formData = Object.assign({}, data)
       this.formData.serverIds = []
       this.formData.userIds = []
+      this.formProps.symlink = this.formData.symlinkPath !== ''
       this.formProps.showServers = this.formProps.showUsers = false
       this.dialogVisible = true
     },
@@ -455,6 +479,9 @@ export default {
     submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
+          if (this.formProps.symlink === false) {
+            this.formData.symlinkPath = ''
+          }
           if (this.formData.id === 0) {
             this.add()
           } else {
