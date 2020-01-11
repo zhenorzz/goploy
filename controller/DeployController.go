@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -668,9 +669,8 @@ func runAfterPullScript(project model.Project) (string, error) {
 }
 
 func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.Project, projectServer model.ProjectServer) {
-	srcPath := core.RepositoryPath + project.Name + "/"
 	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
-	destPath := remoteMachine + ":" + project.Path
+	destDir := project.Path
 	publishTraceModel := model.PublishTrace{
 		Token:         project.LastPublishToken,
 		ProjectID:     project.ID,
@@ -689,7 +689,14 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 	publishTraceModel.Ext = string(ext)
 
 	rsyncOption, _ := utils.ParseCommandLine(project.RsyncOption)
-	rsyncOption = append(rsyncOption, "-e", "ssh -p "+strconv.Itoa(int(projectServer.ServerPort))+" -o StrictHostKeyChecking=no", srcPath, destPath)
+	rsyncOption = append(rsyncOption, "-e", "ssh -p "+strconv.Itoa(int(projectServer.ServerPort))+" -o StrictHostKeyChecking=no")
+	if len(project.SymlinkPath) != 0 {
+		destDir = path.Join(project.SymlinkPath, project.Name, project.LastPublishToken)
+		rsyncOption = append(rsyncOption, "--rsync-path=mkdir -p "+destDir+" && rsync")
+	}
+	srcPath := core.RepositoryPath + project.Name + "/"
+	destPath := remoteMachine + ":" + destDir
+	rsyncOption = append(rsyncOption, srcPath, destPath)
 	cmd := exec.Command("rsync", rsyncOption...)
 	var outbuf, errbuf bytes.Buffer
 	cmd.Stdout = &outbuf
@@ -727,8 +734,20 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 		}
 		return
 	}
-	// 没有脚本就不运行
-	if project.AfterDeployScript == "" {
+
+
+	var afterDeployCommands []string
+	if len(project.SymlinkPath) != 0 {
+		afterDeployCommands = append(afterDeployCommands, "ln -sfn "+destDir+" "+project.Path)
+	}
+
+	if len(project.AfterDeployScript) != 0 {
+		afterDeployScript := "cd " + project.Path + "\n" + project.AfterDeployScript
+		afterDeployCommands = append(afterDeployCommands, "echo '"+afterDeployScript+"' > /tmp/after-deploy.sh", "bash /tmp/after-deploy.sh")
+	}
+
+	// no symlink and deploy script
+	if len(afterDeployCommands) == 0 {
 		chInput <- SyncMessage{
 			serverName: projectServer.ServerName,
 			ProjectID:  project.ID,
@@ -736,13 +755,15 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 		}
 		return
 	}
+
 	publishTraceModel.Type = model.AfterDeploy
 	ext, _ = json.Marshal(struct {
 		ServerID   int64  `json:"serverId"`
 		ServerName string `json:"serverName"`
 		Script     string `json:"script"`
-	}{projectServer.ServerID, projectServer.ServerName, project.AfterDeployScript})
+	}{projectServer.ServerID, projectServer.ServerName, strings.Join(afterDeployCommands, ";")})
 	publishTraceModel.Ext = string(ext)
+
 	// 执行ssh脚本
 	var session *ssh.Session
 	var connectError error
@@ -756,9 +777,7 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 			session.Stdout = &sshOutbuf
 			session.Stderr = &sshErrbuf
 			sshOutbuf.Reset()
-			afterDeployScript := "cd " + project.Path + "\n" + project.AfterDeployScript
-			afterDeployCommand := "echo '" + afterDeployScript + "' > /tmp/after-deploy.sh;bash /tmp/after-deploy.sh"
-			if scriptError = session.Run(afterDeployCommand); scriptError != nil {
+			if scriptError = session.Run(strings.Join(afterDeployCommands, ";")); scriptError != nil {
 				core.Log(core.ERROR, scriptError.Error())
 			} else {
 				publishTraceModel.Detail = sshOutbuf.String()

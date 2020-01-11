@@ -130,7 +130,7 @@
                 <el-row v-else>
                   <el-row style="margin:5px 0">部署后脚本</el-row>
                   <el-row style="margin:5px 0">时间: {{ trace.createTime }}</el-row>
-                  <el-row>脚本: <pre v-html="formatDetail(trace.script)" /></el-row>
+                  <el-row>脚本: {{ trace.script }}</el-row>
                   <el-row style="margin:5px 0">
                     <el-tag v-if="trace.state === 0" type="danger" effect="plain">失败</el-tag>
                     <el-row>[goploy ~]# <span v-html="formatDetail(trace.detail)" /></el-row>

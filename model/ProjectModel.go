@@ -364,7 +364,7 @@ func (p Project) GetAll() (Projects, error) {
 func (p Project) GetData() (Project, error) {
 	var project Project
 	err := sq.
-		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, create_time, update_time").
+		Select("id, group_id, name, url, path, symlink_path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, create_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -375,6 +375,7 @@ func (p Project) GetData() (Project, error) {
 			&project.Name,
 			&project.URL,
 			&project.Path,
+			&project.SymlinkPath,
 			&project.Environment,
 			&project.Branch,
 			&project.AfterPullScript,
