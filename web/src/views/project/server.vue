@@ -19,6 +19,7 @@
           {{ findGroupName(scope.row.groupId) }}
         </template>
       </el-table-column>
+      <el-table-column prop="description" label="描述" show-overflow-tooltip />
       <el-table-column prop="createTime" label="创建时间" width="160" />
       <el-table-column prop="updateTime" label="更新时间" width="160" />
       <el-table-column prop="operation" label="操作" width="220">
