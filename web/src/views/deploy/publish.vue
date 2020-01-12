@@ -71,12 +71,15 @@
               <el-row style="margin:5px 0">git同步信息</el-row>
               <el-row style="margin:5px 0">时间: {{ item.createTime }}</el-row>
               <!-- 用数组的形式 兼容以前版本 -->
-              <el-row>commit: {{ item['commit'] }}</el-row>
-              <el-row>message: {{ item['message'] }}</el-row>
-              <el-row>author: {{ item['author'] }}</el-row>
-              <el-row>datetime: {{ item['timestamp'] ? parseTime(item['timestamp']) : '' }}</el-row>
-              <el-row style="margin:5px 0">
-                <el-tag v-if="item.state === 0" type="danger" effect="plain">失败</el-tag>
+              <el-row v-if="item.state !== 0">
+                <el-row>commit: {{ item['commit'] }}</el-row>
+                <el-row>message: {{ item['message'] }}</el-row>
+                <el-row>author: {{ item['author'] }}</el-row>
+                <el-row>datetime: {{ item['timestamp'] ? parseTime(item['timestamp']) : '' }}</el-row>
+                <el-row><span v-html="formatDetail(item['diff'])" /></el-row>
+              </el-row>
+              <el-row v-else style="margin:5px 0">
+                <el-tag type="danger" effect="plain">失败</el-tag>
                 <span v-html="formatDetail(item.detail)" />
               </el-row>
             </el-row>
@@ -152,6 +155,11 @@
         highlight-current-row
         :data="commitTableData"
       >
+        <el-table-column type="expand">
+          <template slot-scope="props">
+            <span v-html="formatDetail(props.row.diff)" />
+          </template>
+        </el-table-column>
         <el-table-column prop="commit" label="commit" width="290" />
         <el-table-column prop="author" label="author" />
         <el-table-column label="提交时间">

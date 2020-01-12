@@ -281,7 +281,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 		UpdateTime:    time.Now().Unix(),
 	}
 
-	gitPullMessage, gitCommitInfo, err := gitSync(project)
+	gitCommitInfo, err := gitSync(project)
 	if err != nil {
 		project.DeployFail()
 		publishTraceModel.Detail = err.Error()
@@ -305,7 +305,6 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 	} else {
 		ext, _ := json.Marshal(gitCommitInfo)
 		publishTraceModel.Ext = string(ext)
-		publishTraceModel.Detail = gitPullMessage
 		publishTraceModel.State = model.Success
 		if _, err := publishTraceModel.AddRow(); err != nil {
 			core.Log(core.ERROR, err.Error())
@@ -506,20 +505,20 @@ func execRollback(userInfo model.User, commit string, project model.Project, pro
 	return
 }
 
-func gitSync(project model.Project) (string, Commit, error) {
+func gitSync(project model.Project) (Commit, error) {
 	if err := gitCreate(project); err != nil {
-		return "", Commit{}, err
+		return Commit{}, err
 	}
-	stdout, err := gitPull(project)
-	if err != nil {
-		return "", Commit{}, err
+
+	if err := gitPull(project); err != nil {
+		return Commit{}, err
 	}
 
 	commit, err := gitCommitLog(project, 1)
 	if err != nil {
-		return "", Commit{}, err
+		return Commit{}, err
 	}
-	return stdout, commit[0], err
+	return commit[0], err
 }
 
 func gitCreate(project model.Project) error {
@@ -555,7 +554,7 @@ func gitCreate(project model.Project) error {
 	return nil
 }
 
-func gitPull(project model.Project) (string, error) {
+func gitPull(project model.Project) error {
 	srcPath := core.RepositoryPath + project.Name
 
 	// git clean removes all untracked files
@@ -567,7 +566,7 @@ func gitPull(project model.Project) (string, error) {
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git clean -f")
 	if err := clean.Run(); err != nil {
 		core.Log(core.ERROR, cleanErrbuf.String())
-		return "", errors.New(cleanErrbuf.String())
+		return errors.New(cleanErrbuf.String())
 	}
 
 	// git checkout clears all unstaged changes.
@@ -579,7 +578,7 @@ func gitPull(project model.Project) (string, error) {
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git checkout -- .")
 	if err := checkout.Run(); err != nil {
 		core.Log(core.ERROR, checkoutErrbuf.String())
-		return "", errors.New(checkoutErrbuf.String())
+		return errors.New(checkoutErrbuf.String())
 	}
 
 	pull := exec.Command("git", "pull")
@@ -590,10 +589,10 @@ func gitPull(project model.Project) (string, error) {
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git pull")
 	if err := pull.Run(); err != nil {
 		core.Log(core.ERROR, pullErrbuf.String())
-		return "", errors.New(pullErrbuf.String())
+		return errors.New(pullErrbuf.String())
 	}
 	core.Log(core.TRACE, pullOutbuf.String())
-	return pullOutbuf.String(), nil
+	return nil
 }
 
 func gitRollback(commit string, project model.Project) (string, error) {
@@ -619,21 +618,24 @@ type Commit struct {
 	Author    string `json:"author"`
 	Timestamp int    `json:"timestamp"`
 	Message   string `json:"message"`
+	Diff      string `json:"diff"`
 }
 
 func gitCommitLog(project model.Project, number int) ([]Commit, error) {
 	srcPath := core.RepositoryPath + project.Name
-	git := exec.Command("git", "log", "--pretty=format:%H`%an`%at`%s", "-n", strconv.Itoa(number))
+	git := exec.Command("git", "log", "--stat", "--pretty=format:`start`%H`%an`%at`%s`", "-n", strconv.Itoa(number))
 	git.Dir = srcPath
 	var gitOutbuf, gitErrbuf bytes.Buffer
 	git.Stdout = &gitOutbuf
 	git.Stderr = &gitErrbuf
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git log --pretty=format:%H`%an`%at`%s -n "+strconv.Itoa(number))
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git log --stat --pretty=format:`start`%H`%an`%at`%s` -n "+strconv.Itoa(number))
 	if err := git.Run(); err != nil {
 		core.Log(core.ERROR, gitErrbuf.String())
 		return nil, errors.New(gitErrbuf.String())
 	}
-	unformatCommitList := strings.Split(gitOutbuf.String(), "\n")
+	core.Log(core.INFO, gitOutbuf.String())
+	unformatCommitList := strings.Split(gitOutbuf.String(), "`start`")
+	unformatCommitList = unformatCommitList[1:]
 	var commitList []Commit
 	for _, commitRow := range unformatCommitList {
 		commitRowSplit := strings.Split(commitRow, "`")
@@ -643,6 +645,7 @@ func gitCommitLog(project model.Project, number int) ([]Commit, error) {
 			Author:    commitRowSplit[1],
 			Timestamp: timestamp,
 			Message:   commitRowSplit[3],
+			Diff:      strings.Trim(commitRowSplit[4], "\n"),
 		})
 	}
 
@@ -734,7 +737,6 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 		}
 		return
 	}
-
 
 	var afterDeployCommands []string
 	if len(project.SymlinkPath) != 0 {
