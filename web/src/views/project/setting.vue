@@ -111,6 +111,7 @@
             <el-row style="margin: 0 10px">
               <p>项目先同步到指定目录(rsync 软链目录)，然后ln -s 部署路径 软链目录</p>
               <p>可以避免项目在同步传输文件的过程中，外部访问到部分正在同步的文件</p>
+              <p>备份最近10次的部署文件，以便快速回滚</p>
             </el-row>
             <el-form-item label="" label-width="10px">
               <el-radio-group v-model="formProps.symlink">

@@ -307,13 +307,12 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 		}
 		go notify(project, model.ProjectFail, err.Error())
 		return
-	} else {
-		ext, _ := json.Marshal(gitCommitInfo)
-		publishTraceModel.Ext = string(ext)
-		publishTraceModel.State = model.Success
-		if _, err := publishTraceModel.AddRow(); err != nil {
-			core.Log(core.ERROR, err.Error())
-		}
+	}
+	ext, _ := json.Marshal(gitCommitInfo)
+	publishTraceModel.Ext = string(ext)
+	publishTraceModel.State = model.Success
+	if _, err := publishTraceModel.AddRow(); err != nil {
+		core.Log(core.ERROR, err.Error())
 	}
 	if project.AfterPullScript != "" {
 		outputString, err := runAfterPullScript(project)
@@ -386,6 +385,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 		},
 	}
 	go notify(project, state, message)
+	clean(project, projectServers)
 	return
 }
 
@@ -683,7 +683,6 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 				break
 			}
 		}
-
 	}
 	if session != nil {
 		defer session.Close()
@@ -750,5 +749,33 @@ func notify(project model.Project, deployState int, detail string) {
 		if err != nil {
 			core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
 		}
+	}
+}
+
+func clean(project model.Project, projectServers model.ProjectServers) {
+	if len(project.SymlinkPath) == 0 {
+		return
+	}
+	for _, projectServer := range projectServers {
+		go removeExpiredBackup(project, projectServer)
+	}
+}
+//keep the latest 10 project
+func removeExpiredBackup(project model.Project, projectServer model.ProjectServer) {
+	var session *ssh.Session
+	var connectError error
+	var scriptError error
+	session, connectError = utils.ConnectSSH(projectServer.ServerOwner, "", projectServer.ServerIP, int(projectServer.ServerPort))
+	if connectError != nil {
+		core.Log(core.ERROR, connectError.Error())
+		return
+	}
+	defer session.Close()
+	var sshOutbuf, sshErrbuf bytes.Buffer
+	session.Stdout = &sshOutbuf
+	session.Stderr = &sshErrbuf
+	destDir := path.Join(project.SymlinkPath, project.Name)
+	if scriptError = session.Run("cd "+ destDir + ";ls -t | awk 'NR>10' | xargs rm -rf"); scriptError != nil {
+		core.Log(core.ERROR, scriptError.Error())
 	}
 }
