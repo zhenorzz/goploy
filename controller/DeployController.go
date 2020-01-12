@@ -147,7 +147,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	go execSync(gp.UserInfo, project, projectServers)
+	go execSync(gp.UserInfo, project, projectServers, "")
 	return &core.Response{Message: "deploying"}
 }
 
@@ -206,7 +206,7 @@ func (deploy Deploy) Webhook(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	go execSync(gp.UserInfo, project, projectServers)
+	go execSync(gp.UserInfo, project, projectServers, "")
 	return &core.Response{Message: "receive push signal"}
 }
 
@@ -247,7 +247,7 @@ func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) *core.Resp
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	go execRollback(gp.UserInfo, reqData.Commit, project, projectServers)
+	go execSync(gp.UserInfo, project, projectServers, reqData.Commit)
 	return &core.Response{Message: "Rollback start"}
 }
 
@@ -258,7 +258,7 @@ type SyncMessage struct {
 	State      int
 }
 
-func execSync(userInfo model.User, project model.Project, projectServers model.ProjectServers) {
+func execSync(userInfo model.User, project model.Project, projectServers model.ProjectServers, commitSha string) {
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy start")
 	ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
 		Type: ws.TypeProject,
@@ -280,8 +280,13 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 		CreateTime:    time.Now().Unix(),
 		UpdateTime:    time.Now().Unix(),
 	}
-
-	gitCommitInfo, err := gitSync(project)
+	var gitCommitInfo Commit
+	var err error
+	if len(commitSha) == 0 {
+		gitCommitInfo, err = gitSync(project)
+	} else {
+		gitCommitInfo, err = gitRollback(commitSha, project)
+	}
 	if err != nil {
 		project.DeployFail()
 		publishTraceModel.Detail = err.Error()
@@ -384,133 +389,24 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 	return
 }
 
-func execRollback(userInfo model.User, commit string, project model.Project, projectServers model.ProjectServers) {
-	ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
-		Type: ws.TypeProject,
-		Message: ws.ProjectMessage{
-			ProjectID:   project.ID,
-			ProjectName: project.Name,
-			UserID:      userInfo.ID,
-			Username:    userInfo.Name,
-			State:       model.ProjectDeploying,
-		},
-	}
-	publishTraceModel := model.PublishTrace{
-		Token:         project.LastPublishToken,
-		ProjectID:     project.ID,
-		ProjectName:   project.Name,
-		PublisherID:   userInfo.ID,
-		PublisherName: userInfo.Name,
-		Type:          model.Pull,
-		CreateTime:    time.Now().Unix(),
-		UpdateTime:    time.Now().Unix(),
-	}
-	stdout, err := gitRollback(commit, project)
-	if err != nil {
-		publishTraceModel.Detail = err.Error()
-		publishTraceModel.State = model.Fail
-		publishTraceModel.AddRow()
-		ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
-			Type: ws.TypeProject,
-			Message: ws.ProjectMessage{
-				ProjectID:   project.ID,
-				ProjectName: project.Name,
-				UserID:      userInfo.ID,
-				Username:    userInfo.Name,
-				State:       model.ProjectFail,
-				Message:     err.Error(),
-			},
-		}
-		go notify(project, model.ProjectFail, err.Error())
-		return
-	}
-	ext, _ := json.Marshal(struct {
-		Commit string `json:"commit"`
-	}{commit})
-	publishTraceModel.Ext = string(ext)
-	publishTraceModel.Detail = stdout
-	publishTraceModel.State = model.Success
-
-	if _, err := publishTraceModel.AddRow(); err != nil {
-		core.Log(core.ERROR, err.Error())
-	}
-
-	if project.AfterPullScript != "" {
-		outputString, err := runAfterPullScript(project)
-		publishTraceModel.Type = model.AfterPull
-		ext, _ := json.Marshal(struct {
-			Script string `json:"script"`
-		}{project.AfterPullScript})
-		publishTraceModel.Ext = string(ext)
-		if err != nil {
-			project.DeployFail()
-			publishTraceModel.Detail = err.Error()
-			publishTraceModel.State = model.Fail
-			ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
-				Type: ws.TypeProject,
-				Message: ws.ProjectMessage{
-					ProjectID:   project.ID,
-					ProjectName: project.Name,
-					UserID:      userInfo.ID,
-					Username:    userInfo.Name,
-					State:       model.ProjectFail,
-					Message:     err.Error(),
-				},
-			}
-			if _, err := publishTraceModel.AddRow(); err != nil {
-				core.Log(core.ERROR, err.Error())
-			}
-			go notify(project, model.ProjectFail, err.Error())
-			return
-		}
-		publishTraceModel.Detail = outputString
-		publishTraceModel.State = model.Success
-		if _, err := publishTraceModel.AddRow(); err != nil {
-			core.Log(core.ERROR, err.Error())
-		}
-	}
-
-	ch := make(chan SyncMessage, len(projectServers))
-	for _, projectServer := range projectServers {
-		go remoteSync(ch, userInfo, project, projectServer)
-	}
-
-	message := ""
-	for i := 0; i < len(projectServers); i++ {
-		syncMessage := <-ch
-		if syncMessage.State == model.ProjectFail {
-			message += syncMessage.serverName + " error message: " + syncMessage.Detail
-		}
-	}
-	state := model.ProjectFail
-	if message == "" {
-		project.DeploySuccess()
-		state = model.ProjectSuccess
-	} else {
-		project.DeployFail()
-	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" rollback success")
-	ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
-		Type: ws.TypeProject,
-		Message: ws.ProjectMessage{
-			ProjectID:   project.ID,
-			ProjectName: project.Name,
-			UserID:      userInfo.ID,
-			Username:    userInfo.Name,
-			State:       uint8(state),
-			Message:     message,
-		},
-	}
-	go notify(project, state, message)
-	return
-}
-
 func gitSync(project model.Project) (Commit, error) {
 	if err := gitCreate(project); err != nil {
 		return Commit{}, err
 	}
 
 	if err := gitPull(project); err != nil {
+		return Commit{}, err
+	}
+
+	commit, err := gitCommitLog(project, 1)
+	if err != nil {
+		return Commit{}, err
+	}
+	return commit[0], err
+}
+
+func gitRollback(commitSha string, project model.Project) (Commit, error) {
+	if err := gitReset(commitSha, project); err != nil {
 		return Commit{}, err
 	}
 
@@ -595,7 +491,7 @@ func gitPull(project model.Project) error {
 	return nil
 }
 
-func gitRollback(commit string, project model.Project) (string, error) {
+func gitReset(commit string, project model.Project) error {
 	srcPath := core.RepositoryPath + project.Name
 
 	resetCmd := exec.Command("git", "reset", "--hard", commit)
@@ -606,11 +502,11 @@ func gitRollback(commit string, project model.Project) (string, error) {
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git reset --hard "+commit)
 	if err := resetCmd.Run(); err != nil {
 		core.Log(core.ERROR, resetErrbuf.String())
-		return "", errors.New(resetErrbuf.String())
+		return errors.New(resetErrbuf.String())
 	}
 
 	core.Log(core.TRACE, resetOutbuf.String())
-	return resetOutbuf.String(), nil
+	return nil
 }
 
 type Commit struct {
@@ -633,7 +529,6 @@ func gitCommitLog(project model.Project, number int) ([]Commit, error) {
 		core.Log(core.ERROR, gitErrbuf.String())
 		return nil, errors.New(gitErrbuf.String())
 	}
-	core.Log(core.INFO, gitOutbuf.String())
 	unformatCommitList := strings.Split(gitOutbuf.String(), "`start`")
 	unformatCommitList = unformatCommitList[1:]
 	var commitList []Commit
