@@ -123,9 +123,8 @@
               <el-input v-model="formData.symlinkPath" autocomplete="off" />
             </el-form-item>
             <el-row v-show="formProps.symlink" style="margin: 0 10px">
-              <p>如果部署路径已存在在目标服务器，请手动删除该目录<span style="color: red">rm -rf 部署路径</span></p>
-              <p>否则软链将会不成功</p>
-              <p>不得随意更换目录，如须手动更换，务必手动迁移原先的目录到目标服务器</p>
+              <p>如果部署路径已存在在目标服务器，请手动删除该目录<span style="color: red">rm -rf 部署路径</span>，否则软链将会不成功</p>
+              <p>如须更换目录，务必手动迁移原先的目录到目标服务器</p>
             </el-row>
           </el-tab-pane>
           <el-tab-pane label="拉取后运行脚本" name="afterPullScrpit">
