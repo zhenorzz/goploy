@@ -43,9 +43,23 @@
         </template>
       </el-table-column>
       <el-table-column prop="updateTime" label="上次构建时间" width="160" />
-      <el-table-column prop="operation" label="操作" width="220">
+      <el-table-column prop="operation" label="操作" width="245">
         <template slot-scope="scope">
-          <el-button :disabled="scope.row.deployState === 1" type="primary" @click="publish(scope.row)">构建</el-button>
+          <el-dropdown
+            class="publish-btn"
+            split-button
+            trigger="click"
+            :disabled="scope.row.deployState === 1"
+            type="primary"
+            @click="publish(scope.row)"
+            @command="handlePublishCommand"
+          >
+            构建
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item :command="scope.row">选择具体commit</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+
           <el-button type="success" @click="handleDetail(scope.row)">详情</el-button>
           <el-button :disabled="scope.row.deployState === 1" type="danger" @click="handleRollback(scope.row.id)">回滚</el-button>
         </template>
@@ -181,7 +195,7 @@
   </el-row>
 </template>
 <script>
-import { getList, getDetail, getPreview, getCommitList, publish, rollback } from '@/api/deploy'
+import { getList, getDetail, getPreview, getCommitList, publish } from '@/api/deploy'
 import { getDeployOption as getDeployGroupOption } from '@/api/group'
 import { parseTime } from '@/utils'
 
@@ -308,7 +322,7 @@ export default {
         this.gitLog = []
         this.remoteLog = {}
         this.connectWebSocket().then(server => {
-          publish(id).then((response) => {
+          publish(id, '').then((response) => {
             const projectIndex = this.tableData.findIndex(element => element.id === id)
             this.tableData[projectIndex].deployState = 1
           })
@@ -364,6 +378,16 @@ export default {
       this.getDetail()
     },
 
+    handlePublishCommand(data) {
+      const id = data.id
+      getCommitList(id).then(response => {
+        this.commitTableData = response.data.commitList.map(element => {
+          return Object.assign(element, { projectId: id })
+        })
+        this.commitDialogVisible = true
+      })
+    },
+
     handleRollback(id) {
       getCommitList(id).then(response => {
         this.commitTableData = response.data.commitList.map(element => {
@@ -380,7 +404,7 @@ export default {
         type: 'warning'
       }).then(() => {
         this.connectWebSocket().then(server => {
-          rollback(data.projectId, data.commit).then((response) => {
+          publish(data.projectId, data.commit).then((response) => {
             const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
             this.tableData[projectIndex].deployState = 1
             this.commitDialogVisible = false
@@ -411,5 +435,11 @@ export default {
   height:580px;
   overflow-y: auto;
   @include scrollBar();
+}
+.publish-btn {
+  margin-right: 10px;
+  >>>.el-dropdown__caret-button{
+    padding-bottom: 6px;
+  }
 }
 </style>

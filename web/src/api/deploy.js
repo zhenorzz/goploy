@@ -55,11 +55,11 @@ export function getCommitList(id) {
  * @param  {int}    id
  * @return {Promise}
  */
-export function publish(projectId) {
+export function publish(projectId, commit) {
   return request({
     url: '/deploy/publish',
     method: 'post',
-    data: { projectId }
+    data: { projectId, commit }
   })
 }
 

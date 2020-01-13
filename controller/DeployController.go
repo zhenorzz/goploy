@@ -89,9 +89,8 @@ func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) *core.Res
 
 // GetCommitList get latest 10 commit list
 func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
-
 	type RespData struct {
-		CommitList []Commit `json:"commitList"`
+		CommitList []Commit         `json:"commitList"`
 	}
 
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
@@ -103,7 +102,7 @@ func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) *core
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	commitList, err := gitCommitLog(project, 10)
+	commitList, err := gitCommitLog(project, 10, 0)
 
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -114,7 +113,8 @@ func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) *core
 // Publish the project
 func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		ProjectID int64 `json:"projectId"`
+		ProjectID int64  `json:"projectId"`
+		Commit    string `json:"commit"`
 	}
 	var reqData ReqData
 	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
@@ -147,7 +147,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	go execSync(gp.UserInfo, project, projectServers, "")
+	go execSync(gp.UserInfo, project, projectServers, reqData.Commit)
 	return &core.Response{Message: "deploying"}
 }
 
@@ -258,6 +258,7 @@ type SyncMessage struct {
 	State      int
 }
 
+// if commit sha is empty, deploy the latest
 func execSync(userInfo model.User, project model.Project, projectServers model.ProjectServers, commitSha string) {
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy start")
 	ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
@@ -398,7 +399,7 @@ func gitSync(project model.Project) (Commit, error) {
 		return Commit{}, err
 	}
 
-	commit, err := gitCommitLog(project, 1)
+	commit, err := gitCommitLog(project, 1, 0)
 	if err != nil {
 		return Commit{}, err
 	}
@@ -410,7 +411,7 @@ func gitRollback(commitSha string, project model.Project) (Commit, error) {
 		return Commit{}, err
 	}
 
-	commit, err := gitCommitLog(project, 1)
+	commit, err := gitCommitLog(project, 1, 0)
 	if err != nil {
 		return Commit{}, err
 	}
@@ -517,14 +518,18 @@ type Commit struct {
 	Diff      string `json:"diff"`
 }
 
-func gitCommitLog(project model.Project, number int) ([]Commit, error) {
+func gitCommitLog(project model.Project, number uint64, offset uint64) ([]Commit, error) {
 	srcPath := core.RepositoryPath + project.Name
-	git := exec.Command("git", "log", "--stat", "--pretty=format:`start`%H`%an`%at`%s`", "-n", strconv.Itoa(number))
+	logCommands := []string{"log", "--stat", "--pretty=format:`start`%H`%an`%at`%s`", "-n", strconv.FormatUint(number, 10)}
+	if offset != 0 {
+		logCommands = append(logCommands, "--skip", strconv.FormatUint(offset, 10))
+	}
+	git := exec.Command("git", logCommands...)
 	git.Dir = srcPath
 	var gitOutbuf, gitErrbuf bytes.Buffer
 	git.Stdout = &gitOutbuf
 	git.Stderr = &gitErrbuf
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git log --stat --pretty=format:`start`%H`%an`%at`%s` -n "+strconv.Itoa(number))
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git "+strings.Join(logCommands, " "))
 	if err := git.Run(); err != nil {
 		core.Log(core.ERROR, gitErrbuf.String())
 		return nil, errors.New(gitErrbuf.String())
@@ -760,6 +765,7 @@ func clean(project model.Project, projectServers model.ProjectServers) {
 		go removeExpiredBackup(project, projectServer)
 	}
 }
+
 //keep the latest 10 project
 func removeExpiredBackup(project model.Project, projectServer model.ProjectServer) {
 	var session *ssh.Session
@@ -775,7 +781,7 @@ func removeExpiredBackup(project model.Project, projectServer model.ProjectServe
 	session.Stdout = &sshOutbuf
 	session.Stderr = &sshErrbuf
 	destDir := path.Join(project.SymlinkPath, project.Name)
-	if scriptError = session.Run("cd "+ destDir + ";ls -t | awk 'NR>10' | xargs rm -rf"); scriptError != nil {
+	if scriptError = session.Run("cd " + destDir + ";ls -t | awk 'NR>10' | xargs rm -rf"); scriptError != nil {
 		core.Log(core.ERROR, scriptError.Error())
 	}
 }
