@@ -99,7 +99,7 @@ func (pt PublishTrace) GetPreviewByProjectID() (PublishTraces, error) {
 		From(publishTraceTable).
 		Where(sq.Eq{"project_id": pt.ProjectID, "type": Pull}).
 		OrderBy("id DESC").
-		Limit(15).
+		Limit(10).
 		RunWith(DB).
 		Query()
 	if err != nil {

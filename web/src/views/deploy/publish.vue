@@ -64,14 +64,12 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-dialog title="构建记录" :visible.sync="dialogVisible">
+    <el-dialog title="构建记录" :visible.sync="dialogVisible" class="publish-record">
       <el-row>
         <el-col :span="8">
           <el-radio-group v-model="publishToken" @change="handleDetailChange">
             <el-row v-for="(item, index) in gitTraceList" :key="index">
               <el-row style="margin:5px 0">
-                <!-- <el-tag v-if="item.publishState === 1" type="success" effect="plain">成功</el-tag> -->
-                <!-- <el-tag v-else type="danger" effect="plain">失败</el-tag> -->
                 <el-radio style="margin-left: 10px;margin-right: 5px;width: 200px;" :label="item.token" border>
                   {{ item.publisherName }} commitID: {{ item.commit }}
                   <span v-if="item.publishState === 1" style="color:#67C23A;margin-left:5px">成功</span>
@@ -426,7 +424,7 @@ export default {
 <style rel="stylesheet/scss" lang="scss" scoped>
 @import "@/styles/mixin.scss";
 .project-detail {
-  height:580px;
+  height:375px;
   overflow-y: auto;
   @include scrollBar();
 }
@@ -434,6 +432,14 @@ export default {
   margin-right: 10px;
   >>>.el-dropdown__caret-button{
     padding-bottom: 6px;
+  }
+}
+
+@media screen and (max-width: 1440px){
+  .publish-record{
+    >>>.el-dialog {
+      width: 75%;
+    }
   }
 }
 </style>
