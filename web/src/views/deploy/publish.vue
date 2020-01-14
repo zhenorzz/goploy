@@ -43,7 +43,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="updateTime" label="上次构建时间" width="160" />
-      <el-table-column prop="operation" label="操作" width="245">
+      <el-table-column prop="operation" label="操作" width="175">
         <template slot-scope="scope">
           <el-dropdown
             class="publish-btn"
@@ -61,7 +61,6 @@
           </el-dropdown>
 
           <el-button type="success" @click="handleDetail(scope.row)">详情</el-button>
-          <el-button :disabled="scope.row.deployState === 1" type="danger" @click="handleRollback(scope.row.id)">回滚</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -380,15 +379,6 @@ export default {
 
     handlePublishCommand(data) {
       const id = data.id
-      getCommitList(id).then(response => {
-        this.commitTableData = response.data.commitList.map(element => {
-          return Object.assign(element, { projectId: id })
-        })
-        this.commitDialogVisible = true
-      })
-    },
-
-    handleRollback(id) {
       getCommitList(id).then(response => {
         this.commitTableData = response.data.commitList.map(element => {
           return Object.assign(element, { projectId: id })

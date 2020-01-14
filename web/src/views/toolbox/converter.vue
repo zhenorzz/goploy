@@ -2,9 +2,15 @@
   <el-row class="app-container">
     <el-row>
       <span style="display:inline-block;width:60px;font-size:14px;margin-right:10px">时间戳</span>
-      <el-input v-model="timestamp" style="width: 200px" />
+      <el-input v-model="timeExchange.timestamp" style="width: 200px" :placeholder="timeExchange.placeholder" />
       <el-button type="primary" @click="timestampToDate">转换>></el-button>
-      <el-input v-model="date" style="width: 200px" />
+      <el-input v-model="timeExchange.date" style="width: 200px" />
+    </el-row>
+    <el-row style="margin-top: 10px">
+      <span style="display:inline-block;width:60px;font-size:14px;margin-right:10px">时间</span>
+      <el-input v-model="dateExchange.date" style="width: 200px" :placeholder="dateExchange.placeholder" />
+      <el-button type="primary" @click="dateToTimestamp">转换>></el-button>
+      <el-input v-model="dateExchange.timestamp" style="width: 200px" />
     </el-row>
     <el-row style="margin-top: 10px">
       <span style="display:inline-block;width:60px;font-size:14px;margin-right:10px">字节</span>
@@ -25,8 +31,18 @@ export default {
 
   data() {
     return {
-      date: '',
-      timestamp: '',
+      timeExchange: {
+        date: '',
+        timestamp: '',
+        timer: null,
+        placeholder: Date.parse(new Date()) / 1000
+      },
+      dateExchange: {
+        date: '',
+        timestamp: '',
+        timer: null,
+        placeholder: parseTime(new Date())
+      },
       bytes: '',
       bytesUnit: 1,
       humanSize: ''
@@ -36,14 +52,25 @@ export default {
 
   },
   created() {
-
+    this.timeExchange.timer = setInterval(() => {
+      this.timeExchange.placeholder = Date.parse(new Date()) / 1000
+    }, 1000)
+    this.dateExchange.timer = setInterval(() => {
+      this.dateExchange.placeholder = parseTime(new Date())
+    }, 1000)
+  },
+  beforeDestroy() {
+    clearTimeout(this.timeExchange.timer)
+    clearTimeout(this.dateExchange.timer)
   },
   methods: {
     timestampToDate() {
-      this.date = parseTime(this.timestamp)
+      this.timeExchange.date = parseTime(this.timeExchange.timestamp)
+    },
+    dateToTimestamp() {
+      this.dateExchange.timestamp = Date.parse(new Date(this.dateExchange.date)) / 1000
     },
     bytesToHumanSize() {
-      console.log(this.bytes * this.bytesUnit > 9007199254740992)
       this.humanSize = humanSize(this.bytes * this.bytesUnit)
     }
   }
