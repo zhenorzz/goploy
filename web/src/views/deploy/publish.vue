@@ -66,19 +66,23 @@
     </el-table>
     <el-dialog title="构建记录" :visible.sync="dialogVisible">
       <el-row>
-        <el-col :span="9">
+        <el-col :span="8">
           <el-radio-group v-model="publishToken" @change="handleDetailChange">
             <el-row v-for="(item, index) in gitTraceList" :key="index">
               <el-row style="margin:5px 0">
-                <el-tag v-if="item.publishState === 1" type="success" effect="plain">成功</el-tag>
-                <el-tag v-else type="danger" effect="plain">失败</el-tag>
-                <el-radio style="margin-left: 10px;margin-right: 5px;width: 200px;" :label="item.token" border>{{ item.publisherName }} commitID: {{ item.commit }}</el-radio>
-                <el-button type="danger" icon="el-icon-refresh" plain @click="rollback(item)" />
+                <!-- <el-tag v-if="item.publishState === 1" type="success" effect="plain">成功</el-tag> -->
+                <!-- <el-tag v-else type="danger" effect="plain">失败</el-tag> -->
+                <el-radio style="margin-left: 10px;margin-right: 5px;width: 200px;" :label="item.token" border>
+                  {{ item.publisherName }} commitID: {{ item.commit }}
+                  <span v-if="item.publishState === 1" style="color:#67C23A;margin-left:5px">成功</span>
+                  <span v-else style="color:#F56C6C;margin-left:5px">失败</span>
+                </el-radio>
+                <el-button type="danger" plain @click="rollback(item)">rebuild</el-button>
               </el-row>
             </el-row>
           </el-radio-group>
         </el-col>
-        <el-col :span="15" class="project-detail">
+        <el-col :span="16" class="project-detail">
           <el-row v-for="(item, index) in publishLocalTraceList" :key="index">
             <el-row v-if="item.type === 2">
               <el-row style="margin:5px 0">git同步信息</el-row>
