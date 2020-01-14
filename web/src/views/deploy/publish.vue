@@ -181,7 +181,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="message" label="message" />
-        <el-table-column prop="operation" label="操作" width="75">
+        <el-table-column prop="operation" label="操作" width="76">
           <template slot-scope="scope">
             <el-button type="danger" @click="rollback(scope.row)">构建</el-button>
           </template>
