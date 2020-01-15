@@ -183,7 +183,7 @@
             {{ parseTime(scope.row.timestamp) }}
           </template>
         </el-table-column>
-        <el-table-column prop="message" label="message" width="200" />
+        <el-table-column prop="message" label="message" width="200" show-overflow-tooltip />
         <el-table-column prop="operation" label="操作" width="80" align="center" fixed="right">
           <template slot-scope="scope">
             <el-button type="danger" @click="rollback(scope.row)">构建</el-button>
