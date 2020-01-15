@@ -98,7 +98,7 @@ func (pt PublishTrace) GetPreviewByProjectID() (PublishTraces, error) {
 		Column("!EXISTS (SELECT id FROM " + publishTraceTable + " AS pt where pt.state = 0 AND pt.token = publish_trace.token) as publish_state").
 		From(publishTraceTable).
 		Where(sq.Eq{"project_id": pt.ProjectID, "type": Pull}).
-		OrderBy("id DESC").
+		OrderBy("update_time DESC").
 		Limit(10).
 		RunWith(DB).
 		Query()

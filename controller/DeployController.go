@@ -90,7 +90,7 @@ func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) *core.Res
 // GetCommitList get latest 10 commit list
 func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
-		CommitList []Commit         `json:"commitList"`
+		CommitList []Commit `json:"commitList"`
 	}
 
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
@@ -208,47 +208,6 @@ func (deploy Deploy) Webhook(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 	}
 	go execSync(gp.UserInfo, project, projectServers, "")
 	return &core.Response{Message: "receive push signal"}
-}
-
-// Rollback the project
-func (deploy Deploy) Rollback(w http.ResponseWriter, gp *core.Goploy) *core.Response {
-	type ReqData struct {
-		ProjectID int64  `json:"projectId"`
-		Commit    string `json:"commit"`
-	}
-	var reqData ReqData
-	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-
-	project, err := model.Project{
-		ID: reqData.ProjectID,
-	}.GetData()
-
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-
-	if project.DeployState == model.ProjectDeploying {
-		return &core.Response{Code: core.Deny, Message: "Project is being build by other"}
-	}
-
-	projectServers, err := model.ProjectServer{ProjectID: reqData.ProjectID}.GetBindServerListByProjectID()
-
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-	project.PublisherID = gp.UserInfo.ID
-	project.PublisherName = gp.UserInfo.Name
-	project.DeployState = model.ProjectDeploying
-	project.LastPublishToken = uuid.New().String()
-	project.UpdateTime = time.Now().Unix()
-	err = project.Publish()
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-	go execSync(gp.UserInfo, project, projectServers, reqData.Commit)
-	return &core.Response{Message: "Rollback start"}
 }
 
 type SyncMessage struct {
@@ -641,6 +600,8 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 	var afterDeployCommands []string
 	if len(project.SymlinkPath) != 0 {
 		afterDeployCommands = append(afterDeployCommands, "ln -sfn "+destDir+" "+project.Path)
+		// change the destination folder time, make sure it can not be clean
+		afterDeployCommands = append(afterDeployCommands, "touch -m "+destDir)
 	}
 
 	if len(project.AfterDeployScript) != 0 {

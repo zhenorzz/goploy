@@ -43,7 +43,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="updateTime" label="上次构建时间" width="160" />
-      <el-table-column prop="operation" label="操作" width="175">
+      <el-table-column prop="operation" label="操作" width="175" fixed="right">
         <template slot-scope="scope">
           <el-dropdown
             class="publish-btn"
@@ -168,6 +168,7 @@
         border
         stripe
         highlight-current-row
+        max-height="447px"
         :data="commitTableData"
       >
         <el-table-column type="expand">
@@ -177,13 +178,13 @@
         </el-table-column>
         <el-table-column prop="commit" label="commit" width="290" />
         <el-table-column prop="author" label="author" />
-        <el-table-column label="提交时间">
+        <el-table-column label="提交时间" width="135">
           <template slot-scope="scope">
             {{ parseTime(scope.row.timestamp) }}
           </template>
         </el-table-column>
-        <el-table-column prop="message" label="message" />
-        <el-table-column prop="operation" label="操作" width="80" align="center">
+        <el-table-column prop="message" label="message" width="200" />
+        <el-table-column prop="operation" label="操作" width="80" align="center" fixed="right">
           <template slot-scope="scope">
             <el-button type="danger" @click="rollback(scope.row)">构建</el-button>
           </template>

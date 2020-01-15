@@ -16,7 +16,7 @@
     >
       <el-table-column prop="name" label="项目名称" width="200" />
       <el-table-column prop="url" label="项目地址" width="350" />
-      <el-table-column prop="path" label="部署路径" />
+      <el-table-column prop="path" label="部署路径" min-width="200" />
       <el-table-column prop="group" label="分组" width="100">
         <template slot-scope="scope">
           {{ findGroupName(scope.row.groupId) }}
@@ -30,7 +30,7 @@
           <span v-else>Webhook</span>
         </template>
       </el-table-column>
-      <el-table-column prop="operation" label="操作" width="350">
+      <el-table-column prop="operation" label="操作" width="350" fixed="right">
         <template slot-scope="scope">
           <el-button type="primary" @click="handleEdit(scope.row)">编辑</el-button>
           <el-button type="success" @click="handleServer(scope.row)">服务器管理</el-button>
@@ -73,7 +73,7 @@
               <el-input v-model="formData.branch" autocomplete="off" />
             </el-form-item>
             <el-form-item label="rsync选项" prop="rsyncOption">
-              <el-input v-model="formData.rsyncOption" type="textarea" :rows="4" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
+              <el-input v-model="formData.rsyncOption" type="textarea" :rows="2" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
             </el-form-item>
             <el-form-item label="绑定分组" prop="groupId">
               <el-select v-model="formData.groupId" placeholder="选择分组" style="width:100%">
@@ -180,8 +180,8 @@
         style="width: 100%"
       >
         <el-table-column prop="serverId" label="服务器ID" width="100" />
-        <el-table-column prop="serverName" label="服务器名称" />
-        <el-table-column prop="serverDescription" label="服务器描述" show-overflow-tooltip />
+        <el-table-column prop="serverName" label="服务器名称" width="100" />
+        <el-table-column prop="serverDescription" label="服务器描述" width="100" show-overflow-tooltip />
         <el-table-column prop="createTime" width="160" label="绑定时间" />
         <el-table-column prop="updateTime" width="160" label="更新时间" />
         <el-table-column prop="operation" label="操作" width="75">

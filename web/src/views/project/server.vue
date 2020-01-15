@@ -10,10 +10,10 @@
       :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="name" label="服务器" />
-      <el-table-column prop="ip" label="IP" />
+      <el-table-column prop="name" label="服务器" width="100" />
+      <el-table-column prop="ip" label="IP" width="100" />
       <el-table-column prop="port" label="端口" />
-      <el-table-column prop="owner" label="sshKey所有者" show-overflow-tooltip />
+      <el-table-column prop="owner" label="sshKey所有者" width="100" show-overflow-tooltip />
       <el-table-column prop="group" label="分组" width="100">
         <template slot-scope="scope">
           {{ findGroupName(scope.row.groupId) }}
@@ -22,7 +22,7 @@
       <el-table-column prop="description" label="描述" show-overflow-tooltip />
       <el-table-column prop="createTime" label="创建时间" width="160" />
       <el-table-column prop="updateTime" label="更新时间" width="160" />
-      <el-table-column prop="operation" label="操作" width="220">
+      <el-table-column prop="operation" label="操作" width="220" fixed="right">
         <template slot-scope="scope">
           <el-button size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
           <el-button size="small" type="warning" @click="handleInstall(scope.row)">安装</el-button>
@@ -477,7 +477,7 @@ export default {
 @import "@/styles/mixin.scss";
 .template-dialog {
   padding-right: 10px;
-  height:580px;
+  height: 400px;
   overflow-y: auto;
   @include scrollBar();
 }
