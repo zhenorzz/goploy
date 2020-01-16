@@ -20,7 +20,7 @@
       style="width: 100%;margin-top: 5px;"
     >
       <el-table-column prop="id" label="ID" width="60" />
-      <el-table-column prop="name" label="项目名称">
+      <el-table-column prop="name" label="项目名称" min-width="160" show-overflow-tooltip>
         <template slot-scope="scope">
           <b v-if="scope.row.environment === '生产环境'" style="color: #F56C6C">{{ scope.row.name }} - {{ scope.row.environment }}</b>
           <b v-else-if="scope.row.environment === '测试环境'" style="color: #E6A23C">{{ scope.row.name }} - {{ scope.row.environment }}</b>
@@ -70,10 +70,10 @@
           <el-radio-group v-model="publishToken" @change="handleDetailChange">
             <el-row v-for="(item, index) in gitTraceList" :key="index">
               <el-row style="margin:5px 0">
-                <el-radio style="margin-left: 10px;margin-right: 5px;width: 200px;" :label="item.token" border>
+                <el-radio style="margin-left: 10px;margin-right: 5px;padding-right:8px;width: 210px;" :label="item.token" border>
                   {{ item.publisherName }} commitID: {{ item.commit }}
-                  <span v-if="item.publishState === 1" style="color:#67C23A;margin-left:5px">成功</span>
-                  <span v-else style="color:#F56C6C;margin-left:5px">失败</span>
+                  <span v-if="item.publishState === 1" style="color:#67C23A;float:right;line-height:16px;">成功</span>
+                  <span v-else style="color:#F56C6C;float:right;line-height:16px;">失败</span>
                 </el-radio>
                 <el-button type="danger" plain @click="rollback(item)">rebuild</el-button>
               </el-row>
