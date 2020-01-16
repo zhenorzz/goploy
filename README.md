@@ -28,7 +28,6 @@
 - [安装](#安装)
 - [使用](#使用)
 - [原理图](#原理图)
-- [预览](#预览)
 - [后端开发说明](#后端开发说明)
 - [前端开发说明](#前端开发说明)
 - [相关仓库](#相关仓库)
@@ -49,9 +48,6 @@
 
 ## 原理图
 ![原理图](https://github.com/zhenorzz/goploy/blob/master/goploy.png)
-
-## 预览
-![预览](https://github.com/zhenorzz/goploy/blob/master/snapshot.gif)
 
 ## 后端开发说明
 1. 安装go，必须是1.13以上
