@@ -631,12 +631,12 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 	var session *ssh.Session
 	var connectError error
 	var scriptError error
+	var sshOutbuf, sshErrbuf bytes.Buffer
 	for attempt := 0; attempt < 3; attempt++ {
 		session, connectError = utils.ConnectSSH(projectServer.ServerOwner, "", projectServer.ServerIP, int(projectServer.ServerPort))
 		if connectError != nil {
 			core.Log(core.ERROR, connectError.Error())
 		} else {
-			var sshOutbuf, sshErrbuf bytes.Buffer
 			session.Stdout = &sshOutbuf
 			session.Stderr = &sshErrbuf
 			sshOutbuf.Reset()
@@ -665,13 +665,13 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 		}
 		return
 	} else if scriptError != nil {
-		publishTraceModel.Detail = scriptError.Error()
+		publishTraceModel.Detail = sshErrbuf.String()
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
 		chInput <- SyncMessage{
 			serverName: projectServer.ServerName,
 			ProjectID:  project.ID,
-			Detail:     scriptError.Error(),
+			Detail:     sshErrbuf.String(),
 			State:      model.ProjectFail,
 		}
 		return
