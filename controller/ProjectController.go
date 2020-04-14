@@ -90,7 +90,7 @@ func (project Project) GetBindUserList(w http.ResponseWriter, gp *core.Goploy) *
 
 }
 
-// GetBindUserList project detail
+// GetBindProjectList project detail
 func (project Project) GetBindProjectList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		ProjectUsers model.ProjectUsers `json:"projectUserMap"`

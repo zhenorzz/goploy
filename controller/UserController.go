@@ -102,7 +102,7 @@ func (user User) GetOption(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 	return &core.Response{Data: RespData{User: users}}
 }
 
-// GetProjectOption user list
+// GetCanBindProjectUser user list
 func (user User) GetCanBindProjectUser(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		User model.Users `json:"userList"`

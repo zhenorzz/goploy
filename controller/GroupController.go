@@ -58,7 +58,7 @@ func (group Group) GetOption(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 	return &core.Response{Data: RespData{Groups: groupList}}
 }
 
-// GetOption Group list
+// GetDeployOption Group list
 func (group Group) GetDeployOption(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Groups model.Groups `json:"groupList"`

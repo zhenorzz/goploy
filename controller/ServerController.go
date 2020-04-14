@@ -3,12 +3,13 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
-	"gopkg.in/go-playground/validator.v9"
 	"net/http"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
+
+	"gopkg.in/go-playground/validator.v9"
 
 	"goploy/core"
 	"goploy/model"
@@ -93,7 +94,7 @@ func (server Server) GetOption(w http.ResponseWriter, _ *core.Goploy) *core.Resp
 	return &core.Response{Data: RespData{Server: serverList}}
 }
 
-// Add one server
+// Check one server
 func (server Server) Check(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		IP    string `json:"ip" validate:"ip4_addr"`
