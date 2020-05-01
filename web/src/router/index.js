@@ -86,18 +86,10 @@ export const asyncRoutes = [
       title: '工具箱',
       icon: 'toolbox'
     },
-    redirect: '/toolbox/converter',
+    redirect: '/toolbox/json',
     children: [{
-      path: 'converter',
-      name: '常用转换',
-      component: () => import('@/views/toolbox/converter'),
-      meta: {
-        title: '常用转换',
-        icon: 'converter'
-      }
-    }, {
       path: 'json',
-      name: 'JSON格式化',
+      name: 'JSONFormatter',
       component: () => import('@/views/toolbox/json'),
       meta: {
         title: 'JSON格式化',
