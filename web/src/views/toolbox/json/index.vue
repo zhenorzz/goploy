@@ -29,7 +29,7 @@ import './jsonTree.css'
 import { jsonTree } from './jsonTree'
 import { debounce } from '@/utils'
 export default {
-
+  name: 'JSONFormatter',
   data() {
     return {
       inputContent: '',
