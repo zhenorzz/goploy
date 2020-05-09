@@ -65,12 +65,13 @@
             <el-form-item label="环境" prop="environment">
               <el-select v-model="formData.environment" placeholder="选择环境" style="width:100%">
                 <el-option label="生产环境" value="生产环境" />
+                <el-option label="预发布环境" value="预发布环境" />
                 <el-option label="测试环境" value="测试环境" />
                 <el-option label="开发环境" value="开发环境" />
               </el-select>
             </el-form-item>
             <el-form-item label="分支" prop="branch">
-              <el-input v-model="formData.branch" autocomplete="off" />
+              <el-input v-model="formData.branch" autocomplete="off" :disabled="formData.id>0" />
             </el-form-item>
             <el-form-item label="rsync选项" prop="rsyncOption">
               <el-input v-model="formData.rsyncOption" type="textarea" :rows="2" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
