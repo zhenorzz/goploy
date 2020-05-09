@@ -16,6 +16,7 @@
       border
       stripe
       highlight-current-row
+      :max-height="tableHeight"
       :data="tableData"
       style="width: 100%;margin-top: 5px;"
     >
@@ -43,10 +44,9 @@
         </template>
       </el-table-column>
       <el-table-column prop="updateTime" label="上次构建时间" width="160" />
-      <el-table-column prop="operation" label="操作" width="175" fixed="right">
+      <el-table-column prop="operation" label="操作" width="165" fixed="right">
         <template slot-scope="scope">
           <el-dropdown
-            class="publish-btn"
             split-button
             trigger="click"
             :disabled="scope.row.deployState === 1"
@@ -197,11 +197,13 @@
   </el-row>
 </template>
 <script>
+import tableHeight from '@/mixin/tableHeight'
 import { getList, getDetail, getPreview, getCommitList, publish } from '@/api/deploy'
 import { getDeployOption as getDeployGroupOption } from '@/api/group'
 import { parseTime } from '@/utils'
 
 export default {
+  mixins: [tableHeight],
   data() {
     return {
       groupId: parseInt(localStorage.getItem('groupId')) || 0,
@@ -431,9 +433,6 @@ export default {
 }
 .publish-btn {
   margin-right: 10px;
-  >>>.el-dropdown__caret-button{
-    padding-bottom: 6px;
-  }
 }
 
 @media screen and (max-width: 1440px){
