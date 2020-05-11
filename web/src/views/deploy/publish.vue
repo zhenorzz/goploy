@@ -13,6 +13,7 @@
       <el-input v-model="projectName" style="width:300px" placeholder="请输入项目名称" @change="getList" />
     </el-row>
     <el-table
+      :key="tableHeight"
       border
       stripe
       highlight-current-row
