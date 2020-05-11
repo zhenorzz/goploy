@@ -46,21 +46,22 @@
       <el-table-column prop="updateTime" label="上次构建时间" width="160" />
       <el-table-column prop="operation" label="操作" width="165" fixed="right">
         <template slot-scope="scope">
-          <el-dropdown
-            split-button
-            trigger="click"
-            :disabled="scope.row.deployState === 1"
-            type="primary"
-            @click="publish(scope.row)"
-            @command="handlePublishCommand"
-          >
-            构建
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item :command="scope.row">选择具体commit</el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-
-          <el-button type="success" @click="handleDetail(scope.row)">详情</el-button>
+          <el-row class="operation-btn">
+            <el-dropdown
+              split-button
+              trigger="click"
+              :disabled="scope.row.deployState === 1"
+              type="primary"
+              @click="publish(scope.row)"
+              @command="handlePublishCommand"
+            >
+              构建
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item :command="scope.row">选择具体commit</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+            <el-button type="success" @click="handleDetail(scope.row)">详情</el-button>
+          </el-row>
         </template>
       </el-table-column>
     </el-table>
@@ -431,12 +432,13 @@ export default {
   overflow-y: auto;
   @include scrollBar();
 }
-.publish-btn {
-  margin-right: 10px;
+.operation-btn {
+  >>>.el-button {
+    line-height: 1.15;
+  }
 }
-
 @media screen and (max-width: 1440px){
-  .publish-record{
+  .publish-record {
     >>>.el-dialog {
       width: 75%;
     }
