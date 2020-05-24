@@ -44,6 +44,9 @@ export default {
       }
     }
   },
+  created() {
+    this.$store.dispatch('websocket/init')
+  },
   methods: {
     handleClickOutside() {
       this.$store.dispatch('app/closeSideBar', { withoutAnimation: false })

@@ -160,7 +160,14 @@ func (hub *Hub) run() {
 						continue
 					}
 				}
-				if err := client.Conn.WriteJSON(data.Message); websocket.IsCloseError(err) {
+				if err := client.Conn.WriteJSON(
+					struct {
+						Type int  `json:"type"`
+						Message interface{} `json:"message"`
+					}{
+						Type: data.Type,
+						Message: data.Message,
+					}); websocket.IsCloseError(err) {
 					hub.Unregister <- client
 				}
 			}

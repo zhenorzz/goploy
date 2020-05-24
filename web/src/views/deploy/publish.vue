@@ -224,10 +224,32 @@ export default {
       activeRomoteTracePane: ''
     }
   },
+  watch: {
+    '$store.getters.ws_message': function(response) {
+      if (response.type !== 1) {
+        return
+      }
+      const data = response.message
+      data.message = this.formatDetail(data.message)
+      if (data.state === 3) {
+        this.$notify.error({
+          title: data.projectName,
+          dangerouslyUseHTMLString: true,
+          message: data.message,
+          duration: 0
+        })
+      }
+      const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
+      if (projectIndex !== -1) {
+        this.tableData[projectIndex].deployState = data.state
+        this.tableData[projectIndex].publisherName = data.username
+        this.tableData[projectIndex].updateTime = parseTime(new Date())
+      }
+    }
+  },
   created() {
     this.getList()
     this.getDeployGroupOption()
-    this.connectWebSocket()
     // // 路由跳转时结束websocket链接
     this.$router.afterEach(() => {
       this.webSocket && this.webSocket.close()
@@ -235,52 +257,6 @@ export default {
   },
   methods: {
     parseTime,
-    connectWebSocket() {
-      if (this.webSocket && this.webSocket.readyState < 2) {
-        console.log('reusing the socket connection [state = ' + this.webSocket.readyState + ']: ' + this.webSocket.url)
-        return Promise.resolve(this.webSocket)
-      }
-
-      return new Promise((resolve, reject) => {
-        this.webSocket = new WebSocket('ws://' + window.location.host + process.env.VUE_APP_BASE_API + '/ws/connect')
-
-        this.webSocket.onopen = () => {
-          console.log('socket connection is opened [state = ' + this.webSocket.readyState + ']: ' + this.webSocket.url)
-          resolve(this.webSocket)
-        }
-
-        this.webSocket.onerror = (err) => {
-          console.error('socket connection error : ', err)
-          reject(err)
-        }
-
-        this.webSocket.onclose = (e) => {
-          this.webSocket = null
-          console.log('connection closed (' + e.code + ')')
-        }
-
-        this.webSocket.onmessage = (e) => {
-          const data = JSON.parse(e.data)
-          console.log(data)
-          data.message = this.formatDetail(data.message)
-          if (data.state === 3) {
-            this.$notify.error({
-              title: data.projectName,
-              dangerouslyUseHTMLString: true,
-              message: data.message,
-              duration: 0
-            })
-          }
-          const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
-          if (projectIndex !== -1) {
-            this.tableData[projectIndex].deployState = data.state
-            this.tableData[projectIndex].publisherName = data.username
-            this.tableData[projectIndex].updateTime = parseTime(new Date())
-          }
-        }
-      })
-    },
-
     handleGroupChange(groupId) {
       localStorage.setItem('groupId', groupId)
       this.groupId = groupId
@@ -327,11 +303,9 @@ export default {
       }).then(() => {
         this.gitLog = []
         this.remoteLog = {}
-        this.connectWebSocket().then(server => {
-          publish(id, '').then((response) => {
-            const projectIndex = this.tableData.findIndex(element => element.id === id)
-            this.tableData[projectIndex].deployState = 1
-          })
+        publish(id, '').then((response) => {
+          const projectIndex = this.tableData.findIndex(element => element.id === id)
+          this.tableData[projectIndex].deployState = 1
         })
       }).catch(() => {
         this.$message({

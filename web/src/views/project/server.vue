@@ -237,6 +237,28 @@ export default {
     }
   },
 
+  watch: {
+    '$store.getters.ws_message': function(response) {
+      if (response.type !== 2) {
+        return
+      }
+      const data = response.message
+      Object.assign(data, JSON.parse(data.ext))
+      let intallTrace = ''
+      if (data.type === 1) {
+        intallTrace += '[goploy~]$ ' + data.command + '\n'
+        intallTrace += data.detail + '\n'
+      } else if (data.type === 2) {
+        intallTrace += '[goploy~]$ ' + data.ssh + '\n'
+        intallTrace += data.detail + '\n'
+      } else if (data.type === 3) {
+        intallTrace += '[' + this.templateFormData.serverName + '~]$ ' + data.script + '\n'
+        intallTrace += data.detail + '\n'
+      }
+      this.installLog += intallTrace
+    }
+  },
+
   created() {
     this.storeFormData()
     this.getList()
@@ -397,59 +419,14 @@ export default {
           this.installDialogVisible = true
           this.templateFormProps.disabled = this.templateDialogVisible = false
           this.installLog = ''
-          this.connectWebSocket().then(server => {
-            install(this.templateFormData.serverId, this.templateFormData.templateId).then((response) => {
-              this.$message({
-                message: response.message,
-                duration: 5 * 1000
-              })
+          install(this.templateFormData.serverId, this.templateFormData.templateId).then((response) => {
+            this.$message({
+              message: response.message,
+              duration: 5 * 1000
             })
           })
         } else {
           return false
-        }
-      })
-    },
-
-    connectWebSocket() {
-      if (this.webSocket && this.webSocket.readyState < 2) {
-        console.log('reusing the socket connection [state = ' + this.webSocket.readyState + ']: ' + this.webSocket.url)
-        return Promise.resolve(this.webSocket)
-      }
-
-      return new Promise((resolve, reject) => {
-        this.webSocket = new WebSocket('ws://' + window.location.host + process.env.VUE_APP_BASE_API + '/ws/unicast')
-
-        this.webSocket.onopen = () => {
-          console.log('socket connection is opened [state = ' + this.webSocket.readyState + ']: ' + this.webSocket.url)
-          resolve(this.webSocket)
-        }
-
-        this.webSocket.onerror = (err) => {
-          console.error('socket connection error : ', err)
-          reject(err)
-        }
-
-        this.webSocket.onclose = (e) => {
-          this.webSocket = null
-          console.log('connection closed (' + e.code + ')')
-        }
-
-        this.webSocket.onmessage = (e) => {
-          const data = JSON.parse(e.data)
-          Object.assign(data, JSON.parse(data.ext))
-          let intallTrace = ''
-          if (data.type === 1) {
-            intallTrace += '[goploy~]$ ' + data.command + '\n'
-            intallTrace += data.detail + '\n'
-          } else if (data.type === 2) {
-            intallTrace += '[goploy~]$ ' + data.ssh + '\n'
-            intallTrace += data.detail + '\n'
-          } else if (data.type === 3) {
-            intallTrace += '[' + this.templateFormData.serverName + '~]$ ' + data.script + '\n'
-            intallTrace += data.detail + '\n'
-          }
-          this.installLog += intallTrace
         }
       })
     },
