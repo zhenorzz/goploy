@@ -3,44 +3,57 @@
     <hamburger :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
 
     <breadcrumb class="breadcrumb-container" />
-
-    <div class="right-menu">
-      <span class="github-btn">
-        <a class="gh-btn" href="https://github.com/zhenorzz" target="_blank">
-          <span class="gh-ico" />
-          <span class="gh-text">Follow @zhenorzz</span>
-        </a>
-      </span>
-      <span class="github-btn">
-        <a class="gh-btn" href="https://github.com/zhenorzz/goploy/" target="_blank">
-          <span class="gh-ico" />
-          <span class="gh-text">Star</span>
-        </a>
-        <a class="gh-count" href="https://github.com/zhenorzz/goploy/stargazers" target="_blank">{{ starCount }}</a>
-      </span>
-      <span class="github-btn github-forks">
-        <a class="gh-btn" href="https://github.com/zhenorzz/goploy/fork" target="_blank">
-          <span class="gh-ico" aria-hidden="true" />
-          <span class="gh-text">Fork</span>
-        </a>
-        <a class="gh-count" href="https://github.com/zhenorzz/goploy/network" target="_blank">{{ forkCount }}</a>
-      </span>
-      <el-dropdown class="user-container" trigger="click" size="medium">
-        <div class="user-wrapper">
-          {{ name }}
-          <i class="el-icon-caret-bottom" />
-        </div>
-        <el-dropdown-menu slot="dropdown" class="user-dropdown">
-          <router-link to="/user/info">
-            <el-dropdown-item>
-              个人信息设置
+    <div class="right">
+      <div class="github">
+        <span class="github-btn">
+          <a class="gh-btn" href="https://github.com/zhenorzz" target="_blank">
+            <span class="gh-ico" />
+            <span class="gh-text">Follow @zhenorzz</span>
+          </a>
+        </span>
+        <span class="github-btn">
+          <a class="gh-btn" href="https://github.com/zhenorzz/goploy/" target="_blank">
+            <span class="gh-ico" />
+            <span class="gh-text">Star</span>
+          </a>
+          <a class="gh-count" href="https://github.com/zhenorzz/goploy/stargazers" target="_blank">{{ starCount }}</a>
+        </span>
+        <span class="github-btn github-forks">
+          <a class="gh-btn" href="https://github.com/zhenorzz/goploy/fork" target="_blank">
+            <span class="gh-ico" aria-hidden="true" />
+            <span class="gh-text">Fork</span>
+          </a>
+          <a class="gh-count" href="https://github.com/zhenorzz/goploy/network" target="_blank">{{ forkCount }}</a>
+        </span>
+      </div>
+      <div class="user-menu">
+        <el-dropdown class="user-container" trigger="click" size="medium">
+          <div class="user-wrapper">
+            <el-row type="flex">
+              <el-row>
+                <el-avatar v-if="this.$store.getters.avatar" :size="40" :src="avatar" />
+                <div v-else class="avatar-box" style="background: rgb(64, 158, 255)">
+                  <span>{{ name.substr(0,1) }}</span>
+                </div>
+              </el-row>
+              <el-row style="margin-left:8px;">
+                <el-row class="user-name">{{ name }}</el-row>
+                <el-row class="user-title">{{ role }} </el-row>
+              </el-row>
+            </el-row>
+          </div>
+          <el-dropdown-menu slot="dropdown" class="user-dropdown">
+            <router-link to="/user/info">
+              <el-dropdown-item>
+                个人中心
+              </el-dropdown-item>
+            </router-link>
+            <el-dropdown-item divided>
+              <span style="display:block; text-align:center;" @click="logout">退出</span>
             </el-dropdown-item>
-          </router-link>
-          <el-dropdown-item divided>
-            <span style="display:block;" @click="logout">退出</span>
-          </el-dropdown-item>
-        </el-dropdown-menu>
-      </el-dropdown>
+          </el-dropdown-menu>
+        </el-dropdown>
+      </div>
     </div>
   </div>
 </template>
@@ -64,7 +77,8 @@ export default {
   computed: {
     ...mapGetters([
       'sidebar',
-      'name'
+      'name',
+      'role'
     ])
   },
   created() {
@@ -110,14 +124,13 @@ export default {
     float: left;
   }
 
-  .right-menu {
+  .right {
     float: right;
-    height: 100%;
+    width: auto;
+  }
+  .github {
+    display: inline-block;
     line-height: 50px;
-
-    &:focus {
-      outline: none;
-    }
     .github-btn {
       display: inline-block;
       font: 700 11px/14px 'Helvetica Neue',Helvetica,Arial,sans-serif;
@@ -205,30 +218,48 @@ export default {
         }
       }
     }
+  }
+  .user-menu {
+    float: right;
+    height: 100%;
 
-    .right-menu-item {
-      display: inline-block;
-      padding: 0 8px;
-      height: 100%;
-      font-size: 18px;
-      color: #5a5e66;
-      vertical-align: text-bottom;
+    &:focus {
+      outline: none;
+    }
 
-      &.hover-effect {
-        cursor: pointer;
-        transition: background .3s;
-
-        &:hover {
-          background: rgba(0, 0, 0, .025)
-        }
-      }
+    &:hover {
+      background-color: #F5F7FA;
     }
 
     .user-container {
-      margin-right: 30px;
-
+      padding:0 20px;
+      display: block;
+      margin-top: 5px;
+      height: 46px;
       .user-wrapper {
         position: relative;
+        cursor: pointer;
+      }
+
+      .avatar-box{
+        height: 40px;
+        width: 40px;
+        line-height: 40px;
+        border-radius: 50%;
+        text-align: center;
+        color: #fff;
+        font-size: 16px;
+      }
+
+      .user-name {
+        margin-top:4px;
+        font-size: 16px;
+        font-weight: 900;
+        color: #9D9D9D;
+      }
+      .user-title {
+        font-size: 13px;
+        color: #9D9D9D;
       }
     }
   }
