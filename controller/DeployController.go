@@ -220,7 +220,7 @@ type SyncMessage struct {
 // if commit sha is empty, deploy the latest
 func execSync(userInfo model.User, project model.Project, projectServers model.ProjectServers, commitSha string) {
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy start")
-	ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
+	ws.GetHub().Data <- &ws.Data{
 		Type: ws.TypeProject,
 		Message: ws.ProjectMessage{
 			ProjectID:   project.ID,
@@ -251,7 +251,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 		project.DeployFail()
 		publishTraceModel.Detail = err.Error()
 		publishTraceModel.State = model.Fail
-		ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
+		ws.GetHub().Data <- &ws.Data{
 			Type: ws.TypeProject,
 			Message: ws.ProjectMessage{
 				ProjectID:   project.ID,
@@ -285,7 +285,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 			project.DeployFail()
 			publishTraceModel.Detail = err.Error()
 			publishTraceModel.State = model.Fail
-			ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
+			ws.GetHub().Data <- &ws.Data{
 				Type: ws.TypeProject,
 				Message: ws.ProjectMessage{
 					ProjectID:   project.ID,
@@ -333,7 +333,7 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 
 	}
 
-	ws.GetBroadcastHub().BroadcastData <- &ws.BroadcastData{
+	ws.GetHub().Data <- &ws.Data{
 		Type: ws.TypeProject,
 		Message: ws.ProjectMessage{
 			ProjectID:   project.ID,

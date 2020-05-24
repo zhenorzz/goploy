@@ -242,7 +242,7 @@ export default {
       }
 
       return new Promise((resolve, reject) => {
-        this.webSocket = new WebSocket('ws://' + window.location.host + process.env.VUE_APP_BASE_API + '/ws/broadcast')
+        this.webSocket = new WebSocket('ws://' + window.location.host + process.env.VUE_APP_BASE_API + '/ws/connect')
 
         this.webSocket.onopen = () => {
           console.log('socket connection is opened [state = ' + this.webSocket.readyState + ']: ' + this.webSocket.url)

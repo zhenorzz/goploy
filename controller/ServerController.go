@@ -291,9 +291,15 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 				installTraceModel.State = model.Success
 				installTraceModel.AddRow()
 
-				ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-					ToUserID: userInfo.ID,
-					Message:  installTraceModel,
+				ws.GetHub().Data <- &ws.Data{
+					Type: ws.TypeServerTemplate,
+					UserIDs: []int64{userInfo.ID},
+					Message: ws.ServerTemplateMessage{
+						ServerID:   installTraceModel.ServerID,
+						ServerName: installTraceModel.ServerName,
+						Detail:     installTraceModel.Detail,
+						Ext:        installTraceModel.Ext,
+					},
 				}
 				break
 			}
@@ -307,9 +313,15 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 			installTraceModel.Detail = errbuf.String()
 			installTraceModel.State = model.Fail
 			installTraceModel.AddRow()
-			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-				ToUserID: userInfo.ID,
-				Message:  installTraceModel,
+			ws.GetHub().Data <- &ws.Data{
+				Type: ws.TypeServerTemplate,
+				UserIDs: []int64{userInfo.ID},
+				Message: ws.ServerTemplateMessage{
+					ServerID:   installTraceModel.ServerID,
+					ServerName: installTraceModel.ServerName,
+					Detail:     installTraceModel.Detail,
+					Ext:        installTraceModel.Ext,
+				},
 			}
 			return
 		}
@@ -331,9 +343,15 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 			installTraceModel.State = model.Success
 			installTraceModel.Detail = "connected"
 			installTraceModel.AddRow()
-			ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-				ToUserID: userInfo.ID,
-				Message:  installTraceModel,
+			ws.GetHub().Data <- &ws.Data{
+				Type: ws.TypeServerTemplate,
+				UserIDs: []int64{userInfo.ID},
+				Message: ws.ServerTemplateMessage{
+					ServerID:   installTraceModel.ServerID,
+					ServerName: installTraceModel.ServerName,
+					Detail:     installTraceModel.Detail,
+					Ext:        installTraceModel.Ext,
+				},
 			}
 			var sshOutbuf, sshErrbuf bytes.Buffer
 			session.Stdout = &sshOutbuf
@@ -351,9 +369,15 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 				installTraceModel.State = model.Success
 				installTraceModel.Detail = sshOutbuf.String()
 				installTraceModel.AddRow()
-				ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-					ToUserID: userInfo.ID,
-					Message:  installTraceModel,
+				ws.GetHub().Data <- &ws.Data{
+					Type: ws.TypeServerTemplate,
+					UserIDs: []int64{userInfo.ID},
+					Message: ws.ServerTemplateMessage{
+						ServerID:   installTraceModel.ServerID,
+						ServerName: installTraceModel.ServerName,
+						Detail:     installTraceModel.Detail,
+						Ext:        installTraceModel.Ext,
+					},
 				}
 				break
 			}
@@ -372,9 +396,15 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 		installTraceModel.State = model.Fail
 		installTraceModel.Detail = connectError.Error()
 		installTraceModel.AddRow()
-		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-			ToUserID: userInfo.ID,
-			Message:  installTraceModel,
+		ws.GetHub().Data <- &ws.Data{
+			Type: ws.TypeServerTemplate,
+			UserIDs: []int64{userInfo.ID},
+			Message: ws.ServerTemplateMessage{
+				ServerID:   installTraceModel.ServerID,
+				ServerName: installTraceModel.ServerName,
+				Detail:     installTraceModel.Detail,
+				Ext:        installTraceModel.Ext,
+			},
 		}
 		return
 	} else if scriptError != nil {
@@ -386,9 +416,15 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 		installTraceModel.State = model.Fail
 		installTraceModel.Detail = scriptError.Error()
 		installTraceModel.AddRow()
-		ws.GetUnicastHub().UnicastData <- &ws.UnicastData{
-			ToUserID: userInfo.ID,
-			Message:  installTraceModel,
+		ws.GetHub().Data <- &ws.Data{
+			Type: ws.TypeServerTemplate,
+			UserIDs: []int64{userInfo.ID},
+			Message: ws.ServerTemplateMessage{
+				ServerID:   installTraceModel.ServerID,
+				ServerName: installTraceModel.ServerName,
+				Detail:     installTraceModel.Detail,
+				Ext:        installTraceModel.Ext,
+			},
 		}
 		return
 	}
