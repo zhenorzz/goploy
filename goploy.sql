@@ -140,7 +140,7 @@ CREATE TABLE `publish_trace` (
   `type` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '1拉代码前脚本，2.git获取代码，3拉代码后脚本，4部署前脚本，5部署日志，6部署后脚本',
   `create_time` int(10) unsigned NOT NULL DEFAULT '0',
   `update_time` int(10) unsigned NOT NULL DEFAULT '0',
-  `ext` text NOT NULL,
+  `ext` longtext NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   KEY `project_id` (`project_id`) USING BTREE COMMENT 'project_id'
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
