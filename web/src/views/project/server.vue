@@ -10,16 +10,16 @@
       :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="name" label="服务器" width="100" />
-      <el-table-column prop="ip" label="IP" width="100" />
-      <el-table-column prop="port" label="端口" />
+      <el-table-column prop="name" label="服务器" min-width="140" />
+      <el-table-column prop="ip" label="IP" min-width="140" />
+      <el-table-column prop="port" label="端口" width="60" />
       <el-table-column prop="owner" label="sshKey所有者" width="100" show-overflow-tooltip />
       <el-table-column prop="group" label="分组" width="100">
         <template slot-scope="scope">
           {{ findGroupName(scope.row.groupId) }}
         </template>
       </el-table-column>
-      <el-table-column prop="description" label="描述" show-overflow-tooltip />
+      <el-table-column prop="description" label="描述" min-width="140" show-overflow-tooltip />
       <el-table-column prop="insertTime" label="创建时间" width="160" />
       <el-table-column prop="updateTime" label="更新时间" width="160" />
       <el-table-column prop="operation" label="操作" width="220" fixed="right">
@@ -147,7 +147,7 @@ export default {
       tableData: [],
       pagination: {
         page: 1,
-        rows: 11,
+        rows: 16,
         total: 0
       },
       groupOption: [],

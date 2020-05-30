@@ -54,7 +54,7 @@ export default {
       tableData: [],
       pagination: {
         page: 1,
-        rows: 11,
+        rows: 16,
         total: 0
       },
       tempFormData: {},

@@ -308,7 +308,7 @@ export default {
       tableData: [],
       pagination: {
         page: 1,
-        rows: 15,
+        rows: 17,
         total: 0
       },
       tableServerData: [],
