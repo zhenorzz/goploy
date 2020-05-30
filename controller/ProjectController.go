@@ -4,16 +4,14 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"goploy/core"
+	"goploy/model"
+	"goploy/utils"
 	"net/http"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
-	"time"
-
-	"goploy/core"
-	"goploy/model"
-	"goploy/utils"
 )
 
 // Project struct
@@ -154,8 +152,6 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 		AutoDeploy:        reqData.AutoDeploy,
 		NotifyType:        reqData.NotifyType,
 		NotifyTarget:      reqData.NotifyTarget,
-		CreateTime:        time.Now().Unix(),
-		UpdateTime:        time.Now().Unix(),
 	}.AddRow()
 
 	if err != nil {
@@ -164,10 +160,8 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 	projectServersModel := model.ProjectServers{}
 	for _, serverID := range reqData.ServerIDs {
 		projectServerModel := model.ProjectServer{
-			ProjectID:  projectID,
-			ServerID:   serverID,
-			CreateTime: time.Now().Unix(),
-			UpdateTime: time.Now().Unix(),
+			ProjectID: projectID,
+			ServerID:  serverID,
 		}
 		projectServersModel = append(projectServersModel, projectServerModel)
 	}
@@ -178,10 +172,8 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 	projectUsersModel := model.ProjectUsers{}
 	for _, userID := range reqData.UserIDs {
 		projectUserModel := model.ProjectUser{
-			ProjectID:  projectID,
-			UserID:     userID,
-			CreateTime: time.Now().Unix(),
-			UpdateTime: time.Now().Unix(),
+			ProjectID: projectID,
+			UserID:    userID,
 		}
 		projectUsersModel = append(projectUsersModel, projectUserModel)
 	}
@@ -247,7 +239,6 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 		AutoDeploy:        reqData.AutoDeploy,
 		NotifyType:        reqData.NotifyType,
 		NotifyTarget:      reqData.NotifyTarget,
-		UpdateTime:        time.Now().Unix(),
 	}.EditRow()
 
 	if err != nil {
@@ -268,8 +259,7 @@ func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Resp
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	err = model.Project{
-		ID:         reqData.ID,
-		UpdateTime: time.Now().Unix(),
+		ID: reqData.ID,
 	}.RemoveRow()
 
 	if err != nil {
@@ -294,10 +284,8 @@ func (project Project) AddServer(w http.ResponseWriter, gp *core.Goploy) *core.R
 	projectServersModel := model.ProjectServers{}
 	for _, serverID := range reqData.ServerIDs {
 		projectServerModel := model.ProjectServer{
-			ProjectID:  projectID,
-			ServerID:   serverID,
-			CreateTime: time.Now().Unix(),
-			UpdateTime: time.Now().Unix(),
+			ProjectID: projectID,
+			ServerID:  serverID,
 		}
 		projectServersModel = append(projectServersModel, projectServerModel)
 	}
@@ -327,10 +315,8 @@ func (project Project) AddUser(w http.ResponseWriter, gp *core.Goploy) *core.Res
 	projectUsersModel := model.ProjectUsers{}
 	for _, userID := range reqData.UserIDs {
 		projectUserModel := model.ProjectUser{
-			ProjectID:  projectID,
-			UserID:     userID,
-			CreateTime: time.Now().Unix(),
-			UpdateTime: time.Now().Unix(),
+			ProjectID: projectID,
+			UserID:    userID,
 		}
 		projectUsersModel = append(projectUsersModel, projectUserModel)
 	}

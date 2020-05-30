@@ -12,8 +12,8 @@ type ProjectUser struct {
 	ProjectName string `json:"projectName"`
 	UserID      int64  `json:"userId"`
 	UserName    string `json:"userName"`
-	CreateTime  int64  `json:"createTime"`
-	UpdateTime  int64  `json:"updateTime"`
+	InsertTime  string  `json:"insertTime"`
+	UpdateTime  string  `json:"updateTime"`
 }
 
 // ProjectUsers project user relationship
@@ -22,7 +22,7 @@ type ProjectUsers []ProjectUser
 // GetBindUserListByProjectID user row
 func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
 	rows, err := sq.
-		Select("project_user.id, project_id, user_id, user.name, project_user.create_time, project_user.update_time").
+		Select("project_user.id, project_id, user_id, user.name, project_user.insert_time, project_user.update_time").
 		From(projectUserTable).
 		LeftJoin(userTable + " ON project_user.user_id = user.id").
 		Where(sq.Eq{"project_id": pu.ProjectID}).
@@ -35,7 +35,7 @@ func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
 	for rows.Next() {
 		var projectUser ProjectUser
 
-		if err := rows.Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID, &projectUser.UserName, &projectUser.CreateTime, &projectUser.UpdateTime); err != nil {
+		if err := rows.Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID, &projectUser.UserName, &projectUser.InsertTime, &projectUser.UpdateTime); err != nil {
 			return projectUsers, err
 		}
 		projectUsers = append(projectUsers, projectUser)
@@ -46,7 +46,7 @@ func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
 // GetBindUserListByProjectID user row
 func (pu ProjectUser) GetBindProjectListByUserID() (ProjectUsers, error) {
 	rows, err := sq.
-		Select("project_user.id, project_id, user_id, project.name, project.group_id, project_user.create_time, project_user.update_time").
+		Select("project_user.id, project_id, user_id, project.name, project.group_id, project_user.insert_time, project_user.update_time").
 		From(projectUserTable).
 		LeftJoin(projectTable + " ON project_user.project_id = project.id").
 		Where(sq.Eq{"user_id": pu.UserID}).
@@ -59,7 +59,7 @@ func (pu ProjectUser) GetBindProjectListByUserID() (ProjectUsers, error) {
 	for rows.Next() {
 		var projectUser ProjectUser
 
-		if err := rows.Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID, &projectUser.ProjectName, &projectUser.GroupID, &projectUser.CreateTime, &projectUser.UpdateTime); err != nil {
+		if err := rows.Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID, &projectUser.ProjectName, &projectUser.GroupID, &projectUser.InsertTime, &projectUser.UpdateTime); err != nil {
 			return projectUsers, err
 		}
 		projectUsers = append(projectUsers, projectUser)
@@ -70,7 +70,7 @@ func (pu ProjectUser) GetBindProjectListByUserID() (ProjectUsers, error) {
 // GetListByUserID user row
 func (pu ProjectUser) GetListByUserID() (ProjectUsers, error) {
 	rows, err := sq.
-		Select("id, project_id, user_id, create_time, update_time").
+		Select("id, project_id, user_id, insert_time, update_time").
 		From(projectUserTable).
 		Where(sq.Eq{"user_id": pu.UserID}).
 		RunWith(DB).
@@ -82,7 +82,7 @@ func (pu ProjectUser) GetListByUserID() (ProjectUsers, error) {
 	for rows.Next() {
 		var projectUser ProjectUser
 
-		if err := rows.Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID, &projectUser.CreateTime, &projectUser.UpdateTime); err != nil {
+		if err := rows.Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID, &projectUser.InsertTime, &projectUser.UpdateTime); err != nil {
 			return projectUsers, err
 		}
 		projectUsers = append(projectUsers, projectUser)
@@ -141,10 +141,10 @@ func (pu ProjectUsers) AddMany() error {
 	}
 	builder := sq.
 		Insert(projectUserTable).
-		Columns("project_id", "user_id", "create_time", "update_time")
+		Columns("project_id", "user_id")
 
 	for _, row := range pu {
-		builder = builder.Values(row.ProjectID, row.UserID, row.CreateTime, row.UpdateTime)
+		builder = builder.Values(row.ProjectID, row.UserID, row.InsertTime, row.UpdateTime)
 	}
 	_, err := builder.RunWith(DB).Exec()
 	return err

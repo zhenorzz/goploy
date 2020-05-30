@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"time"
 
 	"goploy/core"
 	"goploy/model"
@@ -73,10 +72,8 @@ func (Package) Upload(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 
 	if packageIDStr == "" {
 		_, err = model.Package{
-			Name:       handler.Filename,
-			Size:       handler.Size,
-			CreateTime: time.Now().Unix(),
-			UpdateTime: time.Now().Unix(),
+			Name: handler.Filename,
+			Size: handler.Size,
 		}.AddRow()
 	} else {
 		packageID, err := strconv.ParseInt(packageIDStr, 10, 64)
@@ -85,10 +82,9 @@ func (Package) Upload(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 		}
 
 		err = model.Package{
-			ID:         packageID,
-			Name:       handler.Filename,
-			Size:       handler.Size,
-			UpdateTime: time.Now().Unix(),
+			ID:   packageID,
+			Name: handler.Filename,
+			Size: handler.Size,
 		}.EditRow()
 	}
 

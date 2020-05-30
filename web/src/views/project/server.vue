@@ -20,7 +20,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="description" label="描述" show-overflow-tooltip />
-      <el-table-column prop="createTime" label="创建时间" width="160" />
+      <el-table-column prop="insertTime" label="创建时间" width="160" />
       <el-table-column prop="updateTime" label="更新时间" width="160" />
       <el-table-column prop="operation" label="操作" width="220" fixed="right">
         <template slot-scope="scope">
@@ -125,7 +125,6 @@
 import { getList, getInstallPreview, getInstallList, add, edit, check, remove, install } from '@/api/server'
 import { getOption as getGroupOption } from '@/api/group'
 import { getOption as getTemplateOption } from '@/api/template'
-import { parseTime } from '@/utils'
 // require component
 import { codemirror } from 'vue-codemirror'
 import 'codemirror/mode/shell/shell.js'
@@ -270,10 +269,6 @@ export default {
     getList() {
       getList(this.pagination).then((response) => {
         const serverList = response.data.serverList || []
-        serverList.forEach((element) => {
-          element.createTime = parseTime(element.createTime)
-          element.updateTime = parseTime(element.updateTime)
-        })
         this.tableData = serverList
         this.pagination = response.data.pagination
       })

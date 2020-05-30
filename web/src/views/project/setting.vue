@@ -182,10 +182,10 @@
       >
         <el-table-column prop="serverId" label="服务器ID" width="100" />
         <el-table-column prop="serverName" label="服务器名称" width="100" />
-        <el-table-column prop="serverDescription" label="服务器描述" width="100" show-overflow-tooltip />
-        <el-table-column prop="createTime" width="160" label="绑定时间" />
+        <el-table-column prop="serverDescription" label="服务器描述" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="insertTime" width="160" label="绑定时间" />
         <el-table-column prop="updateTime" width="160" label="更新时间" />
-        <el-table-column prop="operation" label="操作" width="75">
+        <el-table-column prop="operation" label="操作" width="80">
           <template slot-scope="scope">
             <el-button type="danger" @click="removeProjectServer(scope.row)">删除</el-button>
           </template>
@@ -208,9 +208,9 @@
       >
         <el-table-column prop="userId" label="用户ID" />
         <el-table-column prop="userName" label="用户名称" />
-        <el-table-column prop="createTime" width="160" label="绑定时间" />
+        <el-table-column prop="insertTime" width="160" label="绑定时间" />
         <el-table-column prop="updateTime" width="160" label="更新时间" />
-        <el-table-column prop="operation" label="操作" width="75">
+        <el-table-column prop="operation" label="操作" width="80">
           <template slot-scope="scope">
             <el-button type="danger" @click="removeProjectUser(scope.row)">删除</el-button>
           </template>
@@ -264,7 +264,6 @@ import { getCanBindProjectUser } from '@/api/user'
 import { getOption as getServerOption } from '@/api/server'
 import { getOption as getGroupOption } from '@/api/group'
 import { getList, getBindServerList, getBindUserList, add, edit, remove, addServer, addUser, removeProjectServer, removeProjectUser } from '@/api/project'
-import { parseTime } from '@/utils'
 // require component
 import { codemirror } from 'vue-codemirror'
 import 'codemirror/mode/shell/shell.js'
@@ -630,10 +629,6 @@ export default {
     getProjectList() {
       getList(this.pagination, this.projectName).then((response) => {
         const projectList = response.data.projectList || []
-        projectList.forEach((element) => {
-          element.createTime = parseTime(element.createTime)
-          element.updateTime = parseTime(element.updateTime)
-        })
         this.tableData = projectList
         this.pagination = response.data.pagination
       }).catch(() => {
@@ -643,20 +638,12 @@ export default {
     getBindServerList(projectID) {
       getBindServerList(projectID).then((response) => {
         this.tableServerData = response.data.projectServerMap || []
-        this.tableServerData.forEach((element) => {
-          element.createTime = parseTime(element.createTime)
-          element.updateTime = parseTime(element.updateTime)
-        })
       })
     },
 
     getBindUserList(projectID) {
       getBindUserList(projectID).then((response) => {
         this.tableUserData = response.data.projectUserMap || []
-        this.tableUserData.forEach((element) => {
-          element.createTime = parseTime(element.createTime)
-          element.updateTime = parseTime(element.updateTime)
-        })
       })
     },
 

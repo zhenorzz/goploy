@@ -22,9 +22,9 @@ type User struct {
 	Role           string `json:"role"`
 	ManageGroupStr string `json:"manageGroupStr"`
 	State          uint8  `json:"state"`
-	CreateTime     int64  `json:"createTime"`
-	UpdateTime     int64  `json:"updateTime"`
-	LastLoginTime  int64  `json:"lastLoginTime"`
+	InsertTime     string `json:"insertTime"`
+	UpdateTime     string `json:"updateTime"`
+	LastLoginTime  string `json:"lastLoginTime"`
 }
 
 // Users many user
@@ -34,12 +34,12 @@ type Users []User
 func (u User) GetData() (User, error) {
 	var user User
 	err := sq.
-		Select("id, account, password, name, mobile, role, manage_group_str, state, create_time, update_time").
+		Select("id, account, password, name, mobile, role, manage_group_str, state, insert_time, update_time").
 		From(userTable).
 		Where(sq.Eq{"id": u.ID}).
 		RunWith(DB).
 		QueryRow().
-		Scan(&user.ID, &user.Account, &user.Password, &user.Name, &user.Mobile, &user.Role, &user.ManageGroupStr, &user.State, &user.CreateTime, &user.UpdateTime)
+		Scan(&user.ID, &user.Account, &user.Password, &user.Name, &user.Mobile, &user.Role, &user.ManageGroupStr, &user.State, &user.InsertTime, &user.UpdateTime)
 	if err != nil {
 		return user, err
 	}
@@ -50,12 +50,12 @@ func (u User) GetData() (User, error) {
 func (u User) GetDataByAccount() (User, error) {
 	var user User
 	err := sq.
-		Select("id, account, password, name, mobile, role, manage_group_str, state, create_time, update_time").
+		Select("id, account, password, name, mobile, role, manage_group_str, state, insert_time, update_time").
 		From(userTable).
 		Where(sq.Eq{"account": u.Account}).
 		RunWith(DB).
 		QueryRow().
-		Scan(&user.ID, &user.Account, &user.Password, &user.Name, &user.Mobile, &user.Role, &user.ManageGroupStr, &user.State, &user.CreateTime, &user.UpdateTime)
+		Scan(&user.ID, &user.Account, &user.Password, &user.Name, &user.Mobile, &user.Role, &user.ManageGroupStr, &user.State, &user.InsertTime, &user.UpdateTime)
 	if err != nil {
 		return user, err
 	}
@@ -65,7 +65,7 @@ func (u User) GetDataByAccount() (User, error) {
 // GetList get many user row
 func (u Users) GetList(pagination Pagination) (Users, Pagination, error) {
 	rows, err := sq.
-		Select("id, account, name, mobile, role, manage_group_str, create_time, update_time").
+		Select("id, account, name, mobile, role, manage_group_str, insert_time, update_time").
 		From(userTable).
 		Where(sq.Eq{"state": Enable}).
 		OrderBy("id DESC").
@@ -80,7 +80,7 @@ func (u Users) GetList(pagination Pagination) (Users, Pagination, error) {
 	for rows.Next() {
 		var user User
 
-		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.Role, &user.ManageGroupStr, &user.CreateTime, &user.UpdateTime); err != nil {
+		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.Role, &user.ManageGroupStr, &user.InsertTime, &user.UpdateTime); err != nil {
 			return users, pagination, err
 		}
 		users = append(users, user)
@@ -101,7 +101,7 @@ func (u Users) GetList(pagination Pagination) (Users, Pagination, error) {
 // GetAll user row
 func (u User) GetAll() (Users, error) {
 	rows, err := sq.
-		Select("id, account, name, mobile, create_time, update_time").
+		Select("id, account, name, mobile, insert_time, update_time").
 		From(userTable).
 		Where(sq.Eq{"state": Enable}).
 		OrderBy("id DESC").
@@ -114,7 +114,7 @@ func (u User) GetAll() (Users, error) {
 	for rows.Next() {
 		var user User
 
-		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.CreateTime, &user.UpdateTime); err != nil {
+		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.InsertTime, &user.UpdateTime); err != nil {
 			return users, err
 		}
 		users = append(users, user)
@@ -125,7 +125,7 @@ func (u User) GetAll() (Users, error) {
 // GetAll user row
 func (u User) GetAllByRole() (Users, error) {
 	rows, err := sq.
-		Select("id, account, name, mobile, create_time, update_time").
+		Select("id, account, name, mobile, insert_time, update_time").
 		From(userTable).
 		Where(sq.Eq{"role": u.Role}).
 		Where(sq.Eq{"state": Enable}).
@@ -139,7 +139,7 @@ func (u User) GetAllByRole() (Users, error) {
 	for rows.Next() {
 		var user User
 
-		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.CreateTime, &user.UpdateTime); err != nil {
+		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.InsertTime, &user.UpdateTime); err != nil {
 			return users, err
 		}
 		users = append(users, user)
@@ -150,7 +150,7 @@ func (u User) GetAllByRole() (Users, error) {
 // GetAll user row
 func (u User) GetCanBindProjectUser() (Users, error) {
 	rows, err := sq.
-		Select("id, account, name, mobile, create_time, update_time").
+		Select("id, account, name, mobile, insert_time, update_time").
 		From(userTable).
 		Where(sq.Eq{"role": []string{"group-manager", "member"}}).
 		Where(sq.Eq{"state": Enable}).
@@ -164,7 +164,7 @@ func (u User) GetCanBindProjectUser() (Users, error) {
 	for rows.Next() {
 		var user User
 
-		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.CreateTime, &user.UpdateTime); err != nil {
+		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.InsertTime, &user.UpdateTime); err != nil {
 			return users, err
 		}
 		users = append(users, user)
@@ -186,8 +186,8 @@ func (u User) AddRow() (int64, error) {
 	}
 	result, err := sq.
 		Insert(userTable).
-		Columns("account", "password", "name", "mobile", "role", "manage_group_str", "create_time", "update_time").
-		Values(u.Account, string(hashedPassword), u.Name, u.Mobile, u.Role, u.ManageGroupStr, u.CreateTime, u.UpdateTime).
+		Columns("account", "password", "name", "mobile", "role", "manage_group_str").
+		Values(u.Account, string(hashedPassword), u.Name, u.Mobile, u.Role, u.ManageGroupStr).
 		RunWith(DB).
 		Exec()
 
@@ -207,7 +207,6 @@ func (u User) EditRow() error {
 			"mobile":           u.Mobile,
 			"role":             u.Role,
 			"manage_group_str": u.ManageGroupStr,
-			"update_time":      u.UpdateTime,
 		}).
 		Where(sq.Eq{"id": u.ID})
 	if u.Password != "" {
@@ -228,8 +227,7 @@ func (u User) RemoveRow() error {
 	_, err := sq.
 		Update(userTable).
 		SetMap(sq.Eq{
-			"state":       Disable,
-			"update_time": u.UpdateTime,
+			"state": Disable,
 		}).
 		Where(sq.Eq{"id": u.ID}).
 		RunWith(DB).
@@ -248,8 +246,7 @@ func (u User) UpdatePassword() error {
 	_, err = sq.
 		Update(userTable).
 		SetMap(sq.Eq{
-			"password":    string(hashedPassword),
-			"update_time": u.UpdateTime,
+			"password": string(hashedPassword),
 		}).
 		Where(sq.Eq{"id": u.ID}).
 		RunWith(DB).
@@ -267,7 +264,6 @@ func (u User) UpdateLastLoginTime() error {
 		Where(sq.Eq{"id": u.ID}).
 		RunWith(DB).
 		Exec()
-
 	return err
 }
 

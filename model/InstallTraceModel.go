@@ -17,8 +17,8 @@ type InstallTrace struct {
 	Type         int64  `json:"type"`
 	Ext          string `json:"ext"`
 	InstallState int64  `json:"installState"`
-	CreateTime   int64  `json:"createTime"`
-	UpdateTime   int64  `json:"updateTime"`
+	InsertTime   string `json:"insertTime"`
+	UpdateTime   string `json:"updateTime"`
 }
 
 // InstallTraces InstallTrace slice
@@ -35,8 +35,8 @@ const (
 func (it InstallTrace) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(installTraceTable).
-		Columns("token", "server_id", "server_name", "detail", "state", "operator_id", "operator_name", "type", "ext", "create_time", "update_time").
-		Values(it.Token, it.ServerID, it.ServerName, it.Detail, it.State, it.OperatorID, it.OperatorName, it.Type, it.Ext, it.CreateTime, it.UpdateTime).
+		Columns("token", "server_id", "server_name", "detail", "state", "operator_id", "operator_name", "type", "ext").
+		Values(it.Token, it.ServerID, it.ServerName, it.Detail, it.State, it.OperatorID, it.OperatorName, it.Type, it.Ext).
 		RunWith(DB).
 		Exec()
 
@@ -51,7 +51,7 @@ func (it InstallTrace) AddRow() (int64, error) {
 // GetListByToken InstallTrace row
 func (it InstallTrace) GetListByToken() (InstallTraces, error) {
 	rows, err := sq.
-		Select("id, token, server_id, server_name, detail, state, operator_id, operator_name, type, ext, create_time, update_time").
+		Select("id, token, server_id, server_name, detail, state, operator_id, operator_name, type, ext, insert_time, update_time").
 		From(installTraceTable).
 		Where(sq.Eq{"token": it.Token}).
 		RunWith(DB).
@@ -75,7 +75,7 @@ func (it InstallTrace) GetListByToken() (InstallTraces, error) {
 			&installTrace.OperatorName,
 			&installTrace.Type,
 			&installTrace.Ext,
-			&installTrace.CreateTime,
+			&installTrace.InsertTime,
 			&installTrace.UpdateTime); err != nil {
 			return nil, err
 		}
@@ -113,7 +113,7 @@ func (it InstallTrace) GetPreviewByProjectID() (InstallTraces, error) {
 			&installTrace.OperatorName,
 			&installTrace.Type,
 			&installTrace.Ext,
-			&installTrace.CreateTime,
+			&installTrace.InsertTime,
 			&installTrace.UpdateTime,
 			&installTrace.InstallState); err != nil {
 			return nil, err

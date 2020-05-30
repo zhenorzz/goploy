@@ -14,7 +14,7 @@
       <el-table-column prop="name" label="名称" />
       <el-table-column prop="mobile" label="手机号码" show-overflow-tooltip />
       <el-table-column prop="role" label="角色" />
-      <el-table-column prop="createTime" label="创建时间" width="160" />
+      <el-table-column prop="insertTime" label="创建时间" width="160" />
       <el-table-column prop="updateTime" label="更新时间" width="160" />
       <el-table-column prop="operation" label="操作" width="150">
         <template slot-scope="scope">
@@ -108,7 +108,6 @@ import { getList, add, edit, remove } from '@/api/user'
 import { getOption as getRoleOption } from '@/api/role'
 import { getOption as getGroupOption } from '@/api/group'
 import { getOption as getProjectOption, getBindProjectList } from '@/api/project'
-import { parseTime } from '@/utils'
 
 export default {
   data() {
@@ -187,10 +186,6 @@ export default {
     getUserList() {
       getList(this.pagination).then((response) => {
         const userList = response.data.userList || []
-        userList.forEach((element) => {
-          element.createTime = parseTime(element.createTime)
-          element.updateTime = parseTime(element.updateTime)
-        })
         this.tableData = userList
         this.pagination = response.data.pagination
       })

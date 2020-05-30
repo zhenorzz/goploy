@@ -259,6 +259,7 @@ export default {
       }
       .user-title {
         font-size: 13px;
+        padding-top: 3px;
         color: #9D9D9D;
       }
     }

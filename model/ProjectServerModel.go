@@ -14,8 +14,8 @@ type ProjectServer struct {
 	ServerPort        int64  `json:"serverPort"`
 	ServerOwner       string `json:"serverOwner"`
 	ServerDescription string `json:"serverDescription"`
-	CreateTime        int64  `json:"createTime"`
-	UpdateTime        int64  `json:"updateTime"`
+	InsertTime        string  `json:"insertTime"`
+	UpdateTime        string  `json:"updateTime"`
 }
 
 // ProjectServers project server relationship
@@ -24,7 +24,7 @@ type ProjectServers []ProjectServer
 // GetBindServerListByProjectID server row
 func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 	rows, err := sq.
-		Select("project_server.id, project_id, server_id, server.name, server.ip, server.port, server.owner, server.description, project_server.create_time, project_server.update_time").
+		Select("project_server.id, project_id, server_id, server.name, server.ip, server.port, server.owner, server.description, project_server.insert_time, project_server.update_time").
 		From(projectServerTable).
 		LeftJoin(serverTable + " ON project_server.server_id = server.id").
 		Where(sq.Eq{"project_id": ps.ProjectID}).
@@ -47,7 +47,7 @@ func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 			&projectServer.ServerPort,
 			&projectServer.ServerOwner,
 			&projectServer.ServerDescription,
-			&projectServer.CreateTime,
+			&projectServer.InsertTime,
 			&projectServer.UpdateTime); err != nil {
 			return projectServers, err
 		}
@@ -64,10 +64,10 @@ func (ps ProjectServers) AddMany() error {
 
 	builder := sq.
 		Insert(projectServerTable).
-		Columns("project_id", "server_id", "create_time", "update_time")
+		Columns("project_id", "server_id")
 
 	for _, row := range ps {
-		builder = builder.Values(row.ProjectID, row.ServerID, row.CreateTime, row.UpdateTime)
+		builder = builder.Values(row.ProjectID, row.ServerID)
 	}
 	_, err := builder.RunWith(DB).Exec()
 	return err

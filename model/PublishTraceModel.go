@@ -17,8 +17,8 @@ type PublishTrace struct {
 	Type          int    `json:"type"`
 	Ext           string `json:"ext"`
 	PublishState  int    `json:"publishState"`
-	CreateTime    int64  `json:"createTime"`
-	UpdateTime    int64  `json:"updateTime"`
+	InsertTime    string `json:"insertTime"`
+	UpdateTime    string `json:"updateTime"`
 }
 
 // PublishTraces PublishTrace slice
@@ -43,8 +43,8 @@ const (
 func (pt PublishTrace) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(publishTraceTable).
-		Columns("token", "project_id", "project_name", "detail", "state", "publisher_id", "publisher_name", "type", "ext", "create_time", "update_time").
-		Values(pt.Token, pt.ProjectID, pt.ProjectName, pt.Detail, pt.State, pt.PublisherID, pt.PublisherName, pt.Type, pt.Ext, pt.CreateTime, pt.UpdateTime).
+		Columns("token", "project_id", "project_name", "detail", "state", "publisher_id", "publisher_name", "type", "ext").
+		Values(pt.Token, pt.ProjectID, pt.ProjectName, pt.Detail, pt.State, pt.PublisherID, pt.PublisherName, pt.Type, pt.Ext).
 		RunWith(DB).
 		Exec()
 
@@ -59,7 +59,7 @@ func (pt PublishTrace) AddRow() (int64, error) {
 // GetListByToken PublishTrace row
 func (pt PublishTrace) GetListByToken() (PublishTraces, error) {
 	rows, err := sq.
-		Select("id, token, project_id, project_name, detail, state, publisher_id, publisher_name, type, ext, create_time, update_time").
+		Select("id, token, project_id, project_name, detail, state, publisher_id, publisher_name, type, ext, insert_time, update_time").
 		From(publishTraceTable).
 		Where(sq.Eq{"token": pt.Token}).
 		RunWith(DB).
@@ -82,7 +82,7 @@ func (pt PublishTrace) GetListByToken() (PublishTraces, error) {
 			&publishTrace.PublisherName,
 			&publishTrace.Type,
 			&publishTrace.Ext,
-			&publishTrace.CreateTime,
+			&publishTrace.InsertTime,
 			&publishTrace.UpdateTime); err != nil {
 			return nil, err
 		}
@@ -94,7 +94,7 @@ func (pt PublishTrace) GetListByToken() (PublishTraces, error) {
 // GetPreviewByProjectID PublishTrace row
 func (pt PublishTrace) GetPreviewByProjectID() (PublishTraces, error) {
 	rows, err := sq.
-		Select("id, token, project_id, project_name, detail, state, publisher_id, publisher_name, type, ext, create_time, update_time").
+		Select("id, token, project_id, project_name, detail, state, publisher_id, publisher_name, type, ext, insert_time, update_time").
 		Column("!EXISTS (SELECT id FROM " + publishTraceTable + " AS pt where pt.state = 0 AND pt.token = publish_trace.token) as publish_state").
 		From(publishTraceTable).
 		Where(sq.Eq{"project_id": pt.ProjectID, "type": Pull}).
@@ -120,7 +120,7 @@ func (pt PublishTrace) GetPreviewByProjectID() (PublishTraces, error) {
 			&publishTrace.PublisherName,
 			&publishTrace.Type,
 			&publishTrace.Ext,
-			&publishTrace.CreateTime,
+			&publishTrace.InsertTime,
 			&publishTrace.UpdateTime,
 			&publishTrace.PublishState); err != nil {
 			return nil, err

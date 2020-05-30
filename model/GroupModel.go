@@ -12,8 +12,8 @@ const groupTable = "`group`"
 type Group struct {
 	ID         int64  `json:"id"`
 	Name       string `json:"name"`
-	CreateTime int64  `json:"createTime"`
-	UpdateTime int64  `json:"updateTime"`
+	InsertTime string  `json:"insertTime"`
+	UpdateTime string  `json:"updateTime"`
 }
 
 // Groups many Group
@@ -23,8 +23,8 @@ type Groups []Group
 func (g Group) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(groupTable).
-		Columns("name", "create_time", "update_time").
-		Values(g.Name, g.CreateTime, g.UpdateTime).
+		Columns("name").
+		Values(g.Name).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -66,7 +66,6 @@ func (g Group) Remove() error {
 	_, err = sq.
 		Update(projectTable).
 		Set("group_id", 0).
-		Set("update_time", g.UpdateTime).
 		Where(sq.Eq{"group_id": g.ID}).
 		RunWith(tx).
 		Exec()
@@ -85,7 +84,7 @@ func (g Group) Remove() error {
 // GetList Group row
 func (g Group) GetList(pagination Pagination) (Groups, Pagination, error) {
 	rows, err := sq.
-		Select("id, name, create_time, update_time").
+		Select("id, name, insert_time, update_time").
 		From(groupTable).
 		OrderBy("id DESC").
 		Limit(pagination.Rows).
@@ -100,7 +99,7 @@ func (g Group) GetList(pagination Pagination) (Groups, Pagination, error) {
 	for rows.Next() {
 		var group Group
 
-		if err := rows.Scan(&group.ID, &group.Name, &group.CreateTime, &group.UpdateTime); err != nil {
+		if err := rows.Scan(&group.ID, &group.Name, &group.InsertTime, &group.UpdateTime); err != nil {
 			return nil, pagination, err
 		}
 		groups = append(groups, group)
@@ -122,7 +121,7 @@ func (g Group) GetList(pagination Pagination) (Groups, Pagination, error) {
 // GetList Group row
 func (g Group) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Groups, Pagination, error) {
 	rows, err := sq.
-		Select("id, name, create_time, update_time").
+		Select("id, name, insert_time, update_time").
 		From(groupTable).
 		Where(sq.Eq{"id": groupIDs}).
 		OrderBy("id DESC").
@@ -138,7 +137,7 @@ func (g Group) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Grou
 	for rows.Next() {
 		var group Group
 
-		if err := rows.Scan(&group.ID, &group.Name, &group.CreateTime, &group.UpdateTime); err != nil {
+		if err := rows.Scan(&group.ID, &group.Name, &group.InsertTime, &group.UpdateTime); err != nil {
 			return nil, pagination, err
 		}
 		groups = append(groups, group)
@@ -160,7 +159,7 @@ func (g Group) GetListInGroupIDs(groupIDs []string, pagination Pagination) (Grou
 // GetAll Group row
 func (g Group) GetAllInGroupIDs(groupIDs []string) (Groups, error) {
 	rows, err := sq.
-		Select("id, name, create_time, update_time").
+		Select("id, name, insert_time, update_time").
 		From(groupTable).
 		Where(sq.Eq{"id": groupIDs}).
 		OrderBy("id DESC").
@@ -173,7 +172,7 @@ func (g Group) GetAllInGroupIDs(groupIDs []string) (Groups, error) {
 	for rows.Next() {
 		var projectGroup Group
 
-		if err := rows.Scan(&projectGroup.ID, &projectGroup.Name, &projectGroup.CreateTime, &projectGroup.UpdateTime); err != nil {
+		if err := rows.Scan(&projectGroup.ID, &projectGroup.Name, &projectGroup.InsertTime, &projectGroup.UpdateTime); err != nil {
 			return nil, err
 		}
 		projectGroups = append(projectGroups, projectGroup)
@@ -184,7 +183,7 @@ func (g Group) GetAllInGroupIDs(groupIDs []string) (Groups, error) {
 // GetAll Group row
 func (g Group) GetAll() (Groups, error) {
 	rows, err := sq.
-		Select("id, name, create_time, update_time").
+		Select("id, name, insert_time, update_time").
 		From(groupTable).
 		OrderBy("id DESC").
 		RunWith(DB).
@@ -196,7 +195,7 @@ func (g Group) GetAll() (Groups, error) {
 	for rows.Next() {
 		var projectGroup Group
 
-		if err := rows.Scan(&projectGroup.ID, &projectGroup.Name, &projectGroup.CreateTime, &projectGroup.UpdateTime); err != nil {
+		if err := rows.Scan(&projectGroup.ID, &projectGroup.Name, &projectGroup.InsertTime, &projectGroup.UpdateTime); err != nil {
 			return nil, err
 		}
 		projectGroups = append(projectGroups, projectGroup)
@@ -208,12 +207,12 @@ func (g Group) GetAll() (Groups, error) {
 func (g Group) GetData() (Group, error) {
 	var group Group
 	err := sq.
-		Select("name, create_time, update_time").
+		Select("name, insert_time, update_time").
 		From(groupTable).
 		Where(sq.Eq{"id": g.ID}).
 		RunWith(DB).
 		QueryRow().
-		Scan(&group.Name, &group.CreateTime, &group.UpdateTime)
+		Scan(&group.Name, &group.InsertTime, &group.UpdateTime)
 	if err != nil {
 		return group, errors.New("数据查询失败")
 	}

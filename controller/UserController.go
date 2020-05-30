@@ -47,7 +47,7 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	model.User{ID: userData.ID, LastLoginTime: time.Now().Unix()}.UpdateLastLoginTime()
+	model.User{ID: userData.ID, LastLoginTime: time.Now().Format("20060102150405")}.UpdateLastLoginTime()
 
 	core.Cache.Set("userInfo:"+strconv.Itoa(int(userData.ID)), &userData, cache.DefaultExpiration)
 	cookie := http.Cookie{Name: core.LoginCookieName, Value: token, Path: "/", MaxAge: 86400, HttpOnly: true}
@@ -146,8 +146,6 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 		Mobile:         reqData.Mobile,
 		Role:           reqData.Role,
 		ManageGroupStr: reqData.ManageGroupStr,
-		CreateTime:     time.Now().Unix(),
-		UpdateTime:     time.Now().Unix(),
 	}.AddRow()
 
 	if err != nil {
@@ -159,8 +157,6 @@ func (user User) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 		projectUserModel := model.ProjectUser{
 			ProjectID:  projectID,
 			UserID:     id,
-			CreateTime: time.Now().Unix(),
-			UpdateTime: time.Now().Unix(),
 		}
 		projectUsersModel = append(projectUsersModel, projectUserModel)
 	}
@@ -193,7 +189,6 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 		Mobile:         reqData.Mobile,
 		Role:           reqData.Role,
 		ManageGroupStr: reqData.ManageGroupStr,
-		UpdateTime:     time.Now().Unix(),
 	}.EditRow()
 
 	if err != nil {
@@ -213,8 +208,6 @@ func (user User) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 		projectUserModel := model.ProjectUser{
 			ProjectID:  projectID,
 			UserID:     reqData.ID,
-			CreateTime: time.Now().Unix(),
-			UpdateTime: time.Now().Unix(),
 		}
 		projectUsersModel = append(projectUsersModel, projectUserModel)
 	}
@@ -239,7 +232,6 @@ func (user User) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 
 	err := model.User{
 		ID:         reqData.ID,
-		UpdateTime: time.Now().Unix(),
 	}.RemoveRow()
 
 	if err != nil {

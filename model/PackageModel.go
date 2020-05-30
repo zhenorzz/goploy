@@ -13,8 +13,8 @@ type Package struct {
 	ID         int64  `json:"id"`
 	Name       string `json:"name"`
 	Size       int64  `json:"size"`
-	CreateTime int64  `json:"createTime"`
-	UpdateTime int64  `json:"updateTime"`
+	InsertTime string `json:"insertTime"`
+	UpdateTime string `json:"updateTime"`
 }
 
 // Packages many package
@@ -23,7 +23,7 @@ type Packages []Package
 // GetList package row
 func (p Package) GetList(pagination Pagination) (Packages, Pagination, error) {
 	rows, err := sq.
-		Select("id, name, size, create_time, update_time").
+		Select("id, name, size, insert_time, update_time").
 		From(packageTable).
 		Limit(pagination.Rows).
 		Offset((pagination.Page - 1) * pagination.Rows).
@@ -37,7 +37,7 @@ func (p Package) GetList(pagination Pagination) (Packages, Pagination, error) {
 	for rows.Next() {
 		var pkg Package
 
-		if err := rows.Scan(&pkg.ID, &pkg.Name, &pkg.Size, &pkg.CreateTime, &pkg.UpdateTime); err != nil {
+		if err := rows.Scan(&pkg.ID, &pkg.Name, &pkg.Size, &pkg.InsertTime, &pkg.UpdateTime); err != nil {
 			return nil, pagination, err
 		}
 		packages = append(packages, pkg)
@@ -80,7 +80,7 @@ func (p Package) GetAllInIDStr(IDStr string) (Packages, error) {
 // GetAll package row
 func (p Package) GetAll() (Packages, error) {
 	rows, err := sq.
-		Select("id, name, size, create_time, update_time").
+		Select("id, name, size, insert_time, update_time").
 		From(packageTable).
 		OrderBy("id DESC").
 		RunWith(DB).
@@ -92,7 +92,7 @@ func (p Package) GetAll() (Packages, error) {
 	for rows.Next() {
 		var pkg Package
 
-		if err := rows.Scan(&pkg.ID, &pkg.Name, &pkg.Size, &pkg.CreateTime, &pkg.UpdateTime); err != nil {
+		if err := rows.Scan(&pkg.ID, &pkg.Name, &pkg.Size, &pkg.InsertTime, &pkg.UpdateTime); err != nil {
 			return nil, err
 		}
 		packages = append(packages, pkg)
@@ -104,12 +104,12 @@ func (p Package) GetAll() (Packages, error) {
 func (p Package) GetData() (Package, error) {
 	var pkg Package
 	err := sq.
-		Select("id, name, size, create_time, update_time").
+		Select("id, name, size, insert_time, update_time").
 		From(packageTable).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
 		QueryRow().
-		Scan(&pkg.ID, &pkg.Name, &pkg.Size, &pkg.CreateTime, &pkg.UpdateTime)
+		Scan(&pkg.ID, &pkg.Name, &pkg.Size, &pkg.InsertTime, &pkg.UpdateTime)
 	if err != nil {
 		return pkg, err
 	}
@@ -120,12 +120,12 @@ func (p Package) GetData() (Package, error) {
 func (p Package) GetDataByName() (Package, error) {
 	var pkg Package
 	err := sq.
-		Select("id, name, size, create_time, update_time").
+		Select("id, name, size, insert_time, update_time").
 		From(packageTable).
 		Where(sq.Eq{"name": p.Name}).
 		RunWith(DB).
 		QueryRow().
-		Scan(&pkg.ID, &pkg.Name, &pkg.Size, &pkg.CreateTime, &pkg.UpdateTime)
+		Scan(&pkg.ID, &pkg.Name, &pkg.Size, &pkg.InsertTime, &pkg.UpdateTime)
 	if err != nil {
 		return pkg, err
 	}
@@ -136,8 +136,8 @@ func (p Package) GetDataByName() (Package, error) {
 func (p Package) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(packageTable).
-		Columns("name", "size", "create_time", "update_time").
-		Values(p.Name, p.Size, p.CreateTime, p.UpdateTime).
+		Columns("name", "size").
+		Values(p.Name, p.Size).
 		RunWith(DB).
 		Exec()
 	if err != nil {

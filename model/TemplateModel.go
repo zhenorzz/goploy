@@ -11,8 +11,8 @@ type Template struct {
 	Remark       string `json:"remark"`
 	PackageIDStr string `json:"packageIdStr"`
 	Script       string `json:"script"`
-	CreateTime   int64  `json:"createTime"`
-	UpdateTime   int64  `json:"updateTime"`
+	InsertTime   string `json:"insertTime"`
+	UpdateTime   string `json:"updateTime"`
 }
 
 // Templates many template
@@ -22,8 +22,8 @@ type Templates []Template
 func (tpl Template) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(templateTable).
-		Columns("name", "remark", "script", "package_id_str", "create_time", "update_time").
-		Values(tpl.Name, tpl.Remark, tpl.Script, tpl.PackageIDStr, tpl.CreateTime, tpl.UpdateTime).
+		Columns("name", "remark", "script", "package_id_str").
+		Values(tpl.Name, tpl.Remark, tpl.Script, tpl.PackageIDStr).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -62,7 +62,7 @@ func (tpl Template) Remove() error {
 // GetList template row
 func (tpl Template) GetList(pagination Pagination) (Templates, Pagination, error) {
 	rows, err := sq.
-		Select("id, name, remark, script, package_id_str, create_time, update_time").
+		Select("id, name, remark, script, package_id_str, insert_time, update_time").
 		From(templateTable).
 		Limit(pagination.Rows).
 		Offset((pagination.Page - 1) * pagination.Rows).
@@ -76,7 +76,7 @@ func (tpl Template) GetList(pagination Pagination) (Templates, Pagination, error
 	for rows.Next() {
 		var template Template
 
-		if err := rows.Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.PackageIDStr, &template.CreateTime, &template.UpdateTime); err != nil {
+		if err := rows.Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.PackageIDStr, &template.InsertTime, &template.UpdateTime); err != nil {
 			return nil, pagination, err
 		}
 		templates = append(templates, template)
@@ -96,7 +96,7 @@ func (tpl Template) GetList(pagination Pagination) (Templates, Pagination, error
 // GetAll template row
 func (tpl Template) GetAll() (Templates, error) {
 	rows, err := sq.
-		Select("id, name, remark, script, package_id_str, create_time, update_time").
+		Select("id, name, remark, script, package_id_str, insert_time, update_time").
 		From(templateTable).
 		OrderBy("id DESC").
 		RunWith(DB).
@@ -108,7 +108,7 @@ func (tpl Template) GetAll() (Templates, error) {
 	for rows.Next() {
 		var template Template
 
-		if err := rows.Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.PackageIDStr, &template.CreateTime, &template.UpdateTime); err != nil {
+		if err := rows.Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.PackageIDStr, &template.InsertTime, &template.UpdateTime); err != nil {
 			return nil, err
 		}
 		templates = append(templates, template)
@@ -120,13 +120,13 @@ func (tpl Template) GetAll() (Templates, error) {
 func (tpl Template) GetData() (Template, error) {
 	var template Template
 	err := sq.
-		Select("id, name, remark, script, package_id_str, create_time, update_time").
+		Select("id, name, remark, script, package_id_str, insert_time, update_time").
 		From(templateTable).
 		Where(sq.Eq{"id": tpl.ID}).
 		OrderBy("id DESC").
 		RunWith(DB).
 		QueryRow().
-		Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.PackageIDStr, &template.CreateTime, &template.UpdateTime)
+		Scan(&template.ID, &template.Name, &template.Remark, &template.Script, &template.PackageIDStr, &template.InsertTime, &template.UpdateTime)
 	if err != nil {
 		return template, err
 	}

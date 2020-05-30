@@ -27,8 +27,8 @@ type Project struct {
 	NotifyType        uint8  `json:"notifyType"`
 	NotifyTarget      string `json:"notifyTarget"`
 	State             uint8  `json:"state"`
-	CreateTime        int64  `json:"createTime"`
-	UpdateTime        int64  `json:"updateTime"`
+	InsertTime        string `json:"insertTime"`
+	UpdateTime        string `json:"updateTime"`
 }
 
 const (
@@ -50,8 +50,8 @@ type Projects []Project
 func (p Project) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(projectTable).
-		Columns("group_id", "name", "url", "path", "symlink_path", "environment", "branch", "after_pull_script", "after_deploy_script", "rsync_option", "auto_deploy", "notify_type", "notify_target", "create_time", "update_time").
-		Values(p.GroupID, p.Name, p.URL, p.Path, p.SymlinkPath, p.Environment, p.Branch, p.AfterPullScript, p.AfterDeployScript, p.RsyncOption, p.AutoDeploy, p.NotifyType, p.NotifyTarget, p.CreateTime, p.UpdateTime).
+		Columns("group_id", "name", "url", "path", "symlink_path", "environment", "branch", "after_pull_script", "after_deploy_script", "rsync_option", "auto_deploy", "notify_type", "notify_target").
+		Values(p.GroupID, p.Name, p.URL, p.Path, p.SymlinkPath, p.Environment, p.Branch, p.AfterPullScript, p.AfterDeployScript, p.RsyncOption, p.AutoDeploy, p.NotifyType, p.NotifyTarget).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -79,7 +79,6 @@ func (p Project) EditRow() error {
 			"auto_deploy":         p.AutoDeploy,
 			"notify_type":         p.NotifyType,
 			"notify_target":       p.NotifyTarget,
-			"update_time":         p.UpdateTime,
 		}).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -92,8 +91,7 @@ func (p Project) RemoveRow() error {
 	_, err := sq.
 		Update(projectTable).
 		SetMap(sq.Eq{
-			"state":       Disable,
-			"update_time": p.UpdateTime,
+			"state": Disable,
 		}).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -110,7 +108,6 @@ func (p Project) Publish() error {
 			"publisher_name":     p.PublisherName,
 			"deploy_state":       p.DeployState,
 			"last_publish_token": p.LastPublishToken,
-			"update_time":        p.UpdateTime,
 		}).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -124,7 +121,6 @@ func (p Project) DeploySuccess() error {
 		Update(projectTable).
 		SetMap(sq.Eq{
 			"deploy_state": ProjectSuccess,
-			"update_time":  p.UpdateTime,
 		}).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -139,7 +135,6 @@ func (p Project) DeployFail() error {
 		Update(projectTable).
 		SetMap(sq.Eq{
 			"deploy_state": ProjectFail,
-			"update_time":  p.UpdateTime,
 		}).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -151,7 +146,7 @@ func (p Project) DeployFail() error {
 // GetList project row
 func (p Project) GetListByName(pagination Pagination) (Projects, Pagination, error) {
 	rows, err := sq.
-		Select("id, group_id, name, url, path, symlink_path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, notify_type, notify_target, create_time, update_time").
+		Select("id, group_id, name, url, path, symlink_path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, notify_type, notify_target, insert_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"state": Enable}).
 		Where(sq.Like{"name": "%" + p.Name + "%"}).
@@ -183,7 +178,7 @@ func (p Project) GetListByName(pagination Pagination) (Projects, Pagination, err
 			&project.AutoDeploy,
 			&project.NotifyType,
 			&project.NotifyTarget,
-			&project.CreateTime,
+			&project.InsertTime,
 			&project.UpdateTime,
 		); err != nil {
 			return nil, pagination, err
@@ -207,7 +202,7 @@ func (p Project) GetListByName(pagination Pagination) (Projects, Pagination, err
 // GetListByManagerGroupStr project row
 func (p Project) GetListByNameInGroupIDs(groupIDs []string, pagination Pagination) (Projects, Pagination, error) {
 	builder := sq.
-		Select("id, group_id, name, url, path, symlink_path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, notify_type, notify_target, create_time, update_time").
+		Select("id, group_id, name, url, path, symlink_path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, notify_type, notify_target, insert_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"group_id": groupIDs}).
 		Where(sq.Like{"name": "%" + p.Name + "%"}).
@@ -244,7 +239,7 @@ func (p Project) GetListByNameInGroupIDs(groupIDs []string, pagination Paginatio
 			&project.AutoDeploy,
 			&project.NotifyType,
 			&project.NotifyTarget,
-			&project.CreateTime,
+			&project.InsertTime,
 			&project.UpdateTime,
 		); err != nil {
 			return nil, pagination, err
@@ -326,7 +321,7 @@ func (p Project) GetUserProjectList(userID int64, userRole string, groupIDStr st
 // GetAll Group row
 func (p Project) GetAll() (Projects, error) {
 	rows, err := sq.
-		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, deploy_state, create_time, update_time").
+		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, deploy_state, insert_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"state": Enable}).
 		OrderBy("id DESC").
@@ -351,7 +346,7 @@ func (p Project) GetAll() (Projects, error) {
 			&project.AfterDeployScript,
 			&project.RsyncOption,
 			&project.DeployState,
-			&project.CreateTime,
+			&project.InsertTime,
 			&project.UpdateTime); err != nil {
 			return nil, err
 		}
@@ -364,7 +359,7 @@ func (p Project) GetAll() (Projects, error) {
 func (p Project) GetData() (Project, error) {
 	var project Project
 	err := sq.
-		Select("id, group_id, name, url, path, symlink_path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, create_time, update_time").
+		Select("id, group_id, name, url, path, symlink_path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, insert_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -385,7 +380,7 @@ func (p Project) GetData() (Project, error) {
 			&project.DeployState,
 			&project.NotifyType,
 			&project.NotifyTarget,
-			&project.CreateTime,
+			&project.InsertTime,
 			&project.UpdateTime)
 	if err != nil {
 		return project, err
@@ -397,7 +392,7 @@ func (p Project) GetData() (Project, error) {
 func (p Project) GetDataByName() (Project, error) {
 	var project Project
 	err := sq.
-		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, create_time, update_time").
+		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, insert_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"name": p.Name}).
 		RunWith(DB).
@@ -417,7 +412,7 @@ func (p Project) GetDataByName() (Project, error) {
 			&project.DeployState,
 			&project.NotifyType,
 			&project.NotifyTarget,
-			&project.CreateTime,
+			&project.InsertTime,
 			&project.UpdateTime)
 	if err != nil {
 		return project, err

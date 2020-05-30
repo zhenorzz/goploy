@@ -3,13 +3,11 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"gopkg.in/go-playground/validator.v9"
 	"net/http"
 	"os/exec"
 	"strconv"
 	"strings"
-	"time"
-
-	"gopkg.in/go-playground/validator.v9"
 
 	"goploy/core"
 	"goploy/model"
@@ -140,8 +138,6 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response 
 		Owner:       reqData.Owner,
 		GroupID:     reqData.GroupID,
 		Description: reqData.Description,
-		CreateTime:  time.Now().Unix(),
-		UpdateTime:  time.Now().Unix(),
 	}.AddRow()
 
 	if err != nil {
@@ -174,7 +170,6 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response
 		Owner:       reqData.Owner,
 		GroupID:     reqData.GroupID,
 		Description: reqData.Description,
-		UpdateTime:  time.Now().Unix(),
 	}.EditRow()
 
 	if err != nil {
@@ -195,8 +190,7 @@ func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	err := model.Server{
-		ID:         reqData.ID,
-		UpdateTime: time.Now().Unix(),
+		ID: reqData.ID,
 	}.Remove()
 
 	if err != nil {
@@ -231,7 +225,6 @@ func (server Server) Install(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	serverInfo.LastInstallToken = uuid.New().String()
-	serverInfo.UpdateTime = time.Now().Unix()
 	serverInfo.Install()
 
 	go remoteInstall(gp.UserInfo, serverInfo, templateInfo)
@@ -247,8 +240,6 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 		OperatorID:   userInfo.ID,
 		OperatorName: userInfo.Name,
 		Type:         model.Rsync,
-		CreateTime:   time.Now().Unix(),
-		UpdateTime:   time.Now().Unix(),
 	}
 	if template.PackageIDStr != "" {
 		packages, err := model.Package{}.GetAllInIDStr(template.PackageIDStr)
@@ -292,7 +283,7 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 				installTraceModel.AddRow()
 
 				ws.GetHub().Data <- &ws.Data{
-					Type: ws.TypeServerTemplate,
+					Type:    ws.TypeServerTemplate,
 					UserIDs: []int64{userInfo.ID},
 					Message: ws.ServerTemplateMessage{
 						ServerID:   installTraceModel.ServerID,
@@ -314,7 +305,7 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 			installTraceModel.State = model.Fail
 			installTraceModel.AddRow()
 			ws.GetHub().Data <- &ws.Data{
-				Type: ws.TypeServerTemplate,
+				Type:    ws.TypeServerTemplate,
 				UserIDs: []int64{userInfo.ID},
 				Message: ws.ServerTemplateMessage{
 					ServerID:   installTraceModel.ServerID,
@@ -344,7 +335,7 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 			installTraceModel.Detail = "connected"
 			installTraceModel.AddRow()
 			ws.GetHub().Data <- &ws.Data{
-				Type: ws.TypeServerTemplate,
+				Type:    ws.TypeServerTemplate,
 				UserIDs: []int64{userInfo.ID},
 				Message: ws.ServerTemplateMessage{
 					ServerID:   installTraceModel.ServerID,
@@ -370,7 +361,7 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 				installTraceModel.Detail = sshOutbuf.String()
 				installTraceModel.AddRow()
 				ws.GetHub().Data <- &ws.Data{
-					Type: ws.TypeServerTemplate,
+					Type:    ws.TypeServerTemplate,
 					UserIDs: []int64{userInfo.ID},
 					Message: ws.ServerTemplateMessage{
 						ServerID:   installTraceModel.ServerID,
@@ -397,7 +388,7 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 		installTraceModel.Detail = connectError.Error()
 		installTraceModel.AddRow()
 		ws.GetHub().Data <- &ws.Data{
-			Type: ws.TypeServerTemplate,
+			Type:    ws.TypeServerTemplate,
 			UserIDs: []int64{userInfo.ID},
 			Message: ws.ServerTemplateMessage{
 				ServerID:   installTraceModel.ServerID,
@@ -417,7 +408,7 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 		installTraceModel.Detail = scriptError.Error()
 		installTraceModel.AddRow()
 		ws.GetHub().Data <- &ws.Data{
-			Type: ws.TypeServerTemplate,
+			Type:    ws.TypeServerTemplate,
 			UserIDs: []int64{userInfo.ID},
 			Message: ws.ServerTemplateMessage{
 				ServerID:   installTraceModel.ServerID,

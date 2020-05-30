@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"goploy/core"
 	"goploy/model"
@@ -65,8 +64,6 @@ func (template Template) Add(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 		Remark:       reqData.Remark,
 		PackageIDStr: reqData.PackageIDStr,
 		Script:       reqData.Script,
-		CreateTime:   time.Now().Unix(),
-		UpdateTime:   time.Now().Unix(),
 	}.AddRow()
 
 	if err != nil {
@@ -94,8 +91,6 @@ func (template Template) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Resp
 		Remark:       reqData.Remark,
 		PackageIDStr: reqData.PackageIDStr,
 		Script:       reqData.Script,
-		CreateTime:   time.Now().Unix(),
-		UpdateTime:   time.Now().Unix(),
 	}.EditRow()
 
 	if err != nil {
@@ -116,7 +111,6 @@ func (template Template) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Re
 	}
 	err = model.Template{
 		ID:         reqData.ID,
-		UpdateTime: time.Now().Unix(),
 	}.Remove()
 
 	if err != nil {

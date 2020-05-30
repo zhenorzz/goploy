@@ -62,9 +62,9 @@ CREATE TABLE `project`  (
   `last_publish_token` char(36) CHARACTER SET utf8mb4 NOT NULL DEFAULT '',
   `notify_type` tinyint(4) UNSIGNED NOT NULL DEFAULT 0 COMMENT '1=>企业微信 2=>钉钉',
   `notify_target` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '推送目标，目前只支持webhook',
-  `create_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
-  `update_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`) USING BTREE
+  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
 
 -- ----------------------------
@@ -79,8 +79,8 @@ CREATE TABLE `project_server`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `project_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `server_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
-  `create_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
-  `update_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
+  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `project_id`(`project_id`, `server_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
@@ -97,8 +97,8 @@ CREATE TABLE `project_user`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `project_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `user_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
-  `create_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
-  `update_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
+  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `project_id`(`project_id`, `user_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
@@ -114,8 +114,8 @@ DROP TABLE IF EXISTS `group`;
 CREATE TABLE `group`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0,
-  `update_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
+  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
 
@@ -138,8 +138,8 @@ CREATE TABLE `publish_trace` (
   `publisher_id` int(10) unsigned NOT NULL DEFAULT '0',
   `publisher_name` varchar(255) NOT NULL DEFAULT '',
   `type` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '1拉代码前脚本，2.git获取代码，3拉代码后脚本，4部署前脚本，5部署日志，6部署后脚本',
-  `create_time` int(10) unsigned NOT NULL DEFAULT '0',
-  `update_time` int(10) unsigned NOT NULL DEFAULT '0',
+  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `ext` longtext NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   KEY `project_id` (`project_id`) USING BTREE COMMENT 'project_id'
@@ -162,8 +162,8 @@ CREATE TABLE `server`  (
   `owner` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `last_publish_token` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0,
-  `update_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
+  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `state` tinyint(10) UNSIGNED NOT NULL DEFAULT 1 COMMENT '0=>失效 1=>生效',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
@@ -182,8 +182,8 @@ CREATE TABLE `template` (
   `package_id_str` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `script` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `create_time` int(10) unsigned NOT NULL DEFAULT 0,
-  `update_time` int(11) unsigned NOT NULL DEFAULT 0,
+  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=COMPACT;
 
@@ -222,8 +222,8 @@ CREATE TABLE `install_trace` (
   `operator_id` int(10) unsigned NOT NULL DEFAULT '0',
   `operator_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `type` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '1rsync 2ssh 3script',
-  `create_time` int(10) unsigned NOT NULL DEFAULT '0',
-  `update_time` int(10) unsigned NOT NULL DEFAULT '0',
+  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `ext` text NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   KEY `project_id` (`server_id`) USING BTREE COMMENT 'project_id'
@@ -246,9 +246,9 @@ CREATE TABLE `user`  (
   `role` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'member',
   `manage_group_str` text CHARACTER SET utf8mb4 NOT NULL COMMENT '管理分组逗号分割(空串没有管理权限，all管理全部)',
   `state` tinyint(1) NOT NULL DEFAULT 1 COMMENT '0:=被禁用  1=正常',
-  `create_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
-  `update_time` int(11) UNSIGNED NOT NULL DEFAULT 0,
-  `last_login_time` int(11) UNSIGNED NOT NULL DEFAULT 0 COMMENT '最后登陆时间',
+  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `last_login_time` datetime DEFAULT NULL COMMENT '最后登陆时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
 

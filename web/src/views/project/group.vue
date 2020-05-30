@@ -12,7 +12,7 @@
     >
       <el-table-column prop="id" label="ID" width="160" />
       <el-table-column prop="name" label="组名" />
-      <el-table-column prop="createTime" label="创建时间" width="160" />
+      <el-table-column prop="insertTime" label="创建时间" width="160" />
       <el-table-column prop="updateTime" label="更新时间" width="160" />
       <el-table-column prop="operation" label="操作" width="150">
         <template slot-scope="scope">
@@ -46,7 +46,6 @@
 </template>
 <script>
 import { getList, add, edit, remove } from '@/api/group'
-import { parseTime } from '@/utils'
 
 export default {
   data() {
@@ -80,10 +79,6 @@ export default {
     getList() {
       getList(this.pagination).then((response) => {
         const groupList = response.data.groupList || []
-        groupList.forEach((element) => {
-          element.createTime = parseTime(element.createTime)
-          element.updateTime = parseTime(element.updateTime)
-        })
         this.tableData = groupList
         this.pagination = response.data.pagination
       })

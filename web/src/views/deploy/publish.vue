@@ -86,7 +86,7 @@
           <el-row v-for="(item, index) in publishLocalTraceList" :key="index">
             <el-row v-if="item.type === 2">
               <el-row style="margin:5px 0">git同步信息</el-row>
-              <el-row style="margin:5px 0">时间: {{ item.createTime }}</el-row>
+              <el-row style="margin:5px 0">时间: {{ item.insertTime }}</el-row>
               <!-- 用数组的形式 兼容以前版本 -->
               <el-row v-if="item.state !== 0">
                 <el-row>commit: {{ item['commit'] }}</el-row>
@@ -103,7 +103,7 @@
             <el-row v-if="item.type === 3">
               <hr>
               <el-row style="margin:5px 0">获取代码后脚本信息</el-row>
-              <el-row style="margin:5px 0">时间: {{ item.createTime }}</el-row>
+              <el-row style="margin:5px 0">时间: {{ item.insertTime }}</el-row>
               <el-row>脚本: <pre v-html="formatDetail(item.script)" /></el-row>
               <el-row style="margin:5px 0">
                 <el-tag v-if="item.state === 0" type="danger" effect="plain">失败</el-tag>
@@ -115,7 +115,7 @@
               <el-row>
                 <el-row style="margin:5px 0">remote服务器信息</el-row>
                 <el-row style="margin:5px 0">服务器: {{ item.serverName }}</el-row>
-                <el-row style="margin:5px 0">时间: {{ item.createTime }}</el-row>
+                <el-row style="margin:5px 0">时间: {{ item.insertTime }}</el-row>
                 <el-row style="margin:5px 0">脚本: {{ item.script }}</el-row>
                 <el-row style="margin:5px 0">
                   <el-tag v-if="item.state === 0" type="danger" effect="plain">失败</el-tag>
@@ -131,7 +131,7 @@
               <el-row v-for="(trace, key) in item" :key="key">
                 <el-row v-if="trace.type === 4">
                   <el-row style="margin:5px 0">部署前脚本</el-row>
-                  <el-row style="margin:5px 0">时间: {{ trace.createTime }}</el-row>
+                  <el-row style="margin:5px 0">时间: {{ trace.insertTime }}</el-row>
                   <el-row>脚本: <pre v-html="formatDetail(trace.script)" /></el-row>
                   <el-row style="margin:5px 0">
                     <el-tag v-if="trace.state === 0" type="danger" effect="plain">失败</el-tag>
@@ -140,7 +140,7 @@
                 </el-row>
                 <el-row v-else-if="trace.type === 5">
                   <el-row style="margin:5px 0">rsync同步文件</el-row>
-                  <el-row style="margin:5px 0">时间: {{ trace.createTime }}</el-row>
+                  <el-row style="margin:5px 0">时间: {{ trace.insertTime }}</el-row>
                   <el-row>命令: {{ trace.command }}</el-row>
                   <el-row style="margin:5px 0">
                     <el-tag v-if="trace.state === 0" type="danger" effect="plain">失败</el-tag>
@@ -149,7 +149,7 @@
                 </el-row>
                 <el-row v-else>
                   <el-row style="margin:5px 0">部署后脚本</el-row>
-                  <el-row style="margin:5px 0">时间: {{ trace.createTime }}</el-row>
+                  <el-row style="margin:5px 0">时间: {{ trace.insertTime }}</el-row>
                   <el-row>脚本: {{ trace.script }}</el-row>
                   <el-row style="margin:5px 0">
                     <el-tag v-if="trace.state === 0" type="danger" effect="plain">失败</el-tag>
@@ -272,10 +272,6 @@ export default {
     getList() {
       getList(this.groupId, this.projectName).then((response) => {
         const projectList = response.data.projectList || []
-        projectList.forEach((element) => {
-          element.createTime = parseTime(element.createTime)
-          element.updateTime = parseTime(element.updateTime)
-        })
         this.tableData = projectList
       })
     },
@@ -319,7 +315,6 @@ export default {
       getDetail(this.publishToken).then((response) => {
         const publishTraceList = response.data.publishTraceList || []
         this.publishTraceList = publishTraceList.map(element => {
-          element.createTime = parseTime(element.createTime)
           if (element.ext !== '') Object.assign(element, JSON.parse(element.ext))
           return element
         })

@@ -2,13 +2,11 @@ package controller
 
 import (
 	"encoding/json"
+	"goploy/core"
+	"goploy/model"
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
-
-	"goploy/core"
-	"goploy/model"
 )
 
 // Group struct
@@ -103,11 +101,7 @@ func (group Group) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	id, err := model.Group{
-		Name:       reqData.Name,
-		CreateTime: time.Now().Unix(),
-		UpdateTime: time.Now().Unix(),
-	}.AddRow()
+	id, err := model.Group{Name: reqData.Name}.AddRow()
 
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -127,10 +121,8 @@ func (group Group) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	err = model.Group{
-		ID:         reqData.ID,
-		Name:       reqData.Name,
-		CreateTime: time.Now().Unix(),
-		UpdateTime: time.Now().Unix(),
+		ID:   reqData.ID,
+		Name: reqData.Name,
 	}.EditRow()
 
 	if err != nil {
@@ -149,10 +141,7 @@ func (group Group) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Response
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	err = model.Group{
-		ID:         reqData.ID,
-		UpdateTime: time.Now().Unix(),
-	}.Remove()
+	err = model.Group{ID: reqData.ID}.Remove()
 
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}

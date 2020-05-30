@@ -26,7 +26,7 @@
         >
           <el-table-column prop="name" label="名称" />
           <el-table-column prop="remark" label="描述" />
-          <el-table-column prop="createTime" label="创建时间" width="160" />
+          <el-table-column prop="insertTime" label="创建时间" width="160" />
           <el-table-column prop="updateTime" label="更新时间" width="160" />
           <el-table-column prop="operation" label="操作" width="150">
             <template slot-scope="scope">
@@ -55,7 +55,7 @@
         >
           <el-table-column prop="name" label="名称" />
           <el-table-column prop="humanSize" label="大小" />
-          <el-table-column prop="createTime" label="创建时间" width="160" />
+          <el-table-column prop="insertTime" label="创建时间" width="160" />
           <el-table-column prop="updateTime" label="更新时间" width="160" />
           <el-table-column prop="operation" label="操作" width="90">
             <template slot-scope="scope">
@@ -135,7 +135,7 @@ import {
   getList as getPackageList
 } from '@/api/package'
 
-import { parseTime, humanSize } from '@/utils'
+import { humanSize } from '@/utils'
 // require component
 import { codemirror } from 'vue-codemirror'
 import 'codemirror/mode/shell/shell.js'
@@ -205,10 +205,6 @@ export default {
     getTemplateList() {
       getTemplateList(this.tplPagination).then((response) => {
         const templateList = response.data.templateList || []
-        templateList.forEach((element) => {
-          element.createTime = parseTime(element.createTime)
-          element.updateTime = parseTime(element.updateTime)
-        })
         this.templateTableData = templateList
         this.tplPagination = response.data.pagination
       })
@@ -223,8 +219,6 @@ export default {
       getPackageList(this.pkgPagination).then((response) => {
         const packageList = response.data.packageList || []
         packageList.forEach((element) => {
-          element.createTime = parseTime(element.createTime)
-          element.updateTime = parseTime(element.updateTime)
           element.humanSize = humanSize(element.size)
         })
         this.packageOption = this.packageTableData = packageList

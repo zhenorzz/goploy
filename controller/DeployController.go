@@ -5,6 +5,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"goploy/core"
+	"goploy/model"
+	"goploy/utils"
+	"goploy/ws"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -12,12 +16,6 @@ import (
 	"path"
 	"strconv"
 	"strings"
-	"time"
-
-	"goploy/core"
-	"goploy/model"
-	"goploy/utils"
-	"goploy/ws"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/ssh"
@@ -142,7 +140,6 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 	project.PublisherName = gp.UserInfo.Name
 	project.DeployState = model.ProjectDeploying
 	project.LastPublishToken = uuid.New().String()
-	project.UpdateTime = time.Now().Unix()
 	err = project.Publish()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -201,7 +198,6 @@ func (deploy Deploy) Webhook(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 	project.PublisherName = gp.UserInfo.Name
 	project.DeployState = model.ProjectDeploying
 	project.LastPublishToken = uuid.New().String()
-	project.UpdateTime = time.Now().Unix()
 	err = project.Publish()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -237,8 +233,6 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 		PublisherID:   userInfo.ID,
 		PublisherName: userInfo.Name,
 		Type:          model.Pull,
-		CreateTime:    time.Now().Unix(),
-		UpdateTime:    time.Now().Unix(),
 	}
 	var gitCommitInfo Commit
 	var err error
@@ -540,8 +534,6 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 		PublisherID:   userInfo.ID,
 		PublisherName: userInfo.Name,
 		Type:          model.Deploy,
-		CreateTime:    time.Now().Unix(),
-		UpdateTime:    time.Now().Unix(),
 	}
 
 	ext, _ := json.Marshal(struct {
