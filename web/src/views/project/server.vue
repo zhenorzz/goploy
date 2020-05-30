@@ -11,8 +11,11 @@
       style="width: 100%"
     >
       <el-table-column prop="name" label="服务器" min-width="140" />
-      <el-table-column prop="ip" label="IP" min-width="140" />
-      <el-table-column prop="port" label="端口" width="60" />
+      <el-table-column prop="ip" label="IP" min-width="140">
+        <template slot-scope="scope">
+          {{ scope.row.ip }}:{{ scope.row.port }}
+        </template>
+      </el-table-column>
       <el-table-column prop="owner" label="sshKey所有者" width="100" show-overflow-tooltip />
       <el-table-column prop="group" label="分组" width="100">
         <template slot-scope="scope">
