@@ -28,6 +28,7 @@
 - [安装](#安装)
 - [使用](#使用)
 - [原理图](#原理图)
+- [反向代理](#反向代理)
 - [后端开发说明](#后端开发说明)
 - [前端开发说明](#前端开发说明)
 - [相关仓库](#相关仓库)
@@ -48,6 +49,14 @@
 
 ## 原理图
 ![原理图](https://github.com/zhenorzz/goploy/blob/master/goploy.png)
+
+## 反向代理
+nginx反向代理记得升级ws协议
+```nginx
+proxy_set_header Upgrade         $http_upgrade;
+proxy_set_header Connection      "upgrade";
+```
+
 
 ## 后端开发说明
 1. 安装go，必须是1.13以上

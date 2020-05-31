@@ -294,8 +294,6 @@ func (project Project) AddServer(w http.ResponseWriter, gp *core.Goploy) *core.R
 		return &core.Response{Code: core.Error, Message: err.Error()}
 
 	}
-	response := &core.Response{Message: "添加成功"}
-	response.JSON(w)
 	return &core.Response{}
 }
 
