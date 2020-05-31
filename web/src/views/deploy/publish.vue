@@ -21,30 +21,27 @@
       :data="tableData"
       style="width: 100%;margin-top: 5px;"
     >
-      <el-table-column prop="id" label="ID" width="60" />
-      <el-table-column prop="name" label="项目名称" min-width="160" show-overflow-tooltip>
+      <el-table-column prop="id" label="ID" width="80" align="center" />
+      <el-table-column prop="name" label="项目名称" min-width="160" align="center">
         <template slot-scope="scope">
           <b v-if="scope.row.environment === '生产环境'" style="color: #F56C6C">{{ scope.row.name }} - {{ scope.row.environment }}</b>
           <b v-else-if="scope.row.environment === '测试环境'" style="color: #E6A23C">{{ scope.row.name }} - {{ scope.row.environment }}</b>
           <b v-else style="color: #909399">{{ scope.row.name }} - {{ scope.row.environment }}</b>
         </template>
       </el-table-column>
-      <el-table-column prop="group" label="分组">
+      <el-table-column prop="group" label="分组" align="center">
         <template slot-scope="scope">
           {{ findGroupName(scope.row.groupId) }}
         </template>
       </el-table-column>
-      <el-table-column prop="branch" label="分支" />
-      <el-table-column prop="publisherName" label="构建者" width="160" />
-      <el-table-column prop="deployState" label="构建状态" width="70">
+      <el-table-column prop="branch" label="分支" align="center" />
+      <el-table-column prop="deployState" label="构建状态" width="230" align="center">
         <template slot-scope="scope">
-          <el-tag v-if="scope.row.deployState === 0" type="info" effect="plain">未构建</el-tag>
-          <el-tag v-else-if="scope.row.deployState === 1" type="warning" effect="plain">构建中</el-tag>
-          <el-tag v-else-if="scope.row.deployState === 2" type="success" effect="plain">成功</el-tag>
-          <el-tag v-else type="danger" effect="plain">失败</el-tag>
+          <el-tag :type="scope.row.tagType" effect="plain">{{ scope.row.tagText }}</el-tag>
+          <el-progress :percentage="scope.row.progressPercentage" :status="scope.row.progressStatus" />
         </template>
       </el-table-column>
-      <el-table-column prop="updateTime" label="上次构建时间" width="160" />
+      <el-table-column prop="updateTime" label="上次构建时间" width="160" align="center" />
       <el-table-column prop="operation" label="操作" width="165" fixed="right">
         <template slot-scope="scope">
           <el-row class="operation-btn">
@@ -231,7 +228,7 @@ export default {
       }
       const data = response.message
       data.message = this.formatDetail(data.message)
-      if (data.state === 3) {
+      if (data.state === 0) {
         this.$notify.error({
           title: data.projectName,
           dangerouslyUseHTMLString: true,
@@ -241,6 +238,21 @@ export default {
       }
       const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
       if (projectIndex !== -1) {
+        const percent = 12.5 * data.state
+        this.tableData[projectIndex].progressPercentage = percent
+        this.tableData[projectIndex].progressStatus = 'warning'
+        this.tableData[projectIndex].tagType = 'warning'
+        this.tableData[projectIndex].tagText = data.message
+
+        if (percent === 0) {
+          this.tableData[projectIndex].progressStatus = 'exception'
+          this.tableData[projectIndex].tagType = 'danger'
+          this.tableData[projectIndex].tagText = '失败'
+        } else if (percent > 98) {
+          this.tableData[projectIndex].progressStatus = 'success'
+          this.tableData[projectIndex].tagType = 'success'
+        }
+
         this.tableData[projectIndex].deployState = data.state
         this.tableData[projectIndex].publisherName = data.username
         this.tableData[projectIndex].updateTime = parseTime(new Date())
@@ -272,7 +284,23 @@ export default {
     getList() {
       getList(this.groupId, this.projectName).then((response) => {
         const projectList = response.data.projectList || []
-        this.tableData = projectList
+        this.tableData = projectList.map(element => {
+          element.progressPercentage = 0
+          element.tagType = 'info'
+          element.tagText = '未构建'
+          if (element.deployState === 2) {
+            element.progressPercentage = 100
+            element.progressStatus = 'success'
+            element.tagType = 'success'
+            element.tagText = '成功'
+          } else if (element.deployState === 1) {
+            element.progressPercentage = 60
+            element.progressStatus = 'warning'
+            element.tagType = 'warning'
+            element.tagText = '构建中'
+          }
+          return element
+        })
       })
     },
 

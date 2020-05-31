@@ -216,16 +216,6 @@ type SyncMessage struct {
 // if commit sha is empty, deploy the latest
 func execSync(userInfo model.User, project model.Project, projectServers model.ProjectServers, commitSha string) {
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy start")
-	ws.GetHub().Data <- &ws.Data{
-		Type: ws.TypeProject,
-		Message: ws.ProjectMessage{
-			ProjectID:   project.ID,
-			ProjectName: project.Name,
-			UserID:      userInfo.ID,
-			Username:    userInfo.Name,
-			State:       model.ProjectDeploying,
-		},
-	}
 	publishTraceModel := model.PublishTrace{
 		Token:         project.LastPublishToken,
 		ProjectID:     project.ID,
@@ -246,15 +236,8 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 		publishTraceModel.Detail = err.Error()
 		publishTraceModel.State = model.Fail
 		ws.GetHub().Data <- &ws.Data{
-			Type: ws.TypeProject,
-			Message: ws.ProjectMessage{
-				ProjectID:   project.ID,
-				ProjectName: project.Name,
-				UserID:      userInfo.ID,
-				Username:    userInfo.Name,
-				State:       model.ProjectFail,
-				Message:     err.Error(),
-			},
+			Type:    ws.TypeProject,
+			Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.ProjectFail, Message: err.Error()},
 		}
 		if _, err := publishTraceModel.AddRow(); err != nil {
 			core.Log(core.ERROR, err.Error())
@@ -269,6 +252,10 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 		core.Log(core.ERROR, err.Error())
 	}
 	if project.AfterPullScript != "" {
+		ws.GetHub().Data <- &ws.Data{
+			Type:    ws.TypeProject,
+			Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.AfterPullScript, Message: "拉取后脚本"},
+		}
 		outputString, err := runAfterPullScript(project)
 		publishTraceModel.Type = model.AfterPull
 		ext, _ := json.Marshal(struct {
@@ -280,15 +267,8 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 			publishTraceModel.Detail = err.Error()
 			publishTraceModel.State = model.Fail
 			ws.GetHub().Data <- &ws.Data{
-				Type: ws.TypeProject,
-				Message: ws.ProjectMessage{
-					ProjectID:   project.ID,
-					ProjectName: project.Name,
-					UserID:      userInfo.ID,
-					Username:    userInfo.Name,
-					State:       model.ProjectFail,
-					Message:     err.Error(),
-				},
+				Type:    ws.TypeProject,
+				Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.ProjectFail, Message: err.Error()},
 			}
 			if _, err := publishTraceModel.AddRow(); err != nil {
 				core.Log(core.ERROR, err.Error())
@@ -303,6 +283,10 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 		}
 	}
 
+	ws.GetHub().Data <- &ws.Data{
+		Type:    ws.TypeProject,
+		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.Rsync, Message: "上传服务器"},
+	}
 	ch := make(chan SyncMessage, len(projectServers))
 	for _, projectServer := range projectServers {
 		go remoteSync(ch, userInfo, project, projectServer)
@@ -315,30 +299,26 @@ func execSync(userInfo model.User, project model.Project, projectServers model.P
 			message += syncMessage.serverName + " error message: " + syncMessage.Detail
 		}
 	}
-	state := model.ProjectFail
 	if message == "" {
 		project.DeploySuccess()
-		state = model.ProjectSuccess
 		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy success")
+		ws.GetHub().Data <- &ws.Data{
+			Type:    ws.TypeProject,
+			Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.ProjectSuccess, Message: "成功"},
+		}
+		go notify(project, model.ProjectSuccess, message)
 
 	} else {
 		project.DeployFail()
 		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" deploy fail")
+		ws.GetHub().Data <- &ws.Data{
+			Type:    ws.TypeProject,
+			Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.ProjectFail, Message: message},
+		}
+		go notify(project, model.ProjectFail, message)
 
 	}
 
-	ws.GetHub().Data <- &ws.Data{
-		Type: ws.TypeProject,
-		Message: ws.ProjectMessage{
-			ProjectID:   project.ID,
-			ProjectName: project.Name,
-			UserID:      userInfo.ID,
-			Username:    userInfo.Name,
-			State:       uint8(state),
-			Message:     message,
-		},
-	}
-	go notify(project, state, message)
 	clean(project, projectServers)
 	return
 }
@@ -378,6 +358,10 @@ func gitCreate(project model.Project) error {
 			return err
 		}
 		repo := project.URL
+		ws.GetHub().Data <- &ws.Data{
+			Type:    ws.TypeProject,
+			Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitClone, Message: "git clone"},
+		}
 		cmd := exec.Command("git", "clone", repo, srcPath)
 		var out bytes.Buffer
 		cmd.Stdout = &out
@@ -388,6 +372,10 @@ func gitCreate(project model.Project) error {
 		}
 
 		if project.Branch != "master" {
+			ws.GetHub().Data <- &ws.Data{
+				Type:    ws.TypeProject,
+				Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitSwitchBranch, Message: "git switch branch"},
+			}
 			checkout := exec.Command("git", "checkout", "-b", project.Branch, "origin/"+project.Branch)
 			checkout.Dir = srcPath
 			var checkoutOutbuf, checkoutErrbuf bytes.Buffer
@@ -407,7 +395,11 @@ func gitCreate(project model.Project) error {
 func gitPull(project model.Project) error {
 	srcPath := core.RepositoryPath + project.Name
 
-	// git clean removes all untracked files
+	// git clean removes all not tracked files
+	ws.GetHub().Data <- &ws.Data{
+		Type:    ws.TypeProject,
+		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitClean, Message: "git clean"},
+	}
 	clean := exec.Command("git", "clean", "-f")
 	clean.Dir = srcPath
 	var cleanOutbuf, cleanErrbuf bytes.Buffer
@@ -419,7 +411,11 @@ func gitPull(project model.Project) error {
 		return errors.New(cleanErrbuf.String())
 	}
 
-	// git checkout clears all unstaged changes.
+	// git checkout clears all not staged changes.
+	ws.GetHub().Data <- &ws.Data{
+		Type:    ws.TypeProject,
+		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitCheckout, Message: "git checkout"},
+	}
 	checkout := exec.Command("git", "checkout", "--", ".")
 	checkout.Dir = srcPath
 	var checkoutOutbuf, checkoutErrbuf bytes.Buffer
@@ -431,6 +427,10 @@ func gitPull(project model.Project) error {
 		return errors.New(checkoutErrbuf.String())
 	}
 
+	ws.GetHub().Data <- &ws.Data{
+		Type:    ws.TypeProject,
+		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitPull, Message: "git pull"},
+	}
 	pull := exec.Command("git", "pull")
 	pull.Dir = srcPath
 	var pullOutbuf, pullErrbuf bytes.Buffer
@@ -447,7 +447,10 @@ func gitPull(project model.Project) error {
 
 func gitReset(commit string, project model.Project) error {
 	srcPath := core.RepositoryPath + project.Name
-
+	ws.GetHub().Data <- &ws.Data{
+		Type:    ws.TypeProject,
+		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitReset, Message: "git reset"},
+	}
 	resetCmd := exec.Command("git", "reset", "--hard", commit)
 	resetCmd.Dir = srcPath
 	var resetOutbuf, resetErrbuf bytes.Buffer
