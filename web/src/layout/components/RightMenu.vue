@@ -20,6 +20,7 @@
       :visible.sync="transformVisible"
       width="600px"
       append-to-body
+      :close-on-click-modal="false"
     >
       <el-row v-show="transformType === 'time'">
         <el-row>

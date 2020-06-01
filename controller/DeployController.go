@@ -530,6 +530,10 @@ func runAfterPullScript(project model.Project) (string, error) {
 func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.Project, projectServer model.ProjectServer) {
 	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
 	destDir := project.Path
+	ext, _ := json.Marshal(struct {
+		ServerID   int64  `json:"serverId"`
+		ServerName string `json:"serverName"`
+	}{projectServer.ServerID, projectServer.ServerName})
 	publishTraceModel := model.PublishTrace{
 		Token:         project.LastPublishToken,
 		ProjectID:     project.ID,
@@ -537,13 +541,15 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 		PublisherID:   userInfo.ID,
 		PublisherName: userInfo.Name,
 		Type:          model.Deploy,
+		Ext:           string(ext),
 	}
 
-	ext, _ := json.Marshal(struct {
-		ServerID   int64  `json:"serverId"`
-		ServerName string `json:"serverName"`
-	}{projectServer.ServerID, projectServer.ServerName})
-	publishTraceModel.Ext = string(ext)
+	if len(project.AfterDeployScript) != 0 {
+		srcPath := core.RepositoryPath + project.Name
+		scriptName := srcPath + "/after-deploy.sh"
+		afterDeployScript := "cd " + project.Path + "\n" + project.AfterDeployScript
+		ioutil.WriteFile(scriptName, []byte(afterDeployScript), 0755)
+	}
 
 	rsyncOption, _ := utils.ParseCommandLine(project.RsyncOption)
 	rsyncOption = append(rsyncOption, "-e", "ssh -p "+strconv.Itoa(int(projectServer.ServerPort))+" -o StrictHostKeyChecking=no")
@@ -600,8 +606,7 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 	}
 
 	if len(project.AfterDeployScript) != 0 {
-		afterDeployScript := "cd " + project.Path + "\n" + project.AfterDeployScript
-		afterDeployCommands = append(afterDeployCommands, "echo '"+afterDeployScript+"' > /tmp/after-deploy.sh", "bash /tmp/after-deploy.sh")
+		afterDeployCommands = append(afterDeployCommands, "bash "+ project.Path + "/after-deploy.sh")
 	}
 
 	// no symlink and deploy script
