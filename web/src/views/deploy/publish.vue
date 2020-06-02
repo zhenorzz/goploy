@@ -397,12 +397,10 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.connectWebSocket().then(server => {
-          publish(data.projectId, data.commit).then((response) => {
-            const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
-            this.tableData[projectIndex].deployState = 1
-            this.commitDialogVisible = false
-          })
+        publish(data.projectId, data.commit).then((response) => {
+          const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
+          this.tableData[projectIndex].deployState = 1
+          this.commitDialogVisible = false
         })
       }).catch(() => {
         this.$message({
