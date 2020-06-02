@@ -1,16 +1,5 @@
 <template>
   <div class="app-container">
-    <el-form ref="userInfoForm" :model="userInfoForm" :rules="userInfoForm.rules" label-width="100px">
-      <el-form-item label="账号">
-        <el-input v-model="userInfoForm.data.account" readonly="readonly" disabled="disabled" style="width: 300px" />
-      </el-form-item>
-      <el-form-item label="名称">
-        <el-input v-model="userInfoForm.data.name" style="width: 300px" placeholder="请输入名称" />
-      </el-form-item>
-      <el-form-item>
-        <el-button :loading="userInfoForm.prop.loading" type="primary" @click="changeUserInfo()">保存</el-button>
-      </el-form-item>
-    </el-form>
     <el-form ref="pwdForm" :model="pwdForm" :rules="pwdForm.rules" label-width="100px">
       <el-form-item label="原密码" prop="old">
         <el-input v-model="pwdForm.old" :type="pwdForm.type.old" style="width: 300px" placeholder="请输入原密码" />
@@ -61,17 +50,6 @@ export default {
       }
     }
     return {
-      userInfoForm: {
-        prop: {
-          loading: false
-        },
-        data: {
-          account: this.$store.getters.account,
-          name: this.$store.getters.name
-        },
-        rules: {
-        }
-      },
       pwdForm: {
         old: '',
         new: '',
@@ -97,25 +75,6 @@ export default {
     }
   },
   methods: {
-    changeUserInfo() {
-      this.$refs.userInfoForm.validate((valid) => {
-        if (valid) {
-          this.userInfoForm.prop.loading = true
-          this.$store.dispatch('ChangeInfo', this.userInfoForm.data).then((response) => {
-            this.$message({
-              message: response.message,
-              type: 'success',
-              duration: 5 * 1000
-            })
-          }).finally(() => {
-            this.userInfoForm.prop.loading = false
-          })
-        } else {
-          console.log('error submit!!')
-          return false
-        }
-      })
-    },
     showPwd(index) {
       if (this.pwdForm.type[index] === 'password') {
         this.pwdForm.type[index] = ''
