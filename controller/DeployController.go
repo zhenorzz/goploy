@@ -509,15 +509,15 @@ func gitCommitLog(project model.Project, number uint64, offset uint64) ([]Commit
 }
 
 func runAfterPullScript(project model.Project) (string, error) {
-	srcPath := core.RepositoryPath + project.Name
+	srcPath := path.Join(core.RepositoryPath, project.Name)
 	scriptName := "goploy-after-pull." + utils.GetScriptExt(project.AfterPullScriptMode)
-	scriptFullName := srcPath+ "/" +scriptName
+	scriptFullName := path.Join(srcPath, scriptName)
 	scriptMode := "bash"
 	if len(project.AfterPullScriptMode) != 0 {
 		scriptMode = project.AfterPullScriptMode
 	}
 	ioutil.WriteFile(scriptFullName, []byte(project.AfterPullScript), 0755)
-	handler := exec.Command(scriptMode, "./" + scriptName)
+	handler := exec.Command(scriptMode, path.Join(".", scriptName))
 	handler.Dir = srcPath
 	var outbuf, errbuf bytes.Buffer
 	handler.Stdout = &outbuf
@@ -550,8 +550,7 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 	}
 
 	if len(project.AfterDeployScript) != 0 {
-		srcPath := core.RepositoryPath + project.Name
-		scriptName := srcPath + "/goploy-after-deploy." + utils.GetScriptExt(project.AfterDeployScriptMode)
+		scriptName := path.Join(core.RepositoryPath, project.Name, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
 		ioutil.WriteFile(scriptName, []byte(project.AfterDeployScript), 0755)
 	}
 
@@ -614,7 +613,7 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 		if len(project.AfterDeployScript) != 0 {
 			scriptMode = project.AfterDeployScriptMode
 		}
-		afterDeployCommands = append(afterDeployCommands, scriptMode+" "+project.Path+"/goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
+		afterDeployCommands = append(afterDeployCommands, scriptMode+" "+path.Join(project.Path, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode)))
 	}
 
 	// no symlink and deploy script
