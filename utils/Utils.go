@@ -36,6 +36,20 @@ func GetCurrentPath() string {
 	return path[0 : i+1]
 }
 
+// GetScriptExt return script extension default bash
+func GetScriptExt(scriptMode string) string {
+	switch scriptMode {
+	case "sh", "zsh", "bash":
+		return "sh"
+	case "php":
+		return "php"
+	case "python":
+		return "py"
+	default:
+		return "sh"
+	}
+}
+
 // ParseCommandLine parse cmd arg
 func ParseCommandLine(command string) ([]string, error) {
 	var args []string

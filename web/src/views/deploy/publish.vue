@@ -18,7 +18,7 @@
       stripe
       highlight-current-row
       :max-height="tableHeight"
-      :data="tableData"
+      :data="tablePageData"
       style="width: 100%;margin-top: 5px;"
     >
       <el-table-column prop="id" label="ID" width="80" align="center" />
@@ -63,6 +63,17 @@
         </template>
       </el-table-column>
     </el-table>
+    <el-pagination
+      :total="pagination.total"
+      :page-size="pagination.rows"
+      :current-page.sync="pagination.page"
+      style="margin-top:10px; text-align:right;"
+      background
+      :page-sizes="[20, 50, 100]"
+      layout="sizes, total, prev, pager, next, jumper"
+      @size-change="handleSizeChange"
+      @current-change="handlePageChange"
+    />
     <el-dialog title="构建记录" :visible.sync="dialogVisible" class="publish-record">
       <el-row>
         <el-col :span="8">
@@ -211,14 +222,23 @@ export default {
       publishToken: '',
       commitDialogVisible: false,
       dialogVisible: false,
-      webSocket: null,
       tableData: [],
+      pagination: {
+        total: 0,
+        page: 1,
+        rows: 20
+      },
       commitTableData: [],
       gitTraceList: [],
       publishTraceList: [],
       publishLocalTraceList: [],
       publishRemoteTraceList: {},
       activeRomoteTracePane: ''
+    }
+  },
+  computed: {
+    tablePageData: function() {
+      return this.tableData.slice((this.pagination.page - 1) * this.pagination.rows, this.pagination.page * this.pagination.rows)
     }
   },
   watch: {
@@ -262,10 +282,6 @@ export default {
   created() {
     this.getList()
     this.getDeployGroupOption()
-    // // 路由跳转时结束websocket链接
-    this.$router.afterEach(() => {
-      this.webSocket && this.webSocket.close()
-    })
   },
   methods: {
     parseTime,
@@ -301,7 +317,18 @@ export default {
           }
           return element
         })
+        this.pagination.total = this.tableData.length
       })
+    },
+
+    handleSizeChange(val) {
+      this.pagination.rows = val
+      this.handlePageChange(1)
+    },
+
+    handlePageChange(page) {
+      this.pagination.page = page
+      this.getList()
     },
 
     publish(data) {

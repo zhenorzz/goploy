@@ -107,21 +107,23 @@ func (project Project) GetBindProjectList(w http.ResponseWriter, gp *core.Goploy
 // Add one project
 func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		GroupID           int64   `json:"groupId"`
-		Name              string  `json:"name"`
-		URL               string  `json:"url"`
-		Path              string  `json:"path"`
-		SymlinkPath       string  `json:"symlinkPath"`
-		Environment       string  `json:"Environment"`
-		Branch            string  `json:"branch"`
-		AfterPullScript   string  `json:"afterPullScript"`
-		AfterDeployScript string  `json:"afterDeployScript"`
-		RsyncOption       string  `json:"rsyncOption"`
-		AutoDeploy        uint8   `json:"autoDeploy"`
-		ServerIDs         []int64 `json:"serverIds"`
-		UserIDs           []int64 `json:"userIds"`
-		NotifyType        uint8   `json:"notifyType"`
-		NotifyTarget      string  `json:"notifyTarget"`
+		GroupID               int64   `json:"groupId"`
+		Name                  string  `json:"name"`
+		URL                   string  `json:"url"`
+		Path                  string  `json:"path"`
+		SymlinkPath           string  `json:"symlinkPath"`
+		Environment           string  `json:"Environment"`
+		Branch                string  `json:"branch"`
+		AfterPullScriptMode   string  `json:"afterPullScriptMode"`
+		AfterPullScript       string  `json:"afterPullScript"`
+		AfterDeployScriptMode string  `json:"afterDeployScriptMode"`
+		AfterDeployScript     string  `json:"afterDeployScript"`
+		RsyncOption           string  `json:"rsyncOption"`
+		AutoDeploy            uint8   `json:"autoDeploy"`
+		ServerIDs             []int64 `json:"serverIds"`
+		UserIDs               []int64 `json:"userIds"`
+		NotifyType            uint8   `json:"notifyType"`
+		NotifyTarget          string  `json:"notifyTarget"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -139,19 +141,21 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 	}
 
 	projectID, err := model.Project{
-		GroupID:           reqData.GroupID,
-		Name:              reqData.Name,
-		URL:               reqData.URL,
-		Path:              reqData.Path,
-		SymlinkPath:       reqData.SymlinkPath,
-		Environment:       reqData.Environment,
-		Branch:            reqData.Branch,
-		AfterPullScript:   reqData.AfterPullScript,
-		AfterDeployScript: reqData.AfterDeployScript,
-		RsyncOption:       reqData.RsyncOption,
-		AutoDeploy:        reqData.AutoDeploy,
-		NotifyType:        reqData.NotifyType,
-		NotifyTarget:      reqData.NotifyTarget,
+		GroupID:               reqData.GroupID,
+		Name:                  reqData.Name,
+		URL:                   reqData.URL,
+		Path:                  reqData.Path,
+		SymlinkPath:           reqData.SymlinkPath,
+		Environment:           reqData.Environment,
+		Branch:                reqData.Branch,
+		AfterPullScriptMode:   reqData.AfterPullScriptMode,
+		AfterPullScript:       reqData.AfterPullScript,
+		AfterDeployScriptMode: reqData.AfterDeployScriptMode,
+		AfterDeployScript:     reqData.AfterDeployScript,
+		RsyncOption:           reqData.RsyncOption,
+		AutoDeploy:            reqData.AutoDeploy,
+		NotifyType:            reqData.NotifyType,
+		NotifyTarget:          reqData.NotifyTarget,
 	}.AddRow()
 
 	if err != nil {
@@ -188,20 +192,22 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 // Edit one Project
 func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		ID                int64  `json:"id"`
-		GroupID           int64  `json:"groupId"`
-		Name              string `json:"name"`
-		URL               string `json:"url"`
-		Path              string `json:"path"`
-		SymlinkPath       string `json:"symlinkPath"`
-		Environment       string `json:"Environment"`
-		Branch            string `json:"branch"`
-		AfterPullScript   string `json:"afterPullScript"`
-		AfterDeployScript string `json:"afterDeployScript"`
-		RsyncOption       string `json:"rsyncOption"`
-		AutoDeploy        uint8  `json:"autoDeploy"`
-		NotifyType        uint8  `json:"notifyType"`
-		NotifyTarget      string `json:"notifyTarget"`
+		ID                    int64  `json:"id"`
+		GroupID               int64  `json:"groupId"`
+		Name                  string `json:"name"`
+		URL                   string `json:"url"`
+		Path                  string `json:"path"`
+		SymlinkPath           string `json:"symlinkPath"`
+		Environment           string `json:"Environment"`
+		Branch                string `json:"branch"`
+		AfterPullScriptMode   string `json:"afterPullScriptMode"`
+		AfterPullScript       string `json:"afterPullScript"`
+		AfterDeployScriptMode string `json:"afterDeployScriptMode"`
+		AfterDeployScript     string `json:"afterDeployScript"`
+		RsyncOption           string `json:"rsyncOption"`
+		AutoDeploy            uint8  `json:"autoDeploy"`
+		NotifyType            uint8  `json:"notifyType"`
+		NotifyTarget          string `json:"notifyTarget"`
 	}
 	var reqData ReqData
 	err := json.Unmarshal(gp.Body, &reqData)
@@ -225,20 +231,22 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 	}
 
 	err = model.Project{
-		ID:                reqData.ID,
-		GroupID:           reqData.GroupID,
-		Name:              reqData.Name,
-		URL:               reqData.URL,
-		Path:              reqData.Path,
-		SymlinkPath:       reqData.SymlinkPath,
-		Environment:       reqData.Environment,
-		Branch:            reqData.Branch,
-		AfterPullScript:   reqData.AfterPullScript,
-		AfterDeployScript: reqData.AfterDeployScript,
-		RsyncOption:       reqData.RsyncOption,
-		AutoDeploy:        reqData.AutoDeploy,
-		NotifyType:        reqData.NotifyType,
-		NotifyTarget:      reqData.NotifyTarget,
+		ID:                    reqData.ID,
+		GroupID:               reqData.GroupID,
+		Name:                  reqData.Name,
+		URL:                   reqData.URL,
+		Path:                  reqData.Path,
+		SymlinkPath:           reqData.SymlinkPath,
+		Environment:           reqData.Environment,
+		Branch:                reqData.Branch,
+		AfterPullScriptMode:   reqData.AfterPullScriptMode,
+		AfterPullScript:       reqData.AfterPullScript,
+		AfterDeployScriptMode: reqData.AfterDeployScriptMode,
+		AfterDeployScript:     reqData.AfterDeployScript,
+		RsyncOption:           reqData.RsyncOption,
+		AutoDeploy:            reqData.AutoDeploy,
+		NotifyType:            reqData.NotifyType,
+		NotifyTarget:          reqData.NotifyTarget,
 	}.EditRow()
 
 	if err != nil {

@@ -8,27 +8,29 @@ const projectTable = "`project`"
 
 // Project mysql table project
 type Project struct {
-	ID                int64  `json:"id"`
-	GroupID           int64  `json:"groupId"`
-	Name              string `json:"name"`
-	URL               string `json:"url"`
-	Path              string `json:"path"`
-	SymlinkPath       string `json:"symlinkPath"`
-	Environment       string `json:"environment"`
-	Branch            string `json:"branch"`
-	AfterPullScript   string `json:"afterPullScript"`
-	AfterDeployScript string `json:"afterDeployScript"`
-	RsyncOption       string `json:"rsyncOption"`
-	AutoDeploy        uint8  `json:"autoDeploy"`
-	PublisherID       int64  `json:"publisherId"`
-	PublisherName     string `json:"publisherName"`
-	DeployState       uint8  `json:"deployState"`
-	LastPublishToken  string `json:"lastPublishToken"`
-	NotifyType        uint8  `json:"notifyType"`
-	NotifyTarget      string `json:"notifyTarget"`
-	State             uint8  `json:"state"`
-	InsertTime        string `json:"insertTime"`
-	UpdateTime        string `json:"updateTime"`
+	ID                    int64  `json:"id"`
+	GroupID               int64  `json:"groupId"`
+	Name                  string `json:"name"`
+	URL                   string `json:"url"`
+	Path                  string `json:"path"`
+	SymlinkPath           string `json:"symlinkPath"`
+	Environment           string `json:"environment"`
+	Branch                string `json:"branch"`
+	AfterPullScriptMode   string `json:"afterPullScriptMode"`
+	AfterPullScript       string `json:"afterPullScript"`
+	AfterDeployScriptMode string `json:"afterDeployScriptMode"`
+	AfterDeployScript     string `json:"afterDeployScript"`
+	RsyncOption           string `json:"rsyncOption"`
+	AutoDeploy            uint8  `json:"autoDeploy"`
+	PublisherID           int64  `json:"publisherId"`
+	PublisherName         string `json:"publisherName"`
+	DeployState           uint8  `json:"deployState"`
+	LastPublishToken      string `json:"lastPublishToken"`
+	NotifyType            uint8  `json:"notifyType"`
+	NotifyTarget          string `json:"notifyTarget"`
+	State                 uint8  `json:"state"`
+	InsertTime            string `json:"insertTime"`
+	UpdateTime            string `json:"updateTime"`
 }
 
 const (
@@ -50,8 +52,8 @@ type Projects []Project
 func (p Project) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(projectTable).
-		Columns("group_id", "name", "url", "path", "symlink_path", "environment", "branch", "after_pull_script", "after_deploy_script", "rsync_option", "auto_deploy", "notify_type", "notify_target").
-		Values(p.GroupID, p.Name, p.URL, p.Path, p.SymlinkPath, p.Environment, p.Branch, p.AfterPullScript, p.AfterDeployScript, p.RsyncOption, p.AutoDeploy, p.NotifyType, p.NotifyTarget).
+		Columns("group_id", "name", "url", "path", "symlink_path", "environment", "branch", "after_pull_script_mode", "after_pull_script", "after_deploy_script_mode", "after_deploy_script", "rsync_option", "auto_deploy", "notify_type", "notify_target").
+		Values(p.GroupID, p.Name, p.URL, p.Path, p.SymlinkPath, p.Environment, p.Branch, p.AfterPullScriptMode, p.AfterPullScript, p.AfterDeployScriptMode, p.AfterDeployScript, p.RsyncOption, p.AutoDeploy, p.NotifyType, p.NotifyTarget).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -66,19 +68,21 @@ func (p Project) EditRow() error {
 	_, err := sq.
 		Update(projectTable).
 		SetMap(sq.Eq{
-			"group_id":            p.GroupID,
-			"name":                p.Name,
-			"url":                 p.URL,
-			"path":                p.Path,
-			"symlink_path":        p.SymlinkPath,
-			"environment":         p.Environment,
-			"branch":              p.Branch,
-			"after_pull_script":   p.AfterPullScript,
-			"after_deploy_script": p.AfterDeployScript,
-			"rsync_option":        p.RsyncOption,
-			"auto_deploy":         p.AutoDeploy,
-			"notify_type":         p.NotifyType,
-			"notify_target":       p.NotifyTarget,
+			"group_id":                 p.GroupID,
+			"name":                     p.Name,
+			"url":                      p.URL,
+			"path":                     p.Path,
+			"symlink_path":             p.SymlinkPath,
+			"environment":              p.Environment,
+			"branch":                   p.Branch,
+			"after_pull_script_mode":   p.AfterPullScriptMode,
+			"after_pull_script":        p.AfterPullScript,
+			"after_deploy_script_mode": p.AfterDeployScriptMode,
+			"after_deploy_script":      p.AfterDeployScript,
+			"rsync_option":             p.RsyncOption,
+			"auto_deploy":              p.AutoDeploy,
+			"notify_type":              p.NotifyType,
+			"notify_target":            p.NotifyTarget,
 		}).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -146,7 +150,7 @@ func (p Project) DeployFail() error {
 // GetList project row
 func (p Project) GetListByName(pagination Pagination) (Projects, Pagination, error) {
 	rows, err := sq.
-		Select("id, group_id, name, url, path, symlink_path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, notify_type, notify_target, insert_time, update_time").
+		Select("id, group_id, name, url, path, symlink_path, environment, branch, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, notify_type, notify_target, insert_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"state": Enable}).
 		Where(sq.Like{"name": "%" + p.Name + "%"}).
@@ -172,7 +176,9 @@ func (p Project) GetListByName(pagination Pagination) (Projects, Pagination, err
 			&project.SymlinkPath,
 			&project.Environment,
 			&project.Branch,
+			&project.AfterPullScriptMode,
 			&project.AfterPullScript,
+			&project.AfterDeployScriptMode,
 			&project.AfterDeployScript,
 			&project.RsyncOption,
 			&project.AutoDeploy,
@@ -202,7 +208,7 @@ func (p Project) GetListByName(pagination Pagination) (Projects, Pagination, err
 // GetListByManagerGroupStr project row
 func (p Project) GetListByNameInGroupIDs(groupIDs []string, pagination Pagination) (Projects, Pagination, error) {
 	builder := sq.
-		Select("id, group_id, name, url, path, symlink_path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, notify_type, notify_target, insert_time, update_time").
+		Select("id, group_id, name, url, path, symlink_path, environment, branch, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, notify_type, notify_target, insert_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"group_id": groupIDs}).
 		Where(sq.Like{"name": "%" + p.Name + "%"}).
@@ -233,7 +239,9 @@ func (p Project) GetListByNameInGroupIDs(groupIDs []string, pagination Paginatio
 			&project.SymlinkPath,
 			&project.Environment,
 			&project.Branch,
+			&project.AfterPullScriptMode,
 			&project.AfterPullScript,
+			&project.AfterDeployScriptMode,
 			&project.AfterDeployScript,
 			&project.RsyncOption,
 			&project.AutoDeploy,
@@ -359,7 +367,7 @@ func (p Project) GetAll() (Projects, error) {
 func (p Project) GetData() (Project, error) {
 	var project Project
 	err := sq.
-		Select("id, group_id, name, url, path, symlink_path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, insert_time, update_time").
+		Select("id, group_id, name, url, path, symlink_path, environment, branch, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, insert_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -373,7 +381,9 @@ func (p Project) GetData() (Project, error) {
 			&project.SymlinkPath,
 			&project.Environment,
 			&project.Branch,
+			&project.AfterPullScriptMode,
 			&project.AfterPullScript,
+			&project.AfterDeployScriptMode,
 			&project.AfterDeployScript,
 			&project.RsyncOption,
 			&project.AutoDeploy,
@@ -392,7 +402,7 @@ func (p Project) GetData() (Project, error) {
 func (p Project) GetDataByName() (Project, error) {
 	var project Project
 	err := sq.
-		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, insert_time, update_time").
+		Select("id, group_id, name, url, path, environment, branch, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, insert_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"name": p.Name}).
 		RunWith(DB).
@@ -405,7 +415,9 @@ func (p Project) GetDataByName() (Project, error) {
 			&project.Path,
 			&project.Environment,
 			&project.Branch,
+			&project.AfterPullScriptMode,
 			&project.AfterPullScript,
+			&project.AfterDeployScriptMode,
 			&project.AfterDeployScript,
 			&project.RsyncOption,
 			&project.AutoDeploy,

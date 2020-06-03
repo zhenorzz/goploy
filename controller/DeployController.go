@@ -510,9 +510,14 @@ func gitCommitLog(project model.Project, number uint64, offset uint64) ([]Commit
 
 func runAfterPullScript(project model.Project) (string, error) {
 	srcPath := core.RepositoryPath + project.Name
-	scriptName := srcPath + "/after-pull.sh"
-	ioutil.WriteFile(scriptName, []byte(project.AfterPullScript), 0755)
-	handler := exec.Command("bash", "./after-pull.sh")
+	scriptName := "goploy-after-pull." + utils.GetScriptExt(project.AfterPullScriptMode)
+	scriptFullName := srcPath+ "/" +scriptName
+	scriptMode := "bash"
+	if len(project.AfterPullScriptMode) != 0 {
+		scriptMode = project.AfterPullScriptMode
+	}
+	ioutil.WriteFile(scriptFullName, []byte(project.AfterPullScript), 0755)
+	handler := exec.Command(scriptMode, "./" + scriptName)
 	handler.Dir = srcPath
 	var outbuf, errbuf bytes.Buffer
 	handler.Stdout = &outbuf
@@ -546,9 +551,8 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 
 	if len(project.AfterDeployScript) != 0 {
 		srcPath := core.RepositoryPath + project.Name
-		scriptName := srcPath + "/after-deploy.sh"
-		afterDeployScript := "cd " + project.Path + "\n" + project.AfterDeployScript
-		ioutil.WriteFile(scriptName, []byte(afterDeployScript), 0755)
+		scriptName := srcPath + "/goploy-after-deploy." + utils.GetScriptExt(project.AfterDeployScriptMode)
+		ioutil.WriteFile(scriptName, []byte(project.AfterDeployScript), 0755)
 	}
 
 	rsyncOption, _ := utils.ParseCommandLine(project.RsyncOption)
@@ -606,7 +610,11 @@ func remoteSync(chInput chan<- SyncMessage, userInfo model.User, project model.P
 	}
 
 	if len(project.AfterDeployScript) != 0 {
-		afterDeployCommands = append(afterDeployCommands, "bash "+ project.Path + "/after-deploy.sh")
+		scriptMode := "bash"
+		if len(project.AfterDeployScript) != 0 {
+			scriptMode = project.AfterDeployScriptMode
+		}
+		afterDeployCommands = append(afterDeployCommands, scriptMode+" "+project.Path+"/goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
 	}
 
 	// no symlink and deploy script

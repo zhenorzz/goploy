@@ -128,14 +128,56 @@
               <p>如须更换目录，务必手动迁移原先的目录到目标服务器</p>
             </el-row>
           </el-tab-pane>
-          <el-tab-pane label="拉取后运行脚本" name="afterPullScrpit">
-            <el-form-item prop="afterPullScrpit" label-width="0px">
-              <codemirror ref="afterPullScrpit" v-model="formData.afterPullScript" :options="cmOptions" placeholder="已切换至项目目录..." />
+          <el-tab-pane name="afterPullScript">
+            <span slot="label">
+              拉取后运行脚本
+              <el-tooltip class="item" effect="dark" placement="bottom">
+                <div slot="content">
+                  拉取代码后在宿主服务器运行的脚本<br>
+                  运行方式：打包成一份脚本文件，然后执行<br>
+                  检查服务器是否安装该脚本类型(默认以bash运行)<br>
+                </div>
+                <i class="el-icon-question" style="padding-left: 3px" />
+              </el-tooltip>
+            </span>
+            <el-form-item prop="afterPullScript" label-width="0px">
+              <el-select v-model="formData.afterPullScriptMode" placeholder="脚本类型(默认bash)" style="width:100%" @change="handleScriptModeChange">
+                <el-option
+                  v-for="(item, index) in scriptModeOption"
+                  :key="index"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item prop="afterPullScript" label-width="0px">
+              <codemirror ref="afterPullScript" v-model="formData.afterPullScript" :options="cmOption" placeholder="已切换至项目目录..." />
             </el-form-item>
           </el-tab-pane>
-          <el-tab-pane label="部署后运行脚本" name="afterDeployScrpit">
-            <el-form-item prop="afterDeployScrpit" label-width="0px">
-              <codemirror ref="afterDeployScrpit" v-model="formData.afterDeployScript" :options="cmOptions" placeholder="已切换至项目目录..." />
+          <el-tab-pane name="afterDeployScript">
+            <span slot="label">
+              部署后运行脚本
+              <el-tooltip class="item" effect="dark" placement="bottom">
+                <div slot="content">
+                  部署后在目标服务器运行的脚本<br>
+                  运行方式：打包成一份脚本文件，然后执行<br>
+                  检查服务器是否安装该脚本类型(默认以bash运行)<br>
+                </div>
+                <i class="el-icon-question" style="padding-left: 3px" />
+              </el-tooltip>
+            </span>
+            <el-form-item prop="afterDeployScript" label-width="0px">
+              <el-select v-model="formData.afterDeployScriptMode" placeholder="脚本类型(默认bash)" style="width:100%" @change="handleScriptModeChange">
+                <el-option
+                  v-for="(item, index) in scriptModeOption"
+                  :key="index"
+                  :label="item.label"
+                  :value="item.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item prop="afterDeployScript" label-width="0px">
+              <codemirror ref="afterDeployScript" v-model="formData.afterDeployScript" :options="cmOption" />
             </el-form-item>
           </el-tab-pane>
           <el-tab-pane label="构建触发器" name="autoDeploy">
@@ -267,6 +309,8 @@ import { getList, getBindServerList, getBindUserList, add, edit, remove, addServ
 // require component
 import { codemirror } from 'vue-codemirror'
 import 'codemirror/mode/shell/shell.js'
+import 'codemirror/mode/php/php.js'
+import 'codemirror/mode/python/python.js'
 import 'codemirror/theme/darcula.css'
 // require styles
 import 'codemirror/lib/codemirror.css'
@@ -288,7 +332,14 @@ export default {
       }
     }
     return {
-      cmOptions: {
+      scriptModeOption: [
+        { label: 'sh', value: 'sh', mode: 'text/x-sh' },
+        { label: 'zsh', value: 'zsh', mode: 'text/x-sh' },
+        { label: 'bash', value: 'bash', mode: 'text/x-sh' },
+        { label: 'python', value: 'python', mode: 'text/x-python' },
+        { label: 'php', value: 'php', mode: 'text/x-php' }
+      ],
+      cmOption: {
         tabSize: 4,
         mode: 'text/x-sh',
         lineNumbers: true,
@@ -328,7 +379,9 @@ export default {
         url: '',
         path: '',
         symlinkPath: '',
+        afterPullScriptMode: '',
         afterPullScript: '',
+        afterDeployScriptMode: '',
         afterDeployScript: '',
         environment: '生产环境',
         branch: 'master',
@@ -440,10 +493,20 @@ export default {
     handleTabClick(vueEvent) {
       const name = vueEvent.name
       // 需要刷新 不然无法出现光标
-      if (name === 'afterPullScrpit') {
-        this.$refs.afterPullScrpit.refresh()
-      } else if (name === 'afterDeployScrpit') {
-        this.$refs.afterDeployScrpit.refresh()
+      if (name === 'afterPullScript') {
+        this.$refs.afterPullScript.refresh()
+        this.handleScriptModeChange(this.formData.afterPullScriptMode)
+      } else if (name === 'afterDeployScript') {
+        this.$refs.afterDeployScript.refresh()
+        this.handleScriptModeChange(this.formData.afterDeployScriptMode)
+      }
+    },
+
+    handleScriptModeChange(scriptMode) {
+      if (scriptMode !== '') {
+        this.cmOption.mode = this.scriptModeOption.find(elem => elem.value === scriptMode)['mode']
+      } else {
+        this.cmOption.mode = 'text/x-sh'
       }
     },
 
