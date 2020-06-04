@@ -491,6 +491,7 @@ export default {
       this.formData.userIds = []
       this.formProps.symlink = this.formData.symlinkPath !== ''
       this.formProps.showServers = this.formProps.showUsers = false
+      this.formProps.branch = []
       this.dialogVisible = true
     },
 
