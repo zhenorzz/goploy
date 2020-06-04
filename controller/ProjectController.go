@@ -43,6 +43,33 @@ func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Res
 	return &core.Response{Data: RespData{Project: projectList, Pagination: pagination}}
 }
 
+// GetList project list
+func (project Project) GetRemoteBranchList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+	type RespData struct {
+		Branch []string `json:"branch"`
+	}
+
+	url := gp.URLQuery.Get("url")
+	cmd := exec.Command("git", "ls-remote", "-h", url)
+	var cmdOutbuf, cmdErrbuf bytes.Buffer
+	cmd.Stdout = &cmdOutbuf
+	cmd.Stderr = &cmdErrbuf
+	if err := cmd.Run(); err != nil {
+		return &core.Response{Code: core.Error, Message: cmdErrbuf.String()}
+	}
+	var branch []string
+	for _, branchWithSha := range strings.Split(cmdOutbuf.String(), "\n") {
+		if len(branchWithSha) != 0 {
+			branchWithShaSlice := strings.Fields(branchWithSha)
+			branchWithHead := branchWithShaSlice[len(branchWithShaSlice)-1]
+			branchWithHeadSlice := strings.Split(branchWithHead, "/")
+			branch = append(branch, branchWithHeadSlice[len(branchWithHeadSlice)-1])
+		}
+	}
+
+	return &core.Response{Data: RespData{Branch: branch}}
+}
+
 // GetOption Project list
 func (project Project) GetOption(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {

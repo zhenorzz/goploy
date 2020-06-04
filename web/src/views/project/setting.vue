@@ -59,7 +59,10 @@
               <el-input v-model.trim="formData.name" autocomplete="off" />
             </el-form-item>
             <el-form-item label="项目地址" prop="url">
-              <el-input v-model.trim="formData.url" autocomplete="off" />
+              <el-row type="flex">
+                <el-input v-model.trim="formData.url" autocomplete="off" @change="formProps.branch = []" />
+                <el-button :icon="formProps.lsBranchLoading ? 'el-icon-loading' : 'el-icon-view'" type="success" :disabled="formProps.lsBranchLoading" @click="getRemoteBranchList">测试连接</el-button>
+              </el-row>
             </el-form-item>
             <el-form-item label="部署路径" prop="path">
               <el-input v-model.trim="formData.path" autocomplete="off" />
@@ -73,7 +76,24 @@
               </el-select>
             </el-form-item>
             <el-form-item label="分支" prop="branch">
-              <el-input v-model.trim="formData.branch" autocomplete="off" />
+              <el-row type="flex">
+                <el-select
+                  v-model="formData.branch"
+                  filterable
+                  allow-create
+                  default-first-option
+                  placeholder="请选择或填入"
+                  style="width:100%"
+                >
+                  <el-option
+                    v-for="item in formProps.branch"
+                    :key="item"
+                    :label="item"
+                    :value="item"
+                  />
+                </el-select>
+                <el-button :icon="formProps.lsBranchLoading ? 'el-icon-loading' : 'el-icon-search'" type="success" :disabled="formProps.lsBranchLoading" @click="getRemoteBranchList">列出分支</el-button>
+              </el-row>
             </el-form-item>
             <el-form-item label="rsync选项" prop="rsyncOption">
               <el-input v-model.trim="formData.rsyncOption" type="textarea" :rows="2" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
@@ -308,7 +328,7 @@ import tableHeight from '@/mixin/tableHeight'
 import { getCanBindProjectUser } from '@/api/user'
 import { getOption as getServerOption } from '@/api/server'
 import { getOption as getGroupOption } from '@/api/group'
-import { getList, getBindServerList, getBindUserList, add, edit, remove, addServer, addUser, removeProjectServer, removeProjectUser } from '@/api/project'
+import { getList, getBindServerList, getBindUserList, getRemoteBranchList, add, edit, remove, addServer, addUser, removeProjectServer, removeProjectUser } from '@/api/project'
 // require component
 import { codemirror } from 'vue-codemirror'
 import 'codemirror/mode/shell/shell.js'
@@ -371,6 +391,8 @@ export default {
       formProps: {
         symlink: false,
         disabled: false,
+        branch: [],
+        lsBranchLoading: false,
         showServers: true,
         showUsers: true,
         tab: 'base'
@@ -711,6 +733,27 @@ export default {
     getBindUserList(projectID) {
       getBindUserList(projectID).then((response) => {
         this.tableUserData = response.data.projectUserMap || []
+      })
+    },
+
+    getRemoteBranchList() {
+      // 已获取过分支
+      if (this.formProps.branch.length > 0) {
+        this.$message({
+          type: 'info',
+          message: '无需重复获取'
+        })
+        return
+      }
+      this.formProps.lsBranchLoading = true
+      getRemoteBranchList(this.formData.url).then((response) => {
+        this.formProps.branch = response.data.branch
+        this.$message({
+          type: 'success',
+          message: '获取成功'
+        })
+      }).finally(() => {
+        this.formProps.lsBranchLoading = false
       })
     },
 

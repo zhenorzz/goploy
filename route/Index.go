@@ -34,6 +34,7 @@ func Init() *router.Router {
 
 	// project route
 	rt.Add("/project/getList", router.GET, controller.Project{}.GetList)
+	rt.Add("/project/getRemoteBranchList", router.GET, controller.Project{}.GetRemoteBranchList)
 	rt.Add("/project/getOption", router.GET, controller.Project{}.GetOption).Roles([]string{core.RoleAdmin})
 	rt.Add("/project/getBindServerList", router.GET, controller.Project{}.GetBindServerList)
 	rt.Add("/project/getBindUserList", router.GET, controller.Project{}.GetBindUserList)
