@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -219,15 +221,22 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 		return &core.Response{Code: core.Error, Message: "Invalid rsync option format"}
 	}
 
-	projectData, err := model.Project{Name: reqData.Name}.GetDataByName()
+	projectList, err := model.Project{Name: reqData.Name}.GetAllByName()
 	if err != nil {
 		if err != sql.ErrNoRows {
 			return &core.Response{Code: core.Error, Message: err.Error()}
 		}
 	} else {
-		if projectData.ID != reqData.ID {
-			return &core.Response{Code: core.Error, Message: "The project name is already exist"}
+		for _, projectData := range projectList {
+			if projectData.ID != reqData.ID {
+				return &core.Response{Code: core.Error, Message: "The project name is already exist"}
+			}
 		}
+	}
+
+	projectData, err := model.Project{ID: reqData.ID}.GetData()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	err = model.Project{
@@ -252,7 +261,44 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	go repoCreate(reqData.ID)
+
+	if reqData.URL != projectData.URL {
+		srcPath := filepath.Join(core.RepositoryPath, projectData.Name)
+		_, err := os.Stat(srcPath)
+		if err == nil || os.IsNotExist(err) == false {
+			repo := reqData.URL
+			cmd := exec.Command("git", "remote", "set-url", "origin", repo)
+			cmd.Dir = srcPath
+			if err := cmd.Run(); err != nil {
+				return &core.Response{Code: core.Error, Message: "Project change url fail, you can do it manually, reason: " + err.Error()}
+			}
+		}
+	}
+
+	if reqData.Branch != projectData.Branch {
+		srcPath := filepath.Join(core.RepositoryPath, projectData.Name)
+		_, err := os.Stat(srcPath)
+		if err == nil || os.IsNotExist(err) == false {
+			cmd := exec.Command("git", "checkout", "-f", "-B", reqData.Branch, "origin/"+reqData.Branch)
+			cmd.Dir = srcPath
+			if err := cmd.Run(); err != nil {
+				return &core.Response{Code: core.Error, Message: "Project checkout branch fail, you can do it manually, reason: " + err.Error()}
+			}
+		}
+	}
+
+	// 名字修改了 需要修改文件夹
+	if reqData.Name != projectData.Name {
+		srcPath := filepath.Join(core.RepositoryPath, projectData.Name)
+		_, err := os.Stat(srcPath)
+		if err == nil || os.IsNotExist(err) == false {
+			if err := os.Rename(srcPath, filepath.Join(".", core.RepositoryPath, reqData.Name)); err != nil {
+				return &core.Response{Code: core.Error, Message: "Folder rename fail, you can do it manually, reason: " + err.Error()}
+			}
+		}
+	}
+
+	//go repoCreate(reqData.ID)
 	return &core.Response{}
 }
 
@@ -266,6 +312,12 @@ func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Resp
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
+
+	projectData, err := model.Project{ID: reqData.ID}.GetData()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
 	err = model.Project{
 		ID: reqData.ID,
 	}.RemoveRow()
@@ -273,6 +325,12 @@ func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Resp
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
+
+	srcPath := path.Join(core.RepositoryPath, projectData.Name)
+	if err := os.Remove(srcPath); err != nil {
+		return &core.Response{Code: core.Error, Message: "Delete folder fail"}
+	}
+
 	return &core.Response{}
 }
 

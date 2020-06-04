@@ -8,9 +8,11 @@
       <el-button type="primary" icon="el-icon-plus" @click="handleAdd">添加</el-button>
     </el-row>
     <el-table
+      :key="tableHeight"
       border
       stripe
       highlight-current-row
+      :max-height="tableHeight"
       :data="tableData"
       style="width: 100%"
     >
@@ -49,18 +51,18 @@
         @current-change="handlePageChange"
       />
     </el-row>
-    <el-dialog title="项目设置" :visible.sync="dialogVisible" width="60%" class="project-setting-dialog">
+    <el-dialog title="项目设置" :visible.sync="dialogVisible" width="60%" class="project-setting-dialog" :close-on-click-modal="false">
       <el-form ref="form" :rules="formRules" :model="formData" label-width="90px">
         <el-tabs v-model="formProps.tab" @tab-click="handleTabClick">
           <el-tab-pane label="基本配置" name="base">
             <el-form-item label="项目名称" prop="name">
-              <el-input v-model="formData.name" autocomplete="off" />
+              <el-input v-model.trim="formData.name" autocomplete="off" />
             </el-form-item>
             <el-form-item label="项目地址" prop="url">
-              <el-input v-model="formData.url" autocomplete="off" />
+              <el-input v-model.trim="formData.url" autocomplete="off" />
             </el-form-item>
             <el-form-item label="部署路径" prop="path">
-              <el-input v-model="formData.path" autocomplete="off" />
+              <el-input v-model.trim="formData.path" autocomplete="off" />
             </el-form-item>
             <el-form-item label="环境" prop="environment">
               <el-select v-model="formData.environment" placeholder="选择环境" style="width:100%">
@@ -71,10 +73,10 @@
               </el-select>
             </el-form-item>
             <el-form-item label="分支" prop="branch">
-              <el-input v-model="formData.branch" autocomplete="off" :disabled="formData.id>0" />
+              <el-input v-model.trim="formData.branch" autocomplete="off" />
             </el-form-item>
             <el-form-item label="rsync选项" prop="rsyncOption">
-              <el-input v-model="formData.rsyncOption" type="textarea" :rows="2" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
+              <el-input v-model.trim="formData.rsyncOption" type="textarea" :rows="2" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
             </el-form-item>
             <el-form-item label="绑定分组" prop="groupId">
               <el-select v-model="formData.groupId" placeholder="选择分组" style="width:100%">
@@ -121,7 +123,7 @@
               </el-radio-group>
             </el-form-item>
             <el-form-item v-show="formProps.symlink" label="目录" prop="symlink_path" label-width="50px">
-              <el-input v-model="formData.symlinkPath" autocomplete="off" />
+              <el-input v-model.trim="formData.symlinkPath" autocomplete="off" />
             </el-form-item>
             <el-row v-show="formProps.symlink" style="margin: 0 10px">
               <p>如果部署路径已存在在目标服务器，请手动删除该目录<span style="color: red">rm -rf 部署路径</span>，否则软链将会不成功</p>
@@ -134,7 +136,7 @@
               <el-tooltip class="item" effect="dark" placement="bottom">
                 <div slot="content">
                   拉取代码后在宿主服务器运行的脚本<br>
-                  运行方式：打包成一份脚本文件，然后执行<br>
+                  运行方式：打包成一份脚本文件<br>
                   检查服务器是否安装该脚本类型(默认以bash运行)<br>
                 </div>
                 <i class="el-icon-question" style="padding-left: 3px" />
@@ -160,8 +162,9 @@
               <el-tooltip class="item" effect="dark" placement="bottom">
                 <div slot="content">
                   部署后在目标服务器运行的脚本<br>
-                  运行方式：打包成一份脚本文件，然后执行<br>
-                  检查服务器是否安装该脚本类型(默认以bash运行)<br>
+                  运行方式：打包成一份脚本文件<br>
+                  如需重启服务，请注意是否需要nohup<br>
+                  检查服务器是否安装该脚本类型(默认以bash运行)
                 </div>
                 <i class="el-icon-question" style="padding-left: 3px" />
               </el-tooltip>
@@ -200,7 +203,7 @@
                   <el-option label="企业微信" :value="1" />
                   <el-option label="钉钉" :value="2" />
                 </el-select>
-                <el-input v-model="formData.notifyTarget" autocomplete="off" placeholder="webhook链接" />
+                <el-input v-model.trim="formData.notifyTarget" autocomplete="off" placeholder="webhook链接" />
               </el-row>
             </el-form-item>
           </el-tab-pane>
@@ -301,7 +304,7 @@
   </el-row>
 </template>
 <script>
-
+import tableHeight from '@/mixin/tableHeight'
 import { getCanBindProjectUser } from '@/api/user'
 import { getOption as getServerOption } from '@/api/server'
 import { getOption as getGroupOption } from '@/api/group'
@@ -321,6 +324,7 @@ export default {
   components: {
     codemirror
   },
+  mixins: [tableHeight],
   data() {
     const validateNotifyTarget = (rule, value, callback) => {
       if (value !== 0 && this.formData.notifyType !== '') {

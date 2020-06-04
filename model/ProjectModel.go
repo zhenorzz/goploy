@@ -329,7 +329,7 @@ func (p Project) GetUserProjectList(userID int64, userRole string, groupIDStr st
 // GetAll Group row
 func (p Project) GetAll() (Projects, error) {
 	rows, err := sq.
-		Select("id, group_id, name, url, path, environment, branch, after_pull_script, after_deploy_script, rsync_option, deploy_state, insert_time, update_time").
+		Select("id, group_id, name, url, path, environment, branch, rsync_option, deploy_state").
 		From(projectTable).
 		Where(sq.Eq{"state": Enable}).
 		OrderBy("id DESC").
@@ -350,18 +350,49 @@ func (p Project) GetAll() (Projects, error) {
 			&project.Path,
 			&project.Environment,
 			&project.Branch,
-			&project.AfterPullScript,
-			&project.AfterDeployScript,
 			&project.RsyncOption,
-			&project.DeployState,
-			&project.InsertTime,
-			&project.UpdateTime); err != nil {
+			&project.DeployState); err != nil {
 			return nil, err
 		}
 		projects = append(projects, project)
 	}
 	return projects, nil
 }
+
+// GetAll Group row
+func (p Project) GetAllByName() (Projects, error) {
+	rows, err := sq.
+		Select("id, group_id, name, url, path, environment, branch, rsync_option, deploy_state").
+		From(projectTable).
+		Where(sq.Eq{"name": p.Name}).
+		Where(sq.Eq{"state": Enable}).
+		OrderBy("id DESC").
+		RunWith(DB).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	var projects Projects
+	for rows.Next() {
+		var project Project
+
+		if err := rows.Scan(
+			&project.ID,
+			&project.GroupID,
+			&project.Name,
+			&project.URL,
+			&project.Path,
+			&project.Environment,
+			&project.Branch,
+			&project.RsyncOption,
+			&project.DeployState); err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+	return projects, nil
+}
+
 
 // GetData add project information to p *Project
 func (p Project) GetData() (Project, error) {
