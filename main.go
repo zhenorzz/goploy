@@ -54,35 +54,50 @@ func install() {
 		println("There were errors reading, exiting program.")
 		return
 	}
-	println("请输入mysql的主机(例如127.0.0.1，不带端口):")
+	println("请输入mysql的主机(默认127.0.0.1，不带端口):")
 	mysqlHost, err := inputReader.ReadString('\n')
 	if err != nil {
 		println("There were errors reading, exiting program.")
 		return
 	}
-	println("请输入mysql的端口(例如3306):")
+	if len(mysqlHost) == 0 {
+		mysqlHost = "127.0.0.1"
+	}
+	println("请输入mysql的端口(默认3306):")
 	mysqlPort, err := inputReader.ReadString('\n')
 	if err != nil {
 		println("There were errors reading, exiting program.")
 		return
 	}
-	println("请输入日志目录的绝对路径(例如/tmp/):")
+	if len(mysqlPort) == 0 {
+		mysqlPort = "3306"
+	}
+	println("请输入日志目录的绝对路径(默认/tmp/):")
 	logPath, err := inputReader.ReadString('\n')
 	if err != nil {
 		println("There were errors reading, exiting program.")
 		return
 	}
-	println("请输入sshkey的绝对路径(例如/root/.ssh/id_rsa):")
+	if len(logPath) == 0 {
+		logPath = "/tmp/"
+	}
+	println("请输入sshkey的绝对路径(默认/root/.ssh/id_rsa):")
 	sshFile, err := inputReader.ReadString('\n')
 	if err != nil {
 		println("There were errors reading, exiting program.")
 		return
 	}
-	println("请输入监听端口(例如80，打开网页时的端口):")
+	if len(sshFile) == 0 {
+		sshFile = "/root/.ssh/id_rsa"
+	}
+	println("请输入监听端口(默认80，打开网页时的端口):")
 	port, err := inputReader.ReadString('\n')
 	if err != nil {
 		println("There were errors reading, exiting program.")
 		return
+	}
+	if len(port) == 0 {
+		port = "80"
 	}
 	println("开始安装数据库...")
 	mysqlUser = strings.TrimRight(mysqlUser, "\n")
@@ -99,6 +114,7 @@ func install() {
 	err = cmd.Run()
 	if err != nil {
 		println(err.Error())
+		println("检查是否有安装mysql客户端")
 		return
 	}
 	println("安装数据库完成")
