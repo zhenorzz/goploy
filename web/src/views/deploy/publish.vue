@@ -75,8 +75,8 @@
       @current-change="handlePageChange"
     />
     <el-dialog title="构建记录" :visible.sync="dialogVisible" class="publish-record">
-      <el-row>
-        <el-col :span="8">
+      <el-row type="flex">
+        <el-row style="width: 310px">
           <el-radio-group v-model="publishToken" @change="handleDetailChange">
             <el-row v-for="(item, index) in gitTraceList" :key="index">
               <el-row style="margin:5px 0">
@@ -89,8 +89,8 @@
               </el-row>
             </el-row>
           </el-radio-group>
-        </el-col>
-        <el-col :span="16" class="project-detail">
+        </el-row>
+        <el-row class="project-detail" style="flex:1;width:100%">
           <el-row v-for="(item, index) in publishLocalTraceList" :key="index">
             <el-row v-if="item.type === 2">
               <el-row style="margin:5px 0">git同步信息</el-row>
@@ -167,11 +167,8 @@
               </el-row>
             </el-tab-pane>
           </el-tabs>
-        </el-col>
+        </el-row>
       </el-row>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-      </div>
     </el-dialog>
     <el-dialog title="commit管理" :visible.sync="commitDialogVisible">
       <el-table
@@ -389,7 +386,7 @@ export default {
 
     handleDetail(data) {
       this.dialogVisible = true
-      getPreview(data.id).then((response) => {
+      getPreview({ page: 1, rows: 12 }, data.id).then((response) => {
         const gitTraceList = response.data.gitTraceList || []
         this.gitTraceList = gitTraceList.map(element => {
           if (element.ext !== '') Object.assign(element, JSON.parse(element.ext))
@@ -451,7 +448,7 @@ export default {
 <style rel="stylesheet/scss" lang="scss" scoped>
 @import "@/styles/mixin.scss";
 .project-detail {
-  height:375px;
+  height:450px;
   overflow-y: auto;
   @include scrollBar();
 }

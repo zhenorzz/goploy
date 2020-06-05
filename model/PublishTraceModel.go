@@ -92,18 +92,19 @@ func (pt PublishTrace) GetListByToken() (PublishTraces, error) {
 }
 
 // GetPreviewByProjectID PublishTrace row
-func (pt PublishTrace) GetPreviewByProjectID() (PublishTraces, error) {
+func (pt PublishTrace) GetPreviewByProjectID(pagination Pagination) (PublishTraces, Pagination, error) {
 	rows, err := sq.
 		Select("id, token, project_id, project_name, detail, state, publisher_id, publisher_name, type, ext, insert_time, update_time").
 		Column("!EXISTS (SELECT id FROM " + publishTraceTable + " AS pt where pt.state = 0 AND pt.token = publish_trace.token) as publish_state").
 		From(publishTraceTable).
 		Where(sq.Eq{"project_id": pt.ProjectID, "type": Pull}).
 		OrderBy("update_time DESC").
-		Limit(10).
+		Limit(pagination.Rows).
+		Offset((pagination.Page - 1) * pagination.Rows).
 		RunWith(DB).
 		Query()
 	if err != nil {
-		return nil, err
+		return nil, pagination, err
 	}
 	var publishTraces PublishTraces
 	for rows.Next() {
@@ -123,9 +124,19 @@ func (pt PublishTrace) GetPreviewByProjectID() (PublishTraces, error) {
 			&publishTrace.InsertTime,
 			&publishTrace.UpdateTime,
 			&publishTrace.PublishState); err != nil {
-			return nil, err
+			return nil, pagination, err
 		}
 		publishTraces = append(publishTraces, publishTrace)
 	}
-	return publishTraces, nil
+	err = sq.
+		Select("COUNT(*) AS count").
+		From(publishTraceTable).
+		Where(sq.Eq{"project_id": pt.ProjectID, "type": Pull}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&pagination.Total)
+	if err != nil {
+		return nil, pagination, err
+	}
+	return publishTraces, pagination, nil
 }
