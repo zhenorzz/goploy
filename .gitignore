@@ -1,0 +1,20 @@
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
+tmp
+gin-bin.exe*
+repository/*
+!repository/template-package
+# local env files
+.env
+.env.local
+.env.*.local
+
+goploy
+goploy.exe
+goploy.mac
