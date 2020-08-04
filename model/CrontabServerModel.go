@@ -23,7 +23,7 @@ type CrontabServer struct {
 // CrontabServers crontab server relationship
 type CrontabServers []CrontabServer
 
-// DeleteRow edit one row to table server
+// GetAllByCrontabID -
 func (cs CrontabServer) GetAllByCrontabID() (CrontabServers, error) {
 	rows, err := sq.
 		Select("id, crontab_id, server_id").
@@ -111,7 +111,7 @@ func (cs CrontabServer) DeleteRow() error {
 	return err
 }
 
-// DeleteRow edit one row to table server
+// DeleteRowByCrontabID -
 func (cs CrontabServer) DeleteRowByCrontabID() error {
 	_, err := sq.
 		Delete(crontabServerTable).

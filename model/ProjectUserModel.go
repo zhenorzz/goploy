@@ -2,8 +2,9 @@ package model
 
 import (
 	"fmt"
-	sq "github.com/Masterminds/squirrel"
 	"strings"
+
+	sq "github.com/Masterminds/squirrel"
 )
 
 const projectUserTable = "`project_user`"
@@ -111,7 +112,7 @@ func (pu ProjectUser) DeleteRow() error {
 	return err
 }
 
-// DeleteRow edit one row to table ProjectUser
+// DeleteByUserID remove rows by user id in table ProjectUser
 func (pu ProjectUser) DeleteByUserID() error {
 	_, err := sq.
 		Delete(projectUserTable).

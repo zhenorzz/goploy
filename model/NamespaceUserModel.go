@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -46,7 +47,7 @@ func (nu NamespaceUser) GetBindUserListByNamespaceID() (NamespaceUsers, error) {
 	return namespaceUsers, nil
 }
 
-// GetBindUserListByNamespaceID user row
+// GetAllUserByNamespaceID user row
 func (nu NamespaceUser) GetAllUserByNamespaceID() (NamespaceUsers, error) {
 	rows, err := sq.
 		Select("user_id, user.name, namespace_user.role").
@@ -70,7 +71,7 @@ func (nu NamespaceUser) GetAllUserByNamespaceID() (NamespaceUsers, error) {
 	return namespaceUsers, nil
 }
 
-// GetBindUserListByNamespaceID user row
+// GetAllGteManagerByNamespaceID user row
 func (nu NamespaceUser) GetAllGteManagerByNamespaceID() (NamespaceUsers, error) {
 	rows, err := sq.
 		Select("user_id, role").
@@ -112,7 +113,7 @@ func (nu NamespaceUsers) AddMany() error {
 	return err
 }
 
-// AddMany add many row to table namespace_user
+// AddAdminByNamespaceID add many admin by namespace id to table namespace_user
 func (nu NamespaceUser) AddAdminByNamespaceID() error {
 
 	builder := sq.
@@ -126,7 +127,7 @@ func (nu NamespaceUser) AddAdminByNamespaceID() error {
 	return err
 }
 
-// AddMany add many row to table namespace_user
+// AddAdminByUserID add many admin by user id to table namespace_user
 func (nu NamespaceUser) AddAdminByUserID() error {
 	builder := sq.
 		Replace(namespaceUserTable).
@@ -148,7 +149,7 @@ func (nu NamespaceUser) DeleteRow() error {
 	return err
 }
 
-// DeleteRow edit one row to table NamespaceUser
+// DeleteByUserID delete row by user id
 func (nu NamespaceUser) DeleteByUserID() error {
 	_, err := sq.
 		Delete(namespaceUserTable).

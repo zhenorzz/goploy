@@ -45,7 +45,7 @@ func (p Package) GetList(pagination Pagination) (Packages, error) {
 	return packages, nil
 }
 
-// GetList package total
+// GetTotal package total
 func (p Package) GetTotal() (int64, error) {
 	var total int64
 	err := sq.

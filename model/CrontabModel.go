@@ -52,7 +52,7 @@ func (c Crontab) GetList(pagination Pagination) (Crontabs, error) {
 	return crontabs, nil
 }
 
-// GetList crontab total
+// GetTotal crontab total
 func (c Crontab) GetTotal() (int64, error) {
 	var total int64
 	builder := sq.
@@ -73,7 +73,7 @@ func (c Crontab) GetTotal() (int64, error) {
 	return total, nil
 }
 
-// GetList crontab row
+// GetAllInCommandMD5 crontab all row  in command md5
 func (c Crontab) GetAllInCommandMD5(commandMD5s []string) (Crontabs, error) {
 	rows, err := sq.
 		Select("id, command, command_md5").

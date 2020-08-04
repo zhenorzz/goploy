@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -69,7 +70,7 @@ func (ns Namespace) GetAllByUserID() (Namespaces, error) {
 	return namespaces, nil
 }
 
-// GetList namespace row by user id
+// GetListByUserID namespace row by user id
 func (ns Namespace) GetListByUserID(pagination Pagination) (Namespaces, error) {
 	rows, err := sq.
 		Select("namespace.id, namespace.name, namespace.insert_time, namespace.update_time").
@@ -101,7 +102,7 @@ func (ns Namespace) GetListByUserID(pagination Pagination) (Namespaces, error) {
 	return namespaces, nil
 }
 
-// GetList namespace total by user id
+// GetTotalByUserID namespace total by user id
 func (ns Namespace) GetTotalByUserID() (int64, error) {
 	var total int64
 	err := sq.

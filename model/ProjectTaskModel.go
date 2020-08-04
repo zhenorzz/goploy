@@ -5,11 +5,13 @@ import (
 )
 
 const projectTaskTable = "`project_task`"
+
 // state type
 const (
 	NotRun = iota
 	Run
 )
+
 // ProjectTask project user relationship
 type ProjectTask struct {
 	ID         int64  `json:"id"`
@@ -26,10 +28,10 @@ type ProjectTask struct {
 	UpdateTime string `json:"updateTime"`
 }
 
-// ProjectUsers project user relationship
+// ProjectTasks project task relationship
 type ProjectTasks []ProjectTask
 
-// GetList project row
+// GetListByProjectID project task row
 func (pt ProjectTask) GetListByProjectID(pagination Pagination) (ProjectTasks, Pagination, error) {
 	rows, err := sq.
 		Select("id, project_id, commit_id, date, is_run, state, creator, creator_id, editor, editor_id, insert_time, update_time").
@@ -140,8 +142,7 @@ func (pt ProjectTask) EditRow() error {
 	return err
 }
 
-
-// EditRow edit one row to table server
+// SetRun set project task to run
 func (pt ProjectTask) SetRun() error {
 	_, err := sq.
 		Update(projectTaskTable).

@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -54,7 +55,7 @@ func (s Server) GetList(pagination Pagination) (Servers, error) {
 	return servers, nil
 }
 
-// GetList server total
+// GetTotal server total
 func (s Server) GetTotal() (int64, error) {
 	var total int64
 	err := sq.
@@ -148,7 +149,7 @@ func (s Server) EditRow() error {
 	return err
 }
 
-// DeleteRow Server
+// Remove Server
 func (s Server) Remove() error {
 	tx, err := DB.Begin()
 	if err != nil {

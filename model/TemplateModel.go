@@ -84,7 +84,7 @@ func (tpl Template) GetList(pagination Pagination) (Templates, error) {
 	return templates, nil
 }
 
-// GetList template total
+// GetTotal template total
 func (tpl Template) GetTotal() (int64, error) {
 	var total int64
 	err := sq.

@@ -12,7 +12,10 @@ import (
 
 const userTable = "`user`"
 
+// SuperManager super manager
 const SuperManager = 1
+
+// GeneralUser  general user
 const GeneralUser = 0
 
 // User mysql table user
@@ -91,7 +94,7 @@ func (u User) GetList(pagination Pagination) (Users, error) {
 	return users, nil
 }
 
-// GetList crontab total
+// GetTotal user total
 func (u User) GetTotal() (int64, error) {
 	var total int64
 	err := sq.

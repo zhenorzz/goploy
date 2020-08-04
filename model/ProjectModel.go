@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -36,6 +37,7 @@ type Project struct {
 	UpdateTime            string `json:"updateTime"`
 }
 
+// Project state
 const (
 	ProjectNotDeploy = 0
 	ProjectDeploying = 1
@@ -43,18 +45,19 @@ const (
 	ProjectFail      = 3
 )
 
+// Project Deploy State
 const (
 	ProjectManualDeploy  = 0
 	ProjectWebhookDeploy = 1
 )
 
+// Project Notify Type
 const (
-	NotifyWeiXin  = 1
-	NotifyDingTalk  = 2
-	NotifyFeiShu  = 3
-	NotifyCustom  = 255
+	NotifyWeiXin   = 1
+	NotifyDingTalk = 2
+	NotifyFeiShu   = 3
+	NotifyCustom   = 255
 )
-
 
 // Projects many project
 type Projects []Project
@@ -143,7 +146,7 @@ func (p Project) DeploySuccess() error {
 	return err
 }
 
-// DeploySuccess return err
+// DeployFail return err
 func (p Project) DeployFail() error {
 	_, err := sq.
 		Update(projectTable).
@@ -213,7 +216,7 @@ func (p Project) GetList(pagination Pagination) (Projects, error) {
 	return projects, nil
 }
 
-// GetList project total
+// GetTotal project total
 func (p Project) GetTotal() (int64, error) {
 	var total int64
 	builder := sq.
@@ -238,6 +241,7 @@ func (p Project) GetTotal() (int64, error) {
 	return total, nil
 }
 
+// GetUserProjectList -
 func (p Project) GetUserProjectList(userID int64) (Projects, error) {
 	builder := sq.
 		Select(`
@@ -293,7 +297,7 @@ func (p Project) GetUserProjectList(userID int64) (Projects, error) {
 
 }
 
-// GetAll Group row
+// GetAllByName get all project by name
 func (p Project) GetAllByName() (Projects, error) {
 	rows, err := sq.
 		Select("id, name, url, path, environment, branch, rsync_option, deploy_state").
@@ -364,7 +368,7 @@ func (p Project) GetData() (Project, error) {
 	return project, nil
 }
 
-// GetData add project information to p *Project
+// GetDataByName get project data by name
 func (p Project) GetDataByName() (Project, error) {
 	var project Project
 	err := sq.
@@ -399,6 +403,7 @@ func (p Project) GetDataByName() (Project, error) {
 	return project, nil
 }
 
+// GetUserProjectData get user project data
 func (p Project) GetUserProjectData(userID int64) (Project, error) {
 	var project Project
 	err := sq.

@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -68,7 +69,7 @@ func (m Monitor) GetList(pagination Pagination) (Monitors, error) {
 	return monitors, nil
 }
 
-// GetList monitor total
+// GetTotal monitor total
 func (m Monitor) GetTotal() (int64, error) {
 	var total int64
 	err := sq.
@@ -103,7 +104,7 @@ func (m Monitor) GetData() (Monitor, error) {
 	return monitor, nil
 }
 
-// GetList monitor row
+// GetAllByState -
 func (m Monitor) GetAllByState() (Monitors, error) {
 	rows, err := sq.
 		Select("id, name, domain, port, second, times, notify_type, notify_target, description").
@@ -173,7 +174,7 @@ func (m Monitor) EditRow() error {
 	return err
 }
 
-// RemoveRow Monitor
+// ToggleState -
 func (m Monitor) ToggleState() error {
 	_, err := sq.
 		Update(monitorTable).
