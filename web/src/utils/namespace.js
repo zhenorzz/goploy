@@ -8,7 +8,7 @@ export function getNamespace() {
 }
 
 export function setNamespace(namespace) {
-  Cookies.set(NamespaceKey, namespace.id)
+  Cookies.set(NamespaceKey, namespace.id, { expires: 365 })
   return localStorage.setItem(NamespaceKey, JSON.stringify(namespace))
 }
 
