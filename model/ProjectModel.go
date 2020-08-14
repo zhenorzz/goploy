@@ -247,6 +247,7 @@ func (p Project) GetUserProjectList(userID int64) (Projects, error) {
 		Select(`
 			project.id, 
 			project.name,
+			project.url,
 			project.publisher_id,
 			project.publisher_name,
 			IFNULL(publish_trace.ext, '{}'),
@@ -280,6 +281,7 @@ func (p Project) GetUserProjectList(userID int64) (Projects, error) {
 		if err := rows.Scan(
 			&project.ID,
 			&project.Name,
+			&project.URL,
 			&project.PublisherID,
 			&project.PublisherName,
 			&project.PublishExt,
