@@ -20,8 +20,6 @@ import (
 )
 
 func main() {
-	install()
-	godotenv.Load(core.GlobalPath + ".env")
 	println(`
    ______            __           
   / ____/___  ____  / /___  __  __
@@ -30,6 +28,8 @@ func main() {
 \____/\____/ .___/_/\____/\__, /  
           /_/            /____/   
 `)
+	install()
+	godotenv.Load(core.GlobalPath + ".env")
 	core.CreateValidator()
 	model.Init()
 	ws.Init()

@@ -1,6 +1,6 @@
 
 * [快速启动](start/index.md)
-
+* [权限模型](permission/index.md)
 * 参与开发
   * [PR](develop/pr.md)
   * [前端](develop/frontend.md)
