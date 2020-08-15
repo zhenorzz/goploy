@@ -4,7 +4,7 @@ import sq "github.com/Masterminds/squirrel"
 
 const installTraceTable = "`install_trace`"
 
-// InstallTrace mysql table for install trace
+// InstallTrace -
 type InstallTrace struct {
 	ID           int64  `json:"id"`
 	Token        string `json:"token"`
@@ -21,7 +21,7 @@ type InstallTrace struct {
 	UpdateTime   string `json:"updateTime"`
 }
 
-// InstallTraces InstallTrace slice
+// InstallTraces -
 type InstallTraces []InstallTrace
 
 // install trace type
@@ -31,7 +31,7 @@ const (
 	Script = 3
 )
 
-// AddRow add one row to table deploy and add id to deploy.ID
+// AddRow return LastInsertId
 func (it InstallTrace) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(installTraceTable).
@@ -48,7 +48,7 @@ func (it InstallTrace) AddRow() (int64, error) {
 	return id, err
 }
 
-// GetListByToken InstallTrace row
+// GetListByToken -
 func (it InstallTrace) GetListByToken() (InstallTraces, error) {
 	rows, err := sq.
 		Select("id, token, server_id, server_name, detail, state, operator_id, operator_name, type, ext, insert_time, update_time").
@@ -84,7 +84,7 @@ func (it InstallTrace) GetListByToken() (InstallTraces, error) {
 	return installTraces, nil
 }
 
-// GetPreviewByProjectID get deploy preview
+// GetPreviewByProjectID -
 func (it InstallTrace) GetPreviewByProjectID() (InstallTraces, error) {
 	rows, err := sq.
 		Select("id,token,server_id,server_name,detail,state,operator_id,operator_name,type,ext,create_time,update_time").
@@ -123,7 +123,7 @@ func (it InstallTrace) GetPreviewByProjectID() (InstallTraces, error) {
 	return installTraces, nil
 }
 
-// GetListGroupByToken InstallTrace token list
+// GetListGroupByToken -
 func (it InstallTrace) GetListGroupByToken() (InstallTraces, error) {
 	rows, err := sq.
 		Select("token, MIN(state) as install_state").

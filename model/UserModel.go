@@ -15,10 +15,10 @@ const userTable = "`user`"
 // SuperManager super manager
 const SuperManager = 1
 
-// GeneralUser  general user
+// GeneralUser general user
 const GeneralUser = 0
 
-// User mysql table user
+// User -
 type User struct {
 	ID            int64  `json:"id"`
 	Account       string `json:"account"`
@@ -32,10 +32,10 @@ type User struct {
 	LastLoginTime string `json:"lastLoginTime"`
 }
 
-// Users many user
+// Users -
 type Users []User
 
-// GetData add user information to u *User
+// GetData -
 func (u User) GetData() (User, error) {
 	var user User
 	err := sq.
@@ -51,7 +51,7 @@ func (u User) GetData() (User, error) {
 	return user, nil
 }
 
-// GetDataByAccount get user information
+// GetDataByAccount -
 func (u User) GetDataByAccount() (User, error) {
 	var user User
 	err := sq.
@@ -67,7 +67,7 @@ func (u User) GetDataByAccount() (User, error) {
 	return user, nil
 }
 
-// GetList get many user row
+// GetList -
 func (u User) GetList(pagination Pagination) (Users, error) {
 	rows, err := sq.
 		Select("id, account, name, mobile, super_manager, insert_time, update_time").
@@ -94,7 +94,7 @@ func (u User) GetList(pagination Pagination) (Users, error) {
 	return users, nil
 }
 
-// GetTotal user total
+// GetTotal -
 func (u User) GetTotal() (int64, error) {
 	var total int64
 	err := sq.
@@ -110,7 +110,7 @@ func (u User) GetTotal() (int64, error) {
 	return total, nil
 }
 
-// GetAll user row
+// GetAll -
 func (u User) GetAll() (Users, error) {
 	rows, err := sq.
 		Select("id, account, name, mobile, super_manager").
@@ -134,7 +134,7 @@ func (u User) GetAll() (Users, error) {
 	return users, nil
 }
 
-// AddRow add one row to table user and add id to u.ID
+// AddRow return LastInsertId
 func (u User) AddRow() (int64, error) {
 	if u.Password == "" {
 		u.Password = u.Account + "!@#"
@@ -160,7 +160,7 @@ func (u User) AddRow() (int64, error) {
 	return id, err
 }
 
-// EditRow edit one row to table server
+// EditRow -
 func (u User) EditRow() error {
 	builder := sq.
 		Update(userTable).
@@ -183,7 +183,7 @@ func (u User) EditRow() error {
 	return err
 }
 
-// RemoveRow User
+// RemoveRow -
 func (u User) RemoveRow() error {
 	_, err := sq.
 		Update(userTable).
@@ -196,7 +196,7 @@ func (u User) RemoveRow() error {
 	return err
 }
 
-// UpdatePassword return err
+// UpdatePassword -
 func (u User) UpdatePassword() error {
 	password := []byte(u.Password)
 	// Hashing the password with the default cost of 10
@@ -215,7 +215,7 @@ func (u User) UpdatePassword() error {
 	return err
 }
 
-// UpdateLastLoginTime return err
+// UpdateLastLoginTime -
 func (u User) UpdateLastLoginTime() error {
 	_, err := sq.
 		Update(userTable).
@@ -237,7 +237,7 @@ func (u User) Validate(inputPassword string) error {
 	return nil
 }
 
-// CreateToken create token
+// CreateToken -
 func (u User) CreateToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":   u.ID,

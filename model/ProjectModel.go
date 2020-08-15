@@ -8,7 +8,7 @@ import (
 
 const projectTable = "`project`"
 
-// Project mysql table project
+// Project -
 type Project struct {
 	ID                    int64  `json:"id"`
 	NamespaceID           int64  `json:"namespaceId"`
@@ -37,7 +37,7 @@ type Project struct {
 	UpdateTime            string `json:"updateTime"`
 }
 
-// Project state
+// Project deploy state
 const (
 	ProjectNotDeploy = 0
 	ProjectDeploying = 1
@@ -45,13 +45,13 @@ const (
 	ProjectFail      = 3
 )
 
-// Project Deploy State
+// Project deploy type
 const (
 	ProjectManualDeploy  = 0
 	ProjectWebhookDeploy = 1
 )
 
-// Project Notify Type
+// Project notify type
 const (
 	NotifyWeiXin   = 1
 	NotifyDingTalk = 2
@@ -59,10 +59,10 @@ const (
 	NotifyCustom   = 255
 )
 
-// Projects many project
+// Projects -
 type Projects []Project
 
-// AddRow add one row to table project and add id to p.ID
+// AddRow return LastInsertId
 func (p Project) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(projectTable).
@@ -77,7 +77,7 @@ func (p Project) AddRow() (int64, error) {
 	return id, err
 }
 
-// EditRow edit one row to table project
+// EditRow -
 func (p Project) EditRow() error {
 	_, err := sq.
 		Update(projectTable).
@@ -103,7 +103,7 @@ func (p Project) EditRow() error {
 	return err
 }
 
-// RemoveRow project
+// RemoveRow -
 func (p Project) RemoveRow() error {
 	_, err := sq.
 		Update(projectTable).
@@ -116,7 +116,7 @@ func (p Project) RemoveRow() error {
 	return err
 }
 
-// Publish for project
+// Publish project
 func (p Project) Publish() error {
 	_, err := sq.
 		Update(projectTable).
@@ -132,7 +132,7 @@ func (p Project) Publish() error {
 	return err
 }
 
-// DeploySuccess return err
+// DeploySuccess set deploy_state to success
 func (p Project) DeploySuccess() error {
 	_, err := sq.
 		Update(projectTable).
@@ -146,7 +146,7 @@ func (p Project) DeploySuccess() error {
 	return err
 }
 
-// DeployFail return err
+// DeployFail set deploy_state to fail
 func (p Project) DeployFail() error {
 	_, err := sq.
 		Update(projectTable).
@@ -160,7 +160,7 @@ func (p Project) DeployFail() error {
 	return err
 }
 
-// GetList project row
+// GetList -
 func (p Project) GetList(pagination Pagination) (Projects, error) {
 	builder := sq.
 		Select("project.id, name, url, path, symlink_path, environment, branch, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, notify_type, notify_target, project.insert_time, project.update_time").
@@ -216,7 +216,7 @@ func (p Project) GetList(pagination Pagination) (Projects, error) {
 	return projects, nil
 }
 
-// GetTotal project total
+// GetTotal -
 func (p Project) GetTotal() (int64, error) {
 	var total int64
 	builder := sq.
@@ -299,7 +299,7 @@ func (p Project) GetUserProjectList(userID int64) (Projects, error) {
 
 }
 
-// GetAllByName get all project by name
+// GetAllByName -
 func (p Project) GetAllByName() (Projects, error) {
 	rows, err := sq.
 		Select("id, name, url, path, environment, branch, rsync_option, deploy_state").
@@ -335,7 +335,7 @@ func (p Project) GetAllByName() (Projects, error) {
 	return projects, nil
 }
 
-// GetData add project information to p *Project
+// GetData -
 func (p Project) GetData() (Project, error) {
 	var project Project
 	err := sq.
@@ -370,7 +370,7 @@ func (p Project) GetData() (Project, error) {
 	return project, nil
 }
 
-// GetDataByName get project data by name
+// GetDataByName -
 func (p Project) GetDataByName() (Project, error) {
 	var project Project
 	err := sq.
@@ -405,7 +405,7 @@ func (p Project) GetDataByName() (Project, error) {
 	return project, nil
 }
 
-// GetUserProjectData get user project data
+// GetUserProjectData -
 func (p Project) GetUserProjectData(userID int64) (Project, error) {
 	var project Project
 	err := sq.

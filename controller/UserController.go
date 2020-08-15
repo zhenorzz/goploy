@@ -12,10 +12,10 @@ import (
 	"github.com/zhenorzz/goploy/model"
 )
 
-// User 用户字段
+// User struct
 type User Controller
 
-// Login user login api
+// Login -
 func (user User) Login(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Account  string `json:"account" validate:"min=5,max=12"`
@@ -68,7 +68,7 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	return &core.Response{Data: RespData{Token: token, NamespaceList: namespaceList}}
 }
 
-// Info get user info api
+// Info -
 func (user User) Info(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		UserInfo struct {
@@ -86,7 +86,7 @@ func (user User) Info(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	return &core.Response{Data: data}
 }
 
-// GetList user list
+// GetList -
 func (user User) GetList(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Users model.Users `json:"list"`
@@ -102,7 +102,7 @@ func (user User) GetList(_ http.ResponseWriter, gp *core.Goploy) *core.Response 
 	return &core.Response{Data: RespData{Users: users}}
 }
 
-// GetTotal user total
+// GetTotal -
 func (user User) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Total int64 `json:"total"`
@@ -115,7 +115,7 @@ func (user User) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response
 	return &core.Response{Data: RespData{Total: total}}
 }
 
-// GetOption user list
+// GetOption -
 func (user User) GetOption(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Users model.Users `json:"list"`
@@ -127,7 +127,7 @@ func (user User) GetOption(_ http.ResponseWriter, gp *core.Goploy) *core.Respons
 	return &core.Response{Data: RespData{Users: users}}
 }
 
-// Add one user
+// Add user
 func (user User) Add(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Account      string `json:"account" validate:"min=5,max=12"`
@@ -174,7 +174,7 @@ func (user User) Add(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	return &core.Response{Data: RespData{ID: id}}
 }
 
-// Edit one user
+// Edit user
 func (user User) Edit(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"gt=0"`
@@ -221,7 +221,7 @@ func (user User) Edit(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// DeleteRow one User
+// RemoveRow User
 func (user User) Remove(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
@@ -244,7 +244,7 @@ func (user User) Remove(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// ChangePassword doc
+// ChangePassword -
 func (user User) ChangePassword(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		OldPassword string `json:"oldPwd" validate:"password"`

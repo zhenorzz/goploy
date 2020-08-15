@@ -20,11 +20,30 @@
           <b v-else style="color: #909399">{{ scope.row.name }} - {{ scope.row.environment }}</b>
         </template>
       </el-table-column>
-      <el-table-column prop="branch" label="分支" align="center" />
+      <el-table-column prop="branch" label="分支" align="center">
+        <template slot-scope="scope">
+          <el-link
+            style="font-size: 12px"
+            :underline="false"
+            :href="parseGitURL(scope.row.url) + '/tree/' + scope.row.branch"
+            target="_blank"
+          >
+            {{ scope.row.branch }}
+          </el-link>
+        </template>
+      </el-table-column>
       <el-table-column prop="commit" label="commitID" width="150" align="center">
         <template slot-scope="scope">
           <el-tooltip effect="dark" :content="scope.row['commit']" placement="top">
-            <span>{{ scope.row['commit'] ? scope.row['commit'].substring(0, 6) : '' }}</span>
+            <el-link
+              type="primary"
+              style="font-size: 12px"
+              :underline="false"
+              :href="parseGitURL(scope.row['url']) + '/commit/' + scope.row['commit']"
+              target="_blank"
+            >
+              {{ scope.row['commit'] ? scope.row['commit'].substring(0, 6) : '' }}
+            </el-link>
           </el-tooltip>
         </template>
       </el-table-column>
@@ -128,7 +147,16 @@
               <el-row style="margin:5px 0">时间: {{ item.insertTime }}</el-row>
               <!-- 用数组的形式 兼容以前版本 -->
               <el-row v-if="item.state !== 0">
-                <el-row>commit: {{ item['commit'] }}</el-row>
+                <el-row>commit:
+                  <el-link
+                    type="primary"
+                    :underline="false"
+                    :href="parseGitURL(searchPreview.url) + '/commit/' + item['commit']"
+                    target="_blank"
+                  >
+                    {{ item['commit'] }}
+                  </el-link>
+                </el-row>
                 <el-row>message: {{ item['message'] }}</el-row>
                 <el-row>author: {{ item['author'] }}</el-row>
                 <el-row>datetime: {{ item['timestamp'] ? parseTime(item['timestamp']) : '' }}</el-row>
@@ -216,7 +244,19 @@
             <span v-html="formatDetail(props.row.diff)" />
           </template>
         </el-table-column>
-        <el-table-column prop="commit" label="commit" width="290" />
+        <el-table-column prop="commit" label="commit" width="290">
+          <template slot-scope="scope">
+            <el-link
+              type="primary"
+              style="font-size: 12px"
+              :underline="false"
+              :href="parseGitURL(scope.row.url) + '/commit/' + scope.row.commit"
+              target="_blank"
+            >
+              {{ scope.row.commit }}
+            </el-link>
+          </template>
+        </el-table-column>
         <el-table-column prop="author" label="author" />
         <el-table-column label="提交时间" width="135">
           <template slot-scope="scope">
@@ -310,7 +350,7 @@ import tableHeight from '@/mixin/tableHeight'
 import { getList, getDetail, getPreview, getCommitList, publish } from '@/api/deploy'
 import { addTask, editTask, removeTask, getTaskList } from '@/api/project'
 import { getOption as getUserOption } from '@/api/user'
-import { parseTime } from '@/utils'
+import { parseTime, parseGitURL } from '@/utils'
 
 export default {
   mixins: [tableHeight],
@@ -365,6 +405,7 @@ export default {
         loading: false,
         projectId: '',
         userId: '',
+        url: '',
         state: ''
       },
       gitTraceList: [],
@@ -433,7 +474,7 @@ export default {
   },
   methods: {
     parseTime,
-
+    parseGitURL,
     getUserOption() {
       getUserOption().then((response) => {
         this.userOption = response.data.list
@@ -561,6 +602,7 @@ export default {
     handleDetail(data) {
       this.dialogVisible = true
       this.searchPreview.projectId = data.id
+      this.searchPreview.url = data.url
       this.searchPreview.userId = ''
       this.searchPreview.state = ''
       this.getPreviewList()
@@ -582,7 +624,10 @@ export default {
       this.commitTableLoading = true
       getCommitList(id).then(response => {
         this.commitTableData = response.data.commitList.map(element => {
-          return Object.assign(element, { projectId: id })
+          return Object.assign(element, {
+            projectId: id,
+            url: data.url
+          })
         })
       }).finally(() => {
         this.commitTableLoading = false

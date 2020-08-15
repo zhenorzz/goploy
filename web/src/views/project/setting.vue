@@ -17,7 +17,19 @@
       style="width: 100%"
     >
       <el-table-column prop="name" label="项目名称" width="200" />
-      <el-table-column prop="url" label="项目地址" width="350" />
+      <el-table-column prop="url" label="项目地址" width="350">
+        <template slot-scope="scope">
+          <el-link
+            type="primary"
+            style="font-size: 12px"
+            :underline="false"
+            :href="parseGitURL(scope.row.url)"
+            target="_blank"
+          >
+            {{ scope.row.url }}
+          </el-link>
+        </template>
+      </el-table-column>
       <el-table-column prop="path" label="部署路径" min-width="200" />
       <el-table-column prop="environment" width="120" label="环境" />
       <el-table-column prop="branch" width="160" label="分支" />
@@ -311,6 +323,7 @@
 </template>
 <script>
 import tableHeight from '@/mixin/tableHeight'
+import { parseGitURL } from '@/utils'
 import { getUserOption } from '@/api/namespace'
 import { getOption as getServerOption } from '@/api/server'
 import { getList, getTotal, getBindServerList, getBindUserList, getRemoteBranchList, add, edit, remove, addServer, addUser, removeServer, removeUser } from '@/api/project'
@@ -460,6 +473,7 @@ export default {
     this.getTotal()
   },
   methods: {
+    parseGitURL,
     handleAdd() {
       this.restoreFormData()
       this.formProps.showServers = this.formProps.showUsers = true

@@ -4,7 +4,7 @@ import sq "github.com/Masterminds/squirrel"
 
 const templateTable = "`template`"
 
-// Template mysql table template
+// Template -
 type Template struct {
 	ID           int64  `json:"id"`
 	Name         string `json:"name"`
@@ -15,10 +15,10 @@ type Template struct {
 	UpdateTime   string `json:"updateTime"`
 }
 
-// Templates many template
+// Templates -
 type Templates []Template
 
-// AddRow add one row to table template and add id to tpl.ID
+// AddRow return LastInsertId
 func (tpl Template) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(templateTable).
@@ -33,7 +33,7 @@ func (tpl Template) AddRow() (int64, error) {
 	return id, err
 }
 
-// EditRow edit one row to table template
+// EditRow -
 func (tpl Template) EditRow() error {
 	_, err := sq.
 		Update(templateTable).
@@ -49,7 +49,7 @@ func (tpl Template) EditRow() error {
 	return err
 }
 
-// DeleteRow Template
+// DeleteRow -
 func (tpl Template) DeleteRow() error {
 	_, err := sq.
 		Delete(templateTable).
@@ -59,7 +59,7 @@ func (tpl Template) DeleteRow() error {
 	return err
 }
 
-// GetList template row
+// GetList -
 func (tpl Template) GetList(pagination Pagination) (Templates, error) {
 	rows, err := sq.
 		Select("id, name, remark, script, package_id_str, insert_time, update_time").
@@ -84,7 +84,7 @@ func (tpl Template) GetList(pagination Pagination) (Templates, error) {
 	return templates, nil
 }
 
-// GetTotal template total
+// GetTotal -
 func (tpl Template) GetTotal() (int64, error) {
 	var total int64
 	err := sq.
@@ -99,7 +99,7 @@ func (tpl Template) GetTotal() (int64, error) {
 	return total, nil
 }
 
-// GetAll template row
+// GetAll -
 func (tpl Template) GetAll() (Templates, error) {
 	rows, err := sq.
 		Select("id, name, remark, script, package_id_str, insert_time, update_time").
@@ -122,7 +122,7 @@ func (tpl Template) GetAll() (Templates, error) {
 	return templates, nil
 }
 
-// GetData add template information to tpl *Template
+// GetData -
 func (tpl Template) GetData() (Template, error) {
 	var template Template
 	err := sq.

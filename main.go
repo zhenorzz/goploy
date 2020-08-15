@@ -22,35 +22,41 @@ import (
 func main() {
 	install()
 	godotenv.Load(core.GlobalPath + ".env")
-	println("应用启动")
-	println("http://localhost:" + os.Getenv("PORT"))
+	println(`
+   ______            __           
+  / ____/___  ____  / /___  __  __
+ / / __/ __ \/ __ \/ / __ \/ / / /
+/ /_/ / /_/ / /_/ / / /_/ / /_/ / 
+\____/\____/ .___/_/\____/\__, /  
+          /_/            /____/   
+`)
 	core.CreateValidator()
 	model.Init()
 	ws.Init()
 	route.Init()
 	task.Init()
-	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil) //设置监听的端口
+	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }
 
 func install() {
-	println("检测是否第一次安装")
+	println("Check if it is installed for the first time")
 	_, err := os.Stat(".env")
 	if err == nil || os.IsExist(err) {
-		println("配置文件已存在，无需重新安装(如果需要重新安装，请先备份好数据库goploy，删除.env文件)")
+		println("The configuration file already exists, no need to reinstall (if you need to reinstall, please back up the database goploy first, delete the .env file)")
 		return
 	}
 	inputReader := bufio.NewReader(os.Stdin)
-	println("安装指引(回车确认输入)")
-	println("请输入mysql的用户:")
+	println("Installation guidelines (Enter to confirm input)")
+	println("Please enter the mysql user:")
 	mysqlUser, err := inputReader.ReadString('\n')
 	if err != nil {
 		panic("There were errors reading, exiting program.")
 	}
 	mysqlUser = utils.ClearNewline(mysqlUser)
-	println("请输入mysql的密码:")
+	println("Please enter the mysql password:")
 	mysqlPassword, err := inputReader.ReadString('\n')
 	if err != nil {
 		panic("There were errors reading, exiting program.")
@@ -59,7 +65,7 @@ func install() {
 	if len(mysqlPassword) != 0 {
 		mysqlPassword = ":" + mysqlPassword
 	}
-	println("请输入mysql的主机(默认127.0.0.1，不带端口):")
+	println("Please enter the mysql host(default 127.0.0.1, without port):")
 	mysqlHost, err := inputReader.ReadString('\n')
 	if err != nil {
 		panic("There were errors reading, exiting program.")
@@ -68,7 +74,7 @@ func install() {
 	if len(mysqlHost) == 0 {
 		mysqlHost = "127.0.0.1"
 	}
-	println("请输入mysql的端口(默认3306):")
+	println("Please enter the mysql port(default 3306):")
 	mysqlPort, err := inputReader.ReadString('\n')
 	if err != nil {
 		panic("There were errors reading, exiting program.")
@@ -77,7 +83,7 @@ func install() {
 	if len(mysqlPort) == 0 {
 		mysqlPort = "3306"
 	}
-	println("请输入日志目录的绝对路径(默认/tmp/):")
+	println("Please enter the absolute path of the log directory(default /tmp/):")
 	logPath, err := inputReader.ReadString('\n')
 	if err != nil {
 		panic("There were errors reading, exiting program.")
@@ -86,7 +92,7 @@ func install() {
 	if len(logPath) == 0 {
 		logPath = "/tmp/"
 	}
-	println("请输入sshkey的绝对路径(默认/root/.ssh/id_rsa):")
+	println("Please enter the absolute path of the ssh-key directory(default /root/.ssh/id_rsa):")
 	sshFile, err := inputReader.ReadString('\n')
 	if err != nil {
 		panic("There were errors reading, exiting program.")
@@ -95,7 +101,7 @@ func install() {
 	if len(sshFile) == 0 {
 		sshFile = "/root/.ssh/id_rsa"
 	}
-	println("请输入监听端口(默认80，打开网页时的端口):")
+	println("Please enter the listening port(default 80):")
 	port, err := inputReader.ReadString('\n')
 	if err != nil {
 		panic("There were errors reading, exiting program.")
@@ -104,7 +110,7 @@ func install() {
 	if len(port) == 0 {
 		port = "80"
 	}
-	println("开始安装数据库...")
+	println("Start to install the database...")
 
 	db, err := sql.Open("mysql", fmt.Sprintf(
 		"%s%s@tcp(%s:%s)/?charset=utf8mb4,utf8\n",
@@ -119,7 +125,7 @@ func install() {
 	if err := model.ImportSQL(db); err != nil {
 		panic(err)
 	}
-	println("安装数据库完成")
+	println("Database installation is complete")
 	envContent := ""
 	envContent += "DB_TYPE=mysql\n"
 	envContent += fmt.Sprintf(
@@ -133,12 +139,12 @@ func install() {
 	envContent += fmt.Sprintf("SSHKEY_PATH=%s\n", sshFile)
 	envContent += "ENV=production\n"
 	envContent += fmt.Sprintf("PORT=%s\n", port)
-	println("开始写入配置文件")
+	println("Start writing configuration file...")
 	file, err := os.Create(".env")
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
 	file.WriteString(envContent)
-	println("写入配置文件完成")
+	println("Write configuration file completed")
 }

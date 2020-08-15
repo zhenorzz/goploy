@@ -8,7 +8,7 @@ import (
 
 const namespaceTable = "`namespace`"
 
-// Namespace mysql table namespace
+// Namespace -
 type Namespace struct {
 	ID         int64  `json:"id"`
 	Name       string `json:"name"`
@@ -18,10 +18,10 @@ type Namespace struct {
 	UpdateTime string `json:"updateTime,omitempty"`
 }
 
-// Namespaces many Namespace
+// Namespaces -
 type Namespaces []Namespace
 
-// AddRow add one row to table Namespace
+// AddRow return LastInsertId
 func (ns Namespace) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(namespaceTable).
@@ -36,7 +36,7 @@ func (ns Namespace) AddRow() (int64, error) {
 	return id, err
 }
 
-// EditRow edit one row to table namespace
+// EditRow -
 func (ns Namespace) EditRow() error {
 	_, err := sq.
 		Update(namespaceTable).
@@ -47,7 +47,7 @@ func (ns Namespace) EditRow() error {
 	return err
 }
 
-// GetAllByUserID namespace row by user id
+// GetAllByUserID -
 func (ns Namespace) GetAllByUserID() (Namespaces, error) {
 	rows, err := sq.
 		Select("namespace.id, namespace.name, role").
@@ -70,7 +70,7 @@ func (ns Namespace) GetAllByUserID() (Namespaces, error) {
 	return namespaces, nil
 }
 
-// GetListByUserID namespace row by user id
+// GetListByUserID -
 func (ns Namespace) GetListByUserID(pagination Pagination) (Namespaces, error) {
 	rows, err := sq.
 		Select("namespace.id, namespace.name, namespace.insert_time, namespace.update_time").
@@ -102,7 +102,7 @@ func (ns Namespace) GetListByUserID(pagination Pagination) (Namespaces, error) {
 	return namespaces, nil
 }
 
-// GetTotalByUserID namespace total by user id
+// GetTotalByUserID -
 func (ns Namespace) GetTotalByUserID() (int64, error) {
 	var total int64
 	err := sq.
@@ -121,7 +121,7 @@ func (ns Namespace) GetTotalByUserID() (int64, error) {
 	return total, nil
 }
 
-// GetData to Namespace
+// GetData -
 func (ns Namespace) GetData() (Namespace, error) {
 	var namespace Namespace
 	err := sq.

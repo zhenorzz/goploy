@@ -10,7 +10,7 @@ import (
 // Namespace struct
 type Namespace Controller
 
-// GetList Namespace list
+// GetList namespace list
 func (namespace Namespace) GetList(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Namespaces model.Namespaces `json:"list"`
@@ -39,7 +39,7 @@ func (namespace Namespace) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *cor
 	return &core.Response{Data: RespData{Total: total}}
 }
 
-// GetBindUserList user list
+// GetUserOption user list
 func (namespace Namespace) GetUserOption(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		NamespaceUsers model.NamespaceUsers `json:"list"`
@@ -68,7 +68,7 @@ func (namespace Namespace) GetBindUserList(_ http.ResponseWriter, gp *core.Goplo
 	return &core.Response{Data: RespData{NamespaceUsers: namespaceUsers}}
 }
 
-// Add one Namespace
+// Add one namespace
 func (namespace Namespace) Add(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name string `json:"name" validate:"required"`
@@ -95,7 +95,7 @@ func (namespace Namespace) Add(_ http.ResponseWriter, gp *core.Goploy) *core.Res
 	return &core.Response{Data: RespData{ID: id}}
 }
 
-// Edit one Namespace
+// Edit one namespace
 func (namespace Namespace) Edit(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID   int64  `json:"id" validate:"gt=0"`
@@ -116,7 +116,7 @@ func (namespace Namespace) Edit(_ http.ResponseWriter, gp *core.Goploy) *core.Re
 	return &core.Response{}
 }
 
-// AddUser one project
+// AddUser to namespace
 func (namespace Namespace) AddUser(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		NamespaceID int64   `json:"namespaceId" validate:"gt=0"`
@@ -152,7 +152,7 @@ func (namespace Namespace) AddUser(_ http.ResponseWriter, gp *core.Goploy) *core
 	return &core.Response{}
 }
 
-// RemoveUser one Project
+// RemoveUser from namespace
 func (namespace Namespace) RemoveUser(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		NamespaceUserID int64 `json:"namespaceUserId" validate:"gt=0"`

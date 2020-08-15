@@ -8,7 +8,7 @@ import (
 
 const monitorTable = "`monitor`"
 
-// Monitor mysql table monitor
+// Monitor -
 type Monitor struct {
 	ID           int64  `json:"id"`
 	NamespaceID  int64  `json:"namespaceId"`
@@ -25,10 +25,10 @@ type Monitor struct {
 	UpdateTime   string `json:"updateTime"`
 }
 
-// Monitors many monitor
+// Monitors -
 type Monitors []Monitor
 
-// GetList monitor row
+// GetList -
 func (m Monitor) GetList(pagination Pagination) (Monitors, error) {
 	rows, err := sq.
 		Select("id, name, domain, port, second, times, notify_type, notify_target, description, state, insert_time, update_time").
@@ -69,7 +69,7 @@ func (m Monitor) GetList(pagination Pagination) (Monitors, error) {
 	return monitors, nil
 }
 
-// GetTotal monitor total
+// GetTotal -
 func (m Monitor) GetTotal() (int64, error) {
 	var total int64
 	err := sq.
@@ -87,7 +87,7 @@ func (m Monitor) GetTotal() (int64, error) {
 	return total, nil
 }
 
-// GetData add monitor information to s *Monitor
+// GetData -
 func (m Monitor) GetData() (Monitor, error) {
 	var monitor Monitor
 	err := sq.
@@ -139,7 +139,7 @@ func (m Monitor) GetAllByState() (Monitors, error) {
 	return monitors, nil
 }
 
-// AddRow add one row to table monitor
+// AddRow return LastInsertId
 func (m Monitor) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(monitorTable).
@@ -154,7 +154,7 @@ func (m Monitor) AddRow() (int64, error) {
 	return id, err
 }
 
-// EditRow edit one row to table monitor
+// EditRow -
 func (m Monitor) EditRow() error {
 	_, err := sq.
 		Update(monitorTable).
@@ -187,7 +187,7 @@ func (m Monitor) ToggleState() error {
 	return err
 }
 
-// DeleteRow Monitor
+// DeleteRow -
 func (m Monitor) DeleteRow() error {
 	_, err := sq.
 		Delete(monitorTable).

@@ -1,14 +1,12 @@
 package model
 
 import (
-	"strings"
-
 	sq "github.com/Masterminds/squirrel"
 )
 
 const packageTable = "`package`"
 
-// Package mysql table package
+// Package -
 type Package struct {
 	ID         int64  `json:"id"`
 	Name       string `json:"name"`
@@ -17,10 +15,10 @@ type Package struct {
 	UpdateTime string `json:"updateTime"`
 }
 
-// Packages many package
+// Packages -
 type Packages []Package
 
-// GetList package row
+// GetList -
 func (p Package) GetList(pagination Pagination) (Packages, error) {
 	rows, err := sq.
 		Select("id, name, size, insert_time, update_time").
@@ -45,7 +43,7 @@ func (p Package) GetList(pagination Pagination) (Packages, error) {
 	return packages, nil
 }
 
-// GetTotal package total
+// GetTotal -
 func (p Package) GetTotal() (int64, error) {
 	var total int64
 	err := sq.
@@ -60,12 +58,12 @@ func (p Package) GetTotal() (int64, error) {
 	return total, nil
 }
 
-// GetAllInIDStr package row
-func (p Package) GetAllInIDStr(IDStr string) (Packages, error) {
+// GetAllInID -
+func (p Package) GetAllInID(IDs []string) (Packages, error) {
 	rows, err := sq.
 		Select("id, name, size").
 		From(packageTable).
-		Where(sq.Eq{"id": strings.Split(IDStr, ",")}).
+		Where(sq.Eq{"id": IDs}).
 		RunWith(DB).
 		Query()
 	if err != nil {
@@ -83,7 +81,7 @@ func (p Package) GetAllInIDStr(IDStr string) (Packages, error) {
 	return packages, nil
 }
 
-// GetAll package row
+// GetAll -
 func (p Package) GetAll() (Packages, error) {
 	rows, err := sq.
 		Select("id, name, size, insert_time, update_time").
@@ -106,7 +104,7 @@ func (p Package) GetAll() (Packages, error) {
 	return packages, nil
 }
 
-// GetData get package information
+// GetData -
 func (p Package) GetData() (Package, error) {
 	var pkg Package
 	err := sq.
@@ -122,7 +120,7 @@ func (p Package) GetData() (Package, error) {
 	return pkg, nil
 }
 
-// GetDataByName get package information
+// GetDataByName -
 func (p Package) GetDataByName() (Package, error) {
 	var pkg Package
 	err := sq.
@@ -138,7 +136,7 @@ func (p Package) GetDataByName() (Package, error) {
 	return pkg, nil
 }
 
-// AddRow add one row to table package and add id to p.ID
+// AddRow return LastInsertId
 func (p Package) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(packageTable).
@@ -153,7 +151,7 @@ func (p Package) AddRow() (int64, error) {
 	return id, err
 }
 
-// EditRow edit one row to table package
+// EditRow -
 func (p Package) EditRow() error {
 	_, err := sq.
 		Update(packageTable).

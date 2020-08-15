@@ -6,7 +6,7 @@ import (
 
 const crontabTable = "`crontab`"
 
-// Crontab mysql table crontab
+// Crontab -
 type Crontab struct {
 	ID          int64  `json:"id"`
 	NamespaceID int64  `json:"namespace_id"`
@@ -20,10 +20,10 @@ type Crontab struct {
 	UpdateTime  string `json:"updateTime"`
 }
 
-// Crontabs many crontab
+// Crontabs -
 type Crontabs []Crontab
 
-// GetList crontab row
+// GetList -
 func (c Crontab) GetList(pagination Pagination) (Crontabs, error) {
 	builder := sq.
 		Select("id, command, creator, creator_id, editor, editor_id, insert_time, update_time").
@@ -52,7 +52,7 @@ func (c Crontab) GetList(pagination Pagination) (Crontabs, error) {
 	return crontabs, nil
 }
 
-// GetTotal crontab total
+// GetTotal -
 func (c Crontab) GetTotal() (int64, error) {
 	var total int64
 	builder := sq.
@@ -73,7 +73,7 @@ func (c Crontab) GetTotal() (int64, error) {
 	return total, nil
 }
 
-// GetAllInCommandMD5 crontab all row  in command md5
+// GetAllInCommandMD5 return all row in command md5
 func (c Crontab) GetAllInCommandMD5(commandMD5s []string) (Crontabs, error) {
 	rows, err := sq.
 		Select("id, command, command_md5").
@@ -95,7 +95,7 @@ func (c Crontab) GetAllInCommandMD5(commandMD5s []string) (Crontabs, error) {
 	return crontabs, nil
 }
 
-// GetData add crontab information to c Crontab
+// GetData return Crontab
 func (c Crontab) GetData() (Crontab, error) {
 	var crontab Crontab
 	err := sq.
@@ -112,7 +112,7 @@ func (c Crontab) GetData() (Crontab, error) {
 	return crontab, nil
 }
 
-// AddRow add one row to table crontab
+// AddRow return LastInsertId
 func (c Crontab) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(crontabTable).
@@ -127,7 +127,7 @@ func (c Crontab) AddRow() (int64, error) {
 	return id, err
 }
 
-// AddRowsInCommand add many rows to table crontab
+// AddRowsInCommand add many rows in command
 func (c Crontab) AddRowsInCommand(commands []string) error {
 	builder := sq.
 		Insert(crontabTable).
@@ -143,7 +143,7 @@ func (c Crontab) AddRowsInCommand(commands []string) error {
 	return nil
 }
 
-// EditRow edit one row to table crontab
+// EditRow -
 func (c Crontab) EditRow() error {
 	_, err := sq.
 		Update(crontabTable).
@@ -159,7 +159,7 @@ func (c Crontab) EditRow() error {
 	return err
 }
 
-// DeleteRow Crontab
+// DeleteRow -
 func (c Crontab) DeleteRow() error {
 	_, err := sq.
 		Delete(crontabTable).

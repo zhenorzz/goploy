@@ -8,7 +8,7 @@ import (
 
 const serverTable = "`server`"
 
-// Server mysql table server
+// Server -
 type Server struct {
 	ID               int64  `json:"id"`
 	LastInstallToken string `json:"lastInstallToken"`
@@ -22,10 +22,10 @@ type Server struct {
 	UpdateTime       string `json:"updateTime"`
 }
 
-// Servers many server
+// Servers -
 type Servers []Server
 
-// GetList server row
+// GetList -
 func (s Server) GetList(pagination Pagination) (Servers, error) {
 	rows, err := sq.
 		Select("id, name, ip, port, owner, description, insert_time, update_time").
@@ -55,7 +55,7 @@ func (s Server) GetList(pagination Pagination) (Servers, error) {
 	return servers, nil
 }
 
-// GetTotal server total
+// GetTotal -
 func (s Server) GetTotal() (int64, error) {
 	var total int64
 	err := sq.
@@ -74,7 +74,7 @@ func (s Server) GetTotal() (int64, error) {
 	return total, nil
 }
 
-// GetAll server row
+// GetAll -
 func (s Server) GetAll() (Servers, error) {
 	rows, err := sq.
 		Select("id, name, ip, owner, description, insert_time, update_time").
@@ -100,7 +100,7 @@ func (s Server) GetAll() (Servers, error) {
 	return servers, nil
 }
 
-// GetData add server information to s *Server
+// GetData -
 func (s Server) GetData() (Server, error) {
 	var server Server
 	err := sq.
@@ -117,7 +117,7 @@ func (s Server) GetData() (Server, error) {
 	return server, nil
 }
 
-// AddRow add one row to table server
+// AddRow return LastInsertId
 func (s Server) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(serverTable).
@@ -132,7 +132,7 @@ func (s Server) AddRow() (int64, error) {
 	return id, err
 }
 
-// EditRow edit one row to table server
+// EditRow -
 func (s Server) EditRow() error {
 	_, err := sq.
 		Update(serverTable).
@@ -149,8 +149,8 @@ func (s Server) EditRow() error {
 	return err
 }
 
-// Remove Server
-func (s Server) Remove() error {
+// RemoveRow -
+func (s Server) RemoveRow() error {
 	tx, err := DB.Begin()
 	if err != nil {
 		return errors.New("开启事务失败")

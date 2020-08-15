@@ -18,6 +18,7 @@ import (
 	"strings"
 )
 
+// Sync -
 type Sync struct {
 	UserInfo       model.User
 	Project        model.Project
@@ -32,6 +33,7 @@ type syncMessage struct {
 	state      int
 }
 
+// Exec Sync
 func (sync Sync) Exec() {
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(sync.Project.ID, 10)+" deploy start")
 	publishTraceModel := model.PublishTrace{
@@ -72,7 +74,7 @@ func (sync Sync) Exec() {
 	if sync.Project.AfterPullScript != "" {
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.AfterPullScript, Message: "拉取后脚本"},
+			Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.AfterPullScript, Message: "Run pull script"},
 		}
 		outputString, err := runAfterPullScript(sync.Project)
 		publishTraceModel.Type = model.AfterPull
@@ -103,7 +105,7 @@ func (sync Sync) Exec() {
 
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
-		Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.Rsync, Message: "上传服务器"},
+		Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.Rsync, Message: "Rsync"},
 	}
 	ch := make(chan syncMessage, len(sync.ProjectServers))
 	for _, projectServer := range sync.ProjectServers {
@@ -122,7 +124,7 @@ func (sync Sync) Exec() {
 		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(sync.Project.ID, 10)+" deploy success")
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.ProjectSuccess, Message: "成功"},
+			Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.ProjectSuccess, Message: "Success"},
 		}
 		go notify(sync.Project, model.ProjectSuccess, message)
 
@@ -160,7 +162,7 @@ func gitSync(project model.Project) (utils.Commit, error) {
 			ProjectID:   project.ID,
 			ProjectName: project.Name,
 			State:       ws.GitPull,
-			Message:     "get pull info",
+			Message:     "Get pull info",
 			Ext:         commit,
 		},
 	}
@@ -182,7 +184,7 @@ func gitRollback(commitSha string, project model.Project) (utils.Commit, error) 
 			ProjectID:   project.ID,
 			ProjectName: project.Name,
 			State:       ws.GitReset,
-			Message:     "get pull info",
+			Message:     "Get pull info",
 			Ext:         commit,
 		},
 	}
@@ -204,10 +206,10 @@ func gitCreate(project model.Project) error {
 		Type:    ws.TypeProject,
 		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitClone, Message: "git clone"},
 	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化 git clone")
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" project initial, git clone")
 	if err := git.Clone([]string{project.URL, srcPath}); err != nil {
-		core.Log(core.ERROR, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化失败:"+err.Error())
-		return errors.New("项目初始化失败")
+		core.Log(core.ERROR, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" project initial fail, "+err.Error())
+		return errors.New("project initial fail")
 	}
 
 	if project.Branch != "master" {
@@ -222,7 +224,7 @@ func gitCreate(project model.Project) error {
 			return errors.New(git.Err.String())
 		}
 	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" 项目初始化成功")
+	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" project initial success")
 	return nil
 }
 
@@ -488,13 +490,13 @@ func notify(project model.Project, deployState int, detail string) {
 			Msgtype  string   `json:"msgtype"`
 			Markdown markdown `json:"markdown"`
 		}
-		content := "构建项目<font color=\"warning\">" + project.Name + "</font>，请相关同事注意。\n "
+		content := "Deploy: <font color=\"warning\">" + project.Name + "</font>\n "
 
 		if deployState == model.ProjectFail {
-			content += "> 状态:<font color=\"red\">失败</font> \n "
-			content += "> 详情：<font color=\"comment\">" + detail + "</font>"
+			content += "> State: <font color=\"red\">fail</font> \n "
+			content += "> Detail: <font color=\"comment\">" + detail + "</font>"
 		} else {
-			content += "> 状态:<font color=\"green\">成功</font>"
+			content += "> State: <font color=\"green\">success</font>"
 		}
 
 		msg := message{
@@ -516,15 +518,15 @@ func notify(project model.Project, deployState int, detail string) {
 		}
 		text := ""
 		if deployState == model.ProjectFail {
-			text += "> 状态:<font color=\"red\">失败</font> \n "
-			text += "> 详情：<font color=\"comment\">" + detail + "</font>"
+			text += "> State: <font color=\"red\">fail</font> \n "
+			text += "> Detail: <font color=\"comment\">" + detail + "</font>"
 		} else {
-			text += "> 状态:<font color=\"green\">成功</font>"
+			text += "> State: <font color=\"green\">success</font>"
 		}
 
 		msg := message{
 			Msgtype: "markdown",
-			Title:   "构建项目:" + project.Name,
+			Title:   "Deploy:" + project.Name,
 			Text:    text,
 		}
 		b, _ := json.Marshal(msg)
@@ -539,14 +541,14 @@ func notify(project model.Project, deployState int, detail string) {
 		}
 		text := ""
 		if deployState == model.ProjectFail {
-			text += "状态: 失败\n "
-			text += "详情: " + detail
+			text += "State: fail\n "
+			text += "Detail: " + detail
 		} else {
-			text += "状态: 成功"
+			text += "State: success"
 		}
 
 		msg := message{
-			Title: "构建项目:" + project.Name,
+			Title: "Deploy:" + project.Name,
 			Text:  text,
 		}
 		b, _ := json.Marshal(msg)
@@ -585,6 +587,7 @@ func notify(project model.Project, deployState int, detail string) {
 	}
 }
 
+//clean the expired backup
 func clean(project model.Project, projectServers model.ProjectServers) {
 	if len(project.SymlinkPath) == 0 {
 		return

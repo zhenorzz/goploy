@@ -19,7 +19,7 @@ const (
 	ERROR   LogLevel = "ERROR: "
 )
 
-// Log information to file in order to the message had logged day
+// Log information to file with logged day
 func Log(lv LogLevel, content string) {
 	logPath, err := filepath.Abs(os.Getenv("LOG_PATH"))
 	if err != nil {

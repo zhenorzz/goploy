@@ -6,7 +6,7 @@ import (
 
 const crontabServerTable = "`crontab_server`"
 
-// CrontabServer crontab server relationship
+// CrontabServer -
 type CrontabServer struct {
 	ID                int64  `json:"id"`
 	CrontabID         int64  `json:"crontabId"`
@@ -20,10 +20,10 @@ type CrontabServer struct {
 	UpdateTime        string `json:"updateTime"`
 }
 
-// CrontabServers crontab server relationship
+// CrontabServers -
 type CrontabServers []CrontabServer
 
-// GetAllByCrontabID -
+// GetAllByCrontabID return CrontabServers by CrontabID
 func (cs CrontabServer) GetAllByCrontabID() (CrontabServers, error) {
 	rows, err := sq.
 		Select("id, crontab_id, server_id").
@@ -49,7 +49,7 @@ func (cs CrontabServer) GetAllByCrontabID() (CrontabServers, error) {
 	return crontabServers, nil
 }
 
-// GetBindServerListByProjectID server row
+// GetBindServerListByProjectID return bind server list by project id
 func (cs CrontabServer) GetBindServerListByProjectID() (CrontabServers, error) {
 	rows, err := sq.
 		Select("crontab_server.id, crontab_id, server_id, server.name, server.ip, server.port, server.owner, server.description, crontab_server.insert_time, crontab_server.update_time").
@@ -84,7 +84,7 @@ func (cs CrontabServer) GetBindServerListByProjectID() (CrontabServers, error) {
 	return crontabServers, nil
 }
 
-// AddMany add many row to table project_server
+// AddMany -
 func (cs CrontabServers) AddMany() error {
 	if len(cs) == 0 {
 		return nil
@@ -101,7 +101,7 @@ func (cs CrontabServers) AddMany() error {
 	return err
 }
 
-// DeleteRow edit one row to table server
+// DeleteRow -
 func (cs CrontabServer) DeleteRow() error {
 	_, err := sq.
 		Delete(crontabServerTable).
@@ -111,8 +111,8 @@ func (cs CrontabServer) DeleteRow() error {
 	return err
 }
 
-// DeleteRowByCrontabID -
-func (cs CrontabServer) DeleteRowByCrontabID() error {
+// DeleteByCrontabID -
+func (cs CrontabServer) DeleteByCrontabID() error {
 	_, err := sq.
 		Delete(crontabServerTable).
 		Where(sq.Eq{"crontab_id": cs.CrontabID}).

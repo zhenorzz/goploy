@@ -293,7 +293,7 @@ func (crontab Crontab) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Resp
 
 	err = model.CrontabServer{
 		CrontabID: reqData.ID,
-	}.DeleteRowByCrontabID()
+	}.DeleteByCrontabID()
 
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}

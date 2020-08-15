@@ -8,7 +8,7 @@ import (
 
 const namespaceUserTable = "`namespace_user`"
 
-// NamespaceUser namespace user relationship
+// NamespaceUser -
 type NamespaceUser struct {
 	ID            int64  `json:"id,omitempty"`
 	NamespaceID   int64  `json:"namespaceId,omitempty"`
@@ -20,10 +20,10 @@ type NamespaceUser struct {
 	UpdateTime    string `json:"updateTime,omitempty"`
 }
 
-// NamespaceUsers namespace user relationship
+// NamespaceUsers -
 type NamespaceUsers []NamespaceUser
 
-// GetBindUserListByNamespaceID user row
+// GetBindUserListByNamespaceID -
 func (nu NamespaceUser) GetBindUserListByNamespaceID() (NamespaceUsers, error) {
 	rows, err := sq.
 		Select("namespace_user.id, namespace_id, user_id, user.name, namespace_user.role, namespace_user.insert_time, namespace_user.update_time").
@@ -47,7 +47,7 @@ func (nu NamespaceUser) GetBindUserListByNamespaceID() (NamespaceUsers, error) {
 	return namespaceUsers, nil
 }
 
-// GetAllUserByNamespaceID user row
+// GetAllUserByNamespaceID -
 func (nu NamespaceUser) GetAllUserByNamespaceID() (NamespaceUsers, error) {
 	rows, err := sq.
 		Select("user_id, user.name, namespace_user.role").
@@ -71,7 +71,7 @@ func (nu NamespaceUser) GetAllUserByNamespaceID() (NamespaceUsers, error) {
 	return namespaceUsers, nil
 }
 
-// GetAllGteManagerByNamespaceID user row
+// GetAllGteManagerByNamespaceID -
 func (nu NamespaceUser) GetAllGteManagerByNamespaceID() (NamespaceUsers, error) {
 	rows, err := sq.
 		Select("user_id, role").
@@ -97,7 +97,7 @@ func (nu NamespaceUser) GetAllGteManagerByNamespaceID() (NamespaceUsers, error) 
 	return namespaceUsers, nil
 }
 
-// AddMany add many row to table namespace_user
+// AddMany -
 func (nu NamespaceUsers) AddMany() error {
 	if len(nu) == 0 {
 		return nil
@@ -113,7 +113,7 @@ func (nu NamespaceUsers) AddMany() error {
 	return err
 }
 
-// AddAdminByNamespaceID add many admin by namespace id to table namespace_user
+// AddAdminByNamespaceID -
 func (nu NamespaceUser) AddAdminByNamespaceID() error {
 
 	builder := sq.
@@ -127,7 +127,7 @@ func (nu NamespaceUser) AddAdminByNamespaceID() error {
 	return err
 }
 
-// AddAdminByUserID add many admin by user id to table namespace_user
+// AddAdminByUserID -
 func (nu NamespaceUser) AddAdminByUserID() error {
 	builder := sq.
 		Replace(namespaceUserTable).
@@ -139,7 +139,7 @@ func (nu NamespaceUser) AddAdminByUserID() error {
 	return err
 }
 
-// DeleteRow edit one row to table NamespaceUser
+// DeleteRow -
 func (nu NamespaceUser) DeleteRow() error {
 	_, err := sq.
 		Delete(namespaceUserTable).
@@ -149,7 +149,7 @@ func (nu NamespaceUser) DeleteRow() error {
 	return err
 }
 
-// DeleteByUserID delete row by user id
+// DeleteByUserID -
 func (nu NamespaceUser) DeleteByUserID() error {
 	_, err := sq.
 		Delete(namespaceUserTable).

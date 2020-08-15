@@ -4,7 +4,7 @@ import sq "github.com/Masterminds/squirrel"
 
 const publishTraceTable = "`publish_trace`"
 
-// PublishTrace mysql table for rsync trace
+// PublishTrace -
 type PublishTrace struct {
 	ID            int64  `json:"id"`
 	Token         string `json:"token"`
@@ -21,10 +21,10 @@ type PublishTrace struct {
 	UpdateTime    string `json:"updateTime"`
 }
 
-// PublishTraces PublishTrace slice
+// PublishTraces -
 type PublishTraces []PublishTrace
 
-// publish trace type
+// publish trace state
 const (
 	BeforePull = 1
 
@@ -39,7 +39,7 @@ const (
 	AfterDeploy = 6
 )
 
-// AddRow add one row to table deploy and add id to deploy.ID
+// AddRow return LastInsertId
 func (pt PublishTrace) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(publishTraceTable).
@@ -56,7 +56,7 @@ func (pt PublishTrace) AddRow() (int64, error) {
 	return id, err
 }
 
-// GetListByToken PublishTrace row
+// GetListByToken -
 func (pt PublishTrace) GetListByToken() (PublishTraces, error) {
 	rows, err := sq.
 		Select("id, token, project_id, project_name, detail, state, publisher_id, publisher_name, type, ext, insert_time, update_time").
@@ -91,7 +91,7 @@ func (pt PublishTrace) GetListByToken() (PublishTraces, error) {
 	return publishTraces, nil
 }
 
-// GetPreview PublishTrace row
+// GetPreview -
 func (pt PublishTrace) GetPreview(pagination Pagination) (PublishTraces, Pagination, error) {
 	builder := sq.
 		Select("id, token, project_id, project_name, detail, state, publisher_id, publisher_name, type, ext, insert_time, update_time").

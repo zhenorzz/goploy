@@ -52,8 +52,8 @@ func notice(monitor model.Monitor, err error) {
 			Msgtype  string   `json:"msgtype"`
 			Markdown markdown `json:"markdown"`
 		}
-		content := "应用监控<font color=\"warning\">" + monitor.Name + "</font>，请相关同事注意。\n "
-		content += "> <font color=\"warning\">无法访问</font> \n "
+		content := "Monitor: <font color=\"warning\">" + monitor.Name + "</font>\n "
+		content += "> <font color=\"warning\">can not access</font> \n "
 		content += "> <font color=\"comment\">" + err.Error() + "</font> \n "
 
 		msg := message{
@@ -70,12 +70,12 @@ func notice(monitor model.Monitor, err error) {
 			Title   string `json:"title"`
 			Text    string `json:"text"`
 		}
-		text := "> <font color=\"red\">无法访问</font> \n "
+		text := "> <font color=\"red\">can not access</font> \n "
 		text += "> <font color=\"comment\">" + err.Error() + "</font> \n "
 
 		msg := message{
 			Msgtype: "markdown",
-			Title:   "应用监控:" + monitor.Name,
+			Title:   "Monitor: " + monitor.Name,
 			Text:    text,
 		}
 		b, _ := json.Marshal(msg)
@@ -86,11 +86,11 @@ func notice(monitor model.Monitor, err error) {
 			Text  string `json:"text"`
 		}
 
-		text := "无法访问\n "
-		text += "详情: " + err.Error()
+		text := "can not access\n "
+		text += "detail:  " + err.Error()
 
 		msg := message{
-			Title: "应用监控:" + monitor.Name,
+			Title: "Monitor:" + monitor.Name,
 			Text:  text,
 		}
 		b, _ := json.Marshal(msg)
@@ -110,7 +110,7 @@ func notice(monitor model.Monitor, err error) {
 		code := 0
 		msg := message{
 			Code:    code,
-			Message: "应用监控:" + monitor.Name + "无法访问",
+			Message: "Monitor:" + monitor.Name + "can not access",
 		}
 		msg.Data.MonitorName = monitor.Name
 		msg.Data.Domain = monitor.Domain

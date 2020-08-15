@@ -29,7 +29,7 @@ func GetUserInfo(userID int64) (model.User, error) {
 	return userData, nil
 }
 
-// GetUserInfo return model.User and error
+// GetNamespace return model.Namespaces and error
 func GetNamespace(userID int64) (model.Namespaces, error) {
 	var namespaceList model.Namespaces
 	var err error

@@ -4,7 +4,7 @@ import sq "github.com/Masterminds/squirrel"
 
 const projectServerTable = "`project_server`"
 
-// ProjectServer project server relationship
+// ProjectServer -
 type ProjectServer struct {
 	ID                int64  `json:"id"`
 	ProjectID         int64  `json:"projectId"`
@@ -18,10 +18,10 @@ type ProjectServer struct {
 	UpdateTime        string `json:"updateTime"`
 }
 
-// ProjectServers project server relationship
+// ProjectServers -
 type ProjectServers []ProjectServer
 
-// GetBindServerListByProjectID server row
+// GetBindServerListByProjectID -
 func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 	rows, err := sq.
 		Select("project_server.id, project_id, server_id, server.name, server.ip, server.port, server.owner, server.description, project_server.insert_time, project_server.update_time").
@@ -56,7 +56,7 @@ func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 	return projectServers, nil
 }
 
-// AddMany add many row to table project_server
+// AddMany -
 func (ps ProjectServers) AddMany() error {
 	if len(ps) == 0 {
 		return nil
@@ -73,7 +73,7 @@ func (ps ProjectServers) AddMany() error {
 	return err
 }
 
-// DeleteRow edit one row to table server
+// DeleteRow -
 func (ps ProjectServer) DeleteRow() error {
 	_, err := sq.
 		Delete(projectServerTable).

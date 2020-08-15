@@ -146,7 +146,7 @@ func (monitor Monitor) Toggle(w http.ResponseWriter, gp *core.Goploy) *core.Resp
 	return &core.Response{}
 }
 
-// Remove one Monitor
+// RemoveRow one Monitor
 func (monitor Monitor) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`

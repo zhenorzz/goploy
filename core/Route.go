@@ -93,7 +93,6 @@ func (rt *Router) Role(role string) *Router {
 }
 
 // Middleware global Middleware handle function
-// Example handle parseToken
 func (rt *Router) Middleware(middleware func(w http.ResponseWriter, gp *Goploy) error) {
 	rt.middlewares = append(rt.middlewares, middleware)
 }

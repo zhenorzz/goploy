@@ -32,7 +32,7 @@ const (
 // DB init when the program start
 var DB *sql.DB
 
-// Init DB open
+// Init DB
 func Init() {
 	dbType := os.Getenv("DB_TYPE")
 	dbConn := os.Getenv("DB_CONN")

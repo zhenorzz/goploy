@@ -19,7 +19,7 @@ import (
 // Project struct
 type Project Controller
 
-// GetList project list
+// GetList -
 func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Projects model.Projects `json:"list"`
@@ -36,7 +36,7 @@ func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Res
 	return &core.Response{Data: RespData{Projects: projectList}}
 }
 
-// GetList project list
+// GetTotal -
 func (project Project) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Total int64 `json:"total"`
@@ -51,7 +51,7 @@ func (project Project) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Re
 	return &core.Response{Data: RespData{Total: total}}
 }
 
-// GetList project list
+// GetRemoteBranchList -
 func (project Project) GetRemoteBranchList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Branch []string `json:"branch"`
@@ -78,7 +78,7 @@ func (project Project) GetRemoteBranchList(w http.ResponseWriter, gp *core.Goplo
 	return &core.Response{Data: RespData{Branch: branch}}
 }
 
-// GetBindServerList project detail
+// GetBindServerList -
 func (project Project) GetBindServerList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		ProjectServers model.ProjectServers `json:"list"`
@@ -94,7 +94,7 @@ func (project Project) GetBindServerList(w http.ResponseWriter, gp *core.Goploy)
 	return &core.Response{Data: RespData{ProjectServers: projectServers}}
 }
 
-// GetBindUserList project detail
+// GetBindUserList -
 func (project Project) GetBindUserList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		ProjectUsers model.ProjectUsers `json:"list"`
@@ -110,7 +110,7 @@ func (project Project) GetBindUserList(w http.ResponseWriter, gp *core.Goploy) *
 	return &core.Response{Data: RespData{ProjectUsers: projectUsers}}
 }
 
-// Add one project
+// Add project
 func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name                  string  `json:"name"`
@@ -207,7 +207,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 	return &core.Response{}
 }
 
-// Edit one Project
+// Edit project
 func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID                    int64  `json:"id"`
@@ -301,7 +301,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 		}
 	}
 
-	// 名字修改了 需要修改文件夹
+	// edit folder when name was change
 	if reqData.Name != projectData.Name {
 		srcPath := filepath.Join(core.RepositoryPath, projectData.Name)
 		_, err := os.Stat(srcPath)
@@ -316,7 +316,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 	return &core.Response{}
 }
 
-// DeleteRow one Project
+// RemoveRow Project
 func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id"`
@@ -348,7 +348,7 @@ func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Resp
 	return &core.Response{}
 }
 
-// AddServer one project
+// AddServer to project
 func (project Project) AddServer(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64   `json:"projectId" validate:"gt=0"`
@@ -377,7 +377,7 @@ func (project Project) AddServer(w http.ResponseWriter, gp *core.Goploy) *core.R
 	return &core.Response{}
 }
 
-// AddUser one project
+// AddUser to project
 func (project Project) AddUser(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64   `json:"projectId" validate:"gt=0"`
@@ -404,7 +404,7 @@ func (project Project) AddUser(w http.ResponseWriter, gp *core.Goploy) *core.Res
 	return &core.Response{}
 }
 
-// RemoveServer one Project
+// RemoveServer from Project
 func (project Project) RemoveServer(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectServerID int64 `json:"projectServerId" validate:"gt=0"`
@@ -424,7 +424,7 @@ func (project Project) RemoveServer(w http.ResponseWriter, gp *core.Goploy) *cor
 	return &core.Response{}
 }
 
-// RemoveUser one Project
+// RemoveUser from Project
 func (project Project) RemoveUser(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectUserID int64 `json:"projectUserId" validate:"gt=0"`
@@ -445,7 +445,7 @@ func (project Project) RemoveUser(w http.ResponseWriter, gp *core.Goploy) *core.
 	return &core.Response{}
 }
 
-// GetTaskList project task list
+// GetTaskList -
 func (project Project) GetTaskList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		ProjectTask model.ProjectTasks `json:"projectTaskList"`
@@ -467,7 +467,7 @@ func (project Project) GetTaskList(w http.ResponseWriter, gp *core.Goploy) *core
 	return &core.Response{Data: RespData{ProjectTask: projectTaskList, Pagination: pagination}}
 }
 
-// AddTask to project task
+// AddTask to project
 func (project Project) AddTask(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
@@ -497,7 +497,7 @@ func (project Project) AddTask(w http.ResponseWriter, gp *core.Goploy) *core.Res
 	return &core.Response{Data: RespData{ID: id}}
 }
 
-// AddTask to project task
+// EditTask from project
 func (project Project) EditTask(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID       int64  `json:"id" validate:"gt=0"`
@@ -525,7 +525,7 @@ func (project Project) EditTask(w http.ResponseWriter, gp *core.Goploy) *core.Re
 	return &core.Response{}
 }
 
-// RemoveTask to project task
+// RemoveTask from project
 func (project Project) RemoveTask(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
@@ -543,6 +543,7 @@ func (project Project) RemoveTask(w http.ResponseWriter, gp *core.Goploy) *core.
 	return &core.Response{}
 }
 
+// repoCreate -
 func repoCreate(projectID int64) {
 	project, err := model.Project{ID: projectID}.GetData()
 	if err != nil {

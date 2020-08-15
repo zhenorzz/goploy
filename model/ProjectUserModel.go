@@ -9,7 +9,7 @@ import (
 
 const projectUserTable = "`project_user`"
 
-// ProjectUser project user relationship
+// ProjectUser -
 type ProjectUser struct {
 	ID          int64  `json:"id"`
 	NamespaceID int64  `json:"namespaceId,omitempty"`
@@ -22,10 +22,10 @@ type ProjectUser struct {
 	UpdateTime  string `json:"updateTime"`
 }
 
-// ProjectUsers project user relationship
+// ProjectUsers -
 type ProjectUsers []ProjectUser
 
-// GetBindUserListByProjectID user row
+// GetBindUserListByProjectID -
 func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
 	rows, err := sq.
 		Select("project_user.id, project_id, project_user.user_id, user.name, namespace_user.role, project_user.insert_time, project_user.update_time").
@@ -53,7 +53,7 @@ func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
 	return projectUsers, nil
 }
 
-// AddMany add many row to table project_user
+// AddMany -
 func (pu ProjectUsers) AddMany() error {
 	if len(pu) == 0 {
 		return nil
@@ -102,7 +102,7 @@ func (pu ProjectUser) AddNamespaceProjectInUserID(namespaceID int64, userIDs []i
 	return err
 }
 
-// DeleteRow edit one row to table ProjectUser
+// DeleteRow -
 func (pu ProjectUser) DeleteRow() error {
 	_, err := sq.
 		Delete(projectUserTable).
@@ -112,7 +112,7 @@ func (pu ProjectUser) DeleteRow() error {
 	return err
 }
 
-// DeleteByUserID remove rows by user id in table ProjectUser
+// DeleteByUserID -
 func (pu ProjectUser) DeleteByUserID() error {
 	_, err := sq.
 		Delete(projectUserTable).

@@ -16,7 +16,7 @@ type Package Controller
 // GetList list
 func (Package) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
-		Packages    model.Packages   `json:"list"`
+		Packages model.Packages `json:"list"`
 	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
@@ -42,7 +42,7 @@ func (Package) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	return &core.Response{Data: RespData{Total: total}}
 }
 
-// GetOption  list
+// GetOption list
 func (Package) GetOption(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Packages model.Packages `json:"list"`

@@ -7,7 +7,7 @@ func Init() {
 }
 
 func ticker() {
-	// 创建一个计时器
+	// create ticker
 	minute := time.Tick(time.Minute)
 	second := time.Tick(time.Second)
 	for {

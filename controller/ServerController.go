@@ -20,7 +20,7 @@ import (
 // Server struct
 type Server Controller
 
-// GetList server list
+// GetList -
 func (server Server) GetList(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Servers model.Servers `json:"list"`
@@ -36,7 +36,7 @@ func (server Server) GetList(_ http.ResponseWriter, gp *core.Goploy) *core.Respo
 	return &core.Response{Data: RespData{Servers: serverList}}
 }
 
-// GetList server list
+// GetTotal -
 func (server Server) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Total int64 `json:"total"`
@@ -48,7 +48,7 @@ func (server Server) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Resp
 	return &core.Response{Data: RespData{Total: total}}
 }
 
-// GetInstallPreview server install token list
+// GetInstallPreview server install preview list
 func (server Server) GetInstallPreview(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		InstallTraceList model.InstallTraces `json:"installTraceList"`
@@ -82,7 +82,7 @@ func (server Server) GetInstallList(w http.ResponseWriter, gp *core.Goploy) *cor
 	return &core.Response{Data: RespData{InstallTraceList: installTraceList}}
 }
 
-// GetOption server list
+// GetOption -
 func (server Server) GetOption(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Servers model.Servers `json:"list"`
@@ -95,7 +95,7 @@ func (server Server) GetOption(w http.ResponseWriter, gp *core.Goploy) *core.Res
 	return &core.Response{Data: RespData{Servers: serverList}}
 }
 
-// Check one server
+// Check server
 func (server Server) Check(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		IP    string `json:"ip" validate:"ip4_addr"`
@@ -113,7 +113,7 @@ func (server Server) Check(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 	return &core.Response{Message: "Connected"}
 }
 
-// Add one server
+// Add server
 func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name        string `json:"name" validate:"required"`
@@ -146,7 +146,7 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response 
 	return &core.Response{Data: RespData{ID: id}}
 }
 
-// Edit one server
+// Edit server
 func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID          int64  `json:"id" validate:"gt=0"`
@@ -175,7 +175,7 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response
 	return &core.Response{}
 }
 
-// DeleteRow one Server
+// RemoveRow server
 func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
@@ -185,7 +185,7 @@ func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	if err := (model.Server{ID: reqData.ID}).Remove(); err != nil {
+	if err := (model.Server{ID: reqData.ID}).RemoveRow(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	return &core.Response{}
@@ -224,6 +224,7 @@ func (server Server) Install(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 	return &core.Response{Message: "Installing"}
 }
 
+// remoteInstall -
 func remoteInstall(userInfo model.User, server model.Server, template model.Template) {
 	installTraceModel := model.InstallTrace{
 		Token:        server.LastInstallToken,
@@ -234,7 +235,7 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 		Type:         model.Rsync,
 	}
 	if template.PackageIDStr != "" {
-		packages, err := model.Package{}.GetAllInIDStr(template.PackageIDStr)
+		packages, err := model.Package{}.GetAllInID(strings.Split(template.PackageIDStr, ","))
 		if err != nil {
 			core.Log(core.ERROR, server.LastInstallToken+":"+err.Error())
 			return

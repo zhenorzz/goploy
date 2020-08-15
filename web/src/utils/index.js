@@ -199,3 +199,16 @@ export function debounce(func, wait = 500) { // 可以放入项目中的公共�
     }, wait)
   }
 }
+
+export function parseGitURL(url) {
+  const lastDotGitIndex = url.lastIndexOf('.git')
+  if (lastDotGitIndex !== -1) {
+    url = url.substring(0, lastDotGitIndex)
+  }
+  const lastAtIndex = url.lastIndexOf('@')
+  if (lastAtIndex === -1) {
+    return url
+  } else {
+    return 'http://' + url.substring(lastAtIndex + 1).replace(':', '/')
+  }
+}

@@ -9,8 +9,10 @@ import (
 	"strings"
 	"unicode"
 )
+
 // Validate use a single instance of Validate, it caches struct info
 var Validate *validator.Validate
+
 // Trans Translator
 var Trans ut.Translator
 

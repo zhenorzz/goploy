@@ -12,7 +12,7 @@ const (
 	Run
 )
 
-// ProjectTask project user relationship
+// ProjectTask -
 type ProjectTask struct {
 	ID         int64  `json:"id"`
 	ProjectID  int64  `json:"projectId"`
@@ -28,10 +28,10 @@ type ProjectTask struct {
 	UpdateTime string `json:"updateTime"`
 }
 
-// ProjectTasks project task relationship
+// ProjectTasks -
 type ProjectTasks []ProjectTask
 
-// GetListByProjectID project task row
+// GetListByProjectID -
 func (pt ProjectTask) GetListByProjectID(pagination Pagination) (ProjectTasks, Pagination, error) {
 	rows, err := sq.
 		Select("id, project_id, commit_id, date, is_run, state, creator, creator_id, editor, editor_id, insert_time, update_time").
@@ -81,7 +81,7 @@ func (pt ProjectTask) GetListByProjectID(pagination Pagination) (ProjectTasks, P
 	return projectTasks, pagination, nil
 }
 
-// GetNotRunListLTDate project task row
+// GetNotRunListLTDate -
 func (pt ProjectTask) GetNotRunListLTDate(date string) (ProjectTasks, error) {
 	rows, err := sq.
 		Select("id, project_id, commit_id, date").
@@ -111,7 +111,7 @@ func (pt ProjectTask) GetNotRunListLTDate(date string) (ProjectTasks, error) {
 	return projectTasks, nil
 }
 
-// AddRow add one row to table server
+// AddRow -
 func (pt ProjectTask) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(projectTaskTable).
@@ -126,7 +126,7 @@ func (pt ProjectTask) AddRow() (int64, error) {
 	return id, err
 }
 
-// EditRow edit one row to table server
+// EditRow -
 func (pt ProjectTask) EditRow() error {
 	_, err := sq.
 		Update(projectTaskTable).
@@ -155,7 +155,7 @@ func (pt ProjectTask) SetRun() error {
 	return err
 }
 
-// RemoveRow project task
+// RemoveRow -
 func (pt ProjectTask) RemoveRow() error {
 	_, err := sq.
 		Update(projectTaskTable).
