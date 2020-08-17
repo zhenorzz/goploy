@@ -242,7 +242,7 @@ func (p Project) GetTotal() (int64, error) {
 }
 
 // GetUserProjectList -
-func (p Project) GetUserProjectList(userID int64) (Projects, error) {
+func (p Project) GetUserProjectList() (Projects, error) {
 	builder := sq.
 		Select(`
 			project.id, 
@@ -261,7 +261,7 @@ func (p Project) GetUserProjectList(userID int64) (Projects, error) {
 		LeftJoin(fmt.Sprintf("%[1]s ON %[1]s.token = %s.last_publish_token and type = %d", publishTraceTable, projectTable, Pull)).
 		Where(sq.Eq{
 			"project.namespace_id": p.NamespaceID,
-			"project_user.user_id": userID,
+			"project_user.user_id": p.UserID,
 			"project.state":        Enable,
 		}).
 		OrderBy("project.id DESC")

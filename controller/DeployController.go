@@ -25,8 +25,9 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 	projectName := gp.URLQuery.Get("projectName")
 	projects, err := model.Project{
 		NamespaceID: gp.Namespace.ID,
+		UserID:      gp.UserInfo.ID,
 		Name:        projectName,
-	}.GetUserProjectList(gp.UserInfo.ID)
+	}.GetUserProjectList()
 
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
