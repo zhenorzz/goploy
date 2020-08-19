@@ -15,7 +15,7 @@ import (
 type User Controller
 
 // Login -
-func (user User) Login(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (user User) Login(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Account  string `json:"account" validate:"min=5,max=12"`
 		Password string `json:"password" validate:"password"`
@@ -62,12 +62,12 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	core.Cache.Set("namespace:"+strconv.Itoa(int(userData.ID)), &namespaceList, cache.DefaultExpiration)
 
 	cookie := http.Cookie{Name: core.LoginCookieName, Value: token, Path: "/", MaxAge: 86400, HttpOnly: true}
-	http.SetCookie(w, &cookie)
+	http.SetCookie(gp.ResponseWriter, &cookie)
 	return &core.Response{Data: RespData{Token: token, NamespaceList: namespaceList}}
 }
 
 // Info -
-func (user User) Info(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (user User) Info(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		UserInfo struct {
 			ID           int64  `json:"id"`
@@ -85,7 +85,7 @@ func (user User) Info(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 }
 
 // GetList -
-func (user User) GetList(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (user User) GetList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Users model.Users `json:"list"`
 	}
@@ -101,7 +101,7 @@ func (user User) GetList(_ http.ResponseWriter, gp *core.Goploy) *core.Response 
 }
 
 // GetTotal -
-func (user User) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (user User) GetTotal(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Total int64 `json:"total"`
 	}
@@ -114,7 +114,7 @@ func (user User) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response
 }
 
 // GetOption -
-func (user User) GetOption(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (user User) GetOption(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Users model.Users `json:"list"`
 	}
@@ -126,7 +126,7 @@ func (user User) GetOption(_ http.ResponseWriter, gp *core.Goploy) *core.Respons
 }
 
 // Add user
-func (user User) Add(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (user User) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Account      string `json:"account" validate:"min=5,max=12"`
 		Password     string `json:"password" validate:"omitempty,password"`
@@ -173,7 +173,7 @@ func (user User) Add(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 }
 
 // Edit user
-func (user User) Edit(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (user User) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"gt=0"`
 		Password     string `json:"password" validate:"omitempty,password"`
@@ -220,7 +220,7 @@ func (user User) Edit(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 }
 
 // RemoveRow User
-func (user User) Remove(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (user User) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
@@ -238,7 +238,7 @@ func (user User) Remove(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 }
 
 // ChangePassword -
-func (user User) ChangePassword(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (user User) ChangePassword(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		OldPassword string `json:"oldPwd" validate:"password"`
 		NewPassword string `json:"newPwd" validate:"password"`

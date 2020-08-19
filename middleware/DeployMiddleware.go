@@ -3,14 +3,12 @@ package middleware
 import (
 	"encoding/json"
 	"errors"
-	"net/http"
-
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 )
 
 // HasPublishAuth check the user has publish auth
-func HasPublishAuth(_ http.ResponseWriter, gp *core.Goploy) error {
+func HasPublishAuth(gp *core.Goploy) error {
 	type ReqData struct {
 		ProjectID int64 `json:"projectId"`
 	}
@@ -27,7 +25,7 @@ func HasPublishAuth(_ http.ResponseWriter, gp *core.Goploy) error {
 }
 
 // FilterEvent check the webhook event has publish auth
-func FilterEvent(_ http.ResponseWriter, gp *core.Goploy) error {
+func FilterEvent(gp *core.Goploy) error {
 
 	if XGitHubEvent := gp.Request.Header.Get("X-GitHub-Event"); len(XGitHubEvent) != 0 && XGitHubEvent == "push" {
 		return nil

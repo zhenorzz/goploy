@@ -3,7 +3,6 @@ package controller
 import (
 	"database/sql"
 	"io/ioutil"
-	"net/http"
 	"strconv"
 
 	"github.com/zhenorzz/goploy/core"
@@ -14,7 +13,7 @@ import (
 type Package Controller
 
 // GetList list
-func (Package) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (Package) GetList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Packages model.Packages `json:"list"`
 	}
@@ -30,7 +29,7 @@ func (Package) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 }
 
 // GetTotal total
-func (Package) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (Package) GetTotal(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Total int64 `json:"total"`
 	}
@@ -43,7 +42,7 @@ func (Package) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 }
 
 // GetOption list
-func (Package) GetOption(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (Package) GetOption(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Packages model.Packages `json:"list"`
 	}
@@ -56,7 +55,7 @@ func (Package) GetOption(w http.ResponseWriter, gp *core.Goploy) *core.Response 
 }
 
 // Upload file
-func (Package) Upload(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (Package) Upload(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Filename string `json:"filename"`
 	}

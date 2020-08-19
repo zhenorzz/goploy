@@ -81,7 +81,7 @@ func GetHub() *Hub {
 }
 
 // Connect the publish information in websocket
-func (hub *Hub) Connect(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (hub *Hub) Connect(gp *core.Goploy) *core.Response {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
@@ -90,7 +90,7 @@ func (hub *Hub) Connect(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 			return false
 		},
 	}
-	c, err := upgrader.Upgrade(w, gp.Request, nil)
+	c, err := upgrader.Upgrade(gp.ResponseWriter, gp.Request, nil)
 	if err != nil {
 		core.Log(core.ERROR, err.Error())
 		return &core.Response{Code: core.Error, Message: err.Error()}

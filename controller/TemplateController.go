@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"net/http"
-
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 )
@@ -11,7 +9,7 @@ import (
 type Template Controller
 
 // GetList -
-func (Template) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (Template) GetList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Templates model.Templates `json:"list"`
 	}
@@ -27,7 +25,7 @@ func (Template) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 }
 
 // GetTotal -
-func (Template) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (Template) GetTotal(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Total int64 `json:"total"`
 	}
@@ -39,7 +37,7 @@ func (Template) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response 
 }
 
 // GetOption -
-func (Template) GetOption(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (Template) GetOption(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Templates model.Templates `json:"list"`
 	}
@@ -52,7 +50,7 @@ func (Template) GetOption(w http.ResponseWriter, gp *core.Goploy) *core.Response
 }
 
 // Add template
-func (Template) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (Template) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name         string `json:"name" validate:"required"`
 		Remark       string `json:"remark"`
@@ -83,7 +81,7 @@ func (Template) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 }
 
 // Edit template
-func (Template) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (Template) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"gt=0"`
 		Name         string `json:"name" validate:"required"`
@@ -110,7 +108,7 @@ func (Template) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 }
 
 // RemoveRow Template
-func (Template) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (Template) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}

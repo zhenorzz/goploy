@@ -6,7 +6,6 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/utils"
-	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -19,7 +18,7 @@ import (
 type Project Controller
 
 // GetList -
-func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) GetList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Projects model.Projects `json:"list"`
 	}
@@ -36,7 +35,7 @@ func (project Project) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Res
 }
 
 // GetTotal -
-func (project Project) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) GetTotal(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Total int64 `json:"total"`
 	}
@@ -51,7 +50,7 @@ func (project Project) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Re
 }
 
 // GetRemoteBranchList -
-func (project Project) GetRemoteBranchList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) GetRemoteBranchList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Branch []string `json:"branch"`
 	}
@@ -78,7 +77,7 @@ func (project Project) GetRemoteBranchList(w http.ResponseWriter, gp *core.Goplo
 }
 
 // GetBindServerList -
-func (project Project) GetBindServerList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) GetBindServerList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		ProjectServers model.ProjectServers `json:"list"`
 	}
@@ -94,7 +93,7 @@ func (project Project) GetBindServerList(w http.ResponseWriter, gp *core.Goploy)
 }
 
 // GetBindUserList -
-func (project Project) GetBindUserList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) GetBindUserList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		ProjectUsers model.ProjectUsers `json:"list"`
 	}
@@ -110,7 +109,7 @@ func (project Project) GetBindUserList(w http.ResponseWriter, gp *core.Goploy) *
 }
 
 // Add project
-func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name                  string  `json:"name" validate:"required"`
 		URL                   string  `json:"url" validate:"required"`
@@ -206,7 +205,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 }
 
 // Edit project
-func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID                    int64  `json:"id" validate:"gt=0"`
 		Name                  string `json:"name"`
@@ -314,7 +313,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 }
 
 // RemoveRow Project
-func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
@@ -341,7 +340,7 @@ func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Resp
 }
 
 // AddServer to project
-func (project Project) AddServer(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) AddServer(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64   `json:"projectId" validate:"gt=0"`
 		ServerIDs []int64 `json:"serverIds" validate:"required"`
@@ -369,7 +368,7 @@ func (project Project) AddServer(w http.ResponseWriter, gp *core.Goploy) *core.R
 }
 
 // AddUser to project
-func (project Project) AddUser(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) AddUser(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64   `json:"projectId" validate:"gt=0"`
 		UserIDs   []int64 `json:"userIds" validate:"required"`
@@ -396,7 +395,7 @@ func (project Project) AddUser(w http.ResponseWriter, gp *core.Goploy) *core.Res
 }
 
 // RemoveServer from Project
-func (project Project) RemoveServer(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) RemoveServer(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectServerID int64 `json:"projectServerId" validate:"gt=0"`
 	}
@@ -412,7 +411,7 @@ func (project Project) RemoveServer(w http.ResponseWriter, gp *core.Goploy) *cor
 }
 
 // RemoveUser from Project
-func (project Project) RemoveUser(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) RemoveUser(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectUserID int64 `json:"projectUserId" validate:"gt=0"`
 	}
@@ -429,7 +428,7 @@ func (project Project) RemoveUser(w http.ResponseWriter, gp *core.Goploy) *core.
 }
 
 // GetTaskList -
-func (project Project) GetTaskList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) GetTaskList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		ProjectTask model.ProjectTasks `json:"projectTaskList"`
 		Pagination  model.Pagination   `json:"pagination"`
@@ -451,7 +450,7 @@ func (project Project) GetTaskList(w http.ResponseWriter, gp *core.Goploy) *core
 }
 
 // AddTask to project
-func (project Project) AddTask(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) AddTask(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
 		CommitID  string `json:"commitId" validate:"len=40"`
@@ -481,7 +480,7 @@ func (project Project) AddTask(w http.ResponseWriter, gp *core.Goploy) *core.Res
 }
 
 // EditTask from project
-func (project Project) EditTask(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) EditTask(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID       int64  `json:"id" validate:"gt=0"`
 		CommitID string `json:"commitId" validate:"len=40"`
@@ -509,7 +508,7 @@ func (project Project) EditTask(w http.ResponseWriter, gp *core.Goploy) *core.Re
 }
 
 // RemoveTask from project
-func (project Project) RemoveTask(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (project Project) RemoveTask(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}

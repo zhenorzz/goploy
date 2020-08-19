@@ -4,7 +4,6 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"net"
-	"net/http"
 	"strconv"
 	"time"
 )
@@ -13,7 +12,7 @@ import (
 type Monitor Controller
 
 // GetList monitor list
-func (monitor Monitor) GetList(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (monitor Monitor) GetList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Monitors model.Monitors `json:"list"`
 	}
@@ -29,7 +28,7 @@ func (monitor Monitor) GetList(_ http.ResponseWriter, gp *core.Goploy) *core.Res
 }
 
 // GetList monitor list
-func (monitor Monitor) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (monitor Monitor) GetTotal(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Total int64 `json:"total"`
 	}
@@ -41,7 +40,7 @@ func (monitor Monitor) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Re
 }
 
 // Check one monitor
-func (monitor Monitor) Check(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (monitor Monitor) Check(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Domain string `json:"domain" validate:"required"`
 		Port   int    `json:"port" validate:"min=0,max=65535"`
@@ -58,7 +57,7 @@ func (monitor Monitor) Check(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 }
 
 // Add one monitor
-func (monitor Monitor) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (monitor Monitor) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name         string `json:"name" validate:"required"`
 		Domain       string `json:"domain" validate:"required"`
@@ -96,7 +95,7 @@ func (monitor Monitor) Add(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 }
 
 // Edit one monitor
-func (monitor Monitor) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (monitor Monitor) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"gt=0"`
 		Name         string `json:"name" validate:"required"`
@@ -131,7 +130,7 @@ func (monitor Monitor) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 }
 
 // Stop one Monitor
-func (monitor Monitor) Toggle(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (monitor Monitor) Toggle(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
@@ -147,7 +146,7 @@ func (monitor Monitor) Toggle(w http.ResponseWriter, gp *core.Goploy) *core.Resp
 }
 
 // RemoveRow one Monitor
-func (monitor Monitor) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (monitor Monitor) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}

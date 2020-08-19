@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"gopkg.in/go-playground/validator.v9"
-	"net/http"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -21,7 +20,7 @@ import (
 type Server Controller
 
 // GetList -
-func (server Server) GetList(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (server Server) GetList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Servers model.Servers `json:"list"`
 	}
@@ -37,7 +36,7 @@ func (server Server) GetList(_ http.ResponseWriter, gp *core.Goploy) *core.Respo
 }
 
 // GetTotal -
-func (server Server) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (server Server) GetTotal(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Total int64 `json:"total"`
 	}
@@ -49,7 +48,7 @@ func (server Server) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Resp
 }
 
 // GetInstallPreview server install preview list
-func (server Server) GetInstallPreview(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (server Server) GetInstallPreview(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		InstallTraceList model.InstallTraces `json:"installTraceList"`
 	}
@@ -65,7 +64,7 @@ func (server Server) GetInstallPreview(_ http.ResponseWriter, gp *core.Goploy) *
 }
 
 // GetInstallList server install list by token
-func (server Server) GetInstallList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (server Server) GetInstallList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		InstallTraceList model.InstallTraces `json:"installTraceList"`
 	}
@@ -83,7 +82,7 @@ func (server Server) GetInstallList(w http.ResponseWriter, gp *core.Goploy) *cor
 }
 
 // GetOption -
-func (server Server) GetOption(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (server Server) GetOption(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Servers model.Servers `json:"list"`
 	}
@@ -96,7 +95,7 @@ func (server Server) GetOption(w http.ResponseWriter, gp *core.Goploy) *core.Res
 }
 
 // Check server
-func (server Server) Check(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (server Server) Check(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		IP    string `json:"ip" validate:"ip4_addr"`
 		Port  int    `json:"port" validate:"min=0,max=65535"`
@@ -113,7 +112,7 @@ func (server Server) Check(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 }
 
 // Add server
-func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (server Server) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name        string `json:"name" validate:"required"`
 		IP          string `json:"ip" validate:"ip4_addr"`
@@ -146,7 +145,7 @@ func (server Server) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response 
 }
 
 // Edit server
-func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (server Server) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID          int64  `json:"id" validate:"gt=0"`
 		Name        string `json:"name" validate:"required"`
@@ -175,7 +174,7 @@ func (server Server) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response
 }
 
 // RemoveRow server
-func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (server Server) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
@@ -191,7 +190,7 @@ func (server Server) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 }
 
 // Install Server Environment
-func (server Server) Install(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (server Server) Install(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ServerID   int64 `json:"serverId" validate:"gt=0"`
 		TemplateID int64 `json:"templateId" validate:"gt=0"`

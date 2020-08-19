@@ -6,7 +6,6 @@ import (
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/service"
 	"github.com/zhenorzz/goploy/utils"
-	"net/http"
 	"strconv"
 	"strings"
 
@@ -17,7 +16,7 @@ import (
 type Deploy Controller
 
 // GetList -
-func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (deploy Deploy) GetList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Project model.Projects `json:"list"`
 	}
@@ -35,7 +34,7 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 }
 
 // GetPreview deploy detail
-func (deploy Deploy) GetPreview(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (deploy Deploy) GetPreview(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		GitTraceList model.PublishTraces `json:"gitTraceList"`
 		Pagination   model.Pagination    `json:"pagination"`
@@ -71,7 +70,7 @@ func (deploy Deploy) GetPreview(w http.ResponseWriter, gp *core.Goploy) *core.Re
 }
 
 // GetDetail deploy detail
-func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (deploy Deploy) GetDetail(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		PublishTraceList model.PublishTraces `json:"publishTraceList"`
 	}
@@ -88,7 +87,7 @@ func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) *core.Res
 }
 
 // GetCommitList get latest 10 commit list
-func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (deploy Deploy) GetCommitList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		CommitList []utils.Commit `json:"commitList"`
 	}
@@ -126,7 +125,7 @@ func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) *core
 }
 
 // Publish the project
-func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (deploy Deploy) Publish(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
 		Commit    string `json:"commit"`
@@ -171,7 +170,7 @@ func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 }
 
 // Webhook connect
-func (deploy Deploy) Webhook(w http.ResponseWriter, gp *core.Goploy) *core.Response {
+func (deploy Deploy) Webhook(gp *core.Goploy) *core.Response {
 	projectName := gp.URLQuery.Get("project_name")
 	// other event is blocked in deployMiddleware
 	type ReqData struct {
