@@ -2,7 +2,6 @@ package controller
 
 import (
 	"database/sql"
-	"encoding/json"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/service"
@@ -37,7 +36,6 @@ func (deploy Deploy) GetList(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 
 // GetPreview deploy detail
 func (deploy Deploy) GetPreview(w http.ResponseWriter, gp *core.Goploy) *core.Response {
-
 	type RespData struct {
 		GitTraceList model.PublishTraces `json:"gitTraceList"`
 		Pagination   model.Pagination    `json:"pagination"`
@@ -74,7 +72,6 @@ func (deploy Deploy) GetPreview(w http.ResponseWriter, gp *core.Goploy) *core.Re
 
 // GetDetail deploy detail
 func (deploy Deploy) GetDetail(w http.ResponseWriter, gp *core.Goploy) *core.Response {
-
 	type RespData struct {
 		PublishTraceList model.PublishTraces `json:"publishTraceList"`
 	}
@@ -131,11 +128,11 @@ func (deploy Deploy) GetCommitList(w http.ResponseWriter, gp *core.Goploy) *core
 // Publish the project
 func (deploy Deploy) Publish(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		ProjectID int64  `json:"projectId"`
+		ProjectID int64  `json:"projectId" validate:"gt=0"`
 		Commit    string `json:"commit"`
 	}
 	var reqData ReqData
-	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
@@ -178,11 +175,10 @@ func (deploy Deploy) Webhook(w http.ResponseWriter, gp *core.Goploy) *core.Respo
 	projectName := gp.URLQuery.Get("project_name")
 	// other event is blocked in deployMiddleware
 	type ReqData struct {
-		Ref string `json:"ref"`
+		Ref string `json:"ref" validate:"required"`
 	}
 	var reqData ReqData
-	if err := json.Unmarshal(gp.Body, &reqData); err != nil {
-		core.Log(core.ERROR, "json unmarshal error, err:"+err.Error())
+	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	branch := strings.Split(reqData.Ref, "/")[2]

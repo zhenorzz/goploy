@@ -27,6 +27,6 @@ const (
 )
 
 func (projectMessage ProjectMessage) canSendTo(client *Client) error {
-	_, err := model.Project{ID: projectMessage.ProjectID}.GetUserProjectData(client.UserInfo.ID)
+	_, err := model.Project{ID: projectMessage.ProjectID, UserID: client.UserInfo.ID}.GetUserProjectData()
 	return err
 }

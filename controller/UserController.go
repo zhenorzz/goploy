@@ -2,7 +2,6 @@ package controller
 
 import (
 	"database/sql"
-	"encoding/json"
 	"github.com/patrickmn/go-cache"
 	"net/http"
 	"strconv"
@@ -26,8 +25,7 @@ func (user User) Login(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 		NamespaceList model.Namespaces `json:"namespaceList"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	userData, err := model.User{Account: reqData.Account}.GetDataByAccount()
@@ -233,12 +231,7 @@ func (user User) Remove(_ http.ResponseWriter, gp *core.Goploy) *core.Response {
 	if reqData.ID == 1 {
 		return &core.Response{Code: core.Error, Message: "Can not delete the super manager"}
 	}
-
-	err := model.User{
-		ID: reqData.ID,
-	}.RemoveRow()
-
-	if err != nil {
+	if err := (model.User{ID: reqData.ID}).RemoveRow(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	return &core.Response{}
@@ -263,7 +256,7 @@ func (user User) ChangePassword(_ http.ResponseWriter, gp *core.Goploy) *core.Re
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	if err := (model.User{ID: gp.UserInfo.ID, Password: reqData.NewPassword}.UpdatePassword()); err != nil {
+	if err := (model.User{ID: gp.UserInfo.ID, Password: reqData.NewPassword}).UpdatePassword(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	return &core.Response{}

@@ -106,8 +106,7 @@ func (server Server) Check(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	_, err := utils.ConnectSSH(reqData.Owner, "", reqData.IP, reqData.Port)
-	if err != nil {
+	if _, err := utils.ConnectSSH(reqData.Owner, "", reqData.IP, reqData.Port); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	return &core.Response{Message: "Connected"}

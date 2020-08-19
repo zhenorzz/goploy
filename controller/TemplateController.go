@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/zhenorzz/goploy/core"
@@ -33,7 +32,6 @@ func (Template) GetTotal(_ http.ResponseWriter, gp *core.Goploy) *core.Response 
 		Total int64 `json:"total"`
 	}
 	total, err := model.Template{}.GetTotal()
-
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
@@ -117,15 +115,11 @@ func (Template) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	err = model.Template{
-		ID: reqData.ID,
-	}.DeleteRow()
 
-	if err != nil {
+	if err := (model.Template{ID: reqData.ID}).DeleteRow(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	return &core.Response{Message: "删除成功"}

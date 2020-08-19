@@ -406,7 +406,7 @@ func (p Project) GetDataByName() (Project, error) {
 }
 
 // GetUserProjectData -
-func (p Project) GetUserProjectData(userID int64) (Project, error) {
+func (p Project) GetUserProjectData() (Project, error) {
 	var project Project
 	err := sq.
 		Select("project_id, project.name, publisher_id, publisher_name, project.environment, project.branch, project.last_publish_token, project.deploy_state").
@@ -414,7 +414,7 @@ func (p Project) GetUserProjectData(userID int64) (Project, error) {
 		LeftJoin(projectTable+" ON project_user.project_id = project.id").
 		Where(sq.Eq{
 			"project_user.project_id": p.ID,
-			"project_user.user_id":    userID,
+			"project_user.user_id":    p.UserID,
 			"project.state":           Enable,
 		}).
 		RunWith(DB).

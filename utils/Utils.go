@@ -160,7 +160,7 @@ func ConnectSSH(user, password, host string, port int) (*ssh.Session, error) {
 		},
 	}
 
-	// connet to ssh
+	// connect to ssh
 	addr = fmt.Sprintf("%s:%d", host, port)
 
 	if client, err = ssh.Dial("tcp", addr, clientConfig); err != nil {

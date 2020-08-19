@@ -283,19 +283,11 @@ func (crontab Crontab) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Resp
 		}
 	}
 
-	err := model.Crontab{
-		ID: reqData.ID,
-	}.DeleteRow()
-
-	if err != nil {
+	if err := (model.Crontab{ID: reqData.ID}).DeleteRow(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	err = model.CrontabServer{
-		CrontabID: reqData.ID,
-	}.DeleteByCrontabID()
-
-	if err != nil {
+	if err := (model.CrontabServer{CrontabID: reqData.ID}).DeleteByCrontabID(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
@@ -353,11 +345,7 @@ func (crontab Crontab) RemoveCrontabServer(w http.ResponseWriter, gp *core.Goplo
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	err = model.CrontabServer{
-		ID: reqData.CrontabServerID,
-	}.DeleteRow()
-
-	if err != nil {
+	if err := (model.CrontabServer{ID: reqData.CrontabServerID}).DeleteRow(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
@@ -394,9 +382,7 @@ func addCrontab(serverID int64, command string) {
 }
 
 func deleteCrontab(serverID int64, command string) {
-	server, err := model.Server{
-		ID: serverID,
-	}.GetData()
+	server, err := model.Server{ID: serverID}.GetData()
 
 	if err != nil {
 		core.Log(core.TRACE, "serverID:"+strconv.FormatUint(uint64(serverID), 10)+" get server fail, detail:"+err.Error())

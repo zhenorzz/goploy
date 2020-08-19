@@ -3,7 +3,6 @@ package controller
 import (
 	"bytes"
 	"database/sql"
-	"encoding/json"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/utils"
@@ -113,12 +112,12 @@ func (project Project) GetBindUserList(w http.ResponseWriter, gp *core.Goploy) *
 // Add project
 func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		Name                  string  `json:"name"`
-		URL                   string  `json:"url"`
-		Path                  string  `json:"path"`
+		Name                  string  `json:"name" validate:"required"`
+		URL                   string  `json:"url" validate:"required"`
+		Path                  string  `json:"path" validate:"required"`
+		Environment           string  `json:"Environment" validate:"required"`
+		Branch                string  `json:"branch" validate:"required"`
 		SymlinkPath           string  `json:"symlinkPath"`
-		Environment           string  `json:"Environment"`
-		Branch                string  `json:"branch"`
 		AfterPullScriptMode   string  `json:"afterPullScriptMode"`
 		AfterPullScript       string  `json:"afterPullScript"`
 		AfterDeployScriptMode string  `json:"afterDeployScriptMode"`
@@ -131,8 +130,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 		NotifyTarget          string  `json:"notifyTarget"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
@@ -140,7 +138,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 		return &core.Response{Code: core.Error, Message: "Invalid rsync option format"}
 	}
 
-	_, err = model.Project{Name: reqData.Name}.GetDataByName()
+	_, err := model.Project{Name: reqData.Name}.GetDataByName()
 	if err != sql.ErrNoRows {
 		return &core.Response{Code: core.Error, Message: "The project name is already exist"}
 	}
@@ -210,7 +208,7 @@ func (project Project) Add(w http.ResponseWriter, gp *core.Goploy) *core.Respons
 // Edit project
 func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		ID                    int64  `json:"id"`
+		ID                    int64  `json:"id" validate:"gt=0"`
 		Name                  string `json:"name"`
 		URL                   string `json:"url"`
 		Path                  string `json:"path"`
@@ -227,8 +225,7 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 		NotifyTarget          string `json:"notifyTarget"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
@@ -319,11 +316,10 @@ func (project Project) Edit(w http.ResponseWriter, gp *core.Goploy) *core.Respon
 // RemoveRow Project
 func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		ID int64 `json:"id"`
+		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
@@ -332,11 +328,7 @@ func (project Project) Remove(w http.ResponseWriter, gp *core.Goploy) *core.Resp
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	err = model.Project{
-		ID: reqData.ID,
-	}.RemoveRow()
-
-	if err != nil {
+	if err := (model.Project{ID: reqData.ID}).RemoveRow(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
@@ -355,8 +347,7 @@ func (project Project) AddServer(w http.ResponseWriter, gp *core.Goploy) *core.R
 		ServerIDs []int64 `json:"serverIds" validate:"required"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	projectID := reqData.ProjectID
@@ -410,15 +401,11 @@ func (project Project) RemoveServer(w http.ResponseWriter, gp *core.Goploy) *cor
 		ProjectServerID int64 `json:"projectServerId" validate:"gt=0"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	err = model.ProjectServer{
-		ID: reqData.ProjectServerID,
-	}.DeleteRow()
 
-	if err != nil {
+	if err := (model.ProjectServer{ID: reqData.ProjectServerID}).DeleteRow(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	return &core.Response{}
@@ -430,16 +417,12 @@ func (project Project) RemoveUser(w http.ResponseWriter, gp *core.Goploy) *core.
 		ProjectUserID int64 `json:"projectUserId" validate:"gt=0"`
 	}
 	var reqData ReqData
-	err := json.Unmarshal(gp.Body, &reqData)
-	if err != nil {
+	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 
 	}
-	err = model.ProjectUser{
-		ID: reqData.ProjectUserID,
-	}.DeleteRow()
 
-	if err != nil {
+	if err := (model.ProjectUser{ID: reqData.ProjectUserID}).DeleteRow(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	return &core.Response{}
@@ -535,8 +518,7 @@ func (project Project) RemoveTask(w http.ResponseWriter, gp *core.Goploy) *core.
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	err := model.ProjectTask{ID: reqData.ID}.RemoveRow()
-	if err != nil {
+	if err := (model.ProjectTask{ID: reqData.ID}).RemoveRow(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
@@ -547,13 +529,13 @@ func (project Project) RemoveTask(w http.ResponseWriter, gp *core.Goploy) *core.
 func repoCreate(projectID int64) {
 	project, err := model.Project{ID: projectID}.GetData()
 	if err != nil {
-		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(projectID, 10)+" 无此项目")
+		core.Log(core.TRACE, "The project does not exist, projectID:"+strconv.FormatInt(projectID, 10))
 		return
 	}
 	srcPath := core.RepositoryPath + project.Name
 	if _, err := os.Stat(srcPath); err != nil {
 		if err := os.RemoveAll(srcPath); err != nil {
-			core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" 项目移除失败")
+			core.Log(core.TRACE, "The project fail to remove, projectID:"+strconv.FormatInt(project.ID, 10))
 			return
 		}
 		repo := project.URL
@@ -562,7 +544,7 @@ func repoCreate(projectID int64) {
 		cmd.Stdout = &out
 
 		if err := cmd.Run(); err != nil {
-			core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" 项目初始化失败:"+err.Error())
+			core.Log(core.ERROR, "The project fail to initialize, projectID:"+strconv.FormatInt(project.ID, 10)+err.Error())
 			return
 		}
 
@@ -579,7 +561,7 @@ func repoCreate(projectID int64) {
 			}
 
 		}
-		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" 项目初始化成功")
+		core.Log(core.TRACE, "The project success to initialize, projectID:"+strconv.FormatInt(project.ID, 10))
 
 	}
 	return

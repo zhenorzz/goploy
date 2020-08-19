@@ -86,9 +86,7 @@ func (namespace Namespace) Add(_ http.ResponseWriter, gp *core.Goploy) *core.Res
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	err = model.NamespaceUser{NamespaceID: id}.AddAdminByNamespaceID()
-
-	if err != nil {
+	if err := (model.NamespaceUser{NamespaceID: id}).AddAdminByNamespaceID(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
@@ -161,11 +159,8 @@ func (namespace Namespace) RemoveUser(_ http.ResponseWriter, gp *core.Goploy) *c
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	err := model.NamespaceUser{
-		ID: reqData.NamespaceUserID,
-	}.DeleteRow()
 
-	if err != nil {
+	if err := (model.NamespaceUser{ID: reqData.NamespaceUserID}).DeleteRow(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	return &core.Response{}
