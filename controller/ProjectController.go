@@ -122,7 +122,6 @@ func (project Project) Add(gp *core.Goploy) *core.Response {
 		AfterDeployScriptMode string  `json:"afterDeployScriptMode"`
 		AfterDeployScript     string  `json:"afterDeployScript"`
 		RsyncOption           string  `json:"rsyncOption"`
-		AutoDeploy            uint8   `json:"autoDeploy"`
 		ServerIDs             []int64 `json:"serverIds"`
 		UserIDs               []int64 `json:"userIds"`
 		NotifyType            uint8   `json:"notifyType"`
@@ -155,7 +154,6 @@ func (project Project) Add(gp *core.Goploy) *core.Response {
 		AfterDeployScriptMode: reqData.AfterDeployScriptMode,
 		AfterDeployScript:     reqData.AfterDeployScript,
 		RsyncOption:           reqData.RsyncOption,
-		AutoDeploy:            reqData.AutoDeploy,
 		NotifyType:            reqData.NotifyType,
 		NotifyTarget:          reqData.NotifyTarget,
 	}.AddRow()
@@ -219,7 +217,6 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 		AfterDeployScriptMode string `json:"afterDeployScriptMode"`
 		AfterDeployScript     string `json:"afterDeployScript"`
 		RsyncOption           string `json:"rsyncOption"`
-		AutoDeploy            uint8  `json:"autoDeploy"`
 		NotifyType            uint8  `json:"notifyType"`
 		NotifyTarget          string `json:"notifyTarget"`
 	}
@@ -263,7 +260,6 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 		AfterDeployScriptMode: reqData.AfterDeployScriptMode,
 		AfterDeployScript:     reqData.AfterDeployScript,
 		RsyncOption:           reqData.RsyncOption,
-		AutoDeploy:            reqData.AutoDeploy,
 		NotifyType:            reqData.NotifyType,
 		NotifyTarget:          reqData.NotifyTarget,
 	}.EditRow()
@@ -309,6 +305,27 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 	}
 
 	//go repoCreate(reqData.ID)
+	return &core.Response{}
+}
+
+// SetAutoDeploy -
+func (project Project) SetAutoDeploy(gp *core.Goploy) *core.Response {
+	type ReqData struct {
+		ID         int64 `json:"id" validate:"gt=0"`
+		AutoDeploy uint8 `json:"autoDeploy" validate:"gte=0"`
+	}
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	err := model.Project{
+		ID:         reqData.ID,
+		AutoDeploy: reqData.AutoDeploy,
+	}.SetAutoDeploy()
+
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
 	return &core.Response{}
 }
 

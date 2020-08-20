@@ -31,19 +31,28 @@
         </template>
       </el-table-column>
       <el-table-column prop="path" label="部署路径" min-width="200" />
-      <el-table-column prop="environment" width="120" label="环境" />
-      <el-table-column prop="branch" width="160" label="分支" />
-      <el-table-column width="80" label="自动部署">
+      <el-table-column prop="environment" width="120" label="环境" align="center" />
+      <el-table-column prop="branch" width="160" label="分支" align="center" />
+      <el-table-column width="90" label="自动部署">
         <template slot-scope="scope">
           <span v-if="scope.row.autoDeploy === 0">关闭</span>
-          <span v-else>Webhook</span>
+          <span v-else>webhook</span>
+          <el-button type="text" icon="el-icon-edit" @click="handleAutoDeploy(scope.row)" />
         </template>
       </el-table-column>
-      <el-table-column prop="operation" label="操作" width="350" fixed="right">
+      <el-table-column prop="server" width="80" label="服务器" align="center">
+        <template slot-scope="scope">
+          <el-button type="text" @click="handleServer(scope.row)">查看</el-button>
+        </template>
+      </el-table-column>
+      <el-table-column prop="user" width="80" label="成员" align="center">
+        <template slot-scope="scope">
+          <el-button type="text" @click="handleUser(scope.row)">查看</el-button>
+        </template>
+      </el-table-column>
+      <el-table-column prop="operation" label="操作" width="150" align="center" fixed="right">
         <template slot-scope="scope">
           <el-button type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button type="success" @click="handleServer(scope.row)">服务器管理</el-button>
-          <el-button type="warning" @click="handleUser(scope.row)">成员管理</el-button>
           <el-button type="danger" @click="handleRemove(scope.row)">删除</el-button>
         </template>
       </el-table-column>
@@ -199,18 +208,6 @@
               <codemirror ref="afterDeployScript" v-model="formData.afterDeployScript" :options="cmOption" />
             </el-form-item>
           </el-tab-pane>
-          <el-tab-pane label="构建触发器" name="autoDeploy">
-            <el-row style="margin: 10px">构建触发器：达成某种条件后自动构建发布项目</el-row>
-            <el-radio-group v-model="formData.autoDeploy" style="margin: 10px">
-              <el-radio :label="0">关闭</el-radio>
-              <el-radio :label="1">webhook</el-radio>
-            </el-radio-group>
-            <el-row v-show="formData.autoDeploy===1" style="margin: 10px">
-              前往GitLab、GitHub或Gitee的webhook（可前往谷歌查找各自webhook所在的位置）<br>
-              填入连接<span style="color: red">http(s)://域名(IP)/deploy/webhook?project_name={{ formData.name?formData.name:"请先填写项目名称" }}</span><br>
-              勾选push event即可
-            </el-row>
-          </el-tab-pane>
           <el-tab-pane label="高级配置" name="advance">
             <el-form-item label="构建通知" prop="notifyTarget">
               <el-row type="flex">
@@ -230,6 +227,24 @@
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
         <el-button :disabled="formProps.disabled" type="primary" @click="submit">确 定</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog title="自动部署设置" :visible.sync="dialogAutoDeployVisible">
+      <el-form ref="autoDeployForm" :model="autoDeployFormData">
+        <el-row style="margin: 10px">构建触发器：达成某种条件后自动构建发布项目</el-row>
+        <el-radio-group v-model="autoDeployFormData.autoDeploy" style="margin: 10px">
+          <el-radio :label="0">关闭</el-radio>
+          <el-radio :label="1">webhook</el-radio>
+        </el-radio-group>
+        <el-row v-show="autoDeployFormData.autoDeploy===1" style="margin: 10px">
+          前往GitLab、GitHub或Gitee的webhook（可前往谷歌查找各自webhook所在的位置）<br>
+          填入连接<span style="color: red">http(s)://域名(IP)/deploy/webhook?project_name={{ autoDeployFormProps.name }}</span><br>
+          勾选push event即可
+        </el-row>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogAutoDeployVisible = false">取 消</el-button>
+        <el-button :disabled="autoDeployFormProps.disabled" type="primary" @click="setAutoDeploy">确 定</el-button>
       </div>
     </el-dialog>
     <el-dialog title="服务器管理" :visible.sync="dialogServerVisible">
@@ -326,7 +341,21 @@ import tableHeight from '@/mixin/tableHeight'
 import { parseGitURL } from '@/utils'
 import { getUserOption } from '@/api/namespace'
 import { getOption as getServerOption } from '@/api/server'
-import { getList, getTotal, getBindServerList, getBindUserList, getRemoteBranchList, add, edit, remove, addServer, addUser, removeServer, removeUser } from '@/api/project'
+import {
+  getList,
+  getTotal,
+  getBindServerList,
+  getBindUserList,
+  getRemoteBranchList,
+  add,
+  edit,
+  remove,
+  addServer,
+  addUser,
+  setAutoDeploy,
+  removeServer,
+  removeUser
+} from '@/api/project'
 // require component
 import { codemirror } from 'vue-codemirror'
 import 'codemirror/mode/shell/shell.js'
@@ -371,6 +400,7 @@ export default {
       },
       projectName: '',
       dialogVisible: false,
+      dialogAutoDeployVisible: false,
       dialogServerVisible: false,
       dialogUserVisible: false,
       dialogAddServerVisible: false,
@@ -410,7 +440,6 @@ export default {
         rsyncOption: '-rtv --exclude .git --delete-after',
         serverIds: [],
         userIds: [],
-        autoDeploy: 0,
         notifyType: 0,
         notifyTarget: ''
       },
@@ -439,6 +468,14 @@ export default {
         notifyTarget: [
           { validator: validateNotifyTarget, trigger: 'blur' }
         ]
+      },
+      autoDeployFormProps: {
+        disabled: false,
+        name: ''
+      },
+      autoDeployFormData: {
+        id: 0,
+        autoDeploy: 0
       },
       addServerFormProps: {
         disabled: false
@@ -527,6 +564,13 @@ export default {
       }
     },
 
+    handleAutoDeploy(data) {
+      this.dialogAutoDeployVisible = true
+      this.autoDeployFormProps.name = data.name
+      this.autoDeployFormData.id = data.id
+      this.autoDeployFormData.autoDeploy = data.autoDeploy
+    },
+
     handleServer(data) {
       this.getBindServerList(data.id)
       // 先把projectID写入添加服务器的表单
@@ -586,6 +630,23 @@ export default {
         this.getList()
       }).finally(() => {
         this.formProps.disabled = false
+      })
+    },
+
+    setAutoDeploy() {
+      this.$refs.autoDeployForm.validate((valid) => {
+        if (valid) {
+          this.autoDeployFormProps.disabled = true
+          setAutoDeploy(this.autoDeployFormData).then((response) => {
+            this.dialogAutoDeployVisible = false
+            this.$message.success('添加成功')
+            this.getList()
+          }).finally(() => {
+            this.autoDeployFormProps.disabled = false
+          })
+        } else {
+          return false
+        }
       })
     },
 

@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -66,8 +65,8 @@ type Projects []Project
 func (p Project) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(projectTable).
-		Columns("namespace_id", "name", "url", "path", "symlink_path", "environment", "branch", "after_pull_script_mode", "after_pull_script", "after_deploy_script_mode", "after_deploy_script", "rsync_option", "auto_deploy", "notify_type", "notify_target").
-		Values(p.NamespaceID, p.Name, p.URL, p.Path, p.SymlinkPath, p.Environment, p.Branch, p.AfterPullScriptMode, p.AfterPullScript, p.AfterDeployScriptMode, p.AfterDeployScript, p.RsyncOption, p.AutoDeploy, p.NotifyType, p.NotifyTarget).
+		Columns("namespace_id", "name", "url", "path", "symlink_path", "environment", "branch", "after_pull_script_mode", "after_pull_script", "after_deploy_script_mode", "after_deploy_script", "rsync_option", "notify_type", "notify_target").
+		Values(p.NamespaceID, p.Name, p.URL, p.Path, p.SymlinkPath, p.Environment, p.Branch, p.AfterPullScriptMode, p.AfterPullScript, p.AfterDeployScriptMode, p.AfterDeployScript, p.RsyncOption, p.NotifyType, p.NotifyTarget).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -93,13 +92,26 @@ func (p Project) EditRow() error {
 			"after_deploy_script_mode": p.AfterDeployScriptMode,
 			"after_deploy_script":      p.AfterDeployScript,
 			"rsync_option":             p.RsyncOption,
-			"auto_deploy":              p.AutoDeploy,
 			"notify_type":              p.NotifyType,
 			"notify_target":            p.NotifyTarget,
 		}).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
 		Exec()
+	return err
+}
+
+// SetAutoDeploy set auto_deploy
+func (p Project) SetAutoDeploy() error {
+	_, err := sq.
+		Update(projectTable).
+		SetMap(sq.Eq{
+			"auto_deploy": p.AutoDeploy,
+		}).
+		Where(sq.Eq{"id": p.ID}).
+		RunWith(DB).
+		Exec()
+
 	return err
 }
 
