@@ -55,6 +55,11 @@
                 个人中心
               </el-dropdown-item>
             </router-link>
+            <el-link :underline="false" href="https://zhenorzz.gitee.io/goploy/" target="__blank">
+              <el-dropdown-item>
+                帮助文档
+              </el-dropdown-item>
+            </el-link>
             <el-dropdown-item divided>
               <span style="display:block; text-align:center;" @click="logout">退出</span>
             </el-dropdown-item>
