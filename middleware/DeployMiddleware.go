@@ -26,7 +26,6 @@ func HasPublishAuth(gp *core.Goploy) error {
 
 // FilterEvent check the webhook event has publish auth
 func FilterEvent(gp *core.Goploy) error {
-
 	if XGitHubEvent := gp.Request.Header.Get("X-GitHub-Event"); len(XGitHubEvent) != 0 && XGitHubEvent == "push" {
 		return nil
 	} else if XGitLabEvent := gp.Request.Header.Get("X-Gitlab-Event"); len(XGitLabEvent) != 0 && XGitLabEvent == "Push Hook" {

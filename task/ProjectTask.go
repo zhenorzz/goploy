@@ -16,9 +16,7 @@ func projectTask() {
 		core.Log(core.ERROR, "get project task list error, detail:"+err.Error())
 	}
 	for _, projectTask := range projectTasks {
-		project, err := model.Project{
-			ID: projectTask.ProjectID,
-		}.GetData()
+		project, err := model.Project{ID: projectTask.ProjectID}.GetData()
 
 		if err != nil {
 			core.Log(core.ERROR, "publish task has no project, detail:"+err.Error())

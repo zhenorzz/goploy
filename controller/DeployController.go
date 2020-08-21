@@ -135,9 +135,7 @@ func (deploy Deploy) Publish(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	project, err := model.Project{
-		ID: reqData.ProjectID,
-	}.GetData()
+	project, err := model.Project{ID: reqData.ProjectID}.GetData()
 
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -171,7 +169,10 @@ func (deploy Deploy) Publish(gp *core.Goploy) *core.Response {
 
 // Webhook connect
 func (deploy Deploy) Webhook(gp *core.Goploy) *core.Response {
-	projectName := gp.URLQuery.Get("project_name")
+	projectID, err := strconv.ParseInt(gp.URLQuery.Get("project_id"), 10, 64)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
 	// other event is blocked in deployMiddleware
 	type ReqData struct {
 		Ref string `json:"ref" validate:"required"`
@@ -180,11 +181,8 @@ func (deploy Deploy) Webhook(gp *core.Goploy) *core.Response {
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	branch := strings.Split(reqData.Ref, "/")[2]
 
-	project, err := model.Project{
-		Name: projectName,
-	}.GetDataByName()
+	project, err := model.Project{ID: projectID}.GetData()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
@@ -197,7 +195,7 @@ func (deploy Deploy) Webhook(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Deny, Message: "Webhook auto deploy turn off, go to project setting turn on"}
 	}
 
-	if project.Branch != branch {
+	if branch := strings.Split(reqData.Ref, "/")[2]; project.Branch != branch {
 		return &core.Response{Code: core.Deny, Message: "Receive branch:" + branch + " push event, not equal to current branch"}
 	}
 

@@ -16,6 +16,7 @@
       :data="tableData"
       style="width: 100%"
     >
+      <el-table-column prop="id" label="ID" width="100" />
       <el-table-column prop="name" label="项目名称" width="200" />
       <el-table-column prop="url" label="项目地址" width="350">
         <template slot-scope="scope">
@@ -72,16 +73,16 @@
         <el-tabs v-model="formProps.tab" @tab-click="handleTabClick">
           <el-tab-pane label="基本配置" name="base">
             <el-form-item label="项目名称" prop="name">
-              <el-input v-model.trim="formData.name" autocomplete="off" />
+              <el-input v-model.trim="formData.name" autocomplete="off" placeholder="goploy" />
             </el-form-item>
             <el-form-item label="项目地址" prop="url">
               <el-row type="flex">
-                <el-input v-model.trim="formData.url" autocomplete="off" @change="formProps.branch = []" />
+                <el-input v-model.trim="formData.url" autocomplete="off" placeholder="支持HTTPS、HTTP、SSH" @change="formProps.branch = []" />
                 <el-button :icon="formProps.lsBranchLoading ? 'el-icon-loading' : 'el-icon-view'" type="success" :disabled="formProps.lsBranchLoading" @click="getRemoteBranchList">测试连接</el-button>
               </el-row>
             </el-form-item>
             <el-form-item label="部署路径" prop="path">
-              <el-input v-model.trim="formData.path" autocomplete="off" />
+              <el-input v-model.trim="formData.path" autocomplete="off" placeholder="/var/www/goploy" />
             </el-form-item>
             <el-form-item label="环境" prop="environment">
               <el-select v-model="formData.environment" placeholder="选择环境" style="width:100%">
@@ -238,8 +239,8 @@
         </el-radio-group>
         <el-row v-show="autoDeployFormData.autoDeploy===1" style="margin: 10px">
           前往GitLab、GitHub或Gitee的webhook（可前往谷歌查找各自webhook所在的位置）<br>
-          填入连接<span style="color: red">http(s)://域名(IP)/deploy/webhook?project_name={{ autoDeployFormProps.name }}</span><br>
-          勾选push event即可
+          填入连接<span style="color: red">http(s)://域名(IP)/deploy/webhook?project_id={{ autoDeployFormData.id }}</span><br>
+          勾选push event即可, (gitlab可以选对应的分支)
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -470,8 +471,7 @@ export default {
         ]
       },
       autoDeployFormProps: {
-        disabled: false,
-        name: ''
+        disabled: false
       },
       autoDeployFormData: {
         id: 0,
@@ -566,7 +566,6 @@ export default {
 
     handleAutoDeploy(data) {
       this.dialogAutoDeployVisible = true
-      this.autoDeployFormProps.name = data.name
       this.autoDeployFormData.id = data.id
       this.autoDeployFormData.autoDeploy = data.autoDeploy
     },

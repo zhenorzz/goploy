@@ -8,3 +8,4 @@
 * 常见问题
   * [安装问题](question/install.md)
   * [使用问题](question/use.md)
+ * [更新日志](changelog/index.md)

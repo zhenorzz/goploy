@@ -29,6 +29,7 @@ func main() {
           /_/            /____/   
 `)
 	install()
+	println(time.Now().String())
 	godotenv.Load(core.GlobalPath + ".env")
 	core.CreateValidator()
 	model.Init()

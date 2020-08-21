@@ -88,6 +88,14 @@ export function edit(data) {
   })
 }
 
+export function setAutoDeploy(data) {
+  return request({
+    url: '/project/setAutoDeploy',
+    method: 'post',
+    data
+  })
+}
+
 export function remove(id) {
   return request({
     url: '/project/remove',
