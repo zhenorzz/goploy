@@ -107,6 +107,7 @@
 import { getList, getTotal, add, edit, check, toggle, remove } from '@/api/monitor'
 
 export default {
+  name: 'Monitor',
   data() {
     return {
       dialogVisible: false,

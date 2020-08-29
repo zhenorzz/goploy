@@ -31,7 +31,7 @@ import { validPassword } from '@/utils/validate'
 import { changePassword } from '@/api/user'
 
 export default {
-  name: 'UserInfo',
+  name: 'UserProfile',
   data() {
     const confirmPass = (rule, value, callback) => {
       if (value === '') {

@@ -79,6 +79,7 @@ import { validUsername, validPassword } from '@/utils/validate'
 import { getList, getTotal, add, edit, remove } from '@/api/user'
 
 export default {
+  name: 'Member',
   data() {
     const validateUsername = (rule, value, callback) => {
       if (!validUsername(value)) {

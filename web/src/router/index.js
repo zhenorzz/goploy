@@ -49,12 +49,12 @@ export const constantRoutes = [
     path: '/user',
     component: Layout,
     hidden: true,
-    redirect: '/user/info',
+    redirect: '/user/profile',
     children: [{
       path: 'info',
-      name: '个人信息',
-      component: () => import('@/views/user/info'),
-      meta: { title: '个人信息' }
+      name: 'UserProfile',
+      component: () => import('@/views/user/profile'),
+      meta: { title: 'UserProfile' }
     }]
   }
 ]
@@ -67,52 +67,55 @@ export const asyncRoutes = [
   {
     path: '/deploy',
     component: Layout,
-    redirect: '/deploy/publish',
+    redirect: '/deploy/index',
+    meta: {
+      title: 'deploy',
+      icon: 'deploy'
+    },
     children: [{
-      path: 'publish',
-      name: '构建发布',
-      component: () => import('@/views/deploy/publish'),
+      path: 'index',
+      name: 'Deploy',
+      component: () => import('@/views/deploy/index'),
       meta: {
-        title: '构建发布',
+        title: 'deploy',
         icon: 'deploy'
       }
     }]
   },
   {
     path: '/toolbox',
-    name: '工具箱',
     component: Layout,
+    redirect: '/toolbox/json',
     meta: {
-      title: '工具箱',
+      title: 'toolbox',
       icon: 'toolbox'
     },
-    redirect: '/toolbox/json',
     children: [{
       path: 'json',
       name: 'JSONFormatter',
       component: () => import('@/views/toolbox/json'),
       meta: {
-        title: 'JSON格式化',
+        title: 'json',
         icon: 'json'
       }
     }]
   },
   {
     path: '/monitor',
-    name: '监控管理',
     component: Layout,
+    redirect: '/monitor/index',
     meta: {
-      title: '监控管理',
+      title: 'monitor',
       icon: 'monitor',
       roles: ['admin', 'manager', 'group-manager']
     },
     children: [
       {
-        path: 'setting',
-        name: '应用监控',
-        component: () => import('@/views/monitor/setting'),
+        path: 'index',
+        name: 'Monitor',
+        component: () => import('@/views/monitor/index'),
         meta: {
-          title: '应用监控',
+          title: 'monitor',
           icon: 'monitor',
           roles: ['admin', 'manager', 'group-manager']
         }
@@ -121,20 +124,20 @@ export const asyncRoutes = [
   },
   {
     path: '/project',
-    name: '项目管理',
     component: Layout,
+    redirect: '/project/index',
     meta: {
-      title: '项目管理',
+      title: 'project',
       icon: 'project',
       roles: ['admin', 'manager', 'group-manager']
     },
     children: [
       {
-        path: 'setting',
-        name: '项目设置',
-        component: () => import('@/views/project/setting'),
+        path: 'index',
+        name: 'Project',
+        component: () => import('@/views/project/index'),
         meta: {
-          title: '项目设置',
+          title: 'project',
           icon: 'project',
           roles: ['admin', 'manager', 'group-manager']
         }
@@ -143,30 +146,30 @@ export const asyncRoutes = [
   },
   {
     path: '/server',
-    name: '服务器管理',
     component: Layout,
+    redirect: '/server/index',
     meta: {
-      title: '服务器管理',
+      title: 'server',
       icon: 'server',
       roles: ['admin', 'manager']
     },
     children: [
       {
-        path: 'setting',
-        name: '服务器设置',
-        component: () => import('@/views/server/setting'),
+        path: 'index',
+        name: 'Server',
+        component: () => import('@/views/server/index'),
         meta: {
-          title: '服务器设置',
+          title: 'serverSetting',
           icon: 'setting',
           roles: ['admin', 'manager']
         }
       },
       {
         path: 'template',
-        name: '模板设置',
+        name: 'Template',
         component: () => import('@/views/server/template'),
         meta: {
-          title: '模板设置',
+          title: 'template',
           icon: 'template',
           roles: ['admin', 'manager']
         }
@@ -176,7 +179,7 @@ export const asyncRoutes = [
         name: 'Crontab',
         component: () => import('@/views/server/crontab'),
         meta: {
-          title: 'Crontab管理',
+          title: 'crontab',
           icon: 'crontab',
           roles: ['admin', 'manager']
         }
@@ -185,20 +188,20 @@ export const asyncRoutes = [
   },
   {
     path: '/namespace',
-    name: '空间管理',
     component: Layout,
+    redirect: '/namespace/index',
     meta: {
-      title: '空间管理',
+      title: 'namespace',
       icon: 'namespace',
       roles: ['admin', 'manager']
     },
     children: [
       {
-        path: 'setting',
-        name: '空间设置',
-        component: () => import('@/views/namespace/setting'),
+        path: 'index',
+        name: 'Namespace',
+        component: () => import('@/views/namespace/index'),
         meta: {
-          title: '空间设置',
+          title: 'namespace',
           icon: 'namespace',
           roles: ['admin', 'manager']
         }
@@ -208,19 +211,18 @@ export const asyncRoutes = [
   {
     path: '/member',
     component: Layout,
-    redirect: '/member/list',
-    name: '成员管理',
+    redirect: '/member/index',
     meta: {
-      title: '成员管理',
+      title: 'member',
       icon: 'user',
       roles: ['admin']
     },
     children: [{
-      path: 'list',
-      name: '成员列表',
-      component: () => import('@/views/member/list'),
+      path: 'index',
+      name: 'Member',
+      component: () => import('@/views/member/index'),
       meta: {
-        title: '成员列表',
+        title: 'member',
         icon: 'user',
         roles: ['admin']
       }

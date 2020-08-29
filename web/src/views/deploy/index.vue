@@ -353,6 +353,7 @@ import { getOption as getUserOption } from '@/api/user'
 import { parseTime, parseGitURL } from '@/utils'
 
 export default {
+  name: 'Deploy',
   mixins: [tableHeight],
   data() {
     return {

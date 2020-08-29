@@ -172,6 +172,7 @@ import { getList, getTotal, getRemoteServerList, getBindServerList, add, edit, r
 import { getOption as getServerOption } from '@/api/server'
 
 export default {
+  name: 'Crontab',
   mixins: [tableHeight],
   data() {
     const validateDate = (rule, value, callback) => {

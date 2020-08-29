@@ -369,6 +369,7 @@ import 'codemirror/addon/scroll/simplescrollbars.js'
 import 'codemirror/addon/scroll/simplescrollbars.css'
 import 'codemirror/addon/display/placeholder.js'
 export default {
+  name: 'Project',
   components: {
     codemirror
   },

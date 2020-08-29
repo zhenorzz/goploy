@@ -1,7 +1,8 @@
 <template>
   <div class="navbar">
+    <img :src="logo" class="navbar-logo">
     <hamburger :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
-    <el-dropdown style="float:left;line-height:48px;" trigger="click" size="medium" placement="bottom-start" @command="handleNamespaceChange">
+    <el-dropdown style="float:left;line-height:48px;cursor:pointer;" trigger="click" size="medium" placement="bottom-start" @command="handleNamespaceChange">
       <span class="el-dropdown-link">
         {{ namespace.name }}<i class="el-icon-arrow-down el-icon--right" />
       </span>
@@ -33,6 +34,19 @@
           <a class="gh-count" href="https://github.com/zhenorzz/goploy/network" target="_blank">{{ forkCount }}</a>
         </span>
       </div>
+      <el-dropdown trigger="click" size="medium" placement="bottom" class="international" @command="handleSetLanguage">
+        <div>
+          <svg-icon class-name="international-icon" icon-class="language" />
+        </div>
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item :disabled="language==='zh'" command="zh">
+            中文
+          </el-dropdown-item>
+          <el-dropdown-item :disabled="language==='en'" command="en">
+            English
+          </el-dropdown-item>
+        </el-dropdown-menu>
+      </el-dropdown>
       <div class="user-menu">
         <el-dropdown class="user-container" trigger="click" size="medium">
           <div class="user-wrapper">
@@ -50,7 +64,7 @@
             </el-row>
           </div>
           <el-dropdown-menu slot="dropdown" class="user-dropdown">
-            <router-link to="/user/info">
+            <router-link to="/user/profile">
               <el-dropdown-item>
                 个人中心
               </el-dropdown-item>
@@ -71,6 +85,7 @@
 </template>
 
 <script>
+import logo from '@/assets/images/logo.png'
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
@@ -84,6 +99,7 @@ export default {
   },
   data() {
     return {
+      logo: logo,
       starCount: 0,
       forkCount: 0,
       namespace: getNamespace(),
@@ -94,14 +110,15 @@ export default {
     ...mapGetters([
       'sidebar',
       'name',
-      'role'
+      'role',
+      'language'
     ])
   },
   created() {
-    fetch('https://api.github.com/repos/zhenorzz/goploy').then(response => response.json()).then(data => {
-      this.starCount = data.stargazers_count
-      this.forkCount = data.forks_count
-    })
+    // fetch('https://api.github.com/repos/zhenorzz/goploy').then(response => response.json()).then(data => {
+    //   this.starCount = data.stargazers_count
+    //   this.forkCount = data.forks_count
+    // })
   },
   methods: {
     toggleSideBar() {
@@ -111,6 +128,14 @@ export default {
       setNamespace(namespace)
       Loading.service({ fullscreen: true })
       location.reload()
+    },
+    handleSetLanguage(lang) {
+      this.$i18n.locale = lang
+      this.$store.dispatch('app/setLanguage', lang)
+      this.$message({
+        message: 'Switch Language Success',
+        type: 'success'
+      })
     },
     async logout() {
       await this.$store.dispatch('user/logout')
@@ -128,7 +153,12 @@ export default {
   position: relative;
   background: #fff;
   box-shadow: 0 1px 4px rgba(0,21,41,.08);
-
+  &-logo {
+    width: 25px;
+    float: left;
+    margin-left: 15px;
+    margin-top: 11px;
+  }
   .hamburger-container {
     line-height: 46px;
     height: 100%;
@@ -150,6 +180,16 @@ export default {
     float: right;
     width: auto;
   }
+
+  .international {
+    display: inline-block;
+    line-height: 50px;
+    cursor: pointer;
+    &-icon {
+      font-size: 18px;
+    }
+  }
+
   .github {
     display: inline-block;
     line-height: 50px;

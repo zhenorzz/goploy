@@ -147,6 +147,7 @@ import 'codemirror/lib/codemirror.css'
 import 'codemirror/addon/scroll/simplescrollbars.js'
 import 'codemirror/addon/scroll/simplescrollbars.css'
 export default {
+  name: 'Template',
   components: {
     codemirror
   },

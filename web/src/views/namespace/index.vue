@@ -106,6 +106,7 @@ import { getOption as getUserOption } from '@/api/user'
 import tableHeight from '@/mixin/tableHeight'
 
 export default {
+  name: 'Namespace',
   mixins: [tableHeight],
   data() {
     return {

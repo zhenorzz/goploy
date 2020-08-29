@@ -122,6 +122,7 @@ import 'codemirror/addon/scroll/simplescrollbars.css'
 import 'codemirror/addon/display/autorefresh.js'
 
 export default {
+  name: 'Server',
   components: {
     codemirror
   },
