@@ -66,16 +66,16 @@
           <el-dropdown-menu slot="dropdown" class="user-dropdown">
             <router-link to="/user/profile">
               <el-dropdown-item>
-                个人中心
+                {{ $t('navbar.profile') }}
               </el-dropdown-item>
             </router-link>
             <el-link :underline="false" href="https://zhenorzz.gitee.io/goploy/" target="__blank">
               <el-dropdown-item>
-                帮助文档
+                {{ $t('navbar.doc') }}
               </el-dropdown-item>
             </el-link>
             <el-dropdown-item divided>
-              <span style="display:block; text-align:center;" @click="logout">退出</span>
+              <span style="display:block; text-align:center;" @click="logout">{{ $t('navbar.logout') }}</span>
             </el-dropdown-item>
           </el-dropdown-menu>
         </el-dropdown>
@@ -132,10 +132,7 @@ export default {
     handleSetLanguage(lang) {
       this.$i18n.locale = lang
       this.$store.dispatch('app/setLanguage', lang)
-      this.$message({
-        message: 'Switch Language Success',
-        type: 'success'
-      })
+      this.$message.success('Switch language success')
     },
     async logout() {
       await this.$store.dispatch('user/logout')

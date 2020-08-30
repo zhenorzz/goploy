@@ -12,5 +12,10 @@ export default {
     crontab: 'Crontab管理',
     namespace: '空间设置',
     member: '成员设置'
+  },
+  navbar: {
+    profile: '个人中心',
+    doc: '帮助文档',
+    logout: '退出'
   }
 }

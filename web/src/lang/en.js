@@ -12,5 +12,10 @@ export default {
     crontab: 'Crontab',
     namespace: 'Namespace',
     member: 'Member'
+  },
+  navbar: {
+    profile: 'Your profile',
+    doc: 'Document',
+    logout: 'Sign out'
   }
 }

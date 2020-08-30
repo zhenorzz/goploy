@@ -1,11 +1,7 @@
 <template>
   <div class="login-container">
-    <el-row class="login-mark" type="flex" align="middle">
-      <img src="@/assets/images/logo.png" width="60" height="60">
-      <el-row style="margin-left: 10px;margin-top:5px;">
-        <el-row class="main-mark">代码部署平台</el-row>
-        <el-row class="sub-mark">Goploy</el-row>
-      </el-row>
+    <el-row class="login-mark" type="flex" align="middle" justify="center">
+      <img src="@/assets/images/logo.png" width="120" height="120">
     </el-row>
     <el-form
       ref="loginForm"
@@ -16,8 +12,7 @@
       label-position="left"
     >
       <div class="title-container">
-        <h3 class="title">登录</h3>
-        <h4 class="sub-title">SIGN IN</h4>
+        <h3 class="title">Sign in to Goploy</h3>
       </div>
 
       <el-form-item prop="account" class="login-form-input">
@@ -28,7 +23,7 @@
           ref="account"
           v-model="loginForm.account"
           size="medium"
-          placeholder="请输入账号"
+          placeholder="account"
           name="account"
           type="text"
           tabindex="1"
@@ -46,7 +41,7 @@
           v-model="loginForm.password"
           :type="passwordType"
           size="medium"
-          placeholder="请输入密码"
+          placeholder="password"
           name="password"
           tabindex="2"
           auto-complete="on"
@@ -64,7 +59,7 @@
         class="login-form-btn"
         style="width:100%;margin-bottom:30px;"
         @click.native.prevent="handleLogin"
-      >登 录</el-button>
+      >Sign in</el-button>
     </el-form>
   </div>
 </template>
@@ -76,14 +71,14 @@ export default {
   data() {
     const validateUsername = (rule, value, callback) => {
       if (!validUsername(value)) {
-        callback(new Error('请输入正确的用户名'))
+        callback(new Error('Greater than 5 characters'))
       } else {
         callback()
       }
     }
     const validatePassword = (rule, value, callback) => {
       if (!validPassword(value)) {
-        callback(new Error('8到16个字符，至少包含字母、数字、特殊符号中的两种'))
+        callback(new Error('8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]'))
       } else {
         callback()
       }
@@ -213,28 +208,6 @@ $light_gray: #eee;
   overflow: hidden;
   .login-mark {
     margin-top: 58px;
-    margin-left: 87px;
-    .main-mark {
-      height: 30px;
-      font-size: 30px;
-      font-family: PingFang SC;
-      font-weight: 500;
-      letter-spacing: 8px;
-      color: rgba(105, 116, 139, 1);
-      line-height: 30px;
-    }
-    .sub-mark {
-      margin-top: 5px;
-      margin-left: 2px;
-      height: 23px;
-      font-size: 12px;
-      font-family: PingFang SC;
-      font-weight: 400;
-      letter-spacing: 4px;
-      color: rgba(193, 201, 215, 1);
-      line-height: 23px;
-      opacity: 0.81;
-    }
   }
 
   .login-form {
@@ -242,7 +215,7 @@ $light_gray: #eee;
     align-self: center;
     bottom: 0;
     width: 520px;
-    padding: 50px 35px;
+    padding: 0 35px;
     overflow: hidden;
     &-input {
       border: 1px solid rgba(229, 230, 231, 1);
@@ -281,24 +254,13 @@ $light_gray: #eee;
   .title-container {
     position: relative;
     padding-left: 5px;
-
+    text-align: center;
     .title {
       margin: 20px 0;
       display: inline-block;
-      width: 80px;
-      font-size: 36px;
+      font-size: 20px;
       font-family: PingFang SC;
-      font-weight: 500;
-      color: rgba(47, 47, 47, 1);
-    }
-    .sub-title {
-      margin: 20px 0 20px 5px;
-      display: inline-block;
-      font-size: 14px;
-      font-family: PingFang SC;
-      font-weight: 500;
-      color: rgba(206, 212, 223, 1);
-      opacity: 0.82;
+      color: #586069;
     }
   }
 
