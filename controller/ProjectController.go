@@ -8,8 +8,6 @@ import (
 	"github.com/zhenorzz/goploy/utils"
 	"os"
 	"os/exec"
-	"path"
-	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -114,7 +112,7 @@ func (project Project) Add(gp *core.Goploy) *core.Response {
 		Name                  string  `json:"name" validate:"required"`
 		URL                   string  `json:"url" validate:"required"`
 		Path                  string  `json:"path" validate:"required"`
-		Environment           string  `json:"Environment" validate:"required"`
+		Environment           uint8   `json:"Environment" validate:"required"`
 		Branch                string  `json:"branch" validate:"required"`
 		SymlinkPath           string  `json:"symlinkPath"`
 		AfterPullScriptMode   string  `json:"afterPullScriptMode"`
@@ -210,7 +208,7 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 		URL                   string `json:"url"`
 		Path                  string `json:"path"`
 		SymlinkPath           string `json:"symlinkPath"`
-		Environment           string `json:"Environment"`
+		Environment           uint8  `json:"Environment"`
 		Branch                string `json:"branch"`
 		AfterPullScriptMode   string `json:"afterPullScriptMode"`
 		AfterPullScript       string `json:"afterPullScript"`
@@ -269,7 +267,7 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 	}
 
 	if reqData.URL != projectData.URL {
-		srcPath := filepath.Join(core.RepositoryPath, projectData.Name)
+		srcPath := utils.GetProjectPath(projectData.Name)
 		_, err := os.Stat(srcPath)
 		if err == nil || os.IsNotExist(err) == false {
 			repo := reqData.URL
@@ -282,7 +280,7 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 	}
 
 	if reqData.Branch != projectData.Branch {
-		srcPath := filepath.Join(core.RepositoryPath, projectData.Name)
+		srcPath := utils.GetProjectPath(projectData.Name)
 		_, err := os.Stat(srcPath)
 		if err == nil || os.IsNotExist(err) == false {
 			cmd := exec.Command("git", "checkout", "-f", "-B", reqData.Branch, "origin/"+reqData.Branch)
@@ -295,10 +293,10 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 
 	// edit folder when name was change
 	if reqData.Name != projectData.Name {
-		srcPath := filepath.Join(core.RepositoryPath, projectData.Name)
+		srcPath := utils.GetProjectPath(projectData.Name)
 		_, err := os.Stat(srcPath)
 		if err == nil || os.IsNotExist(err) == false {
-			if err := os.Rename(srcPath, filepath.Join(".", core.RepositoryPath, reqData.Name)); err != nil {
+			if err := os.Rename(srcPath, utils.GetProjectPath(reqData.Name)); err != nil {
 				return &core.Response{Code: core.Error, Message: "Folder rename fail, you can do it manually, reason: " + err.Error()}
 			}
 		}
@@ -348,7 +346,7 @@ func (project Project) Remove(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	srcPath := path.Join(core.RepositoryPath, projectData.Name)
+	srcPath := utils.GetProjectPath(projectData.Name)
 	if err := os.Remove(srcPath); err != nil {
 		return &core.Response{Code: core.Error, Message: "Delete folder fail"}
 	}
@@ -548,7 +546,7 @@ func repoCreate(projectID int64) {
 		core.Log(core.TRACE, "The project does not exist, projectID:"+strconv.FormatInt(projectID, 10))
 		return
 	}
-	srcPath := core.RepositoryPath + project.Name
+	srcPath := utils.GetProjectPath(project.Name)
 	if _, err := os.Stat(srcPath); err != nil {
 		if err := os.RemoveAll(srcPath); err != nil {
 			core.Log(core.TRACE, "The project fail to remove, projectID:"+strconv.FormatInt(project.ID, 10))

@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -14,7 +15,7 @@ import (
 )
 
 // GetCurrentPath if env = 'production' return absolute else return relative
-func GetCurrentPath() string {
+func GetAppPath() string {
 	if os.Getenv("ENV") != "production" {
 		return "./"
 	}
@@ -22,18 +23,30 @@ func GetCurrentPath() string {
 	if err != nil {
 		panic(err)
 	}
-	path, err := filepath.Abs(file)
+	app, err := filepath.Abs(file)
 	if err != nil {
 		panic(err)
 	}
-	i := strings.LastIndex(path, "/")
+	i := strings.LastIndex(app, "/")
 	if i < 0 {
-		i = strings.LastIndex(path, "\\")
+		i = strings.LastIndex(app, "\\")
 	}
 	if i < 0 {
 		panic(err)
 	}
-	return path[0 : i+1]
+	return app[0 : i+1]
+}
+
+func GetRepositoryPath() string {
+	return path.Join(GetAppPath(), "repository")
+}
+
+func GetPackagePath() string {
+	return path.Join(GetRepositoryPath(), "template-package")
+}
+
+func GetProjectPath(name string) string {
+	return path.Join(GetRepositoryPath(), name)
 }
 
 // GetScriptExt return script extension default bash

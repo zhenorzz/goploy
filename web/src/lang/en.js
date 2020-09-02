@@ -17,5 +17,8 @@ export default {
     profile: 'Your profile',
     doc: 'Document',
     logout: 'Sign out'
+  },
+  project: {
+    environment: ['unknown', 'production', 'pre-release', 'test', 'development']
   }
 }

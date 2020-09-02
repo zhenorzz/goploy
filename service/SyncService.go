@@ -192,7 +192,7 @@ func gitRollback(commitSha string, project model.Project) (utils.Commit, error) 
 }
 
 func gitCreate(project model.Project) error {
-	srcPath := core.RepositoryPath + project.Name
+	srcPath := utils.GetProjectPath(project.Name)
 	// 已有文件夹无需删除
 	if _, err := os.Stat(srcPath); err == nil {
 		return nil
@@ -229,7 +229,7 @@ func gitCreate(project model.Project) error {
 }
 
 func gitPull(project model.Project) error {
-	git := utils.GIT{Dir: core.RepositoryPath + project.Name}
+	git := utils.GIT{Dir: utils.GetProjectPath(project.Name)}
 	// git clean removes all not tracked files
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
@@ -265,7 +265,7 @@ func gitPull(project model.Project) error {
 }
 
 func gitReset(commit string, project model.Project) error {
-	srcPath := core.RepositoryPath + project.Name
+	srcPath := utils.GetProjectPath(project.Name)
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
 		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitReset, Message: "git reset"},
@@ -286,7 +286,7 @@ func gitReset(commit string, project model.Project) error {
 }
 
 func gitCommitLog(project model.Project) (utils.Commit, error) {
-	git := utils.GIT{Dir: core.RepositoryPath + project.Name}
+	git := utils.GIT{Dir: utils.GetProjectPath(project.Name)}
 
 	if err := git.Log([]string{"--stat", "--pretty=format:`start`%H`%an`%at`%s`", "-n", "1"}); err != nil {
 		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
@@ -297,7 +297,7 @@ func gitCommitLog(project model.Project) (utils.Commit, error) {
 }
 
 func runAfterPullScript(project model.Project) (string, error) {
-	srcPath := path.Join(core.RepositoryPath, project.Name)
+	srcPath := utils.GetProjectPath(project.Name)
 	scriptName := "goploy-after-pull." + utils.GetScriptExt(project.AfterPullScriptMode)
 	scriptFullName := path.Join(srcPath, scriptName)
 	scriptMode := "bash"
@@ -338,7 +338,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 	}
 
 	if len(project.AfterDeployScript) != 0 {
-		scriptName := path.Join(core.RepositoryPath, project.Name, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
+		scriptName := path.Join(utils.GetProjectPath(project.Name), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
 		ioutil.WriteFile(scriptName, []byte(project.AfterDeployScript), 0755)
 	}
 
@@ -348,7 +348,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 		destDir = path.Join(project.SymlinkPath, project.Name, project.LastPublishToken)
 		rsyncOption = append(rsyncOption, "--rsync-path=mkdir -p "+destDir+" && rsync")
 	}
-	srcPath := core.RepositoryPath + project.Name + "/"
+	srcPath := utils.GetProjectPath(project.Name) + "/"
 	destPath := remoteMachine + ":" + destDir
 	rsyncOption = append(rsyncOption, srcPath, destPath)
 	cmd := exec.Command("rsync", rsyncOption...)
@@ -564,7 +564,6 @@ func notify(project model.Project, deployState int, detail string) {
 				ProjectID   int64  `json:"projectId"`
 				ProjectName string `json:"projectName"`
 				Branch      string `json:"branch"`
-				Environment string `json:"environment"`
 			} `json:"data"`
 		}
 		code := 0
@@ -578,7 +577,6 @@ func notify(project model.Project, deployState int, detail string) {
 		msg.Data.ProjectID = project.ID
 		msg.Data.ProjectName = project.Name
 		msg.Data.Branch = project.Branch
-		msg.Data.Environment = project.Environment
 		b, _ := json.Marshal(msg)
 		_, err := http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))
 		if err != nil {

@@ -1,7 +1,7 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd">添加</el-button>
+      <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
     <el-table
       border
@@ -10,20 +10,30 @@
       :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="account" label="账号" />
-      <el-table-column prop="name" label="名称" />
-      <el-table-column prop="mobile" label="手机号码" show-overflow-tooltip />
-      <el-table-column prop="superManager" label="超管">
+      <el-table-column prop="account" :label="$t('account')" />
+      <el-table-column prop="name" :label="$t('name')" />
+      <el-table-column prop="contact" :label="$t('contact')" show-overflow-tooltip />
+      <el-table-column prop="superManager" :label="$t('admin')" width="50" align="center">
         <template slot-scope="scope">
-          {{ scope.row.superManager === 1 ? "是":"否" }}
+          {{ $t(`boolOption[${scope.row.superManager}]`) }}
         </template>
       </el-table-column>
-      <el-table-column prop="insertTime" label="创建时间" width="160" />
-      <el-table-column prop="updateTime" label="更新时间" width="160" />
-      <el-table-column prop="operation" label="操作" width="150">
+      <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
+      <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
+      <el-table-column prop="operation" :label="$t('op')" width="130" align="center">
         <template slot-scope="scope">
-          <el-button v-if="scope.row.id !== 1 && scope.row.id !== $store.getters.uid" size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button v-if="scope.row.id !== 1 && scope.row.id !== $store.getters.uid" size="small" type="danger" @click="handleRemove(scope.row)">删除</el-button>
+          <el-button
+            v-if="scope.row.id !== 1 && scope.row.id !== $store.getters.uid"
+            type="primary"
+            icon="el-icon-edit"
+            @click="handleEdit(scope.row)"
+          />
+          <el-button
+            v-if="scope.row.id !== 1 && scope.row.id !== $store.getters.uid"
+            type="danger"
+            icon="el-icon-delete"
+            @click="handleRemove(scope.row)"
+          />
         </template>
       </el-table-column>
     </el-table>
@@ -37,39 +47,39 @@
         @current-change="handleCurrentChange"
       />
     </el-row>
-    <el-dialog title="成员设置" :visible.sync="dialogVisible">
+    <el-dialog :title="$t('setting')" :visible.sync="dialogVisible">
       <el-form ref="form" :rules="formRules" :model="formData" label-width="80px">
-        <el-form-item label="账号" prop="account">
+        <el-form-item :label="$t('account')" prop="account">
           <el-input v-model="formData.account" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="formData.password" autocomplete="off" placeholder="请输入初始密码" />
+        <el-form-item :label="$t('password')" prop="password">
+          <el-input v-model="formData.password" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="名称" prop="name">
+        <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="手机号码" prop="mobile">
-          <el-input v-model="formData.mobile" autocomplete="off" />
+        <el-form-item :label="$t('contact')" prop="contact">
+          <el-input v-model="formData.contact" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="超管" prop="super_manager">
+        <el-form-item :label="$t('admin')" prop="super_manager">
           <el-radio-group v-model="formData.super_manager">
-            <el-radio :label="1">是</el-radio>
-            <el-radio :label="0">否</el-radio>
+            <el-radio :label="1">{{ $t('boolOption[1]') }}</el-radio>
+            <el-radio :label="0">{{ $t('boolOption[0]') }}</el-radio>
           </el-radio-group>
           <el-popover
             placement="top-start"
-            title="权限说明"
+            :title="$t('desc')"
             width="300"
             trigger="hover"
           >
-            超管具有所有空间和项目权限
+            {{ $t('memberPage.permissionDesc') }}
             <el-button slot="reference" type="text" icon="el-icon-question" style="color: #666;" />
           </el-popover>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button :disabled="formProps.disabled" type="primary" @click="submit">确 定</el-button>
+        <el-button @click="dialogVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="formProps.disabled" type="primary" @click="submit">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
   </el-row>
@@ -83,7 +93,7 @@ export default {
   data() {
     const validateUsername = (rule, value, callback) => {
       if (!validUsername(value)) {
-        callback(new Error('请输入正确的用户名'))
+        callback(new Error('Greater than 5 characters'))
       } else {
         callback()
       }
@@ -92,7 +102,7 @@ export default {
       if (!value) {
         callback()
       } else if (!validPassword(value)) {
-        callback(new Error('8到16个字符，至少包含字母、数字、特殊符号中的两种'))
+        callback(new Error('8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]'))
       } else {
         callback()
       }
@@ -114,22 +124,18 @@ export default {
         account: '',
         password: '',
         name: '',
-        mobile: '',
-        role: 'member',
+        contact: '',
         super_manager: 0
       },
       formRules: {
         account: [
-          { required: true, message: '请输入账号', trigger: 'blur', validator: validateUsername }
+          { required: true, message: 'Account required', trigger: 'blur', validator: validateUsername }
         ],
         password: [
           { trigger: 'blur', validator: validatePassword }
         ],
         name: [
-          { required: true, message: '请输入名称', trigger: 'blur' }
-        ],
-        role: [
-          { required: true, message: '请选择角色', trigger: 'change' }
+          { required: true, message: 'Name required', trigger: 'blur' }
         ]
       }
     }
@@ -152,7 +158,6 @@ export default {
       })
     },
 
-    // 分页事件
     handleCurrentChange(val) {
       this.pagination.page = val
       this.getList()
@@ -170,18 +175,18 @@ export default {
     },
 
     handleRemove(data) {
-      this.$confirm('此操作将删除该组员, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(this.$i18n.t('memberPage.removeUserTips', { name: data.name }), this.$i18n.t('tips'), {
+        confirmButtonText: this.$i18n.t('confirm'),
+        cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'
       }).then(() => {
         remove(data.id).then((response) => {
-          this.$message.success('删除成功')
+          this.$message.success('Success')
           this.getList()
           this.getTotal()
         })
       }).catch(() => {
-        this.$message.info('已取消删除')
+        this.$message.info('Cancel')
       })
     },
 
@@ -202,7 +207,7 @@ export default {
     add() {
       this.formProps.disabled = true
       add(this.formData).then((response) => {
-        this.$message.success('添加成功')
+        this.$message.success('Success')
         this.getList()
         this.getTotal()
         this.dialogVisible = false
@@ -214,7 +219,7 @@ export default {
     edit() {
       this.formProps.disabled = true
       edit(this.formData).then((response) => {
-        this.$message.success('修改成功')
+        this.$message.success('Success')
         this.getList()
         this.dialogVisible = false
       }).finally(() => {

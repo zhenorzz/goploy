@@ -2,10 +2,10 @@
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="space-between">
       <el-row>
-        <el-input v-model="projectName" style="width:200px" placeholder="请输入项目名称" />
-        <el-button type="primary" icon="el-icon-search" @click="searchProjectList">搜索</el-button>
+        <el-input v-model="projectName" style="width:200px" placeholder="Filter the project name" />
+        <el-button type="primary" icon="el-icon-search" @click="searchProjectList" />
       </el-row>
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd">添加</el-button>
+      <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
     <el-table
       :key="tableHeight"
@@ -17,8 +17,8 @@
       style="width: 100%"
     >
       <el-table-column prop="id" label="ID" width="100" />
-      <el-table-column prop="name" label="项目名称" width="200" />
-      <el-table-column prop="url" label="项目地址" width="350">
+      <el-table-column prop="name" :label="$t('name')" width="200" />
+      <el-table-column prop="url" :label="$t('projectURL')" width="350">
         <template slot-scope="scope">
           <el-link
             type="primary"
@@ -31,30 +31,34 @@
           </el-link>
         </template>
       </el-table-column>
-      <el-table-column prop="path" label="部署路径" min-width="200" />
-      <el-table-column prop="environment" width="120" label="环境" align="center" />
-      <el-table-column prop="branch" width="160" label="分支" align="center" />
-      <el-table-column width="90" label="自动部署">
+      <el-table-column prop="path" :label="$t('projectPath')" min-width="200" />
+      <el-table-column prop="environment" width="120" :label="$t('environment')" align="center">
         <template slot-scope="scope">
-          <span v-if="scope.row.autoDeploy === 0">关闭</span>
+          {{ $t(`envOption[${scope.row.environment}]`) }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="branch" width="160" :label="$t('branch')" align="center" />
+      <el-table-column width="90" :label="$t('autoDeploy')">
+        <template slot-scope="scope">
+          <span v-if="scope.row.autoDeploy === 0">{{ $t('close') }}</span>
           <span v-else>webhook</span>
           <el-button type="text" icon="el-icon-edit" @click="handleAutoDeploy(scope.row)" />
         </template>
       </el-table-column>
-      <el-table-column prop="server" width="80" label="服务器" align="center">
+      <el-table-column prop="server" width="80" :label="$t('server')" align="center">
         <template slot-scope="scope">
-          <el-button type="text" @click="handleServer(scope.row)">查看</el-button>
+          <el-button type="text" @click="handleServer(scope.row)">{{ $t('view') }}</el-button>
         </template>
       </el-table-column>
-      <el-table-column prop="user" width="80" label="成员" align="center">
+      <el-table-column prop="user" width="80" :label="$t('member')" align="center">
         <template slot-scope="scope">
-          <el-button type="text" @click="handleUser(scope.row)">查看</el-button>
+          <el-button type="text" @click="handleUser(scope.row)">{{ $t('view') }}</el-button>
         </template>
       </el-table-column>
-      <el-table-column prop="operation" label="操作" width="150" align="center" fixed="right">
+      <el-table-column prop="operation" :label="$t('op')" width="130" align="center" fixed="right">
         <template slot-scope="scope">
-          <el-button type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button type="danger" @click="handleRemove(scope.row)">删除</el-button>
+          <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)" />
+          <el-button type="danger" icon="el-icon-delete" @click="handleRemove(scope.row)" />
         </template>
       </el-table-column>
     </el-table>
@@ -68,38 +72,42 @@
         @current-change="handlePageChange"
       />
     </el-row>
-    <el-dialog title="项目设置" :visible.sync="dialogVisible" width="60%" class="project-setting-dialog" :close-on-click-modal="false">
+    <el-dialog :title="$t('setting')" :visible.sync="dialogVisible" width="60%" class="project-setting-dialog" :close-on-click-modal="false">
       <el-form ref="form" :rules="formRules" :model="formData" label-width="90px">
         <el-tabs v-model="formProps.tab" @tab-click="handleTabClick">
-          <el-tab-pane label="基本配置" name="base">
-            <el-form-item label="项目名称" prop="name">
+          <el-tab-pane :label="$t('baseSetting')" name="base">
+            <el-form-item :label="$t('name')" prop="name">
               <el-input v-model.trim="formData.name" autocomplete="off" placeholder="goploy" />
             </el-form-item>
-            <el-form-item label="项目地址" prop="url">
+            <el-form-item :label="$t('projectURL')" prop="url">
               <el-row type="flex">
-                <el-input v-model.trim="formData.url" autocomplete="off" placeholder="支持HTTPS、HTTP、SSH" @change="formProps.branch = []" />
-                <el-button :icon="formProps.lsBranchLoading ? 'el-icon-loading' : 'el-icon-view'" type="success" :disabled="formProps.lsBranchLoading" @click="getRemoteBranchList">测试连接</el-button>
+                <el-input v-model.trim="formData.url" autocomplete="off" placeholder="HTTPS、HTTP、SSH" @change="formProps.branch = []" />
+                <el-button
+                  :icon="formProps.lsBranchLoading ? 'el-icon-loading' : 'el-icon-view'"
+                  type="success"
+                  :disabled="formProps.lsBranchLoading"
+                  @click="getRemoteBranchList"
+                >{{ $t('projectPage.testConnection') }}</el-button>
               </el-row>
             </el-form-item>
-            <el-form-item label="部署路径" prop="path">
+            <el-form-item :label="$t('projectPath')" prop="path">
               <el-input v-model.trim="formData.path" autocomplete="off" placeholder="/var/www/goploy" />
             </el-form-item>
-            <el-form-item label="环境" prop="environment">
-              <el-select v-model="formData.environment" placeholder="选择环境" style="width:100%">
-                <el-option label="生产环境" value="生产环境" />
-                <el-option label="预发布环境" value="预发布环境" />
-                <el-option label="测试环境" value="测试环境" />
-                <el-option label="开发环境" value="开发环境" />
+            <el-form-item :label="$t('environment')" prop="environment">
+              <el-select v-model="formData.environment" style="width:100%">
+                <el-option :label="$t('envOption[1]')" :value="1" />
+                <el-option :label="$t('envOption[2]')" :value="2" />
+                <el-option :label="$t('envOption[3]')" :value="3" />
+                <el-option :label="$t('envOption[4]')" :value="4" />
               </el-select>
             </el-form-item>
-            <el-form-item label="分支" prop="branch">
+            <el-form-item :label="$t('branch')" prop="branch">
               <el-row type="flex">
                 <el-select
                   v-model="formData.branch"
                   filterable
                   allow-create
                   default-first-option
-                  placeholder="请选择或填入"
                   style="width:100%"
                 >
                   <el-option
@@ -109,14 +117,20 @@
                     :value="item"
                   />
                 </el-select>
-                <el-button :icon="formProps.lsBranchLoading ? 'el-icon-loading' : 'el-icon-search'" type="success" :disabled="formProps.lsBranchLoading" @click="getRemoteBranchList">列出分支</el-button>
+                <el-button
+                  :icon="formProps.lsBranchLoading ? 'el-icon-loading' : 'el-icon-search'"
+                  type="success"
+                  :disabled="formProps.lsBranchLoading"
+                  @click="getRemoteBranchList"
+                >{{ $t('projectPage.lishBranch') }}</el-button>
               </el-row>
             </el-form-item>
-            <el-form-item label="rsync选项" prop="rsyncOption">
-              <el-input v-model.trim="formData.rsyncOption" type="textarea" :rows="2" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
+            <el-form-item prop="rsyncOption">
+              <span slot="label">rsync<br> [OPTION...]</span>
+              <el-input v-model.trim="formData.rsyncOption" type="textarea" :rows="3" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
             </el-form-item>
-            <el-form-item v-show="formProps.showServers" label="绑定服务器" prop="serverIds">
-              <el-select v-model="formData.serverIds" multiple placeholder="选择服务器，可多选" style="width:100%">
+            <el-form-item v-show="formProps.showServers" :label="$t('server')" prop="serverIds">
+              <el-select v-model="formData.serverIds" multiple style="width:100%">
                 <el-option
                   v-for="(item, index) in serverOption"
                   :key="index"
@@ -125,8 +139,8 @@
                 />
               </el-select>
             </el-form-item>
-            <el-form-item v-show="formProps.showUsers" label="绑定用户" prop="userIds">
-              <el-select v-model="formData.userIds" multiple placeholder="选择用户，可多选" style="width:100%">
+            <el-form-item v-show="formProps.showUsers" :label="$t('user')" prop="userIds">
+              <el-select v-model="formData.userIds" multiple style="width:100%">
                 <el-option
                   v-for="(item, index) in userOption.filter(item => [$global.Admin, $global.Manager].indexOf(item.role) === -1)"
                   :key="index"
@@ -136,40 +150,29 @@
               </el-select>
             </el-form-item>
           </el-tab-pane>
-          <el-tab-pane label="软链部署(推荐)" name="symlink">
-            <el-row style="margin: 0 10px">
-              <p>项目先同步到指定目录(rsync 软链目录)，然后ln -s 部署路径 软链目录</p>
-              <p>可以避免项目在同步传输文件的过程中，外部访问到部分正在同步的文件</p>
-              <p>备份最近10次的部署文件，以便快速回滚</p>
-            </el-row>
+          <el-tab-pane :label="$t('projectPage.symlinkLabel')" name="symlink">
+            <el-row style="margin: 0 10px" v-html="$t('projectPage.symlinkHeaderTips')" />
             <el-form-item label="" label-width="10px">
               <el-radio-group v-model="formProps.symlink">
-                <el-radio :label="false">关闭</el-radio>
-                <el-radio :label="true">开启</el-radio>
+                <el-radio :label="false">{{ $t('close') }}</el-radio>
+                <el-radio :label="true">{{ $t('open') }}</el-radio>
               </el-radio-group>
             </el-form-item>
-            <el-form-item v-show="formProps.symlink" label="目录" prop="symlink_path" label-width="50px">
+            <el-form-item v-show="formProps.symlink" :label="$t('directory')" prop="symlink_path" label-width="50px">
               <el-input v-model.trim="formData.symlinkPath" autocomplete="off" />
             </el-form-item>
-            <el-row v-show="formProps.symlink" style="margin: 0 10px">
-              <p>如果部署路径已存在在目标服务器，请手动删除该目录<span style="color: red">rm -rf 部署路径</span>，否则软链将会不成功</p>
-              <p>如须更换目录，务必手动迁移原先的目录到目标服务器</p>
-            </el-row>
+            <el-row v-show="formProps.symlink" style="margin: 0 10px" v-html="$t('projectPage.symlinkFooterTips')" />
           </el-tab-pane>
           <el-tab-pane name="afterPullScript">
             <span slot="label">
-              拉取后运行脚本
+              {{ $t('projectPage.afterPullScriptLabel') }}
               <el-tooltip class="item" effect="dark" placement="bottom">
-                <div slot="content">
-                  拉取代码后在宿主服务器运行的脚本<br>
-                  运行方式：打包成一份脚本文件<br>
-                  检查服务器是否安装该脚本类型(默认以bash运行)<br>
-                </div>
+                <div slot="content" v-html="$t('projectPage.afterPullScriptTips')" />
                 <i class="el-icon-question" style="padding-left: 3px" />
               </el-tooltip>
             </span>
             <el-form-item prop="afterPullScript" label-width="0px">
-              <el-select v-model="formData.afterPullScriptMode" placeholder="脚本类型(默认bash)" style="width:100%" @change="handleScriptModeChange">
+              <el-select v-model="formData.afterPullScriptMode" :placeholder="$t('projectPage.scriptMode')+'(Default: bash)'" style="width:100%" @change="handleScriptModeChange">
                 <el-option
                   v-for="(item, index) in scriptModeOption"
                   :key="index"
@@ -179,24 +182,19 @@
               </el-select>
             </el-form-item>
             <el-form-item prop="afterPullScript" label-width="0px">
-              <codemirror ref="afterPullScript" v-model="formData.afterPullScript" :options="cmOption" placeholder="已切换至项目目录..." />
+              <codemirror ref="afterPullScript" v-model="formData.afterPullScript" :options="cmOption" placeholder="Already switched to project directory..." />
             </el-form-item>
           </el-tab-pane>
           <el-tab-pane name="afterDeployScript">
             <span slot="label">
-              部署后运行脚本
+              {{ $t('projectPage.afterDeployScriptLabel') }}
               <el-tooltip class="item" effect="dark" placement="bottom">
-                <div slot="content">
-                  部署后在目标服务器运行的脚本<br>
-                  运行方式：打包成一份脚本文件<br>
-                  如需重启服务，请注意是否需要nohup<br>
-                  检查服务器是否安装该脚本类型(默认以bash运行)
-                </div>
+                <div slot="content" v-html="$t('projectPage.afterDeployScriptTips')" />
                 <i class="el-icon-question" style="padding-left: 3px" />
               </el-tooltip>
             </span>
             <el-form-item prop="afterDeployScript" label-width="0px">
-              <el-select v-model="formData.afterDeployScriptMode" placeholder="脚本类型(默认bash)" style="width:100%" @change="handleScriptModeChange">
+              <el-select v-model="formData.afterDeployScriptMode" :placeholder="$t('projectPage.scriptMode')+'(Default: bash)'" style="width:100%" @change="handleScriptModeChange">
                 <el-option
                   v-for="(item, index) in scriptModeOption"
                   :key="index"
@@ -209,48 +207,44 @@
               <codemirror ref="afterDeployScript" v-model="formData.afterDeployScript" :options="cmOption" />
             </el-form-item>
           </el-tab-pane>
-          <el-tab-pane label="高级配置" name="advance">
-            <el-form-item label="构建通知" prop="notifyTarget">
+          <el-tab-pane :label="$t('advancedSetting')" name="advance">
+            <el-form-item :label="$t('projectPage.deployNotice')" prop="notifyTarget">
               <el-row type="flex">
                 <el-select v-model="formData.notifyType" clearable>
-                  <el-option label="无" :value="0" />
-                  <el-option label="企业微信" :value="1" />
-                  <el-option label="钉钉" :value="2" />
-                  <el-option label="飞书" :value="3" />
-                  <el-option label="自定义" :value="255" />
+                  <el-option :label="$t('webhookOption[0]')" :value="0" />
+                  <el-option :label="$t('webhookOption[1]')" :value="1" />
+                  <el-option :label="$t('webhookOption[2]')" :value="2" />
+                  <el-option :label="$t('webhookOption[3]')" :value="3" />
+                  <el-option :label="$t('webhookOption[255]')" :value="255" />
                 </el-select>
-                <el-input v-model.trim="formData.notifyTarget" autocomplete="off" placeholder="webhook链接" />
+                <el-input v-model.trim="formData.notifyTarget" autocomplete="off" placeholder="webhook" />
               </el-row>
             </el-form-item>
           </el-tab-pane>
         </el-tabs>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button :disabled="formProps.disabled" type="primary" @click="submit">确 定</el-button>
+        <el-button @click="dialogVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="formProps.disabled" type="primary" @click="submit">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="自动部署设置" :visible.sync="dialogAutoDeployVisible">
+    <el-dialog :title="$t('setting')" :visible.sync="dialogAutoDeployVisible">
       <el-form ref="autoDeployForm" :model="autoDeployFormData">
-        <el-row style="margin: 10px">构建触发器：达成某种条件后自动构建发布项目</el-row>
+        <el-row style="margin: 10px">{{ $t('projectPage.autoDeployTitle') }}</el-row>
         <el-radio-group v-model="autoDeployFormData.autoDeploy" style="margin: 10px">
-          <el-radio :label="0">关闭</el-radio>
+          <el-radio :label="0">{{ $t('close') }}</el-radio>
           <el-radio :label="1">webhook</el-radio>
         </el-radio-group>
-        <el-row v-show="autoDeployFormData.autoDeploy===1" style="margin: 10px">
-          前往GitLab、GitHub或Gitee的webhook（可前往谷歌查找各自webhook所在的位置）<br>
-          填入连接<span style="color: red">http(s)://域名(IP)/deploy/webhook?project_id={{ autoDeployFormData.id }}</span><br>
-          勾选push event即可, (gitlab可以选对应的分支)
-        </el-row>
+        <el-row v-show="autoDeployFormData.autoDeploy===1" style="margin: 10px" v-html="$t('projectPage.autoDeployTips', {projectId: autoDeployFormData.id})" />
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogAutoDeployVisible = false">取 消</el-button>
-        <el-button :disabled="autoDeployFormProps.disabled" type="primary" @click="setAutoDeploy">确 定</el-button>
+        <el-button @click="dialogAutoDeployVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="autoDeployFormProps.disabled" type="primary" @click="setAutoDeploy">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="服务器管理" :visible.sync="dialogServerVisible">
+    <el-dialog :title="$t('manage')" :visible.sync="dialogServerVisible">
       <el-row class="app-bar" type="flex" justify="end">
-        <el-button type="primary" icon="el-icon-plus" @click="handleAddServer">添加</el-button>
+        <el-button type="primary" icon="el-icon-plus" @click="handleAddServer" />
       </el-row>
       <el-table
         border
@@ -259,24 +253,24 @@
         :data="tableServerData"
         style="width: 100%"
       >
-        <el-table-column prop="serverId" label="服务器ID" width="100" />
-        <el-table-column prop="serverName" label="服务器名称" width="100" />
-        <el-table-column prop="serverDescription" label="服务器描述" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="insertTime" width="160" label="绑定时间" />
-        <el-table-column prop="updateTime" width="160" label="更新时间" />
-        <el-table-column prop="operation" label="操作" width="80">
+        <el-table-column prop="serverId" :label="$t('serverId')" width="100" />
+        <el-table-column prop="serverName" :label="$t('serverName')" min-width="120" />
+        <el-table-column prop="serverDescription" :label="$t('serverDescription')" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
+        <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
+        <el-table-column prop="operation" :label="$t('op')" width="80" align="center">
           <template slot-scope="scope">
-            <el-button type="danger" @click="removeServer(scope.row)">删除</el-button>
+            <el-button type="danger" icon="el-icon-delete" @click="removeServer(scope.row)" />
           </template>
         </el-table-column>
       </el-table>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogServerVisible = false">取 消</el-button>
+        <el-button @click="dialogServerVisible = false">{{ $t('cancel') }}</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="成员管理" :visible.sync="dialogUserVisible">
+    <el-dialog :title="$t('manage')" :visible.sync="dialogUserVisible">
       <el-row class="app-bar" type="flex" justify="end">
-        <el-button type="primary" icon="el-icon-plus" @click="handleAddUser">添加</el-button>
+        <el-button type="primary" icon="el-icon-plus" @click="handleAddUser" />
       </el-row>
       <el-table
         border
@@ -285,24 +279,24 @@
         :data="tableUserData"
         style="width: 100%"
       >
-        <el-table-column prop="userId" label="用户ID" />
-        <el-table-column prop="userName" label="用户名称" />
-        <el-table-column prop="insertTime" width="160" label="绑定时间" />
-        <el-table-column prop="updateTime" width="160" label="更新时间" />
-        <el-table-column prop="operation" label="操作" width="80">
+        <el-table-column prop="userId" :label="$t('userId')" width="100" />
+        <el-table-column prop="userName" :label="$t('userName')" />
+        <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
+        <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
+        <el-table-column prop="operation" :label="$t('op')" width="80" align="center">
           <template slot-scope="scope">
-            <el-button v-show="scope.row.role !== $global.GroupManager" type="danger" @click="removeUser(scope.row)">删除</el-button>
+            <el-button v-show="scope.row.role !== $global.GroupManager" type="danger" icon="el-icon-delete" @click="removeUser(scope.row)" />
           </template>
         </el-table-column>
       </el-table>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogUserVisible = false">取 消</el-button>
+        <el-button @click="dialogUserVisible = false">{{ $t('cancel') }}</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="添加服务器" :visible.sync="dialogAddServerVisible">
+    <el-dialog :title="$t('add')" :visible.sync="dialogAddServerVisible">
       <el-form ref="addServerForm" :rules="addServerFormRules" :model="addServerFormData">
-        <el-form-item label="绑定服务器" label-width="120px" prop="serverIds">
-          <el-select v-model="addServerFormData.serverIds" multiple placeholder="选择服务器，可多选">
+        <el-form-item :label="$t('server')" label-width="120px" prop="serverIds">
+          <el-select v-model="addServerFormData.serverIds" multiple>
             <el-option
               v-for="(item, index) in serverOption"
               :key="index"
@@ -313,14 +307,14 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogAddServerVisible = false">取 消</el-button>
-        <el-button :disabled="addServerFormProps.disabled" type="primary" @click="addServer">确 定</el-button>
+        <el-button @click="dialogAddServerVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="addServerFormProps.disabled" type="primary" @click="addServer">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="添加用户" :visible.sync="dialogAddUserVisible">
+    <el-dialog :title="$t('add')" :visible.sync="dialogAddUserVisible">
       <el-form ref="addUserForm" :rules="addUserFormRules" :model="addUserFormData">
-        <el-form-item label="绑定用户" label-width="120px" prop="userIds">
-          <el-select v-model="addUserFormData.userIds" multiple placeholder="选择用户，可多选">
+        <el-form-item :label="$t('member')" label-width="120px" prop="userIds">
+          <el-select v-model="addUserFormData.userIds" multiple>
             <el-option
               v-for="(item, index) in userOption.filter(item => [$global.Admin, $global.Manager].indexOf(item.role) === -1)"
               :key="index"
@@ -331,8 +325,8 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogAddUserVisible = false">取 消</el-button>
-        <el-button :disabled="addUserFormProps.disabled" type="primary" @click="addUser">确 定</el-button>
+        <el-button @click="dialogAddUserVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="addUserFormProps.disabled" type="primary" @click="addUser">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
   </el-row>
@@ -381,7 +375,7 @@ export default {
       } else if (value === 0 && this.formData.notifyType === '') {
         callback()
       } else {
-        callback(new Error('请选择推送类型'))
+        callback(new Error('Select the notice mode'))
       }
     }
     return {
@@ -437,7 +431,7 @@ export default {
         afterPullScript: '',
         afterDeployScriptMode: '',
         afterDeployScript: '',
-        environment: '生产环境',
+        environment: 1,
         branch: 'master',
         rsyncOption: '-rtv --exclude .git --delete-after',
         serverIds: [],
@@ -447,25 +441,19 @@ export default {
       },
       formRules: {
         name: [
-          { required: true, message: '请输入项目名称', trigger: ['blur'] }
+          { required: true, message: 'Name required', trigger: ['blur'] }
         ],
         url: [
-          { required: true, message: '请输入项目地址', trigger: ['blur'] }
+          { required: true, message: 'Repository url required', trigger: ['blur'] }
         ],
         path: [
-          { required: true, message: '请输入部署路径', trigger: ['blur'] }
+          { required: true, message: 'Path required', trigger: ['blur'] }
         ],
         environment: [
-          { required: true, message: '请选择环境', trigger: ['blur'] }
+          { required: true, message: 'Environment required', trigger: ['blur'] }
         ],
         branch: [
-          { required: true, message: '请输入分支名称', trigger: ['blur'] }
-        ],
-        serverIds: [
-          { type: 'array', message: '请选择服务器', trigger: 'change' }
-        ],
-        userIds: [
-          { type: 'array', message: '请选择组员', trigger: 'change' }
+          { required: true, message: 'Branch required', trigger: ['blur'] }
         ],
         notifyTarget: [
           { validator: validateNotifyTarget, trigger: 'blur' }
@@ -487,7 +475,7 @@ export default {
       },
       addServerFormRules: {
         serverIds: [
-          { type: 'array', required: true, message: '请选择服务器', trigger: 'change' }
+          { type: 'array', required: true, message: 'Server required', trigger: 'change' }
         ]
       },
       addUserFormProps: {
@@ -499,7 +487,7 @@ export default {
       },
       addUserFormRules: {
         userIds: [
-          { type: 'array', required: true, message: '请选择用户', trigger: 'change' }
+          { type: 'array', required: true, message: 'User required', trigger: 'change' }
         ]
       }
     }
@@ -530,18 +518,18 @@ export default {
     },
 
     handleRemove(data) {
-      this.$confirm('此操作将删除该项目, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(this.$i18n.t('projectPage.removeProjectTips', { projectName: data.name }), this.$i18n.t('tips'), {
+        confirmButtonText: this.$i18n.t('confirm'),
+        cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'
       }).then(() => {
         remove(data.id).then((response) => {
-          this.$message.success('删除成功')
+          this.$message.success('Success')
           this.getList()
           this.getTotal()
         })
       }).catch(() => {
-        this.$message.info('已取消删除')
+        this.$message.info('Cancel')
       })
     },
 
@@ -614,7 +602,7 @@ export default {
       this.formProps.disabled = true
       add(this.formData).then((response) => {
         this.dialogVisible = false
-        this.$message.success('添加成功')
+        this.$message.success('Success')
         this.getList()
         this.getTotal()
       }).finally(() => {
@@ -626,7 +614,7 @@ export default {
       this.formProps.disabled = true
       edit(this.formData).then((response) => {
         this.dialogVisible = false
-        this.$message.success('修改成功')
+        this.$message.success('Success')
         this.getList()
       }).finally(() => {
         this.formProps.disabled = false
@@ -639,7 +627,7 @@ export default {
           this.autoDeployFormProps.disabled = true
           setAutoDeploy(this.autoDeployFormData).then((response) => {
             this.dialogAutoDeployVisible = false
-            this.$message.success('添加成功')
+            this.$message.success('Success')
             this.getList()
           }).finally(() => {
             this.autoDeployFormProps.disabled = false
@@ -656,7 +644,7 @@ export default {
           this.addServerFormProps.disabled = true
           addServer(this.addServerFormData).then((response) => {
             this.dialogAddServerVisible = false
-            this.$message.success('添加成功')
+            this.$message.success('Success')
             this.getBindServerList(this.addServerFormData.projectId)
           }).finally(() => {
             this.addServerFormProps.disabled = false
@@ -673,7 +661,7 @@ export default {
           this.addUserFormProps.disabled = true
           addUser(this.addUserFormData).then((response) => {
             this.dialogAddUserVisible = false
-            this.$message.success('添加成功')
+            this.$message.success('Success')
             this.getBindUserList(this.addUserFormData.projectId)
           }).finally(() => {
             this.addUserFormProps.disabled = false
@@ -685,32 +673,32 @@ export default {
     },
 
     removeServer(data) {
-      this.$confirm('此操作将永久删除该服务器的绑定关系, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(this.$i18n.t('projectPage.removeServerTips', { serverName: data.serverName }), this.$i18n.t('tips'), {
+        confirmButtonText: this.$i18n.t('confirm'),
+        cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'
       }).then(() => {
         removeServer(data.id).then((response) => {
-          this.$message.success('删除成功')
+          this.$message.success('Success')
           this.getBindServerList(data.projectId)
         })
       }).catch(() => {
-        this.$message.info('已取消删除')
+        this.$message.info('Cancel')
       })
     },
 
     removeUser(data) {
-      this.$confirm('此操作将永久删除该用户的绑定关系, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(this.$i18n.t('projectPage.removeUserTips', { userName: data.userName }), this.$i18n.t('tips'), {
+        confirmButtonText: this.$i18n.t('confirm'),
+        cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'
       }).then(() => {
         removeUser(data.id).then((response) => {
-          this.$message.success('删除成功')
+          this.$message.success('Success')
           this.getBindUserList(data.projectId)
         })
       }).catch(() => {
-        this.$message.info('已取消删除')
+        this.$message.info('Cancel')
       })
     },
 
@@ -753,15 +741,13 @@ export default {
     },
 
     getRemoteBranchList() {
-      // 已获取过分支
       if (this.formProps.branch.length > 0) {
-        this.$message.info('无需重复获取')
         return
       }
       this.formProps.lsBranchLoading = true
       getRemoteBranchList(this.formData.url).then((response) => {
         this.formProps.branch = response.data.branch
-        this.$message.success('获取成功')
+        this.$message.success('Success')
       }).finally(() => {
         this.formProps.lsBranchLoading = false
       })

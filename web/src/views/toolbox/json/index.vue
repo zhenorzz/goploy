@@ -1,22 +1,19 @@
 <template>
   <el-row class="tree-container">
     <el-col :span="10" class="input-container">
-      <el-input ref="jsonStringInput" v-model="inputContent" :autosize="false" type="textarea" class="json-string-input" contenteditable="true" placeholder="在此输入json字符串" @input="handleInput" />
+      <el-input ref="jsonStringInput" v-model="inputContent" :autosize="false" type="textarea" class="json-string-input" placeholder="JSON string" contenteditable="true" @input="handleInput" />
     </el-col>
     <el-col :span="14" class="json-container">
       <el-row class="json-helper" type="flex" justify="space-between" align="middle">
         <el-row>
-          <el-button type="text" size="medium" @click="expandAll">展开所有</el-button>
-          <el-button type="text" size="medium" @click="collapseAll">收起所有</el-button>
-          <el-button type="text" size="medium" @click="unmarkAll">取消高亮</el-button>
+          <el-button type="text" size="medium" @click="expandAll">{{ $t('JSONPage.expandAll') }}</el-button>
+          <el-button type="text" size="medium" @click="collapseAll">{{ $t('JSONPage.collapseAll') }}</el-button>
+          <el-button type="text" size="medium" @click="unmarkAll">{{ $t('JSONPage.unmarkAll') }}</el-button>
         </el-row>
         <el-row>
           <el-tooltip class="item" effect="dark" placement="bottom-end">
             <el-button type="text" icon="el-icon-question" />
-            <div slot="content">
-              1.按住ALT点击label可以实现高亮<br>
-              2.按住SHIFT可以查看JSON路径
-            </div>
+            <div slot="content" v-html="$t('JSONPage.tips')" />
           </el-tooltip>
         </el-row>
       </el-row>

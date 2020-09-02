@@ -1,7 +1,7 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd">添加</el-button>
+      <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
     <el-table
       border
@@ -10,37 +10,39 @@
       :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="name" label="应用名称" min-width="140" />
+      <el-table-column prop="name" :label="$t('name')" min-width="140" />
       <el-table-column prop="domain" label="Domain" min-width="140">
         <template slot-scope="scope">
           {{ scope.row.domain }}:{{ scope.row.port }}
         </template>
       </el-table-column>
-      <el-table-column prop="second" label="间隔(s)" width="80" />
-      <el-table-column prop="times" label="连续失败次数" width="100" />
-      <el-table-column prop="notifyType" label="通知方式" width="70">
+      <el-table-column prop="second" :label="$t('interval')+'(s)'" width="80" />
+      <el-table-column prop="times" :label="$t('monitorPage.failTimes')" width="100" />
+      <el-table-column prop="notifyType" :label="$t('notice')" width="70">
         <template slot-scope="scope">
-          <span v-if="scope.row.notifyType === 1">企业微信</span>
-          <span v-else-if="scope.row.notifyType === 2">钉钉</span>
-          <span v-else-if="scope.row.notifyType === 3">飞书</span>
-          <span v-else-if="scope.row.notifyType === 255">自定义</span>
+          <span v-if="scope.row.notifyType === 1">{{ $t('webhookOption[1]') }}</span>
+          <span v-else-if="scope.row.notifyType === 2">{{ $t('webhookOption[2]') }}</span>
+          <span v-else-if="scope.row.notifyType === 3">{{ $t('webhookOption[3]') }}</span>
+          <span v-else-if="scope.row.notifyType === 255">{{ $t('webhookOption[255]') }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="description" label="描述" min-width="140" show-overflow-tooltip />
-      <el-table-column prop="state" label="状态" width="45">
+      <el-table-column prop="description" :label="$t('desc')" min-width="140" show-overflow-tooltip />
+      <el-table-column prop="state" :label="$t('state')" width="65" align="center">
         <template slot-scope="scope">
-          {{ scope.row.state === 1 ? '开启' : '暂停' }}
+          <el-switch
+            :value="scope.row.state === 1"
+            active-color="#13ce66"
+            inactive-color="#ff4949"
+            @change="handleToggle(scope.row)"
+          />
         </template>
       </el-table-column>
-      <el-table-column prop="insertTime" label="创建时间" width="160" />
-      <el-table-column prop="updateTime" label="更新时间" width="160" />
-      <el-table-column prop="operation" label="操作" width="220" fixed="right">
+      <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
+      <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
+      <el-table-column prop="operation" :label="$t('op')" width="130" align="center" fixed="right">
         <template slot-scope="scope">
-          <el-button type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button :type="scope.row.state === 1 ? 'warning' : 'success'" @click="handleToggle(scope.row)">
-            {{ scope.row.state === 1 ? '暂停' : '开启' }}
-          </el-button>
-          <el-button type="danger" @click="handleRemove(scope.row)">删除</el-button>
+          <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)" />
+          <el-button type="danger" icon="el-icon-delete" @click="handleRemove(scope.row)" />
         </template>
       </el-table-column>
     </el-table>
@@ -54,49 +56,48 @@
         @current-change="handlePageChange"
       />
     </el-row>
-    <el-dialog title="应用设置" :visible.sync="dialogVisible">
-      <el-form ref="form" v-loading="formProps.loading" :element-loading-text="formProps.loadingMessage" :rules="formRules" :model="formData" label-width="120px">
-        <el-form-item label="应用名称" prop="name">
+    <el-dialog :title="$t('setting')" :visible.sync="dialogVisible">
+      <el-form ref="form" v-loading="formProps.loading" :rules="formRules" :model="formData" label-width="120px">
+        <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
         <el-form-item label="Domain/IP" prop="domain">
-          <el-input v-model="formData.domain" autocomplete="off" placeholder="(不需要带http)" />
+          <el-input v-model="formData.domain" autocomplete="off" placeholder="Skip http(s)" />
         </el-form-item>
         <el-form-item label="port" prop="port">
           <el-input v-model.number="formData.port" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="间隔(s)" prop="second">
+        <el-form-item :label="$t('interval')+'(s)'" prop="second">
           <el-input v-model.number="formData.second" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="连续失败次数" prop="times">
+        <el-form-item :label="$t('monitorPage.failTimes')" prop="times">
           <el-input v-model="formData.times" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="通知" prop="notifyTarget">
+        <el-form-item :label="$t('notice')" prop="notifyTarget">
           <el-row type="flex">
             <el-select v-model="formData.notifyType">
-              <el-option label="企业微信" :value="1" />
-              <el-option label="钉钉" :value="2" />
-              <el-option label="飞书" :value="3" />
-              <el-option label="自定义" :value="255" />
+              <el-option :label="$t('webhookOption[1]')" :value="1" />
+              <el-option :label="$t('webhookOption[2]')" :value="2" />
+              <el-option :label="$t('webhookOption[3]')" :value="3" />
+              <el-option :label="$t('webhookOption[255]')" :value="255" />
             </el-select>
-            <el-input v-model.trim="formData.notifyTarget" autocomplete="off" placeholder="webhook链接" />
+            <el-input v-model.trim="formData.notifyTarget" autocomplete="off" placeholder="webhook" />
           </el-row>
         </el-form-item>
-        <el-form-item label="描述" prop="description">
+        <el-form-item :label="$t('desc')" prop="description">
           <el-input
             v-model="formData.description"
             type="textarea"
             :autosize="{ minRows: 2}"
-            placeholder="请输入描述"
           />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-row type="flex" justify="space-between">
-          <el-button type="success" @click="check">测试应用状态</el-button>
+          <el-button type="success" @click="check">{{ $t('monitorPage.testAppState') }}</el-button>
           <el-row>
-            <el-button @click="dialogVisible = false">取 消</el-button>
-            <el-button :disabled="formProps.disabled" type="primary" @click="submit">确 定</el-button>
+            <el-button @click="dialogVisible = false">{{ $t('cancel') }}</el-button>
+            <el-button :disabled="formProps.disabled" type="primary" @click="submit">{{ $t('confirm') }}</el-button>
           </el-row>
         </el-row>
       </div>
@@ -120,7 +121,6 @@ export default {
       tempFormData: {},
       formProps: {
         loading: false,
-        loadingMessage: '测试连接中，请稍后',
         disabled: false
       },
       formData: {
@@ -135,25 +135,25 @@ export default {
       },
       formRules: {
         name: [
-          { required: true, message: '请输入应用名称', trigger: 'blur' }
+          { required: true, message: 'Name required', trigger: 'blur' }
         ],
         domain: [
-          { required: true, message: '请输入host或者ip(不需要带http)', trigger: 'blur' }
+          { required: true, message: 'Host or IP required', trigger: 'blur' }
         ],
         port: [
-          { type: 'number', required: true, min: 0, max: 65535, message: '请输入正确服务器端口', trigger: 'blur' }
+          { type: 'number', required: true, min: 0, max: 65535, message: '0 ~ 65535', trigger: 'blur' }
         ],
         second: [
-          { type: 'number', required: true, min: 1, message: '请输入时间间隔', trigger: 'blur' }
+          { type: 'number', required: true, min: 1, message: 'Interval required', trigger: 'blur' }
         ],
         times: [
-          { type: 'number', required: true, min: 1, message: '请输入连续失败次数', trigger: 'blur' }
+          { type: 'number', required: true, min: 1, message: 'Times required', trigger: 'blur' }
         ],
         notifyTarget: [
-          { required: true, message: '请填写webhook链接' }
+          { required: true, message: 'Webhook required' }
         ],
         description: [
-          { max: 255, message: '描述最多255个字符', trigger: 'blur' }
+          { max: 255, message: 'Max 255 characters', trigger: 'blur' }
         ]
       }
     }
@@ -178,7 +178,6 @@ export default {
       })
     },
 
-    // 分页事件
     handlePageChange(val) {
       this.pagination.page = val
       this.getList()
@@ -196,39 +195,39 @@ export default {
 
     handleToggle(data) {
       if (data.state === 1) {
-        this.$confirm('此操作将暂停监控该应用, 是否继续?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
+        this.$confirm(this.$i18n.t('monitorPage.toggleStateTips', { monitorName: data.name }), this.$i18n.t('tips'), {
+          confirmButtonText: this.$i18n.t('confirm'),
+          cancelButtonText: this.$i18n.t('cancel'),
           type: 'warning'
         }).then(() => {
           toggle(data.id).then((response) => {
-            this.$message.success('暂停成功')
+            this.$message.success('Stop success')
             this.getList()
           })
         }).catch(() => {
-          this.$message.info('已取消暂停')
+          this.$message.info('Cancel')
         })
       } else {
         toggle(data.id).then((response) => {
-          this.$message.success('开启成功')
+          this.$message.success('Open success')
           this.getList()
         })
       }
     },
 
     handleRemove(data) {
-      this.$confirm('此操作将不再监控该应用, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(this.$i18n.t('monitorPage.removeMontiorTips', { monitorName: data.name }), this.$i18n.t('tips'), {
+        confirmButtonText: this.$i18n.t('confirm'),
+        cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'
       }).then(() => {
         remove(data.id).then((response) => {
-          this.$message.success('删除成功')
+          this.$message.success('Success')
           this.getList()
           this.getTotal()
         })
       }).catch(() => {
-        this.$message.info('已取消删除')
+        this.$message.info('Cancel')
       })
     },
 
@@ -238,7 +237,7 @@ export default {
           this.formProps.loading = true
           this.formProps.disabled = true
           check(this.formData).then(response => {
-            this.$message.success('连接成功')
+            this.$message.success('Connected success')
           }).finally(_ => {
             this.formProps.loading = false
             this.formProps.disabled = false
@@ -268,7 +267,7 @@ export default {
       add(this.formData).then((response) => {
         this.getList()
         this.getTotal()
-        this.$message.success('添加成功')
+        this.$message.success('Success')
       }).finally(() => {
         this.formProps.disabled = this.dialogVisible = false
       })
@@ -278,7 +277,7 @@ export default {
       this.formProps.disabled = true
       edit(this.formData).then((response) => {
         this.getList()
-        this.$message.success('编辑成功')
+        this.$message.success('Success')
       }).finally(() => {
         this.formProps.disabled = this.dialogVisible = false
       })

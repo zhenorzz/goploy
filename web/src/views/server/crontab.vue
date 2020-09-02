@@ -2,12 +2,14 @@
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="space-between">
       <el-row>
-        <el-input v-model="crontabCommand" style="width:200px" placeholder="请输入命令关键词" />
-        <el-button type="primary" icon="el-icon-search" @click="searchList">搜索</el-button>
+        <el-input v-model="crontabCommand" style="width:200px" placeholder="Fitler the command" />
+        <el-button type="primary" icon="el-icon-search" @click="searchList" />
       </el-row>
       <el-row>
-        <el-button type="primary" icon="el-icon-download" @click="handleImport">导入</el-button>
-        <el-button type="primary" icon="el-icon-plus" @click="handleAdd">添加</el-button>
+        <el-tooltip effect="dark" :content="$t('import')" placement="top">
+          <el-button type="primary" icon="el-icon-download" @click="handleImport" />
+        </el-tooltip>
+        <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
       </el-row>
     </el-row>
     <el-table
@@ -18,17 +20,21 @@
       :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="command" label="命令" min-width="140" show-overflow-tooltip />
-      <el-table-column prop="description" label="描述" min-width="240" show-overflow-tooltip />
-      <el-table-column prop="creator" label="创建人" min-width="50" />
-      <el-table-column prop="editor" label="修改人" min-width="50" />
-      <el-table-column prop="insertTime" label="创建时间" width="135" />
-      <el-table-column prop="updateTime" label="更新时间" width="135" />
-      <el-table-column prop="operation" label="操作" width="255" fixed="right">
+      <el-table-column prop="command" :label="$t('command')" min-width="140" show-overflow-tooltip />
+      <el-table-column prop="description" :label="$t('desc')" min-width="240" show-overflow-tooltip />
+      <el-table-column prop="creator" :label="$t('creator')" min-width="50" />
+      <el-table-column prop="editor" :label="$t('editor')" min-width="50" />
+      <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
+      <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
+      <el-table-column prop="server" width="80" :label="$t('server')" align="center">
         <template slot-scope="scope">
-          <el-button type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button type="warning" @click="handleServer(scope.row)">查看服务器</el-button>
-          <el-button type="danger" @click="handleRemove(scope.row)">删除</el-button>
+          <el-button type="text" @click="handleServer(scope.row)">{{ $t('view') }}</el-button>
+        </template>
+      </el-table-column>
+      <el-table-column prop="operation" :label="$t('op')" width="130" align="center" fixed="right">
+        <template slot-scope="scope">
+          <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)" />
+          <el-button type="danger" icon="el-icon-delete" @click="handleRemove(scope.row)" />
         </template>
       </el-table-column>
     </el-table>
@@ -42,17 +48,17 @@
         @current-change="handlePageChange"
       />
     </el-row>
-    <el-dialog title="crontab设置" :visible.sync="dialogVisible">
+    <el-dialog :title="$t('setting')" :visible.sync="dialogVisible">
       <el-form ref="form" v-loading="formProps.loading" :rules="formRules" :model="formData" label-width="80px">
-        <el-form-item label="时间" prop="date">
+        <el-form-item :label="$t('time')" prop="date">
           <el-input v-model="formData.date" autocomplete="off" placeholder="* * * * ?" @change="onDateChange" />
-          <span>{{ formProps.dateCN }}</span>
+          <span>{{ formProps.dateLocale }}</span>
         </el-form-item>
-        <el-form-item label="脚本" prop="script">
+        <el-form-item :label="$t('script')" prop="script">
           <el-input v-model.trim="formData.script" autocomplete="off" />
         </el-form-item>
-        <el-form-item v-show="formData.id === 0" label="服务器" prop="serverIds">
-          <el-select v-model="formData.serverIds" multiple placeholder="选择服务器，可多选" style="width:100%" filterable>
+        <el-form-item v-show="formData.id === 0" :label="$t('server')" prop="serverIds">
+          <el-select v-model="formData.serverIds" multiple style="width:100%" filterable>
             <el-option
               v-for="(item, index) in serverOption"
               :key="index"
@@ -63,31 +69,31 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button :disabled="formProps.disabled" type="primary" @click="submit">确 定</el-button>
+        <el-button @click="dialogVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="formProps.disabled" type="primary" @click="submit">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="crontab移除" :visible.sync="crontabRemoveVisible" width="400px">
+    <el-dialog :title="$t('remove')" :visible.sync="crontabRemoveVisible" width="400px">
       <el-form ref="crontabRemoveForm" :model="crontabRemoveFormData" label-width="80px">
-        <el-form-item label="命令" label-width="45px">
+        <el-form-item :label="$t('command')" label-width="45px">
           <span>{{ crontabRemoveFormProps.command }}</span>
         </el-form-item>
-        <el-form-item label="删除服务器Crontab任务" label-width="170px">
+        <el-form-item :label="$t('crontabPage.removeServerCrontabLabel')" label-width="170px">
           <el-radio-group v-model="crontabRemoveFormData.radio">
-            <el-radio :label="0">否</el-radio>
-            <el-radio :label="1">是</el-radio>
+            <el-radio :label="0">{{ $t('boolOption[0]') }}</el-radio>
+            <el-radio :label="1">{{ $t('boolOption[1]') }}</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="crontabRemoveVisible = false">取 消</el-button>
-        <el-button :disabled="crontabRemoveFormProps.disabled" type="primary" @click="remove">确 定</el-button>
+        <el-button @click="crontabRemoveVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="crontabRemoveFormProps.disabled" type="primary" @click="remove">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="crontab导入" :visible.sync="importVisible">
+    <el-dialog :title="$t('import')" :visible.sync="importVisible">
       <el-row>
         <el-row type="flex">
-          <el-select v-model="importProps.serverId" placeholder="选择服务器" style="width:100%;margin-right:5px;">
+          <el-select v-model="importProps.serverId" style="width:100%;margin-right:5px;">
             <el-option
               v-for="(item, index) in serverOption"
               :key="index"
@@ -95,13 +101,18 @@
               :value="item.id"
             />
           </el-select>
-          <el-button :disabled="importProps.disabled" :icon="importProps.disabled ? 'el-icon-loading' : 'el-icon-search'" type="primary" @click="getRemoteServerList">读取</el-button>
+          <el-button
+            :disabled="importProps.disabled"
+            :icon="importProps.disabled ? 'el-icon-loading' : 'el-icon-refresh'"
+            type="primary"
+            @click="getRemoteServerList"
+          >{{ $t('read') }}</el-button>
         </el-row>
         <el-table
           border
           stripe
           highlight-current-row
-          empty-text="请先选择服务器读取"
+          :empty-text="$t('crontabPage.importTips')"
           :data="serverTableData"
           style="width: 100%; margin-top: 10px;"
           @selection-change="handleCrontabSelectionChange"
@@ -110,18 +121,18 @@
             type="selection"
             width="40"
           />
-          <el-table-column prop="command" label="命令" min-width="140" show-overflow-tooltip />
-          <el-table-column prop="description" label="描述" min-width="240" show-overflow-tooltip />
+          <el-table-column prop="command" :label="$t('command')" min-width="140" show-overflow-tooltip />
+          <el-table-column prop="description" :label="$t('desc')" min-width="240" show-overflow-tooltip />
         </el-table>
       </el-row>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="importVisible = false">取 消</el-button>
-        <el-button :disabled="importProps.disabled" type="primary" @click="importCrontab">确 定</el-button>
+        <el-button @click="importVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="importProps.disabled" type="primary" @click="importCrontab">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="服务器管理" :visible.sync="serverVisible">
+    <el-dialog :title="$t('manage')" :visible.sync="serverVisible">
       <el-row class="app-bar" type="flex" justify="end">
-        <el-button type="primary" icon="el-icon-plus" @click="handleAddServer">添加</el-button>
+        <el-button type="primary" icon="el-icon-plus" @click="handleAddServer" />
       </el-row>
       <el-table
         border
@@ -130,25 +141,25 @@
         :data="tableServerData"
         style="width: 100%"
       >
-        <el-table-column prop="serverId" label="服务器ID" width="100" />
-        <el-table-column prop="serverName" label="服务器名称" width="100" />
-        <el-table-column prop="serverDescription" label="服务器描述" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="insertTime" width="160" label="绑定时间" />
-        <el-table-column prop="updateTime" width="160" label="更新时间" />
-        <el-table-column prop="operation" label="操作" width="80">
+        <el-table-column prop="serverId" :label="$t('serverId')" width="100" />
+        <el-table-column prop="serverName" :label="$t('serverName')" width="100" />
+        <el-table-column prop="serverDescription" :label="$t('serverDescription')" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="insertTime" :label="$t('insertTime')" width="160" align="center" />
+        <el-table-column prop="updateTime" :label="$t('updateTime')" width="160" align="center" />
+        <el-table-column prop="operation" :label="$t('op')" width="80" align="center">
           <template slot-scope="scope">
-            <el-button type="danger" @click="removeCrontabServer(scope.row)">删除</el-button>
+            <el-button type="danger" icon="el-icon-delete" @click="removeCrontabServer(scope.row)" />
           </template>
         </el-table-column>
       </el-table>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="serverVisible = false">取 消</el-button>
+        <el-button @click="serverVisible = false">{{ $t('cancel') }}</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="添加服务器" :visible.sync="addServerVisible">
+    <el-dialog :title="$t('add')" :visible.sync="addServerVisible">
       <el-form ref="addServerForm" :rules="addServerFormRules" :model="addServerFormData">
-        <el-form-item label="绑定服务器" label-width="120px" prop="serverIds">
-          <el-select v-model="addServerFormData.serverIds" multiple placeholder="选择服务器，可多选">
+        <el-form-item :label="$t('server')" label-width="120px" prop="serverIds">
+          <el-select v-model="addServerFormData.serverIds" multiple>
             <el-option
               v-for="(item, index) in serverOption"
               :key="index"
@@ -159,8 +170,8 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="addServerVisible = false">取 消</el-button>
-        <el-button :disabled="addServerFormProps.disabled" type="primary" @click="addServer">确 定</el-button>
+        <el-button @click="addServerVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="addServerFormProps.disabled" type="primary" @click="addServer">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
   </el-row>
@@ -177,7 +188,7 @@ export default {
   data() {
     const validateDate = (rule, value, callback) => {
       try {
-        cronstrue.toString(value, { locale: 'zh_CN' })
+        cronstrue.toString(value)
         callback()
       } catch (error) {
         callback(error)
@@ -202,7 +213,7 @@ export default {
       formProps: {
         loading: false,
         disabled: false,
-        dateCN: ''
+        dateLocale: ''
       },
       formData: {
         id: 0,
@@ -216,7 +227,7 @@ export default {
           { required: true, validator: validateDate, trigger: 'blur' }
         ],
         script: [
-          { required: true, message: '请输入脚本', trigger: 'blur' }
+          { required: true, message: 'Script required', trigger: 'blur' }
         ]
       },
       importProps: {
@@ -241,7 +252,7 @@ export default {
       },
       addServerFormRules: {
         serverIds: [
-          { type: 'array', required: true, message: '请选择服务器', trigger: 'change' }
+          { type: 'array', required: true, message: 'Server required', trigger: 'change' }
         ]
       },
       serverTableData: []
@@ -259,9 +270,9 @@ export default {
         this.tableData = response.data.list.map(element => {
           const commandSplit = element.command.split(' ')
           element.date = commandSplit.slice(0, 5).join(' ')
-          element.dateCN = cronstrue.toString(element.date, { locale: 'zh_CN' })
+          element.dateLocale = cronstrue.toString(element.date, { locale: this.getLocale() })
           element.script = commandSplit.slice(5).join(' ')
-          element.description = element.dateCN + ', 运行: ' + element.script
+          element.description = `${element.dateLocale}, ${this.$i18n.t('run')}: ${element.script}`
           return element
         })
       })
@@ -285,7 +296,7 @@ export default {
 
     getRemoteServerList() {
       if (this.importProps.serverId <= 0) {
-        this.$message.warning('请先选择服务器')
+        this.$message.warning(this.$i18n.t('crontabPage.selectServerTips'))
         return
       }
       this.importProps.disabled = true
@@ -295,9 +306,9 @@ export default {
           const commandSplit = command.split(' ')
           element.command = command
           element.date = commandSplit.slice(0, 5).join(' ')
-          element.dateCN = cronstrue.toString(element.date, { locale: 'zh_CN' })
+          element.dateLocale = cronstrue.toString(element.date, { locale: this.getLocale() })
           element.script = commandSplit.slice(5).join(' ')
-          element.description = element.dateCN + ', 运行: ' + element.script
+          element.description = `${element.dateLocale}, ${this.$i18n.t('run')}: ${element.script}`
           return element
         })
       }).finally(() => { this.importProps.disabled = false })
@@ -329,7 +340,7 @@ export default {
       this.formData.date = data.date
       this.formData.script = data.script
       this.formData.serverIds = []
-      this.formProps.dateCN = data.dateCN
+      this.formProps.dateLocale = data.dateLocale
       this.dialogVisible = true
     },
 
@@ -355,18 +366,18 @@ export default {
 
     importCrontab() {
       if (this.selectedItems.length === 0) {
-        this.$message.warning('请先选择需要导入的条目')
+        this.$message.warning(this.$i18n.t('crontabPage.selectItemTips'))
         return
       }
       importCrontab({ commands: this.selectedItems.map(element => element.command) }).then(response => {
         this.getList()
         this.getTotal()
-        this.$message.success('导入成功')
+        this.$message.success('Success')
       }).finally(() => { this.importVisible = false })
     },
 
     onDateChange() {
-      this.formProps.dateCN = cronstrue.toString(this.formData.date, { locale: 'zh_CN' })
+      this.formProps.dateLocale = cronstrue.toString(this.formData.date, { locale: this.getLocale() })
     },
 
     handlePageChange(val) {
@@ -394,7 +405,7 @@ export default {
       add(this.formData).then((response) => {
         this.getList()
         this.getTotal()
-        this.$message.success('添加成功')
+        this.$message.success('Success')
       }).finally(() => {
         this.formProps.disabled = this.dialogVisible = false
       })
@@ -404,7 +415,7 @@ export default {
       this.formProps.disabled = true
       edit(this.formData).then((response) => {
         this.getList()
-        this.$message.success('编辑成功')
+        this.$message.success('Success')
       }).finally(() => {
         this.formProps.disabled = this.dialogVisible = false
       })
@@ -415,7 +426,7 @@ export default {
       remove(this.crontabRemoveFormData).then((response) => {
         this.getList()
         this.getTotal()
-        this.$message.success('删除成功')
+        this.$message.success('Success')
       }).finally(() => {
         this.crontabRemoveFormProps.disabled = this.crontabRemoveVisible = false
       })
@@ -427,7 +438,7 @@ export default {
           this.addServerFormProps.disabled = true
           addServer(this.addServerFormData).then((response) => {
             this.addServerVisible = false
-            this.$message.success('添加成功')
+            this.$message.success('Success')
             this.getBindServerList(this.addServerFormData.crontabId)
           }).finally(() => {
             this.addServerFormProps.disabled = false
@@ -439,18 +450,25 @@ export default {
     },
 
     removeCrontabServer(data) {
-      this.$confirm('此操作将永久删除该服务器的绑定关系, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(this.$i18n.t('crontabPage.removeCrontabServerTips'), this.$i18n.t('tips'), {
+        confirmButtonText: this.$i18n.t('confirm'),
+        cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'
       }).then(() => {
         removeCrontabServer({ crontabServerId: data.id, crontabId: data.crontabId, serverId: data.serverId }).then((response) => {
-          this.$message.success('删除成功')
+          this.$message.success('Success')
           this.getBindServerList(data.crontabId)
         })
       }).catch(() => {
-        this.$message.info('已取消删除')
+        this.$message.info('Cancel')
       })
+    },
+
+    getLocale() {
+      if (this.$i18n.locale === 'zh') {
+        return 'zh_CN'
+      }
+      return this.$i18n.locale
     }
   }
 }

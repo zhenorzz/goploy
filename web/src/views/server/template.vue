@@ -1,7 +1,7 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end" align="middle">
-      <el-button v-if="activeTableName==='template'" type="primary" icon="el-icon-plus" @click="handleTemplateAdd">添加</el-button>
+      <el-button v-if="activeTableName==='template'" type="primary" icon="el-icon-plus" @click="handleTemplateAdd" />
       <el-upload
         v-else
         ref="upload"
@@ -13,25 +13,25 @@
         :show-file-list="false"
         multiple
       >
-        <el-button size="small" type="primary">点击上传</el-button>
+        <el-button type="primary" icon="el-icon-upload" />
       </el-upload>
     </el-row>
     <el-tabs v-model="activeTableName" type="border-card" style="box-shadow:none;">
-      <el-tab-pane label="模板" name="template">
+      <el-tab-pane :label="$t('template')" name="template">
         <el-table
           border
           stripe
           highlight-current-row
           :data="templateTableData"
         >
-          <el-table-column prop="name" label="名称" />
-          <el-table-column prop="remark" label="描述" />
-          <el-table-column prop="insertTime" label="创建时间" width="160" />
-          <el-table-column prop="updateTime" label="更新时间" width="160" />
-          <el-table-column prop="operation" label="操作" width="150">
+          <el-table-column prop="name" :label="$t('name')" />
+          <el-table-column prop="remark" :label="$t('desc')" />
+          <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
+          <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
+          <el-table-column prop="operation" :label="$t('op')" width="130" align="center">
             <template slot-scope="scope">
-              <el-button size="small" type="primary" @click="handleTemplateEdit(scope.row)">编辑</el-button>
-              <el-button size="small" type="danger" @click="handleTemplateDelete(scope.row)">删除</el-button>
+              <el-button type="primary" icon="el-icon-edit" @click="handleTemplateEdit(scope.row)" />
+              <el-button type="danger" icon="el-icon-delete" @click="handleTemplateDelete(scope.row)" />
             </template>
           </el-table-column>
         </el-table>
@@ -46,18 +46,18 @@
           />
         </el-row>
       </el-tab-pane>
-      <el-tab-pane label="安装包" name="package">
+      <el-tab-pane :label="$t('package')" name="package">
         <el-table
           border
           stripe
           highlight-current-row
           :data="packageTableData"
         >
-          <el-table-column prop="name" label="名称" />
-          <el-table-column prop="humanSize" label="大小" />
-          <el-table-column prop="insertTime" label="创建时间" width="160" />
-          <el-table-column prop="updateTime" label="更新时间" width="160" />
-          <el-table-column prop="operation" label="操作" width="90">
+          <el-table-column prop="name" :label="$t('name')" />
+          <el-table-column prop="humanSize" :label="$t('size')" />
+          <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
+          <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
+          <el-table-column prop="operation" :label="$t('op')" width="90" align="center">
             <template slot-scope="scope">
               <el-upload
                 ref="upload"
@@ -69,7 +69,7 @@
                 :show-file-list="false"
                 multiple
               >
-                <el-button size="small" type="primary">重传</el-button>
+                <el-button type="primary">{{ $t('reUpload') }}</el-button>
               </el-upload>
             </template>
           </el-table-column>
@@ -86,18 +86,17 @@
         </el-row>
       </el-tab-pane>
     </el-tabs>
-    <el-dialog title="模板设置" :visible.sync="dialogVisible">
+    <el-dialog :title="$t('setting')" :visible.sync="dialogVisible">
       <el-form ref="form" :rules="formRules" :model="formData" label-width="80px">
-        <el-form-item label="名称" prop="name">
+        <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="描述" prop="remark">
+        <el-form-item :label="$t('desc')" prop="remark">
           <el-input v-model="formData.remark" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="安装包" prop="package">
+        <el-form-item :label="$t('package')" prop="package">
           <el-select
             v-model="formData.packageIds"
-            placeholder="选择安装包"
             multiple
             clearable
             filterable
@@ -111,14 +110,14 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="脚本" prop="script">
-          注意：安装包上传至目标服务器的/tmp目录
+        <el-form-item :label="$t('script')" prop="script">
+          {{ $t('templatePage.scriptNotice') }}
           <codemirror v-model="formData.script" :options="cmOptions" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button :disabled="formProps.disabled" type="primary" @click="submitTemplate">确 定</el-button>
+        <el-button @click="dialogVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="formProps.disabled" type="primary" @click="submitTemplate">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
   </el-row>
@@ -191,10 +190,10 @@ export default {
       },
       formRules: {
         name: [
-          { required: true, message: '名称', trigger: 'blur' }
+          { required: true, message: 'Name required', trigger: 'blur' }
         ],
         script: [
-          { required: true, message: '请输入脚本', trigger: 'blur' }
+          { required: true, message: 'Script required', trigger: 'blur' }
         ]
       }
     }
@@ -246,14 +245,14 @@ export default {
     },
 
     beforeUpload(file) {
-      this.$message.info('正在上传')
+      this.$message.info(this.$i18n.t('uploading'))
     },
 
     handleUploadSuccess(response, file, fileList) {
       if (response.code !== 0) {
         this.$message.error(response.message)
       } else {
-        this.$message.success('上传成功')
+        this.$message.success('Success')
         this.getPackageList()
         this.getPackageTotal()
       }
@@ -284,18 +283,18 @@ export default {
     },
 
     handleTemplateDelete(data) {
-      this.$confirm('此操作将删除该模板, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(this.$i18n.t('templatePage.templateDeleteTips'), this.$i18n.t('tips'), {
+        confirmButtonText: this.$i18n.t('confirm'),
+        cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'
       }).then(() => {
         remove(data.id).then((response) => {
-          this.$message.success('删除成功')
+          this.$message.success('Success')
           this.getTemplateList()
           this.getTemplateTotal()
         })
       }).catch(() => {
-        this.$message.info('已取消删除')
+        this.$message.info('Cancel')
       })
     },
 
@@ -319,7 +318,7 @@ export default {
       addTemplate(this.formData).then((response) => {
         this.getTemplateList()
         this.getTemplateTotal()
-        this.$message.success('添加成功')
+        this.$message.success('Success')
       }).finally(() => {
         this.formProps.disabled = this.dialogVisible = false
       })
@@ -329,7 +328,7 @@ export default {
       this.formProps.disabled = true
       editTemplate(this.formData).then((response) => {
         this.getTemplateList()
-        this.$message('修改成功')
+        this.$message('Success')
       }).finally(() => {
         this.formProps.disabled = this.dialogVisible = false
       })

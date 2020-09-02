@@ -131,7 +131,7 @@ func (user User) Add(gp *core.Goploy) *core.Response {
 		Account      string `json:"account" validate:"min=5,max=12"`
 		Password     string `json:"password" validate:"omitempty,password"`
 		Name         string `json:"name" validate:"required"`
-		Mobile       string `json:"mobile" validate:"omitempty,len=11,numeric"`
+		Contact      string `json:"contact" validate:"omitempty,len=11,numeric"`
 		SuperManager int64  `json:"superManager" validate:"min=0,max=1"`
 	}
 	type RespData struct {
@@ -152,7 +152,7 @@ func (user User) Add(gp *core.Goploy) *core.Response {
 		Account:      reqData.Account,
 		Password:     reqData.Password,
 		Name:         reqData.Name,
-		Mobile:       reqData.Mobile,
+		Contact:      reqData.Contact,
 		SuperManager: reqData.SuperManager,
 	}.AddRow()
 
@@ -178,7 +178,7 @@ func (user User) Edit(gp *core.Goploy) *core.Response {
 		ID           int64  `json:"id" validate:"gt=0"`
 		Password     string `json:"password" validate:"omitempty,password"`
 		Name         string `json:"name" validate:"required"`
-		Mobile       string `json:"mobile" validate:"omitempty,len=11,numeric"`
+		Contact      string `json:"contact" validate:"omitempty,len=11,numeric"`
 		SuperManager int64  `json:"superManager" validate:"min=0,max=1"`
 	}
 	var reqData ReqData
@@ -195,7 +195,7 @@ func (user User) Edit(gp *core.Goploy) *core.Response {
 		ID:           reqData.ID,
 		Password:     reqData.Password,
 		Name:         reqData.Name,
-		Mobile:       reqData.Mobile,
+		Contact:      reqData.Contact,
 		SuperManager: reqData.SuperManager,
 	}.EditRow()
 

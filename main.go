@@ -30,7 +30,7 @@ func main() {
 `)
 	install()
 	println(time.Now().String())
-	godotenv.Load(core.GlobalPath + ".env")
+	godotenv.Load(utils.GetAppPath() + ".env")
 	core.CreateValidator()
 	model.Init()
 	ws.Init()

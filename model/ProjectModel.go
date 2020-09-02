@@ -16,7 +16,7 @@ type Project struct {
 	URL                   string `json:"url"`
 	Path                  string `json:"path"`
 	SymlinkPath           string `json:"symlinkPath"`
-	Environment           string `json:"environment"`
+	Environment           uint8  `json:"environment"`
 	Branch                string `json:"branch"`
 	AfterPullScriptMode   string `json:"afterPullScriptMode"`
 	AfterPullScript       string `json:"afterPullScript"`

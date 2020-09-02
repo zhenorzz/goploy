@@ -1,7 +1,7 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd">添加</el-button>
+      <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
     <el-table
       border
@@ -10,21 +10,24 @@
       :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="name" label="服务器" min-width="140" />
+      <el-table-column prop="id" label="ID" width="100" />
+      <el-table-column prop="name" :label="$t('name')" min-width="140" />
       <el-table-column prop="ip" label="IP" min-width="140">
         <template slot-scope="scope">
           {{ scope.row.ip }}:{{ scope.row.port }}
         </template>
       </el-table-column>
-      <el-table-column prop="owner" label="sshKey所有者" width="100" show-overflow-tooltip />
-      <el-table-column prop="description" label="描述" min-width="140" show-overflow-tooltip />
-      <el-table-column prop="insertTime" label="创建时间" width="160" />
-      <el-table-column prop="updateTime" label="更新时间" width="160" />
-      <el-table-column prop="operation" label="操作" width="220" fixed="right">
+      <el-table-column prop="owner" :label="$t('serverPage.sshKeyOwner')" width="100" show-overflow-tooltip />
+      <el-table-column prop="description" :label="$t('desc')" min-width="140" show-overflow-tooltip />
+      <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
+      <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
+      <el-table-column prop="operation" :label="$t('op')" width="180" align="center" fixed="right">
         <template slot-scope="scope">
-          <el-button size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button size="small" type="warning" @click="handleInstall(scope.row)">安装</el-button>
-          <el-button size="small" type="danger" @click="handleRemove(scope.row)">删除</el-button>
+          <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)" />
+          <el-tooltip class="item" effect="dark" :content="$t('install')" placement="top">
+            <el-button type="info" icon="el-icon-set-up" @click="handleInstall(scope.row)" />
+          </el-tooltip>
+          <el-button type="danger" icon="el-icon-delete" @click="handleRemove(scope.row)" />
         </template>
       </el-table-column>
     </el-table>
@@ -38,9 +41,9 @@
         @current-change="handlePageChange"
       />
     </el-row>
-    <el-dialog title="服务器设置" :visible.sync="dialogVisible">
-      <el-form ref="form" v-loading="formProps.loading" :element-loading-text="formProps.loadingMessage" :rules="formRules" :model="formData" label-width="120px">
-        <el-form-item label="服务器名称" prop="name">
+    <el-dialog :title="$t('setting')" :visible.sync="dialogVisible">
+      <el-form ref="form" v-loading="formProps.loading" :rules="formRules" :model="formData" label-width="120px">
+        <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
         <el-form-item label="IP" prop="ip">
@@ -49,33 +52,32 @@
         <el-form-item label="port" prop="port">
           <el-input v-model.number="formData.port" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="sshKey所有者" prop="owner">
+        <el-form-item :label="$t('serverPage.sshKeyOwner')" prop="owner">
           <el-input v-model="formData.owner" autocomplete="off" placeholder="root" />
         </el-form-item>
-        <el-form-item label="描述" prop="description">
+        <el-form-item :label="$t('desc')" prop="description">
           <el-input
             v-model="formData.description"
             type="textarea"
             :autosize="{ minRows: 2}"
-            placeholder="请输入描述"
           />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-row type="flex" justify="space-between">
-          <el-button type="success" @click="check">测试连接</el-button>
+          <el-button type="success" @click="check">{{ $t('serverPage.testConnection') }}</el-button>
           <el-row>
-            <el-button @click="dialogVisible = false">取 消</el-button>
-            <el-button :disabled="formProps.disabled" type="primary" @click="submit">确 定</el-button>
+            <el-button @click="dialogVisible = false">{{ $t('cancel') }}</el-button>
+            <el-button :disabled="formProps.disabled" type="primary" @click="submit">{{ $t('confirm') }}</el-button>
           </el-row>
         </el-row>
       </div>
     </el-dialog>
-    <el-dialog title="安装模板" :visible.sync="templateDialogVisible">
+    <el-dialog :title="$t('install')" :visible.sync="templateDialogVisible">
       <el-row class="template-dialog">
         <el-form ref="templateForm" :rules="templateFormRules" :model="templateFormData" label-width="90px">
-          <el-form-item label="选择模板" prop="templateId">
-            <el-select v-model="templateFormData.templateId" placeholder="选择模板" style="width:100%">
+          <el-form-item :label="$t('template')" prop="templateId">
+            <el-select v-model="templateFormData.templateId" style="width:100%">
               <el-option
                 v-for="(item, index) in templateOption"
                 :key="index"
@@ -90,8 +92,8 @@
             <el-collapse-item v-for="(item, index) in installPreviewList.slice().reverse()" :key="index" :name="item.token">
               <template slot="title">
                 <span style="margin-right: 10px">token: {{ item.token }}</span>
-                <el-tag v-if="item.installState === 1" type="success" effect="plain">成功</el-tag>
-                <el-tag v-else type="danger" effect="plain">失败</el-tag>
+                <el-tag v-if="item.installState === 1" type="success" effect="plain">{{ $t('success') }}</el-tag>
+                <el-tag v-else type="danger" effect="plain">{{ $t('fail') }}</el-tag>
               </template>
               <codemirror :value="installTrace" :options="cmOptions" />
             </el-collapse-item>
@@ -99,11 +101,11 @@
         </el-row>
       </el-row>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="templateDialogVisible = false">取 消</el-button>
-        <el-button :disabled="templateFormProps.disabled" type="primary" @click="install">确 定</el-button>
+        <el-button @click="templateDialogVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="templateFormProps.disabled" type="primary" @click="install">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="安装进度" :visible.sync="installDialogVisible">
+    <el-dialog :title="$t('detail')" :visible.sync="installDialogVisible">
       <codemirror :value="installLog" :options="cmOptions" />
     </el-dialog>
   </el-row>
@@ -155,7 +157,6 @@ export default {
       },
       formProps: {
         loading: false,
-        loadingMessage: '测试连接中，请稍后',
         disabled: false
       },
       formData: {
@@ -168,19 +169,19 @@ export default {
       },
       formRules: {
         name: [
-          { required: true, message: '请输入服务器名称', trigger: 'blur' }
+          { required: true, message: 'Name required', trigger: 'blur' }
         ],
         ip: [
-          { required: true, message: '请输入服务器ip', trigger: 'blur' }
+          { required: true, message: 'IP required', trigger: 'blur' }
         ],
         port: [
-          { type: 'number', required: true, min: 0, max: 65535, message: '请输入正确服务器端口', trigger: 'blur' }
+          { type: 'number', required: true, min: 0, max: 65535, message: '0 ~ 65535', trigger: 'blur' }
         ],
         owner: [
-          { required: true, message: '请输入SSH-KEY的所有者', trigger: 'blur' }
+          { required: true, message: 'SSH-KEY owner required', trigger: 'blur' }
         ],
         description: [
-          { max: 255, message: '描述最多255个字符', trigger: 'blur' }
+          { max: 255, message: 'Max 255 characters', trigger: 'blur' }
         ]
       },
       templateFormProps: {
@@ -193,7 +194,7 @@ export default {
       },
       templateFormRules: {
         templateId: [
-          { required: true, message: '请选择模板', trigger: 'change' }
+          { required: true, message: 'Template required', trigger: 'change' }
         ]
       }
     }
@@ -283,18 +284,18 @@ export default {
     },
 
     handleRemove(data) {
-      this.$confirm('此操作将删除该服务器, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(this.$i18n.t('serverPage.removeServerTips', { serverName: data.name }), this.$i18n.t('tips'), {
+        confirmButtonText: this.$i18n.t('confirm'),
+        cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'
       }).then(() => {
         remove(data.id).then((response) => {
-          this.$message.success('删除成功')
+          this.$message.success('Success')
           this.getList()
           this.getTotal()
         })
       }).catch(() => {
-        this.$message.info('已取消删除')
+        this.$message.info('Cancel')
       })
     },
 
@@ -324,7 +325,7 @@ export default {
           this.formProps.loading = true
           this.formProps.disabled = true
           check(this.formData).then(response => {
-            this.$message.success('连接成功')
+            this.$message.success('Connected')
           }).finally(_ => {
             this.formProps.loading = false
             this.formProps.disabled = false
@@ -354,7 +355,7 @@ export default {
       add(this.formData).then((response) => {
         this.getList()
         this.getTotal()
-        this.$message.success('添加成功')
+        this.$message.success('Success')
       }).finally(() => {
         this.formProps.disabled = this.dialogVisible = false
       })
@@ -364,7 +365,7 @@ export default {
       this.formProps.disabled = true
       edit(this.formData).then((response) => {
         this.getList()
-        this.$message.success('编辑成功')
+        this.$message.success('Success')
       }).finally(() => {
         this.formProps.disabled = this.dialogVisible = false
       })

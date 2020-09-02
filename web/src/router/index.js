@@ -51,10 +51,10 @@ export const constantRoutes = [
     hidden: true,
     redirect: '/user/profile',
     children: [{
-      path: 'info',
+      path: 'profile',
       name: 'UserProfile',
       component: () => import('@/views/user/profile'),
-      meta: { title: 'UserProfile' }
+      meta: { title: 'userProfile' }
     }]
   }
 ]

@@ -1,7 +1,7 @@
 <template>
   <el-row class="app-container">
     <el-row v-show="$store.getters.superManager" class="app-bar" type="flex" justify="end">
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd">添加</el-button>
+      <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
     <el-table
       :key="tableHeight"
@@ -13,13 +13,17 @@
       style="width: 100%"
     >
       <el-table-column prop="id" label="ID" width="160" />
-      <el-table-column prop="name" label="空间名" />
-      <el-table-column prop="insertTime" label="创建时间" width="160" />
-      <el-table-column prop="updateTime" label="更新时间" width="160" />
-      <el-table-column prop="operation" label="操作" width="172">
+      <el-table-column prop="name" :label="$t('name')" />
+      <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
+      <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
+      <el-table-column prop="user" :label="$t('member')" width="80" align="center">
         <template slot-scope="scope">
-          <el-button type="warning" @click="handleUser(scope.row)">成员管理</el-button>
-          <el-button size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button type="text" @click="handleUser(scope.row)">{{ $t('view') }}</el-button>
+        </template>
+      </el-table-column>
+      <el-table-column prop="operation" :label="$t('op')" width="80" align="center">
+        <template slot-scope="scope">
+          <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)" />
         </template>
       </el-table-column>
     </el-table>
@@ -33,20 +37,20 @@
         @current-change="handlePageChange"
       />
     </el-row>
-    <el-dialog title="设置" :visible.sync="dialogVisible">
+    <el-dialog :title="$t('setting')" :visible.sync="dialogVisible">
       <el-form ref="form" :rules="formRules" :model="formData" label-width="80px">
-        <el-form-item label="名称" prop="name">
+        <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button :disabled="formProps.disabled" type="primary" @click="submit">确 定</el-button>
+        <el-button @click="dialogVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="formProps.disabled" type="primary" @click="submit">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="成员管理" :visible.sync="dialogUserVisible">
+    <el-dialog :title="$t('manage')" :visible.sync="dialogUserVisible">
       <el-row class="app-bar" type="flex" justify="end">
-        <el-button type="primary" icon="el-icon-plus" @click="handleAddUser">添加</el-button>
+        <el-button type="primary" icon="el-icon-plus" @click="handleAddUser" />
       </el-row>
       <el-table
         border
@@ -55,25 +59,25 @@
         :data="tableUserData.filter(row => row.role!== $global.Admin)"
         style="width: 100%"
       >
-        <el-table-column prop="userId" label="用户ID" />
-        <el-table-column prop="userName" label="用户名称" />
-        <el-table-column prop="role" label="角色" />
-        <el-table-column prop="insertTime" width="160" label="绑定时间" />
-        <el-table-column prop="updateTime" width="160" label="更新时间" />
-        <el-table-column prop="operation" label="操作" width="80">
+        <el-table-column prop="userId" :label="$t('userId')" />
+        <el-table-column prop="userName" :label="$t('userName')" />
+        <el-table-column prop="role" :label="$t('role')" />
+        <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
+        <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
+        <el-table-column prop="operation" :label="$t('op')" width="70" align="center">
           <template slot-scope="scope">
-            <el-button type="danger" @click="removeUser(scope.row)">删除</el-button>
+            <el-button type="danger" icon="el-icon-delete" @click="removeUser(scope.row)" />
           </template>
         </el-table-column>
       </el-table>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogUserVisible = false">取 消</el-button>
+        <el-button @click="dialogUserVisible = false">{{ $t('cancel') }}</el-button>
       </div>
     </el-dialog>
-    <el-dialog title="添加用户" :visible.sync="dialogAddUserVisible">
+    <el-dialog :title="$t('add')" :visible.sync="dialogAddUserVisible">
       <el-form ref="addUserForm" :rules="addUserFormRules" :model="addUserFormData">
-        <el-form-item label="绑定用户" label-width="120px" prop="userIds">
-          <el-select v-model="addUserFormData.userIds" multiple clearable filterable placeholder="选择用户，可多选">
+        <el-form-item :label="$t('user')" label-width="120px" prop="userIds">
+          <el-select v-model="addUserFormData.userIds" multiple clearable filterable>
             <el-option
               v-for="(item, index) in userOption.filter(item => item.superManager !== 1)"
               :key="index"
@@ -82,8 +86,8 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="角色" label-width="120px" prop="role">
-          <el-select v-model="addUserFormData.role" placeholder="选择角色">
+        <el-form-item :label="$t('role')" label-width="120px" prop="role">
+          <el-select v-model="addUserFormData.role">
             <el-option
               v-for="(role, index) in [$global.Manager, $global.GroupManager, $global.Member]"
               :key="index"
@@ -94,8 +98,8 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogAddUserVisible = false">取 消</el-button>
-        <el-button :disabled="addUserFormProps.disabled" type="primary" @click="addUser">确 定</el-button>
+        <el-button @click="dialogAddUserVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="addUserFormProps.disabled" type="primary" @click="addUser">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
   </el-row>
@@ -130,7 +134,7 @@ export default {
       },
       formRules: {
         name: [
-          { required: true, message: '请输入名称', trigger: 'blur' }
+          { required: true, message: 'Name required', trigger: 'blur' }
         ]
       },
       addUserFormProps: {
@@ -143,10 +147,10 @@ export default {
       },
       addUserFormRules: {
         userIds: [
-          { type: 'array', required: true, message: '请选择用户', trigger: 'change' }
+          { type: 'array', required: true, message: 'User required', trigger: 'change' }
         ],
         role: [
-          { required: true, message: '请选择角色', trigger: 'change' }
+          { required: true, message: 'Role required', trigger: 'change' }
         ]
       }
     }
@@ -182,7 +186,6 @@ export default {
       })
     },
 
-    // 分页事件
     handlePageChange(val) {
       this.pagination.page = val
       this.getList()
@@ -200,7 +203,6 @@ export default {
 
     handleUser(data) {
       this.getBindUserList(data.id)
-      // 先把namespaceID写入添加用户的表单
       this.addUserFormData.namespaceId = data.id
       this.dialogUserVisible = true
     },
@@ -228,7 +230,7 @@ export default {
       add(this.formData).then((response) => {
         this.getList()
         this.getTotal()
-        this.$message.success('添加成功')
+        this.$message.success('Success')
       }).finally(() => {
         this.formProps.disabled = this.dialogVisible = false
       })
@@ -238,7 +240,7 @@ export default {
       this.formProps.disabled = true
       edit(this.formData).then((response) => {
         this.getList()
-        this.$message.success('修改成功')
+        this.$message.success('Success')
       }).finally(() => {
         this.formProps.disabled = this.dialogVisible = false
       })
@@ -250,7 +252,7 @@ export default {
           this.addUserFormProps.disabled = true
           addUser(this.addUserFormData).then((response) => {
             this.dialogAddUserVisible = false
-            this.$message.success('添加成功')
+            this.$message.success('Success')
             this.getBindUserList(this.addUserFormData.namespaceId)
           }).finally(() => {
             this.addUserFormProps.disabled = false
@@ -262,17 +264,17 @@ export default {
     },
 
     removeUser(data) {
-      this.$confirm('此操作将永久删除该用户的绑定关系, 是否继续?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      this.$confirm(this.$i18n.t('memberPage.removeUserTips'), this.$i18n.t('tips'), {
+        confirmButtonText: this.$i18n.t('confirm'),
+        cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'
       }).then(() => {
         removeUser(data.id).then((response) => {
-          this.$message.success('删除成功')
+          this.$message.success('Success')
           this.getBindUserList(data.namespaceId)
         })
       }).catch(() => {
-        this.$message.info('已取消删除')
+        this.$message.info('Cancel')
       })
     },
 

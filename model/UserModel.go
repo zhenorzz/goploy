@@ -24,7 +24,7 @@ type User struct {
 	Account       string `json:"account"`
 	Password      string `json:"password"`
 	Name          string `json:"name"`
-	Mobile        string `json:"mobile"`
+	Contact       string `json:"contact"`
 	SuperManager  int64  `json:"superManager"`
 	State         uint8  `json:"state"`
 	InsertTime    string `json:"insertTime"`
@@ -39,12 +39,12 @@ type Users []User
 func (u User) GetData() (User, error) {
 	var user User
 	err := sq.
-		Select("id, account, password, name, mobile, super_manager, state, insert_time, update_time").
+		Select("id, account, password, name, contact, super_manager, state, insert_time, update_time").
 		From(userTable).
 		Where(sq.Eq{"id": u.ID}).
 		RunWith(DB).
 		QueryRow().
-		Scan(&user.ID, &user.Account, &user.Password, &user.Name, &user.Mobile, &user.SuperManager, &user.State, &user.InsertTime, &user.UpdateTime)
+		Scan(&user.ID, &user.Account, &user.Password, &user.Name, &user.Contact, &user.SuperManager, &user.State, &user.InsertTime, &user.UpdateTime)
 	if err != nil {
 		return user, err
 	}
@@ -55,12 +55,12 @@ func (u User) GetData() (User, error) {
 func (u User) GetDataByAccount() (User, error) {
 	var user User
 	err := sq.
-		Select("id, account, password, name, mobile, super_manager, state, insert_time, update_time").
+		Select("id, account, password, name, contact, super_manager, state, insert_time, update_time").
 		From(userTable).
 		Where(sq.Eq{"account": u.Account}).
 		RunWith(DB).
 		QueryRow().
-		Scan(&user.ID, &user.Account, &user.Password, &user.Name, &user.Mobile, &user.SuperManager, &user.State, &user.InsertTime, &user.UpdateTime)
+		Scan(&user.ID, &user.Account, &user.Password, &user.Name, &user.Contact, &user.SuperManager, &user.State, &user.InsertTime, &user.UpdateTime)
 	if err != nil {
 		return user, err
 	}
@@ -70,7 +70,7 @@ func (u User) GetDataByAccount() (User, error) {
 // GetList -
 func (u User) GetList(pagination Pagination) (Users, error) {
 	rows, err := sq.
-		Select("id, account, name, mobile, super_manager, insert_time, update_time").
+		Select("id, account, name, contact, super_manager, insert_time, update_time").
 		From(userTable).
 		Where(sq.Eq{"state": Enable}).
 		OrderBy("id DESC").
@@ -85,7 +85,7 @@ func (u User) GetList(pagination Pagination) (Users, error) {
 	for rows.Next() {
 		var user User
 
-		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.SuperManager, &user.InsertTime, &user.UpdateTime); err != nil {
+		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Contact, &user.SuperManager, &user.InsertTime, &user.UpdateTime); err != nil {
 			return users, err
 		}
 		users = append(users, user)
@@ -113,7 +113,7 @@ func (u User) GetTotal() (int64, error) {
 // GetAll -
 func (u User) GetAll() (Users, error) {
 	rows, err := sq.
-		Select("id, account, name, mobile, super_manager").
+		Select("id, account, name, contact, super_manager").
 		From(userTable).
 		Where(sq.Eq{"state": Enable}).
 		OrderBy("id DESC").
@@ -126,7 +126,7 @@ func (u User) GetAll() (Users, error) {
 	for rows.Next() {
 		var user User
 
-		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Mobile, &user.SuperManager); err != nil {
+		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Contact, &user.SuperManager); err != nil {
 			return users, err
 		}
 		users = append(users, user)
@@ -148,8 +148,8 @@ func (u User) AddRow() (int64, error) {
 	}
 	result, err := sq.
 		Insert(userTable).
-		Columns("account", "password", "name", "mobile", "super_manager").
-		Values(u.Account, string(hashedPassword), u.Name, u.Mobile, u.SuperManager).
+		Columns("account", "password", "name", "contact", "super_manager").
+		Values(u.Account, string(hashedPassword), u.Name, u.Contact, u.SuperManager).
 		RunWith(DB).
 		Exec()
 
@@ -166,7 +166,7 @@ func (u User) EditRow() error {
 		Update(userTable).
 		SetMap(sq.Eq{
 			"name":          u.Name,
-			"mobile":        u.Mobile,
+			"contact":        u.Contact,
 			"super_manager": u.SuperManager,
 		}).
 		Where(sq.Eq{"id": u.ID})
