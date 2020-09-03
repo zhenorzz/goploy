@@ -38,7 +38,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="branch" width="160" :label="$t('branch')" align="center" />
-      <el-table-column width="90" :label="$t('autoDeploy')">
+      <el-table-column width="95" :label="$t('autoDeploy')">
         <template slot-scope="scope">
           <span v-if="scope.row.autoDeploy === 0">{{ $t('close') }}</span>
           <span v-else>webhook</span>
@@ -73,7 +73,7 @@
       />
     </el-row>
     <el-dialog :title="$t('setting')" :visible.sync="dialogVisible" width="60%" class="project-setting-dialog" :close-on-click-modal="false">
-      <el-form ref="form" :rules="formRules" :model="formData" label-width="90px">
+      <el-form ref="form" :rules="formRules" :model="formData" label-width="110px">
         <el-tabs v-model="formProps.tab" @tab-click="handleTabClick">
           <el-tab-pane :label="$t('baseSetting')" name="base">
             <el-form-item :label="$t('name')" prop="name">
@@ -126,7 +126,7 @@
               </el-row>
             </el-form-item>
             <el-form-item prop="rsyncOption">
-              <span slot="label">rsync<br> [OPTION...]</span>
+              <span slot="label">Rsync<br> [OPTION...]</span>
               <el-input v-model.trim="formData.rsyncOption" type="textarea" :rows="3" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
             </el-form-item>
             <el-form-item v-show="formProps.showServers" :label="$t('server')" prop="serverIds">
@@ -158,7 +158,7 @@
                 <el-radio :label="true">{{ $t('open') }}</el-radio>
               </el-radio-group>
             </el-form-item>
-            <el-form-item v-show="formProps.symlink" :label="$t('directory')" prop="symlink_path" label-width="50px">
+            <el-form-item v-show="formProps.symlink" :label="$t('directory')" prop="symlink_path" label-width="80px">
               <el-input v-model.trim="formData.symlinkPath" autocomplete="off" />
             </el-form-item>
             <el-row v-show="formProps.symlink" style="margin: 0 10px" v-html="$t('projectPage.symlinkFooterTips')" />

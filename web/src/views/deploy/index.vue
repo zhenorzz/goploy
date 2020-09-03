@@ -32,7 +32,7 @@
           </el-link>
         </template>
       </el-table-column>
-      <el-table-column prop="commit" label="commitID" width="150" align="center">
+      <el-table-column prop="commit" label="CommitID" width="150" align="center">
         <template slot-scope="scope">
           <el-tooltip effect="dark" :content="scope.row['commit']" placement="top">
             <el-link
@@ -54,7 +54,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="updateTime" :label="$t('time')" width="160" align="center" />
-      <el-table-column prop="operation" :label="$t('op')" width="255" fixed="right" align="center">
+      <el-table-column prop="operation" :label="$t('op')" width="310" fixed="right" align="center">
         <template slot-scope="scope">
           <el-row class="operation-btn">
             <el-dropdown
@@ -104,26 +104,30 @@
     <el-dialog :title="$t('detail')" :visible.sync="dialogVisible" class="publish-record">
       <el-row type="flex">
         <el-row v-loading="searchPreview.loading" class="publish-preview">
-          <el-select v-model="searchPreview.userId" style="width:142px" :placeholder="$t('user')" clearable>
-            <el-option
-              v-for="(item, index) in userOption"
-              :key="index"
-              :label="item.userName"
-              :value="item.userId"
-            />
-          </el-select>
-          <el-select v-model="searchPreview.state" :placeholder="$t('state')" style="width:95px" clearable>
-            <el-option :label="$t('success')" :value="1" />
-            <el-option :label="$t('fail')" :value="0" />
-          </el-select>
-          <el-button type="primary" icon="el-icon-search" @click="searchPreviewList">{{ $t('search') }}</el-button>
+          <el-row type="flex">
+            <el-select v-model="searchPreview.userId" :placeholder="$t('user')" clearable>
+              <el-option
+                v-for="(item, index) in userOption"
+                :key="index"
+                :label="item.userName"
+                :value="item.userId"
+              />
+            </el-select>
+            <el-select v-model="searchPreview.state" :placeholder="$t('state')" style="width:95px" clearable>
+              <el-option :label="$t('success')" :value="1" />
+              <el-option :label="$t('fail')" :value="0" />
+            </el-select>
+            <el-button type="primary" icon="el-icon-search" @click="searchPreviewList" />
+          </el-row>
           <el-radio-group v-model="publishToken" @change="handleDetailChange">
             <el-row v-for="(item, index) in gitTraceList" :key="index">
               <el-row style="margin:5px 0">
                 <el-radio class="publish-commit" :label="item.token" border>
                   <span class="publish-name">{{ item.publisherName }}</span> <span class="publish-commitID">commitID: {{ item.commit }}</span>
-                  <span v-if="item.publishState === 1" style="color:#67C23A;float:right;">{{ $t('success') }}</span>
-                  <span v-else style="color:#F56C6C;float:right;">{{ $t('fail') }}</span>
+                  <i v-if="item.publishState === 1" class="el-icon-check" style="color:#67C23A;float:right;font-size:14px;font-weight:900;" />
+                  <i v-else class="el-icon-close" style="color:#F56C6C;float:right;font-size:14px;font-weight:900;" />
+                  <!-- <span v-if="item.publishState === 1" style="color:#67C23A;float:right;">{{ $t('success') }}</span>
+                  <span v-else style="color:#F56C6C;float:right;">{{ $t('fail') }}</span> -->
                 </el-radio>
                 <el-button type="danger" plain @click="rollback(item)">rebuild</el-button>
               </el-row>

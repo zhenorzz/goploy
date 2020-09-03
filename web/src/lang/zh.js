@@ -106,10 +106,10 @@ export default {
   },
   templatePage: {
     scriptNotice: '注意：安装包上传至目标服务器的/tmp目录',
-    templateDeleteTips: '此操作将删除该模板, 是否继续?'
+    templateDeleteTips: '此操作将删除模板({templateName}), 是否继续?'
   },
   serverPage: {
-    sshKeyOwner: 'sshKey所有者',
+    sshKeyOwner: 'SSH-Key 所有者',
     testConnection: '测试连接',
     removeServerTips: '此操作将删除服务器({serverName}), 是否继续?'
   },
@@ -142,7 +142,7 @@ export default {
     <p>可以避免项目在同步传输文件的过程中，外部访问到部分正在同步的文件</p>
     <p>备份最近10次的部署文件，以便快速回滚</p>`,
     symlinkFooterTips: `<p>如果部署路径已存在在目标服务器，请手动删除该目录<span style="color: red">rm -rf 部署路径</span>，否则软链将会不成功</p>
-    <p>如须更换目录，务必手动迁移原先的目录到目标服务器</p>`,
+    <p>如需更换目录，务必手动迁移原先的目录到目标服务器</p>`,
     afterPullScriptLabel: '拉取后运行脚本',
     afterPullScriptTips: `拉取代码后在宿主服务器运行的脚本<br>
     运行方式：打包成一份脚本文件<br>
@@ -155,7 +155,7 @@ export default {
     autoDeployTitle: '构建触发器：达成某种条件后自动构建发布项目',
     autoDeployTips: `前往GitLab、GitHub或Gitee的webhook（可前往谷歌查找各自webhook所在的位置）<br>
     填入连接<span style="color: red">http(s)://域名(IP)/deploy/webhook?project_id={projectId}</span><br>
-    勾选push event即可, (gitlab可以选对应的分支)`,
+    勾选push event即可, (Gitlab可以选对应的分支)`,
     removeProjectTips: '此操作将删除项目({projectName}), 是否继续?',
     removeServerTips: '此操作将永久删除服务器({serverName})的绑定关系, 是否继续?',
     removeUserTips: '此操作将永久删除用户({userName})的绑定关系, 是否继续?'

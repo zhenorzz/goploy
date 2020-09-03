@@ -17,7 +17,7 @@
           {{ scope.row.ip }}:{{ scope.row.port }}
         </template>
       </el-table-column>
-      <el-table-column prop="owner" :label="$t('serverPage.sshKeyOwner')" width="100" show-overflow-tooltip />
+      <el-table-column prop="owner" :label="$t('serverPage.sshKeyOwner')" width="120" show-overflow-tooltip />
       <el-table-column prop="description" :label="$t('desc')" min-width="140" show-overflow-tooltip />
       <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
       <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
@@ -42,7 +42,7 @@
       />
     </el-row>
     <el-dialog :title="$t('setting')" :visible.sync="dialogVisible">
-      <el-form ref="form" v-loading="formProps.loading" :rules="formRules" :model="formData" label-width="120px">
+      <el-form ref="form" v-loading="formProps.loading" :rules="formRules" :model="formData" label-width="130px">
         <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>

@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-form ref="pwdForm" :model="pwdForm" :rules="pwdForm.rules" label-width="100px">
+    <el-form ref="pwdForm" :model="pwdForm" :rules="pwdForm.rules" label-position="top" style="margin-left: 40px">
       <el-form-item :label="$t('userPage.oldPassword')" prop="old">
         <el-input v-model="pwdForm.old" :type="pwdForm.type.old" style="width: 300px" />
         <span class="show-pwd" @click="showPwd('old')">

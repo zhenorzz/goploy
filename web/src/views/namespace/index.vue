@@ -64,7 +64,7 @@
         <el-table-column prop="role" :label="$t('role')" />
         <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
         <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
-        <el-table-column prop="operation" :label="$t('op')" width="70" align="center">
+        <el-table-column prop="operation" :label="$t('op')" width="80" align="center">
           <template slot-scope="scope">
             <el-button type="danger" icon="el-icon-delete" @click="removeUser(scope.row)" />
           </template>
@@ -264,7 +264,7 @@ export default {
     },
 
     removeUser(data) {
-      this.$confirm(this.$i18n.t('memberPage.removeUserTips'), this.$i18n.t('tips'), {
+      this.$confirm(this.$i18n.t('namespacePage.removeUserTips'), this.$i18n.t('tips'), {
         confirmButtonText: this.$i18n.t('confirm'),
         cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'

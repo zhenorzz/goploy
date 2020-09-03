@@ -57,7 +57,7 @@
           <el-table-column prop="humanSize" :label="$t('size')" />
           <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
           <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
-          <el-table-column prop="operation" :label="$t('op')" width="90" align="center">
+          <el-table-column prop="operation" :label="$t('op')" width="110" align="center">
             <template slot-scope="scope">
               <el-upload
                 ref="upload"
@@ -87,7 +87,7 @@
       </el-tab-pane>
     </el-tabs>
     <el-dialog :title="$t('setting')" :visible.sync="dialogVisible">
-      <el-form ref="form" :rules="formRules" :model="formData" label-width="80px">
+      <el-form ref="form" :rules="formRules" :model="formData" label-width="100px">
         <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
@@ -283,7 +283,7 @@ export default {
     },
 
     handleTemplateDelete(data) {
-      this.$confirm(this.$i18n.t('templatePage.templateDeleteTips'), this.$i18n.t('tips'), {
+      this.$confirm(this.$i18n.t('templatePage.templateDeleteTips', { templateName: data.name }), this.$i18n.t('tips'), {
         confirmButtonText: this.$i18n.t('confirm'),
         cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'

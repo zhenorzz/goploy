@@ -13,7 +13,7 @@
       <el-table-column prop="account" :label="$t('account')" />
       <el-table-column prop="name" :label="$t('name')" />
       <el-table-column prop="contact" :label="$t('contact')" show-overflow-tooltip />
-      <el-table-column prop="superManager" :label="$t('admin')" width="50" align="center">
+      <el-table-column prop="superManager" :label="$t('admin')" width="60" align="center">
         <template slot-scope="scope">
           {{ $t(`boolOption[${scope.row.superManager}]`) }}
         </template>

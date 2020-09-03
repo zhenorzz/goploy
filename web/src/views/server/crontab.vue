@@ -73,12 +73,12 @@
         <el-button :disabled="formProps.disabled" type="primary" @click="submit">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
-    <el-dialog :title="$t('remove')" :visible.sync="crontabRemoveVisible" width="400px">
-      <el-form ref="crontabRemoveForm" :model="crontabRemoveFormData" label-width="80px">
-        <el-form-item :label="$t('command')" label-width="45px">
+    <el-dialog :title="$t('remove')" :visible.sync="crontabRemoveVisible" width="500px">
+      <el-form ref="crontabRemoveForm" :model="crontabRemoveFormData" label-position="top">
+        <el-form-item :label="$t('command')">
           <span>{{ crontabRemoveFormProps.command }}</span>
         </el-form-item>
-        <el-form-item :label="$t('crontabPage.removeServerCrontabLabel')" label-width="170px">
+        <el-form-item :label="$t('crontabPage.removeServerCrontabLabel')">
           <el-radio-group v-model="crontabRemoveFormData.radio">
             <el-radio :label="0">{{ $t('boolOption[0]') }}</el-radio>
             <el-radio :label="1">{{ $t('boolOption[1]') }}</el-radio>
