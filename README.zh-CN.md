@@ -13,7 +13,8 @@
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg">
   </a>
 </p>
-[English](./README.md) | 简体中文
+
+[English](./README.md)| 简体中文
 
 名字来源：go + deploy
 
