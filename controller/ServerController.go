@@ -238,7 +238,7 @@ func remoteInstall(userInfo model.User, server model.Server, template model.Temp
 			core.Log(core.ERROR, server.LastInstallToken+":"+err.Error())
 			return
 		}
-		srcPath := utils.GetPackagePath()
+		srcPath := core.GetPackagePath()
 		remoteMachine := server.Owner + "@" + server.IP
 		destPath := remoteMachine + ":/tmp/goploy"
 		rsyncOption := []string{

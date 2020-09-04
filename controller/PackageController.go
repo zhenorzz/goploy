@@ -2,7 +2,6 @@ package controller
 
 import (
 	"database/sql"
-	"github.com/zhenorzz/goploy/utils"
 	"io/ioutil"
 	"path"
 	"strconv"
@@ -76,7 +75,7 @@ func (Package) Upload(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	filePath := path.Join(utils.GetPackagePath(), handler.Filename)
+	filePath := path.Join(core.GetPackagePath(), handler.Filename)
 	if err := ioutil.WriteFile(filePath, fileBytes, 0755); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}

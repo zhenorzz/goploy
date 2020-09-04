@@ -15,7 +15,7 @@ type ProjectMessage struct {
 
 const (
 	ProjectFail     = 0
-	GitClone        = 1
+	GitCreate       = 1
 	GitReset        = 1
 	GitSwitchBranch = 2
 	GitClean        = 3

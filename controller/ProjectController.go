@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/service"
 	"github.com/zhenorzz/goploy/utils"
 	"os"
 	"os/exec"
@@ -196,7 +197,7 @@ func (project Project) Add(gp *core.Goploy) *core.Response {
 	if err := projectUsersModel.AddMany(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	go repoCreate(projectID)
+	go service.Repository{ProjectID: projectID}.Create()
 	return &core.Response{}
 }
 
@@ -267,7 +268,7 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 	}
 
 	if reqData.URL != projectData.URL {
-		srcPath := utils.GetProjectPath(projectData.Name)
+		srcPath := core.GetProjectPath(projectData.Name)
 		_, err := os.Stat(srcPath)
 		if err == nil || os.IsNotExist(err) == false {
 			repo := reqData.URL
@@ -280,7 +281,7 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 	}
 
 	if reqData.Branch != projectData.Branch {
-		srcPath := utils.GetProjectPath(projectData.Name)
+		srcPath := core.GetProjectPath(projectData.Name)
 		_, err := os.Stat(srcPath)
 		if err == nil || os.IsNotExist(err) == false {
 			cmd := exec.Command("git", "checkout", "-f", "-B", reqData.Branch, "origin/"+reqData.Branch)
@@ -293,10 +294,10 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 
 	// edit folder when name was change
 	if reqData.Name != projectData.Name {
-		srcPath := utils.GetProjectPath(projectData.Name)
+		srcPath := core.GetProjectPath(projectData.Name)
 		_, err := os.Stat(srcPath)
 		if err == nil || os.IsNotExist(err) == false {
-			if err := os.Rename(srcPath, utils.GetProjectPath(reqData.Name)); err != nil {
+			if err := os.Rename(srcPath, core.GetProjectPath(reqData.Name)); err != nil {
 				return &core.Response{Code: core.Error, Message: "Folder rename fail, you can do it manually, reason: " + err.Error()}
 			}
 		}
@@ -346,7 +347,7 @@ func (project Project) Remove(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	srcPath := utils.GetProjectPath(projectData.Name)
+	srcPath := core.GetProjectPath(projectData.Name)
 	if err := os.Remove(srcPath); err != nil {
 		return &core.Response{Code: core.Error, Message: "Delete folder fail"}
 	}
@@ -537,46 +538,4 @@ func (project Project) RemoveTask(gp *core.Goploy) *core.Response {
 	}
 
 	return &core.Response{}
-}
-
-// repoCreate -
-func repoCreate(projectID int64) {
-	project, err := model.Project{ID: projectID}.GetData()
-	if err != nil {
-		core.Log(core.TRACE, "The project does not exist, projectID:"+strconv.FormatInt(projectID, 10))
-		return
-	}
-	srcPath := utils.GetProjectPath(project.Name)
-	if _, err := os.Stat(srcPath); err != nil {
-		if err := os.RemoveAll(srcPath); err != nil {
-			core.Log(core.TRACE, "The project fail to remove, projectID:"+strconv.FormatInt(project.ID, 10))
-			return
-		}
-		repo := project.URL
-		cmd := exec.Command("git", "clone", repo, srcPath)
-		var out bytes.Buffer
-		cmd.Stdout = &out
-
-		if err := cmd.Run(); err != nil {
-			core.Log(core.ERROR, "The project fail to initialize, projectID:"+strconv.FormatInt(project.ID, 10)+err.Error())
-			return
-		}
-
-		if project.Branch != "master" {
-			checkout := exec.Command("git", "checkout", "-b", project.Branch, "origin/"+project.Branch)
-			checkout.Dir = srcPath
-			var checkoutOutbuf, checkoutErrbuf bytes.Buffer
-			checkout.Stdout = &checkoutOutbuf
-			checkout.Stderr = &checkoutErrbuf
-			if err := checkout.Run(); err != nil {
-				core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+checkoutErrbuf.String())
-				os.RemoveAll(srcPath)
-				return
-			}
-
-		}
-		core.Log(core.TRACE, "The project success to initialize, projectID:"+strconv.FormatInt(project.ID, 10))
-
-	}
-	return
 }

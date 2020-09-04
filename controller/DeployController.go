@@ -101,7 +101,7 @@ func (deploy Deploy) GetCommitList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	srcPath := utils.GetProjectPath(project.Name)
+	srcPath := core.GetProjectPath(project.Name)
 	git := utils.GIT{Dir: srcPath}
 	if err := git.Clean([]string{"-f"}); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}

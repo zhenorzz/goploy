@@ -192,44 +192,18 @@ func gitRollback(commitSha string, project model.Project) (utils.Commit, error) 
 }
 
 func gitCreate(project model.Project) error {
-	srcPath := utils.GetProjectPath(project.Name)
-	// 已有文件夹无需删除
-	if _, err := os.Stat(srcPath); err == nil {
-		return nil
-	}
-	// 删除目录
-	if err := os.RemoveAll(srcPath); err != nil {
+	if err := (Repository{ProjectID: project.ID}.Create()); err != nil {
 		return err
 	}
-	git := utils.GIT{}
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
-		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitClone, Message: "git clone"},
+		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitCreate, Message: "git create"},
 	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" project initial, git clone")
-	if err := git.Clone([]string{project.URL, srcPath}); err != nil {
-		core.Log(core.ERROR, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" project initial fail, "+err.Error())
-		return errors.New("project initial fail")
-	}
-
-	if project.Branch != "master" {
-		ws.GetHub().Data <- &ws.Data{
-			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitSwitchBranch, Message: "git switch branch"},
-		}
-		git.Dir = srcPath
-		if err := git.Checkout([]string{"-b", project.Branch, "origin/" + project.Branch}); err != nil {
-			core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
-			os.RemoveAll(srcPath)
-			return errors.New(git.Err.String())
-		}
-	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatUint(uint64(project.ID), 10)+" project initial success")
 	return nil
 }
 
 func gitPull(project model.Project) error {
-	git := utils.GIT{Dir: utils.GetProjectPath(project.Name)}
+	git := utils.GIT{Dir: core.GetProjectPath(project.Name)}
 	// git clean removes all not tracked files
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
@@ -265,7 +239,7 @@ func gitPull(project model.Project) error {
 }
 
 func gitReset(commit string, project model.Project) error {
-	srcPath := utils.GetProjectPath(project.Name)
+	srcPath := core.GetProjectPath(project.Name)
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
 		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitReset, Message: "git reset"},
@@ -286,7 +260,7 @@ func gitReset(commit string, project model.Project) error {
 }
 
 func gitCommitLog(project model.Project) (utils.Commit, error) {
-	git := utils.GIT{Dir: utils.GetProjectPath(project.Name)}
+	git := utils.GIT{Dir: core.GetProjectPath(project.Name)}
 
 	if err := git.Log([]string{"--stat", "--pretty=format:`start`%H`%an`%at`%s`", "-n", "1"}); err != nil {
 		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
@@ -297,7 +271,7 @@ func gitCommitLog(project model.Project) (utils.Commit, error) {
 }
 
 func runAfterPullScript(project model.Project) (string, error) {
-	srcPath := utils.GetProjectPath(project.Name)
+	srcPath := core.GetProjectPath(project.Name)
 	scriptName := "goploy-after-pull." + utils.GetScriptExt(project.AfterPullScriptMode)
 	scriptFullName := path.Join(srcPath, scriptName)
 	scriptMode := "bash"
@@ -338,7 +312,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 	}
 
 	if len(project.AfterDeployScript) != 0 {
-		scriptName := path.Join(utils.GetProjectPath(project.Name), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
+		scriptName := path.Join(core.GetProjectPath(project.Name), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
 		ioutil.WriteFile(scriptName, []byte(project.AfterDeployScript), 0755)
 	}
 
@@ -348,7 +322,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 		destDir = path.Join(project.SymlinkPath, project.Name, project.LastPublishToken)
 		rsyncOption = append(rsyncOption, "--rsync-path=mkdir -p "+destDir+" && rsync")
 	}
-	srcPath := utils.GetProjectPath(project.Name) + "/"
+	srcPath := core.GetProjectPath(project.Name) + "/"
 	destPath := remoteMachine + ":" + destDir
 	rsyncOption = append(rsyncOption, srcPath, destPath)
 	cmd := exec.Command("rsync", rsyncOption...)
