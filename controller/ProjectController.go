@@ -268,7 +268,7 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 	}
 
 	if reqData.URL != projectData.URL {
-		srcPath := core.GetProjectPath(projectData.Name)
+		srcPath := core.GetProjectPath(projectData.ID)
 		_, err := os.Stat(srcPath)
 		if err == nil || os.IsNotExist(err) == false {
 			repo := reqData.URL
@@ -281,7 +281,7 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 	}
 
 	if reqData.Branch != projectData.Branch {
-		srcPath := core.GetProjectPath(projectData.Name)
+		srcPath := core.GetProjectPath(projectData.ID)
 		_, err := os.Stat(srcPath)
 		if err == nil || os.IsNotExist(err) == false {
 			cmd := exec.Command("git", "checkout", "-f", "-B", reqData.Branch, "origin/"+reqData.Branch)
@@ -292,18 +292,6 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 		}
 	}
 
-	// edit folder when name was change
-	if reqData.Name != projectData.Name {
-		srcPath := core.GetProjectPath(projectData.Name)
-		_, err := os.Stat(srcPath)
-		if err == nil || os.IsNotExist(err) == false {
-			if err := os.Rename(srcPath, core.GetProjectPath(reqData.Name)); err != nil {
-				return &core.Response{Code: core.Error, Message: "Folder rename fail, you can do it manually, reason: " + err.Error()}
-			}
-		}
-	}
-
-	//go repoCreate(reqData.ID)
 	return &core.Response{}
 }
 
@@ -347,7 +335,7 @@ func (project Project) Remove(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	srcPath := core.GetProjectPath(projectData.Name)
+	srcPath := core.GetProjectPath(projectData.ID)
 	if err := os.Remove(srcPath); err != nil {
 		return &core.Response{Code: core.Error, Message: "Delete folder fail"}
 	}

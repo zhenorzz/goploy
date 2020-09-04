@@ -203,7 +203,7 @@ func gitCreate(project model.Project) error {
 }
 
 func gitPull(project model.Project) error {
-	git := utils.GIT{Dir: core.GetProjectPath(project.Name)}
+	git := utils.GIT{Dir: core.GetProjectPath(project.ID)}
 	// git clean removes all not tracked files
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
@@ -239,7 +239,7 @@ func gitPull(project model.Project) error {
 }
 
 func gitReset(commit string, project model.Project) error {
-	srcPath := core.GetProjectPath(project.Name)
+	srcPath := core.GetProjectPath(project.ID)
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
 		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitReset, Message: "git reset"},
@@ -260,7 +260,7 @@ func gitReset(commit string, project model.Project) error {
 }
 
 func gitCommitLog(project model.Project) (utils.Commit, error) {
-	git := utils.GIT{Dir: core.GetProjectPath(project.Name)}
+	git := utils.GIT{Dir: core.GetProjectPath(project.ID)}
 
 	if err := git.Log([]string{"--stat", "--pretty=format:`start`%H`%an`%at`%s`", "-n", "1"}); err != nil {
 		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
@@ -271,7 +271,7 @@ func gitCommitLog(project model.Project) (utils.Commit, error) {
 }
 
 func runAfterPullScript(project model.Project) (string, error) {
-	srcPath := core.GetProjectPath(project.Name)
+	srcPath := core.GetProjectPath(project.ID)
 	scriptName := "goploy-after-pull." + utils.GetScriptExt(project.AfterPullScriptMode)
 	scriptFullName := path.Join(srcPath, scriptName)
 	scriptMode := "bash"
@@ -312,7 +312,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 	}
 
 	if len(project.AfterDeployScript) != 0 {
-		scriptName := path.Join(core.GetProjectPath(project.Name), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
+		scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
 		ioutil.WriteFile(scriptName, []byte(project.AfterDeployScript), 0755)
 	}
 
@@ -322,7 +322,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 		destDir = path.Join(project.SymlinkPath, project.Name, project.LastPublishToken)
 		rsyncOption = append(rsyncOption, "--rsync-path=mkdir -p "+destDir+" && rsync")
 	}
-	srcPath := core.GetProjectPath(project.Name) + "/"
+	srcPath := core.GetProjectPath(project.ID) + "/"
 	destPath := remoteMachine + ":" + destDir
 	rsyncOption = append(rsyncOption, srcPath, destPath)
 	cmd := exec.Command("rsync", rsyncOption...)

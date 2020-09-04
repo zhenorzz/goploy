@@ -104,8 +104,8 @@
     <el-dialog :title="$t('detail')" :visible.sync="dialogVisible" class="publish-record">
       <el-row type="flex">
         <el-row v-loading="searchPreview.loading" class="publish-preview">
-          <el-row type="flex">
-            <el-select v-model="searchPreview.userId" :placeholder="$t('user')" clearable>
+          <el-row>
+            <el-select v-model="searchPreview.userId" :placeholder="$t('user')" style="width: 170px;" clearable>
               <el-option
                 v-for="(item, index) in userOption"
                 :key="index"
@@ -113,7 +113,7 @@
                 :value="item.userId"
               />
             </el-select>
-            <el-select v-model="searchPreview.state" :placeholder="$t('state')" style="width:95px" clearable>
+            <el-select v-model="searchPreview.state" :placeholder="$t('state')" style="width: 95px;" clearable>
               <el-option :label="$t('success')" :value="1" />
               <el-option :label="$t('fail')" :value="0" />
             </el-select>

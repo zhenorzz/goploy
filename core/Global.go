@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -56,6 +57,6 @@ func GetPackagePath() string {
 	return path.Join(GetRepositoryPath(), "template-package")
 }
 
-func GetProjectPath(name string) string {
-	return path.Join(GetRepositoryPath(), name)
+func GetProjectPath(projectID int64) string {
+	return path.Join(GetRepositoryPath(), "project_"+strconv.FormatInt(projectID, 10))
 }
