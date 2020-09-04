@@ -13,83 +13,83 @@
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg">
   </a>
 </p>
+English | [简体中文](./README.zh-CN.md)
 
-名字来源：go + deploy
+Name: go + deploy
 
-一个web部署系统工具!
+A web deployment system tool!
 
-支持各种代码发布、回滚，可以通过web来一键完成！
+Support all kinds of code release and rollback, which can be done through the web with one click!
 
-完整的安装指引，上手无难度！
+Complete installation instructions, no difficulty in getting started!
 
-> 重要提示: master 分支在开发过程中可能处于 不稳定或者不可用状态 。 请通过releases 而非 master 去获取稳定的二进制文件。
+> Important note: The master branch may be in an unstable or unavailable state during the development process. Please use releases instead of master to obtain stable binary files.
 
-[DEMO](http://49.234.66.193:3000) admin:admin!@# (不一定能打开，看心情)
+[DEMO](http://49.234.66.193:3000) admin:admin!@# (It may not be able to open, depending on the mood)
 
-[帮助文档](https://zhenorzz.gitee.io/goploy)
+[Document](https://zhenorzz.gitee.io/goploy)
 
-## 内容列表
+## Content
 
-- [背景](#背景)
-- [安装](#安装)
-- [使用](#使用)
-- [原理图](#原理图)
-- [反向代理](#反向代理)
-- [后端开发说明](#后端开发说明)
-- [前端开发说明](#前端开发说明)
-- [相关仓库](#相关仓库)
-- [如何贡献](#如何贡献)
-- [使用许可](#使用许可)
+- [Background](#Background)
+- [Install](#Install)
+- [Use](#Use)
+- [Preview](#Preview)
+- [Diagram](#Diagram)
+- [Reverse proxy](#Reverse proxy)
+- [Backend development instructions](#Backend development instructions)
+- [Frontend development instructions](#Frontend development instructions)
+- [Repository](#Repository)
+- [Contribute](#Contribute)
+- [License](#License)
 
-## 背景
-大部分流行的发布工具功能虽然强大，但是配置较为麻烦，上手难度大，中小型项目难以使用。
+## Background
+Although most popular publishing tools are powerful, they are cumbersome to configure, difficult to get started, and difficult to use for projects.
 
-## 安装
-1. 安装mysql
-2. 下载最新的release
+## Install
+1. Install mysql
+2. Download the latest release
 
-## 使用
-1. 运行./goploy or goploy.exe or goploy.mac (运行不了可能需要 chmod a+x, 再不行就发issue或加群)
-2. 根据安装指引填入相关的配置
-3. web http://ip:port  (账号:密码 admin:admin!@#)
+## Use
+1. Run ./goploy or goploy.exe or goploy.mac
+2. Follow the installation guide
+3. web http://ip:port  (Account:Password admin:admin!@#)
 
-## 预览
-![预览](./preview.png)
+## Preview
+![Preview](./preview.png)
 
-## 原理图
-![原理图](./goploy.png)
+## Diagram
+![Diagram](./goploy.png)
 
-## 反向代理
-nginx反向代理记得升级ws协议
+## Reverse proxy
+Nginx reverse proxy remember to upgrade the ws protocol
 ```nginx
 proxy_set_header Upgrade         $http_upgrade;
 proxy_set_header Connection      "upgrade";
 ```
 
-## 后端开发说明
-1. 安装go，必须是1.13以上
-2. 项目使用go mod管理
-3. 运行go run main.go
-4. 或者使用gin（可以特更新代码，改变就生效）
+## Backend development instructions
+1. Install go >= 1.13
+2. go mod required
+3. go run main.go
+4. use gin (hot reload)
 
-## 前端开发说明
+## Frontend development instructions
 1. cd web
-2. 修改.env.development
+2. vi .env.development
 3. npm run dev
 
-## 相关仓库
+## Repository
 
 - [gin](https://github.com/codegangsta/gin) - GO hot reload。
-- [element-ui](https://github.com/ElemeFE/element) - 前端UI样式。
+- [element-ui](https://github.com/ElemeFE/element) - UI。
 
-## 如何贡献
+## Contribute
 
-非常欢迎你的加入! （QQ群903750786）
+[Issue](https://github.com/zhenorzz/goploy/issues/new) 
 
-[提一个Issue](https://github.com/zhenorzz/goploy/issues/new) 
+Create a pull request.
 
-提交一个 Pull Request.
-
-## 使用许可
+## License
 
 [MIT](LICENSE) © zhenorzz

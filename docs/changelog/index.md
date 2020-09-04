@@ -1,14 +1,27 @@
 # 更新日志
 
+## 1.0.2
+
+*2020-09-04*
+
+### New features
+- I18n
+
+### Bug fixes
+- Fix SQL error
+
+### Optimization
+- project path 
+  - change project_name to project_id
+
+
 ## 1.0.1
 
 *2020-08-21*
 
-### 新特性
+### New features
 - namespace
-  - 新增空间概念
 
-### 优化
-
-- 自动构建
-  - 更改project_name为project_id作为触发webhook的标识
+### Optimization
+- Auto deploy
+  - change project_name to project_id
