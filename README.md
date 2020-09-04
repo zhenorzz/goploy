@@ -37,9 +37,8 @@ Complete installation instructions, no difficulty in getting started!
 - [Use](#Use)
 - [Preview](#Preview)
 - [Diagram](#Diagram)
-- [Reverse proxy](#Reverse proxy)
-- [Backend development instructions](#Backend development instructions)
-- [Frontend development instructions](#Frontend development instructions)
+- [Backend](#Backend)
+- [Frontend](#Frontend)
 - [Repository](#Repository)
 - [Contribute](#Contribute)
 - [License](#License)
@@ -62,20 +61,13 @@ Although most popular publishing tools are powerful, they are cumbersome to conf
 ## Diagram
 ![Diagram](./goploy.png)
 
-## Reverse proxy
-Nginx reverse proxy remember to upgrade the ws protocol
-```nginx
-proxy_set_header Upgrade         $http_upgrade;
-proxy_set_header Connection      "upgrade";
-```
-
-## Backend development instructions
+## Backend
 1. Install go >= 1.13
 2. go mod required
 3. go run main.go
 4. use gin (hot reload)
 
-## Frontend development instructions
+## Frontend
 1. cd web
 2. vi .env.development
 3. npm run dev
