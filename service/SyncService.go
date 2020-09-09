@@ -485,12 +485,15 @@ func notify(project model.Project, deployState int, detail string) {
 			core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
 		}
 	} else if project.NotifyType == model.NotifyDingTalk {
-		type message struct {
-			Msgtype string `json:"msgtype"`
-			Title   string `json:"title"`
-			Text    string `json:"text"`
+		type markdown struct {
+			Title string `json:"title"`
+			Text  string `json:"text"`
 		}
-		text := ""
+		type message struct {
+			Msgtype  string   `json:"msgtype"`
+			Markdown markdown `json:"markdown"`
+		}
+		text := "#### Deploy: "+ project.Name + "\n"
 		if deployState == model.ProjectFail {
 			text += "> State: <font color=\"red\">fail</font> \n "
 			text += "> Detail: <font color=\"comment\">" + detail + "</font>"
@@ -500,8 +503,10 @@ func notify(project model.Project, deployState int, detail string) {
 
 		msg := message{
 			Msgtype: "markdown",
-			Title:   "Deploy:" + project.Name,
-			Text:    text,
+			Markdown: markdown{
+				Title: project.Name,
+				Text:  text,
+			},
 		}
 		b, _ := json.Marshal(msg)
 		_, err := http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))

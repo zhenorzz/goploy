@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"github.com/patrickmn/go-cache"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"strconv"
@@ -65,21 +67,35 @@ func notice(monitor model.Monitor, err error) {
 		b, _ := json.Marshal(msg)
 		http.Post(monitor.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	} else if monitor.NotifyType == model.NotifyDingTalk {
-		type message struct {
-			Msgtype string `json:"msgtype"`
-			Title   string `json:"title"`
-			Text    string `json:"text"`
+		type markdown struct {
+			Title string `json:"title"`
+			Text  string `json:"text"`
 		}
-		text := "> <font color=\"red\">can not access</font> \n "
-		text += "> <font color=\"comment\">" + err.Error() + "</font> \n "
+		type message struct {
+			Msgtype  string   `json:"msgtype"`
+			Markdown markdown `json:"markdown"`
+		}
+		text := "#### Monitor: "+ monitor.Name + " can not access \n >"+  err.Error()
 
 		msg := message{
 			Msgtype: "markdown",
-			Title:   "Monitor: " + monitor.Name,
-			Text:    text,
+			Markdown: markdown{
+				Title: monitor.Name,
+				Text:  text,
+			},
 		}
 		b, _ := json.Marshal(msg)
-		http.Post(monitor.NotifyTarget, "application/json", bytes.NewBuffer(b))
+		resp, err := http.Post(monitor.NotifyTarget, "application/json", bytes.NewBuffer(b))
+		if err != nil {
+			fmt.Println(err)
+		}
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		fmt.Println(string(body))
 	} else if monitor.NotifyType == model.NotifyFeiShu {
 		type message struct {
 			Title string `json:"title"`
