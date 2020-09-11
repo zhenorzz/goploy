@@ -28,7 +28,11 @@
     >
       <el-row class="transform-content">
         <el-row v-show="transformType === 'time'">
-          <el-row>
+          <el-button style="margin-left:80px;" type="primary" @click="timestamp('now')">{{ $t('now') }}</el-button>
+          <el-button type="primary" @click="timestamp('today')">{{ $t('today') }}</el-button>
+          <el-button type="primary" @click="timestamp('m1d')">{{ $t('m1d') }}</el-button>
+          <el-button type="primary" @click="timestamp('p1d')">{{ $t('p1d') }}</el-button>
+          <el-row style="margin-top: 10px;">
             <span style="display:inline-block;width:70px;font-size:14px;margin-right:10px">Timestamp</span>
             <el-input v-model="timeExchange.timestamp" style="width: 200px" :placeholder="timeExchange.placeholder" clearable />
             <el-button type="primary" @click="timestampToDate">>></el-button>
@@ -254,6 +258,26 @@ export default {
     showTransformDialog(type) {
       this.transformVisible = true
       this.transformType = type
+    },
+    timestamp(value) {
+      switch (value) {
+        case 'now':
+          this.timeExchange.timestamp = Date.parse(new Date()) / 1000
+          break
+        case 'today':
+          this.timeExchange.timestamp = new Date(new Date().setHours(0, 0, 0, 0)) / 1000
+          break
+        case 'm1d':
+          this.timeExchange.timestamp = this.timeExchange.timestamp > 0 ? this.timeExchange.timestamp - 86400 : Date.parse(new Date()) / 1000 - 86400
+          break
+        case 'p1d':
+          this.timeExchange.timestamp = this.timeExchange.timestamp > 0 ? this.timeExchange.timestamp + 86400 : Date.parse(new Date()) / 1000 + 86400
+          break
+        default:
+          this.timeExchange.timestamp = Date.parse(new Date()) / 1000
+      }
+
+      this.timeExchange.date = parseTime(this.timeExchange.timestamp)
     },
     timestampToDate() {
       this.timeExchange.date = parseTime(this.timeExchange.timestamp)
