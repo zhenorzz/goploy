@@ -6,9 +6,11 @@
   <a href="#">
       <img src="https://img.shields.io/badge/readme%20style-standard-brightgreen.svg">
   </a>
+  
   <a href="#">
       <img src="https://img.shields.io/badge/give%20me-a%20star-green.svg">
-    </a>
+  </a>
+    
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg">
   </a>
@@ -40,4 +42,4 @@
 
 ## 使用许可
 
-[MIT](LICENSE) © zhenorzz
+[MIT](../LICENSE) © zhenorzz
