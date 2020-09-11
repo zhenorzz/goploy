@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"github.com/patrickmn/go-cache"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
-	"io/ioutil"
+	"github.com/zhenorzz/goploy/ws"
 	"net"
 	"net/http"
 	"strconv"
@@ -21,7 +20,7 @@ func monitorTask() {
 		core.Log(core.ERROR, "get monitor list error, detail:"+err.Error())
 	}
 	for _, monitor := range monitors {
-		monitorCache := map[string]int64{"errorTimes": 0, "time": 0}
+		monitorCache := map[string]int64{"errorTimes": 0, "notifyTimes": 0, "time": 0}
 		if x, found := core.Cache.Get("monitor:" + strconv.Itoa(int(monitor.ID))); found {
 			monitorCache = x.(map[string]int64)
 		}
@@ -35,9 +34,19 @@ func monitorTask() {
 				core.Log(core.ERROR, "monitor "+monitor.Name+" encounter error, "+err.Error())
 				if monitor.Times == uint16(monitorCache["errorTimes"]) {
 					monitorCache["errorTimes"] = 0
+					monitorCache["notifyTimes"]++
 					notice(monitor, err)
+					if monitor.NotifyTimes == uint16(monitorCache["notifyTimes"]) {
+						monitorCache["notifyTimes"] = 0
+						monitor.TurnOff(err.Error())
+						ws.GetHub().Data <- &ws.Data{
+							Type:    ws.TypeMonitor,
+							Message: ws.MonitorMessage{MonitorID: monitor.ID, State: ws.MonitorTurnOff, ErrorContent: err.Error()},
+						}
+					}
 				}
 			} else {
+				monitorCache["errorTimes"] = 0
 				conn.Close()
 			}
 			core.Cache.Set("monitor:"+strconv.Itoa(int(monitor.ID)), monitorCache, cache.DefaultExpiration)
@@ -75,7 +84,7 @@ func notice(monitor model.Monitor, err error) {
 			Msgtype  string   `json:"msgtype"`
 			Markdown markdown `json:"markdown"`
 		}
-		text := "#### Monitor: "+ monitor.Name + " can not access \n >"+  err.Error()
+		text := "#### Monitor: " + monitor.Name + " can not access \n >" + err.Error()
 
 		msg := message{
 			Msgtype: "markdown",
@@ -85,17 +94,7 @@ func notice(monitor model.Monitor, err error) {
 			},
 		}
 		b, _ := json.Marshal(msg)
-		resp, err := http.Post(monitor.NotifyTarget, "application/json", bytes.NewBuffer(b))
-		if err != nil {
-			fmt.Println(err)
-		}
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		fmt.Println(string(body))
+		http.Post(monitor.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	} else if monitor.NotifyType == model.NotifyFeiShu {
 		type message struct {
 			Title string `json:"title"`

@@ -2,7 +2,6 @@ package controller
 
 import (
 	"bytes"
-	"database/sql"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/service"
@@ -135,11 +134,6 @@ func (project Project) Add(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: "Invalid rsync option format"}
 	}
 
-	_, err := model.Project{Name: reqData.Name}.GetDataByName()
-	if err != sql.ErrNoRows {
-		return &core.Response{Code: core.Error, Message: "The project name is already exist"}
-	}
-
 	projectID, err := model.Project{
 		NamespaceID:           gp.Namespace.ID,
 		Name:                  reqData.Name,
@@ -226,19 +220,6 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 
 	if _, err := utils.ParseCommandLine(reqData.RsyncOption); err != nil {
 		return &core.Response{Code: core.Error, Message: "Invalid rsync option format"}
-	}
-
-	projectList, err := model.Project{NamespaceID: gp.Namespace.ID, Name: reqData.Name}.GetAllByName()
-	if err != nil {
-		if err != sql.ErrNoRows {
-			return &core.Response{Code: core.Error, Message: err.Error()}
-		}
-	} else {
-		for _, projectData := range projectList {
-			if projectData.ID != reqData.ID {
-				return &core.Response{Code: core.Error, Message: "The project name is already exist"}
-			}
-		}
 	}
 
 	projectData, err := model.Project{ID: reqData.ID}.GetData()
@@ -336,8 +317,8 @@ func (project Project) Remove(gp *core.Goploy) *core.Response {
 	}
 
 	srcPath := core.GetProjectPath(projectData.ID)
-	if err := os.Remove(srcPath); err != nil {
-		return &core.Response{Code: core.Error, Message: "Delete folder fail"}
+	if err := os.RemoveAll(srcPath); err != nil {
+		return &core.Response{Code: core.Error, Message: "Delete folder fail, Detail: " + err.Error()}
 	}
 
 	return &core.Response{}

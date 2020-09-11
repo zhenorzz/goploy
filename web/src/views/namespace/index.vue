@@ -5,6 +5,7 @@
     </el-row>
     <el-table
       :key="tableHeight"
+      v-loading="tableLoading"
       border
       stripe
       highlight-current-row
@@ -118,6 +119,7 @@ export default {
       dialogUserVisible: false,
       dialogAddUserVisible: false,
       userOption: [],
+      tableLoading: false,
       tableData: [],
       tableUserData: [],
       pagination: {
@@ -163,8 +165,11 @@ export default {
   },
   methods: {
     getList() {
+      this.tableLoading = true
       getList(this.pagination).then((response) => {
         this.tableData = response.data.list
+      }).finally(() => {
+        this.tableLoading = false
       })
     },
 

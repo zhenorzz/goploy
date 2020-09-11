@@ -50,6 +50,7 @@ export default {
   op: 'Operation',
   add: 'Add',
   edit: 'Edit',
+  copy: 'Copy',
   upload: 'Upload',
   uploading: 'Uploading',
   reUpload: 'Reupload',
@@ -122,7 +123,9 @@ export default {
   },
   monitorPage: {
     testAppState: 'Test APP state',
-    failTimes: 'failure times',
+    failTimes: 'Failure times',
+    notifyTimes: 'Notice times',
+    errorContent: 'Error content',
     toggleStateTips: 'This action will suspend the monitoring application({monitorName}), continue?',
     removeMontiorTips: 'This action will no longer monitor the app({monitorName}), continue?'
   },

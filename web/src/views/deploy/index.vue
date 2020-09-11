@@ -5,6 +5,7 @@
     </el-row>
     <el-table
       :key="tableHeight"
+      v-loading="tableloading"
       border
       stripe
       highlight-current-row
@@ -350,6 +351,7 @@ export default {
       taskDialogVisible: false,
       taskListDialogVisible: false,
       dialogVisible: false,
+      tableloading: false,
       tableData: [],
       pagination: {
         total: 0,
@@ -468,6 +470,7 @@ export default {
     },
 
     getList() {
+      this.tableloading = true
       getList(this.projectName).then((response) => {
         this.tableData = response.data.list.map(element => {
           element.progressPercentage = 0
@@ -492,6 +495,8 @@ export default {
           return element
         })
         this.pagination.total = this.tableData.length
+      }).finally(() => {
+        this.tableloading = false
       })
     },
 

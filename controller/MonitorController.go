@@ -66,6 +66,7 @@ func (monitor Monitor) Add(gp *core.Goploy) *core.Response {
 		Times        uint16 `json:"times" validate:"gt=0"`
 		NotifyType   uint8  `json:"notifyType" validate:"gt=0"`
 		NotifyTarget string `json:"notifyTarget" validate:"required"`
+		NotifyTimes  uint16 `json:"notifyTimes" validate:"gt=0"`
 		Description  string `json:"description" validate:"max=255"`
 	}
 	type RespData struct {
@@ -85,6 +86,7 @@ func (monitor Monitor) Add(gp *core.Goploy) *core.Response {
 		Times:        reqData.Times,
 		NotifyType:   reqData.NotifyType,
 		NotifyTarget: reqData.NotifyTarget,
+		NotifyTimes:  reqData.NotifyTimes,
 		Description:  reqData.Description,
 	}.AddRow()
 
@@ -105,6 +107,7 @@ func (monitor Monitor) Edit(gp *core.Goploy) *core.Response {
 		Times        uint16 `json:"times" validate:"gt=0"`
 		NotifyType   uint8  `json:"notifyType" validate:"gt=0"`
 		NotifyTarget string `json:"notifyTarget" validate:"required"`
+		NotifyTimes  uint16 `json:"notifyTimes" validate:"gt=0"`
 		Description  string `json:"description" validate:"max=255"`
 	}
 	var reqData ReqData
@@ -120,6 +123,7 @@ func (monitor Monitor) Edit(gp *core.Goploy) *core.Response {
 		Times:        reqData.Times,
 		NotifyType:   reqData.NotifyType,
 		NotifyTarget: reqData.NotifyTarget,
+		NotifyTimes:  reqData.NotifyTimes,
 		Description:  reqData.Description,
 	}.EditRow()
 

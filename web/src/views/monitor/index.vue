@@ -4,14 +4,16 @@
       <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
     <el-table
+      v-loading="tableLoading"
       border
       stripe
       highlight-current-row
       :data="tableData"
       style="width: 100%"
     >
+      <el-table-column prop="id" label="ID" width="100" />
       <el-table-column prop="name" :label="$t('name')" min-width="140" />
-      <el-table-column prop="domain" label="Domain" min-width="140">
+      <el-table-column prop="domain" label="Domain" min-width="100">
         <template slot-scope="scope">
           {{ scope.row.domain }}:{{ scope.row.port }}
         </template>
@@ -26,7 +28,7 @@
           <span v-else-if="scope.row.notifyType === 255">{{ $t('webhookOption[255]') }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="description" :label="$t('desc')" min-width="140" show-overflow-tooltip />
+      <el-table-column prop="notifyTimes" :label="$t('monitorPage.notifyTimes')" width="80" />
       <el-table-column prop="state" :label="$t('state')" width="65" align="center">
         <template slot-scope="scope">
           <el-switch
@@ -37,6 +39,7 @@
           />
         </template>
       </el-table-column>
+      <el-table-column prop="errorContent" :label="$t('monitorPage.errorContent')" min-width="140" show-overflow-tooltip />
       <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
       <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
       <el-table-column prop="operation" :label="$t('op')" width="130" align="center" fixed="right">
@@ -71,7 +74,7 @@
           <el-input v-model.number="formData.second" autocomplete="off" />
         </el-form-item>
         <el-form-item :label="$t('monitorPage.failTimes')" prop="times">
-          <el-input v-model="formData.times" autocomplete="off" />
+          <el-input v-model.number="formData.times" autocomplete="off" />
         </el-form-item>
         <el-form-item :label="$t('notice')" prop="notifyTarget">
           <el-row type="flex">
@@ -83,6 +86,9 @@
             </el-select>
             <el-input v-model.trim="formData.notifyTarget" autocomplete="off" placeholder="webhook" />
           </el-row>
+        </el-form-item>
+        <el-form-item :label="$t('monitorPage.notifyTimes')" prop="notifyTimes">
+          <el-input v-model.number="formData.notifyTimes" />
         </el-form-item>
         <el-form-item :label="$t('desc')" prop="description">
           <el-input
@@ -112,6 +118,7 @@ export default {
   data() {
     return {
       dialogVisible: false,
+      tableLoading: false,
       tableData: [],
       pagination: {
         page: 1,
@@ -131,7 +138,8 @@ export default {
         second: 3,
         times: 1,
         notifyType: 1,
-        notifyTarget: ''
+        notifyTarget: '',
+        notifyTimes: 1
       },
       formRules: {
         name: [
@@ -147,14 +155,31 @@ export default {
           { type: 'number', required: true, min: 1, message: 'Interval required', trigger: 'blur' }
         ],
         times: [
-          { type: 'number', required: true, min: 1, message: 'Times required', trigger: 'blur' }
+          { type: 'number', required: true, min: 1, max: 65535, message: 'Times required', trigger: 'blur' }
         ],
         notifyTarget: [
           { required: true, message: 'Webhook required' }
         ],
+        notifyTimes: [
+          { type: 'number', required: true, min: 1, max: 65535, message: 'Notify times required', trigger: 'blur' }
+        ],
         description: [
           { max: 255, message: 'Max 255 characters', trigger: 'blur' }
         ]
+      }
+    }
+  },
+
+  watch: {
+    '$store.getters.ws_message': function(response) {
+      if (response.type !== 3) {
+        return
+      }
+      const data = response.message
+      const monitorIndex = this.tableData.findIndex(element => element.id === data.monitorId)
+      if (monitorIndex !== -1) {
+        this.tableData[monitorIndex].errorContent = data.errorContent
+        this.tableData[monitorIndex].state = data.state
       }
     }
   },
@@ -167,8 +192,11 @@ export default {
 
   methods: {
     getList() {
+      this.tableLoading = true
       getList(this.pagination).then((response) => {
         this.tableData = response.data.list
+      }).finally(() => {
+        this.tableLoading = false
       })
     },
 

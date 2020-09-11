@@ -311,42 +311,6 @@ func (p Project) GetUserProjectList() (Projects, error) {
 
 }
 
-// GetAllByName -
-func (p Project) GetAllByName() (Projects, error) {
-	rows, err := sq.
-		Select("id, name, url, path, environment, branch, rsync_option, deploy_state").
-		From(projectTable).
-		Where(sq.Eq{
-			"namespace_id": p.NamespaceID,
-			"name":         p.Name,
-			"state":        Enable,
-		}).
-		OrderBy("id DESC").
-		RunWith(DB).
-		Query()
-	if err != nil {
-		return nil, err
-	}
-	projects := Projects{}
-	for rows.Next() {
-		var project Project
-
-		if err := rows.Scan(
-			&project.ID,
-			&project.Name,
-			&project.URL,
-			&project.Path,
-			&project.Environment,
-			&project.Branch,
-			&project.RsyncOption,
-			&project.DeployState); err != nil {
-			return nil, err
-		}
-		projects = append(projects, project)
-	}
-	return projects, nil
-}
-
 // GetData -
 func (p Project) GetData() (Project, error) {
 	var project Project
@@ -354,41 +318,6 @@ func (p Project) GetData() (Project, error) {
 		Select("id, namespace_id, name, url, path, symlink_path, environment, branch, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, insert_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"id": p.ID}).
-		RunWith(DB).
-		QueryRow().
-		Scan(
-			&project.ID,
-			&project.NamespaceID,
-			&project.Name,
-			&project.URL,
-			&project.Path,
-			&project.SymlinkPath,
-			&project.Environment,
-			&project.Branch,
-			&project.AfterPullScriptMode,
-			&project.AfterPullScript,
-			&project.AfterDeployScriptMode,
-			&project.AfterDeployScript,
-			&project.RsyncOption,
-			&project.AutoDeploy,
-			&project.DeployState,
-			&project.NotifyType,
-			&project.NotifyTarget,
-			&project.InsertTime,
-			&project.UpdateTime)
-	if err != nil {
-		return project, err
-	}
-	return project, nil
-}
-
-// GetDataByName -
-func (p Project) GetDataByName() (Project, error) {
-	var project Project
-	err := sq.
-		Select("id, namespace_id, name, url, path, symlink_path, environment, branch, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, insert_time, update_time").
-		From(projectTable).
-		Where(sq.Eq{"name": p.Name}).
 		RunWith(DB).
 		QueryRow().
 		Scan(

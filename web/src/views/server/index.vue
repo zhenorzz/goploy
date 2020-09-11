@@ -4,6 +4,7 @@
       <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
     <el-table
+      v-loading="tableLoading"
       border
       stripe
       highlight-current-row
@@ -133,6 +134,7 @@ export default {
       dialogVisible: false,
       templateDialogVisible: false,
       installDialogVisible: false,
+      tableLoading: false,
       tableData: [],
       pagination: {
         page: 1,
@@ -250,8 +252,11 @@ export default {
 
   methods: {
     getList() {
+      this.tableLoading = true
       getList(this.pagination).then((response) => {
         this.tableData = response.data.list
+      }).finally(() => {
+        this.tableLoading = false
       })
     },
 

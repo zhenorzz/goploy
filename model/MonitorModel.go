@@ -19,7 +19,9 @@ type Monitor struct {
 	Times        uint16 `json:"times"`
 	NotifyType   uint8  `json:"notifyType"`
 	NotifyTarget string `json:"notifyTarget"`
+	NotifyTimes  uint16 `json:"notifyTimes"`
 	Description  string `json:"description"`
+	ErrorContent string `json:"errorContent"`
 	State        uint8  `json:"state"`
 	InsertTime   string `json:"insertTime"`
 	UpdateTime   string `json:"updateTime"`
@@ -31,7 +33,7 @@ type Monitors []Monitor
 // GetList -
 func (m Monitor) GetList(pagination Pagination) (Monitors, error) {
 	rows, err := sq.
-		Select("id, name, domain, port, second, times, notify_type, notify_target, description, state, insert_time, update_time").
+		Select("id, name, domain, port, second, times, notify_type, notify_target, notify_times, description, error_content, state, insert_time, update_time").
 		From(monitorTable).
 		Where(sq.Eq{
 			"namespace_id": m.NamespaceID,
@@ -57,7 +59,9 @@ func (m Monitor) GetList(pagination Pagination) (Monitors, error) {
 			&monitor.Times,
 			&monitor.NotifyType,
 			&monitor.NotifyTarget,
+			&monitor.NotifyTimes,
 			&monitor.Description,
+			&monitor.ErrorContent,
 			&monitor.State,
 			&monitor.InsertTime,
 			&monitor.UpdateTime); err != nil {
@@ -91,13 +95,13 @@ func (m Monitor) GetTotal() (int64, error) {
 func (m Monitor) GetData() (Monitor, error) {
 	var monitor Monitor
 	err := sq.
-		Select("id, name, domain, ip, port, second, times, notify_type, notify_target, state").
+		Select("id, name, domain, ip, port, second, times, notify_type, notify_target, notify_times, state").
 		From(monitorTable).
 		Where(sq.Eq{"id": m.ID}).
 		OrderBy("id DESC").
 		RunWith(DB).
 		QueryRow().
-		Scan(&monitor.ID, &monitor.Name, &monitor.Domain, &monitor.Port, &monitor.Second, &monitor.Times, &monitor.NotifyType, &monitor.NotifyTarget, &monitor.State)
+		Scan(&monitor.ID, &monitor.Name, &monitor.Domain, &monitor.Port, &monitor.Second, &monitor.Times, &monitor.NotifyType, &monitor.NotifyTarget, &monitor.NotifyTimes, &monitor.State)
 	if err != nil {
 		return monitor, errors.New("数据查询失败")
 	}
@@ -107,7 +111,7 @@ func (m Monitor) GetData() (Monitor, error) {
 // GetAllByState -
 func (m Monitor) GetAllByState() (Monitors, error) {
 	rows, err := sq.
-		Select("id, name, domain, port, second, times, notify_type, notify_target, description").
+		Select("id, name, domain, port, second, times, notify_type, notify_target, notify_times, description").
 		From(monitorTable).
 		Where(sq.Eq{
 			"state": m.State,
@@ -130,6 +134,7 @@ func (m Monitor) GetAllByState() (Monitors, error) {
 			&monitor.Times,
 			&monitor.NotifyType,
 			&monitor.NotifyTarget,
+			&monitor.NotifyTimes,
 			&monitor.Description); err != nil {
 			return nil, err
 		}
@@ -143,8 +148,8 @@ func (m Monitor) GetAllByState() (Monitors, error) {
 func (m Monitor) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(monitorTable).
-		Columns("namespace_id", "name", "domain", "port", "second", "times", "notify_type", "notify_target", "description").
-		Values(m.NamespaceID, m.Name, m.Domain, m.Port, m.Second, m.Times, m.NotifyType, m.NotifyTarget, m.Description).
+		Columns("namespace_id", "name", "domain", "port", "second", "times", "notify_type", "notify_target", "notify_times", "description").
+		Values(m.NamespaceID, m.Name, m.Domain, m.Port, m.Second, m.Times, m.NotifyType, m.NotifyTarget, m.NotifyTimes, m.Description).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -166,6 +171,7 @@ func (m Monitor) EditRow() error {
 			"times":         m.Times,
 			"notify_type":   m.NotifyType,
 			"notify_target": m.NotifyTarget,
+			"notify_times":  m.NotifyTimes,
 			"description":   m.Description,
 		}).
 		Where(sq.Eq{"id": m.ID}).
@@ -191,6 +197,20 @@ func (m Monitor) ToggleState() error {
 func (m Monitor) DeleteRow() error {
 	_, err := sq.
 		Delete(monitorTable).
+		Where(sq.Eq{"id": m.ID}).
+		RunWith(DB).
+		Exec()
+	return err
+}
+
+// TurnOff -
+func (m Monitor) TurnOff(errorContent string) error {
+	_, err := sq.
+		Update(monitorTable).
+		SetMap(sq.Eq{
+			"state": Disable,
+			"error_content": errorContent,
+		}).
 		Where(sq.Eq{"id": m.ID}).
 		RunWith(DB).
 		Exec()

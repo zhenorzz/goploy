@@ -9,6 +9,7 @@
     </el-row>
     <el-table
       :key="tableHeight"
+      v-loading="tableloading"
       border
       stripe
       highlight-current-row
@@ -55,9 +56,10 @@
           <el-button type="text" @click="handleUser(scope.row)">{{ $t('view') }}</el-button>
         </template>
       </el-table-column>
-      <el-table-column prop="operation" :label="$t('op')" width="130" align="center" fixed="right">
+      <el-table-column prop="operation" :label="$t('op')" width="180" align="center" fixed="right">
         <template slot-scope="scope">
           <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)" />
+          <el-button type="info" icon="el-icon-document-copy" @click="handleCopy(scope.row)" />
           <el-button type="danger" icon="el-icon-delete" @click="handleRemove(scope.row)" />
         </template>
       </el-table-column>
@@ -403,6 +405,7 @@ export default {
       dialogAddUserVisible: false,
       serverOption: [],
       userOption: [],
+      tableloading: false,
       tableData: [],
       pagination: {
         page: 1,
@@ -517,12 +520,24 @@ export default {
       this.dialogVisible = true
     },
 
+    handleCopy(data) {
+      this.formData = Object.assign({}, data)
+      this.formData.id = 0
+      this.formData.serverIds = []
+      this.formData.userIds = []
+      this.formProps.symlink = this.formData.symlinkPath !== ''
+      this.formProps.showServers = this.formProps.showUsers = false
+      this.formProps.branch = []
+      this.dialogVisible = true
+    },
+
     handleRemove(data) {
       this.$confirm(this.$i18n.t('projectPage.removeProjectTips', { projectName: data.name }), this.$i18n.t('tips'), {
         confirmButtonText: this.$i18n.t('confirm'),
         cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'
       }).then(() => {
+        this.tableloading = true
         remove(data.id).then((response) => {
           this.$message.success('Success')
           this.getList()
@@ -716,9 +731,11 @@ export default {
     },
 
     getList() {
+      this.tableloading = true
       getList(this.pagination, this.projectName).then((response) => {
         this.tableData = response.data.list
-      }).catch(() => {
+      }).finally(() => {
+        this.tableloading = false
       })
     },
 

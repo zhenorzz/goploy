@@ -104,7 +104,9 @@ CREATE TABLE IF NOT EXISTS `goploy`.`monitor` (
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `notify_type` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '1.weixin 2.ding talk 3.feishu 255.custom',
   `notify_target` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `notify_times` smallint(5) unsigned NOT NULL DEFAULT '1' COMMENT 'Notify times',
   `state` tinyint(4) unsigned NOT NULL DEFAULT '1' COMMENT '0.disable 1.enable',
+  `error_content` text COLLATE utf8mb4_general_ci NOT NULL,
   `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE

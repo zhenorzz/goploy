@@ -23,6 +23,7 @@ const (
 const (
 	TypeProject        = 1
 	TypeServerTemplate = 2
+	TypeMonitor        = 3
 )
 
 // Client stores a client information

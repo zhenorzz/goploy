@@ -13,6 +13,7 @@
       </el-row>
     </el-row>
     <el-table
+      v-loading="tableLoading"
       :max-height="tableHeight"
       border
       stripe
@@ -202,6 +203,7 @@ export default {
       addServerVisible: false,
       importVisible: false,
       selectedItems: [],
+      tableLoading: false,
       tableData: [],
       tableServerData: [],
       serverOption: [],
@@ -266,6 +268,7 @@ export default {
 
   methods: {
     getList() {
+      this.tableLoading = true
       getList(this.pagination, this.crontabCommand).then((response) => {
         this.tableData = response.data.list.map(element => {
           const commandSplit = element.command.split(' ')
@@ -275,6 +278,8 @@ export default {
           element.description = `${element.dateLocale}, ${this.$i18n.t('run')}: ${element.script}`
           return element
         })
+      }).finally(() => {
+        this.tableLoading = false
       })
     },
 

@@ -50,6 +50,7 @@ export default {
   op: '操作',
   add: '添加',
   edit: '编辑',
+  copy: '复制',
   upload: '上传',
   uploading: '上传中',
   reUpload: '重传',
@@ -123,6 +124,8 @@ export default {
   monitorPage: {
     testAppState: '测试应用状态',
     failTimes: '连续失败次数',
+    notifyTimes: '通知次数',
+    errorContent: '错误内容',
     toggleStateTips: '此操作将暂停监控应用({monitorName}), 是否继续?',
     removeMontiorTips: '此操作将不再监控应用({monitorName}), 是否继续?'
   },
