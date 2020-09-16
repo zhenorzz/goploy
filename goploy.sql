@@ -224,6 +224,6 @@ CREATE TABLE IF NOT EXISTS `goploy`.`namespace_user` (
   UNIQUE KEY `uk_namespace_user` (`namespace_id`,`user_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-INSERT INTO `goploy`.`user`(`id`, `account`, `password`, `name`, `contact`, `state`, `super_manager`) VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '', 1, 1);
-INSERT INTO `goploy`.`namespace`(`id`, `name`) VALUES (1, 'goploy');
-INSERT INTO `goploy`.`namespace_user`(`id`, `namespace_id`, `user_id`, `role`) VALUES (1, 1, 1, 'admin');
+REPLACE INTO `goploy`.`user`(`id`, `account`, `password`, `name`, `contact`, `state`, `super_manager`) VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '', 1, 1);
+REPLACE INTO `goploy`.`namespace`(`id`, `name`) VALUES (1, 'goploy');
+REPLACE INTO `goploy`.`namespace_user`(`id`, `namespace_id`, `user_id`, `role`) VALUES (1, 1, 1, 'admin');

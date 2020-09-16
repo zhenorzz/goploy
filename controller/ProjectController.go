@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/service"
 	"github.com/zhenorzz/goploy/utils"
 	"os"
 	"os/exec"
@@ -191,7 +190,6 @@ func (project Project) Add(gp *core.Goploy) *core.Response {
 	if err := projectUsersModel.AddMany(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	go service.Repository{ProjectID: projectID}.Create()
 	return &core.Response{}
 }
 
