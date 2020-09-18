@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/rakyll/statik/fs"
 	"github.com/zhenorzz/goploy/model"
 	_ "github.com/zhenorzz/goploy/statik"
@@ -14,16 +15,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	jwt "github.com/dgrijalva/jwt-go"
-)
-
-// Method specifies the HTTP method (GET, POST, PUT, etc.).
-const (
-	GET    = "GET"
-	POST   = "POST"
-	PUT    = "PUT"
-	DELETE = "DELETE"
 )
 
 // Goploy callback param

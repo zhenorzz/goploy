@@ -1,7 +1,7 @@
 package test
 
 import (
-	router "github.com/zhenorzz/goploy/core"
+	"net/http"
 	"testing"
 )
 
@@ -13,20 +13,20 @@ func userLogin(t *testing.T) {
 		Account:  "admin",
 		Password: "admin!@#",
 	}
-	resp := request(t, router.POST, "/user/login", body)
+	resp := request(t, http.MethodPost, "/user/login", body)
 	token = resp.Data.(map[string]interface{})["token"].(string)
 }
 
 func userInfo(t *testing.T) {
-	request(t, router.GET, "/user/info", nil)
+	request(t, http.MethodGet, "/user/info", nil)
 }
 
 func getUserList(t *testing.T) {
-	request(t, router.GET, "/user/getList?page=1&rows=10", nil)
+	request(t, http.MethodGet, "/user/getList?page=1&rows=10", nil)
 }
 
 func getUserOption(t *testing.T) {
-	request(t, router.GET, "/user/getOption", nil)
+	request(t, http.MethodGet, "/user/getOption", nil)
 }
 
 func addUser(t *testing.T) {
@@ -44,7 +44,7 @@ func addUser(t *testing.T) {
 		Role:           "admin",
 		ManageGroupStr: "all",
 	}
-	resp := request(t, router.POST, "/user/add", body)
+	resp := request(t, http.MethodPost, "/user/add", body)
 	userID = int64(resp.Data.(map[string]interface{})["id"].(float64))
 }
 
@@ -64,7 +64,7 @@ func editUser(t *testing.T) {
 		Role:           "admin",
 		ManageGroupStr: "all",
 	}
-	request(t, router.POST, "/user/edit", body)
+	request(t, http.MethodPost, "/user/edit", body)
 }
 
 func removeUser(t *testing.T) {
@@ -73,7 +73,7 @@ func removeUser(t *testing.T) {
 	}{
 		ID: userID,
 	}
-	request(t, router.DELETE, "/user/remove", body)
+	request(t, http.MethodDelete, "/user/remove", body)
 }
 
 func changeUserPassword(t *testing.T) {
@@ -84,5 +84,5 @@ func changeUserPassword(t *testing.T) {
 		OldPassword: "admin!@#",
 		NewPassword: "admin!@#",
 	}
-	request(t, router.POST, "/user/changePassword", body)
+	request(t, http.MethodPost, "/user/changePassword", body)
 }

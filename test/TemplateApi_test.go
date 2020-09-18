@@ -1,16 +1,16 @@
 package test
 
 import (
-	router "github.com/zhenorzz/goploy/core"
+	"net/http"
 	"testing"
 )
 
 func getTemplateList(t *testing.T) {
-	request(t, router.GET, "/template/getList?page=1&rows=10", nil)
+	request(t, http.MethodGet, "/template/getList?page=1&rows=10", nil)
 }
 
 func getTemplateOption(t *testing.T) {
-	request(t, router.GET, "/template/getOption", nil)
+	request(t, http.MethodGet, "/template/getOption", nil)
 }
 
 func addTemplate(t *testing.T) {
@@ -23,7 +23,7 @@ func addTemplate(t *testing.T) {
 		Name:   getRandomStringOf(5),
 		Script: "echo 1",
 	}
-	resp := request(t, router.POST, "/template/add", body)
+	resp := request(t, http.MethodPost, "/template/add", body)
 	templateID = int64(resp.Data.(map[string]interface{})["id"].(float64))
 }
 
@@ -39,7 +39,7 @@ func editTemplate(t *testing.T) {
 		Name:   getRandomStringOf(5),
 		Script: "echo 2",
 	}
-	request(t, router.POST, "/template/edit", body)
+	request(t, http.MethodPost, "/template/edit", body)
 }
 
 func removeTemplate(t *testing.T) {
@@ -48,5 +48,5 @@ func removeTemplate(t *testing.T) {
 	}{
 		ID: templateID,
 	}
-	request(t, router.DELETE, "/template/remove", body)
+	request(t, http.MethodDelete, "/template/remove", body)
 }

@@ -1,14 +1,14 @@
 package test
 
 import (
-	router "github.com/zhenorzz/goploy/core"
+	"net/http"
 	"testing"
 )
 
 func getPackageList(t *testing.T) {
-	request(t, router.GET, "/package/getList?page=1&rows=10", nil)
+	request(t, http.MethodGet, "/package/getList?page=1&rows=10", nil)
 }
 
 func getPackageOption(t *testing.T) {
-	request(t, router.GET, "/package/getOption", nil)
+	request(t, http.MethodGet, "/package/getOption", nil)
 }
