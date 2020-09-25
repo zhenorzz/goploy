@@ -25,11 +25,15 @@ export default {
   crontab: '定时',
   command: '命令',
   directory: '目录',
+  func: '功能',
+  param: '参数',
   deploy: '构建',
   search: '搜索',
   tips: '提示',
   view: '查看',
   detail: '详情',
+  review: '审核',
+  reject: '拒绝',
   manage: '管理',
   interval: '间隔',
   desc: '描述',
@@ -38,7 +42,6 @@ export default {
   branch: '分支',
   setting: '设置',
   baseSetting: '基本配置',
-  advancedSetting: '高级配置',
   notice: '通知',
   task: '任务',
   date: '日期',
@@ -46,14 +49,18 @@ export default {
   today: '今天',
   m1d: '减一天',
   p1d: '加一天',
+  time: '时间',
   insertTime: '创建时间',
   updateTime: '更新时间',
   creator: '创建人',
   editor: '修改人',
   op: '操作',
+  submit: '提交',
   add: '添加',
   edit: '编辑',
   copy: '复制',
+  approve: '同意',
+  deny: '拒绝',
   upload: '上传',
   uploading: '上传中',
   reUpload: '重传',
@@ -143,6 +150,15 @@ export default {
     lishBranch: '列出分支',
     scriptMode: '脚本类型',
     deployNotice: '构建通知',
+    publishReview: '发布审核',
+    reviewFooterTips: `
+    <p>只有成员构建项目才会触发审核</p>
+    审核方式：
+    <p>1. 前往构建发布页面进行审核</p>
+    <p>2. 推送到URL:http(s)://domain?custom-param=1&callback=***</p>
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;http get callback的值即可完成审核</p>
+    <p>&nbsp;&nbsp;&nbsp;&nbsp;重复访问callback只会发布一次，并且发布过不会再次发布</p>
+    `,
     symlinkLabel: '软链部署(推荐)',
     symlinkHeaderTips: `<p>项目先同步到指定目录(rsync 软链目录)，然后ln -s 部署路径 软链目录</p>
     <p>可以避免项目在同步传输文件的过程中，外部访问到部分正在同步的文件</p>
@@ -167,6 +183,10 @@ export default {
     removeUserTips: '此操作将永久删除用户({userName})的绑定关系, 是否继续?'
   },
   deployPage: {
+    taskDeploy: '定时构建',
+    reviewDeploy: '审核构建',
+    reviewTips: '此操作将通过该次提交, 是否继续?',
+    reviewStateOption: ['待审', '已审', '拒审'],
     removeProjectTaskTips: '此操作删除{projectName}的定时任务, 是否继续?',
     rollbackTips: '此操作将重新构建{commit}, 是否继续?'
   }

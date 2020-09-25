@@ -46,6 +46,12 @@
           <el-button type="text" icon="el-icon-edit" @click="handleAutoDeploy(scope.row)" />
         </template>
       </el-table-column>
+      <el-table-column width="60" :label="$t('review')" align="center">
+        <template slot-scope="scope">
+          <span v-if="scope.row.review === 0">{{ $t('close') }}</span>
+          <span v-else>{{ $t('open') }}</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="server" width="80" :label="$t('server')" align="center">
         <template slot-scope="scope">
           <el-button type="text" @click="handleServer(scope.row)">{{ $t('view') }}</el-button>
@@ -131,6 +137,18 @@
               <span slot="label">Rsync<br> [OPTION...]</span>
               <el-input v-model.trim="formData.rsyncOption" type="textarea" :rows="3" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
             </el-form-item>
+            <el-form-item :label="$t('projectPage.deployNotice')" prop="notifyTarget">
+              <el-row type="flex">
+                <el-select v-model="formData.notifyType" clearable>
+                  <el-option :label="$t('webhookOption[0]')" :value="0" />
+                  <el-option :label="$t('webhookOption[1]')" :value="1" />
+                  <el-option :label="$t('webhookOption[2]')" :value="2" />
+                  <el-option :label="$t('webhookOption[3]')" :value="3" />
+                  <el-option :label="$t('webhookOption[255]')" :value="255" />
+                </el-select>
+                <el-input v-model.trim="formData.notifyTarget" autocomplete="off" placeholder="webhook" />
+              </el-row>
+            </el-form-item>
             <el-form-item v-show="formProps.showServers" :label="$t('server')" prop="serverIds">
               <el-select v-model="formData.serverIds" multiple style="width:100%">
                 <el-option
@@ -151,6 +169,28 @@
                 />
               </el-select>
             </el-form-item>
+          </el-tab-pane>
+          <el-tab-pane :label="$t('projectPage.publishReview')" name="review">
+            <el-form-item label="" label-width="10px">
+              <el-radio-group v-model="formData.review">
+                <el-radio :label="0">{{ $t('close') }}</el-radio>
+                <el-radio :label="1">{{ $t('open') }}</el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item v-show="formData.review" label="URL" label-width="50px">
+              <el-input v-model.trim="formProps.reviewURL" autocomplete="off" placeholder="http(s)://domain?custom-param=1" />
+            </el-form-item>
+            <el-form-item v-show="formData.review" :label="$t('param')" label-width="50px">
+              <el-checkbox-group v-model="formProps.reviewURLParam">
+                <el-checkbox
+                  v-for="(item, key) in formProps.reviewURLParamOption"
+                  :key="key"
+                  :label="item.value"
+                  :disabled="item['disabled']"
+                >{{ item.label }}</el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
+            <el-row v-show="formData.review" style="margin: 0 10px" v-html="$t('projectPage.reviewFooterTips')" />
           </el-tab-pane>
           <el-tab-pane :label="$t('projectPage.symlinkLabel')" name="symlink">
             <el-row style="margin: 0 10px" v-html="$t('projectPage.symlinkHeaderTips')" />
@@ -207,20 +247,6 @@
             </el-form-item>
             <el-form-item prop="afterDeployScript" label-width="0px">
               <codemirror ref="afterDeployScript" v-model="formData.afterDeployScript" :options="cmOption" />
-            </el-form-item>
-          </el-tab-pane>
-          <el-tab-pane :label="$t('advancedSetting')" name="advance">
-            <el-form-item :label="$t('projectPage.deployNotice')" prop="notifyTarget">
-              <el-row type="flex">
-                <el-select v-model="formData.notifyType" clearable>
-                  <el-option :label="$t('webhookOption[0]')" :value="0" />
-                  <el-option :label="$t('webhookOption[1]')" :value="1" />
-                  <el-option :label="$t('webhookOption[2]')" :value="2" />
-                  <el-option :label="$t('webhookOption[3]')" :value="3" />
-                  <el-option :label="$t('webhookOption[255]')" :value="255" />
-                </el-select>
-                <el-input v-model.trim="formData.notifyTarget" autocomplete="off" placeholder="webhook" />
-              </el-row>
             </el-form-item>
           </el-tab-pane>
         </el-tabs>
@@ -415,6 +441,47 @@ export default {
       tableServerData: [],
       tableUserData: [],
       formProps: {
+        reviewURLParamOption: [
+          {
+            label: 'project_id',
+            value: 'project_id=__PROJECT_ID__'
+          },
+          {
+            label: 'project_name',
+            value: 'project_name=__PROJECT_NAME__'
+          },
+          {
+            label: 'branch',
+            value: 'branch=__BRANCH__'
+          },
+          {
+            label: 'environment',
+            value: 'environment=__ENVIRONMENT__'
+          },
+          {
+            label: 'commit_id',
+            value: 'commit_id=__COMMIT_ID__'
+          },
+          {
+            label: 'publish_time',
+            value: 'publish_time=__PUBLISH_TIME__'
+          },
+          {
+            label: 'publisher_id',
+            value: 'publisher_id=__PUBLISHER_ID__'
+          },
+          {
+            label: 'publisher_name',
+            value: 'publisher_name=__PUBLISHER_NAME__'
+          },
+          {
+            label: 'callback',
+            value: 'callback=__CALLBACK__',
+            disabled: true
+          }
+        ],
+        reviewURL: '',
+        reviewURLParam: ['callback=__CALLBACK__'],
         symlink: false,
         disabled: false,
         branch: [],
@@ -439,6 +506,8 @@ export default {
         rsyncOption: '-rtv --exclude .git --delete-after',
         serverIds: [],
         userIds: [],
+        review: 0,
+        reviewURL: '',
         notifyType: 0,
         notifyTarget: ''
       },
@@ -447,7 +516,7 @@ export default {
           { required: true, message: 'Name required', trigger: ['blur'] }
         ],
         url: [
-          { required: true, message: 'Repository url required', trigger: ['blur'] }
+          { required: true, type: 'url', message: 'Repository url required', trigger: ['blur'] }
         ],
         path: [
           { required: true, message: 'Path required', trigger: ['blur'] }
@@ -517,18 +586,24 @@ export default {
       this.formProps.symlink = this.formData.symlinkPath !== ''
       this.formProps.showServers = this.formProps.showUsers = false
       this.formProps.branch = []
+      this.formProps.reviewURL = ''
+      this.formProps.reviewURLParam = []
+      if (this.formData.review === 1 && this.formData.reviewURL.length > 0) {
+        const url = new URL(this.formData.reviewURL)
+        this.formProps.reviewURLParamOption.forEach(item => {
+          if (url.searchParams.has(item.value.split('=')[0])) {
+            url.searchParams.delete(item.value.split('=')[0])
+            this.formProps.reviewURLParam.push(item.value)
+          }
+        })
+        this.formProps.reviewURL = url.href
+      }
       this.dialogVisible = true
     },
 
     handleCopy(data) {
-      this.formData = Object.assign({}, data)
+      this.handleEdit(data)
       this.formData.id = 0
-      this.formData.serverIds = []
-      this.formData.userIds = []
-      this.formProps.symlink = this.formData.symlinkPath !== ''
-      this.formProps.showServers = this.formProps.showUsers = false
-      this.formProps.branch = []
-      this.dialogVisible = true
     },
 
     handleRemove(data) {
@@ -601,6 +676,15 @@ export default {
         if (valid) {
           if (this.formProps.symlink === false) {
             this.formData.symlinkPath = ''
+          }
+          if (this.formData.review === 1 && this.formProps.reviewURL.length > 0) {
+            const url = new URL(this.formProps.reviewURL)
+            this.formProps.reviewURLParam.forEach(param => {
+              url.searchParams.set(...param.split('='))
+            })
+            this.formData.reviewURL = url.href
+          } else {
+            this.formData.reviewURL = ''
           }
           if (this.formData.id === 0) {
             this.add()

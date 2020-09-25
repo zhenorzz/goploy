@@ -11,6 +11,9 @@ const mixin = {
     },
     hasGroupManagerPermission() {
       return [this.$global.Admin, this.$global.Manager, this.$global.GroupManager].indexOf(getNamespace()['role']) !== -1
+    },
+    isMember() {
+      return this.$global.member === getNamespace()['role']
     }
   }
 }

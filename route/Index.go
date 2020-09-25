@@ -16,8 +16,8 @@ func Init() *router.Router {
 	// no need to check login
 	rt.RegisterWhiteList(map[string]struct{}{
 		"/user/login":        {},
-		"/user/isShowPhrase": {},
 		"/deploy/webhook":    {},
+		"/deploy/callback":   {},
 	})
 	// websocket route
 	rt.Add("/ws/connect", http.MethodGet, ws.GetHub().Connect)
@@ -61,6 +61,7 @@ func Init() *router.Router {
 	rt.Add("/project/editTask", http.MethodPost, controller.Project{}.EditTask).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/project/removeTask", http.MethodPost, controller.Project{}.RemoveTask).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/project/getTaskList", http.MethodGet, controller.Project{}.GetTaskList).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/project/getReviewList", http.MethodGet, controller.Project{}.GetReviewList)
 
 	// monitor route
 	rt.Add("/monitor/getList", http.MethodGet, controller.Monitor{}.GetList)
@@ -76,8 +77,10 @@ func Init() *router.Router {
 	rt.Add("/deploy/getDetail", http.MethodGet, controller.Deploy{}.GetDetail)
 	rt.Add("/deploy/getCommitList", http.MethodGet, controller.Deploy{}.GetCommitList)
 	rt.Add("/deploy/getPreview", http.MethodGet, controller.Deploy{}.GetPreview)
+	rt.Add("/deploy/review", http.MethodPost, controller.Deploy{}.Review).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/deploy/publish", http.MethodPost, controller.Deploy{}.Publish, middleware.HasPublishAuth)
 	rt.Add("/deploy/webhook", http.MethodPost, controller.Deploy{}.Webhook, middleware.FilterEvent)
+	rt.Add("/deploy/callback", http.MethodGet, controller.Deploy{}.Callback)
 
 	// server route
 	rt.Add("/server/getList", http.MethodGet, controller.Server{}.GetList)

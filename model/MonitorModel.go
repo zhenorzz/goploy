@@ -148,8 +148,8 @@ func (m Monitor) GetAllByState() (Monitors, error) {
 func (m Monitor) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(monitorTable).
-		Columns("namespace_id", "name", "domain", "port", "second", "times", "notify_type", "notify_target", "notify_times", "description").
-		Values(m.NamespaceID, m.Name, m.Domain, m.Port, m.Second, m.Times, m.NotifyType, m.NotifyTarget, m.NotifyTimes, m.Description).
+		Columns("namespace_id", "name", "domain", "port", "second", "times", "notify_type", "notify_target", "notify_times", "description", "error_content").
+		Values(m.NamespaceID, m.Name, m.Domain, m.Port, m.Second, m.Times, m.NotifyType, m.NotifyTarget, m.NotifyTimes, m.Description, "").
 		RunWith(DB).
 		Exec()
 	if err != nil {

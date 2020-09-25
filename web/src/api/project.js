@@ -175,3 +175,15 @@ export function getTaskList({ page, rows }, id) {
     params: { page, rows, id }
   })
 }
+
+/**
+ * @param  {id} id
+ * @return {Promise}
+ */
+export function getReviewList({ page, rows }, id) {
+  return request({
+    url: '/project/getReviewList',
+    method: 'get',
+    params: { page, rows, id }
+  })
+}

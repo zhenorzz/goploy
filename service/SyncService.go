@@ -210,7 +210,7 @@ func gitPull(project model.Project) error {
 		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitClean, Message: "git clean"},
 	}
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git clean -f")
-	if err := git.Clean([]string{"-f"}); err != nil {
+	if err := git.Clean("-f"); err != nil {
 		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
 		return errors.New(git.Err.String())
 	}
@@ -221,7 +221,7 @@ func gitPull(project model.Project) error {
 		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitCheckout, Message: "git checkout"},
 	}
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git checkout -- .")
-	if err := git.Checkout([]string{"--", "."}); err != nil {
+	if err := git.Checkout("--", "."); err != nil {
 		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
 		return errors.New(git.Err.String())
 	}
@@ -231,7 +231,7 @@ func gitPull(project model.Project) error {
 		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitPull, Message: "git pull"},
 	}
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git pull")
-	if err := git.Pull([]string{}); err != nil {
+	if err := git.Pull(); err != nil {
 		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
 		return errors.New(git.Err.String())
 	}
@@ -262,7 +262,7 @@ func gitReset(commit string, project model.Project) error {
 func gitCommitLog(project model.Project) (utils.Commit, error) {
 	git := utils.GIT{Dir: core.GetProjectPath(project.ID)}
 
-	if err := git.Log([]string{"--stat", "--pretty=format:`start`%H`%an`%at`%s`", "-n", "1"}); err != nil {
+	if err := git.Log("--stat", "--pretty=format:`start`%H`%an`%at`%s`", "-n", "1"); err != nil {
 		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
 		return utils.Commit{}, errors.New(git.Err.String())
 	}
@@ -493,7 +493,7 @@ func notify(project model.Project, deployState int, detail string) {
 			Msgtype  string   `json:"msgtype"`
 			Markdown markdown `json:"markdown"`
 		}
-		text := "#### Deploy: "+ project.Name + "\n"
+		text := "#### Deploy: " + project.Name + "\n"
 		if deployState == model.ProjectFail {
 			text += "> State: <font color=\"red\">fail</font> \n "
 			text += "> Detail: <font color=\"comment\">" + detail + "</font>"

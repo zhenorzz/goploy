@@ -68,6 +68,18 @@ export function publish(projectId, commit) {
  * @param  {int}    id
  * @return {Promise}
  */
+export function review(projectReviewId, state) {
+  return request({
+    url: '/deploy/review',
+    method: 'post',
+    data: { projectReviewId, state }
+  })
+}
+
+/**
+ * @param  {int}    id
+ * @return {Promise}
+ */
 export function rollback(projectId, commit) {
   return request({
     url: '/deploy/rollback',

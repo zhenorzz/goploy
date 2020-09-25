@@ -29,12 +29,12 @@ func (repository Repository) Create() error {
 		return err
 	}
 	git := utils.GIT{}
-	if err := git.Clone([]string{project.URL, srcPath}); err != nil {
+	if err := git.Clone(project.URL, srcPath); err != nil {
 		core.Log(core.ERROR, "The project fail to initialize, projectID:"+strconv.FormatInt(project.ID, 10)+" ,error: "+err.Error()+", detail: "+git.Err.String())
 		return err
 	}
 	if project.Branch != "master" {
-		if err := git.Checkout([]string{"-b", project.Branch, "origin/" + project.Branch}); err != nil {
+		if err := git.Checkout("-b", project.Branch, "origin/" + project.Branch); err != nil {
 			core.Log(core.ERROR, "The project fail to switch branch, projectID:"+strconv.FormatInt(project.ID, 10)+" ,error: "+err.Error()+", detail: "+git.Err.String())
 			os.RemoveAll(srcPath)
 			return err

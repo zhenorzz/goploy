@@ -64,7 +64,7 @@ func (pt ProjectTask) GetListByProjectID(pagination Pagination) (ProjectTasks, P
 			&projectTask.InsertTime,
 			&projectTask.UpdateTime,
 		); err != nil {
-			return nil, pagination, err
+			return projectTasks, pagination, err
 		}
 		projectTasks = append(projectTasks, projectTask)
 	}
@@ -76,7 +76,7 @@ func (pt ProjectTask) GetListByProjectID(pagination Pagination) (ProjectTasks, P
 		QueryRow().
 		Scan(&pagination.Total)
 	if err != nil {
-		return nil, pagination, err
+		return projectTasks, pagination, err
 	}
 	return projectTasks, pagination, nil
 }

@@ -8,12 +8,12 @@ import (
 )
 
 type GIT struct {
-	Dir string
+	Dir    string
 	Output bytes.Buffer
-	Err  bytes.Buffer
+	Err    bytes.Buffer
 }
 
-func (git *GIT) Run(operator string,options []string) error {
+func (git *GIT) Run(operator string, options ...string) error {
 	git.Output.Reset()
 	git.Err.Reset()
 	cmd := exec.Command("git", append([]string{operator}, options...)...)
@@ -28,43 +28,40 @@ func (git *GIT) Run(operator string,options []string) error {
 	return nil
 }
 
-func (git *GIT) Clone(options []string) error {
-	if err := git.Run("clone", options); err != nil {
+func (git *GIT) Clone(options ...string) error {
+	if err := git.Run("clone", options...); err != nil {
 		return err
 	}
 	return nil
 }
 
-
-func (git *GIT) Clean(options []string) error {
-	if err := git.Run("clean", options); err != nil {
+func (git *GIT) Clean(options ...string) error {
+	if err := git.Run("clean", options...); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (git *GIT) Checkout(options []string) error {
-	if err := git.Run("checkout", options); err != nil {
+func (git *GIT) Checkout(options ...string) error {
+	if err := git.Run("checkout", options...); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (git *GIT) Pull(options []string) error {
-	if err := git.Run("pull", options); err != nil {
+func (git *GIT) Pull(options ...string) error {
+	if err := git.Run("pull", options...); err != nil {
 		return err
 	}
 	return nil
 }
 
-
-func (git *GIT) Log(options []string) error {
-	if err := git.Run("log", options); err != nil {
+func (git *GIT) Log(options ...string) error {
+	if err := git.Run("log", options...); err != nil {
 		return err
 	}
 	return nil
 }
-
 
 type Commit struct {
 	Commit    string `json:"commit"`

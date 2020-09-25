@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"database/sql"
 	"fmt"
 	"github.com/joho/godotenv"
@@ -14,6 +15,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -48,6 +50,20 @@ func install() {
 	if err == nil || os.IsExist(err) {
 		println("The configuration file already exists, no need to reinstall (if you need to reinstall, please back up the database goploy first, delete the .env file)")
 		return
+	}
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd := exec.Command("rsync", "--version")
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		println(err.Error() + ", detail: " + stderr.String())
+		panic("Please check if rsync is installed correctly, see https://rsync.samba.org/download.html")
+	}
+	git := utils.GIT{}
+	if err := git.Run("--version"); err != nil {
+		println(err.Error() + ", detail: " + git.Err.String())
+		panic("Please check if git is installed correctly, see https://git-scm.com/downloads")
 	}
 	inputReader := bufio.NewReader(os.Stdin)
 	println("Installation guidelines (Enter to confirm input)")

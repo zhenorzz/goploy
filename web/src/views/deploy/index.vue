@@ -59,30 +59,32 @@
         <template slot-scope="scope">
           <el-row class="operation-btn">
             <el-dropdown
+              v-if="hasGroupManagerPermission() || scope.row.review === 0"
               split-button
               trigger="click"
               :disabled="scope.row.deployState === 1"
               type="primary"
               @click="publish(scope.row)"
-              @command="handlePublishCommand"
+              @command="(commandFunc) => commandFunc(scope.row)"
             >
-              {{ $t('deploy') }}
+              {{ isMember() && scope.row.review === 1 ? $t('submit') : $t('deploy') }}
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item :command="scope.row">List commit</el-dropdown-item>
+                <el-dropdown-item :command="getCommitList">Commit list</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
+            <el-button v-else type="primary" @click="getCommitList(scope.row)">{{ $t('deploy') }}</el-button>
             <el-dropdown
-              v-if="hasGroupManagerPermission()"
-              split-button
-              trigger="click"
+              v-if="hasGroupManagerPermission() || scope.row.review === 1"
               :disabled="scope.row.deployState === 1"
-              type="warning"
-              @click="handleAddProjectTask(scope.row)"
-              @command="handleProjectTaskCommand"
+              trigger="click"
+              @command="(commandFunc) => commandFunc(scope.row)"
             >
-              {{ $t('crontab') }}
+              <el-button type="warning">
+                {{ $t('func') }}<i class="el-icon-arrow-down el-icon--right" />
+              </el-button>
               <el-dropdown-menu slot="dropdown" style="min-width:84px;text-align:center;">
-                <el-dropdown-item :command="scope.row">{{ $t('manage') }}</el-dropdown-item>
+                <el-dropdown-item v-if="hasGroupManagerPermission()" :command="handleTaskCommand">{{ $t('deployPage.taskDeploy') }}</el-dropdown-item>
+                <el-dropdown-item v-if="scope.row.review === 1" :command="handleReviewCommand">{{ $t('deployPage.reviewDeploy') }}</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
             <el-button type="success" @click="handleDetail(scope.row)">{{ $t('detail') }}</el-button>
@@ -262,6 +264,9 @@
       </div>
     </el-dialog>
     <el-dialog :title="$t('manage')" :visible.sync="taskListDialogVisible">
+      <el-row class="app-bar" type="flex" justify="end">
+        <el-button type="primary" icon="el-icon-plus" @click="handleAddProjectTask(selectedItem)" />
+      </el-row>
       <el-table
         v-loading="taskTableLoading"
         border
@@ -272,7 +277,19 @@
       >
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="projectName" :label="$t('projectName')" width="150" />
-        <el-table-column prop="commitId" label="commit" width="290" />
+        <el-table-column prop="commitId" label="commit" width="290">
+          <template slot-scope="scope">
+            <el-link
+              type="primary"
+              style="font-size: 12px"
+              :underline="false"
+              :href="parseGitURL(selectedItem.url) + '/commit/' + scope.row.commitId"
+              target="_blank"
+            >
+              {{ scope.row.commitId }}
+            </el-link>
+          </template>
+        </el-table-column>
         <el-table-column prop="date" :label="$t('date')" width="150" />
         <el-table-column prop="isRun" :label="$t('task')" width="60">
           <template slot-scope="scope">
@@ -284,8 +301,8 @@
             {{ $t(`stateOption[${scope.row.state}]`) }}
           </template>
         </el-table-column>
-        <el-table-column prop="creator" :label="$t('creator')" />
-        <el-table-column prop="editor" :label="$t('editor')" />
+        <el-table-column prop="creator" :label="$t('creator')" align="center" />
+        <el-table-column prop="editor" :label="$t('editor')" align="center" />
         <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
         <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
         <el-table-column prop="operation" :label="$t('op')" width="150" align="center" fixed="right">
@@ -295,8 +312,72 @@
           </template>
         </el-table-column>
       </el-table>
+      <el-pagination
+        hide-on-single-page
+        :total="taskPagination.total"
+        :page-size="taskPagination.rows"
+        :current-page.sync="taskPagination.page"
+        style="margin-top:10px; text-align:right;"
+        background
+        layout="sizes, total, prev, pager, next"
+        @current-change="handleTaskPageChange"
+      />
       <div slot="footer" class="dialog-footer">
         <el-button @click="taskListDialogVisible = false">{{ $t('cancel') }}</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog :title="$t('review')" :visible.sync="reviewListDialogVisible">
+      <el-table
+        v-loading="reviewTableLoading"
+        border
+        stripe
+        highlight-current-row
+        max-height="447px"
+        :data="reviewTableData"
+      >
+        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="projectName" :label="$t('projectName')" width="150" />
+        <el-table-column prop="commitId" label="commit" width="290">
+          <template slot-scope="scope">
+            <el-link
+              type="primary"
+              style="font-size: 12px"
+              :underline="false"
+              :href="parseGitURL(selectedItem.url) + '/commit/' + scope.row.commitId"
+              target="_blank"
+            >
+              {{ scope.row.commitId }}
+            </el-link>
+          </template>
+        </el-table-column>
+        <el-table-column prop="state" :label="$t('state')" width="50">
+          <template slot-scope="scope">
+            {{ $t(`deployPage.reviewStateOption[${scope.row.state}]`) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="creator" :label="$t('creator')" align="center" />
+        <el-table-column prop="editor" :label="$t('editor')" align="center" />
+        <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
+        <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
+        <el-table-column prop="operation" :label="$t('op')" width="150" align="center" fixed="right">
+          <template slot-scope="scope">
+            <el-button type="success" :disabled="scope.row.state !== 0" @click="handleProjectReview(scope.row, 1)">{{ $t('approve') }}</el-button>
+            <el-button type="danger" :disabled="scope.row.state !== 0" @click="handleProjectReview(scope.row, 2)">{{ $t('deny') }}</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination
+        hide-on-single-page
+        :total="reviewPagination.total"
+        :page-size="reviewPagination.rows"
+        :current-page.sync="reviewPagination.page"
+        style="margin-top:10px; text-align:right;"
+        background
+        layout="sizes, total, prev, pager, next"
+        @current-change="handleReviewPageChange"
+      />
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="reviewListDialogVisible = false">{{ $t('cancel') }}</el-button>
       </div>
     </el-dialog>
     <el-dialog :title="$t('setting')" :visible.sync="taskDialogVisible" width="600px">
@@ -333,8 +414,8 @@
 </template>
 <script>
 import tableHeight from '@/mixin/tableHeight'
-import { getList, getDetail, getPreview, getCommitList, publish } from '@/api/deploy'
-import { addTask, editTask, removeTask, getTaskList } from '@/api/project'
+import { getList, getDetail, getPreview, getCommitList, publish, review } from '@/api/deploy'
+import { addTask, editTask, removeTask, getTaskList, getReviewList } from '@/api/project'
 import { getUserOption } from '@/api/namespace'
 import { parseTime, parseGitURL } from '@/utils'
 
@@ -350,6 +431,8 @@ export default {
       commitDialogVisible: false,
       taskDialogVisible: false,
       taskListDialogVisible: false,
+      reviewDialogVisible: false,
+      reviewListDialogVisible: false,
       dialogVisible: false,
       tableloading: false,
       tableData: [],
@@ -388,6 +471,13 @@ export default {
         date: [
           { required: true, message: 'Date required', trigger: 'change' }
         ]
+      },
+      reviewTableLoading: false,
+      reviewTableData: [],
+      reviewPagination: {
+        total: 0,
+        page: 1,
+        rows: 20
       },
       searchPreview: {
         loading: false,
@@ -608,7 +698,7 @@ export default {
       this.getDetail()
     },
 
-    handlePublishCommand(data) {
+    getCommitList(data) {
       const id = data.id
       this.commitDialogVisible = true
       this.commitTableLoading = true
@@ -652,16 +742,27 @@ export default {
       }
     },
 
-    handleProjectTaskCommand(data) {
-      this.taskListDialogVisible = true
+    getTaskList() {
       this.taskTableLoading = true
-      getTaskList(this.taskPagination, data.id).then(response => {
-        const projectTaskList = response.data.projectTaskList || []
+      getTaskList(this.taskPagination, this.selectedItem.id).then(response => {
+        const projectTaskList = response.data.list
         this.taskTableData = projectTaskList.map(element => {
-          return Object.assign(element, { projectId: data.id, projectName: data.name })
+          return Object.assign(element, { projectId: this.selectedItem.id, projectName: this.selectedItem.name })
         })
         this.taskPagination.total = response.data.pagination.total
       }).finally(() => { this.taskTableLoading = false })
+    },
+
+    handleTaskCommand(data) {
+      this.selectedItem = data
+      this.taskPagination.page = 1
+      this.taskListDialogVisible = true
+      this.getTaskList()
+    },
+
+    handleTaskPageChange(page) {
+      this.taskPagination.page = page
+      this.getTaskList()
     },
 
     submitTask() {
@@ -711,6 +812,53 @@ export default {
       }).catch(() => {
         this.$message.info('Cancel')
       })
+    },
+
+    getReviewList() {
+      this.reviewTableLoading = true
+      getReviewList(this.reviewPagination, this.selectedItem.id).then(response => {
+        const projectTaskList = response.data.list
+        this.reviewTableData = projectTaskList.map(element => {
+          return Object.assign(element, { projectId: this.selectedItem.id, projectName: this.selectedItem.name })
+        })
+        this.reviewPagination.total = response.data.pagination.total
+      }).finally(() => { this.reviewTableLoading = false })
+    },
+
+    handleReviewCommand(data) {
+      this.selectedItem = data
+      this.reviewPagination.page = 1
+      this.reviewListDialogVisible = true
+      this.getReviewList()
+    },
+
+    handleReviewPageChange(page) {
+      this.reviewPagination.page = page
+      this.getReviewList()
+    },
+
+    handleProjectReview(data, state) {
+      if (state === 1) {
+        this.$confirm(this.$i18n.t('deployPage.reviewTips'), this.$i18n.t('tips'), {
+          confirmButtonText: this.$i18n.t('confirm'),
+          cancelButtonText: this.$i18n.t('cancel'),
+          type: 'warning'
+        }).then(() => {
+          review(data.id, state).then((response) => {
+            const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
+            this.tableData[projectIndex].state = state
+            this.reviewListDialogVisible = false
+          })
+        }).catch(() => {
+          this.$message.info('Cancel')
+        })
+      } else {
+        review(data.id, state).then((response) => {
+          const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
+          this.tableData[projectIndex].state = state
+          this.reviewListDialogVisible = false
+        })
+      }
     },
 
     rollback(data) {

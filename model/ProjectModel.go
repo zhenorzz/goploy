@@ -15,9 +15,11 @@ type Project struct {
 	Name                  string `json:"name"`
 	URL                   string `json:"url"`
 	Path                  string `json:"path"`
-	SymlinkPath           string `json:"symlinkPath"`
 	Environment           uint8  `json:"environment"`
 	Branch                string `json:"branch"`
+	SymlinkPath           string `json:"symlinkPath"`
+	Review                uint8  `json:"review"`
+	ReviewURL             string `json:"reviewURL"`
 	AfterPullScriptMode   string `json:"afterPullScriptMode"`
 	AfterPullScript       string `json:"afterPullScript"`
 	AfterDeployScriptMode string `json:"afterDeployScriptMode"`
@@ -65,8 +67,42 @@ type Projects []Project
 func (p Project) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(projectTable).
-		Columns("namespace_id", "name", "url", "path", "symlink_path", "environment", "branch", "after_pull_script_mode", "after_pull_script", "after_deploy_script_mode", "after_deploy_script", "rsync_option", "notify_type", "notify_target").
-		Values(p.NamespaceID, p.Name, p.URL, p.Path, p.SymlinkPath, p.Environment, p.Branch, p.AfterPullScriptMode, p.AfterPullScript, p.AfterDeployScriptMode, p.AfterDeployScript, p.RsyncOption, p.NotifyType, p.NotifyTarget).
+		Columns(
+			"namespace_id",
+			"name",
+			"url",
+			"path",
+			"environment",
+			"branch",
+			"symlink_path",
+			"review",
+			"review_url",
+			"after_pull_script_mode",
+			"after_pull_script",
+			"after_deploy_script_mode",
+			"after_deploy_script",
+			"rsync_option",
+			"notify_type",
+			"notify_target",
+		).
+		Values(
+			p.NamespaceID,
+			p.Name,
+			p.URL,
+			p.Path,
+			p.Environment,
+			p.Branch,
+			p.SymlinkPath,
+			p.Review,
+			p.ReviewURL,
+			p.AfterPullScriptMode,
+			p.AfterPullScript,
+			p.AfterDeployScriptMode,
+			p.AfterDeployScript,
+			p.RsyncOption,
+			p.NotifyType,
+			p.NotifyTarget,
+		).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -84,9 +120,11 @@ func (p Project) EditRow() error {
 			"name":                     p.Name,
 			"url":                      p.URL,
 			"path":                     p.Path,
-			"symlink_path":             p.SymlinkPath,
 			"environment":              p.Environment,
 			"branch":                   p.Branch,
+			"symlink_path":             p.SymlinkPath,
+			"review":                   p.Review,
+			"review_url":               p.ReviewURL,
 			"after_pull_script_mode":   p.AfterPullScriptMode,
 			"after_pull_script":        p.AfterPullScript,
 			"after_deploy_script_mode": p.AfterDeployScriptMode,
@@ -175,7 +213,27 @@ func (p Project) DeployFail() error {
 // GetList -
 func (p Project) GetList(pagination Pagination) (Projects, error) {
 	builder := sq.
-		Select("project.id, name, url, path, symlink_path, environment, branch, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, notify_type, notify_target, project.insert_time, project.update_time").
+		Select(`
+			project.id, 
+			name, 
+			url, 
+			path, 
+			environment,
+			branch,
+			symlink_path, 
+			review, 
+			review_url, 
+			after_pull_script_mode,
+			after_pull_script,
+			after_deploy_script_mode,
+			after_deploy_script,
+			rsync_option,
+			auto_deploy,
+			notify_type, 
+			notify_target,
+			project.insert_time,
+			project.update_time
+		`).
 		From(projectTable).
 		Join(projectUserTable + " ON project_user.project_id = project.id").
 		Where(sq.Eq{
@@ -206,9 +264,11 @@ func (p Project) GetList(pagination Pagination) (Projects, error) {
 			&project.Name,
 			&project.URL,
 			&project.Path,
-			&project.SymlinkPath,
 			&project.Environment,
 			&project.Branch,
+			&project.SymlinkPath,
+			&project.Review,
+			&project.ReviewURL,
 			&project.AfterPullScriptMode,
 			&project.AfterPullScript,
 			&project.AfterDeployScriptMode,
@@ -265,6 +325,7 @@ func (p Project) GetUserProjectList() (Projects, error) {
 			IFNULL(publish_trace.ext, '{}'),
 			project.environment, 
 			project.branch, 
+			project.review, 
 			project.last_publish_token,
 			project.deploy_state, 
 			project.update_time`).
@@ -299,6 +360,7 @@ func (p Project) GetUserProjectList() (Projects, error) {
 			&project.PublishExt,
 			&project.Environment,
 			&project.Branch,
+			&project.Review,
 			&project.LastPublishToken,
 			&project.DeployState,
 			&project.UpdateTime); err != nil {
@@ -315,7 +377,7 @@ func (p Project) GetUserProjectList() (Projects, error) {
 func (p Project) GetData() (Project, error) {
 	var project Project
 	err := sq.
-		Select("id, namespace_id, name, url, path, symlink_path, environment, branch, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, insert_time, update_time").
+		Select("id, namespace_id, name, url, path, environment, branch, symlink_path, review, review_url, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, insert_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -326,9 +388,11 @@ func (p Project) GetData() (Project, error) {
 			&project.Name,
 			&project.URL,
 			&project.Path,
-			&project.SymlinkPath,
 			&project.Environment,
 			&project.Branch,
+			&project.SymlinkPath,
+			&project.Review,
+			&project.ReviewURL,
 			&project.AfterPullScriptMode,
 			&project.AfterPullScript,
 			&project.AfterDeployScriptMode,

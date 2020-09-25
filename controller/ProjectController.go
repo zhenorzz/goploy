@@ -114,6 +114,8 @@ func (project Project) Add(gp *core.Goploy) *core.Response {
 		Environment           uint8   `json:"Environment" validate:"required"`
 		Branch                string  `json:"branch" validate:"required"`
 		SymlinkPath           string  `json:"symlinkPath"`
+		Review                uint8   `json:"review"`
+		ReviewURL             string  `json:"reviewURL"`
 		AfterPullScriptMode   string  `json:"afterPullScriptMode"`
 		AfterPullScript       string  `json:"afterPullScript"`
 		AfterDeployScriptMode string  `json:"afterDeployScriptMode"`
@@ -138,9 +140,11 @@ func (project Project) Add(gp *core.Goploy) *core.Response {
 		Name:                  reqData.Name,
 		URL:                   reqData.URL,
 		Path:                  reqData.Path,
-		SymlinkPath:           reqData.SymlinkPath,
 		Environment:           reqData.Environment,
 		Branch:                reqData.Branch,
+		SymlinkPath:           reqData.SymlinkPath,
+		Review:                reqData.Review,
+		ReviewURL:             reqData.ReviewURL,
 		AfterPullScriptMode:   reqData.AfterPullScriptMode,
 		AfterPullScript:       reqData.AfterPullScript,
 		AfterDeployScriptMode: reqData.AfterDeployScriptMode,
@@ -201,6 +205,8 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 		URL                   string `json:"url"`
 		Path                  string `json:"path"`
 		SymlinkPath           string `json:"symlinkPath"`
+		Review                uint8  `json:"review"`
+		ReviewURL             string `json:"reviewURL"`
 		Environment           uint8  `json:"Environment"`
 		Branch                string `json:"branch"`
 		AfterPullScriptMode   string `json:"afterPullScriptMode"`
@@ -230,9 +236,11 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 		Name:                  reqData.Name,
 		URL:                   reqData.URL,
 		Path:                  reqData.Path,
-		SymlinkPath:           reqData.SymlinkPath,
 		Environment:           reqData.Environment,
 		Branch:                reqData.Branch,
+		SymlinkPath:           reqData.SymlinkPath,
+		Review:                reqData.Review,
+		ReviewURL:             reqData.ReviewURL,
 		AfterPullScriptMode:   reqData.AfterPullScriptMode,
 		AfterPullScript:       reqData.AfterPullScript,
 		AfterDeployScriptMode: reqData.AfterDeployScriptMode,
@@ -413,8 +421,8 @@ func (project Project) RemoveUser(gp *core.Goploy) *core.Response {
 // GetTaskList -
 func (project Project) GetTaskList(gp *core.Goploy) *core.Response {
 	type RespData struct {
-		ProjectTask model.ProjectTasks `json:"projectTaskList"`
-		Pagination  model.Pagination   `json:"pagination"`
+		ProjectTasks model.ProjectTasks `json:"list"`
+		Pagination   model.Pagination   `json:"pagination"`
 	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
@@ -429,7 +437,29 @@ func (project Project) GetTaskList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{ProjectTask: projectTaskList, Pagination: pagination}}
+	return &core.Response{Data: RespData{ProjectTasks: projectTaskList, Pagination: pagination}}
+}
+
+// GetReviewList -
+func (project Project) GetReviewList(gp *core.Goploy) *core.Response {
+	type RespData struct {
+		ProjectReviews model.ProjectReviews `json:"list"`
+		Pagination     model.Pagination     `json:"pagination"`
+	}
+	pagination, err := model.PaginationFrom(gp.URLQuery)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	ProjectReviews, pagination, err := model.ProjectReview{ProjectID: id}.GetListByProjectID(pagination)
+
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	return &core.Response{Data: RespData{ProjectReviews: ProjectReviews, Pagination: pagination}}
 }
 
 // AddTask to project
@@ -454,7 +484,6 @@ func (project Project) AddTask(gp *core.Goploy) *core.Response {
 
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
-
 	}
 	type RespData struct {
 		ID int64 `json:"id"`
