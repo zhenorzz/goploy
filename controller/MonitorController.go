@@ -13,9 +13,6 @@ type Monitor Controller
 
 // GetList monitor list
 func (Monitor) GetList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Monitors model.Monitors `json:"list"`
-	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -24,19 +21,24 @@ func (Monitor) GetList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Monitors: monitorList}}
+	return &core.Response{
+		Data: struct {
+			Monitors model.Monitors `json:"list"`
+		}{Monitors: monitorList},
+	}
 }
 
 // GetList monitor list
 func (Monitor) GetTotal(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Total int64 `json:"total"`
-	}
 	total, err := model.Monitor{NamespaceID: gp.Namespace.ID}.GetTotal()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Total: total}}
+	return &core.Response{
+		Data: struct {
+			Total int64 `json:"total"`
+		}{Total: total},
+	}
 }
 
 // Check one monitor
@@ -69,9 +71,6 @@ func (Monitor) Add(gp *core.Goploy) *core.Response {
 		NotifyTimes  uint16 `json:"notifyTimes" validate:"gt=0"`
 		Description  string `json:"description" validate:"max=255"`
 	}
-	type RespData struct {
-		ID int64 `json:"id"`
-	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -93,7 +92,11 @@ func (Monitor) Add(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{ID: id}}
+	return &core.Response{
+		Data: struct {
+			ID int64 `json:"id"`
+		}{ID: id},
+	}
 }
 
 // Edit one monitor

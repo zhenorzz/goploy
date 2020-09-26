@@ -15,9 +15,6 @@ type Package Controller
 
 // GetList list
 func (Package) GetList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Packages model.Packages `json:"list"`
-	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -26,40 +23,41 @@ func (Package) GetList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Packages: packageList}}
+	return &core.Response{
+		Data: struct {
+			Packages model.Packages `json:"list"`
+		}{Packages: packageList},
+	}
 }
 
 // GetTotal total
 func (Package) GetTotal(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Total int64 `json:"total"`
-	}
 	total, err := model.Package{}.GetTotal()
-
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Total: total}}
+	return &core.Response{
+		Data: struct {
+			Total int64 `json:"total"`
+		}{Total: total},
+	}
 }
 
 // GetOption list
 func (Package) GetOption(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Packages model.Packages `json:"list"`
-	}
-
 	packageList, err := model.Package{}.GetAll()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Packages: packageList}}
+	return &core.Response{
+		Data: struct {
+			Packages model.Packages `json:"list"`
+		}{Packages: packageList},
+	}
 }
 
 // Upload file
 func (Package) Upload(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Filename string `json:"filename"`
-	}
 	file, handler, err := gp.Request.FormFile("file")
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -104,5 +102,9 @@ func (Package) Upload(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	return &core.Response{Data: RespData{Filename: handler.Filename}}
+	return &core.Response{
+		Data: struct {
+			Filename string `json:"filename"`
+		}{Filename: handler.Filename},
+	}
 }

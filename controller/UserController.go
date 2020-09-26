@@ -20,10 +20,6 @@ func (User) Login(gp *core.Goploy) *core.Response {
 		Account  string `json:"account" validate:"min=5,max=12"`
 		Password string `json:"password" validate:"password"`
 	}
-	type RespData struct {
-		Token         string           `json:"token"`
-		NamespaceList model.Namespaces `json:"namespaceList"`
-	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -63,7 +59,12 @@ func (User) Login(gp *core.Goploy) *core.Response {
 
 	cookie := http.Cookie{Name: core.LoginCookieName, Value: token, Path: "/", MaxAge: 86400, HttpOnly: true}
 	http.SetCookie(gp.ResponseWriter, &cookie)
-	return &core.Response{Data: RespData{Token: token, NamespaceList: namespaceList}}
+	return &core.Response{
+		Data: struct {
+			Token         string           `json:"token"`
+			NamespaceList model.Namespaces `json:"namespaceList"`
+		}{Token: token, NamespaceList: namespaceList},
+	}
 }
 
 // Info -
@@ -86,9 +87,6 @@ func (User) Info(gp *core.Goploy) *core.Response {
 
 // GetList -
 func (User) GetList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Users model.Users `json:"list"`
-	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -97,32 +95,37 @@ func (User) GetList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Users: users}}
+	return &core.Response{
+		Data: struct {
+			Users model.Users `json:"list"`
+		}{Users: users},
+	}
 }
 
 // GetTotal -
 func (User) GetTotal(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Total int64 `json:"total"`
-	}
 	total, err := model.User{}.GetTotal()
-
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Total: total}}
+	return &core.Response{
+		Data: struct {
+			Total int64 `json:"total"`
+		}{Total: total},
+	}
 }
 
 // GetOption -
 func (User) GetOption(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Users model.Users `json:"list"`
-	}
 	users, err := model.User{}.GetAll()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Users: users}}
+	return &core.Response{
+		Data: struct {
+			Users model.Users `json:"list"`
+		}{Users: users},
+	}
 }
 
 // Add user
@@ -134,9 +137,7 @@ func (User) Add(gp *core.Goploy) *core.Response {
 		Contact      string `json:"contact" validate:"omitempty,len=11,numeric"`
 		SuperManager int64  `json:"superManager" validate:"min=0,max=1"`
 	}
-	type RespData struct {
-		ID int64 `json:"id"`
-	}
+
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -169,7 +170,11 @@ func (User) Add(gp *core.Goploy) *core.Response {
 		}
 	}
 
-	return &core.Response{Data: RespData{ID: id}}
+	return &core.Response{
+		Data: struct {
+			ID int64 `json:"id"`
+		}{ID: id},
+	}
 }
 
 // Edit user

@@ -16,9 +16,6 @@ type Crontab Controller
 
 // GetList crontab list
 func (Crontab) GetList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Crontabs model.Crontabs `json:"list"`
-	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -28,28 +25,29 @@ func (Crontab) GetList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Crontabs: crontabs}}
+	return &core.Response{
+		Data: struct {
+			Crontabs model.Crontabs `json:"list"`
+		}{Crontabs: crontabs},
+	}
 }
 
 // GetTotal crontab total
 func (Crontab) GetTotal(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Total int64 `json:"total"`
-	}
 	total, err := model.Crontab{NamespaceID: gp.Namespace.ID, Command: gp.URLQuery.Get("command")}.GetTotal()
 
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Total: total}}
+	return &core.Response{
+		Data: struct {
+			Total int64 `json:"total"`
+		}{Total: total},
+	}
 }
 
 // GetList crontab list
 func (Crontab) GetRemoteServerList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Crontabs []string `json:"list"`
-	}
-
 	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -96,14 +94,15 @@ func (Crontab) GetRemoteServerList(gp *core.Goploy) *core.Response {
 		crontabs = append(crontabs, crontab)
 	}
 
-	return &core.Response{Data: RespData{crontabs}}
+	return &core.Response{
+		Data: struct {
+			Crontabs []string `json:"list"`
+		}{Crontabs: crontabs},
+	}
 }
 
 // GetBindServerList project detail
 func (Crontab) GetBindServerList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		CrontabServers model.CrontabServers `json:"list"`
-	}
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -112,7 +111,11 @@ func (Crontab) GetBindServerList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{CrontabServers: crontabServers}}
+	return &core.Response{
+		Data: struct {
+			CrontabServers model.CrontabServers `json:"list"`
+		}{CrontabServers: crontabServers},
+	}
 }
 
 // Add one crontab
@@ -120,9 +123,6 @@ func (Crontab) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Command   string  `json:"command" validate:"required"`
 		ServerIDs []int64 `json:"serverIds"`
-	}
-	type RespData struct {
-		ID int64 `json:"id"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
@@ -140,26 +140,29 @@ func (Crontab) Add(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	if len(reqData.ServerIDs) == 0 {
-		return &core.Response{Data: RespData{ID: crontabID}}
-	}
-	crontabServersModel := model.CrontabServers{}
-	for _, serverID := range reqData.ServerIDs {
-		crontabServerModel := model.CrontabServer{
-			CrontabID: crontabID,
-			ServerID:  serverID,
+	if len(reqData.ServerIDs) != 0 {
+		crontabServersModel := model.CrontabServers{}
+		for _, serverID := range reqData.ServerIDs {
+			crontabServerModel := model.CrontabServer{
+				CrontabID: crontabID,
+				ServerID:  serverID,
+			}
+
+			go addCrontab(serverID, reqData.Command)
+
+			crontabServersModel = append(crontabServersModel, crontabServerModel)
 		}
 
-		go addCrontab(serverID, reqData.Command)
-
-		crontabServersModel = append(crontabServersModel, crontabServerModel)
+		if err := crontabServersModel.AddMany(); err != nil {
+			return &core.Response{Code: core.Error, Message: err.Error()}
+		}
 	}
 
-	if err := crontabServersModel.AddMany(); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+	return &core.Response{
+		Data: struct {
+			ID int64 `json:"id"`
+		}{ID: crontabID},
 	}
-
-	return &core.Response{Data: RespData{ID: crontabID}}
 }
 
 // Edit one crontab

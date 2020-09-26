@@ -11,9 +11,6 @@ type Namespace Controller
 
 // GetList namespace list
 func (Namespace) GetList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Namespaces model.Namespaces `json:"list"`
-	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -23,39 +20,41 @@ func (Namespace) GetList(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	return &core.Response{Data: RespData{Namespaces: namespaceList}}
+	return &core.Response{
+		Data: struct {
+			Namespaces model.Namespaces `json:"list"`
+		}{Namespaces: namespaceList},
+	}
 }
 
 // GetList server list
 func (Namespace) GetTotal(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Total int64 `json:"total"`
-	}
 	total, err := model.Namespace{UserID: gp.UserInfo.ID}.GetTotalByUserID()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Total: total}}
+	return &core.Response{
+		Data: struct {
+			Total int64 `json:"total"`
+		}{Total: total},
+	}
 }
 
 // GetUserOption user list
 func (Namespace) GetUserOption(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		NamespaceUsers model.NamespaceUsers `json:"list"`
-	}
-
 	namespaceUsers, err := model.NamespaceUser{NamespaceID: gp.Namespace.ID}.GetAllUserByNamespaceID()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{NamespaceUsers: namespaceUsers}}
+	return &core.Response{
+		Data: struct {
+			NamespaceUsers model.NamespaceUsers `json:"list"`
+		}{NamespaceUsers: namespaceUsers},
+	}
 }
 
 // GetBindUserList user list
 func (Namespace) GetBindUserList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		NamespaceUsers model.NamespaceUsers `json:"list"`
-	}
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -64,16 +63,17 @@ func (Namespace) GetBindUserList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{NamespaceUsers: namespaceUsers}}
+	return &core.Response{
+		Data: struct {
+			NamespaceUsers model.NamespaceUsers `json:"list"`
+		}{NamespaceUsers: namespaceUsers},
+	}
 }
 
 // Add one namespace
 func (Namespace) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name string `json:"name" validate:"required"`
-	}
-	type RespData struct {
-		ID int64 `json:"id"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
@@ -89,7 +89,11 @@ func (Namespace) Add(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	return &core.Response{Data: RespData{ID: id}}
+	return &core.Response{
+		Data: struct {
+			ID int64 `json:"id"`
+		}{ID: id},
+	}
 }
 
 // Edit one namespace

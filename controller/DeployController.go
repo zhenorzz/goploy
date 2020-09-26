@@ -21,9 +21,6 @@ type Deploy Controller
 
 // GetList -
 func (Deploy) GetList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Project model.Projects `json:"list"`
-	}
 	projectName := gp.URLQuery.Get("projectName")
 	projects, err := model.Project{
 		NamespaceID: gp.Namespace.ID,
@@ -34,15 +31,15 @@ func (Deploy) GetList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Project: projects}}
+	return &core.Response{
+		Data: struct {
+			Project model.Projects `json:"list"`
+		}{Project: projects},
+	}
 }
 
 // GetPreview deploy detail
 func (Deploy) GetPreview(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		GitTraceList model.PublishTraces `json:"gitTraceList"`
-		Pagination   model.Pagination    `json:"pagination"`
-	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -70,14 +67,16 @@ func (Deploy) GetPreview(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{GitTraceList: gitTraceList, Pagination: pagination}}
+	return &core.Response{
+		Data: struct {
+			GitTraceList model.PublishTraces `json:"gitTraceList"`
+			Pagination   model.Pagination    `json:"pagination"`
+		}{GitTraceList: gitTraceList, Pagination: pagination},
+	}
 }
 
 // GetDetail deploy detail
 func (Deploy) GetDetail(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		PublishTraceList model.PublishTraces `json:"publishTraceList"`
-	}
 
 	lastPublishToken := gp.URLQuery.Get("lastPublishToken")
 
@@ -87,15 +86,15 @@ func (Deploy) GetDetail(gp *core.Goploy) *core.Response {
 	} else if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{PublishTraceList: publishTraceList}}
+	return &core.Response{
+		Data: struct {
+			PublishTraceList model.PublishTraces `json:"publishTraceList"`
+		}{PublishTraceList: publishTraceList},
+	}
 }
 
 // GetCommitList get latest 10 commit list
 func (Deploy) GetCommitList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		CommitList []utils.Commit `json:"commitList"`
-	}
-
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -125,7 +124,11 @@ func (Deploy) GetCommitList(gp *core.Goploy) *core.Response {
 
 	commitList := utils.ParseGITLog(git.Output.String())
 
-	return &core.Response{Data: RespData{CommitList: commitList}}
+	return &core.Response{
+		Data: struct {
+			CommitList []utils.Commit `json:"commitList"`
+		}{CommitList: commitList},
+	}
 }
 
 // Publish the project

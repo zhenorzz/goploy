@@ -10,9 +10,6 @@ type Template Controller
 
 // GetList -
 func (Template) GetList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Templates model.Templates `json:"list"`
-	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -21,32 +18,37 @@ func (Template) GetList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Templates: templateList}}
+	return &core.Response{
+		Data: struct {
+			Templates model.Templates `json:"list"`
+		}{Templates: templateList},
+	}
 }
 
 // GetTotal -
 func (Template) GetTotal(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Total int64 `json:"total"`
-	}
 	total, err := model.Template{}.GetTotal()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Total: total}}
+	return &core.Response{
+		Data: struct {
+			Total int64 `json:"total"`
+		}{Total: total},
+	}
 }
 
 // GetOption -
 func (Template) GetOption(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Templates model.Templates `json:"list"`
-	}
-
 	templateList, err := model.Template{}.GetAll()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Templates: templateList}}
+	return &core.Response{
+		Data: struct {
+			Templates model.Templates `json:"list"`
+		}{Templates: templateList},
+	}
 }
 
 // Add template
@@ -57,12 +59,8 @@ func (Template) Add(gp *core.Goploy) *core.Response {
 		PackageIDStr string `json:"packageIdStr"`
 		Script       string `json:"script" validate:"required"`
 	}
-	type RespData struct {
-		ID int64 `json:"id"`
-	}
 
 	var reqData ReqData
-
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
@@ -77,7 +75,11 @@ func (Template) Add(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{ID: id}}
+	return &core.Response{
+		Data: struct {
+			ID int64 `json:"id"`
+		}{ID: id},
+	}
 }
 
 // Edit template
@@ -120,5 +122,5 @@ func (Template) Remove(gp *core.Goploy) *core.Response {
 	if err := (model.Template{ID: reqData.ID}).DeleteRow(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Message: "删除成功"}
+	return &core.Response{}
 }

@@ -16,9 +16,6 @@ type Project Controller
 
 // GetList -
 func (Project) GetList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Projects model.Projects `json:"list"`
-	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -28,14 +25,15 @@ func (Project) GetList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Projects: projectList}}
+	return &core.Response{
+		Data: struct {
+			Projects model.Projects `json:"list"`
+		}{Projects: projectList},
+	}
 }
 
 // GetTotal -
 func (Project) GetTotal(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Total int64 `json:"total"`
-	}
 	var total int64
 	var err error
 	projectName := gp.URLQuery.Get("projectName")
@@ -43,15 +41,15 @@ func (Project) GetTotal(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Total: total}}
+	return &core.Response{
+		Data: struct {
+			Total int64 `json:"total"`
+		}{Total: total},
+	}
 }
 
 // GetRemoteBranchList -
 func (Project) GetRemoteBranchList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Branch []string `json:"branch"`
-	}
-
 	url := gp.URLQuery.Get("url")
 	cmd := exec.Command("git", "ls-remote", "-h", url)
 	var cmdOutbuf, cmdErrbuf bytes.Buffer
@@ -70,14 +68,13 @@ func (Project) GetRemoteBranchList(gp *core.Goploy) *core.Response {
 		}
 	}
 
-	return &core.Response{Data: RespData{Branch: branch}}
+	return &core.Response{Data: struct {
+		Branch []string `json:"branch"`
+	}{Branch: branch}}
 }
 
 // GetBindServerList -
 func (Project) GetBindServerList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		ProjectServers model.ProjectServers `json:"list"`
-	}
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -86,14 +83,15 @@ func (Project) GetBindServerList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{ProjectServers: projectServers}}
+	return &core.Response{
+		Data: struct {
+			ProjectServers model.ProjectServers `json:"list"`
+		}{ProjectServers: projectServers},
+	}
 }
 
 // GetBindUserList -
 func (Project) GetBindUserList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		ProjectUsers model.ProjectUsers `json:"list"`
-	}
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -102,7 +100,11 @@ func (Project) GetBindUserList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{ProjectUsers: projectUsers}}
+	return &core.Response{
+		Data: struct {
+			ProjectUsers model.ProjectUsers `json:"list"`
+		}{ProjectUsers: projectUsers},
+	}
 }
 
 // Add project
@@ -420,10 +422,6 @@ func (Project) RemoveUser(gp *core.Goploy) *core.Response {
 
 // GetTaskList -
 func (Project) GetTaskList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		ProjectTasks model.ProjectTasks `json:"list"`
-		Pagination   model.Pagination   `json:"pagination"`
-	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -437,15 +435,16 @@ func (Project) GetTaskList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{ProjectTasks: projectTaskList, Pagination: pagination}}
+	return &core.Response{
+		Data: struct {
+			ProjectTasks model.ProjectTasks `json:"list"`
+			Pagination   model.Pagination   `json:"pagination"`
+		}{ProjectTasks: projectTaskList, Pagination: pagination},
+	}
 }
 
 // GetReviewList -
 func (Project) GetReviewList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		ProjectReviews model.ProjectReviews `json:"list"`
-		Pagination     model.Pagination     `json:"pagination"`
-	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -459,7 +458,12 @@ func (Project) GetReviewList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{ProjectReviews: ProjectReviews, Pagination: pagination}}
+	return &core.Response{
+		Data: struct {
+			ProjectReviews model.ProjectReviews `json:"list"`
+			Pagination     model.Pagination     `json:"pagination"`
+		}{ProjectReviews: ProjectReviews, Pagination: pagination},
+	}
 }
 
 // AddTask to project
@@ -485,10 +489,11 @@ func (Project) AddTask(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	type RespData struct {
-		ID int64 `json:"id"`
+	return &core.Response{
+		Data: struct {
+			ID int64 `json:"id"`
+		}{ID: id},
 	}
-	return &core.Response{Data: RespData{ID: id}}
 }
 
 // EditTask from project

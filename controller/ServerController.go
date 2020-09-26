@@ -21,9 +21,6 @@ type Server Controller
 
 // GetList -
 func (Server) GetList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Servers model.Servers `json:"list"`
-	}
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -32,26 +29,28 @@ func (Server) GetList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Servers: serverList}}
+	return &core.Response{
+		Data: struct {
+			Servers model.Servers `json:"list"`
+		}{Servers: serverList},
+	}
 }
 
 // GetTotal -
 func (Server) GetTotal(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Total int64 `json:"total"`
-	}
 	total, err := model.Server{NamespaceID: gp.Namespace.ID}.GetTotal()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Total: total}}
+	return &core.Response{
+		Data: struct {
+			Total int64 `json:"total"`
+		}{Total: total},
+	}
 }
 
 // GetInstallPreview server install preview list
 func (Server) GetInstallPreview(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		InstallTraceList model.InstallTraces `json:"installTraceList"`
-	}
 	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -60,14 +59,15 @@ func (Server) GetInstallPreview(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{InstallTraceList: installTraceList}}
+	return &core.Response{
+		Data: struct {
+			InstallTraceList model.InstallTraces `json:"installTraceList"`
+		}{InstallTraceList: installTraceList},
+	}
 }
 
 // GetInstallList server install list by token
 func (Server) GetInstallList(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		InstallTraceList model.InstallTraces `json:"installTraceList"`
-	}
 	token := gp.URLQuery.Get("token")
 	if err := core.Validate.Var(token, "uuid4"); err != nil {
 		for _, err := range err.(validator.ValidationErrors) {
@@ -78,20 +78,24 @@ func (Server) GetInstallList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{InstallTraceList: installTraceList}}
+	return &core.Response{
+		Data: struct {
+			InstallTraceList model.InstallTraces `json:"installTraceList"`
+		}{InstallTraceList: installTraceList},
+	}
 }
 
 // GetOption -
 func (Server) GetOption(gp *core.Goploy) *core.Response {
-	type RespData struct {
-		Servers model.Servers `json:"list"`
-	}
-
 	serverList, err := model.Server{NamespaceID: gp.Namespace.ID}.GetAll()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	return &core.Response{Data: RespData{Servers: serverList}}
+	return &core.Response{
+		Data: struct {
+			Servers model.Servers `json:"list"`
+		}{Servers: serverList},
+	}
 }
 
 // Check server
@@ -120,9 +124,7 @@ func (Server) Add(gp *core.Goploy) *core.Response {
 		Owner       string `json:"owner" validate:"required"`
 		Description string `json:"description" validate:"max=255"`
 	}
-	type RespData struct {
-		ID int64 `json:"id"`
-	}
+
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -141,7 +143,11 @@ func (Server) Add(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 
 	}
-	return &core.Response{Data: RespData{ID: id}}
+	return &core.Response{
+		Data: struct {
+			ID int64 `json:"id"`
+		}{ID: id},
+	}
 }
 
 // Edit server
