@@ -12,7 +12,7 @@ import (
 type Monitor Controller
 
 // GetList monitor list
-func (monitor Monitor) GetList(gp *core.Goploy) *core.Response {
+func (Monitor) GetList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Monitors model.Monitors `json:"list"`
 	}
@@ -28,7 +28,7 @@ func (monitor Monitor) GetList(gp *core.Goploy) *core.Response {
 }
 
 // GetList monitor list
-func (monitor Monitor) GetTotal(gp *core.Goploy) *core.Response {
+func (Monitor) GetTotal(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Total int64 `json:"total"`
 	}
@@ -40,7 +40,7 @@ func (monitor Monitor) GetTotal(gp *core.Goploy) *core.Response {
 }
 
 // Check one monitor
-func (monitor Monitor) Check(gp *core.Goploy) *core.Response {
+func (Monitor) Check(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Domain string `json:"domain" validate:"required"`
 		Port   int    `json:"port" validate:"min=0,max=65535"`
@@ -57,7 +57,7 @@ func (monitor Monitor) Check(gp *core.Goploy) *core.Response {
 }
 
 // Add one monitor
-func (monitor Monitor) Add(gp *core.Goploy) *core.Response {
+func (Monitor) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name         string `json:"name" validate:"required"`
 		Domain       string `json:"domain" validate:"required"`
@@ -97,7 +97,7 @@ func (monitor Monitor) Add(gp *core.Goploy) *core.Response {
 }
 
 // Edit one monitor
-func (monitor Monitor) Edit(gp *core.Goploy) *core.Response {
+func (Monitor) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"gt=0"`
 		Name         string `json:"name" validate:"required"`
@@ -134,7 +134,7 @@ func (monitor Monitor) Edit(gp *core.Goploy) *core.Response {
 }
 
 // Stop one Monitor
-func (monitor Monitor) Toggle(gp *core.Goploy) *core.Response {
+func (Monitor) Toggle(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
@@ -150,7 +150,7 @@ func (monitor Monitor) Toggle(gp *core.Goploy) *core.Response {
 }
 
 // RemoveRow one Monitor
-func (monitor Monitor) Remove(gp *core.Goploy) *core.Response {
+func (Monitor) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}

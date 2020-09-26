@@ -15,7 +15,7 @@ import (
 type User Controller
 
 // Login -
-func (user User) Login(gp *core.Goploy) *core.Response {
+func (User) Login(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Account  string `json:"account" validate:"min=5,max=12"`
 		Password string `json:"password" validate:"password"`
@@ -67,7 +67,7 @@ func (user User) Login(gp *core.Goploy) *core.Response {
 }
 
 // Info -
-func (user User) Info(gp *core.Goploy) *core.Response {
+func (User) Info(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		UserInfo struct {
 			ID           int64  `json:"id"`
@@ -85,7 +85,7 @@ func (user User) Info(gp *core.Goploy) *core.Response {
 }
 
 // GetList -
-func (user User) GetList(gp *core.Goploy) *core.Response {
+func (User) GetList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Users model.Users `json:"list"`
 	}
@@ -101,7 +101,7 @@ func (user User) GetList(gp *core.Goploy) *core.Response {
 }
 
 // GetTotal -
-func (user User) GetTotal(gp *core.Goploy) *core.Response {
+func (User) GetTotal(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Total int64 `json:"total"`
 	}
@@ -114,7 +114,7 @@ func (user User) GetTotal(gp *core.Goploy) *core.Response {
 }
 
 // GetOption -
-func (user User) GetOption(gp *core.Goploy) *core.Response {
+func (User) GetOption(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Users model.Users `json:"list"`
 	}
@@ -126,7 +126,7 @@ func (user User) GetOption(gp *core.Goploy) *core.Response {
 }
 
 // Add user
-func (user User) Add(gp *core.Goploy) *core.Response {
+func (User) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Account      string `json:"account" validate:"min=5,max=12"`
 		Password     string `json:"password" validate:"omitempty,password"`
@@ -173,7 +173,7 @@ func (user User) Add(gp *core.Goploy) *core.Response {
 }
 
 // Edit user
-func (user User) Edit(gp *core.Goploy) *core.Response {
+func (User) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"gt=0"`
 		Password     string `json:"password" validate:"omitempty,password"`
@@ -220,7 +220,7 @@ func (user User) Edit(gp *core.Goploy) *core.Response {
 }
 
 // RemoveRow User
-func (user User) Remove(gp *core.Goploy) *core.Response {
+func (User) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
@@ -238,7 +238,7 @@ func (user User) Remove(gp *core.Goploy) *core.Response {
 }
 
 // ChangePassword -
-func (user User) ChangePassword(gp *core.Goploy) *core.Response {
+func (User) ChangePassword(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		OldPassword string `json:"oldPwd" validate:"password"`
 		NewPassword string `json:"newPwd" validate:"password"`

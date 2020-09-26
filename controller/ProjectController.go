@@ -15,7 +15,7 @@ import (
 type Project Controller
 
 // GetList -
-func (project Project) GetList(gp *core.Goploy) *core.Response {
+func (Project) GetList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Projects model.Projects `json:"list"`
 	}
@@ -32,7 +32,7 @@ func (project Project) GetList(gp *core.Goploy) *core.Response {
 }
 
 // GetTotal -
-func (project Project) GetTotal(gp *core.Goploy) *core.Response {
+func (Project) GetTotal(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Total int64 `json:"total"`
 	}
@@ -47,7 +47,7 @@ func (project Project) GetTotal(gp *core.Goploy) *core.Response {
 }
 
 // GetRemoteBranchList -
-func (project Project) GetRemoteBranchList(gp *core.Goploy) *core.Response {
+func (Project) GetRemoteBranchList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Branch []string `json:"branch"`
 	}
@@ -74,7 +74,7 @@ func (project Project) GetRemoteBranchList(gp *core.Goploy) *core.Response {
 }
 
 // GetBindServerList -
-func (project Project) GetBindServerList(gp *core.Goploy) *core.Response {
+func (Project) GetBindServerList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		ProjectServers model.ProjectServers `json:"list"`
 	}
@@ -90,7 +90,7 @@ func (project Project) GetBindServerList(gp *core.Goploy) *core.Response {
 }
 
 // GetBindUserList -
-func (project Project) GetBindUserList(gp *core.Goploy) *core.Response {
+func (Project) GetBindUserList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		ProjectUsers model.ProjectUsers `json:"list"`
 	}
@@ -106,7 +106,7 @@ func (project Project) GetBindUserList(gp *core.Goploy) *core.Response {
 }
 
 // Add project
-func (project Project) Add(gp *core.Goploy) *core.Response {
+func (Project) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name                  string  `json:"name" validate:"required"`
 		URL                   string  `json:"url" validate:"required"`
@@ -198,7 +198,7 @@ func (project Project) Add(gp *core.Goploy) *core.Response {
 }
 
 // Edit project
-func (project Project) Edit(gp *core.Goploy) *core.Response {
+func (Project) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID                    int64  `json:"id" validate:"gt=0"`
 		Name                  string `json:"name"`
@@ -283,7 +283,7 @@ func (project Project) Edit(gp *core.Goploy) *core.Response {
 }
 
 // SetAutoDeploy -
-func (project Project) SetAutoDeploy(gp *core.Goploy) *core.Response {
+func (Project) SetAutoDeploy(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID         int64 `json:"id" validate:"gt=0"`
 		AutoDeploy uint8 `json:"autoDeploy" validate:"gte=0"`
@@ -304,7 +304,7 @@ func (project Project) SetAutoDeploy(gp *core.Goploy) *core.Response {
 }
 
 // RemoveRow Project
-func (project Project) Remove(gp *core.Goploy) *core.Response {
+func (Project) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
@@ -331,7 +331,7 @@ func (project Project) Remove(gp *core.Goploy) *core.Response {
 }
 
 // AddServer to project
-func (project Project) AddServer(gp *core.Goploy) *core.Response {
+func (Project) AddServer(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64   `json:"projectId" validate:"gt=0"`
 		ServerIDs []int64 `json:"serverIds" validate:"required"`
@@ -359,7 +359,7 @@ func (project Project) AddServer(gp *core.Goploy) *core.Response {
 }
 
 // AddUser to project
-func (project Project) AddUser(gp *core.Goploy) *core.Response {
+func (Project) AddUser(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64   `json:"projectId" validate:"gt=0"`
 		UserIDs   []int64 `json:"userIds" validate:"required"`
@@ -386,7 +386,7 @@ func (project Project) AddUser(gp *core.Goploy) *core.Response {
 }
 
 // RemoveServer from Project
-func (project Project) RemoveServer(gp *core.Goploy) *core.Response {
+func (Project) RemoveServer(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectServerID int64 `json:"projectServerId" validate:"gt=0"`
 	}
@@ -402,7 +402,7 @@ func (project Project) RemoveServer(gp *core.Goploy) *core.Response {
 }
 
 // RemoveUser from Project
-func (project Project) RemoveUser(gp *core.Goploy) *core.Response {
+func (Project) RemoveUser(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectUserID int64 `json:"projectUserId" validate:"gt=0"`
 	}
@@ -419,7 +419,7 @@ func (project Project) RemoveUser(gp *core.Goploy) *core.Response {
 }
 
 // GetTaskList -
-func (project Project) GetTaskList(gp *core.Goploy) *core.Response {
+func (Project) GetTaskList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		ProjectTasks model.ProjectTasks `json:"list"`
 		Pagination   model.Pagination   `json:"pagination"`
@@ -441,7 +441,7 @@ func (project Project) GetTaskList(gp *core.Goploy) *core.Response {
 }
 
 // GetReviewList -
-func (project Project) GetReviewList(gp *core.Goploy) *core.Response {
+func (Project) GetReviewList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		ProjectReviews model.ProjectReviews `json:"list"`
 		Pagination     model.Pagination     `json:"pagination"`
@@ -463,7 +463,7 @@ func (project Project) GetReviewList(gp *core.Goploy) *core.Response {
 }
 
 // AddTask to project
-func (project Project) AddTask(gp *core.Goploy) *core.Response {
+func (Project) AddTask(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
 		CommitID  string `json:"commitId" validate:"len=40"`
@@ -492,7 +492,7 @@ func (project Project) AddTask(gp *core.Goploy) *core.Response {
 }
 
 // EditTask from project
-func (project Project) EditTask(gp *core.Goploy) *core.Response {
+func (Project) EditTask(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID       int64  `json:"id" validate:"gt=0"`
 		CommitID string `json:"commitId" validate:"len=40"`
@@ -520,7 +520,7 @@ func (project Project) EditTask(gp *core.Goploy) *core.Response {
 }
 
 // RemoveTask from project
-func (project Project) RemoveTask(gp *core.Goploy) *core.Response {
+func (Project) RemoveTask(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}

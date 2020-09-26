@@ -10,7 +10,7 @@ import (
 type Namespace Controller
 
 // GetList namespace list
-func (namespace Namespace) GetList(gp *core.Goploy) *core.Response {
+func (Namespace) GetList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Namespaces model.Namespaces `json:"list"`
 	}
@@ -27,7 +27,7 @@ func (namespace Namespace) GetList(gp *core.Goploy) *core.Response {
 }
 
 // GetList server list
-func (namespace Namespace) GetTotal(gp *core.Goploy) *core.Response {
+func (Namespace) GetTotal(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Total int64 `json:"total"`
 	}
@@ -39,7 +39,7 @@ func (namespace Namespace) GetTotal(gp *core.Goploy) *core.Response {
 }
 
 // GetUserOption user list
-func (namespace Namespace) GetUserOption(gp *core.Goploy) *core.Response {
+func (Namespace) GetUserOption(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		NamespaceUsers model.NamespaceUsers `json:"list"`
 	}
@@ -52,7 +52,7 @@ func (namespace Namespace) GetUserOption(gp *core.Goploy) *core.Response {
 }
 
 // GetBindUserList user list
-func (namespace Namespace) GetBindUserList(gp *core.Goploy) *core.Response {
+func (Namespace) GetBindUserList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		NamespaceUsers model.NamespaceUsers `json:"list"`
 	}
@@ -68,7 +68,7 @@ func (namespace Namespace) GetBindUserList(gp *core.Goploy) *core.Response {
 }
 
 // Add one namespace
-func (namespace Namespace) Add(gp *core.Goploy) *core.Response {
+func (Namespace) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name string `json:"name" validate:"required"`
 	}
@@ -93,7 +93,7 @@ func (namespace Namespace) Add(gp *core.Goploy) *core.Response {
 }
 
 // Edit one namespace
-func (namespace Namespace) Edit(gp *core.Goploy) *core.Response {
+func (Namespace) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID   int64  `json:"id" validate:"gt=0"`
 		Name string `json:"name" validate:"required"`
@@ -114,7 +114,7 @@ func (namespace Namespace) Edit(gp *core.Goploy) *core.Response {
 }
 
 // AddUser to namespace
-func (namespace Namespace) AddUser(gp *core.Goploy) *core.Response {
+func (Namespace) AddUser(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		NamespaceID int64   `json:"namespaceId" validate:"gt=0"`
 		UserIDs     []int64 `json:"userIds" validate:"required"`
@@ -150,7 +150,7 @@ func (namespace Namespace) AddUser(gp *core.Goploy) *core.Response {
 }
 
 // RemoveUser from namespace
-func (namespace Namespace) RemoveUser(gp *core.Goploy) *core.Response {
+func (Namespace) RemoveUser(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		NamespaceUserID int64 `json:"namespaceUserId" validate:"gt=0"`
 	}

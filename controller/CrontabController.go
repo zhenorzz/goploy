@@ -15,7 +15,7 @@ import (
 type Crontab Controller
 
 // GetList crontab list
-func (crontab Crontab) GetList(gp *core.Goploy) *core.Response {
+func (Crontab) GetList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Crontabs model.Crontabs `json:"list"`
 	}
@@ -32,7 +32,7 @@ func (crontab Crontab) GetList(gp *core.Goploy) *core.Response {
 }
 
 // GetTotal crontab total
-func (crontab Crontab) GetTotal(gp *core.Goploy) *core.Response {
+func (Crontab) GetTotal(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Total int64 `json:"total"`
 	}
@@ -45,7 +45,7 @@ func (crontab Crontab) GetTotal(gp *core.Goploy) *core.Response {
 }
 
 // GetList crontab list
-func (crontab Crontab) GetRemoteServerList(gp *core.Goploy) *core.Response {
+func (Crontab) GetRemoteServerList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		Crontabs []string `json:"list"`
 	}
@@ -100,7 +100,7 @@ func (crontab Crontab) GetRemoteServerList(gp *core.Goploy) *core.Response {
 }
 
 // GetBindServerList project detail
-func (crontab Crontab) GetBindServerList(gp *core.Goploy) *core.Response {
+func (Crontab) GetBindServerList(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		CrontabServers model.CrontabServers `json:"list"`
 	}
@@ -116,7 +116,7 @@ func (crontab Crontab) GetBindServerList(gp *core.Goploy) *core.Response {
 }
 
 // Add one crontab
-func (crontab Crontab) Add(gp *core.Goploy) *core.Response {
+func (Crontab) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Command   string  `json:"command" validate:"required"`
 		ServerIDs []int64 `json:"serverIds"`
@@ -163,7 +163,7 @@ func (crontab Crontab) Add(gp *core.Goploy) *core.Response {
 }
 
 // Edit one crontab
-func (crontab Crontab) Edit(gp *core.Goploy) *core.Response {
+func (Crontab) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID      int64  `json:"id" validate:"gt=0"`
 		Command string `json:"command" validate:"required"`
@@ -208,7 +208,7 @@ func (crontab Crontab) Edit(gp *core.Goploy) *core.Response {
 }
 
 // import many crontab
-func (crontab Crontab) Import(gp *core.Goploy) *core.Response {
+func (Crontab) Import(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Commands []string `json:"commands" validate:"required"`
 	}
@@ -256,7 +256,7 @@ func (crontab Crontab) Import(gp *core.Goploy) *core.Response {
 }
 
 // DeleteRow one Crontab
-func (crontab Crontab) Remove(gp *core.Goploy) *core.Response {
+func (Crontab) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID    int64 `json:"id" validate:"gt=0"`
 		Radio int8  `json:"radio" validate:"min=0,max=1"`
@@ -294,7 +294,7 @@ func (crontab Crontab) Remove(gp *core.Goploy) *core.Response {
 }
 
 // AddServer one crontab
-func (crontab Crontab) AddServer(gp *core.Goploy) *core.Response {
+func (Crontab) AddServer(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		CrontabID int64   `json:"crontabId" validate:"gt=0"`
 		ServerIDs []int64 `json:"serverIds" validate:"required"`
@@ -328,7 +328,7 @@ func (crontab Crontab) AddServer(gp *core.Goploy) *core.Response {
 }
 
 // RemoveCrontabServer one crontab
-func (crontab Crontab) RemoveCrontabServer(gp *core.Goploy) *core.Response {
+func (Crontab) RemoveCrontabServer(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		CrontabServerID int64 `json:"crontabServerId" validate:"gt=0"`
 		CrontabID       int64 `json:"crontabId" validate:"gt=0"`
