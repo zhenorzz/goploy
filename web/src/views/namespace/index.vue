@@ -235,7 +235,7 @@ export default {
       add(this.formData).then((response) => {
         this.getList()
         this.getTotal()
-        this.$message.success('Success')
+        this.$message.success('Need to login again')
       }).finally(() => {
         this.formProps.disabled = this.dialogVisible = false
       })
