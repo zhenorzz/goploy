@@ -33,8 +33,9 @@ func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
 		LeftJoin(userTable + " ON project_user.user_id = user.id").
 		LeftJoin(namespaceUserTable + " ON namespace_user.user_id = user.id").
 		Where(sq.Eq{
-			"project_id": pu.ProjectID,
-			"role":       []string{"group-manager", "member"},
+			"project_id":   pu.ProjectID,
+			"namespace_id": pu.NamespaceID,
+			"role":         []string{"group-manager", "member"},
 		}).
 		RunWith(DB).
 		Query()
