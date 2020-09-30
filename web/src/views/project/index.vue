@@ -516,7 +516,7 @@ export default {
           { required: true, message: 'Name required', trigger: ['blur'] }
         ],
         url: [
-          { required: true, type: 'url', message: 'Repository url required', trigger: ['blur'] }
+          { required: true, message: 'Repository url required', trigger: ['blur'] }
         ],
         path: [
           { required: true, message: 'Path required', trigger: ['blur'] }
