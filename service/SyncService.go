@@ -311,11 +311,6 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 		Ext:           string(ext),
 	}
 
-	if len(project.AfterDeployScript) != 0 {
-		scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
-		ioutil.WriteFile(scriptName, []byte(project.AfterDeployScript), 0755)
-	}
-
 	rsyncOption, _ := utils.ParseCommandLine(project.RsyncOption)
 	rsyncOption = append(rsyncOption, "-e", "ssh -p "+strconv.Itoa(int(projectServer.ServerPort))+" -o StrictHostKeyChecking=no")
 	if len(project.SymlinkPath) != 0 {
@@ -330,27 +325,9 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" rsync "+strings.Join(rsyncOption, " "))
-	var rsyncError error
-	// 失败重试三次
-	for attempt := 0; attempt < 3; attempt++ {
-		rsyncError = cmd.Run()
-		if rsyncError != nil {
-			core.Log(core.ERROR, errbuf.String())
-		} else {
-			ext, _ := json.Marshal(struct {
-				ServerID   int64  `json:"serverId"`
-				ServerName string `json:"serverName"`
-				Command    string `json:"command"`
-			}{projectServer.ServerID, projectServer.ServerName, "rsync " + strings.Join(rsyncOption, " ")})
-			publishTraceModel.Ext = string(ext)
-			publishTraceModel.Detail = outbuf.String()
-			publishTraceModel.State = model.Success
-			publishTraceModel.AddRow()
-			break
-		}
-	}
 
-	if rsyncError != nil {
+	if err := cmd.Run(); err != nil {
+		core.Log(core.ERROR, "err: "+err.Error()+", detail: "+errbuf.String())
 		publishTraceModel.Detail = errbuf.String()
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
@@ -363,6 +340,16 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 		return
 	}
 
+	ext, _ = json.Marshal(struct {
+		ServerID   int64  `json:"serverId"`
+		ServerName string `json:"serverName"`
+		Command    string `json:"command"`
+	}{projectServer.ServerID, projectServer.ServerName, "rsync " + strings.Join(rsyncOption, " ")})
+	publishTraceModel.Ext = string(ext)
+	publishTraceModel.Detail = outbuf.String()
+	publishTraceModel.State = model.Success
+	publishTraceModel.AddRow()
+
 	var afterDeployCommands []string
 	if len(project.SymlinkPath) != 0 {
 		afterDeployCommands = append(afterDeployCommands, "ln -sfn "+destDir+" "+project.Path)
@@ -371,8 +358,10 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 	}
 
 	if len(project.AfterDeployScript) != 0 {
+		scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
+		ioutil.WriteFile(scriptName, []byte(project.AfterDeployScript), 0755)
 		scriptMode := "bash"
-		if len(project.AfterDeployScript) != 0 {
+		if len(project.AfterDeployScriptMode) != 0 {
 			scriptMode = project.AfterDeployScriptMode
 		}
 		afterDeployCommands = append(afterDeployCommands, scriptMode+" "+path.Join(project.Path, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode)))
@@ -396,33 +385,9 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 	}{projectServer.ServerID, projectServer.ServerName, strings.Join(afterDeployCommands, ";")})
 	publishTraceModel.Ext = string(ext)
 
-	// 执行ssh脚本
-	var session *ssh.Session
-	var connectError error
-	var scriptError error
-	for attempt := 0; attempt < 3; attempt++ {
-		session, connectError = utils.ConnectSSH(projectServer.ServerOwner, "", projectServer.ServerIP, int(projectServer.ServerPort))
-		if connectError != nil {
-			core.Log(core.ERROR, connectError.Error())
-		} else {
-			var sshOutbuf, sshErrbuf bytes.Buffer
-			session.Stdout = &sshOutbuf
-			session.Stderr = &sshErrbuf
-			sshOutbuf.Reset()
-			if scriptError = session.Run(strings.Join(afterDeployCommands, ";")); scriptError != nil {
-				core.Log(core.ERROR, scriptError.Error())
-			} else {
-				publishTraceModel.Detail = sshOutbuf.String()
-				publishTraceModel.State = model.Success
-				publishTraceModel.AddRow()
-				break
-			}
-		}
-	}
-	if session != nil {
-		defer session.Close()
-	}
+	session, connectError := utils.ConnectSSH(projectServer.ServerOwner, "", projectServer.ServerIP, int(projectServer.ServerPort))
 	if connectError != nil {
+		core.Log(core.ERROR, connectError.Error())
 		publishTraceModel.Detail = connectError.Error()
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
@@ -433,18 +398,30 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 			state:      model.ProjectFail,
 		}
 		return
-	} else if scriptError != nil {
-		publishTraceModel.Detail = scriptError.Error()
+	}
+
+	var sshOutbuf, sshErrbuf bytes.Buffer
+	session.Stdout = &sshOutbuf
+	session.Stderr = &sshErrbuf
+	if err := session.Run(strings.Join(afterDeployCommands, ";")); err != nil {
+		core.Log(core.ERROR, "err: "+err.Error()+", detail: "+sshErrbuf.String())
+		publishTraceModel.Detail = err.Error()
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
 		chInput <- syncMessage{
 			serverName: projectServer.ServerName,
 			projectID:  project.ID,
-			detail:     scriptError.Error(),
+			detail:     err.Error(),
 			state:      model.ProjectFail,
 		}
 		return
 	}
+
+	publishTraceModel.Detail = sshOutbuf.String()
+	publishTraceModel.State = model.Success
+	publishTraceModel.AddRow()
+
+	defer session.Close()
 	chInput <- syncMessage{
 		serverName: projectServer.ServerName,
 		projectID:  project.ID,
