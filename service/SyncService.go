@@ -262,7 +262,7 @@ func gitReset(commit string, project model.Project) error {
 func gitCommitLog(project model.Project) (utils.Commit, error) {
 	git := utils.GIT{Dir: core.GetProjectPath(project.ID)}
 
-	if err := git.Log("--stat", "--pretty=format:`start`%H`%an`%at`%s`", "-n", "1"); err != nil {
+	if err := git.Log("--stat", "--pretty=format:`start`%H`%an`%at`%s`%d`", "-n", "1"); err != nil {
 		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
 		return utils.Commit{}, errors.New(git.Err.String())
 	}
@@ -310,7 +310,6 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 		Type:          model.Deploy,
 		Ext:           string(ext),
 	}
-
 	rsyncOption, _ := utils.ParseCommandLine(project.RsyncOption)
 	rsyncOption = append(rsyncOption, "-e", "ssh -p "+strconv.Itoa(int(projectServer.ServerPort))+" -o StrictHostKeyChecking=no")
 	if len(project.SymlinkPath) != 0 {
@@ -359,7 +358,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 
 	if len(project.AfterDeployScript) != 0 {
 		scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
-		ioutil.WriteFile(scriptName, []byte(project.AfterDeployScript), 0755)
+		ioutil.WriteFile(scriptName, []byte(replaceScriptVars(project.AfterDeployScript, project)), 0755)
 		scriptMode := "bash"
 		if len(project.AfterDeployScriptMode) != 0 {
 			scriptMode = project.AfterDeployScriptMode
@@ -569,4 +568,16 @@ func removeExpiredBackup(project model.Project, projectServer model.ProjectServe
 	if scriptError = session.Run("cd " + destDir + ";ls -t | awk 'NR>10' | xargs rm -rf"); scriptError != nil {
 		core.Log(core.ERROR, scriptError.Error())
 	}
+}
+
+func replaceScriptVars(script string, project model.Project) string {
+	scriptVars := map[string]string{
+		"${PROJECT_PATH}":         project.Path,
+		"${PROJECT_SYMLINK_PATH}": path.Join(project.SymlinkPath, project.LastPublishToken),
+		"${PROJECT_NAME}":         project.Name,
+	}
+	for key, value := range scriptVars {
+		script = strings.Replace(script, key, value, -1)
+	}
+	return script
 }
