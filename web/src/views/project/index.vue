@@ -236,14 +236,35 @@
               </el-tooltip>
             </span>
             <el-form-item prop="afterDeployScript" label-width="0px">
-              <el-select v-model="formData.afterDeployScriptMode" :placeholder="$t('projectPage.scriptMode')+'(Default: bash)'" style="width:100%" @change="handleScriptModeChange">
-                <el-option
-                  v-for="(item, index) in scriptModeOption"
-                  :key="index"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
+              <el-row type="flex">
+                <el-select v-model="formData.afterDeployScriptMode" :placeholder="$t('projectPage.scriptMode')+'(Default: bash)'" style="flex: 1" @change="handleScriptModeChange">
+                  <el-option
+                    v-for="(item, index) in scriptModeOption"
+                    :key="index"
+                    :label="item.label"
+                    :value="item.value"
+                  />
+                </el-select>
+                <el-popover
+                  placement="bottom-end"
+                  :title="$t('projectPage.predefinedVar')"
+                  width="400"
+                  trigger="hover"
+                >
+                  <el-row>
+                    <el-row>
+                      <span>${PROJECT_NAME}：</span><span>{{ formData.name !== '' ? formData.name : 'project.name' }}</span>
+                    </el-row>
+                    <el-row>
+                      <span>${PROJECT_PATH}：</span><span>{{ formData.path !== '' ? formData.path : 'project.path' }}</span>
+                    </el-row>
+                    <el-row>
+                      <span>${PROJECT_SYMLINK_PATH}：</span><span>{{ formData.symlinkPath !== '' ? formData.symlinkPath : 'project.symlink_path' }}</span>
+                    </el-row>
+                  </el-row>
+                  <el-button slot="reference">{{ $t('projectPage.predefinedVar') }}</el-button>
+                </el-popover>
+              </el-row>
             </el-form-item>
             <el-form-item prop="afterDeployScript" label-width="0px">
               <codemirror ref="afterDeployScript" v-model="formData.afterDeployScript" :options="cmOption" />
@@ -604,6 +625,7 @@ export default {
     handleCopy(data) {
       this.handleEdit(data)
       this.formData.id = 0
+      this.formProps.showServers = this.formProps.showUsers = true
     },
 
     handleRemove(data) {

@@ -174,6 +174,7 @@ export default {
     运行方式：打包成一份脚本文件<br>
     如需重启服务，请注意是否需要nohup<br>
     检查服务器是否安装该脚本类型(默认以bash运行)`,
+    predefinedVar: '预定义变量',
     autoDeployTitle: '构建触发器：达成某种条件后自动构建发布项目',
     autoDeployTips: `前往GitLab、GitHub或Gitee的webhook（可前往谷歌查找各自webhook所在的位置）<br>
     填入连接<span style="color: red">http(s)://域名(IP)/deploy/webhook?project_id={projectId}</span><br>

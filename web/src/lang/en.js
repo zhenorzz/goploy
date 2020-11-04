@@ -163,6 +163,7 @@ export default {
     afterDeployScriptTips: `The script that runs on the target server after deploy<br>
     For example: bash after-deploy-script.sh<br>
     If you need to restart the service, please pay attention to whether you need nohup<br>`,
+    predefinedVar: 'predefined vars',
     autoDeployTitle: 'Deploy trigger: automatically build the release project after certain conditions are met',
     autoDeployTips: `Go to the webhook page in GitLab、GitHub or Gitee <br>
     Fill in URL <span style="color: red">http(s)://domian(IP)/deploy/webhook?project_id={projectId}</span><br>
