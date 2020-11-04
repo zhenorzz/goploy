@@ -68,6 +68,7 @@ type Commit struct {
 	Author    string `json:"author"`
 	Timestamp int    `json:"timestamp"`
 	Message   string `json:"message"`
+	Tag       string `json:"tag"`
 	Diff      string `json:"diff"`
 }
 
@@ -83,7 +84,8 @@ func ParseGITLog(rawCommitLog string) []Commit {
 			Author:    commitRowSplit[1],
 			Timestamp: timestamp,
 			Message:   commitRowSplit[3],
-			Diff:      strings.Trim(commitRowSplit[4], "\n"),
+			Tag:       commitRowSplit[4],
+			Diff:      strings.Trim(commitRowSplit[5], "\n"),
 		})
 	}
 	return commitList

@@ -70,6 +70,7 @@
               {{ isMember() && scope.row.review === 1 ? $t('submit') : $t('deploy') }}
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item :command="getCommitList">Commit list</el-dropdown-item>
+                <el-dropdown-item :command="getTagList">Tag list</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
             <el-button v-else type="primary" @click="getCommitList(scope.row)">{{ $t('deploy') }}</el-button>
@@ -263,6 +264,63 @@
         <el-button @click="commitDialogVisible = false">{{ $t('cancel') }}</el-button>
       </div>
     </el-dialog>
+    <el-dialog title="tag" :visible.sync="tagDialogVisible">
+      <el-table
+        v-loading="tagTableLoading"
+        border
+        stripe
+        highlight-current-row
+        max-height="447px"
+        :data="tagTableData"
+      >
+        <el-table-column type="expand">
+          <template slot-scope="props">
+            <span v-html="formatDetail(props.row.diff)" />
+          </template>
+        </el-table-column>
+        <el-table-column prop="tag" label="tag" width="100">
+          <template slot-scope="scope">
+            <el-link
+              type="primary"
+              style="font-size: 12px"
+              :underline="false"
+              :href="parseGitURL(scope.row.url) + '/tree/' + scope.row.shortTag"
+              target="_blank"
+            >
+              {{ scope.row.shortTag }}
+            </el-link>
+          </template>
+        </el-table-column>
+        <el-table-column prop="commit" label="commit" width="290">
+          <template slot-scope="scope">
+            <el-link
+              type="primary"
+              style="font-size: 12px"
+              :underline="false"
+              :href="parseGitURL(scope.row.url) + '/commit/' + scope.row.commit"
+              target="_blank"
+            >
+              {{ scope.row.commit }}
+            </el-link>
+          </template>
+        </el-table-column>
+        <el-table-column prop="author" label="author" />
+        <el-table-column prop="message" label="message" width="200" show-overflow-tooltip />
+        <el-table-column label="time" width="135" align="center">
+          <template slot-scope="scope">
+            {{ parseTime(scope.row.timestamp) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="operation" :label="$t('op')" width="80" align="center" fixed="right">
+          <template slot-scope="scope">
+            <el-button type="danger" @click="rollback(scope.row)">{{ $t('deploy') }}</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="tagDialogVisible = false">{{ $t('cancel') }}</el-button>
+      </div>
+    </el-dialog>
     <el-dialog :title="$t('manage')" :visible.sync="taskListDialogVisible">
       <el-row class="app-bar" type="flex" justify="end">
         <el-button type="primary" icon="el-icon-plus" @click="handleAddProjectTask(selectedItem)" />
@@ -414,7 +472,7 @@
 </template>
 <script>
 import tableHeight from '@/mixin/tableHeight'
-import { getList, getDetail, getPreview, getCommitList, publish, review } from '@/api/deploy'
+import { getList, getDetail, getPreview, getCommitList, getTagList, publish, review } from '@/api/deploy'
 import { addTask, editTask, removeTask, getTaskList, getReviewList } from '@/api/project'
 import { getUserOption } from '@/api/namespace'
 import { parseTime, parseGitURL } from '@/utils'
@@ -429,6 +487,7 @@ export default {
       projectName: '',
       publishToken: '',
       commitDialogVisible: false,
+      tagDialogVisible: false,
       taskDialogVisible: false,
       taskListDialogVisible: false,
       reviewDialogVisible: false,
@@ -494,6 +553,8 @@ export default {
       },
       commitTableLoading: false,
       commitTableData: [],
+      tagTableLoading: false,
+      tagTableData: [],
       publishTraceList: [],
       publishLocalTraceList: [],
       publishRemoteTraceList: {},
@@ -703,14 +764,31 @@ export default {
       this.commitDialogVisible = true
       this.commitTableLoading = true
       getCommitList(id).then(response => {
-        this.commitTableData = response.data.commitList.map(element => {
+        this.commitTableData = response.data.commitList ? response.data.commitList.map(element => {
           return Object.assign(element, {
             projectId: id,
             url: data.url
           })
-        })
+        }) : []
       }).finally(() => {
         this.commitTableLoading = false
+      })
+    },
+
+    getTagList(data) {
+      const id = data.id
+      this.tagDialogVisible = true
+      this.tagTableLoading = true
+      getTagList(id).then(response => {
+        this.tagTableData = response.data.tagList ? response.data.tagList.map(element => {
+          return Object.assign(element, {
+            projectId: id,
+            url: data.url,
+            shortTag: element.tag.replace('tag: ', '')
+          })
+        }) : []
+      }).finally(() => {
+        this.tagTableLoading = false
       })
     },
 

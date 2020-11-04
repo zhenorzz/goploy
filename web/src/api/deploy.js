@@ -56,6 +56,19 @@ export function getCommitList(id) {
  * @param  {int}    id
  * @return {Promise}
  */
+export function getTagList(id) {
+  return request({
+    url: '/deploy/getTagList',
+    method: 'get',
+    params: { id },
+    timeout: 0
+  })
+}
+
+/**
+ * @param  {int}    id
+ * @return {Promise}
+ */
 export function publish(projectId, commit) {
   return request({
     url: '/deploy/publish',

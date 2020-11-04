@@ -118,7 +118,7 @@ func (Deploy) GetCommitList(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
 	}
 
-	if err := git.Log("--stat", "--pretty=format:`start`%H`%an`%at`%s`", "-n", "10"); err != nil {
+	if err := git.Log("--stat", "--pretty=format:`start`%H`%an`%at`%s`%D`", "-n", "10"); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
 	}
 
@@ -128,6 +128,44 @@ func (Deploy) GetCommitList(gp *core.Goploy) *core.Response {
 		Data: struct {
 			CommitList []utils.Commit `json:"commitList"`
 		}{CommitList: commitList},
+	}
+}
+
+// GetTagList get latest 10 tag list
+func (Deploy) GetTagList(gp *core.Goploy) *core.Response {
+	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	project, err := model.Project{ID: id}.GetData()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	srcPath := core.GetProjectPath(project.ID)
+	git := utils.GIT{Dir: srcPath}
+	if err := git.Clean("-f"); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
+	}
+
+	if err := git.Checkout("--", "."); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
+	}
+
+	if err := git.Pull(); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
+	}
+
+	if err := git.Log("--tags", "-n", "10", "--no-walk", "--stat", "--pretty=format:`start`%H`%an`%at`%s`%D`"); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
+	}
+
+	tagList := utils.ParseGITLog(git.Output.String())
+
+	return &core.Response{
+		Data: struct {
+			TagList []utils.Commit `json:"tagList"`
+		}{TagList: tagList},
 	}
 }
 

@@ -76,6 +76,7 @@ func Init() *router.Router {
 	rt.Add("/deploy/getList", http.MethodGet, controller.Deploy{}.GetList)
 	rt.Add("/deploy/getDetail", http.MethodGet, controller.Deploy{}.GetDetail)
 	rt.Add("/deploy/getCommitList", http.MethodGet, controller.Deploy{}.GetCommitList)
+	rt.Add("/deploy/getTagList", http.MethodGet, controller.Deploy{}.GetTagList)
 	rt.Add("/deploy/getPreview", http.MethodGet, controller.Deploy{}.GetPreview)
 	rt.Add("/deploy/review", http.MethodPost, controller.Deploy{}.Review).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/deploy/publish", http.MethodPost, controller.Deploy{}.Publish, middleware.HasPublishAuth)
