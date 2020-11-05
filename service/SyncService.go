@@ -310,6 +310,11 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 		Type:          model.Deploy,
 		Ext:           string(ext),
 	}
+	// write after deploy script for rsync
+	if len(project.AfterDeployScript) != 0 {
+		scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
+		ioutil.WriteFile(scriptName, []byte(replaceScriptVars(project.AfterDeployScript, project)), 0755)
+	}
 	rsyncOption, _ := utils.ParseCommandLine(project.RsyncOption)
 	rsyncOption = append(rsyncOption, "-e", "ssh -p "+strconv.Itoa(int(projectServer.ServerPort))+" -o StrictHostKeyChecking=no")
 	if len(project.SymlinkPath) != 0 {
@@ -357,8 +362,6 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 	}
 
 	if len(project.AfterDeployScript) != 0 {
-		scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
-		ioutil.WriteFile(scriptName, []byte(replaceScriptVars(project.AfterDeployScript, project)), 0755)
 		scriptMode := "bash"
 		if len(project.AfterDeployScriptMode) != 0 {
 			scriptMode = project.AfterDeployScriptMode

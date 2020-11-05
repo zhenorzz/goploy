@@ -28,6 +28,7 @@ export default {
   func: '功能',
   param: '参数',
   deploy: '构建',
+  initial: '初始化',
   search: '搜索',
   tips: '提示',
   view: '查看',

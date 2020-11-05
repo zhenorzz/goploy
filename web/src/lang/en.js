@@ -28,6 +28,7 @@ export default {
   func: 'Func',
   param: 'Param',
   deploy: 'Deploy',
+  initial: 'Initial',
   search: 'Search',
   tips: 'Tips',
   view: 'View',

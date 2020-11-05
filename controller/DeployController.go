@@ -118,7 +118,7 @@ func (Deploy) GetCommitList(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
 	}
 
-	if err := git.Log("--stat", "--pretty=format:`start`%H`%an`%at`%s`%D`", "-n", "10"); err != nil {
+	if err := git.Log("--stat", "--pretty=format:`start`%H`%an`%at`%s`%d`", "-n", "10"); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
 	}
 
@@ -156,7 +156,7 @@ func (Deploy) GetTagList(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
 	}
 
-	if err := git.Log("--tags", "-n", "10", "--no-walk", "--stat", "--pretty=format:`start`%H`%an`%at`%s`%D`"); err != nil {
+	if err := git.Log("--tags", "-n", "10", "--no-walk", "--stat", "--pretty=format:`start`%H`%an`%at`%s`%d`"); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
 	}
 

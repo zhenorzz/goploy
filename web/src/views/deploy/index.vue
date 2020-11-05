@@ -58,8 +58,9 @@
       <el-table-column prop="operation" :label="$t('op')" width="310" fixed="right" align="center">
         <template slot-scope="scope">
           <el-row class="operation-btn">
+            <el-button v-if="scope.row.deployState === 0" type="primary" @click="publish(scope.row)">{{ $t('initial') }}</el-button>
             <el-dropdown
-              v-if="hasGroupManagerPermission() || scope.row.review === 0"
+              v-else-if="hasGroupManagerPermission() || scope.row.review === 0"
               split-button
               trigger="click"
               :disabled="scope.row.deployState === 1"
@@ -278,7 +279,7 @@
             <span v-html="formatDetail(props.row.diff)" />
           </template>
         </el-table-column>
-        <el-table-column prop="tag" label="tag" width="100">
+        <el-table-column prop="tag" label="tag">
           <template slot-scope="scope">
             <el-link
               type="primary"
@@ -291,7 +292,7 @@
             </el-link>
           </template>
         </el-table-column>
-        <el-table-column prop="commit" label="commit" width="290">
+        <el-table-column prop="commit" label="commit" width="80">
           <template slot-scope="scope">
             <el-link
               type="primary"
@@ -300,11 +301,11 @@
               :href="parseGitURL(scope.row.url) + '/commit/' + scope.row.commit"
               target="_blank"
             >
-              {{ scope.row.commit }}
+              {{ scope.row.commit.substring(0, 6) }}
             </el-link>
           </template>
         </el-table-column>
-        <el-table-column prop="author" label="author" />
+        <el-table-column prop="author" label="author" width="100" show-overflow-tooltip />
         <el-table-column prop="message" label="message" width="200" show-overflow-tooltip />
         <el-table-column label="time" width="135" align="center">
           <template slot-scope="scope">
@@ -637,6 +638,11 @@ export default {
             element.progressStatus = 'warning'
             element.tagType = 'warning'
             element.tagText = 'Deploying'
+          } else if (element.deployState === 3) {
+            element.progressPercentage = 0
+            element.progressStatus = 'exception'
+            element.tagType = 'danger'
+            element.tagText = 'Fail'
           }
           try {
             Object.assign(element, JSON.parse(element.publishExt))
@@ -781,10 +787,18 @@ export default {
       this.tagTableLoading = true
       getTagList(id).then(response => {
         this.tagTableData = response.data.tagList ? response.data.tagList.map(element => {
+          let shortTag = ''
+          for (const tag of element.tag.replace(/[()]/g, '').split(',')) {
+            if (tag.indexOf('tag: ') !== -1) {
+              shortTag = tag.replace('tag: ', '').trim()
+              break
+            }
+          }
+
           return Object.assign(element, {
             projectId: id,
             url: data.url,
-            shortTag: element.tag.replace('tag: ', '')
+            shortTag: shortTag
           })
         }) : []
       }).finally(() => {
