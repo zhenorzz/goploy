@@ -787,8 +787,8 @@ export default {
       this.tagTableLoading = true
       getTagList(id).then(response => {
         this.tagTableData = response.data.tagList ? response.data.tagList.map(element => {
-          let shortTag = ''
-          for (const tag of element.tag.replace(/[()]/g, '').split(',')) {
+          let shortTag = element.tag.replace(/[()]/g, '')
+          for (const tag of shortTag.split(',')) {
             if (tag.indexOf('tag: ') !== -1) {
               shortTag = tag.replace('tag: ', '').trim()
               break
