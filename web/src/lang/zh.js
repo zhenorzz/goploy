@@ -150,6 +150,7 @@ export default {
     testConnection: '测试连接',
     lishBranch: '列出分支',
     scriptMode: '脚本类型',
+    rsyncDoc: 'https://zhenorzz.gitee.io/goploy/#/dependency/rsync',
     deployNotice: '构建通知',
     publishReview: '发布审核',
     reviewFooterTips: `

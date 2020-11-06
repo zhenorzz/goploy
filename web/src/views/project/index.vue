@@ -46,7 +46,7 @@
           <el-button type="text" icon="el-icon-edit" @click="handleAutoDeploy(scope.row)" />
         </template>
       </el-table-column>
-      <el-table-column width="60" :label="$t('review')" align="center">
+      <el-table-column width="80" :label="$t('review')" align="center">
         <template slot-scope="scope">
           <span v-if="scope.row.review === 0">{{ $t('close') }}</span>
           <span v-else>{{ $t('open') }}</span>
@@ -134,7 +134,7 @@
               </el-row>
             </el-form-item>
             <el-form-item prop="rsyncOption">
-              <span slot="label">Rsync<br> [OPTION...]</span>
+              <el-link slot="label" type="primary" :href="$t('projectPage.rsyncDoc')" target="_blank">Rsync<br> [OPTION...]</el-link>
               <el-input v-model.trim="formData.rsyncOption" type="textarea" :rows="3" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
             </el-form-item>
             <el-form-item :label="$t('projectPage.deployNotice')" prop="notifyTarget">

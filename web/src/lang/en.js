@@ -150,6 +150,7 @@ export default {
     testConnection: 'Test',
     lishBranch: 'List branch',
     scriptMode: 'Script mode',
+    rsyncDoc: 'https://linux.die.net/man/1/rsync',
     deployNotice: 'Deploy notice',
     symlinkLabel: 'Symlink deploy',
     symlinkHeaderTips: `<p>The project synchronize to the specified directory(rsync /symlinkPath), and ln -s projectPath symlinkPath</p>

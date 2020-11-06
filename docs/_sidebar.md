@@ -2,6 +2,8 @@
 * [快速启动](start/index.md)
 * [权限模型](permission/index.md)
 * [构建流程](deploy/index.md)
+* 依赖介绍
+  * [rysnc](dependency/rsync.md)
 * 参与开发
   * [PR](develop/pr.md)
   * [前端](develop/frontend.md)
