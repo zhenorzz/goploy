@@ -137,7 +137,8 @@
               <el-link slot="label" type="primary" :href="$t('projectPage.rsyncDoc')" target="_blank">Rsync<br> [OPTION...]</el-link>
               <el-input v-model.trim="formData.rsyncOption" type="textarea" :rows="3" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
             </el-form-item>
-            <el-form-item :label="$t('projectPage.deployNotice')" prop="notifyTarget">
+            <el-form-item prop="notifyTarget">
+              <el-link slot="label" type="primary" href="https://zhenorzz.gitee.io/goploy/#/dependency/notice" target="_blank">{{ $t('projectPage.deployNotice') }}</el-link>
               <el-row type="flex">
                 <el-select v-model="formData.notifyType" clearable>
                   <el-option :label="$t('webhookOption[0]')" :value="0" />
