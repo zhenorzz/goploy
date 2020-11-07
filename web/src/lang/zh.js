@@ -28,6 +28,7 @@ export default {
   func: '功能',
   param: '参数',
   deploy: '构建',
+  grey: '灰度',
   initial: '初始化',
   search: '搜索',
   tips: '提示',
@@ -191,6 +192,6 @@ export default {
     reviewTips: '此操作将通过该次提交, 是否继续?',
     reviewStateOption: ['待审', '已审', '拒审'],
     removeProjectTaskTips: '此操作删除{projectName}的定时任务, 是否继续?',
-    rollbackTips: '此操作将重新构建{commit}, 是否继续?'
+    publishCommitTips: '此操作将重新构建{commit}, 是否继续?'
   }
 }

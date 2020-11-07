@@ -1,6 +1,7 @@
 import request from '@/utils/request'
 
 /**
+ * @param  {string}    projectName
  * @return {Promise}
  */
 export function getList(projectName) {
@@ -12,7 +13,7 @@ export function getList(projectName) {
 }
 
 /**
- * @param  {int}    id
+ * @param  {string}    lastPublishToken
  * @return {Promise}
  */
 export function getDetail(lastPublishToken) {
@@ -26,7 +27,8 @@ export function getDetail(lastPublishToken) {
 }
 
 /**
- * @param  {int}    id
+ * @param  {object}  pagination
+ * @param  {object}  params
  * @return {Promise}
  */
 export function getPreview({ page, rows }, params) {
@@ -66,7 +68,8 @@ export function getTagList(id) {
 }
 
 /**
- * @param  {int}    id
+ * @param  {int}      projectId
+ * @param  {string}   commit
  * @return {Promise}
  */
 export function publish(projectId, commit) {
@@ -78,7 +81,22 @@ export function publish(projectId, commit) {
 }
 
 /**
- * @param  {int}    id
+ * @param  {int}      projectId
+ * @param  {string}   commit
+ * @param  {Array}    serverIds
+ * @return {Promise}
+ */
+export function greyPublish(projectId, commit, serverIds) {
+  return request({
+    url: '/deploy/greyPublish',
+    method: 'post',
+    data: { projectId, commit, serverIds }
+  })
+}
+
+/**
+ * @param  {int}    projectReviewId
+ * @param  {int}    state
  * @return {Promise}
  */
 export function review(projectReviewId, state) {
@@ -86,17 +104,5 @@ export function review(projectReviewId, state) {
     url: '/deploy/review',
     method: 'post',
     data: { projectReviewId, state }
-  })
-}
-
-/**
- * @param  {int}    id
- * @return {Promise}
- */
-export function rollback(projectId, commit) {
-  return request({
-    url: '/deploy/rollback',
-    method: 'post',
-    data: { projectId, commit }
   })
 }

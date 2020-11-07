@@ -134,7 +134,7 @@
                   <!-- <span v-if="item.publishState === 1" style="color:#67C23A;float:right;">{{ $t('success') }}</span>
                   <span v-else style="color:#F56C6C;float:right;">{{ $t('fail') }}</span> -->
                 </el-radio>
-                <el-button type="danger" plain @click="rollback(item)">rebuild</el-button>
+                <el-button type="danger" plain @click="publishByCommit(item)">rebuild</el-button>
               </el-row>
             </el-row>
           </el-radio-group>
@@ -255,9 +255,10 @@
             {{ parseTime(scope.row.timestamp) }}
           </template>
         </el-table-column>
-        <el-table-column prop="operation" :label="$t('op')" width="80" align="center" fixed="right">
+        <el-table-column prop="operation" :label="$t('op')" width="160" align="center" fixed="right">
           <template slot-scope="scope">
-            <el-button type="danger" @click="rollback(scope.row)">{{ $t('deploy') }}</el-button>
+            <el-button type="danger" @click="publishByCommit(scope.row)">{{ $t('deploy') }}</el-button>
+            <el-button v-if="!isMember()" type="warning" @click="handleGreyPublish(scope.row)">{{ $t('grey') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -312,14 +313,34 @@
             {{ parseTime(scope.row.timestamp) }}
           </template>
         </el-table-column>
-        <el-table-column prop="operation" :label="$t('op')" width="80" align="center" fixed="right">
+        <el-table-column prop="operation" :label="$t('op')" width="160" align="center" fixed="right">
           <template slot-scope="scope">
-            <el-button type="danger" @click="rollback(scope.row)">{{ $t('deploy') }}</el-button>
+            <el-button type="danger" @click="publishByCommit(scope.row)">{{ $t('deploy') }}</el-button>
+            <el-button v-if="!isMember()" type="warning" @click="handleGreyPublish(scope.row)">{{ $t('grey') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
       <div slot="footer" class="dialog-footer">
         <el-button @click="tagDialogVisible = false">{{ $t('cancel') }}</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog :title="$t('deploy')" :visible.sync="greyServerDialogVisible">
+      <el-form ref="greyServerForm" :rules="greyServerFormRules" :model="greyServerFormData">
+        <el-form-item :label="$t('server')" label-width="80px" prop="serverIds">
+          <el-checkbox-group v-model="greyServerFormData.serverIds">
+            <el-checkbox
+              v-for="(item, index) in greyServerFormProps.serverOption"
+              :key="index"
+              :label="item.serverId"
+            >
+              {{ item.serverName+ '(' + item.serverDescription + ')' }}
+            </el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="greyServerDialogVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="greyServerFormProps.disabled" type="primary" @click="greyPublish">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
     <el-dialog :title="$t('manage')" :visible.sync="taskListDialogVisible">
@@ -473,8 +494,8 @@
 </template>
 <script>
 import tableHeight from '@/mixin/tableHeight'
-import { getList, getDetail, getPreview, getCommitList, getTagList, publish, review } from '@/api/deploy'
-import { addTask, editTask, removeTask, getTaskList, getReviewList } from '@/api/project'
+import { getList, getDetail, getPreview, getCommitList, getTagList, publish, review, greyPublish } from '@/api/deploy'
+import { addTask, editTask, removeTask, getTaskList, getBindServerList, getReviewList } from '@/api/project'
 import { getUserOption } from '@/api/namespace'
 import { parseTime, parseGitURL } from '@/utils'
 
@@ -489,6 +510,7 @@ export default {
       publishToken: '',
       commitDialogVisible: false,
       tagDialogVisible: false,
+      greyServerDialogVisible: false,
       taskDialogVisible: false,
       taskListDialogVisible: false,
       reviewDialogVisible: false,
@@ -556,6 +578,20 @@ export default {
       commitTableData: [],
       tagTableLoading: false,
       tagTableData: [],
+      greyServerFormProps: {
+        disabled: false,
+        serverOption: []
+      },
+      greyServerFormData: {
+        projectId: 0,
+        commit: 0,
+        serverIds: []
+      },
+      greyServerFormRules: {
+        serverIds: [
+          { type: 'array', required: true, message: 'Server required', trigger: 'change' }
+        ]
+      },
       publishTraceList: [],
       publishLocalTraceList: [],
       publishRemoteTraceList: {},
@@ -667,37 +703,6 @@ export default {
       this.getList()
     },
 
-    publish(data) {
-      const id = data.id
-      const h = this.$createElement
-      let color = ''
-      if (data.environment === 1) {
-        color = 'color: #F56C6C'
-      } else if (data.environment === 3) {
-        color = 'color: #E6A23C'
-      } else {
-        color = 'color: #909399'
-      }
-      this.$confirm('', this.$i18n.t('tips'), {
-        message: h('p', null, [
-          h('span', null, 'Deploy Project: '),
-          h('b', { style: color }, data.name + ' - ' + this.$i18n.t(`envOption[${data.environment}]`))
-        ]),
-        confirmButtonText: this.$i18n.t('confirm'),
-        cancelButtonText: this.$i18n.t('cancel'),
-        type: 'warning'
-      }).then(() => {
-        this.gitLog = []
-        this.remoteLog = {}
-        publish(id, '').then((response) => {
-          const projectIndex = this.tableData.findIndex(element => element.id === id)
-          this.tableData[projectIndex].deployState = 1
-        })
-      }).catch(() => {
-        this.$message.info('Cancel')
-      })
-    },
-
     getDetail() {
       getDetail(this.publishToken).then((response) => {
         const publishTraceList = response.data.publishTraceList || []
@@ -763,6 +768,16 @@ export default {
     handleDetailChange(lastPublishToken) {
       this.publishToken = lastPublishToken
       this.getDetail()
+    },
+
+    handleGreyPublish(data) {
+      getBindServerList(data.projectId).then((response) => {
+        this.greyServerFormProps.serverOption = response.data.list
+      })
+      // 先把projectID写入添加服务器的表单
+      this.greyServerFormData.projectId = data.projectId
+      this.greyServerFormData.commit = data.commit
+      this.greyServerDialogVisible = true
     },
 
     getCommitList(data) {
@@ -953,8 +968,39 @@ export default {
       }
     },
 
-    rollback(data) {
-      this.$confirm(this.$i18n.t('deployPage.rollbackTips', { commit: data.commit }), this.$i18n.t('tips'), {
+    publish(data) {
+      const id = data.id
+      const h = this.$createElement
+      let color = ''
+      if (data.environment === 1) {
+        color = 'color: #F56C6C'
+      } else if (data.environment === 3) {
+        color = 'color: #E6A23C'
+      } else {
+        color = 'color: #909399'
+      }
+      this.$confirm('', this.$i18n.t('tips'), {
+        message: h('p', null, [
+          h('span', null, 'Deploy Project: '),
+          h('b', { style: color }, data.name + ' - ' + this.$i18n.t(`envOption[${data.environment}]`))
+        ]),
+        confirmButtonText: this.$i18n.t('confirm'),
+        cancelButtonText: this.$i18n.t('cancel'),
+        type: 'warning'
+      }).then(() => {
+        this.gitLog = []
+        this.remoteLog = {}
+        publish(id, '').then((response) => {
+          const projectIndex = this.tableData.findIndex(element => element.id === id)
+          this.tableData[projectIndex].deployState = 1
+        })
+      }).catch(() => {
+        this.$message.info('Cancel')
+      })
+    },
+
+    publishByCommit(data) {
+      this.$confirm(this.$i18n.t('deployPage.publishCommitTips', { commit: data.commit }), this.$i18n.t('tips'), {
         confirmButtonText: this.$i18n.t('confirm'),
         cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'
@@ -963,10 +1009,36 @@ export default {
           const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
           this.tableData[projectIndex].deployState = 1
           this.commitDialogVisible = false
+          this.tagDialogVisible = false
           this.dialogVisible = false
         })
       }).catch(() => {
         this.$message.info('Cancel')
+      })
+    },
+
+    greyPublish() {
+      this.$refs.greyServerForm.validate((valid) => {
+        if (valid) {
+          const data = this.greyServerFormData
+          this.$confirm(this.$i18n.t('deployPage.publishCommitTips', { commit: data.commit }), this.$i18n.t('tips'), {
+            confirmButtonText: this.$i18n.t('confirm'),
+            cancelButtonText: this.$i18n.t('cancel'),
+            type: 'warning'
+          }).then(() => {
+            greyPublish(data.projectId, data.commit, data.serverIds).then((response) => {
+              const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
+              this.tableData[projectIndex].deployState = 1
+              this.commitDialogVisible = false
+              this.tagDialogVisible = false
+              this.greyServerDialogVisible = false
+            })
+          }).catch(() => {
+            this.$message.info('Cancel')
+          })
+        } else {
+          return false
+        }
       })
     },
 

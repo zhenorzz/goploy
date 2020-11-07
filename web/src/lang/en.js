@@ -28,6 +28,7 @@ export default {
   func: 'Func',
   param: 'Param',
   deploy: 'Deploy',
+  grey: 'Grey',
   initial: 'Initial',
   search: 'Search',
   tips: 'Tips',
@@ -180,6 +181,6 @@ export default {
     reviewTips: 'This action will approve commit, continue?',
     reviewStateOption: ['Wait', 'Reviewed', 'Rejected'],
     removeProjectTaskTips: 'This action will delete the crontab task in {projectName}, continue?',
-    rollbackTips: 'This action will rebuild {commit}, continue?'
+    publishCommitTips: 'This action will rebuild {commit}, continue?'
   }
 }

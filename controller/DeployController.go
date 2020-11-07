@@ -196,6 +196,61 @@ func (Deploy) Publish(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
+// GreyPublish the project
+func (Deploy) GreyPublish(gp *core.Goploy) *core.Response {
+	type ReqData struct {
+		ProjectID int64   `json:"projectId" validate:"gt=0"`
+		Commit    string  `json:"commit"`
+		ServerIDs []int64 `json:"serverIds"`
+	}
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	var err error
+	project, err := model.Project{ID: reqData.ProjectID}.GetData()
+
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	if project.DeployState == model.ProjectDeploying {
+		return &core.Response{Code: core.Error, Message: "project is being build"}
+	}
+
+	bindProjectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
+
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	projectServers := model.ProjectServers{}
+
+	for _, projectServer := range bindProjectServers {
+		for _, serverID := range reqData.ServerIDs {
+			if projectServer.ServerID == serverID {
+				projectServers = append(projectServers, projectServer)
+			}
+		}
+	}
+
+	project.PublisherID = gp.UserInfo.ID
+	project.PublisherName = gp.UserInfo.Name
+	project.DeployState = model.ProjectDeploying
+	project.LastPublishToken = uuid.New().String()
+	err = project.Publish()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	go service.Sync{
+		UserInfo:       gp.UserInfo,
+		Project:        project,
+		ProjectServers: projectServers,
+		CommitID:       reqData.Commit,
+	}.Exec()
+
+	return &core.Response{}
+}
+
 func (Deploy) Review(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectReviewID int64 `json:"projectReviewId" validate:"gt=0"`

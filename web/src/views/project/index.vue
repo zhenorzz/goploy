@@ -345,8 +345,8 @@
     </el-dialog>
     <el-dialog :title="$t('add')" :visible.sync="dialogAddServerVisible">
       <el-form ref="addServerForm" :rules="addServerFormRules" :model="addServerFormData">
-        <el-form-item :label="$t('server')" label-width="120px" prop="serverIds">
-          <el-select v-model="addServerFormData.serverIds" multiple>
+        <el-form-item :label="$t('server')" label-width="80px" prop="serverIds">
+          <el-select v-model="addServerFormData.serverIds" multiple style="width: 100%">
             <el-option
               v-for="(item, index) in serverOption"
               :key="index"
@@ -363,8 +363,8 @@
     </el-dialog>
     <el-dialog :title="$t('add')" :visible.sync="dialogAddUserVisible">
       <el-form ref="addUserForm" :rules="addUserFormRules" :model="addUserFormData">
-        <el-form-item :label="$t('member')" label-width="120px" prop="userIds">
-          <el-select v-model="addUserFormData.userIds" multiple>
+        <el-form-item :label="$t('member')" label-width="80px" prop="userIds">
+          <el-select v-model="addUserFormData.userIds" multiple style="width: 100%">
             <el-option
               v-for="(item, index) in userOption.filter(item => [$global.Admin, $global.Manager].indexOf(item.role) === -1)"
               :key="index"
