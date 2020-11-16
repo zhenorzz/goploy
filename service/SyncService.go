@@ -316,7 +316,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 		ioutil.WriteFile(scriptName, []byte(replaceScriptVars(project.AfterDeployScript, project)), 0755)
 	}
 	rsyncOption, _ := utils.ParseCommandLine(project.RsyncOption)
-	rsyncOption = append([]string{"--exclude", "goploy-after-pull.sh"}, rsyncOption...)
+	rsyncOption = append([]string{"--exclude", "goploy-after-pull.sh", "--include", "goploy-after-deploy.sh"}, rsyncOption...)
 	rsyncOption = append(rsyncOption, "-e", "ssh -p "+strconv.Itoa(int(projectServer.ServerPort))+" -o StrictHostKeyChecking=no")
 	if len(project.SymlinkPath) != 0 {
 		destDir = path.Join(project.SymlinkPath, project.Name, project.LastPublishToken)
@@ -367,9 +367,9 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 		if len(project.AfterDeployScriptMode) != 0 {
 			scriptMode = project.AfterDeployScriptMode
 		}
-		afterDeployScript := scriptMode + " " + path.Join(project.Path, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
-		afterDeployCommands = append(afterDeployCommands, afterDeployScript)
-		afterDeployCommands = append(afterDeployCommands, "rm -f "+afterDeployScript)
+		afterDeployScriptPath := path.Join(project.Path, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
+		afterDeployCommands = append(afterDeployCommands, scriptMode+" "+afterDeployScriptPath)
+		afterDeployCommands = append(afterDeployCommands, "rm -f "+afterDeployScriptPath)
 	}
 
 	// no symlink and deploy script
