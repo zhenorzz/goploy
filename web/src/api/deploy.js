@@ -82,6 +82,18 @@ export function publish(projectId, commit) {
 
 /**
  * @param  {int}      projectId
+ * @return {Promise}
+ */
+export function resetState(projectId) {
+  return request({
+    url: '/deploy/resetState',
+    method: 'post',
+    data: { projectId }
+  })
+}
+
+/**
+ * @param  {int}      projectId
  * @param  {string}   commit
  * @param  {Array}    serverIds
  * @return {Promise}

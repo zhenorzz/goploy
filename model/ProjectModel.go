@@ -182,6 +182,20 @@ func (p Project) Publish() error {
 	return err
 }
 
+// ResetState set deploy_state to NotDeploy
+func (p Project) ResetState() error {
+	_, err := sq.
+		Update(projectTable).
+		SetMap(sq.Eq{
+			"deploy_state": ProjectNotDeploy,
+		}).
+		Where(sq.Eq{"id": p.ID}).
+		RunWith(DB).
+		Exec()
+
+	return err
+}
+
 // DeploySuccess set deploy_state to success
 func (p Project) DeploySuccess() error {
 	_, err := sq.

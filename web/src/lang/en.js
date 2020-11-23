@@ -176,7 +176,9 @@ export default {
     removeUserTips: `This action will delete the user's({userName}) binding relationship, continue?`
   },
   deployPage: {
+    resetState: 'Reset state',
     taskDeploy: 'Crontab deploy',
+    resetStateTips: 'This action will reset project state, continue?',
     reviewDeploy: 'Review deploy',
     reviewTips: 'This action will approve commit, continue?',
     reviewStateOption: ['Wait', 'Reviewed', 'Rejected'],

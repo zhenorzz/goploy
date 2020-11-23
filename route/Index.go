@@ -15,9 +15,9 @@ func Init() *router.Router {
 	// rt.Middleware(example)
 	// no need to check login
 	rt.RegisterWhiteList(map[string]struct{}{
-		"/user/login":        {},
-		"/deploy/webhook":    {},
-		"/deploy/callback":   {},
+		"/user/login":      {},
+		"/deploy/webhook":  {},
+		"/deploy/callback": {},
 	})
 	// websocket route
 	rt.Add("/ws/connect", http.MethodGet, ws.GetHub().Connect)
@@ -80,6 +80,7 @@ func Init() *router.Router {
 	rt.Add("/deploy/getPreview", http.MethodGet, controller.Deploy{}.GetPreview)
 	rt.Add("/deploy/review", http.MethodPost, controller.Deploy{}.Review).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/deploy/publish", http.MethodPost, controller.Deploy{}.Publish, middleware.HasPublishAuth)
+	rt.Add("/deploy/resetState", http.MethodPost, controller.Deploy{}.ResetState).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/deploy/greyPublish", http.MethodPost, controller.Deploy{}.GreyPublish, middleware.HasPublishAuth).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/deploy/webhook", http.MethodPost, controller.Deploy{}.Webhook, middleware.FilterEvent)
 	rt.Add("/deploy/callback", http.MethodGet, controller.Deploy{}.Callback)

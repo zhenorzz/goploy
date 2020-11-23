@@ -196,6 +196,23 @@ func (Deploy) Publish(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
+// ResetState -
+func (Deploy) ResetState(gp *core.Goploy) *core.Response {
+	type ReqData struct {
+		ProjectID int64 `json:"projectId" validate:"gt=0"`
+	}
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	if err := (model.Project{ID: reqData.ProjectID}).ResetState(); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	return &core.Response{}
+}
+
 // GreyPublish the project
 func (Deploy) GreyPublish(gp *core.Goploy) *core.Response {
 	type ReqData struct {

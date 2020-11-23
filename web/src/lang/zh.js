@@ -187,7 +187,9 @@ export default {
     removeUserTips: '此操作将永久删除用户({userName})的绑定关系, 是否继续?'
   },
   deployPage: {
+    resetState: '重置状态',
     taskDeploy: '定时构建',
+    resetStateTips: '此操作将重置项目的构建状态, 是否继续?',
     reviewDeploy: '审核构建',
     reviewTips: '此操作将通过该次提交, 是否继续?',
     reviewStateOption: ['待审', '已审', '拒审'],

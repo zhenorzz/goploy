@@ -59,11 +59,11 @@
         <template slot-scope="scope">
           <el-row class="operation-btn">
             <el-button v-if="scope.row.deployState === 0" type="primary" @click="publish(scope.row)">{{ $t('initial') }}</el-button>
+            <el-button v-else-if="hasManagerPermission() && scope.row.deployState === 1" type="primary" @click="resetState(scope.row)">{{ $t('deployPage.resetState') }}</el-button>
             <el-dropdown
               v-else-if="hasGroupManagerPermission() || scope.row.review === 0"
               split-button
               trigger="click"
-              :disabled="scope.row.deployState === 1"
               type="primary"
               @click="publish(scope.row)"
               @command="(commandFunc) => commandFunc(scope.row)"
@@ -77,7 +77,6 @@
             <el-button v-else type="primary" @click="getCommitList(scope.row)">{{ $t('deploy') }}</el-button>
             <el-dropdown
               v-if="hasGroupManagerPermission() || scope.row.review === 1"
-              :disabled="scope.row.deployState === 1"
               trigger="click"
               @command="(commandFunc) => commandFunc(scope.row)"
             >
@@ -494,7 +493,7 @@
 </template>
 <script>
 import tableHeight from '@/mixin/tableHeight'
-import { getList, getDetail, getPreview, getCommitList, getTagList, publish, review, greyPublish } from '@/api/deploy'
+import { getList, getDetail, getPreview, getCommitList, getTagList, publish, resetState, review, greyPublish } from '@/api/deploy'
 import { addTask, editTask, removeTask, getTaskList, getBindServerList, getReviewList } from '@/api/project'
 import { getUserOption } from '@/api/namespace'
 import { parseTime, parseGitURL } from '@/utils'
@@ -625,20 +624,21 @@ export default {
         this.tableData[projectIndex].progressStatus = 'warning'
         this.tableData[projectIndex].tagType = 'warning'
         this.tableData[projectIndex].tagText = data.message
-
+        this.tableData[projectIndex].deployState = 1
         if (percent === 0) {
           this.tableData[projectIndex].progressStatus = 'exception'
           this.tableData[projectIndex].tagType = 'danger'
           this.tableData[projectIndex].tagText = 'Fail'
+          this.tableData[projectIndex].deployState = 3
         } else if (percent > 98) {
           this.tableData[projectIndex].progressStatus = 'success'
           this.tableData[projectIndex].tagType = 'success'
+          this.tableData[projectIndex].deployState = 2
         }
 
         if (data['ext']) {
           Object.assign(this.tableData[projectIndex], data['ext'])
         }
-        this.tableData[projectIndex].deployState = data.state
         this.tableData[projectIndex].publisherName = data.username
         this.tableData[projectIndex].updateTime = parseTime(new Date())
       }
@@ -1011,6 +1011,24 @@ export default {
           this.commitDialogVisible = false
           this.tagDialogVisible = false
           this.dialogVisible = false
+        })
+      }).catch(() => {
+        this.$message.info('Cancel')
+      })
+    },
+
+    resetState(data) {
+      this.$confirm(this.$i18n.t('deployPage.resetStateTips'), this.$i18n.t('tips'), {
+        confirmButtonText: this.$i18n.t('confirm'),
+        cancelButtonText: this.$i18n.t('cancel'),
+        type: 'warning'
+      }).then(() => {
+        resetState(data.id).then((response) => {
+          const projectIndex = this.tableData.findIndex(element => element.id === data.id)
+          this.tableData[projectIndex].deployState = 0
+          this.tableData[projectIndex].progressPercentage = 0
+          this.tableData[projectIndex].tagType = 'info'
+          this.tableData[projectIndex].tagText = 'Not deploy'
         })
       }).catch(() => {
         this.$message.info('Cancel')
