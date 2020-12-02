@@ -273,9 +273,14 @@ func (Project) Edit(gp *core.Goploy) *core.Response {
 		srcPath := core.GetProjectPath(projectData.ID)
 		_, err := os.Stat(srcPath)
 		if err == nil || os.IsNotExist(err) == false {
-			cmd := exec.Command("git", "checkout", "-f", "-B", reqData.Branch, "origin/"+reqData.Branch)
-			cmd.Dir = srcPath
-			if err := cmd.Run(); err != nil {
+			gitFetch := exec.Command("git", "fetch")
+			gitFetch.Dir = srcPath
+			if err := gitFetch.Run(); err != nil {
+				return &core.Response{Code: core.Error, Message: "Project fetch fail, you can do it manually, reason: " + err.Error()}
+			}
+			gitCheckout := exec.Command("git", "checkout", "-f", "-B", reqData.Branch, "origin/"+reqData.Branch)
+			gitCheckout.Dir = srcPath
+			if err := gitCheckout.Run(); err != nil {
 				return &core.Response{Code: core.Error, Message: "Project checkout branch fail, you can do it manually, reason: " + err.Error()}
 			}
 		}

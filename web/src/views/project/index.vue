@@ -81,7 +81,7 @@
       />
     </el-row>
     <el-dialog :title="$t('setting')" :visible.sync="dialogVisible" width="60%" class="project-setting-dialog" :close-on-click-modal="false">
-      <el-form ref="form" :rules="formRules" :model="formData" label-width="110px">
+      <el-form ref="form" v-loading="formProps.disabled" :rules="formRules" :model="formData" label-width="110px">
         <el-tabs v-model="formProps.tab" @tab-click="handleTabClick">
           <el-tab-pane :label="$t('baseSetting')" name="base">
             <el-form-item :label="$t('name')" prop="name">
@@ -274,7 +274,7 @@
         </el-tabs>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="formProps.disabled" @click="dialogVisible = false">{{ $t('cancel') }}</el-button>
         <el-button :disabled="formProps.disabled" type="primary" @click="submit">{{ $t('confirm') }}</el-button>
       </div>
     </el-dialog>
