@@ -14,16 +14,15 @@ type ProjectMessage struct {
 }
 
 const (
-	ProjectFail     = 0
+	DeployFail      = 0
 	GitCreate       = 1
-	GitReset        = 1
-	GitSwitchBranch = 2
-	GitClean        = 3
+	GitClean        = 2
+	GitFetch        = 3
 	GitCheckout     = 4
-	GitPull         = 5
+	GitDone         = 5
 	AfterPullScript = 6
 	Rsync           = 7
-	ProjectSuccess  = 8
+	DeploySuccess   = 8
 )
 
 func (projectMessage ProjectMessage) canSendTo(client *Client) error {

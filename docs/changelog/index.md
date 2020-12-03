@@ -1,5 +1,19 @@
 # 更新日志
 
+## 1.1.1
+
+*2020-12-03*
+
+### New features
+- branch deploy
+
+## 1.0.7
+
+*2020-11-27*
+
+### New features
+- reset deploy state
+
 ## 1.0.6
 
 *2020-11-07*

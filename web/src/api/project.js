@@ -148,14 +148,6 @@ export function addTask(data) {
   })
 }
 
-export function editTask(data) {
-  return request({
-    url: '/project/editTask',
-    method: 'post',
-    data
-  })
-}
-
 export function removeTask(id) {
   return request({
     url: '/project/removeTask',

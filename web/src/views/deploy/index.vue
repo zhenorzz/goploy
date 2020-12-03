@@ -14,26 +14,26 @@
       style="width: 100%;margin-top: 5px;"
     >
       <el-table-column prop="id" label="ID" width="80" align="center" />
-      <el-table-column prop="name" :label="$t('name')" min-width="160" align="center">
+      <el-table-column prop="name" :label="$t('name')" min-width="150" align="center">
         <template slot-scope="scope">
           <b v-if="scope.row.environment === 1" style="color: #F56C6C">{{ scope.row.name }} - {{ $t(`envOption[${scope.row.environment}]`) }}</b>
           <b v-else-if="scope.row.environment === 3" style="color: #E6A23C">{{ scope.row.name }} - {{ $t(`envOption[${scope.row.environment}]`) }}</b>
           <b v-else style="color: #909399">{{ scope.row.name }} - {{ $t(`envOption[${scope.row.environment}]`) }}</b>
         </template>
       </el-table-column>
-      <el-table-column prop="branch" :label="$t('branch')" align="center">
+      <el-table-column prop="branch" :label="$t('branch')" width="150" align="center">
         <template slot-scope="scope">
           <el-link
             style="font-size: 12px"
             :underline="false"
-            :href="parseGitURL(scope.row.url) + '/tree/' + scope.row.branch"
+            :href="parseGitURL(scope.row['url']) + '/tree/' + scope.row['branch'].split('/').pop()"
             target="_blank"
           >
             {{ scope.row.branch }}
           </el-link>
         </template>
       </el-table-column>
-      <el-table-column prop="commit" label="CommitID" width="150" align="center">
+      <el-table-column prop="commit" label="CommitID" width="100" align="center">
         <template slot-scope="scope">
           <el-tooltip effect="dark" :content="scope.row['commit']" placement="top">
             <el-link
@@ -70,11 +70,11 @@
             >
               {{ isMember() && scope.row.review === 1 ? $t('submit') : $t('deploy') }}
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item :command="getCommitList">Commit list</el-dropdown-item>
+                <el-dropdown-item :command="getBranchList">Commit list</el-dropdown-item>
                 <el-dropdown-item :command="getTagList">Tag list</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
-            <el-button v-else type="primary" @click="getCommitList(scope.row)">{{ $t('deploy') }}</el-button>
+            <el-button v-else type="primary" @click="getBranchList(scope.row)">{{ $t('deploy') }}</el-button>
             <el-dropdown
               v-if="hasGroupManagerPermission() || scope.row.review === 1"
               trigger="click"
@@ -153,6 +153,7 @@
               <el-row style="margin:5px 0">Time: {{ item.insertTime }}</el-row>
               <!-- 用数组的形式 兼容以前版本 -->
               <el-row v-if="item.state !== 0">
+                <el-row>Branch: {{ item['branch'] }}</el-row>
                 <el-row>Commit:
                   <el-link
                     type="primary"
@@ -221,6 +222,22 @@
       </el-row>
     </el-dialog>
     <el-dialog title="commit" :visible.sync="commitDialogVisible">
+      <el-select
+        v-model="branch"
+        v-loading="branchLoading"
+        filterable
+        default-first-option
+        placeholder="请选择分支"
+        style="width:100%;margin-bottom: 10px;"
+        @change="getCommitList"
+      >
+        <el-option
+          v-for="item in branchOption"
+          :key="item"
+          :label="item"
+          :value="item"
+        />
+      </el-select>
       <el-table
         v-loading="commitTableLoading"
         border
@@ -254,9 +271,10 @@
             {{ parseTime(scope.row.timestamp) }}
           </template>
         </el-table-column>
-        <el-table-column prop="operation" :label="$t('op')" width="160" align="center" fixed="right">
+        <el-table-column prop="operation" :label="$t('op')" width="260" align="center" fixed="right">
           <template slot-scope="scope">
             <el-button type="danger" @click="publishByCommit(scope.row)">{{ $t('deploy') }}</el-button>
+            <el-button v-if="!isMember()" type="primary" @click="handleAddProjectTask(scope.row)">{{ $t('crontab') }}</el-button>
             <el-button v-if="!isMember()" type="warning" @click="handleGreyPublish(scope.row)">{{ $t('grey') }}</el-button>
           </template>
         </el-table-column>
@@ -343,9 +361,6 @@
       </div>
     </el-dialog>
     <el-dialog :title="$t('manage')" :visible.sync="taskListDialogVisible">
-      <el-row class="app-bar" type="flex" justify="end">
-        <el-button type="primary" icon="el-icon-plus" @click="handleAddProjectTask(selectedItem)" />
-      </el-row>
       <el-table
         v-loading="taskTableLoading"
         border
@@ -356,6 +371,18 @@
       >
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="projectName" :label="$t('projectName')" width="150" />
+        <el-table-column prop="branch" :label="$t('branch')" width="150" align="center">
+          <template slot-scope="scope">
+            <el-link
+              style="font-size: 12px"
+              :underline="false"
+              :href="parseGitURL(selectedItem.url) + '/tree/' + scope.row.branch.split('/').pop()"
+              target="_blank"
+            >
+              {{ scope.row.branch }}
+            </el-link>
+          </template>
+        </el-table-column>
         <el-table-column prop="commitId" label="commit" width="290">
           <template slot-scope="scope">
             <el-link
@@ -370,12 +397,12 @@
           </template>
         </el-table-column>
         <el-table-column prop="date" :label="$t('date')" width="150" />
-        <el-table-column prop="isRun" :label="$t('task')" width="60">
+        <el-table-column prop="isRun" :label="$t('task')" width="80">
           <template slot-scope="scope">
             {{ $t(`runOption[${scope.row.isRun}]`) }}
           </template>
         </el-table-column>
-        <el-table-column prop="state" :label="$t('state')" width="50">
+        <el-table-column prop="state" :label="$t('state')" width="70">
           <template slot-scope="scope">
             {{ $t(`stateOption[${scope.row.state}]`) }}
           </template>
@@ -384,9 +411,8 @@
         <el-table-column prop="editor" :label="$t('editor')" align="center" />
         <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
         <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
-        <el-table-column prop="operation" :label="$t('op')" width="150" align="center" fixed="right">
+        <el-table-column prop="operation" :label="$t('op')" width="100" align="center" fixed="right">
           <template slot-scope="scope">
-            <el-button type="primary" :disabled="scope.row.isRun === 1 || scope.row.state === 0" @click="handleEditProjectTask(scope.row)">{{ $t('edit') }}</el-button>
             <el-button type="danger" :disabled="scope.row.isRun === 1 || scope.row.state === 0" @click="removeProjectTask(scope.row)">{{ $t('delete') }}</el-button>
           </template>
         </el-table-column>
@@ -416,6 +442,18 @@
       >
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="projectName" :label="$t('projectName')" width="150" />
+        <el-table-column prop="branch" :label="$t('branch')" width="150" align="center">
+          <template slot-scope="scope">
+            <el-link
+              style="font-size: 12px"
+              :underline="false"
+              :href="parseGitURL(selectedItem.url) + '/tree/' + scope.row.branch.split('/').pop()"
+              target="_blank"
+            >
+              {{ scope.row.branch }}
+            </el-link>
+          </template>
+        </el-table-column>
         <el-table-column prop="commitId" label="commit" width="290">
           <template slot-scope="scope">
             <el-link
@@ -438,7 +476,7 @@
         <el-table-column prop="editor" :label="$t('editor')" align="center" />
         <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
         <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
-        <el-table-column prop="operation" :label="$t('op')" width="150" align="center" fixed="right">
+        <el-table-column prop="operation" :label="$t('op')" width="180" align="center" fixed="right">
           <template slot-scope="scope">
             <el-button type="success" :disabled="scope.row.state !== 0" @click="handleProjectReview(scope.row, 1)">{{ $t('approve') }}</el-button>
             <el-button type="danger" :disabled="scope.row.state !== 0" @click="handleProjectReview(scope.row, 2)">{{ $t('deny') }}</el-button>
@@ -461,19 +499,6 @@
     </el-dialog>
     <el-dialog :title="$t('setting')" :visible.sync="taskDialogVisible" width="600px">
       <el-form ref="taskForm" :rules="taskFormRules" :model="taskFormData" label-width="120px">
-        <el-form-item :label="$t('projectName')">
-          <span>{{ taskFormProps.projectName }}</span>
-        </el-form-item>
-        <el-form-item label="commitId" prop="commitId">
-          <el-select v-model="taskFormData.commitId" placeholder="CommitID" style="width: 400px">
-            <el-option
-              v-for="(item, index) in taskFormProps.commitOptions"
-              :key="index"
-              :label="item.commit+'('+item.author+')'"
-              :value="item.commit"
-            />
-          </el-select>
-        </el-form-item>
         <el-form-item :label="$t('time')" prop="date">
           <el-date-picker
             v-model="taskFormData.date"
@@ -493,8 +518,8 @@
 </template>
 <script>
 import tableHeight from '@/mixin/tableHeight'
-import { getList, getDetail, getPreview, getCommitList, getTagList, publish, resetState, review, greyPublish } from '@/api/deploy'
-import { addTask, editTask, removeTask, getTaskList, getBindServerList, getReviewList } from '@/api/project'
+import { getList, getDetail, getPreview, getCommitList, getBranchList, getTagList, publish, resetState, review, greyPublish } from '@/api/deploy'
+import { addTask, removeTask, getTaskList, getBindServerList, getReviewList } from '@/api/project'
 import { getUserOption } from '@/api/namespace'
 import { parseTime, parseGitURL } from '@/utils'
 
@@ -530,9 +555,7 @@ export default {
         rows: 20
       },
       taskFormProps: {
-        projectName: '',
         disabled: false,
-        commitOptions: [],
         pickerOptions: {
           disabledDate(time) {
             return time.getTime() < Date.now() - 3600 * 1000 * 24
@@ -542,6 +565,7 @@ export default {
       taskFormData: {
         id: 0,
         projectId: '',
+        branch: '',
         commitId: '',
         date: ''
       },
@@ -574,6 +598,9 @@ export default {
         total: 0
       },
       commitTableLoading: false,
+      branchOption: [],
+      branchLoading: false,
+      branch: '',
       commitTableData: [],
       tagTableLoading: false,
       tagTableData: [],
@@ -780,15 +807,31 @@ export default {
       this.greyServerDialogVisible = true
     },
 
-    getCommitList(data) {
+    getBranchList(data) {
       const id = data.id
+      this.selectedItem = data
       this.commitDialogVisible = true
+      this.branchLoading = true
+      this.branch = ''
+      this.branchOption = []
+      this.commitTableData = []
+      getBranchList(id).then(response => {
+        this.branchOption = response.data.branchList.filter(element => {
+          return element.indexOf('HEAD') === -1
+        })
+      }).finally(() => {
+        this.branchLoading = false
+      })
+    },
+
+    getCommitList() {
       this.commitTableLoading = true
-      getCommitList(id).then(response => {
+      getCommitList(this.selectedItem.id, this.branch).then(response => {
         this.commitTableData = response.data.commitList ? response.data.commitList.map(element => {
           return Object.assign(element, {
-            projectId: id,
-            url: data.url
+            projectId: this.selectedItem.id,
+            url: this.selectedItem.url,
+            branch: this.branch
           })
         }) : []
       }).finally(() => {
@@ -824,29 +867,10 @@ export default {
     handleAddProjectTask(data) {
       this.taskDialogVisible = true
       this.taskFormData.id = 0
-      if (this.taskFormData.projectId !== data.id) {
-        this.taskFormData.projectId = data.id
-        this.taskFormProps.projectName = data.name
-        this.taskFormData.commitId = ''
-        this.taskFormData.date = ''
-        const id = data.id
-        getCommitList(id).then(response => {
-          this.taskFormProps.commitOptions = response.data.commitList || []
-        })
-      }
-    },
-
-    handleEditProjectTask(data) {
-      this.taskDialogVisible = true
-      this.taskFormData.id = data.id
-      this.taskFormData.commitId = data.commitId
-      this.taskFormData.date = data.date
-      if (this.taskFormData.projectId !== data.projectId) {
-        this.taskFormProps.projectName = data.projectName
-        getCommitList(data.projectId).then(response => {
-          this.taskFormProps.commitOptions = response.data.commitList || []
-        })
-      }
+      this.taskFormData.projectId = this.selectedItem.id
+      this.taskFormData.branch = data.branch
+      this.taskFormData.commitId = data.commit
+      this.taskFormData.date = ''
     },
 
     getTaskList() {
@@ -876,27 +900,12 @@ export default {
       this.$refs.taskForm.validate((valid) => {
         if (valid) {
           this.taskFormProps.disabled = true
-          if (this.taskFormData.id === 0) {
-            addTask(this.taskFormData).then(response => {
-              this.$message.success('Success')
-            }).finally(() => {
-              this.taskFormProps.disabled = false
-              this.taskDialogVisible = false
-            })
-          } else {
-            editTask(this.taskFormData).then(response => {
-              this.$message.success('Success')
-              const projectTaskIndex = this.taskTableData.findIndex(element => element.id === this.taskFormData.id)
-              this.taskTableData[projectTaskIndex]['commitId'] = this.taskFormData.commitId
-              this.taskTableData[projectTaskIndex]['date'] = this.taskFormData.date
-              this.taskTableData[projectTaskIndex]['editor'] = this.$store.getters.name
-              this.taskTableData[projectTaskIndex]['editorId'] = this.$store.getters.uid
-              this.taskTableData[projectTaskIndex]['updateTime'] = parseTime(new Date())
-            }).finally(() => {
-              this.taskFormProps.disabled = false
-              this.taskDialogVisible = false
-            })
-          }
+          addTask(this.taskFormData).then(response => {
+            this.$message.success('Success')
+          }).finally(() => {
+            this.taskFormProps.disabled = false
+            this.taskDialogVisible = false
+          })
         } else {
           return false
         }
@@ -1000,12 +1009,13 @@ export default {
     },
 
     publishByCommit(data) {
+      console.log(data)
       this.$confirm(this.$i18n.t('deployPage.publishCommitTips', { commit: data.commit }), this.$i18n.t('tips'), {
         confirmButtonText: this.$i18n.t('confirm'),
         cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'
       }).then(() => {
-        publish(data.projectId, data.commit).then((response) => {
+        publish(data.projectId, data.branch, data.commit).then((response) => {
           const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
           this.tableData[projectIndex].deployState = 1
           this.commitDialogVisible = false

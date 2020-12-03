@@ -106,19 +106,7 @@ func (Deploy) GetCommitList(gp *core.Goploy) *core.Response {
 	}
 	srcPath := core.GetProjectPath(project.ID)
 	git := utils.GIT{Dir: srcPath}
-	if err := git.Clean("-f"); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
-	}
-
-	if err := git.Checkout("--", "."); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
-	}
-
-	if err := git.Pull(); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
-	}
-
-	if err := git.Log("--stat", "--pretty=format:`start`%H`%an`%at`%s`%d`", "-n", "10"); err != nil {
+	if err := git.Log(gp.URLQuery.Get("branch"), "--stat", "--pretty=format:`start`%H`%an`%at`%s`%d`", "-n", "10"); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
 	}
 
@@ -128,6 +116,43 @@ func (Deploy) GetCommitList(gp *core.Goploy) *core.Response {
 		Data: struct {
 			CommitList []utils.Commit `json:"commitList"`
 		}{CommitList: commitList},
+	}
+}
+
+// GetBranchList get all branch list
+func (Deploy) GetBranchList(gp *core.Goploy) *core.Response {
+	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	project, err := model.Project{ID: id}.GetData()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	srcPath := core.GetProjectPath(project.ID)
+	git := utils.GIT{Dir: srcPath}
+
+	if err := git.Fetch(); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
+	}
+
+	if err := git.Branch("-r", "--sort=-committerdate"); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
+	}
+
+	unformatBranchList := strings.Split(git.Output.String(), "\n")
+	var branchList []string
+	for _, row := range unformatBranchList {
+		branch := strings.Trim(row, " ")
+		if len(branch) != 0 {
+			branchList = append(branchList, branch)
+		}
+	}
+	return &core.Response{
+		Data: struct {
+			BranchList []string `json:"branchList"`
+		}{BranchList: branchList},
 	}
 }
 
@@ -144,11 +169,8 @@ func (Deploy) GetTagList(gp *core.Goploy) *core.Response {
 	}
 	srcPath := core.GetProjectPath(project.ID)
 	git := utils.GIT{Dir: srcPath}
-	if err := git.Clean("-f"); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
-	}
 
-	if err := git.Checkout("--", "."); err != nil {
+	if err := git.Reset("--hard", "HEAD"); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
 	}
 
@@ -174,6 +196,7 @@ func (Deploy) Publish(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
 		Commit    string `json:"commit"`
+		Branch    string `json:"branch"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
@@ -186,9 +209,9 @@ func (Deploy) Publish(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	if project.Review == model.Enable && gp.Namespace.Role == core.RoleMember {
-		err = projectReview(gp, project, reqData.Commit)
+		err = projectReview(gp, project, reqData.Commit, reqData.Branch)
 	} else {
-		err = projectDeploy(gp, project, reqData.Commit)
+		err = projectDeploy(gp, project, reqData.Commit, reqData.Branch)
 	}
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -218,6 +241,7 @@ func (Deploy) GreyPublish(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64   `json:"projectId" validate:"gt=0"`
 		Commit    string  `json:"commit"`
+		Branch    string  `json:"branch"`
 		ServerIDs []int64 `json:"serverIds"`
 	}
 	var reqData ReqData
@@ -263,6 +287,7 @@ func (Deploy) GreyPublish(gp *core.Goploy) *core.Response {
 		Project:        project,
 		ProjectServers: projectServers,
 		CommitID:       reqData.Commit,
+		Branch:         reqData.Branch,
 	}.Exec()
 
 	return &core.Response{}
@@ -299,7 +324,7 @@ func (Deploy) Review(gp *core.Goploy) *core.Response {
 		if err != nil {
 			return &core.Response{Code: core.Error, Message: err.Error()}
 		}
-		if err := projectDeploy(gp, project, projectReview.CommitID); err != nil {
+		if err := projectDeploy(gp, project, projectReview.CommitID, projectReview.Branch); err != nil {
 			return &core.Response{Code: core.Error, Message: err.Error()}
 		}
 	}
@@ -365,7 +390,6 @@ func (Deploy) Webhook(gp *core.Goploy) *core.Response {
 		UserInfo:       gp.UserInfo,
 		Project:        project,
 		ProjectServers: projectServers,
-		CommitID:       "",
 	}.Exec()
 	return &core.Response{Message: "receive push signal"}
 }
@@ -396,7 +420,7 @@ func (Deploy) Callback(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	if err := projectDeploy(gp, project, projectReview.CommitID); err != nil {
+	if err := projectDeploy(gp, project, projectReview.CommitID, projectReview.Branch); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	projectReviewModel.EditRow()
@@ -404,7 +428,7 @@ func (Deploy) Callback(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-func projectDeploy(gp *core.Goploy, project model.Project, commitID string) error {
+func projectDeploy(gp *core.Goploy, project model.Project, commitID string, branch string) error {
 	if project.DeployState == model.ProjectDeploying {
 		return errors.New("project is being build by other")
 	}
@@ -427,16 +451,18 @@ func projectDeploy(gp *core.Goploy, project model.Project, commitID string) erro
 		Project:        project,
 		ProjectServers: projectServers,
 		CommitID:       commitID,
+		Branch:         branch,
 	}.Exec()
 	return nil
 }
 
-func projectReview(gp *core.Goploy, project model.Project, commitID string) error {
+func projectReview(gp *core.Goploy, project model.Project, commitID string, branch string) error {
 	if len(commitID) == 0 {
 		return errors.New("commit id is required")
 	}
 	projectReviewModel := model.ProjectReview{
 		ProjectID: project.ID,
+		Branch:    branch,
 		CommitID:  commitID,
 		Creator:   gp.UserInfo.Name,
 		CreatorID: gp.UserInfo.ID,
@@ -445,7 +471,7 @@ func projectReview(gp *core.Goploy, project model.Project, commitID string) erro
 	if len(reviewURL) > 0 {
 		reviewURL = strings.Replace(reviewURL, "__PROJECT_ID__", strconv.FormatInt(project.ID, 10), 1)
 		reviewURL = strings.Replace(reviewURL, "__PROJECT_NAME__", project.Name, 1)
-		reviewURL = strings.Replace(reviewURL, "__BRANCH__", project.Branch, 1)
+		reviewURL = strings.Replace(reviewURL, "__BRANCH__", branch, 1)
 		reviewURL = strings.Replace(reviewURL, "__ENVIRONMENT__", strconv.Itoa(int(project.Environment)), 1)
 		reviewURL = strings.Replace(reviewURL, "__COMMIT_ID__", commitID, 1)
 		reviewURL = strings.Replace(reviewURL, "__PUBLISH_TIME__", strconv.FormatInt(time.Now().Unix(), 10), 1)

@@ -45,9 +45,22 @@ export function getPreview({ page, rows }, params) {
  * @param  {int}    id
  * @return {Promise}
  */
-export function getCommitList(id) {
+export function getCommitList(id, branch) {
   return request({
     url: '/deploy/getCommitList',
+    method: 'get',
+    params: { id, branch },
+    timeout: 0
+  })
+}
+
+/**
+ * @param  {int}    id
+ * @return {Promise}
+ */
+export function getBranchList(id) {
+  return request({
+    url: '/deploy/getBranchList',
     method: 'get',
     params: { id },
     timeout: 0
@@ -72,11 +85,11 @@ export function getTagList(id) {
  * @param  {string}   commit
  * @return {Promise}
  */
-export function publish(projectId, commit) {
+export function publish(projectId, branch, commit) {
   return request({
     url: '/deploy/publish',
     method: 'post',
-    data: { projectId, commit }
+    data: { projectId, branch, commit }
   })
 }
 

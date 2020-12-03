@@ -16,6 +16,7 @@ const (
 type ProjectTask struct {
 	ID         int64  `json:"id"`
 	ProjectID  int64  `json:"projectId"`
+	Branch     string `json:"branch"`
 	CommitID   string `json:"commitId"`
 	Date       string `json:"date"`
 	State      uint8  `json:"state"`
@@ -34,7 +35,7 @@ type ProjectTasks []ProjectTask
 // GetListByProjectID -
 func (pt ProjectTask) GetListByProjectID(pagination Pagination) (ProjectTasks, Pagination, error) {
 	rows, err := sq.
-		Select("id, project_id, commit_id, date, is_run, state, creator, creator_id, editor, editor_id, insert_time, update_time").
+		Select("id, project_id, branch, commit_id, date, is_run, state, creator, creator_id, editor, editor_id, insert_time, update_time").
 		From(projectTaskTable).
 		Where(sq.Eq{"project_id": pt.ProjectID}).
 		Limit(pagination.Rows).
@@ -53,6 +54,7 @@ func (pt ProjectTask) GetListByProjectID(pagination Pagination) (ProjectTasks, P
 		if err := rows.Scan(
 			&projectTask.ID,
 			&projectTask.ProjectID,
+			&projectTask.Branch,
 			&projectTask.CommitID,
 			&projectTask.Date,
 			&projectTask.IsRun,
@@ -115,8 +117,8 @@ func (pt ProjectTask) GetNotRunListLTDate(date string) (ProjectTasks, error) {
 func (pt ProjectTask) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(projectTaskTable).
-		Columns("project_id", "commit_id", "date", "creator", "creator_id").
-		Values(pt.ProjectID, pt.CommitID, pt.Date, pt.Creator, pt.CreatorID).
+		Columns("project_id", "branch", "commit_id", "date", "creator", "creator_id").
+		Values(pt.ProjectID, pt.Branch, pt.CommitID, pt.Date, pt.Creator, pt.CreatorID).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -124,22 +126,6 @@ func (pt ProjectTask) AddRow() (int64, error) {
 	}
 	id, err := result.LastInsertId()
 	return id, err
-}
-
-// EditRow -
-func (pt ProjectTask) EditRow() error {
-	_, err := sq.
-		Update(projectTaskTable).
-		SetMap(sq.Eq{
-			"commit_id": pt.CommitID,
-			"date":      pt.Date,
-			"editor":    pt.Editor,
-			"editor_id": pt.EditorID,
-		}).
-		Where(sq.Eq{"id": pt.ID}).
-		RunWith(DB).
-		Exec()
-	return err
 }
 
 // SetRun set project task to run

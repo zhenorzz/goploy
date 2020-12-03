@@ -269,23 +269,6 @@ func (Project) Edit(gp *core.Goploy) *core.Response {
 		}
 	}
 
-	if reqData.Branch != projectData.Branch {
-		srcPath := core.GetProjectPath(projectData.ID)
-		_, err := os.Stat(srcPath)
-		if err == nil || os.IsNotExist(err) == false {
-			gitFetch := exec.Command("git", "fetch")
-			gitFetch.Dir = srcPath
-			if err := gitFetch.Run(); err != nil {
-				return &core.Response{Code: core.Error, Message: "Project fetch fail, you can do it manually, reason: " + err.Error()}
-			}
-			gitCheckout := exec.Command("git", "checkout", "-f", "-B", reqData.Branch, "origin/"+reqData.Branch)
-			gitCheckout.Dir = srcPath
-			if err := gitCheckout.Run(); err != nil {
-				return &core.Response{Code: core.Error, Message: "Project checkout branch fail, you can do it manually, reason: " + err.Error()}
-			}
-		}
-	}
-
 	return &core.Response{}
 }
 
@@ -475,6 +458,7 @@ func (Project) GetReviewList(gp *core.Goploy) *core.Response {
 func (Project) AddTask(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
+		Branch    string `json:"branch" validate:"required"`
 		CommitID  string `json:"commitId" validate:"len=40"`
 		Date      string `json:"date" validate:"required"`
 	}
@@ -486,6 +470,7 @@ func (Project) AddTask(gp *core.Goploy) *core.Response {
 	id, err := model.ProjectTask{
 		ProjectID: reqData.ProjectID,
 		CommitID:  reqData.CommitID,
+		Branch:    reqData.Branch,
 		Date:      reqData.Date,
 		Creator:   gp.UserInfo.Name,
 		CreatorID: gp.UserInfo.ID,
@@ -499,34 +484,6 @@ func (Project) AddTask(gp *core.Goploy) *core.Response {
 			ID int64 `json:"id"`
 		}{ID: id},
 	}
-}
-
-// EditTask from project
-func (Project) EditTask(gp *core.Goploy) *core.Response {
-	type ReqData struct {
-		ID       int64  `json:"id" validate:"gt=0"`
-		CommitID string `json:"commitId" validate:"len=40"`
-		Date     string `json:"date" validate:"required"`
-	}
-	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-
-	err := model.ProjectTask{
-		ID:       reqData.ID,
-		CommitID: reqData.CommitID,
-		Date:     reqData.Date,
-		Editor:   gp.UserInfo.Name,
-		EditorID: gp.UserInfo.ID,
-	}.EditRow()
-
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-
-	}
-
-	return &core.Response{}
 }
 
 // RemoveTask from project

@@ -60,6 +60,7 @@ func projectTask() {
 			Project:        project,
 			ProjectServers: projectServers,
 			CommitID:       projectTask.CommitID,
+			Branch:         projectTask.Branch,
 		}.Exec()
 	}
 }

@@ -56,6 +56,13 @@ func (git *GIT) Pull(options ...string) error {
 	return nil
 }
 
+func (git *GIT) Fetch(options ...string) error {
+	if err := git.Run("fetch", options...); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (git *GIT) Log(options ...string) error {
 	if err := git.Run("log", options...); err != nil {
 		return err
@@ -63,7 +70,22 @@ func (git *GIT) Log(options ...string) error {
 	return nil
 }
 
+func (git *GIT) Branch(options ...string) error {
+	if err := git.Run("branch", options...); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (git *GIT) Reset(options ...string) error {
+	if err := git.Run("reset", options...); err != nil {
+		return err
+	}
+	return nil
+}
+
 type Commit struct {
+	Branch    string `json:"branch"`
 	Commit    string `json:"commit"`
 	Author    string `json:"author"`
 	Timestamp int    `json:"timestamp"`

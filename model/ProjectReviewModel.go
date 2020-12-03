@@ -11,6 +11,7 @@ type ProjectReview struct {
 	ID         int64  `json:"id"`
 	ProjectID  int64  `json:"projectId"`
 	CommitID   string `json:"commitId"`
+	Branch     string `json:"branch"`
 	ReviewURL  string `json:"reviewURL"`
 	State      uint8  `json:"state"`
 	Creator    string `json:"creator"`
@@ -27,7 +28,7 @@ type ProjectReviews []ProjectReview
 // GetListByProjectID -
 func (pr ProjectReview) GetListByProjectID(pagination Pagination) (ProjectReviews, Pagination, error) {
 	rows, err := sq.
-		Select("id, project_id, commit_id, state, creator, creator_id, editor, editor_id, insert_time, update_time").
+		Select("id, project_id, branch, commit_id, state, creator, creator_id, editor, editor_id, insert_time, update_time").
 		From(projectReviewTable).
 		Where(sq.Eq{"project_id": pr.ProjectID}).
 		Limit(pagination.Rows).
@@ -46,6 +47,7 @@ func (pr ProjectReview) GetListByProjectID(pagination Pagination) (ProjectReview
 		if err := rows.Scan(
 			&projectReview.ID,
 			&projectReview.ProjectID,
+			&projectReview.Branch,
 			&projectReview.CommitID,
 			&projectReview.State,
 			&projectReview.Creator,
@@ -76,7 +78,7 @@ func (pr ProjectReview) GetListByProjectID(pagination Pagination) (ProjectReview
 func (pr ProjectReview) GetData() (ProjectReview, error) {
 	var projectReview ProjectReview
 	err := sq.
-		Select("id, project_id, commit_id, state, insert_time, update_time").
+		Select("id, project_id, branch, commit_id, state, insert_time, update_time").
 		From(projectReviewTable).
 		Where(sq.Eq{"id": pr.ID}).
 		RunWith(DB).
@@ -84,6 +86,7 @@ func (pr ProjectReview) GetData() (ProjectReview, error) {
 		Scan(
 			&projectReview.ID,
 			&projectReview.ProjectID,
+			&projectReview.Branch,
 			&projectReview.CommitID,
 			&projectReview.State,
 			&projectReview.InsertTime,
@@ -98,8 +101,8 @@ func (pr ProjectReview) GetData() (ProjectReview, error) {
 func (pr ProjectReview) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(projectReviewTable).
-		Columns("project_id", "commit_id", "review_url", "creator", "creator_id").
-		Values(pr.ProjectID, pr.CommitID, pr.ReviewURL, pr.Creator, pr.CreatorID).
+		Columns("project_id", "branch", "commit_id", "review_url", "creator", "creator_id").
+		Values(pr.ProjectID, pr.Branch, pr.CommitID, pr.ReviewURL, pr.Creator, pr.CreatorID).
 		RunWith(DB).
 		Exec()
 	if err != nil {

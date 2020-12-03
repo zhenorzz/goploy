@@ -24,6 +24,7 @@ type Sync struct {
 	Project        model.Project
 	ProjectServers model.ProjectServers
 	CommitID       string
+	Branch         string
 }
 
 type syncMessage struct {
@@ -47,9 +48,9 @@ func (sync Sync) Exec() {
 	var gitCommitInfo utils.Commit
 	var err error
 	if len(sync.CommitID) == 0 {
-		gitCommitInfo, err = gitSync(sync.Project)
+		gitCommitInfo, err = gitFollow(sync.Project, "origin/"+sync.Project.Branch)
 	} else {
-		gitCommitInfo, err = gitRollback(sync.CommitID, sync.Project)
+		gitCommitInfo, err = gitFollow(sync.Project, sync.CommitID)
 	}
 	if err != nil {
 		sync.Project.DeployFail()
@@ -57,13 +58,28 @@ func (sync Sync) Exec() {
 		publishTraceModel.State = model.Fail
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.ProjectFail, Message: err.Error()},
+			Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.DeployFail, Message: err.Error()},
 		}
 		if _, err := publishTraceModel.AddRow(); err != nil {
 			core.Log(core.ERROR, err.Error())
 		}
 		go notify(sync.Project, model.ProjectFail, err.Error())
 		return
+	}
+	if sync.Branch != "" {
+		gitCommitInfo.Branch = sync.Branch
+	} else {
+		gitCommitInfo.Branch = "origin/" + sync.Project.Branch
+	}
+	ws.GetHub().Data <- &ws.Data{
+		Type: ws.TypeProject,
+		Message: ws.ProjectMessage{
+			ProjectID:   sync.Project.ID,
+			ProjectName: sync.Project.Name,
+			State:       ws.GitDone,
+			Message:     "Get commit info",
+			Ext:         gitCommitInfo,
+		},
 	}
 	ext, _ := json.Marshal(gitCommitInfo)
 	publishTraceModel.Ext = string(ext)
@@ -88,7 +104,7 @@ func (sync Sync) Exec() {
 			publishTraceModel.State = model.Fail
 			ws.GetHub().Data <- &ws.Data{
 				Type:    ws.TypeProject,
-				Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.ProjectFail, Message: err.Error()},
+				Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.DeployFail, Message: err.Error()},
 			}
 			if _, err := publishTraceModel.AddRow(); err != nil {
 				core.Log(core.ERROR, err.Error())
@@ -124,7 +140,7 @@ func (sync Sync) Exec() {
 		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(sync.Project.ID, 10)+" deploy success")
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.ProjectSuccess, Message: "Success"},
+			Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.DeploySuccess, Message: "Success"},
 		}
 		go notify(sync.Project, model.ProjectSuccess, message)
 
@@ -133,7 +149,7 @@ func (sync Sync) Exec() {
 		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(sync.Project.ID, 10)+" deploy fail")
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.ProjectFail, Message: message},
+			Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.DeployFail, Message: message},
 		}
 		go notify(sync.Project, model.ProjectFail, message)
 
@@ -143,120 +159,55 @@ func (sync Sync) Exec() {
 	return
 }
 
-func gitSync(project model.Project) (utils.Commit, error) {
-	if err := gitCreate(project); err != nil {
-		return utils.Commit{}, err
-	}
-
-	if err := gitPull(project); err != nil {
-		return utils.Commit{}, err
-	}
-
-	commit, err := gitCommitLog(project)
-	if err != nil {
-		return utils.Commit{}, err
-	}
-	ws.GetHub().Data <- &ws.Data{
-		Type: ws.TypeProject,
-		Message: ws.ProjectMessage{
-			ProjectID:   project.ID,
-			ProjectName: project.Name,
-			State:       ws.GitPull,
-			Message:     "Get pull info",
-			Ext:         commit,
-		},
-	}
-	return commit, err
-}
-
-func gitRollback(commitSha string, project model.Project) (utils.Commit, error) {
-	if err := gitReset(commitSha, project); err != nil {
-		return utils.Commit{}, err
-	}
-
-	commit, err := gitCommitLog(project)
-	if err != nil {
-		return utils.Commit{}, err
-	}
-	ws.GetHub().Data <- &ws.Data{
-		Type: ws.TypeProject,
-		Message: ws.ProjectMessage{
-			ProjectID:   project.ID,
-			ProjectName: project.Name,
-			State:       ws.GitReset,
-			Message:     "Get pull info",
-			Ext:         commit,
-		},
-	}
-	return commit, err
-}
-
-func gitCreate(project model.Project) error {
+func gitFollow(project model.Project, target string) (utils.Commit, error) {
+	commit := utils.Commit{}
 	if err := (Repository{ProjectID: project.ID}.Create()); err != nil {
-		return err
+		return commit, err
 	}
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
 		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitCreate, Message: "git create"},
 	}
-	return nil
-}
 
-func gitPull(project model.Project) error {
 	git := utils.GIT{Dir: core.GetProjectPath(project.ID)}
-	// git clean removes all not tracked files
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
 		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitClean, Message: "git clean"},
 	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git clean -f")
-	if err := git.Clean("-f"); err != nil {
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git reset --hard HEAD")
+	if err := git.Reset("--hard", "HEAD"); err != nil {
 		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
-		return errors.New(git.Err.String())
+		return commit, errors.New(git.Err.String())
 	}
 
-	// git checkout clears all not staged changes.
+	// the length of commit id is 40
+	if len(target) != 40 {
+		ws.GetHub().Data <- &ws.Data{
+			Type:    ws.TypeProject,
+			Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitFetch, Message: "git checkout"},
+		}
+		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git fetch")
+		if err := git.Fetch(); err != nil {
+			core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
+			return commit, errors.New(git.Err.String())
+		}
+	}
+
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
 		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitCheckout, Message: "git checkout"},
 	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git checkout -- .")
-	if err := git.Checkout("--", "."); err != nil {
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git checkout -B goploy "+target)
+	if err := git.Checkout("-B", "goploy", target); err != nil {
 		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
-		return errors.New(git.Err.String())
+		return commit, errors.New(git.Err.String())
 	}
 
-	ws.GetHub().Data <- &ws.Data{
-		Type:    ws.TypeProject,
-		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitPull, Message: "git pull"},
+	commit, err := gitCommitLog(project)
+	if err != nil {
+		return commit, err
 	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git pull")
-	if err := git.Pull(); err != nil {
-		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
-		return errors.New(git.Err.String())
-	}
-	return nil
-}
-
-func gitReset(commit string, project model.Project) error {
-	srcPath := core.GetProjectPath(project.ID)
-	ws.GetHub().Data <- &ws.Data{
-		Type:    ws.TypeProject,
-		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitReset, Message: "git reset"},
-	}
-	resetCmd := exec.Command("git", "reset", "--hard", commit)
-	resetCmd.Dir = srcPath
-	var resetOutbuf, resetErrbuf bytes.Buffer
-	resetCmd.Stdout = &resetOutbuf
-	resetCmd.Stderr = &resetErrbuf
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git reset --hard "+commit)
-	if err := resetCmd.Run(); err != nil {
-		core.Log(core.ERROR, resetErrbuf.String())
-		return errors.New(resetErrbuf.String())
-	}
-
-	core.Log(core.TRACE, resetOutbuf.String())
-	return nil
+	return commit, err
 }
 
 func gitCommitLog(project model.Project) (utils.Commit, error) {
