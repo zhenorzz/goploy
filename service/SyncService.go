@@ -174,8 +174,14 @@ func gitFollow(project model.Project, target string) (utils.Commit, error) {
 		Type:    ws.TypeProject,
 		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitClean, Message: "git clean"},
 	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git reset --hard HEAD")
-	if err := git.Reset("--hard", "HEAD"); err != nil {
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git add .")
+	if err := git.Add("."); err != nil {
+		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
+		return commit, errors.New(git.Err.String())
+	}
+
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git reset --hard")
+	if err := git.Reset("--hard"); err != nil {
 		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
 		return commit, errors.New(git.Err.String())
 	}

@@ -170,7 +170,11 @@ func (Deploy) GetTagList(gp *core.Goploy) *core.Response {
 	srcPath := core.GetProjectPath(project.ID)
 	git := utils.GIT{Dir: srcPath}
 
-	if err := git.Reset("--hard", "HEAD"); err != nil {
+	if err := git.Add("."); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
+	}
+
+	if err := git.Reset("--hard"); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
 	}
 

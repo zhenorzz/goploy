@@ -49,6 +49,13 @@ func (git *GIT) Checkout(options ...string) error {
 	return nil
 }
 
+func (git *GIT) Add(options ...string) error {
+	if err := git.Run("add", options...); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (git *GIT) Pull(options ...string) error {
 	if err := git.Run("pull", options...); err != nil {
 		return err
