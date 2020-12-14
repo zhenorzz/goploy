@@ -100,6 +100,12 @@ export default {
     namespace: '空间设置',
     member: '成员设置'
   },
+  tagsView: {
+    refresh: '刷新',
+    close: '关闭',
+    closeOthers: '关闭其它',
+    closeAll: '关闭所有'
+  },
   navbar: {
     profile: '个人中心',
     doc: '帮助文档',

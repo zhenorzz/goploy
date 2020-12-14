@@ -100,6 +100,12 @@ export default {
     namespace: 'Namespace',
     member: 'Member'
   },
+  tagsView: {
+    refresh: 'Refresh',
+    close: 'Close',
+    closeOthers: 'Close Others',
+    closeAll: 'Close All'
+  },
   navbar: {
     profile: 'Your profile',
     doc: 'Document',

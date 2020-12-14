@@ -78,7 +78,8 @@ export const asyncRoutes = [
       component: () => import('@/views/deploy/index'),
       meta: {
         title: 'deploy',
-        icon: 'deploy'
+        icon: 'deploy',
+        affix: true
       }
     }]
   },
