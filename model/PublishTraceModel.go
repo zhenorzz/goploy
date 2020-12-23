@@ -59,7 +59,19 @@ func (pt PublishTrace) AddRow() (int64, error) {
 // GetListByToken -
 func (pt PublishTrace) GetListByToken() (PublishTraces, error) {
 	rows, err := sq.
-		Select("id, token, project_id, project_name, detail, state, publisher_id, publisher_name, type, ext, insert_time, update_time").
+		Select(
+			"id",
+			"token",
+			"project_id",
+			"project_name",
+			"if(state = 0,detail, '') as detail",
+			"state",
+			"publisher_id",
+			"publisher_name",
+			"type",
+			"ext",
+			"insert_time",
+			"update_time").
 		From(publishTraceTable).
 		Where(sq.Eq{"token": pt.Token}).
 		RunWith(DB).
@@ -94,7 +106,7 @@ func (pt PublishTrace) GetListByToken() (PublishTraces, error) {
 // GetPreview -
 func (pt PublishTrace) GetPreview(pagination Pagination) (PublishTraces, Pagination, error) {
 	builder := sq.
-		Select("id, token, project_id, project_name, detail, state, publisher_id, publisher_name, type, ext, insert_time, update_time").
+		Select("id, token, project_id, project_name, state, publisher_id, publisher_name, type, ext, insert_time, update_time").
 		Column("!EXISTS (SELECT id FROM " + publishTraceTable + " AS pt where pt.state = 0 AND pt.token = publish_trace.token) as publish_state").
 		From(publishTraceTable).
 		Where(sq.Eq{"type": Pull})
@@ -124,7 +136,6 @@ func (pt PublishTrace) GetPreview(pagination Pagination) (PublishTraces, Paginat
 			&publishTrace.Token,
 			&publishTrace.ProjectID,
 			&publishTrace.ProjectName,
-			&publishTrace.Detail,
 			&publishTrace.State,
 			&publishTrace.PublisherID,
 			&publishTrace.PublisherName,
@@ -162,4 +173,20 @@ func (pt PublishTrace) GetPreview(pagination Pagination) (PublishTraces, Paginat
 		return nil, pagination, err
 	}
 	return publishTraces, pagination, nil
+}
+
+// GetDetail return detail value by id
+func (pt PublishTrace) GetDetail() (string, error) {
+	var detail string
+	err := sq.
+		Select("detail").
+		From(publishTraceTable).
+		Where(sq.Eq{"id": pt.ID}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&detail)
+	if err != nil {
+		return detail, err
+	}
+	return detail, nil
 }

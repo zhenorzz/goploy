@@ -8,13 +8,13 @@
         </span>
       </el-form-item>
       <el-form-item :label="$t('userPage.newPassword')" prop="new">
-        <el-input v-model="pwdForm.new" :type="pwdForm.type.new" style="width: 300px" />
+        <el-input v-model="pwdForm.new" :type="pwdForm.type.new" style="width: 300px" autocomplete="new-password" />
         <span class="show-pwd" @click="showPwd('new')">
           <svg-icon icon-class="eye" />
         </span>
       </el-form-item>
       <el-form-item :label="$t('userPage.rePassword')" prop="confirm">
-        <el-input v-model="pwdForm.confirm" :type="pwdForm.type.confirm" style="width: 300px" />
+        <el-input v-model="pwdForm.confirm" :type="pwdForm.type.confirm" style="width: 300px" autocomplete="new-password" />
         <span class="show-pwd" @click="showPwd('confirm')">
           <svg-icon icon-class="eye" />
         </span>

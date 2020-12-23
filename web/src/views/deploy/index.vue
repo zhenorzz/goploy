@@ -123,15 +123,13 @@
             </el-select>
             <el-button type="primary" icon="el-icon-search" @click="searchPreviewList" />
           </el-row>
-          <el-radio-group v-model="publishToken" @change="handleDetailChange">
+          <el-radio-group v-model="publishToken" @change="handleTraceChange">
             <el-row v-for="(item, index) in gitTraceList" :key="index">
               <el-row style="margin:5px 0">
                 <el-radio class="publish-commit" :label="item.token" border>
                   <span class="publish-name">{{ item.publisherName }}</span> <span class="publish-commitID">commitID: {{ item.commit }}</span>
-                  <i v-if="item.publishState === 1" class="el-icon-check" style="color:#67C23A;float:right;font-size:14px;font-weight:900;" />
-                  <i v-else class="el-icon-close" style="color:#F56C6C;float:right;font-size:14px;font-weight:900;" />
-                  <!-- <span v-if="item.publishState === 1" style="color:#67C23A;float:right;">{{ $t('success') }}</span>
-                  <span v-else style="color:#F56C6C;float:right;">{{ $t('fail') }}</span> -->
+                  <i v-if="item.publishState === 1" class="el-icon-check icon-success" style="float:right;" />
+                  <i v-else class="el-icon-close icon-fail" style="float:right;" />
                 </el-radio>
                 <el-button type="danger" plain @click="publishByCommit(item)">rebuild</el-button>
               </el-row>
@@ -146,10 +144,14 @@
             @current-change="handlePreviewPageChange"
           />
         </el-row>
-        <el-row class="project-detail" style="flex:1;width:100%">
+        <el-row v-loading="traceLoading" class="project-detail" style="flex:1;width:100%">
           <el-row v-for="(item, index) in publishLocalTraceList" :key="index">
             <el-row v-if="item.type === 2">
-              <el-row style="margin:5px 0">---------------GIT----------------</el-row>
+              <el-row style="margin:5px 0">
+                <i v-if="item.state === 1" class="el-icon-check icon-success" />
+                <i v-else class="el-icon-close icon-fail" />
+                -------------GIT-------------
+              </el-row>
               <el-row style="margin:5px 0">Time: {{ item.insertTime }}</el-row>
               <!-- 用数组的形式 兼容以前版本 -->
               <el-row v-if="item.state !== 0">
@@ -167,21 +169,25 @@
                 <el-row>Message: {{ item['message'] }}</el-row>
                 <el-row>Author: {{ item['author'] }}</el-row>
                 <el-row>Datetime: {{ item['timestamp'] ? parseTime(item['timestamp']) : '' }}</el-row>
-                <el-row><span v-html="formatDetail(item['diff'])" /></el-row>
+                <el-row><span v-html="enterToBR(item['diff'])" /></el-row>
               </el-row>
               <el-row v-else style="margin:5px 0">
-                <el-tag type="danger" effect="plain">{{ $t('fail') }}</el-tag>
-                <span v-html="formatDetail(item.detail)" />
+                <span v-html="enterToBR(item.detail)" />
               </el-row>
             </el-row>
             <el-row v-if="item.type === 3">
               <hr>
-              <el-row style="margin:5px 0">------------After pull------------</el-row>
-              <el-row style="margin:5px 0">Time: {{ item.insertTime }}</el-row>
-              <el-row>Script: <pre v-html="formatDetail(item.script)" /></el-row>
               <el-row style="margin:5px 0">
-                <el-tag v-if="item.state === 0" type="danger" effect="plain">{{ $t('fail') }}</el-tag>
-                <el-row v-if="item.detail.length > 0">[goploy ~]# <span v-html="formatDetail(item.detail)" /></el-row>
+                <i v-if="item.state === 1" class="el-icon-check icon-success" />
+                <i v-else class="el-icon-close icon-fail" />
+                --------After pull--------
+              </el-row>
+              <el-row style="margin:5px 0">Time: {{ item.insertTime }}</el-row>
+              <el-row>Script: <pre v-html="enterToBR(item.script)" /></el-row>
+              <el-row v-loading="!!traceDetail[item.id]" style="margin:5px 0">
+                [goploy ~]#
+                <el-button v-if="item.state === 1 && !traceDetail[item.id]" type="primary" @click="getPublishTraceDetail(item)">{{ $t('deployPage.showDetail') }}</el-button>
+                <span v-else v-html="enterToBR(item.detail)" />
               </el-row>
             </el-row>
           </el-row>
@@ -189,30 +195,45 @@
             <el-tab-pane v-for="(item, serverName) in publishRemoteTraceList" :key="serverName" :label="serverName" :name="serverName">
               <el-row v-for="(trace, key) in item" :key="key">
                 <el-row v-if="trace.type === 4">
-                  <el-row style="margin:5px 0">----------Before deploy--------</el-row>
-                  <el-row style="margin:5px 0">Time: {{ trace.insertTime }}</el-row>
-                  <el-row>Script: <pre v-html="formatDetail(trace.script)" /></el-row>
                   <el-row style="margin:5px 0">
-                    <el-tag v-if="trace.state === 0" type="danger" effect="plain">{{ $t('fail') }}</el-tag>
-                    <el-row>[goploy ~]# <span v-html="formatDetail(trace.detail)" /></el-row>
+                    <i v-if="trace.state === 1" class="el-icon-check icon-success" />
+                    <i v-else class="el-icon-close icon-fail" />
+                    ---------Before deploy---------
+                  </el-row>
+                  <el-row style="margin:5px 0">Time: {{ trace.insertTime }}</el-row>
+                  <el-row>Script: <pre v-html="enterToBR(trace.script)" /></el-row>
+                  <el-row v-loading="!!traceDetail[item.id]" style="margin:5px 0">
+                    [goploy ~]#
+                    <el-button v-if="trace.state === 1 && !traceDetail[trace.id]" type="text" @click="getPublishTraceDetail(trace)">{{ $t('deployPage.showDetail') }}</el-button>
+                    <span v-else v-html="enterToBR(trace.detail)" />
                   </el-row>
                 </el-row>
                 <el-row v-else-if="trace.type === 5">
-                  <el-row style="margin:5px 0">--------------Rsync-------------</el-row>
+                  <el-row style="margin:5px 0">
+                    <i v-if="trace.state === 1" class="el-icon-check icon-success" />
+                    <i v-else class="el-icon-close icon-fail" />
+                    -----------Rsync------------
+                  </el-row>
                   <el-row style="margin:5px 0">Time: {{ trace.insertTime }}</el-row>
                   <el-row>Command: {{ trace.command }}</el-row>
-                  <el-row style="margin:5px 0">
-                    <el-tag v-if="trace.state === 0" type="danger" effect="plain">{{ $t('fail') }}</el-tag>
-                    <span v-html="formatDetail(trace.detail)" />
+                  <el-row v-loading="!!traceDetail[item.id]" style="margin:5px 0">
+                    [goploy ~]#
+                    <el-button v-if="trace.state === 1 && !traceDetail[trace.id]" type="text" @click="getPublishTraceDetail(trace)">{{ $t('deployPage.showDetail') }}</el-button>
+                    <span v-else v-html="enterToBR(trace.detail)" />
                   </el-row>
                 </el-row>
-                <el-row v-else>
-                  <el-row style="margin:5px 0">----------After deploy---------</el-row>
+                <el-row v-else-if="trace.type === 6">
+                  <el-row style="margin:5px 0">
+                    <i v-if="trace.state === 1" class="el-icon-check icon-success" />
+                    <i v-else class="el-icon-close icon-fail" />
+                    --------After deploy--------
+                  </el-row>
                   <el-row style="margin:5px 0">Time: {{ trace.insertTime }}</el-row>
                   <el-row>Script: {{ trace.script }}</el-row>
-                  <el-row style="margin:5px 0">
-                    <el-tag v-if="trace.state === 0" type="danger" effect="plain">{{ $t('fail') }}</el-tag>
-                    <el-row v-if="trace.detail.length > 0">[goploy ~]# <span v-html="formatDetail(trace.detail)" /></el-row>
+                  <el-row v-loading="!!traceDetail[item.id]" style="margin:5px 0">
+                    [goploy ~]#
+                    <el-button v-if="trace.state === 1 && !traceDetail[trace.id]" type="text" @click="getPublishTraceDetail(trace)">{{ $t('deployPage.showDetail') }}</el-button>
+                    <span v-else v-html="enterToBR(trace.detail)" />
                   </el-row>
                 </el-row>
               </el-row>
@@ -248,7 +269,7 @@
       >
         <el-table-column type="expand">
           <template slot-scope="props">
-            <span v-html="formatDetail(props.row.diff)" />
+            <span v-html="enterToBR(props.row.diff)" />
           </template>
         </el-table-column>
         <el-table-column prop="commit" label="commit" width="290">
@@ -294,7 +315,7 @@
       >
         <el-table-column type="expand">
           <template slot-scope="props">
-            <span v-html="formatDetail(props.row.diff)" />
+            <span v-html="enterToBR(props.row.diff)" />
           </template>
         </el-table-column>
         <el-table-column prop="tag" label="tag">
@@ -518,7 +539,7 @@
 </template>
 <script>
 import tableHeight from '@/mixin/tableHeight'
-import { getList, getDetail, getPreview, getCommitList, getBranchList, getTagList, publish, resetState, review, greyPublish } from '@/api/deploy'
+import { getList, getPublishTrace, getPublishTraceDetail, getPreview, getCommitList, getBranchList, getTagList, publish, resetState, review, greyPublish } from '@/api/deploy'
 import { addTask, removeTask, getTaskList, getBindServerList, getReviewList } from '@/api/project'
 import { getUserOption } from '@/api/namespace'
 import { parseTime, parseGitURL } from '@/utils'
@@ -540,6 +561,7 @@ export default {
       reviewDialogVisible: false,
       reviewListDialogVisible: false,
       dialogVisible: false,
+      traceLoading: false,
       tableloading: false,
       tableData: [],
       pagination: {
@@ -621,6 +643,7 @@ export default {
       publishTraceList: [],
       publishLocalTraceList: [],
       publishRemoteTraceList: {},
+      traceDetail: {},
       activeRomoteTracePane: ''
     }
   },
@@ -635,7 +658,7 @@ export default {
         return
       }
       const data = response.message
-      data.message = this.formatDetail(data.message)
+      data.message = this.enterToBR(data.message)
       if (data.state === 0) {
         this.$notify.error({
           title: data.projectName,
@@ -730,8 +753,9 @@ export default {
       this.getList()
     },
 
-    getDetail() {
-      getDetail(this.publishToken).then((response) => {
+    getPublishTrace() {
+      this.traceLoading = true
+      getPublishTrace(this.publishToken).then((response) => {
         const publishTraceList = response.data.publishTraceList || []
         this.publishTraceList = publishTraceList.map(element => {
           if (element.ext !== '') Object.assign(element, JSON.parse(element.ext))
@@ -748,11 +772,21 @@ export default {
           this.publishRemoteTraceList[trace.serverName].push(trace)
         }
         this.activeRomoteTracePane = Object.keys(this.publishRemoteTraceList)[0]
+      }).finally(() => {
+        this.traceLoading = false
+      })
+    },
+
+    getPublishTraceDetail(data) {
+      this.$set(this.traceDetail, data.id, true)
+      getPublishTraceDetail(data.id).then((response) => {
+        data.detail = response.data.detail === '' ? this.$t('deployPage.noDetail') : response.data.detail
       })
     },
 
     getPreviewList() {
       this.searchPreview.loading = true
+      this.traceDetail = {}
       getPreview(this.previewPagination, {
         projectId: this.searchPreview.projectId,
         userId: this.searchPreview.userId || 0,
@@ -766,7 +800,7 @@ export default {
         })
         if (this.gitTraceList.length > 0) {
           this.publishToken = this.gitTraceList[0].token
-          this.getDetail()
+          this.getPublishTrace()
         }
         this.previewPagination.total = response.data.pagination.total
       }).finally(() => {
@@ -792,9 +826,9 @@ export default {
       this.getPreviewList()
     },
 
-    handleDetailChange(lastPublishToken) {
+    handleTraceChange(lastPublishToken) {
       this.publishToken = lastPublishToken
-      this.getDetail()
+      this.getPublishTrace()
     },
 
     handleGreyPublish(data) {
@@ -1070,7 +1104,7 @@ export default {
       })
     },
 
-    formatDetail(detail) {
+    enterToBR(detail) {
       return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
     }
   }
@@ -1116,6 +1150,18 @@ export default {
   >>>.el-button {
     line-height: 1.15;
   }
+}
+
+.icon-success {
+  color:#67C23A;
+  font-size:14px;
+  font-weight:900;
+}
+
+.icon-fail {
+  color:#F56C6C;
+  font-size:14px;
+  font-weight:900;
 }
 
 @media screen and (max-width: 1440px){

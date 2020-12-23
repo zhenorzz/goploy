@@ -194,6 +194,8 @@ export default {
   },
   deployPage: {
     resetState: '重置状态',
+    showDetail: '查看详情',
+    noDetail: '暂无详情',
     taskDeploy: '定时构建',
     resetStateTips: '此操作将重置项目的构建状态, 是否继续?',
     reviewDeploy: '审核构建',

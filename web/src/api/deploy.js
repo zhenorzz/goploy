@@ -16,13 +16,28 @@ export function getList(projectName) {
  * @param  {string}    lastPublishToken
  * @return {Promise}
  */
-export function getDetail(lastPublishToken) {
+export function getPublishTrace(lastPublishToken) {
   return request({
-    url: '/deploy/getDetail',
+    url: '/deploy/getPublishTrace',
     method: 'get',
     params: {
       lastPublishToken
     }
+  })
+}
+
+/**
+ * @param  {Number}    publish_trace_id
+ * @return {Promise}
+ */
+export function getPublishTraceDetail(publish_trace_id) {
+  return request({
+    url: '/deploy/getPublishTraceDetail',
+    method: 'get',
+    params: {
+      publish_trace_id
+    },
+    timeout: 0
   })
 }
 

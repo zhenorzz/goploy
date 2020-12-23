@@ -73,7 +73,8 @@ func Init() *router.Router {
 
 	//// deploy route
 	rt.Add("/deploy/getList", http.MethodGet, controller.Deploy{}.GetList)
-	rt.Add("/deploy/getDetail", http.MethodGet, controller.Deploy{}.GetDetail)
+	rt.Add("/deploy/getPublishTrace", http.MethodGet, controller.Deploy{}.GetPublishTrace)
+	rt.Add("/deploy/getPublishTraceDetail", http.MethodGet, controller.Deploy{}.GetPublishTraceDetail)
 	rt.Add("/deploy/getCommitList", http.MethodGet, controller.Deploy{}.GetCommitList)
 	rt.Add("/deploy/getBranchList", http.MethodGet, controller.Deploy{}.GetBranchList)
 	rt.Add("/deploy/getTagList", http.MethodGet, controller.Deploy{}.GetTagList)

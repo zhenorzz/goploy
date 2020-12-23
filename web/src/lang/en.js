@@ -183,6 +183,8 @@ export default {
   },
   deployPage: {
     resetState: 'Reset state',
+    showDetail: 'Show detail',
+    noDetail: 'No detail',
     taskDeploy: 'Crontab deploy',
     resetStateTips: 'This action will reset project state, continue?',
     reviewDeploy: 'Review deploy',

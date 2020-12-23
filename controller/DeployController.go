@@ -76,10 +76,8 @@ func (Deploy) GetPreview(gp *core.Goploy) *core.Response {
 }
 
 // GetDetail deploy detail
-func (Deploy) GetDetail(gp *core.Goploy) *core.Response {
-
+func (Deploy) GetPublishTrace(gp *core.Goploy) *core.Response {
 	lastPublishToken := gp.URLQuery.Get("lastPublishToken")
-
 	publishTraceList, err := model.PublishTrace{Token: lastPublishToken}.GetListByToken()
 	if err == sql.ErrNoRows {
 		return &core.Response{Code: core.Error, Message: "No deploy record"}
@@ -90,6 +88,25 @@ func (Deploy) GetDetail(gp *core.Goploy) *core.Response {
 		Data: struct {
 			PublishTraceList model.PublishTraces `json:"publishTraceList"`
 		}{PublishTraceList: publishTraceList},
+	}
+}
+
+// GetDetail deploy detail
+func (Deploy) GetPublishTraceDetail(gp *core.Goploy) *core.Response {
+	id, err := strconv.ParseInt(gp.URLQuery.Get("publish_trace_id"), 10, 64)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	detail, err := model.PublishTrace{ID: id}.GetDetail()
+	if err == sql.ErrNoRows {
+		return &core.Response{Code: core.Error, Message: "No deploy record"}
+	} else if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	return &core.Response{
+		Data: struct {
+			Detail string `json:"detail"`
+		}{Detail: detail},
 	}
 }
 
