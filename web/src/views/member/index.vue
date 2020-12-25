@@ -62,8 +62,8 @@
         <el-form-item :label="$t('contact')" prop="contact">
           <el-input v-model="formData.contact" autocomplete="off" />
         </el-form-item>
-        <el-form-item :label="$t('admin')" prop="super_manager">
-          <el-radio-group v-model="formData.super_manager">
+        <el-form-item :label="$t('admin')" prop="superManager">
+          <el-radio-group v-model="formData.superManager">
             <el-radio :label="1">{{ $t('boolOption[1]') }}</el-radio>
             <el-radio :label="0">{{ $t('boolOption[0]') }}</el-radio>
           </el-radio-group>
@@ -127,7 +127,7 @@ export default {
         password: '',
         name: '',
         contact: '',
-        super_manager: 0
+        superManager: 0
       },
       formRules: {
         account: [

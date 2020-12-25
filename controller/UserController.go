@@ -17,7 +17,7 @@ type User Controller
 // Login -
 func (User) Login(gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		Account  string `json:"account" validate:"min=5,max=12"`
+		Account  string `json:"account" validate:"min=5,max=25"`
 		Password string `json:"password" validate:"password"`
 	}
 	var reqData ReqData
@@ -131,7 +131,7 @@ func (User) GetOption(gp *core.Goploy) *core.Response {
 // Add user
 func (User) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		Account      string `json:"account" validate:"min=5,max=12"`
+		Account      string `json:"account" validate:"min=5,max=25"`
 		Password     string `json:"password" validate:"omitempty,password"`
 		Name         string `json:"name" validate:"required"`
 		Contact      string `json:"contact" validate:"omitempty,len=11,numeric"`
@@ -217,6 +217,9 @@ func (User) Edit(gp *core.Goploy) *core.Response {
 		}
 	} else if userInfo.SuperManager == model.GeneralUser && reqData.SuperManager == model.SuperManager {
 		if err := (model.NamespaceUser{UserID: reqData.ID}).AddAdminByUserID(); err != nil {
+			return &core.Response{Code: core.Error, Message: err.Error()}
+		}
+		if err := (model.ProjectUser{UserID: reqData.ID}).AddAdminByUserID(); err != nil {
 			return &core.Response{Code: core.Error, Message: err.Error()}
 		}
 	}
