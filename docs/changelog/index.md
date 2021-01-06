@@ -5,10 +5,7 @@
 *2021-01-06*
 
 ### New features
-- tags view
-
-### Bug fixes
-- fix get detail timeout
+- upload project file
 
 ## 1.1.2
 
