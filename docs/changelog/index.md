@@ -1,12 +1,24 @@
 # 更新日志
 
-## 1.1.2
+## 1.1.3
 
-*2021-01-09*
+*2021-01-06*
 
 ### New features
-- upload project file
+- tags view
 
+### Bug fixes
+- fix get detail timeout
+
+## 1.1.2
+
+*2020-12-26*
+
+### New features
+- tags view
+
+### Bug fixes
+- fix get detail timeout
 
 ## 1.1.1
 
