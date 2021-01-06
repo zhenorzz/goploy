@@ -2,11 +2,14 @@ package controller
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/utils"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
 	"strconv"
 	"strings"
 )
@@ -104,6 +107,44 @@ func (Project) GetBindUserList(gp *core.Goploy) *core.Response {
 		Data: struct {
 			ProjectUsers model.ProjectUsers `json:"list"`
 		}{ProjectUsers: projectUsers},
+	}
+}
+
+// GetProjectFileList -
+func (Project) GetProjectFileList(gp *core.Goploy) *core.Response {
+	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	projectFiles, err := model.ProjectFile{ProjectID: id}.GetListByProjectID()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	return &core.Response{
+		Data: struct {
+			ProjectFiles model.ProjectFiles `json:"list"`
+		}{ProjectFiles: projectFiles},
+	}
+}
+
+// GetProjectFileContent -
+func (Project) GetProjectFileContent(gp *core.Goploy) *core.Response {
+	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	projectFileData, err := model.ProjectFile{ID: id}.GetData()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	fileBytes, err := ioutil.ReadFile(path.Join(core.GetProjectFilePath(projectFileData.ProjectID), projectFileData.Filename))
+	if err != nil {
+		fmt.Println("read fail", err)
+	}
+	return &core.Response{
+		Data: struct {
+			Content string `json:"content"`
+		}{Content: string(fileBytes)},
 	}
 }
 
@@ -308,13 +349,164 @@ func (Project) Remove(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
+	srcPath := core.GetProjectPath(projectData.ID)
+	if err := os.RemoveAll(srcPath); err != nil {
+		return &core.Response{Code: core.Error, Message: "Delete folder fail, Detail: " + err.Error()}
+	}
+
 	if err := (model.Project{ID: reqData.ID}).RemoveRow(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	srcPath := core.GetProjectPath(projectData.ID)
-	if err := os.RemoveAll(srcPath); err != nil {
-		return &core.Response{Code: core.Error, Message: "Delete folder fail, Detail: " + err.Error()}
+	return &core.Response{}
+}
+
+// UploadFile -
+func (Project) UploadFile(gp *core.Goploy) *core.Response {
+	file, _, err := gp.Request.FormFile("file")
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	defer file.Close()
+	id, err := strconv.ParseInt(gp.URLQuery.Get("projectFileId"), 10, 64)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	projectID, err := strconv.ParseInt(gp.URLQuery.Get("projectId"), 10, 64)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	filename := gp.URLQuery.Get("filename")
+	filePath := path.Join(core.GetProjectFilePath(projectID), filename)
+
+	if _, err := os.Stat(path.Dir(filePath)); err != nil {
+		if os.IsNotExist(err) {
+			err := os.MkdirAll(path.Dir(filePath), 0755)
+			if err != nil {
+				return &core.Response{Code: core.Error, Message: err.Error()}
+			}
+		} else {
+			return &core.Response{Code: core.Error, Message: err.Error()}
+		}
+	}
+
+	// read all of the contents of our uploaded file into a
+	// byte array
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	if err := ioutil.WriteFile(filePath, fileBytes, 0755); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	if id == 0 {
+		id, err = model.ProjectFile{
+			Filename:  filename,
+			ProjectID: projectID,
+		}.AddRow()
+	} else {
+		err = model.ProjectFile{
+			ID:        id,
+			Filename:  filename,
+			ProjectID: projectID,
+		}.EditRow()
+	}
+
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	return &core.Response{
+		Data: struct {
+			ID int64 `json:"id"`
+		}{ID: id},
+	}
+}
+
+// AddFile to project
+func (Project) AddFile(gp *core.Goploy) *core.Response {
+	type ReqData struct {
+		ProjectID int64  `json:"projectId" validate:"gt=0"`
+		Content   string `json:"content" validate:"required"`
+		Filename  string `json:"filename" validate:"required"`
+	}
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	file, err := os.Create(path.Join(core.GetProjectFilePath(reqData.ProjectID), reqData.Filename))
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	file.WriteString(reqData.Content)
+
+	id, err := model.ProjectFile{
+		ProjectID: reqData.ProjectID,
+		Filename:  reqData.Filename,
+	}.AddRow()
+
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	return &core.Response{
+		Data: struct {
+			ID int64 `json:"id"`
+		}{ID: id},
+	}
+}
+
+// EditFile to project
+func (Project) EditFile(gp *core.Goploy) *core.Response {
+	type ReqData struct {
+		ID      int64  `json:"id" validate:"gt=0"`
+		Content string `json:"content" validate:"required"`
+	}
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	projectFileData, err := model.ProjectFile{ID: reqData.ID}.GetData()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	file, err := os.Create(path.Join(core.GetProjectFilePath(projectFileData.ProjectID), projectFileData.Filename))
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	file.WriteString(reqData.Content)
+
+	return &core.Response{}
+}
+
+// RemoveFile from Project
+func (Project) RemoveFile(gp *core.Goploy) *core.Response {
+	type ReqData struct {
+		ProjectFileID int64 `json:"projectFileId" validate:"gt=0"`
+	}
+
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	projectFileData, err := model.ProjectFile{ID: reqData.ProjectFileID}.GetData()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	if err := os.Remove(path.Join(core.GetProjectFilePath(projectFileData.ProjectID), projectFileData.Filename)); err != nil {
+		return &core.Response{Code: core.Error, Message: "Delete file fail, Detail: " + err.Error()}
+	}
+
+	if err := (model.ProjectFile{ID: reqData.ProjectFileID}).DeleteRow(); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	return &core.Response{}
@@ -348,6 +540,22 @@ func (Project) AddServer(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
+// RemoveServer from Project
+func (Project) RemoveServer(gp *core.Goploy) *core.Response {
+	type ReqData struct {
+		ProjectServerID int64 `json:"projectServerId" validate:"gt=0"`
+	}
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	if err := (model.ProjectServer{ID: reqData.ProjectServerID}).DeleteRow(); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	return &core.Response{}
+}
+
 // AddUser to project
 func (Project) AddUser(gp *core.Goploy) *core.Response {
 	type ReqData struct {
@@ -370,22 +578,6 @@ func (Project) AddUser(gp *core.Goploy) *core.Response {
 	}
 
 	if err := projectUsersModel.AddMany(); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-	return &core.Response{}
-}
-
-// RemoveServer from Project
-func (Project) RemoveServer(gp *core.Goploy) *core.Response {
-	type ReqData struct {
-		ProjectServerID int64 `json:"projectServerId" validate:"gt=0"`
-	}
-	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-
-	if err := (model.ProjectServer{ID: reqData.ProjectServerID}).DeleteRow(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	return &core.Response{}

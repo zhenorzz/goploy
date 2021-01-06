@@ -25,6 +25,7 @@ export default {
   crontab: '定时',
   command: '命令',
   directory: '目录',
+  file: '文件',
   func: '功能',
   param: '参数',
   deploy: '构建',
@@ -188,7 +189,9 @@ export default {
     autoDeployTips: `前往GitLab、GitHub或Gitee的webhook（可前往谷歌查找各自webhook所在的位置）<br>
     填入连接<span style="color: red">http(s)://域名(IP)/deploy/webhook?project_id={projectId}</span><br>
     勾选push event即可, (Gitlab可以选对应的分支)`,
+    projectFileTips: '构建项目时上传到目标服务器',
     removeProjectTips: '此操作将删除项目({projectName}), 是否继续?',
+    removeFileTips: '此操作将永久删除文件({filename}), 是否继续?',
     removeServerTips: '此操作将永久删除服务器({serverName})的绑定关系, 是否继续?',
     removeUserTips: '此操作将永久删除用户({userName})的绑定关系, 是否继续?'
   },

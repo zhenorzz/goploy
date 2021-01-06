@@ -213,12 +213,10 @@ func (rt *Router) doRequest(gp *Goploy) *Response {
 				return &Response{Code: Deny, Message: err.Error()}
 			}
 			for _, middleware := range route.middlewares {
-
 				if err := middleware(gp); err != nil {
 					return &Response{Code: Error, Message: err.Error()}
 				}
 			}
-
 			return route.callback(gp)
 		}
 	}

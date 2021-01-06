@@ -17,9 +17,9 @@
       :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="id" label="ID" width="100" />
+      <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="name" :label="$t('name')" width="200" />
-      <el-table-column prop="url" :label="$t('projectURL')" width="350">
+      <el-table-column prop="url" :label="$t('projectURL')" width="330">
         <template slot-scope="scope">
           <el-link
             type="primary"
@@ -50,6 +50,11 @@
         <template slot-scope="scope">
           <span v-if="scope.row.review === 0">{{ $t('close') }}</span>
           <span v-else>{{ $t('open') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="file" width="80" :label="$t('file')" align="center">
+        <template slot-scope="scope">
+          <el-button type="text" @click="handleFile(scope.row)">{{ $t('view') }}</el-button>
         </template>
       </el-table-column>
       <el-table-column prop="server" width="80" :label="$t('server')" align="center">
@@ -358,6 +363,63 @@
         <el-button @click="dialogUserVisible = false">{{ $t('cancel') }}</el-button>
       </div>
     </el-dialog>
+    <el-dialog :title="$t('manage')" :visible.sync="dialogFileManagerVisible" class="file-dialog">
+      <el-row v-if="fileFormProps.show === 'file-list'" type="flex" justify="space-between" align="middle" style="margin: 10px 0">
+        <span>{{ $t('projectPage.projectFileTips') }}</span>
+        <el-button type="primary" icon="el-icon-plus" @click="handleAppendFile" />
+      </el-row>
+      <el-form ref="fileForm" :rules="fileFormRules" :model="fileFormData" class="file-form">
+        <template v-if="fileFormProps.show === 'file-list'">
+          <el-form-item
+            v-for="(file, index) in fileFormData.files"
+            :key="index"
+            label-width="0"
+            prop="directory"
+          >
+            <el-row type="flex">
+              <el-input
+                v-model.trim="file.filename"
+                autocomplete="off"
+                placeholder="path/to/example/.env"
+                :disabled="file.state === 'success'"
+                :readonly="file.state === 'success'"
+              >
+                <template slot="prepend">{{ fileFormProps.projectPath }}</template>
+                <i v-if="file.state === 'success'" slot="suffix" class="el-input__icon el-icon-check" style="color: #67C23A; font-size:16px; font-weight:900;" />
+                <i v-else-if="file.state === 'loading'" slot="suffix" class="el-input__icon el-icon-loading" style="font-size:14px; font-weight:900;" />
+                <i v-else slot="suffix" class="el-input__icon el-icon-close" style="color: #F56C6C; font-size:16px; font-weight:900;" />
+              </el-input>
+              <el-upload
+                ref="upload"
+                style="margin: 0 12px"
+                :action="`${fileFormProps.action}?projectFileId=${file.id}&projectId=${file.projectId}&filename=${file.filename}`"
+                :before-upload="(uploadFile) => beforeUpload(uploadFile, index)"
+                :on-success="(response, uploadFile, uploadFileList) => handleUploadSuccess(response, uploadFile, uploadFileList, index)"
+                :show-file-list="false"
+                :disabled="!validateFilename(file, index)"
+                multiple
+              >
+                <el-button :disabled="!validateFilename(file, index)" type="text" icon="el-icon-upload" />
+              </el-upload>
+              <el-button
+                :disabled="!validateFilename(file, index)"
+                type="text"
+                icon="el-icon-edit"
+                @click="getProjectFileContent(file, index)"
+              />
+              <el-button type="text" icon="el-icon-delete" @click="removeFile(index)" />
+            </el-row>
+          </el-form-item>
+        </template>
+        <el-form-item v-else prop="projectFileEdit" label-width="0px">
+          <codemirror ref="projectFileEdit" v-model="fileFormData.content" v-loading="fileFormProps.editContentLoading" :options="cmOption" />
+        </el-form-item>
+      </el-form>
+      <div v-if="fileFormProps.show !== 'file-list'" slot="footer" class="dialog-footer">
+        <el-button @click="fileFormProps.show = 'file-list'">{{ $t('cancel') }}</el-button>
+        <el-button :disabled="fileFormProps.disabled" type="primary" @click="fileSubmit">{{ $t('confirm') }}</el-button>
+      </div>
+    </el-dialog>
     <el-dialog :title="$t('add')" :visible.sync="dialogAddServerVisible">
       <el-form ref="addServerForm" :rules="addServerFormRules" :model="addServerFormData">
         <el-form-item :label="$t('server')" label-width="80px" prop="serverIds">
@@ -406,12 +468,17 @@ import {
   getTotal,
   getBindServerList,
   getBindUserList,
+  getProjectFileList,
   getRemoteBranchList,
+  getProjectFileContent,
   add,
   edit,
   remove,
   addServer,
   addUser,
+  addFile,
+  editFile,
+  removeFile,
   setAutoDeploy,
   removeServer,
   removeUser
@@ -466,6 +533,7 @@ export default {
       dialogUserVisible: false,
       dialogAddServerVisible: false,
       dialogAddUserVisible: false,
+      dialogFileManagerVisible: false,
       serverOption: [],
       userOption: [],
       tableloading: false,
@@ -574,6 +642,20 @@ export default {
       autoDeployFormData: {
         id: 0,
         autoDeploy: 0
+      },
+      fileFormProps: {
+        projectPath: '/data/www/goploy/',
+        action: process.env.VUE_APP_BASE_API + '/project/uploadFile',
+        show: 'file-list',
+        editContentLoading: false,
+        disabled: false,
+        selectedIndex: -1
+      },
+      fileFormData: {
+        files: [],
+        content: ''
+      },
+      fileFormRules: {
       },
       addServerFormProps: {
         disabled: false
@@ -709,6 +791,49 @@ export default {
       this.dialogAddUserVisible = true
     },
 
+    handleFile(data) {
+      this.getProjectFileList(data.id)
+      this.dialogFileManagerVisible = true
+    },
+
+    handleAppendFile() {
+      this.fileFormData.files.push({
+        filename: '',
+        projectId: 78,
+        state: 'loading',
+        id: 0
+      })
+    },
+
+    validateFilename(file, index) {
+      const filename = file.filename
+      if (file.state === 'success') {
+        return true
+      } else if (filename === '') {
+        return false
+      } else if (filename.substr(filename.length - 1, 1) === '/') {
+        return false
+      }
+
+      return this.fileFormData.files.map(item => item.filename).splice(index - 1, 1).indexOf(filename) === -1
+    },
+
+    beforeUpload(file, index) {
+      this.fileFormData.files[index].state = 'loading'
+      this.$message.info(this.$i18n.t('uploading'))
+    },
+
+    handleUploadSuccess(response, file, fileList, index) {
+      if (response.code !== 0) {
+        this.fileFormData.files[index].state = 'fail'
+        this.$message.error(response.message)
+      } else {
+        this.fileFormData.files[index].id = response.data.id
+        this.fileFormData.files[index].state = 'success'
+        this.$message.success('Success')
+      }
+    },
+
     submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
@@ -839,6 +964,51 @@ export default {
       })
     },
 
+    removeFile(index) {
+      if (this.fileFormData.files[index].id === 0) {
+        this.fileFormData.files.splice(index, 1)
+      } else {
+        this.$confirm(this.$i18n.t('projectPage.removeFileTips', { filename: this.fileFormData.files[index].filename }), this.$i18n.t('tips'), {
+          confirmButtonText: this.$i18n.t('confirm'),
+          cancelButtonText: this.$i18n.t('cancel'),
+          type: 'warning'
+        }).then(() => {
+          removeFile(this.fileFormData.files[index].id).then((response) => {
+            this.$message.success('Success')
+            this.fileFormData.files.splice(index, 1)
+          })
+        }).catch(() => {
+          this.$message.info('Cancel')
+        })
+      }
+    },
+
+    fileSubmit() {
+      const file = this.fileFormData.files[this.fileFormProps.selectedIndex]
+      this.fileFormProps.disabled = true
+      if (file.id === 0) {
+        addFile({
+          projectId: file.projectId,
+          filename: file.filename,
+          content: this.fileFormData.content
+        }).then((response) => {
+          this.fileFormData.files[this.fileFormProps.selectedIndex].id = response.data.id
+          this.fileFormData.files[this.fileFormProps.selectedIndex].state = 'success'
+          this.fileFormProps.show = 'file-list'
+          this.$message.success('Success')
+        }).finally(() => { this.fileFormProps.disabled = false })
+      } else {
+        editFile({
+          id: file.id,
+          content: this.fileFormData.content
+        }).then((response) => {
+          this.fileFormData.files[this.fileFormProps.selectedIndex].state = 'success'
+          this.fileFormProps.show = 'file-list'
+          this.$message.success('Success')
+        }).finally(() => { this.fileFormProps.disabled = false })
+      }
+    },
+
     getOptions() {
       getServerOption().then((response) => {
         this.serverOption = response.data.list
@@ -864,6 +1034,30 @@ export default {
     getTotal() {
       getTotal(this.projectName).then((response) => {
         this.pagination.total = response.data.total
+      })
+    },
+
+    getProjectFileList(projectID) {
+      getProjectFileList(projectID).then((response) => {
+        this.fileFormData.files = response.data.list.map(item => {
+          item.state = 'success'
+          return item
+        })
+      })
+    },
+
+    getProjectFileContent(file, index) {
+      this.fileFormProps.selectedIndex = index
+      this.fileFormProps.show = 'edit-content'
+      this.fileFormData.content = this.fileFormData.files[index]['content'] ? this.fileFormData.files[index]['content'] : ''
+      if (file.id === 0) {
+        return
+      }
+      this.fileFormProps.editContentLoading = true
+      getProjectFileContent(file.id).then((response) => {
+        this.fileFormData.content = this.fileFormData.files[index]['content'] = response.data.content
+      }).finally(() => {
+        this.fileFormProps.editContentLoading = false
       })
     },
 
@@ -914,13 +1108,29 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-
+@import "@/styles/mixin.scss";
 .project-setting-dialog {
   >>> .el-dialog__body {
     padding-top: 10px;
   }
 }
-
+.file-dialog {
+  >>> .el-dialog__body {
+    padding-top: 0px;
+    padding-bottom: 0px;
+  }
+  >>> .el-icon-upload {
+    font-size: 14px;
+  }
+  .file-form {
+    height: 520px;
+    overflow-y: auto;
+    @include scrollBar();
+  }
+  >>> .CodeMirror {
+    height: 500px;
+  }
+}
 </style>
 
 <style>

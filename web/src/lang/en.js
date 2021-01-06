@@ -25,6 +25,7 @@ export default {
   crontab: 'Crontab',
   command: 'Command',
   directory: 'Directory',
+  file: 'File',
   func: 'Func',
   param: 'Param',
   deploy: 'Deploy',
@@ -177,7 +178,9 @@ export default {
     autoDeployTips: `Go to the webhook page in GitLab、GitHub or Gitee <br>
     Fill in URL <span style="color: red">http(s)://domian(IP)/deploy/webhook?project_id={projectId}</span><br>
     Check push event, (Gitlab can choose the corresponding branch)`,
+    projectFileTips: 'Upload to the target server with the project deploy.',
     removeProjectTips: 'This action will delete the project({projectName}), continue?',
+    removeFileTips: 'This action will delete the file({filename}), continue?',
     removeServerTips: `This action will delete the server's({serverName}) binding relationship, continue?`,
     removeUserTips: `This action will delete the user's({userName}) binding relationship, continue?`
   },

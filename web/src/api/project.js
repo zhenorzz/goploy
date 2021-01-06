@@ -59,6 +59,30 @@ export function getBindUserList(id) {
 }
 
 /**
+ * @param  {id} id
+ * @return {Promise}
+ */
+export function getProjectFileList(id) {
+  return request({
+    url: '/project/getProjectFileList',
+    method: 'get',
+    params: { id }
+  })
+}
+
+/**
+ * @param  {id} id
+ * @return {Promise}
+ */
+export function getProjectFileContent(id) {
+  return request({
+    url: '/project/getProjectFileContent',
+    method: 'get',
+    params: { id }
+  })
+}
+
+/**
  * @param  {string} project
  * @param  {string} owner
  * @param  {string} repository
@@ -104,14 +128,6 @@ export function remove(id) {
   })
 }
 
-export function addServer(data) {
-  return request({
-    url: '/project/addServer',
-    method: 'post',
-    data
-  })
-}
-
 export function addUser(data) {
   return request({
     url: '/project/addUser',
@@ -130,12 +146,46 @@ export function removeUser(projectUserId) {
   })
 }
 
+export function addServer(data) {
+  return request({
+    url: '/project/addServer',
+    method: 'post',
+    data
+  })
+}
+
 export function removeServer(projectServerId) {
   return request({
     url: '/project/removeServer',
     method: 'delete',
     data: {
       projectServerId
+    }
+  })
+}
+
+export function addFile(data) {
+  return request({
+    url: '/project/addFile',
+    method: 'post',
+    data
+  })
+}
+
+export function editFile(data) {
+  return request({
+    url: '/project/editFile',
+    method: 'post',
+    data
+  })
+}
+
+export function removeFile(projectFileId) {
+  return request({
+    url: '/project/removeFile',
+    method: 'delete',
+    data: {
+      projectFileId
     }
   })
 }

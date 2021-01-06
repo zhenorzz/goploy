@@ -86,7 +86,19 @@ func (sync Sync) Exec() {
 	publishTraceModel.State = model.Success
 	if _, err := publishTraceModel.AddRow(); err != nil {
 		core.Log(core.ERROR, err.Error())
+		return
 	}
+
+	if totalFileNumber, err := (model.ProjectFile{ProjectID: sync.Project.ID}).GetTotalByProjectID(); err != nil {
+		core.Log(core.ERROR, err.Error())
+		return
+	} else if totalFileNumber > 0 {
+		if err := utils.CopyDir(core.GetProjectFilePath(sync.Project.ID), core.GetProjectPath(sync.Project.ID)); err != nil {
+			core.Log(core.ERROR, err.Error())
+			return
+		}
+	}
+
 	if sync.Project.AfterPullScript != "" {
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
