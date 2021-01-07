@@ -536,6 +536,7 @@ export default {
       dialogFileManagerVisible: false,
       serverOption: [],
       userOption: [],
+      selectedItem: {},
       tableloading: false,
       tableData: [],
       pagination: {
@@ -608,7 +609,7 @@ export default {
         afterDeployScript: '',
         environment: 1,
         branch: 'master',
-        rsyncOption: '-rtv --exclude .git --delete-after',
+        rsyncOption: '-rtv --exclude .git',
         serverIds: [],
         userIds: [],
         review: 0,
@@ -700,8 +701,6 @@ export default {
 
     handleEdit(data) {
       this.formData = Object.assign({}, data)
-      this.formData.serverIds = []
-      this.formData.userIds = []
       this.formProps.symlink = this.formData.symlinkPath !== ''
       this.formProps.showServers = this.formProps.showUsers = false
       this.formProps.branch = []
@@ -723,6 +722,8 @@ export default {
     handleCopy(data) {
       this.handleEdit(data)
       this.formData.id = 0
+      this.$set(this.formData, 'serverIds', [])
+      this.$set(this.formData, 'userIds', [])
       this.formProps.showServers = this.formProps.showUsers = true
     },
 
@@ -793,13 +794,14 @@ export default {
 
     handleFile(data) {
       this.getProjectFileList(data.id)
+      this.selectedItem = data
       this.dialogFileManagerVisible = true
     },
 
     handleAppendFile() {
       this.fileFormData.files.push({
         filename: '',
-        projectId: 78,
+        projectId: this.selectedItem.id,
         state: 'loading',
         id: 0
       })
@@ -814,8 +816,9 @@ export default {
       } else if (filename.substr(filename.length - 1, 1) === '/') {
         return false
       }
-
-      return this.fileFormData.files.map(item => item.filename).splice(index - 1, 1).indexOf(filename) === -1
+      const filenames = this.fileFormData.files.map(item => item.filename)
+      filenames.splice(index, 1)
+      return filenames.indexOf(filename) === -1
     },
 
     beforeUpload(file, index) {

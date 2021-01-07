@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"database/sql"
+	"flag"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/zhenorzz/goploy/core"
@@ -21,18 +22,40 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+var (
+	help bool
+)
+
+func init() {
+	flag.StringVar(&core.AssetDir, "asset-dir", "", "default: ./")
+	flag.BoolVar(&help, "help", false, "")
+	// 改变默认的 Usage
+	flag.Usage = usage
+}
+
+func usage() {
+	fmt.Fprintf(os.Stderr, `Options:
+`)
+	flag.PrintDefaults()
+}
+
 func main() {
+	flag.Parse()
+	if help {
+		flag.Usage()
+		return
+	}
 	println(`
    ______            __           
   / ____/___  ____  / /___  __  __
  / / __/ __ \/ __ \/ / __ \/ / / /
 / /_/ / /_/ / /_/ / / /_/ / /_/ / 
 \____/\____/ .___/_/\____/\__, /  
-          /_/            /____/   v1.1.3
+          /_/            /____/   v1.1.4
 `)
 	install()
 	println(time.Now().String())
-	godotenv.Load(core.GetAppPath() + ".env")
+	godotenv.Load(core.GetEnvFile())
 	core.CreateValidator()
 	model.Init()
 	ws.Init()
@@ -46,7 +69,7 @@ func main() {
 
 func install() {
 	println("Check if it is installed for the first time")
-	_, err := os.Stat(".env")
+	_, err := os.Stat(core.GetEnvFile())
 	if err == nil || os.IsExist(err) {
 		println("The configuration file already exists, no need to reinstall (if you need to reinstall, please back up the database goploy first, delete the .env file)")
 		return
@@ -157,7 +180,7 @@ func install() {
 	envContent += "ENV=production\n"
 	envContent += fmt.Sprintf("PORT=%s\n", port)
 	println("Start writing configuration file...")
-	file, err := os.Create(".env")
+	file, err := os.Create(core.GetEnvFile())
 	if err != nil {
 		panic(err)
 	}

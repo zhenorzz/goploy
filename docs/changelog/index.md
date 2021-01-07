@@ -1,5 +1,20 @@
 # 更新日志
 
+## 1.1.4
+
+*2021-01-07*
+
+### New features
+- add flag -asset_dir
+
+### Optimization
+- delete rsync option --delete-after
+- unique project file
+
+### Bug fixes
+- fix copy project
+- fix refresh tag view
+- fix ssh fingerprint
 ## 1.1.3
 
 *2021-01-06*
