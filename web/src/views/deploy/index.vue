@@ -109,19 +109,79 @@
       <el-row type="flex">
         <el-row v-loading="searchPreview.loading" class="publish-preview">
           <el-row>
-            <el-select v-model="searchPreview.userId" :placeholder="$t('user')" style="width: 170px;" clearable>
-              <el-option
-                v-for="(item, index) in userOption"
-                :key="index"
-                :label="item.userName"
-                :value="item.userId"
-              />
-            </el-select>
-            <el-select v-model="searchPreview.state" :placeholder="$t('state')" style="width: 95px;" clearable>
-              <el-option :label="$t('success')" :value="1" />
-              <el-option :label="$t('fail')" :value="0" />
-            </el-select>
-            <el-button type="primary" icon="el-icon-search" @click="searchPreviewList" />
+            <el-popover
+              placement="bottom-start"
+              width="318"
+              trigger="click"
+            >
+              <el-row type="flex" align="middle">
+                <label class="publish-filter-label">{{ $t('user') }}</label>
+                <el-select v-model="searchPreview.userId" style="flex:1" clearable>
+                  <el-option
+                    v-for="(item, index) in userOption"
+                    :key="index"
+                    :label="item.userName"
+                    :value="item.userId"
+                  />
+                </el-select>
+              </el-row>
+              <el-row type="flex" align="middle" style="margin-top: 5px;">
+                <label class="publish-filter-label">Commit</label>
+                <el-input v-model.trim="searchPreview.commit" autocomplete="off" style="flex:1" placeholder="Commit" />
+              </el-row>
+              <el-row type="flex" align="middle" style="margin-top: 5px;">
+                <label class="publish-filter-label">{{ $t('branch') }}</label>
+                <el-input v-model.trim="searchPreview.branch" autocomplete="off" style="flex:1" :placeholder="$t('branch')" />
+              </el-row>
+              <el-row type="flex" align="middle" style="margin-top: 5px;">
+                <label class="publish-filter-label">{{ $t('filename') }}</label>
+                <el-input v-model.trim="searchPreview.filename" autocomplete="off" style="flex:1" :placeholder="$t('filename')" />
+              </el-row>
+              <el-row type="flex" align="middle" style="margin-top: 5px;">
+                <label class="publish-filter-label">{{ $t('state') }}</label>
+                <el-select v-model="searchPreview.state" style="flex:1" clearable>
+                  <el-option :label="$t('success')" :value="1" />
+                  <el-option :label="$t('fail')" :value="0" />
+                </el-select>
+              </el-row>
+              <el-row type="flex" align="middle" style="margin-top: 5px;">
+                <label class="publish-filter-label">{{ $t('commitDate') }}</label>
+                <el-date-picker
+                  v-model="searchPreview.commitDate"
+                  class="dmp-date-picker"
+                  popper-class="dmp-date-picker-popper"
+                  :picker-options="pickerOptions"
+                  type="daterange"
+                  value-format="yyyy-MM-dd HH:mm:ss"
+                  range-separator="-"
+                  :start-placeholder="$t('startDate')"
+                  :end-placeholder="$t('endDate')"
+                  :default-time="['00:00:00', '23:59:59']"
+                  style="flex: 1"
+                  align="center"
+                />
+              </el-row>
+              <el-row type="flex" align="middle" style="margin-top: 5px;">
+                <label class="publish-filter-label">{{ $t('deployDate') }}</label>
+                <el-date-picker
+                  v-model="searchPreview.deployDate"
+                  class="dmp-date-picker"
+                  popper-class="dmp-date-picker-popper"
+                  :picker-options="pickerOptions"
+                  type="daterange"
+                  value-format="yyyy-MM-dd HH:mm:ss"
+                  range-separator="-"
+                  :start-placeholder="$t('startDate')"
+                  :end-placeholder="$t('endDate')"
+                  :default-time="['00:00:00', '23:59:59']"
+                  style="flex: 1"
+                  align="center"
+                />
+              </el-row>
+              <el-button slot="reference" icon="el-icon-notebook-2" style="width: 220px;">条件筛选({{ previewFilterlength }})</el-button>
+            </el-popover>
+            <el-button type="warning" icon="el-icon-refresh" @click="refreshSearchPreviewCondition" />
+            <el-button type="primary" icon="el-icon-search" style="margin-left: 2px;" @click="searchPreviewList" />
           </el-row>
           <el-radio-group v-model="publishToken" @change="handleTraceChange">
             <el-row v-for="(item, index) in gitTraceList" :key="index">
@@ -186,7 +246,7 @@
               <el-row>Script: <pre v-html="enterToBR(item.script)" /></el-row>
               <el-row v-loading="!!traceDetail[item.id]" style="margin:5px 0">
                 [goploy ~]#
-                <el-button v-if="item.state === 1 && !traceDetail[item.id]" type="primary" @click="getPublishTraceDetail(item)">{{ $t('deployPage.showDetail') }}</el-button>
+                <el-button v-if="item.state === 1 && !traceDetail[item.id]" type="text" @click="getPublishTraceDetail(item)">{{ $t('deployPage.showDetail') }}</el-button>
                 <span v-else v-html="enterToBR(item.detail)" />
               </el-row>
             </el-row>
@@ -542,7 +602,7 @@ import tableHeight from '@/mixin/tableHeight'
 import { getList, getPublishTrace, getPublishTraceDetail, getPreview, getCommitList, getBranchList, getTagList, publish, resetState, review, greyPublish } from '@/api/deploy'
 import { addTask, removeTask, getTaskList, getBindServerList, getReviewList } from '@/api/project'
 import { getUserOption } from '@/api/namespace'
-import { parseTime, parseGitURL } from '@/utils'
+import { empty, parseTime, parseGitURL } from '@/utils'
 
 export default {
   name: 'Deploy',
@@ -611,7 +671,39 @@ export default {
         projectId: '',
         userId: '',
         url: '',
-        state: ''
+        state: '',
+        filename: '',
+        branch: '',
+        commit: '',
+        commitDate: [],
+        deployDate: []
+      },
+      pickerOptions: {
+        shortcuts: [{
+          text: '最近一周',
+          onClick(picker) {
+            const end = new Date()
+            const start = new Date()
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
+            picker.$emit('pick', [start, end])
+          }
+        }, {
+          text: '最近一个月',
+          onClick(picker) {
+            const end = new Date()
+            const start = new Date()
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
+            picker.$emit('pick', [start, end])
+          }
+        }, {
+          text: '最近三个月',
+          onClick(picker) {
+            const end = new Date()
+            const start = new Date()
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 90)
+            picker.$emit('pick', [start, end])
+          }
+        }]
       },
       gitTraceList: [],
       previewPagination: {
@@ -650,6 +742,18 @@ export default {
   computed: {
     tablePageData: function() {
       return this.tableData.slice((this.pagination.page - 1) * this.pagination.rows, this.pagination.page * this.pagination.rows)
+    },
+    previewFilterlength: function() {
+      let number = 0
+      for (const key in this.searchPreview) {
+        if (['projectId', 'loading', 'url'].indexOf(key) !== -1) {
+          continue
+        }
+        if (!empty(this.searchPreview[key])) {
+          number++
+        }
+      }
+      return number
     }
   },
   watch: {
@@ -789,6 +893,11 @@ export default {
       this.traceDetail = {}
       getPreview(this.previewPagination, {
         projectId: this.searchPreview.projectId,
+        commitDate: this.searchPreview.commitDate ? this.searchPreview.commitDate.join(',') : '',
+        deployDate: this.searchPreview.deployDate ? this.searchPreview.deployDate.join(',') : '',
+        branch: this.searchPreview.branch,
+        commit: this.searchPreview.commit,
+        filename: this.searchPreview.filename,
         userId: this.searchPreview.userId || 0,
         state: this.searchPreview.state === '' ? -1 : this.searchPreview.state
       }).then((response) => {
@@ -801,11 +910,24 @@ export default {
         if (this.gitTraceList.length > 0) {
           this.publishToken = this.gitTraceList[0].token
           this.getPublishTrace()
+        } else {
+          this.publishLocalTraceList = []
+          this.publishRemoteTraceList = {}
         }
         this.previewPagination.total = response.data.pagination.total
       }).finally(() => {
         this.searchPreview.loading = false
       })
+    },
+
+    refreshSearchPreviewCondition() {
+      this.searchPreview.userId = ''
+      this.searchPreview.state = ''
+      this.searchPreview.filename = ''
+      this.searchPreview.branch = ''
+      this.searchPreview.commit = ''
+      this.searchPreview.commitDate = []
+      this.searchPreview.deployDate = []
     },
 
     searchPreviewList() {
@@ -817,7 +939,6 @@ export default {
       this.searchPreview.projectId = data.id
       this.searchPreview.url = data.url
       this.searchPreview.userId = ''
-      this.searchPreview.state = ''
       this.getPreviewList()
     },
 
@@ -1137,6 +1258,11 @@ export default {
     text-overflow:ellipsis;
     white-space:nowrap;
   }
+}
+
+.publish-filter-label {
+  font-size: 12px;
+  width: 70px;
 }
 
 .project-detail {

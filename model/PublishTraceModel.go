@@ -1,6 +1,8 @@
 package model
 
-import sq "github.com/Masterminds/squirrel"
+import (
+	sq "github.com/Masterminds/squirrel"
+)
 
 const publishTraceTable = "`publish_trace`"
 
@@ -104,7 +106,14 @@ func (pt PublishTrace) GetListByToken() (PublishTraces, error) {
 }
 
 // GetPreview -
-func (pt PublishTrace) GetPreview(pagination Pagination) (PublishTraces, Pagination, error) {
+func (pt PublishTrace) GetPreview(
+	branch string,
+	commit string,
+	filename string,
+	commitDate []string,
+	deployDate []string,
+	pagination Pagination,
+) (PublishTraces, Pagination, error) {
 	builder := sq.
 		Select("id, token, project_id, project_name, state, publisher_id, publisher_name, type, ext, insert_time, update_time").
 		Column("!EXISTS (SELECT id FROM " + publishTraceTable + " AS pt where pt.state = 0 AND pt.token = publish_trace.token) as publish_state").
@@ -115,6 +124,21 @@ func (pt PublishTrace) GetPreview(pagination Pagination) (PublishTraces, Paginat
 	}
 	if pt.PublisherID != 0 {
 		builder = builder.Where(sq.Eq{"publisher_id": pt.PublisherID})
+	}
+	if branch != "" {
+		builder = builder.Where(sq.Like{"ext": "%" + branch + "%"})
+	}
+	if commit != "" {
+		builder = builder.Where(sq.Like{"ext": "%" + commit + "%"})
+	}
+	if filename != "" {
+		builder = builder.Where(sq.Like{"ext": "%" + filename + "%"})
+	}
+	if len(commitDate) > 1 {
+		builder = builder.Where(`substring(ext, POSITION('"timestamp":' IN ext) + 12, 10) between ? and ?`, commitDate[0], commitDate[1])
+	}
+	if len(deployDate) > 1 {
+		builder = builder.Where("insert_time between ? and ?", deployDate[0], deployDate[1])
 	}
 	if pt.PublishState != -1 {
 		builder = builder.Having(sq.Eq{"publish_state": pt.PublishState})
@@ -153,12 +177,26 @@ func (pt PublishTrace) GetPreview(pagination Pagination) (PublishTraces, Paginat
 		Select("COUNT(*) AS count").
 		From(publishTraceTable).
 		Where(sq.Eq{"type": Pull})
-
 	if pt.ProjectID != 0 {
 		builder = builder.Where(sq.Eq{"project_id": pt.ProjectID})
 	}
 	if pt.PublisherID != 0 {
 		builder = builder.Where(sq.Eq{"publisher_id": pt.PublisherID})
+	}
+	if branch != "" {
+		builder = builder.Where(sq.Like{"ext": "%" + branch + "%"})
+	}
+	if commit != "" {
+		builder = builder.Where(sq.Like{"ext": "%" + commit + "%"})
+	}
+	if filename != "" {
+		builder = builder.Where(sq.Like{"ext": "%" + filename + "%"})
+	}
+	if len(commitDate) > 1 {
+		builder = builder.Where(`substring(ext, POSITION('"timestamp":' IN ext) + 12, 10) between ? and ?`, commitDate[0], commitDate[1])
+	}
+	if len(deployDate) > 1 {
+		builder = builder.Where("insert_time between ? and ?", deployDate[0], deployDate[1])
 	}
 	if pt.PublishState == 0 {
 		builder = builder.Where("EXISTS (SELECT id FROM " + publishTraceTable + " AS pt where pt.state = 0 AND pt.token = publish_trace.token)")

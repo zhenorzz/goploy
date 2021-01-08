@@ -58,12 +58,23 @@ func (Deploy) GetPreview(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-
+	commitDate := strings.Split(gp.URLQuery.Get("commitDate"), ",")
+	for i, date := range commitDate {
+		tm2, _ := time.Parse("2006-01-02 15:04:05", date)
+		commitDate[i] = strconv.FormatInt(tm2.Unix(), 10)
+	}
 	gitTraceList, pagination, err := model.PublishTrace{
 		ProjectID:    projectID,
 		PublisherID:  userID,
 		PublishState: int(state),
-	}.GetPreview(pagination)
+	}.GetPreview(
+		gp.URLQuery.Get("branch"),
+		gp.URLQuery.Get("commit"),
+		gp.URLQuery.Get("filename"),
+		commitDate,
+		strings.Split(gp.URLQuery.Get("deployDate"), ","),
+		pagination,
+	)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}

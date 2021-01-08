@@ -5,7 +5,7 @@
 *2021-01-07*
 
 ### New features
-- add flag -asset_dir
+- add flag --asset-dir=
 
 ### Optimization
 - delete rsync option --delete-after
@@ -15,6 +15,7 @@
 - fix copy project
 - fix refresh tag view
 - fix ssh fingerprint
+
 ## 1.1.3
 
 *2021-01-06*
