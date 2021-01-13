@@ -54,8 +54,12 @@ func main() {
           /_/            /____/   v1.1.4
 `)
 	install()
-	println(time.Now().String())
 	godotenv.Load(core.GetEnvFile())
+	println("Start at " + time.Now().String())
+	println("Config Loaded: " + core.GetEnvFile())
+	println("Log:           " + os.Getenv("LOG_PATH"))
+	println("Listen:        " + os.Getenv("PORT"))
+	println("Running...")
 	core.CreateValidator()
 	model.Init()
 	ws.Init()
@@ -68,12 +72,12 @@ func main() {
 }
 
 func install() {
-	println("Check if it is installed for the first time")
 	_, err := os.Stat(core.GetEnvFile())
 	if err == nil || os.IsExist(err) {
-		println("The configuration file already exists, no need to reinstall (if you need to reinstall, please back up the database goploy first, delete the .env file)")
+		println("The configuration file already exists, no need to reinstall (if you need to reinstall, please back up the database `goploy` first, delete the .env file, then restart.)")
 		return
 	}
+	println("Installation guide ↓")
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd := exec.Command("rsync", "--version")
