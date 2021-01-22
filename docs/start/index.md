@@ -17,9 +17,9 @@ go get -u github.com/zhenorzz/goploy
 
 方法2: 
 
-下载源码
-- https://github.com/zhenorzz/goploy
-- https://gitee.com/zhenorzz/goploy
+下载releases
+- https://github.com/zhenorzz/goploy/releases
+- https://gitee.com/zhenorzz/goploy/releases
 
 # 启动
 
