@@ -244,9 +244,9 @@
               </el-row>
               <el-row style="margin:5px 0">Time: {{ item.insertTime }}</el-row>
               <el-row>Script: <pre v-html="enterToBR(item.script)" /></el-row>
-              <el-row v-loading="!!traceDetail[item.id]" style="margin:5px 0">
+              <el-row v-loading="traceDetail[item.id] === true" style="margin:5px 0">
                 [goploy ~]#
-                <el-button v-if="item.state === 1 && !traceDetail[item.id]" type="text" @click="getPublishTraceDetail(item)">{{ $t('deployPage.showDetail') }}</el-button>
+                <el-button v-if="item.state === 1 && !(item.id in traceDetail)" type="text" @click="getPublishTraceDetail(item)">{{ $t('deployPage.showDetail') }}</el-button>
                 <span v-else v-html="enterToBR(item.detail)" />
               </el-row>
             </el-row>
@@ -262,9 +262,9 @@
                   </el-row>
                   <el-row style="margin:5px 0">Time: {{ trace.insertTime }}</el-row>
                   <el-row>Script: <pre v-html="enterToBR(trace.script)" /></el-row>
-                  <el-row v-loading="!!traceDetail[item.id]" style="margin:5px 0">
+                  <el-row v-loading="traceDetail[trace.id] === true" style="margin:5px 0">
                     [goploy ~]#
-                    <el-button v-if="trace.state === 1 && !traceDetail[trace.id]" type="text" @click="getPublishTraceDetail(trace)">{{ $t('deployPage.showDetail') }}</el-button>
+                    <el-button v-if="trace.state === 1 && !(trace.id in traceDetail)" type="text" @click="getPublishTraceDetail(trace)">{{ $t('deployPage.showDetail') }}</el-button>
                     <span v-else v-html="enterToBR(trace.detail)" />
                   </el-row>
                 </el-row>
@@ -276,9 +276,9 @@
                   </el-row>
                   <el-row style="margin:5px 0">Time: {{ trace.insertTime }}</el-row>
                   <el-row>Command: {{ trace.command }}</el-row>
-                  <el-row v-loading="!!traceDetail[item.id]" style="margin:5px 0">
+                  <el-row v-loading="traceDetail[trace.id] === true" style="margin:5px 0">
                     [goploy ~]#
-                    <el-button v-if="trace.state === 1 && !traceDetail[trace.id]" type="text" @click="getPublishTraceDetail(trace)">{{ $t('deployPage.showDetail') }}</el-button>
+                    <el-button v-if="trace.state === 1 && !(trace.id in traceDetail)" type="text" @click="getPublishTraceDetail(trace)">{{ $t('deployPage.showDetail') }}</el-button>
                     <span v-else v-html="enterToBR(trace.detail)" />
                   </el-row>
                 </el-row>
@@ -290,9 +290,9 @@
                   </el-row>
                   <el-row style="margin:5px 0">Time: {{ trace.insertTime }}</el-row>
                   <el-row>Script: {{ trace.script }}</el-row>
-                  <el-row v-loading="!!traceDetail[item.id]" style="margin:5px 0">
+                  <el-row v-loading="traceDetail[trace.id] === true" style="margin:5px 0">
                     [goploy ~]#
-                    <el-button v-if="trace.state === 1 && !traceDetail[trace.id]" type="text" @click="getPublishTraceDetail(trace)">{{ $t('deployPage.showDetail') }}</el-button>
+                    <el-button v-if="trace.state === 1 && !(trace.id in traceDetail)" type="text" @click="getPublishTraceDetail(trace)">{{ $t('deployPage.showDetail') }}</el-button>
                     <span v-else v-html="enterToBR(trace.detail)" />
                   </el-row>
                 </el-row>
@@ -885,7 +885,7 @@ export default {
       this.$set(this.traceDetail, data.id, true)
       getPublishTraceDetail(data.id).then((response) => {
         data.detail = response.data.detail === '' ? this.$t('deployPage.noDetail') : response.data.detail
-      })
+      }).finally(() => { this.$set(this.traceDetail, data.id, false) })
     },
 
     getPreviewList() {

@@ -248,7 +248,7 @@ func runAfterPullScript(project model.Project) (string, error) {
 		scriptMode = project.AfterPullScriptMode
 	}
 	ioutil.WriteFile(scriptFullName, []byte(project.AfterPullScript), 0755)
-	handler := exec.Command(scriptMode, path.Join(".", scriptName))
+	handler := exec.Command(scriptMode, scriptFullName)
 	handler.Dir = srcPath
 	var outbuf, errbuf bytes.Buffer
 	handler.Stdout = &outbuf

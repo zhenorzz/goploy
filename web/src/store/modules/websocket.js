@@ -63,7 +63,7 @@ const actions = {
             if (new Date().getTime() - state.againConnectTime >= 60000) {
               console.log('主动连接失败，再次尝试, 时间：' + parseTime(new Date()))
               // 一分钟后的连接 一次重连机会已用完 还是连接失败,就弹窗询问用户
-              MessageBox.confirm('检测到与服务器断开连接, 请重连！', '提示', {
+              MessageBox.confirm('检测到Websocket与服务器断开连接, 请重连！', '提示', {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
                 type: 'warning'

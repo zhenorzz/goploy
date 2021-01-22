@@ -1,6 +1,6 @@
 # 安装问题
 
-# Error during Websocket handshake
+# Error during Websocket handshake(检测到Websocket与服务器断开连接)
 
 原因是反向代理设置不正确
 ```nginx
