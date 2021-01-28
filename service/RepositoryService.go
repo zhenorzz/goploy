@@ -34,7 +34,8 @@ func (repository Repository) Create() error {
 		return err
 	}
 	if project.Branch != "master" {
-		if err := git.Checkout("-b", project.Branch, "origin/" + project.Branch); err != nil {
+		git.Dir = srcPath
+		if err := git.Checkout("-b", project.Branch, "origin/"+project.Branch); err != nil {
 			core.Log(core.ERROR, "The project fail to switch branch, projectID:"+strconv.FormatInt(project.ID, 10)+" ,error: "+err.Error()+", detail: "+git.Err.String())
 			os.RemoveAll(srcPath)
 			return err

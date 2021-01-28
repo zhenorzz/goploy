@@ -18,7 +18,7 @@
       style="width: 100%"
     >
       <el-table-column prop="id" label="ID" width="60" />
-      <el-table-column prop="name" :label="$t('name')" width="200" />
+      <el-table-column prop="name" :label="$t('name')" width="180" />
       <el-table-column prop="url" :label="$t('projectURL')" width="330">
         <template slot-scope="scope">
           <el-link
@@ -541,7 +541,7 @@ export default {
       tableData: [],
       pagination: {
         page: 1,
-        rows: 17,
+        rows: 16,
         total: 0
       },
       tableServerData: [],

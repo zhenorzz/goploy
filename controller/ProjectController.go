@@ -58,7 +58,11 @@ func (Project) GetRemoteBranchList(gp *core.Goploy) *core.Response {
 	if strings.Contains(url, "git@") {
 		host := strings.Split(url, "git@")[1]
 		host = strings.Split(host, ":")[0]
-		knownHostsPath := os.ExpandEnv("$HOME/.ssh/known_hosts")
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return &core.Response{Code: core.Error, Message: err.Error()}
+		}
+		knownHostsPath := homeDir + "/.ssh/known_hosts"
 		var cmdOutbuf, cmdErrbuf bytes.Buffer
 		cmd := exec.Command("ssh-keygen", "-F", host, "-f", knownHostsPath)
 		cmd.Stdout = &cmdOutbuf
