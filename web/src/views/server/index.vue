@@ -13,7 +13,7 @@
     >
       <el-table-column prop="id" label="ID" width="100" />
       <el-table-column prop="name" :label="$t('name')" min-width="140" />
-      <el-table-column prop="ip" label="IP" min-width="140">
+      <el-table-column prop="ip" label="Host" min-width="140">
         <template slot-scope="scope">
           {{ scope.row.ip }}:{{ scope.row.port }}
         </template>
@@ -47,7 +47,7 @@
         <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="IP" prop="ip">
+        <el-form-item label="Host" prop="ip">
           <el-input v-model="formData.ip" autocomplete="off" />
         </el-form-item>
         <el-form-item label="port" prop="port">

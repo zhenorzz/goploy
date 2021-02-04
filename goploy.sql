@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`server`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `namespace_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `name` varchar(255) NOT NULL DEFAULT '',
-  `ip` varchar(15) NOT NULL DEFAULT '',
+  `ip` varchar(255) NOT NULL DEFAULT '',
   `port` smallint(10) UNSIGNED NOT NULL DEFAULT 22,
   `owner` varchar(255) NOT NULL DEFAULT '',
   `description` varchar(255) NOT NULL DEFAULT '',

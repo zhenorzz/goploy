@@ -101,7 +101,7 @@ func (Server) GetOption(gp *core.Goploy) *core.Response {
 // Check server
 func (Server) Check(gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		IP    string `json:"ip" validate:"ip4_addr"`
+		IP    string `json:"ip" validate:"required,ip|hostname"`
 		Port  int    `json:"port" validate:"min=0,max=65535"`
 		Owner string `json:"owner" validate:"required"`
 	}
@@ -119,7 +119,7 @@ func (Server) Check(gp *core.Goploy) *core.Response {
 func (Server) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name        string `json:"name" validate:"required"`
-		IP          string `json:"ip" validate:"ip4_addr"`
+		IP          string `json:"ip" validate:"required,ip|hostname"`
 		Port        int    `json:"port" validate:"min=0,max=65535"`
 		Owner       string `json:"owner" validate:"required"`
 		Description string `json:"description" validate:"max=255"`
@@ -155,7 +155,7 @@ func (Server) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID          int64  `json:"id" validate:"gt=0"`
 		Name        string `json:"name" validate:"required"`
-		IP          string `json:"ip" validate:"ip4_addr"`
+		IP          string `json:"ip" validate:"required,ip|hostname"`
 		Port        int    `json:"port" validate:"min=0,max=65535"`
 		Owner       string `json:"owner" validate:"required"`
 		Description string `json:"description" validate:"max=255"`
