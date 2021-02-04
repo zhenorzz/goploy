@@ -22,12 +22,9 @@
       <el-table-column prop="description" :label="$t('desc')" min-width="140" show-overflow-tooltip />
       <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
       <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
-      <el-table-column prop="operation" :label="$t('op')" width="180" align="center" fixed="right">
+      <el-table-column prop="operation" :label="$t('op')" width="130" align="center" fixed="right">
         <template slot-scope="scope">
           <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)" />
-          <el-tooltip class="item" effect="dark" :content="$t('install')" placement="top">
-            <el-button type="info" icon="el-icon-set-up" @click="handleInstall(scope.row)" />
-          </el-tooltip>
           <el-button type="danger" icon="el-icon-delete" @click="handleRemove(scope.row)" />
         </template>
       </el-table-column>
@@ -74,66 +71,16 @@
         </el-row>
       </div>
     </el-dialog>
-    <el-dialog :title="$t('install')" :visible.sync="templateDialogVisible">
-      <el-row class="template-dialog">
-        <el-form ref="templateForm" :rules="templateFormRules" :model="templateFormData" label-width="90px">
-          <el-form-item :label="$t('template')" prop="templateId">
-            <el-select v-model="templateFormData.templateId" style="width:100%">
-              <el-option
-                v-for="(item, index) in templateOption"
-                :key="index"
-                :label="item.name"
-                :value="item.id"
-              />
-            </el-select>
-          </el-form-item>
-        </el-form>
-        <el-row>
-          <el-collapse accordion @change="handleTokenChange">
-            <el-collapse-item v-for="(item, index) in installPreviewList.slice().reverse()" :key="index" :name="item.token">
-              <template slot="title">
-                <span style="margin-right: 10px">token: {{ item.token }}</span>
-                <el-tag v-if="item.installState === 1" type="success" effect="plain">{{ $t('success') }}</el-tag>
-                <el-tag v-else type="danger" effect="plain">{{ $t('fail') }}</el-tag>
-              </template>
-              <codemirror :value="installTrace" :options="cmOptions" />
-            </el-collapse-item>
-          </el-collapse>
-        </el-row>
-      </el-row>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="templateDialogVisible = false">{{ $t('cancel') }}</el-button>
-        <el-button :disabled="templateFormProps.disabled" type="primary" @click="install">{{ $t('confirm') }}</el-button>
-      </div>
-    </el-dialog>
-    <el-dialog :title="$t('detail')" :visible.sync="installDialogVisible">
-      <codemirror :value="installLog" :options="cmOptions" />
-    </el-dialog>
   </el-row>
 </template>
 <script>
-import { getList, getTotal, getInstallPreview, getInstallList, add, edit, check, remove, install } from '@/api/server'
-import { getOption as getTemplateOption } from '@/api/template'
-// require component
-import { codemirror } from 'vue-codemirror'
-import 'codemirror/mode/shell/shell.js'
-import 'codemirror/theme/darcula.css'
-// require styles
-import 'codemirror/lib/codemirror.css'
-import 'codemirror/addon/scroll/simplescrollbars.js'
-import 'codemirror/addon/scroll/simplescrollbars.css'
-import 'codemirror/addon/display/autorefresh.js'
+import { getList, getTotal, add, edit, check, remove } from '@/api/server'
 
 export default {
   name: 'Server',
-  components: {
-    codemirror
-  },
   data() {
     return {
       dialogVisible: false,
-      templateDialogVisible: false,
-      installDialogVisible: false,
       tableLoading: false,
       tableData: [],
       pagination: {
@@ -141,22 +88,7 @@ export default {
         rows: 16,
         total: 0
       },
-      templateOption: [],
-      installToken: '',
-      installPreviewList: [],
-      installTraceList: [],
-      installLog: '',
       tempFormData: {},
-      cmOptions: {
-        tabSize: 4,
-        mode: 'text/x-sh',
-        lineNumbers: false,
-        line: false,
-        scrollbarStyle: 'overlay',
-        theme: 'darcula',
-        readOnly: true,
-        autoRefresh: true
-      },
       formProps: {
         loading: false,
         disabled: false
@@ -185,61 +117,7 @@ export default {
         description: [
           { max: 255, message: 'Max 255 characters', trigger: 'blur' }
         ]
-      },
-      templateFormProps: {
-        disabled: false
-      },
-      templateFormData: {
-        templateId: '',
-        serverName: '',
-        serverId: 0
-      },
-      templateFormRules: {
-        templateId: [
-          { required: true, message: 'Template required', trigger: 'change' }
-        ]
       }
-    }
-  },
-
-  computed: {
-    installTrace: function() {
-      let intallTrace = ''
-      this.installTraceList.forEach(element => {
-        if (element.type === 1) {
-          intallTrace += '[goploy~]$ ' + element.command + '\n'
-          intallTrace += element.detail + '\n'
-        } else if (element.type === 2) {
-          intallTrace += '[goploy~]$ ' + element.ssh + '\n'
-          intallTrace += element.detail + '\n'
-        } else if (element.type === 3) {
-          intallTrace += '[' + this.templateFormData.serverName + '~]$ ' + element.script + '\n'
-          intallTrace += element.detail + '\n'
-        }
-      })
-      return intallTrace
-    }
-  },
-
-  watch: {
-    '$store.getters.ws_message': function(response) {
-      if (response.type !== 2) {
-        return
-      }
-      const data = response.message
-      Object.assign(data, JSON.parse(data.ext))
-      let intallTrace = ''
-      if (data.type === 1) {
-        intallTrace += '[goploy~]$ ' + data.command + '\n'
-        intallTrace += data.detail + '\n'
-      } else if (data.type === 2) {
-        intallTrace += '[goploy~]$ ' + data.ssh + '\n'
-        intallTrace += data.detail + '\n'
-      } else if (data.type === 3) {
-        intallTrace += '[' + this.templateFormData.serverName + '~]$ ' + data.script + '\n'
-        intallTrace += data.detail + '\n'
-      }
-      this.installLog += intallTrace
     }
   },
 
@@ -247,7 +125,6 @@ export default {
     this.storeFormData()
     this.getList()
     this.getTotal()
-    this.getTemplateOption()
   },
 
   methods: {
@@ -270,12 +147,6 @@ export default {
     handlePageChange(val) {
       this.pagination.page = val
       this.getList()
-    },
-
-    getTemplateOption() {
-      getTemplateOption().then((response) => {
-        this.templateOption = response.data.list
-      })
     },
 
     handleAdd() {
@@ -301,26 +172,6 @@ export default {
         })
       }).catch(() => {
         this.$message.info('Cancel')
-      })
-    },
-
-    handleInstall(data) {
-      this.templateFormData.serverId = data.id
-      this.templateFormData.serverName = data.name
-      getInstallPreview(data.id).then(response => {
-        this.installPreviewList = response.data.installTraceList || []
-      })
-      this.templateDialogVisible = true
-    },
-
-    handleTokenChange(token) {
-      if (token === '') return
-      getInstallList(token).then(response => {
-        const installTraceList = response.data.installTraceList || []
-        this.installTraceList = installTraceList.map(element => {
-          Object.assign(element, JSON.parse(element.ext))
-          return element
-        })
       })
     },
 
@@ -374,26 +225,6 @@ export default {
       }).finally(() => {
         this.formProps.disabled = this.dialogVisible = false
       })
-    },
-
-    install() {
-      this.$refs.templateForm.validate((valid) => {
-        if (valid) {
-          this.templateFormProps.disabled = true
-          this.installDialogVisible = true
-          this.templateFormProps.disabled = this.templateDialogVisible = false
-          this.installLog = ''
-          install(this.templateFormData.serverId, this.templateFormData.templateId).then((response) => {
-            this.$message.success(response.message)
-          })
-        } else {
-          return false
-        }
-      })
-    },
-
-    formatDetail(detail) {
-      return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
     },
 
     storeFormData() {

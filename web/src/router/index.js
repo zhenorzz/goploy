@@ -176,16 +176,6 @@ export const asyncRoutes = [
         }
       },
       {
-        path: 'template',
-        name: 'Template',
-        component: () => import('@/views/server/template'),
-        meta: {
-          title: 'template',
-          icon: 'template',
-          roles: ['admin', 'manager']
-        }
-      },
-      {
         path: 'crontab',
         name: 'Crontab',
         component: () => import('@/views/server/crontab'),

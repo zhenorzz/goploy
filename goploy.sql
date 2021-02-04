@@ -182,43 +182,6 @@ CREATE TABLE IF NOT EXISTS `goploy`.`crontab_server` (
   UNIQUE KEY `idx_crontab_server` (`crontab_id`,`server_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`template` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL DEFAULT '',
-  `package_id_str` text NOT NULL,
-  `script` text NOT NULL,
-  `remark` varchar(255) NOT NULL DEFAULT '',
-  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-CREATE TABLE IF NOT EXISTS `goploy`.`package` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL DEFAULT '',
-  `size` int(10) unsigned NOT NULL DEFAULT '0',
-  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-CREATE TABLE IF NOT EXISTS `goploy`.`install_trace` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `token` char(36) NOT NULL DEFAULT '',
-  `server_id` int(10) unsigned NOT NULL DEFAULT '0',
-  `server_name` varchar(255) NOT NULL DEFAULT '',
-  `detail` longtext NOT NULL,
-  `state` tinyint(4) unsigned NOT NULL DEFAULT '1',
-  `operator_id` int(10) unsigned NOT NULL DEFAULT '0',
-  `operator_name` varchar(255) NOT NULL DEFAULT '',
-  `type` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '1.rsync 2.ssh 3.script',
-  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  `ext` text NOT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  KEY `idx_project_id` (`server_id`) USING BTREE COMMENT 'project_id'
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 CREATE TABLE IF NOT EXISTS `goploy`.`user`  (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `account` varchar(30) NOT NULL DEFAULT '',

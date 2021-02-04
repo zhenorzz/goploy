@@ -56,7 +56,7 @@
 /* Styles for values */
 .jsontree_value-wrapper {
   display: block;
-  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 .jsontree_node_complex > .jsontree_value-wrapper {
   overflow: inherit;

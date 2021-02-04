@@ -72,7 +72,7 @@ export default {
 <style lang="scss" scoped>
 @import "@/styles/mixin.scss";
 .tree-container {
-  height: calc(100vh - 50px);
+  height: calc(100vh - 90px);
   .input-container {
     height: 100%;
   }

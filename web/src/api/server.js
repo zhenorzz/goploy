@@ -25,28 +25,6 @@ export function getTotal() {
 /**
  * @return {Promise}
  */
-export function getInstallPreview(serverId) {
-  return request({
-    url: '/server/getInstallPreview',
-    method: 'get',
-    params: { serverId }
-  })
-}
-
-/**
- * @return {Promise}
- */
-export function getInstallList(token) {
-  return request({
-    url: '/server/getInstallList',
-    method: 'get',
-    params: { token }
-  })
-}
-
-/**
- * @return {Promise}
- */
 export function getOption() {
   return request({
     url: '/server/getOption',
@@ -84,13 +62,5 @@ export function remove(id) {
     url: '/server/remove',
     method: 'delete',
     data: { id }
-  })
-}
-
-export function install(serverId, templateId) {
-  return request({
-    url: '/server/install',
-    method: 'post',
-    data: { serverId, templateId }
   })
 }

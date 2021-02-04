@@ -95,28 +95,11 @@ func Init() *router.Router {
 	// server route
 	rt.Add("/server/getList", http.MethodGet, controller.Server{}.GetList)
 	rt.Add("/server/getTotal", http.MethodGet, controller.Server{}.GetTotal)
-	rt.Add("/server/getInstallPreview", http.MethodGet, controller.Server{}.GetInstallPreview)
-	rt.Add("/server/getInstallList", http.MethodGet, controller.Server{}.GetInstallList)
 	rt.Add("/server/getOption", http.MethodGet, controller.Server{}.GetOption)
 	rt.Add("/server/check", http.MethodPost, controller.Server{}.Check).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/add", http.MethodPost, controller.Server{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/edit", http.MethodPost, controller.Server{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/remove", http.MethodDelete, controller.Server{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager})
-	rt.Add("/server/install", http.MethodPost, controller.Server{}.Install).Roles([]string{core.RoleAdmin, core.RoleManager})
-
-	// template route
-	rt.Add("/template/getList", http.MethodGet, controller.Template{}.GetList)
-	rt.Add("/template/getTotal", http.MethodGet, controller.Template{}.GetTotal)
-	rt.Add("/template/getOption", http.MethodGet, controller.Template{}.GetOption)
-	rt.Add("/template/add", http.MethodPost, controller.Template{}.Add)
-	rt.Add("/template/edit", http.MethodPost, controller.Template{}.Edit)
-	rt.Add("/template/remove", http.MethodDelete, controller.Template{}.Remove)
-
-	// template route
-	rt.Add("/package/getList", http.MethodGet, controller.Package{}.GetList)
-	rt.Add("/package/getTotal", http.MethodGet, controller.Package{}.GetTotal)
-	rt.Add("/package/getOption", http.MethodGet, controller.Package{}.GetOption)
-	rt.Add("/package/upload", http.MethodPost, controller.Package{}.Upload)
 
 	// crontab route
 	rt.Add("/crontab/getList", http.MethodGet, controller.Crontab{}.GetList)
