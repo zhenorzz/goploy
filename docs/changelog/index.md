@@ -1,5 +1,29 @@
 # 更新日志
 
+## 1.1.6
+
+*2021-02-07*
+
+### New features
+- add ssh key path
+- server host support domain
+
+### Optimization
+- add git url tips
+- delete server install module
+
+
+## 1.1.5
+
+*2021-01-20*
+
+### Optimization
+- deploy detail filters
+
+### Bug fixes
+- fix detail loading
+- fix missing sql
+
 ## 1.1.4
 
 *2021-01-07*

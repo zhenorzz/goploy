@@ -92,7 +92,16 @@
             <el-form-item :label="$t('name')" prop="name">
               <el-input v-model.trim="formData.name" autocomplete="off" placeholder="goploy" />
             </el-form-item>
-            <el-form-item :label="$t('projectURL')" prop="url">
+            <el-form-item prop="url">
+              <span slot="label">{{ $t('projectURL') }}
+                <el-tooltip placement="top">
+                  <div slot="content">
+                    ssh://[username:password@]host.xz[:port]/path/to/repo.git/<br>
+                    git@host.xz[:port]/path/to/repo.git/<br>
+                    http[s]://[username:password@]host.xz[:port]/path/to/repo.git/</div>
+                  <i class="el-icon-question" />
+                </el-tooltip>
+              </span>
               <el-row type="flex">
                 <el-input v-model.trim="formData.url" autocomplete="off" placeholder="HTTPS、HTTP、SSH" @change="formProps.branch = []" />
                 <el-button
