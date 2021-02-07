@@ -135,6 +135,8 @@ export default {
   },
   serverPage: {
     sshKeyOwner: 'SSH-Key Owner',
+    sshKeyPath: 'SSH-Key Path',
+    sshKeyPassword: 'SSH-Key Pswd',
     testConnection: 'Test',
     removeServerTips: 'This action will delete the server({serverName}), continue?'
   },

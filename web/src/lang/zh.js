@@ -135,6 +135,8 @@ export default {
   },
   serverPage: {
     sshKeyOwner: 'SSH-Key 所有者',
+    sshKeyPath: 'SSH-Key 路径',
+    sshKeyPassword: 'SSH-Key 密码',
     testConnection: '测试连接',
     removeServerTips: '此操作将删除服务器({serverName}), 是否继续?'
   },

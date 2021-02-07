@@ -53,6 +53,12 @@
         <el-form-item :label="$t('serverPage.sshKeyOwner')" prop="owner">
           <el-input v-model="formData.owner" autocomplete="off" placeholder="root" />
         </el-form-item>
+        <el-form-item :label="$t('serverPage.sshKeyPath')" prop="path">
+          <el-input v-model="formData.path" autocomplete="off" placeholder="/root/.ssh/id_rsa" />
+        </el-form-item>
+        <el-form-item :label="$t('serverPage.sshKeyPassword')" prop="password">
+          <el-input v-model="formData.password" autocomplete="off" placeholder="" />
+        </el-form-item>
         <el-form-item :label="$t('desc')" prop="description">
           <el-input
             v-model="formData.description"
@@ -99,6 +105,8 @@ export default {
         ip: '',
         port: 22,
         owner: '',
+        path: '',
+        password: '',
         description: ''
       },
       formRules: {
@@ -113,6 +121,9 @@ export default {
         ],
         owner: [
           { required: true, message: 'SSH-KEY owner required', trigger: 'blur' }
+        ],
+        path: [
+          { required: true, message: 'SSH-KEY path required', trigger: 'blur' }
         ],
         description: [
           { max: 255, message: 'Max 255 characters', trigger: 'blur' }

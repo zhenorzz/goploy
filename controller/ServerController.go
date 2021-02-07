@@ -55,15 +55,17 @@ func (Server) GetOption(gp *core.Goploy) *core.Response {
 // Check server
 func (Server) Check(gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		IP    string `json:"ip" validate:"required,ip|hostname"`
-		Port  int    `json:"port" validate:"min=0,max=65535"`
-		Owner string `json:"owner" validate:"required"`
+		IP       string `json:"ip" validate:"required,ip|hostname"`
+		Port     int    `json:"port" validate:"min=0,max=65535"`
+		Owner    string `json:"owner" validate:"required,max=255"`
+		Path     string `json:"path" validate:"required,max=255"`
+		Password string `json:"password" validate:"max=255"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	if _, err := utils.ConnectSSH(reqData.Owner, "", reqData.IP, reqData.Port); err != nil {
+	if _, err := utils.ConnectSSH(reqData.Owner, reqData.Password, reqData.Path, reqData.IP, reqData.Port); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	return &core.Response{Message: "Connected"}
@@ -75,7 +77,9 @@ func (Server) Add(gp *core.Goploy) *core.Response {
 		Name        string `json:"name" validate:"required"`
 		IP          string `json:"ip" validate:"required,ip|hostname"`
 		Port        int    `json:"port" validate:"min=0,max=65535"`
-		Owner       string `json:"owner" validate:"required"`
+		Owner       string `json:"owner" validate:"required,max=255"`
+		Path        string `json:"path" validate:"required,max=255"`
+		Password    string `json:"password"`
 		Description string `json:"description" validate:"max=255"`
 	}
 
@@ -85,11 +89,13 @@ func (Server) Add(gp *core.Goploy) *core.Response {
 	}
 
 	id, err := model.Server{
+		NamespaceID: gp.Namespace.ID,
 		Name:        reqData.Name,
 		IP:          reqData.IP,
 		Port:        reqData.Port,
 		Owner:       reqData.Owner,
-		NamespaceID: gp.Namespace.ID,
+		Path:        reqData.Path,
+		Password:    reqData.Password,
 		Description: reqData.Description,
 	}.AddRow()
 
@@ -111,7 +117,9 @@ func (Server) Edit(gp *core.Goploy) *core.Response {
 		Name        string `json:"name" validate:"required"`
 		IP          string `json:"ip" validate:"required,ip|hostname"`
 		Port        int    `json:"port" validate:"min=0,max=65535"`
-		Owner       string `json:"owner" validate:"required"`
+		Owner       string `json:"owner" validate:"required,max=255"`
+		Path        string `json:"path" validate:"required,max=255"`
+		Password    string `json:"password" validate:"max=255"`
 		Description string `json:"description" validate:"max=255"`
 	}
 	var reqData ReqData
@@ -124,6 +132,8 @@ func (Server) Edit(gp *core.Goploy) *core.Response {
 		IP:          reqData.IP,
 		Port:        reqData.Port,
 		Owner:       reqData.Owner,
+		Path:        reqData.Path,
+		Password:    reqData.Password,
 		Description: reqData.Description,
 	}.EditRow()
 

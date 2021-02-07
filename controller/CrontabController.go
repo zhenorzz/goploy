@@ -61,7 +61,7 @@ func (Crontab) GetRemoteServerList(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	session, err := utils.ConnectSSH(server.Owner, "", server.IP, server.Port)
+	session, err := utils.ConnectSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
 
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -366,7 +366,7 @@ func addCrontab(serverID int64, command string) {
 		return
 	}
 
-	session, err := utils.ConnectSSH(server.Owner, "", server.IP, server.Port)
+	session, err := utils.ConnectSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
 
 	if err != nil {
 		core.Log(core.TRACE, "serverID:"+strconv.FormatUint(uint64(serverID), 10)+" connect server fail, detail:"+err.Error())
@@ -391,7 +391,7 @@ func deleteCrontab(serverID int64, command string) {
 		return
 	}
 
-	session, err := utils.ConnectSSH(server.Owner, "", server.IP, server.Port)
+	session, err := utils.ConnectSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
 
 	if err != nil {
 		core.Log(core.TRACE, "serverID:"+strconv.FormatUint(uint64(serverID), 10)+" connect server fail, detail:"+err.Error())

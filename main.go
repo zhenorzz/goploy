@@ -136,15 +136,6 @@ func install() {
 	if len(logPath) == 0 {
 		logPath = "/tmp/"
 	}
-	println("Please enter the absolute path of the ssh-key directory(default /root/.ssh/id_rsa):")
-	sshFile, err := inputReader.ReadString('\n')
-	if err != nil {
-		panic("There were errors reading, exiting program.")
-	}
-	sshFile = utils.ClearNewline(sshFile)
-	if len(sshFile) == 0 {
-		sshFile = "/root/.ssh/id_rsa"
-	}
 	println("Please enter the listening port(default 80):")
 	port, err := inputReader.ReadString('\n')
 	if err != nil {
@@ -180,7 +171,6 @@ func install() {
 		mysqlPort)
 	envContent += fmt.Sprintf("SIGN_KEY=%d\n", time.Now().Unix())
 	envContent += fmt.Sprintf("LOG_PATH=%s\n", logPath)
-	envContent += fmt.Sprintf("SSHKEY_PATH=%s\n", sshFile)
 	envContent += "ENV=production\n"
 	envContent += fmt.Sprintf("PORT=%s\n", port)
 	println("Start writing configuration file...")

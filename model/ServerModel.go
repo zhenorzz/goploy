@@ -16,6 +16,8 @@ type Server struct {
 	IP               string `json:"ip"`
 	Port             int    `json:"port"`
 	Owner            string `json:"owner"`
+	Path             string `json:"path"`
+	Password         string `json:"password"`
 	NamespaceID      int64  `json:"namespaceId"`
 	Description      string `json:"description"`
 	InsertTime       string `json:"insertTime"`
@@ -28,7 +30,7 @@ type Servers []Server
 // GetList -
 func (s Server) GetList(pagination Pagination) (Servers, error) {
 	rows, err := sq.
-		Select("id, name, ip, port, owner, description, insert_time, update_time").
+		Select("id, name, ip, port, owner, path, password, description, insert_time, update_time").
 		From(serverTable).
 		Where(sq.Eq{
 			"namespace_id": s.NamespaceID,
@@ -46,7 +48,17 @@ func (s Server) GetList(pagination Pagination) (Servers, error) {
 	for rows.Next() {
 		var server Server
 
-		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.Description, &server.InsertTime, &server.UpdateTime); err != nil {
+		if err := rows.Scan(
+			&server.ID,
+			&server.Name,
+			&server.IP,
+			&server.Port,
+			&server.Owner,
+			&server.Path,
+			&server.Password,
+			&server.Description,
+			&server.InsertTime,
+			&server.UpdateTime); err != nil {
 			return nil, err
 		}
 		servers = append(servers, server)
@@ -104,13 +116,13 @@ func (s Server) GetAll() (Servers, error) {
 func (s Server) GetData() (Server, error) {
 	var server Server
 	err := sq.
-		Select("id, name, ip, port, owner, namespace_id").
+		Select("id, namespace_id, name, ip, port, owner, path, password").
 		From(serverTable).
 		Where(sq.Eq{"id": s.ID}).
 		OrderBy("id DESC").
 		RunWith(DB).
 		QueryRow().
-		Scan(&server.ID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.NamespaceID)
+		Scan(&server.ID, &server.NamespaceID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.Path, &server.Password)
 	if err != nil {
 		return server, errors.New("数据查询失败")
 	}
@@ -121,8 +133,8 @@ func (s Server) GetData() (Server, error) {
 func (s Server) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(serverTable).
-		Columns("name", "ip", "port", "owner", "namespace_id", "description").
-		Values(s.Name, s.IP, s.Port, s.Owner, s.NamespaceID, s.Description).
+		Columns("namespace_id", "name", "ip", "port", "owner", "password", "path", "description").
+		Values(s.NamespaceID, s.Name, s.IP, s.Port, s.Owner, s.Password, s.Path, s.Description).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -141,6 +153,8 @@ func (s Server) EditRow() error {
 			"ip":          s.IP,
 			"port":        s.Port,
 			"owner":       s.Owner,
+			"password":    s.Password,
+			"path":        s.Path,
 			"description": s.Description,
 		}).
 		Where(sq.Eq{"id": s.ID}).
@@ -182,17 +196,4 @@ func (s Server) RemoveRow() error {
 		return errors.New("事务提交失败")
 	}
 	return nil
-}
-
-// Install server
-func (s Server) Install() error {
-	_, err := sq.
-		Update(serverTable).
-		SetMap(sq.Eq{
-			"last_install_token": s.LastInstallToken,
-		}).
-		Where(sq.Eq{"id": s.ID}).
-		RunWith(DB).
-		Exec()
-	return err
 }

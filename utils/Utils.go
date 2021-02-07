@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
-	"os"
 	"strings"
 	"time"
 
@@ -92,7 +91,7 @@ func ParseCommandLine(command string) ([]string, error) {
 }
 
 // ConnectSSH connect ssh
-func ConnectSSH(user, password, host string, port int) (*ssh.Session, error) {
+func ConnectSSH(user, password, path, host string, port int) (*ssh.Session, error) {
 	var (
 		auth         []ssh.AuthMethod
 		addr         string
@@ -105,7 +104,7 @@ func ConnectSSH(user, password, host string, port int) (*ssh.Session, error) {
 	// get auth method
 	auth = make([]ssh.AuthMethod, 0)
 
-	pemBytes, err := ioutil.ReadFile(os.Getenv("SSHKEY_PATH"))
+	pemBytes, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

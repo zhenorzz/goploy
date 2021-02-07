@@ -359,7 +359,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 	}{projectServer.ServerID, projectServer.ServerName, strings.Join(afterDeployCommands, ";")})
 	publishTraceModel.Ext = string(ext)
 
-	session, connectError := utils.ConnectSSH(projectServer.ServerOwner, "", projectServer.ServerIP, int(projectServer.ServerPort))
+	session, connectError := utils.ConnectSSH(projectServer.ServerOwner, projectServer.ServerPassword, projectServer.ServerPath, projectServer.ServerIP, int(projectServer.ServerPort))
 	if connectError != nil {
 		core.Log(core.ERROR, connectError.Error())
 		publishTraceModel.Detail = connectError.Error()
@@ -530,7 +530,7 @@ func removeExpiredBackup(project model.Project, projectServer model.ProjectServe
 	var session *ssh.Session
 	var connectError error
 	var scriptError error
-	session, connectError = utils.ConnectSSH(projectServer.ServerOwner, "", projectServer.ServerIP, int(projectServer.ServerPort))
+	session, connectError = utils.ConnectSSH(projectServer.ServerOwner, projectServer.ServerPassword, projectServer.ServerPath, projectServer.ServerIP, int(projectServer.ServerPort))
 	if connectError != nil {
 		core.Log(core.ERROR, connectError.Error())
 		return

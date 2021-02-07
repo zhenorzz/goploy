@@ -148,6 +148,8 @@ CREATE TABLE IF NOT EXISTS `goploy`.`server`  (
   `ip` varchar(255) NOT NULL DEFAULT '',
   `port` smallint(10) UNSIGNED NOT NULL DEFAULT 22,
   `owner` varchar(255) NOT NULL DEFAULT '',
+  `path` varchar(255) NOT NULL DEFAULT '',
+  `password` varchar(255) NOT NULL DEFAULT '',
   `description` varchar(255) NOT NULL DEFAULT '',
   `last_publish_token` char(36) NOT NULL DEFAULT '',
   `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
