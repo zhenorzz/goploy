@@ -16,10 +16,11 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 )
 
-// Sync -
-type Sync struct {
+// Gsync -
+type Gsync struct {
 	UserInfo       model.User
 	Project        model.Project
 	ProjectServers model.ProjectServers
@@ -34,48 +35,48 @@ type syncMessage struct {
 	state      int
 }
 
-// Exec Sync
-func (sync Sync) Exec() {
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(sync.Project.ID, 10)+" deploy start")
+// Exec Gsync
+func (gsync Gsync) Exec() {
+	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(gsync.Project.ID, 10)+" deploy start")
 	publishTraceModel := model.PublishTrace{
-		Token:         sync.Project.LastPublishToken,
-		ProjectID:     sync.Project.ID,
-		ProjectName:   sync.Project.Name,
-		PublisherID:   sync.UserInfo.ID,
-		PublisherName: sync.UserInfo.Name,
+		Token:         gsync.Project.LastPublishToken,
+		ProjectID:     gsync.Project.ID,
+		ProjectName:   gsync.Project.Name,
+		PublisherID:   gsync.UserInfo.ID,
+		PublisherName: gsync.UserInfo.Name,
 		Type:          model.Pull,
 	}
 	var gitCommitInfo utils.Commit
 	var err error
-	if len(sync.CommitID) == 0 {
-		gitCommitInfo, err = gitFollow(sync.Project, "origin/"+sync.Project.Branch)
+	if len(gsync.CommitID) == 0 {
+		gitCommitInfo, err = gitFollow(gsync.Project, "origin/"+gsync.Project.Branch)
 	} else {
-		gitCommitInfo, err = gitFollow(sync.Project, sync.CommitID)
+		gitCommitInfo, err = gitFollow(gsync.Project, gsync.CommitID)
 	}
 	if err != nil {
-		sync.Project.DeployFail()
+		gsync.Project.DeployFail()
 		publishTraceModel.Detail = err.Error()
 		publishTraceModel.State = model.Fail
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.DeployFail, Message: err.Error()},
+			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeployFail, Message: err.Error()},
 		}
 		if _, err := publishTraceModel.AddRow(); err != nil {
 			core.Log(core.ERROR, err.Error())
 		}
-		go notify(sync.Project, model.ProjectFail, err.Error())
+		notify(gsync.Project, model.ProjectFail, err.Error())
 		return
 	}
-	if sync.Branch != "" {
-		gitCommitInfo.Branch = sync.Branch
+	if gsync.Branch != "" {
+		gitCommitInfo.Branch = gsync.Branch
 	} else {
-		gitCommitInfo.Branch = "origin/" + sync.Project.Branch
+		gitCommitInfo.Branch = "origin/" + gsync.Project.Branch
 	}
 	ws.GetHub().Data <- &ws.Data{
 		Type: ws.TypeProject,
 		Message: ws.ProjectMessage{
-			ProjectID:   sync.Project.ID,
-			ProjectName: sync.Project.Name,
+			ProjectID:   gsync.Project.ID,
+			ProjectName: gsync.Project.Name,
 			State:       ws.GitDone,
 			Message:     "Get commit info",
 			Ext:         gitCommitInfo,
@@ -89,39 +90,39 @@ func (sync Sync) Exec() {
 		return
 	}
 
-	if totalFileNumber, err := (model.ProjectFile{ProjectID: sync.Project.ID}).GetTotalByProjectID(); err != nil {
+	if totalFileNumber, err := (model.ProjectFile{ProjectID: gsync.Project.ID}).GetTotalByProjectID(); err != nil {
 		core.Log(core.ERROR, err.Error())
 		return
 	} else if totalFileNumber > 0 {
-		if err := utils.CopyDir(core.GetProjectFilePath(sync.Project.ID), core.GetProjectPath(sync.Project.ID)); err != nil {
+		if err := utils.CopyDir(core.GetProjectFilePath(gsync.Project.ID), core.GetProjectPath(gsync.Project.ID)); err != nil {
 			core.Log(core.ERROR, err.Error())
 			return
 		}
 	}
 
-	if sync.Project.AfterPullScript != "" {
+	if gsync.Project.AfterPullScript != "" {
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.AfterPullScript, Message: "Run pull script"},
+			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.AfterPullScript, Message: "Run pull script"},
 		}
-		outputString, err := runAfterPullScript(sync.Project)
+		outputString, err := runAfterPullScript(gsync.Project)
 		publishTraceModel.Type = model.AfterPull
 		ext, _ := json.Marshal(struct {
 			Script string `json:"script"`
-		}{sync.Project.AfterPullScript})
+		}{gsync.Project.AfterPullScript})
 		publishTraceModel.Ext = string(ext)
 		if err != nil {
-			sync.Project.DeployFail()
+			gsync.Project.DeployFail()
 			publishTraceModel.Detail = err.Error()
 			publishTraceModel.State = model.Fail
 			ws.GetHub().Data <- &ws.Data{
 				Type:    ws.TypeProject,
-				Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.DeployFail, Message: err.Error()},
+				Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeployFail, Message: err.Error()},
 			}
 			if _, err := publishTraceModel.AddRow(); err != nil {
 				core.Log(core.ERROR, err.Error())
 			}
-			go notify(sync.Project, model.ProjectFail, err.Error())
+			notify(gsync.Project, model.ProjectFail, err.Error())
 			return
 		}
 		publishTraceModel.Detail = outputString
@@ -133,41 +134,49 @@ func (sync Sync) Exec() {
 
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
-		Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.Rsync, Message: "Rsync"},
+		Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.Rsync, Message: "Rsync"},
 	}
-	ch := make(chan syncMessage, len(sync.ProjectServers))
-	for _, projectServer := range sync.ProjectServers {
-		go remoteSync(ch, sync.UserInfo, sync.Project, projectServer)
+	ch := make(chan syncMessage, len(gsync.ProjectServers))
+	for _, projectServer := range gsync.ProjectServers {
+		go remoteSync(ch, gsync.UserInfo, gsync.Project, projectServer)
 	}
 
 	message := ""
-	for i := 0; i < len(sync.ProjectServers); i++ {
+	for i := 0; i < len(gsync.ProjectServers); i++ {
 		syncMessage := <-ch
 		if syncMessage.state == model.ProjectFail {
 			message += syncMessage.serverName + " error message: " + syncMessage.detail
 		}
 	}
 	if message == "" {
-		sync.Project.DeploySuccess()
-		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(sync.Project.ID, 10)+" deploy success")
+		gsync.Project.DeploySuccess()
+		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(gsync.Project.ID, 10)+" deploy success")
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.DeploySuccess, Message: "Success"},
+			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeploySuccess, Message: "Success"},
 		}
-		go notify(sync.Project, model.ProjectSuccess, message)
+		notify(gsync.Project, model.ProjectSuccess, message)
 
 	} else {
-		sync.Project.DeployFail()
-		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(sync.Project.ID, 10)+" deploy fail")
+		gsync.Project.DeployFail()
+		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(gsync.Project.ID, 10)+" deploy fail")
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: sync.Project.ID, ProjectName: sync.Project.Name, State: ws.DeployFail, Message: message},
+			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeployFail, Message: message},
 		}
-		go notify(sync.Project, model.ProjectFail, message)
-
+		notify(gsync.Project, model.ProjectFail, message)
 	}
-
-	clean(sync.Project, sync.ProjectServers)
+	if gsync.Project.SymlinkPath != "" {
+		var wg sync.WaitGroup
+		for _, projectServer := range gsync.ProjectServers {
+			wg.Add(1)
+			go func (projectServer model.ProjectServer) {
+				defer wg.Done()
+				removeExpiredBackup(gsync.Project, projectServer)
+			}(projectServer)
+		}
+		wg.Wait()
+	}
 	return
 }
 
@@ -512,16 +521,6 @@ func notify(project model.Project, deployState int, detail string) {
 		if err != nil {
 			core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
 		}
-	}
-}
-
-//clean the expired backup
-func clean(project model.Project, projectServers model.ProjectServers) {
-	if len(project.SymlinkPath) == 0 {
-		return
-	}
-	for _, projectServer := range projectServers {
-		go removeExpiredBackup(project, projectServer)
 	}
 }
 

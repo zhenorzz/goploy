@@ -6,12 +6,12 @@
 
 ### New features
 - add ssh key path
-- server host support domain
+- server host supports domain
+- support graceful stop
 
 ### Optimization
 - add git url tips
 - delete server install module
-
 
 ## 1.1.5
 

@@ -27,6 +27,9 @@ rsync [OPTION]... rsync://[USER@]HOST[:PORT]/SRC [DEST]
 
 6.列远程机的文件列表。这类似于rsync传输，不过只要在命令中省略掉本地机信息即可。如：rsync -v rsync://192.168.78.192/www
 
+## 注意
+Goploy会在程序中自动拼接SRC和DES
+
 ## 选项
 
 ```

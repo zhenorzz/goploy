@@ -55,7 +55,7 @@ func projectTask() {
 			core.Log(core.ERROR, "publish task change state error, detail:"+err.Error())
 			continue
 		}
-		go service.Sync{
+		go service.Gsync{
 			UserInfo:       userInfo,
 			Project:        project,
 			ProjectServers: projectServers,

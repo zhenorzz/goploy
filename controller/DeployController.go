@@ -314,7 +314,7 @@ func (Deploy) GreyPublish(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	go service.Sync{
+	go service.Gsync{
 		UserInfo:       gp.UserInfo,
 		Project:        project,
 		ProjectServers: projectServers,
@@ -418,7 +418,7 @@ func (Deploy) Webhook(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	go service.Sync{
+	go service.Gsync{
 		UserInfo:       gp.UserInfo,
 		Project:        project,
 		ProjectServers: projectServers,
@@ -478,7 +478,7 @@ func projectDeploy(gp *core.Goploy, project model.Project, commitID string, bran
 	if err != nil {
 		return err
 	}
-	go service.Sync{
+	go service.Gsync{
 		UserInfo:       gp.UserInfo,
 		Project:        project,
 		ProjectServers: projectServers,
