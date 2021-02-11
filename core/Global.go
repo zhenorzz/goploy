@@ -61,10 +61,6 @@ func GetRepositoryPath() string {
 	return path.Join(GetAssetDir(), "repository")
 }
 
-func GetPackagePath() string {
-	return path.Join(GetRepositoryPath(), "template-package")
-}
-
 func GetProjectFilePath(projectID int64) string {
 	return path.Join(GetRepositoryPath(), "project-file", "project_"+strconv.FormatInt(projectID, 10))
 }

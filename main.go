@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -13,10 +14,16 @@ import (
 	"github.com/zhenorzz/goploy/task"
 	"github.com/zhenorzz/goploy/utils"
 	"github.com/zhenorzz/goploy/ws"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
+	"path"
+	"strconv"
+	"sync"
+	"syscall"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -24,11 +31,13 @@ import (
 
 var (
 	help bool
+	s    string
 )
 
 func init() {
 	flag.StringVar(&core.AssetDir, "asset-dir", "", "default: ./")
-	flag.BoolVar(&help, "help", false, "")
+	flag.StringVar(&s, "s", "", "stop")
+	flag.BoolVar(&help, "help", false, "list available subcommands and some concept guides")
 	// 改变默认的 Usage
 	flag.Usage = usage
 }
@@ -45,30 +54,57 @@ func main() {
 		flag.Usage()
 		return
 	}
+	handleClientSignal()
 	println(`
    ______            __           
   / ____/___  ____  / /___  __  __
  / / __/ __ \/ __ \/ / __ \/ / / /
 / /_/ / /_/ / /_/ / / /_/ / /_/ / 
 \____/\____/ .___/_/\____/\__, /  
-          /_/            /____/   v1.1.4
+          /_/            /____/   v1.1.6
 `)
 	install()
+	pid := strconv.Itoa(os.Getpid())
 	godotenv.Load(core.GetEnvFile())
+	ioutil.WriteFile(path.Join(core.GetAssetDir(), "goploy.pid"), []byte(pid), 0755)
 	println("Start at " + time.Now().String())
+	println("current pid:   " + pid)
 	println("Config Loaded: " + core.GetEnvFile())
 	println("Log:           " + os.Getenv("LOG_PATH"))
 	println("Listen:        " + os.Getenv("PORT"))
+	flag.Usage()
 	println("Running...")
 	core.CreateValidator()
 	model.Init()
 	ws.Init()
 	route.Init()
 	task.Init()
-	err := http.ListenAndServe(":"+os.Getenv("PORT"), nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+	// server
+	srv := http.Server{
+		Addr: ":" + os.Getenv("PORT"),
 	}
+	httpSrvSync := sync.WaitGroup{}
+	httpSrvSync.Add(1)
+	go func() {
+		defer httpSrvSync.Done()
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		println("Received the signal: " + (<-c).String())
+		println("Server is trying to shutdown, wait for a minute")
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(ctx); err != nil {
+			println("Server shutdown failed, err: %v\n", err)
+		}
+		println("Server shutdown gracefully")
+	}()
+	err := srv.ListenAndServe()
+	if err != nil && err != http.ErrServerClosed {
+		log.Fatal("ListenAndServe: ", err.Error())
+	}
+	os.Remove(path.Join(core.GetAssetDir(), "goploy.pid"))
+	httpSrvSync.Wait()
+	return
 }
 
 func install() {
@@ -181,4 +217,24 @@ func install() {
 	defer file.Close()
 	file.WriteString(envContent)
 	println("Write configuration file completed")
+}
+
+func handleClientSignal() {
+	switch s {
+	case "stop":
+		pidStr, err := ioutil.ReadFile(path.Join(core.GetAssetDir(), "goploy.pid"))
+		if err != nil {
+			log.Fatal("handle stop, ", err.Error(), ", may be the server not start")
+		}
+		pid, _ := strconv.Atoi(string(pidStr))
+		process, err := os.FindProcess(pid)
+		if err != nil {
+			log.Fatal("handle stop, ", err.Error(), ", may be the server not start")
+		}
+		err = process.Signal(syscall.SIGTERM)
+		if err != nil {
+			log.Fatal("handle stop, ", err.Error())
+		}
+		os.Exit(1)
+	}
 }
