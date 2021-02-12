@@ -97,6 +97,13 @@ func main() {
 			println("Server shutdown failed, err: %v\n", err)
 		}
 		println("Server shutdown gracefully")
+
+		println("Task is trying to shutdown, wait for a minute")
+		if err := task.Shutdown(ctx); err != nil {
+			println("Task shutdown failed, err: %v\n", err)
+		}
+		println("Task shutdown gracefully")
+
 	}()
 	err := srv.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
