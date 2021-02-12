@@ -97,6 +97,18 @@ export function getTagList(id) {
 
 /**
  * @param  {int}      projectId
+ * @return {Promise}
+ */
+export function resetState(projectId) {
+  return request({
+    url: '/deploy/resetState',
+    method: 'post',
+    data: { projectId }
+  })
+}
+
+/**
+ * @param  {int}      projectId
  * @param  {string}   commit
  * @return {Promise}
  */
@@ -109,14 +121,14 @@ export function publish(projectId, branch, commit) {
 }
 
 /**
- * @param  {int}      projectId
+ * @param  {string}   token
  * @return {Promise}
  */
-export function resetState(projectId) {
+export function rebuild(projectId, token) {
   return request({
-    url: '/deploy/resetState',
+    url: '/deploy/rebuild',
     method: 'post',
-    data: { projectId }
+    data: { projectId, token }
   })
 }
 

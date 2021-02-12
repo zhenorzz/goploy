@@ -391,7 +391,7 @@ func (p Project) GetUserProjectList() (Projects, error) {
 func (p Project) GetData() (Project, error) {
 	var project Project
 	err := sq.
-		Select("id, namespace_id, name, url, path, environment, branch, symlink_path, review, review_url, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, insert_time, update_time").
+		Select("id, namespace_id, name, url, path, environment, branch, symlink_path, review, review_url, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, project.last_publish_token, insert_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -416,6 +416,7 @@ func (p Project) GetData() (Project, error) {
 			&project.DeployState,
 			&project.NotifyType,
 			&project.NotifyTarget,
+			&project.LastPublishToken,
 			&project.InsertTime,
 			&project.UpdateTime)
 	if err != nil {

@@ -2,12 +2,13 @@
 
 ## 1.1.6
 
-*2021-02-07*
+*2021-02-12*
 
 ### New features
 - add ssh key path
 - server host supports domain
 - support graceful stop
+- support symlink rebuild
 
 ### Optimization
 - add git url tips

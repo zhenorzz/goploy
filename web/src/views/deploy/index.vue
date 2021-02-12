@@ -191,7 +191,7 @@
                   <i v-if="item.publishState === 1" class="el-icon-check icon-success" style="float:right;" />
                   <i v-else class="el-icon-close icon-fail" style="float:right;" />
                 </el-radio>
-                <el-button type="danger" plain @click="publishByCommit(item)">rebuild</el-button>
+                <el-button type="danger" plain @click="rebuild(item)">rebuild</el-button>
               </el-row>
             </el-row>
           </el-radio-group>
@@ -212,7 +212,7 @@
                 <i v-else class="el-icon-close icon-fail" />
                 -------------GIT-------------
               </el-row>
-              <el-row style="margin:5px 0">Time: {{ item.insertTime }}</el-row>
+              <el-row style="margin:5px 0">Time: {{ item.updateTime }}</el-row>
               <!-- 用数组的形式 兼容以前版本 -->
               <el-row v-if="item.state !== 0">
                 <el-row>Branch: {{ item['branch'] }}</el-row>
@@ -242,7 +242,7 @@
                 <i v-else class="el-icon-close icon-fail" />
                 --------After pull--------
               </el-row>
-              <el-row style="margin:5px 0">Time: {{ item.insertTime }}</el-row>
+              <el-row style="margin:5px 0">Time: {{ item.updateTime }}</el-row>
               <el-row>Script: <pre v-html="enterToBR(item.script)" /></el-row>
               <el-row v-loading="traceDetail[item.id] === true" style="margin:5px 0">
                 [goploy ~]#
@@ -260,7 +260,7 @@
                     <i v-else class="el-icon-close icon-fail" />
                     ---------Before deploy---------
                   </el-row>
-                  <el-row style="margin:5px 0">Time: {{ trace.insertTime }}</el-row>
+                  <el-row style="margin:5px 0">Time: {{ trace.updateTime }}</el-row>
                   <el-row>Script: <pre v-html="enterToBR(trace.script)" /></el-row>
                   <el-row v-loading="traceDetail[trace.id] === true" style="margin:5px 0">
                     [goploy ~]#
@@ -274,7 +274,7 @@
                     <i v-else class="el-icon-close icon-fail" />
                     -----------Rsync------------
                   </el-row>
-                  <el-row style="margin:5px 0">Time: {{ trace.insertTime }}</el-row>
+                  <el-row style="margin:5px 0">Time: {{ trace.updateTime }}</el-row>
                   <el-row>Command: {{ trace.command }}</el-row>
                   <el-row v-loading="traceDetail[trace.id] === true" style="margin:5px 0">
                     [goploy ~]#
@@ -288,7 +288,7 @@
                     <i v-else class="el-icon-close icon-fail" />
                     --------After deploy--------
                   </el-row>
-                  <el-row style="margin:5px 0">Time: {{ trace.insertTime }}</el-row>
+                  <el-row style="margin:5px 0">Time: {{ trace.updateTime }}</el-row>
                   <el-row>Script: {{ trace.script }}</el-row>
                   <el-row v-loading="traceDetail[trace.id] === true" style="margin:5px 0">
                     [goploy ~]#
@@ -599,7 +599,7 @@
 </template>
 <script>
 import tableHeight from '@/mixin/tableHeight'
-import { getList, getPublishTrace, getPublishTraceDetail, getPreview, getCommitList, getBranchList, getTagList, publish, resetState, review, greyPublish } from '@/api/deploy'
+import { getList, getPublishTrace, getPublishTraceDetail, getPreview, getCommitList, getBranchList, getTagList, publish, rebuild, resetState, review, greyPublish } from '@/api/deploy'
 import { addTask, removeTask, getTaskList, getBindServerList, getReviewList } from '@/api/project'
 import { getUserOption } from '@/api/namespace'
 import { empty, parseTime, parseGitURL } from '@/utils'
@@ -1175,6 +1175,26 @@ export default {
           this.tableData[projectIndex].deployState = 1
           this.commitDialogVisible = false
           this.tagDialogVisible = false
+        })
+      }).catch(() => {
+        this.$message.info('Cancel')
+      })
+    },
+
+    rebuild(data) {
+      this.$confirm(this.$i18n.t('deployPage.publishCommitTips', { commit: data.commit }), this.$i18n.t('tips'), {
+        confirmButtonText: this.$i18n.t('confirm'),
+        cancelButtonText: this.$i18n.t('cancel'),
+        type: 'warning'
+      }).then(() => {
+        this.searchPreview.loading = true
+        rebuild(data.projectId, data.token).then((response) => {
+          if (response.data === 'symlink') {
+            this.$message.success('Success')
+          } else {
+            const projectIndex = this.tableData.findIndex(element => element.id === data.projectId)
+            this.tableData[projectIndex].deployState = 1
+          }
           this.dialogVisible = false
         })
       }).catch(() => {

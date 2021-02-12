@@ -147,6 +147,7 @@ func (gsync Gsync) Exec() {
 			message += syncMessage.serverName + " error message: " + syncMessage.detail
 		}
 	}
+	close(ch)
 	if message == "" {
 		gsync.Project.DeploySuccess()
 		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(gsync.Project.ID, 10)+" deploy success")
@@ -294,7 +295,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 	}
 	rsyncOption, _ := utils.ParseCommandLine(project.RsyncOption)
 	rsyncOption = append([]string{"--exclude", "goploy-after-pull.sh", "--include", "goploy-after-deploy.sh"}, rsyncOption...)
-	rsyncOption = append(rsyncOption, "-e", "ssh -p "+strconv.Itoa(int(projectServer.ServerPort))+" -o StrictHostKeyChecking=no")
+	rsyncOption = append(rsyncOption, "-e", "ssh -p "+strconv.Itoa(projectServer.ServerPort)+" -o StrictHostKeyChecking=no")
 	if len(project.SymlinkPath) != 0 {
 		destDir = path.Join(project.SymlinkPath, project.Name, project.LastPublishToken)
 		rsyncOption = append(rsyncOption, "--rsync-path=mkdir -p "+destDir+" && rsync")
@@ -367,7 +368,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 	}{projectServer.ServerID, projectServer.ServerName, strings.Join(afterDeployCommands, ";")})
 	publishTraceModel.Ext = string(ext)
 
-	client, dialError := utils.DialSSH(projectServer.ServerOwner, projectServer.ServerPassword, projectServer.ServerPath, projectServer.ServerIP, int(projectServer.ServerPort))
+	client, dialError := utils.DialSSH(projectServer.ServerOwner, projectServer.ServerPassword, projectServer.ServerPath, projectServer.ServerIP, projectServer.ServerPort)
 	if dialError != nil {
 		core.Log(core.ERROR, dialError.Error())
 		publishTraceModel.Detail = dialError.Error()
@@ -428,9 +429,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 }
 
 func notify(project model.Project, deployState int, detail string) {
-	if project.NotifyType == 0 {
-		return
-	} else if project.NotifyType == model.NotifyWeiXin {
+	if project.NotifyType == model.NotifyWeiXin {
 		type markdown struct {
 			Content string `json:"content"`
 		}
@@ -540,7 +539,7 @@ func notify(project model.Project, deployState int, detail string) {
 
 //keep the latest 10 project
 func removeExpiredBackup(project model.Project, projectServer model.ProjectServer) {
-	client, err := utils.DialSSH(projectServer.ServerOwner, projectServer.ServerPassword, projectServer.ServerPath, projectServer.ServerIP, int(projectServer.ServerPort))
+	client, err := utils.DialSSH(projectServer.ServerOwner, projectServer.ServerPassword, projectServer.ServerPath, projectServer.ServerIP, projectServer.ServerPort)
 	if err != nil {
 		core.Log(core.ERROR, err.Error())
 		return

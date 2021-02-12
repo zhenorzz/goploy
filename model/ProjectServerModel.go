@@ -11,7 +11,7 @@ type ProjectServer struct {
 	ServerID          int64  `json:"serverId"`
 	ServerName        string `json:"serverName"`
 	ServerIP          string `json:"serverIP"`
-	ServerPort        int64  `json:"serverPort"`
+	ServerPort        int    `json:"serverPort"`
 	ServerOwner       string `json:"serverOwner"`
 	ServerPassword    string `json:"serverPassword"`
 	ServerPath        string `json:"serverPath"`

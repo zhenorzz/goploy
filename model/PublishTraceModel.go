@@ -228,3 +228,16 @@ func (pt PublishTrace) GetDetail() (string, error) {
 	}
 	return detail, nil
 }
+
+// EditUpdateTimeByToken -
+func (pt PublishTrace) EditUpdateTimeByToken() error {
+	_, err := sq.
+		Update(publishTraceTable).
+		SetMap(sq.Eq{
+			"update_time": pt.UpdateTime,
+		}).
+		Where(sq.Eq{"token": pt.Token}).
+		RunWith(DB).
+		Exec()
+	return err
+}

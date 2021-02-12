@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"bytes"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
@@ -9,6 +11,7 @@ import (
 	"github.com/zhenorzz/goploy/utils"
 	"net/http"
 	"net/url"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -223,34 +226,6 @@ func (Deploy) GetTagList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// Publish the project
-func (Deploy) Publish(gp *core.Goploy) *core.Response {
-	type ReqData struct {
-		ProjectID int64  `json:"projectId" validate:"gt=0"`
-		Commit    string `json:"commit"`
-		Branch    string `json:"branch"`
-	}
-	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-	var err error
-	project, err := model.Project{ID: reqData.ProjectID}.GetData()
-
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-	if project.Review == model.Enable && gp.Namespace.Role == core.RoleMember {
-		err = projectReview(gp, project, reqData.Commit, reqData.Branch)
-	} else {
-		err = projectDeploy(gp, project, reqData.Commit, reqData.Branch)
-	}
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-	return &core.Response{}
-}
-
 // ResetState -
 func (Deploy) ResetState(gp *core.Goploy) *core.Response {
 	type ReqData struct {
@@ -268,6 +243,181 @@ func (Deploy) ResetState(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
+// Publish the project
+func (Deploy) Publish(gp *core.Goploy) *core.Response {
+	type ReqData struct {
+		ProjectID int64  `json:"projectId" validate:"gt=0"`
+		Commit    string `json:"commit"`
+		Branch    string `json:"branch"`
+	}
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	project, err := model.Project{ID: reqData.ProjectID}.GetData()
+
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	if project.Review == model.Enable && gp.Namespace.Role == core.RoleMember {
+		err = projectReview(gp, project, reqData.Commit, reqData.Branch)
+	} else {
+		err = projectDeploy(gp, project, reqData.Commit, reqData.Branch)
+	}
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	return &core.Response{}
+}
+
+// Publish the project
+func (Deploy) Rebuild(gp *core.Goploy) *core.Response {
+	type ReqData struct {
+		Token string `json:"token"`
+	}
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	var err error
+	publishTraceList, err := model.PublishTrace{Token: reqData.Token}.GetListByToken()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	projectID := publishTraceList[0].ProjectID
+	project, err := model.Project{ID: projectID}.GetData()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	//if reqData.Token == project.LastPublishToken {
+	//	return &core.Response{Code: core.Error, Message: "You are in the same position"}
+	//}
+
+	projectServers, err := model.ProjectServer{ProjectID: projectID}.GetBindServerListByProjectID()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	needToPublish := project.SymlinkPath == ""
+	var commitInfo utils.Commit
+	publishTraceServerCount := 0
+	for _, publishTrace := range publishTraceList {
+		// publish failed
+		if publishTrace.State == 0 {
+			needToPublish = true
+			break
+		}
+
+		if publishTrace.Type == model.Pull {
+			err := json.Unmarshal([]byte(publishTrace.Ext), &commitInfo)
+			if err != nil {
+				return &core.Response{Code: core.Error, Message: err.Error()}
+			}
+		} else if publishTrace.Type == model.Deploy {
+			for _, projectServer := range projectServers {
+				if strings.Contains(publishTrace.Ext, projectServer.ServerIP) {
+					publishTraceServerCount++
+					break
+				}
+			}
+		}
+	}
+
+	// project server has changed
+	if publishTraceServerCount != len(projectServers) {
+		needToPublish = true
+	}
+	if needToPublish == false {
+		ch := make(chan bool, len(projectServers))
+		for _, projectServer := range projectServers {
+			go func(projectServer model.ProjectServer) {
+				client, err := utils.DialSSH(projectServer.ServerOwner, projectServer.ServerPassword, projectServer.ServerPath, projectServer.ServerIP, projectServer.ServerPort)
+				if err != nil {
+					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" dial err: "+err.Error())
+					ch <- false
+					return
+				}
+				session, err := client.NewSession()
+				if err != nil {
+					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" new session err: "+err.Error())
+					ch <- false
+					return
+				}
+
+				var sshOutbuf, sshErrbuf bytes.Buffer
+				session.Stdout = &sshOutbuf
+				session.Stderr = &sshErrbuf
+				symlinkPath := path.Join(project.SymlinkPath, project.Name, reqData.Token)
+
+				// check if the path is exist or not
+				if err := session.Run("cd " + symlinkPath); err != nil {
+					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" check symlink path err: "+err.Error()+", detail: "+sshErrbuf.String())
+					ch <- false
+					return
+				}
+				session.Close()
+				session, err = client.NewSession()
+				if err != nil {
+					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" new session err: "+err.Error())
+					ch <- false
+					return
+				}
+				// redirect to project path
+				if err := session.Run("ln -sfn " + symlinkPath + " " + project.Path); err != nil {
+					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" ln -sfn err: "+err.Error()+", detail: "+sshErrbuf.String())
+					ch <- false
+					return
+				}
+				session.Close()
+				ch <- true
+			}(projectServer)
+		}
+
+		for i := 0; i < len(projectServers); i++ {
+			if <-ch == false {
+				needToPublish = true
+				break
+			}
+		}
+		close(ch)
+		if needToPublish == false {
+			model.PublishTrace{
+				Token:      reqData.Token,
+				UpdateTime: time.Now().Format("20060102150405"),
+			}.EditUpdateTimeByToken()
+			project.PublisherID = gp.UserInfo.ID
+			project.PublisherName = gp.UserInfo.Name
+			project.LastPublishToken = reqData.Token
+			project.Publish()
+			return &core.Response{Data: "symlink"}
+		}
+	}
+
+	if needToPublish == true {
+		project.PublisherID = gp.UserInfo.ID
+		project.PublisherName = gp.UserInfo.Name
+		project.DeployState = model.ProjectDeploying
+		project.LastPublishToken = uuid.New().String()
+		err = project.Publish()
+		if err != nil {
+			return &core.Response{Code: core.Error, Message: err.Error()}
+		}
+		core.Gwg.Add(1)
+		go func() {
+			defer core.Gwg.Done()
+			service.Gsync{
+				UserInfo:       gp.UserInfo,
+				Project:        project,
+				ProjectServers: projectServers,
+				CommitID:       commitInfo.Commit,
+				Branch:         commitInfo.Branch,
+			}.Exec()
+		}()
+	}
+	return &core.Response{Data: "publish"}
+}
+
 // GreyPublish the project
 func (Deploy) GreyPublish(gp *core.Goploy) *core.Response {
 	type ReqData struct {
@@ -280,7 +430,6 @@ func (Deploy) GreyPublish(gp *core.Goploy) *core.Response {
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	var err error
 	project, err := model.Project{ID: reqData.ProjectID}.GetData()
 
 	if err != nil {

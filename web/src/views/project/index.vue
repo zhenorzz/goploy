@@ -337,7 +337,7 @@
         <el-table-column prop="serverDescription" :label="$t('serverDescription')" min-width="200" show-overflow-tooltip />
         <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
         <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
-        <el-table-column prop="operation" :label="$t('op')" width="80" align="center">
+        <el-table-column prop="operation" :label="$t('op')" width="80" align="center" fixed="right">
           <template slot-scope="scope">
             <el-button type="danger" icon="el-icon-delete" @click="removeServer(scope.row)" />
           </template>
@@ -362,7 +362,7 @@
         <el-table-column prop="userName" :label="$t('userName')" />
         <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
         <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
-        <el-table-column prop="operation" :label="$t('op')" width="80" align="center">
+        <el-table-column prop="operation" :label="$t('op')" width="80" align="center" fixed="right">
           <template slot-scope="scope">
             <el-button v-show="scope.row.role !== $global.GroupManager" type="danger" icon="el-icon-delete" @click="removeUser(scope.row)" />
           </template>
