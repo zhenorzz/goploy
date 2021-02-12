@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 //role
@@ -28,6 +29,7 @@ const NamespaceCookieName = "goploy_namespace"
 
 var (
 	AssetDir string
+	Gwg sync.WaitGroup
 )
 
 // GetCurrentPath if env = 'production' return absolute else return relative

@@ -11,10 +11,10 @@ var stop = make(chan struct{})
 
 func Init() {
 	atomic.AddInt32(&counter, 1)
-	go ticker(stop)
+	go ticker()
 }
 
-func ticker(stop <-chan struct{}) {
+func ticker() {
 	defer atomic.AddInt32(&counter, -1)
 	// create ticker
 	minute := time.Tick(time.Minute)

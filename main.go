@@ -22,7 +22,6 @@ import (
 	"os/signal"
 	"path"
 	"strconv"
-	"sync"
 	"syscall"
 	"time"
 
@@ -83,10 +82,9 @@ func main() {
 	srv := http.Server{
 		Addr: ":" + os.Getenv("PORT"),
 	}
-	httpSrvSync := sync.WaitGroup{}
-	httpSrvSync.Add(1)
+	core.Gwg.Add(1)
 	go func() {
-		defer httpSrvSync.Done()
+		defer core.Gwg.Done()
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		println("Received the signal: " + (<-c).String())
@@ -103,14 +101,16 @@ func main() {
 			println("Task shutdown failed, err: %v\n", err)
 		}
 		println("Task shutdown gracefully")
-
 	}()
 	err := srv.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		log.Fatal("ListenAndServe: ", err.Error())
 	}
 	os.Remove(path.Join(core.GetAssetDir(), "goploy.pid"))
-	httpSrvSync.Wait()
+	println("Goroutine is trying to shutdown, wait for a minute")
+	core.Gwg.Wait()
+	println("Goroutine shutdown gracefully")
+	println("Success")
 	return
 }
 

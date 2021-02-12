@@ -6,6 +6,7 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/service"
+	"sync"
 	"time"
 )
 
@@ -15,6 +16,7 @@ func projectTask() {
 	if err != nil && err != sql.ErrNoRows {
 		core.Log(core.ERROR, "get project task list error, detail:"+err.Error())
 	}
+	wg := sync.WaitGroup{}
 	for _, projectTask := range projectTasks {
 		project, err := model.Project{ID: projectTask.ProjectID}.GetData()
 
@@ -55,12 +57,17 @@ func projectTask() {
 			core.Log(core.ERROR, "publish task change state error, detail:"+err.Error())
 			continue
 		}
-		go service.Gsync{
-			UserInfo:       userInfo,
-			Project:        project,
-			ProjectServers: projectServers,
-			CommitID:       projectTask.CommitID,
-			Branch:         projectTask.Branch,
-		}.Exec()
+		wg.Add(1)
+		go func(projectTask model.ProjectTask) {
+			defer wg.Done()
+			service.Gsync{
+				UserInfo:       userInfo,
+				Project:        project,
+				ProjectServers: projectServers,
+				CommitID:       projectTask.CommitID,
+				Branch:         projectTask.Branch,
+			}.Exec()
+		}(projectTask)
 	}
+	wg.Done()
 }

@@ -314,14 +314,17 @@ func (Deploy) GreyPublish(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	go service.Gsync{
-		UserInfo:       gp.UserInfo,
-		Project:        project,
-		ProjectServers: projectServers,
-		CommitID:       reqData.Commit,
-		Branch:         reqData.Branch,
-	}.Exec()
-
+	core.Gwg.Add(1)
+	go func() {
+		defer core.Gwg.Done()
+		service.Gsync{
+			UserInfo:       gp.UserInfo,
+			Project:        project,
+			ProjectServers: projectServers,
+			CommitID:       reqData.Commit,
+			Branch:         reqData.Branch,
+		}.Exec()
+	}()
 	return &core.Response{}
 }
 
@@ -418,11 +421,15 @@ func (Deploy) Webhook(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	go service.Gsync{
-		UserInfo:       gp.UserInfo,
-		Project:        project,
-		ProjectServers: projectServers,
-	}.Exec()
+	core.Gwg.Add(1)
+	go func() {
+		defer core.Gwg.Done()
+		service.Gsync{
+			UserInfo:       gp.UserInfo,
+			Project:        project,
+			ProjectServers: projectServers,
+		}.Exec()
+	}()
 	return &core.Response{Message: "receive push signal"}
 }
 
@@ -478,13 +485,17 @@ func projectDeploy(gp *core.Goploy, project model.Project, commitID string, bran
 	if err != nil {
 		return err
 	}
-	go service.Gsync{
-		UserInfo:       gp.UserInfo,
-		Project:        project,
-		ProjectServers: projectServers,
-		CommitID:       commitID,
-		Branch:         branch,
-	}.Exec()
+	core.Gwg.Add(1)
+	go func() {
+		defer core.Gwg.Done()
+		service.Gsync{
+			UserInfo:       gp.UserInfo,
+			Project:        project,
+			ProjectServers: projectServers,
+			CommitID:       commitID,
+			Branch:         branch,
+		}.Exec()
+	}()
 	return nil
 }
 
