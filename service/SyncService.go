@@ -8,7 +8,6 @@ import (
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/utils"
 	"github.com/zhenorzz/goploy/ws"
-	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -170,7 +169,7 @@ func (gsync Gsync) Exec() {
 		var wg sync.WaitGroup
 		for _, projectServer := range gsync.ProjectServers {
 			wg.Add(1)
-			go func (projectServer model.ProjectServer) {
+			go func(projectServer model.ProjectServer) {
 				defer wg.Done()
 				removeExpiredBackup(gsync.Project, projectServer)
 			}(projectServer)
@@ -368,16 +367,31 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 	}{projectServer.ServerID, projectServer.ServerName, strings.Join(afterDeployCommands, ";")})
 	publishTraceModel.Ext = string(ext)
 
-	session, connectError := utils.ConnectSSH(projectServer.ServerOwner, projectServer.ServerPassword, projectServer.ServerPath, projectServer.ServerIP, int(projectServer.ServerPort))
-	if connectError != nil {
-		core.Log(core.ERROR, connectError.Error())
-		publishTraceModel.Detail = connectError.Error()
+	client, dialError := utils.DialSSH(projectServer.ServerOwner, projectServer.ServerPassword, projectServer.ServerPath, projectServer.ServerIP, int(projectServer.ServerPort))
+	if dialError != nil {
+		core.Log(core.ERROR, dialError.Error())
+		publishTraceModel.Detail = dialError.Error()
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
 		chInput <- syncMessage{
 			serverName: projectServer.ServerName,
 			projectID:  project.ID,
-			detail:     connectError.Error(),
+			detail:     dialError.Error(),
+			state:      model.ProjectFail,
+		}
+		return
+	}
+
+	session, sessionErr := client.NewSession()
+	if sessionErr != nil {
+		core.Log(core.ERROR, sessionErr.Error())
+		publishTraceModel.Detail = sessionErr.Error()
+		publishTraceModel.State = model.Fail
+		publishTraceModel.AddRow()
+		chInput <- syncMessage{
+			serverName: projectServer.ServerName,
+			projectID:  project.ID,
+			detail:     sessionErr.Error(),
 			state:      model.ProjectFail,
 		}
 		return
@@ -526,12 +540,14 @@ func notify(project model.Project, deployState int, detail string) {
 
 //keep the latest 10 project
 func removeExpiredBackup(project model.Project, projectServer model.ProjectServer) {
-	var session *ssh.Session
-	var connectError error
-	var scriptError error
-	session, connectError = utils.ConnectSSH(projectServer.ServerOwner, projectServer.ServerPassword, projectServer.ServerPath, projectServer.ServerIP, int(projectServer.ServerPort))
-	if connectError != nil {
-		core.Log(core.ERROR, connectError.Error())
+	client, err := utils.DialSSH(projectServer.ServerOwner, projectServer.ServerPassword, projectServer.ServerPath, projectServer.ServerIP, int(projectServer.ServerPort))
+	if err != nil {
+		core.Log(core.ERROR, err.Error())
+		return
+	}
+	session, err := client.NewSession()
+	if err != nil {
+		core.Log(core.ERROR, err.Error())
 		return
 	}
 	defer session.Close()
@@ -539,8 +555,8 @@ func removeExpiredBackup(project model.Project, projectServer model.ProjectServe
 	session.Stdout = &sshOutbuf
 	session.Stderr = &sshErrbuf
 	destDir := path.Join(project.SymlinkPath, project.Name)
-	if scriptError = session.Run("cd " + destDir + ";ls -t | awk 'NR>10' | xargs rm -rf"); scriptError != nil {
-		core.Log(core.ERROR, scriptError.Error())
+	if err = session.Run("cd " + destDir + ";ls -t | awk 'NR>10' | xargs rm -rf"); err != nil {
+		core.Log(core.ERROR, err.Error())
 	}
 }
 

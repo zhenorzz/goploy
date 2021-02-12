@@ -69,5 +69,5 @@ func projectTask() {
 			}.Exec()
 		}(projectTask)
 	}
-	wg.Done()
+	wg.Wait()
 }

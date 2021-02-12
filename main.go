@@ -102,8 +102,7 @@ func main() {
 		}
 		println("Task shutdown gracefully")
 	}()
-	err := srv.ListenAndServe()
-	if err != nil && err != http.ErrServerClosed {
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal("ListenAndServe: ", err.Error())
 	}
 	os.Remove(path.Join(core.GetAssetDir(), "goploy.pid"))

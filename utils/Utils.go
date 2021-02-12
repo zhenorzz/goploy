@@ -90,15 +90,12 @@ func ParseCommandLine(command string) ([]string, error) {
 	return args, nil
 }
 
-// ConnectSSH connect ssh
-func ConnectSSH(user, password, path, host string, port int) (*ssh.Session, error) {
+func DialSSH(user, password, path, host string, port int)  (*ssh.Client, error) {
 	var (
 		auth         []ssh.AuthMethod
 		addr         string
 		clientConfig *ssh.ClientConfig
-		client       *ssh.Client
 		config       ssh.Config
-		session      *ssh.Session
 		err          error
 	)
 	// get auth method
@@ -137,26 +134,7 @@ func ConnectSSH(user, password, path, host string, port int) (*ssh.Session, erro
 	// connect to ssh
 	addr = fmt.Sprintf("%s:%d", host, port)
 
-	if client, err = ssh.Dial("tcp", addr, clientConfig); err != nil {
-		return nil, err
-	}
-
-	// create session
-	if session, err = client.NewSession(); err != nil {
-		return nil, err
-	}
-
-	modes := ssh.TerminalModes{
-		ssh.ECHO:          0,     // disable echoing
-		ssh.TTY_OP_ISPEED: 14400, // input speed = 14.4kbaud
-		ssh.TTY_OP_OSPEED: 14400, // output speed = 14.4kbaud
-	}
-
-	if err := session.RequestPty("xterm", 80, 40, modes); err != nil {
-		return nil, err
-	}
-
-	return session, nil
+	return ssh.Dial("tcp", addr, clientConfig)
 }
 
 func ClearNewline(str string) string {
