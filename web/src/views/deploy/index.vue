@@ -1,7 +1,17 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex">
-      <el-input v-model="projectName" style="width:300px" placeholder="Filter the project name" @change="getList" />
+      <el-select v-model="searchProject.environment" placeholder="environment" clearable>
+        <el-option :label="$t('envOption[1]')" :value="1" />
+        <el-option :label="$t('envOption[2]')" :value="2" />
+        <el-option :label="$t('envOption[3]')" :value="3" />
+        <el-option :label="$t('envOption[4]')" :value="4" />
+      </el-select>
+      <el-select v-model="searchProject.autoDeploy" placeholder="auto deploy" clearable>
+        <el-option :label="$t('close')" :value="0" />
+        <el-option label="webhook" :value="1" />
+      </el-select>
+      <el-input v-model="searchProject.name" style="width:300px" placeholder="Filter the project name" />
     </el-row>
     <el-table
       :key="tableHeight"
@@ -611,7 +621,6 @@ export default {
     return {
       userId: '',
       userOption: [],
-      projectName: '',
       publishToken: '',
       commitDialogVisible: false,
       tagDialogVisible: false,
@@ -624,10 +633,15 @@ export default {
       traceLoading: false,
       tableloading: false,
       tableData: [],
+      searchProject: {
+        name: '',
+        environment: '',
+        autoDeploy: ''
+      },
       pagination: {
         total: 0,
         page: 1,
-        rows: 20
+        rows: 16
       },
       taskTableLoading: false,
       taskTableData: [],
@@ -741,7 +755,17 @@ export default {
   },
   computed: {
     tablePageData: function() {
-      return this.tableData.slice((this.pagination.page - 1) * this.pagination.rows, this.pagination.page * this.pagination.rows)
+      let tableData = this.tableData
+      if (this.searchProject.name !== '') {
+        tableData = this.tableData.filter(item => item.name.indexOf(this.searchProject.name) !== -1)
+      }
+      if (this.searchProject.environment !== '') {
+        tableData = this.tableData.filter(item => item.environment === this.searchProject.environment)
+      }
+      if (this.searchProject.autoDeploy !== '') {
+        tableData = this.tableData.filter(item => item.autoDeploy === this.searchProject.autoDeploy)
+      }
+      return tableData.slice((this.pagination.page - 1) * this.pagination.rows, this.pagination.page * this.pagination.rows)
     },
     previewFilterlength: function() {
       let number = 0
@@ -813,7 +837,7 @@ export default {
 
     getList() {
       this.tableloading = true
-      getList(this.projectName).then((response) => {
+      getList().then((response) => {
         this.tableData = response.data.list.map(element => {
           element.progressPercentage = 0
           element.tagType = 'info'

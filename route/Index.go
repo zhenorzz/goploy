@@ -97,6 +97,7 @@ func Init() *router.Router {
 	rt.Add("/server/getList", http.MethodGet, controller.Server{}.GetList)
 	rt.Add("/server/getTotal", http.MethodGet, controller.Server{}.GetTotal)
 	rt.Add("/server/getOption", http.MethodGet, controller.Server{}.GetOption)
+	rt.Add("/server/getPublicKey", http.MethodGet, controller.Server{}.GetPublicKey)
 	rt.Add("/server/check", http.MethodPost, controller.Server{}.Check).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/add", http.MethodPost, controller.Server{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/edit", http.MethodPost, controller.Server{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})

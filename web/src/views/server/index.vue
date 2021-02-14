@@ -54,7 +54,15 @@
           <el-input v-model="formData.owner" autocomplete="off" placeholder="root" />
         </el-form-item>
         <el-form-item :label="$t('serverPage.sshKeyPath')" prop="path">
-          <el-input v-model="formData.path" autocomplete="off" placeholder="/root/.ssh/id_rsa" />
+          <el-row type="flex">
+            <el-input v-model="formData.path" autocomplete="off" placeholder="/root/.ssh/id_rsa" />
+            <el-button
+              :icon="'el-icon-copy-document'"
+              type="success"
+              :disabled="formData.path===''"
+              @click="getPublicKey"
+            >{{ $t('serverPage.copyPub') }}</el-button>
+          </el-row>
         </el-form-item>
         <el-form-item :label="$t('serverPage.sshKeyPassword')" prop="password">
           <el-input v-model="formData.password" autocomplete="off" placeholder="" />
@@ -80,7 +88,7 @@
   </el-row>
 </template>
 <script>
-import { getList, getTotal, add, edit, check, remove } from '@/api/server'
+import { getList, getTotal, getPublicKey, add, edit, check, remove } from '@/api/server'
 
 export default {
   name: 'Server',
@@ -151,6 +159,12 @@ export default {
     getTotal() {
       getTotal().then((response) => {
         this.pagination.total = response.data.total
+      })
+    },
+
+    getPublicKey() {
+      getPublicKey(this.formData.path).then((response) => {
+        this.copy(response.data, this.$t('serverPage.copyPubTips'))
       })
     },
 

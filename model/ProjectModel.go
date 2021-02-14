@@ -329,7 +329,7 @@ func (p Project) GetTotal() (int64, error) {
 
 // GetUserProjectList -
 func (p Project) GetUserProjectList() (Projects, error) {
-	builder := sq.
+	rows, err := sq.
 		Select(`
 			project.id, 
 			project.name,
@@ -351,13 +351,9 @@ func (p Project) GetUserProjectList() (Projects, error) {
 			"project_user.user_id": p.UserID,
 			"project.state":        Enable,
 		}).
-		OrderBy("project.id DESC")
-
-	if len(p.Name) > 0 {
-		builder = builder.Where(sq.Like{"project.name": "%" + p.Name + "%"})
-	}
-
-	rows, err := builder.RunWith(DB).Query()
+		OrderBy("project.id DESC").
+		RunWith(DB).
+		Query()
 	if err != nil {
 		return nil, err
 	}

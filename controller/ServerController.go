@@ -4,6 +4,7 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/utils"
+	"io/ioutil"
 )
 
 // Server struct
@@ -49,6 +50,19 @@ func (Server) GetOption(gp *core.Goploy) *core.Response {
 		Data: struct {
 			Servers model.Servers `json:"list"`
 		}{Servers: serverList},
+	}
+}
+
+// GetPublicKey -
+func (Server) GetPublicKey(gp *core.Goploy) *core.Response {
+	path := gp.URLQuery.Get("path")
+
+	contentByte, err := ioutil.ReadFile(path + ".pub")
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	return &core.Response{
+		Data: string(contentByte),
 	}
 }
 

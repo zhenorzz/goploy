@@ -25,6 +25,17 @@ export function getTotal() {
 /**
  * @return {Promise}
  */
+export function getPublicKey(path) {
+  return request({
+    url: '/server/getPublicKey',
+    method: 'get',
+    params: { path }
+  })
+}
+
+/**
+ * @return {Promise}
+ */
 export function getOption() {
   return request({
     url: '/server/getOption',

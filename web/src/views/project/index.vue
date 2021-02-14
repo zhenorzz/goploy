@@ -70,7 +70,9 @@
       <el-table-column prop="operation" :label="$t('op')" width="180" align="center" fixed="right">
         <template slot-scope="scope">
           <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)" />
-          <el-button type="info" icon="el-icon-document-copy" @click="handleCopy(scope.row)" />
+          <el-tooltip class="item" effect="dark" content="Copy" placement="bottom">
+            <el-button type="info" icon="el-icon-document-copy" @click="handleCopy(scope.row)" />
+          </el-tooltip>
           <el-button type="danger" icon="el-icon-delete" @click="handleRemove(scope.row)" />
         </template>
       </el-table-column>

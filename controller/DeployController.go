@@ -24,11 +24,9 @@ type Deploy Controller
 
 // GetList -
 func (Deploy) GetList(gp *core.Goploy) *core.Response {
-	projectName := gp.URLQuery.Get("projectName")
 	projects, err := model.Project{
 		NamespaceID: gp.Namespace.ID,
 		UserID:      gp.UserInfo.ID,
-		Name:        projectName,
 	}.GetUserProjectList()
 
 	if err != nil {

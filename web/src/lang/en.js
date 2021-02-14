@@ -137,6 +137,8 @@ export default {
     sshKeyOwner: 'SSH-Key Owner',
     sshKeyPath: 'SSH-Key Path',
     sshKeyPassword: 'SSH-Key Pswd',
+    copyPub: 'Copy pub',
+    copyPubTips: 'Copy success. Paste it to ~/.ssh/authorized_keys',
     testConnection: 'Test',
     removeServerTips: 'This action will delete the server({serverName}), continue?'
   },
