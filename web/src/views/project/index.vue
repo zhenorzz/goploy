@@ -256,7 +256,13 @@
               </el-select>
             </el-form-item>
             <el-form-item prop="afterPullScript" label-width="0px">
-              <codemirror ref="afterPullScript" v-model="formData.afterPullScript" :options="cmOption" placeholder="Already switched to project directory..." />
+              <!-- <span>No support for demo</span> -->
+              <codemirror
+                ref="afterPullScript"
+                v-model="formData.afterPullScript"
+                :options="cmOption"
+                placeholder="Already switched to project directory..."
+              />
             </el-form-item>
           </el-tab-pane>
           <el-tab-pane name="afterDeployScript">
@@ -299,7 +305,12 @@
               </el-row>
             </el-form-item>
             <el-form-item prop="afterDeployScript" label-width="0px">
-              <codemirror ref="afterDeployScript" v-model="formData.afterDeployScript" :options="cmOption" />
+              <!-- <span>No support for demo</span> -->
+              <codemirror
+                ref="afterDeployScript"
+                v-model="formData.afterDeployScript"
+                :options="cmOption"
+              />
             </el-form-item>
           </el-tab-pane>
         </el-tabs>

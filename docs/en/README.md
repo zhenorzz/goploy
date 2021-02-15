@@ -20,7 +20,7 @@ Support all kinds of code release and rollback, which can be done through the we
 
 Complete installation instructions, no difficulty in getting started!
 
-[DEMO](http://49.234.66.193:3000) admin:admin!@# 
+[DEMO](http://demo.goploy.icu) admin:admin!@# 
 
 ## Background
 Although most popular publishing tools are powerful, they are cumbersome to configure, difficult to get started, and difficult to use for projects.

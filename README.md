@@ -26,7 +26,7 @@ Complete installation instructions, no difficulty in getting started!
 
 > Important note: The master branch may be in an unstable or unavailable state during the development process. Please use releases instead of master to obtain stable binary files.
 
-[DEMO](http://49.234.66.193:3000) admin:admin!@# (It may not be able to open, depending on the mood)
+[DEMO](http://demo.goploy.icu) admin:admin!@# (It may not be able to open, depending on the mood)
 
 [Document](https://zhenorzz.gitee.io/goploy)
 
