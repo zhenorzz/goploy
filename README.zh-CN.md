@@ -26,7 +26,7 @@
 
 > 重要提示: master 分支在开发过程中可能处于不稳定或者不可用状态，请通过releases而非master去获取稳定的二进制文件。
 
-[DEMO](http://49.234.66.193:3000) admin:admin!@# (不一定能打开，看心情)
+[DEMO](http://demo.goploy.icu) admin:admin!@# (不一定能打开，看心情)
 
 [帮助文档](https://zhenorzz.gitee.io/goploy)
 
