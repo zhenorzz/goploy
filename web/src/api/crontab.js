@@ -57,7 +57,7 @@ export function add(data) {
 export function edit(data) {
   return request({
     url: '/crontab/edit',
-    method: 'post',
+    method: 'put',
     data
   })
 }

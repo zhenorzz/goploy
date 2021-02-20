@@ -102,7 +102,7 @@ export function getTagList(id) {
 export function resetState(projectId) {
   return request({
     url: '/deploy/resetState',
-    method: 'post',
+    method: 'put',
     data: { projectId }
   })
 }
@@ -154,7 +154,7 @@ export function greyPublish(projectId, commit, serverIds) {
 export function review(projectReviewId, state) {
   return request({
     url: '/deploy/review',
-    method: 'post',
+    method: 'put',
     data: { projectReviewId, state }
   })
 }

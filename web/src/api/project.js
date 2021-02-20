@@ -107,7 +107,7 @@ export function add(data) {
 export function edit(data) {
   return request({
     url: '/project/edit',
-    method: 'post',
+    method: 'put',
     data
   })
 }
@@ -115,7 +115,7 @@ export function edit(data) {
 export function setAutoDeploy(data) {
   return request({
     url: '/project/setAutoDeploy',
-    method: 'post',
+    method: 'put',
     data
   })
 }
@@ -175,7 +175,7 @@ export function addFile(data) {
 export function editFile(data) {
   return request({
     url: '/project/editFile',
-    method: 'post',
+    method: 'put',
     data
   })
 }
@@ -201,7 +201,7 @@ export function addTask(data) {
 export function removeTask(id) {
   return request({
     url: '/project/removeTask',
-    method: 'post',
+    method: 'delete',
     data: { id }
   })
 }

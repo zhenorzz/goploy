@@ -29,9 +29,9 @@ func Init() *router.Router {
 	rt.Add("/user/getTotal", http.MethodGet, controller.User{}.GetTotal)
 	rt.Add("/user/getOption", http.MethodGet, controller.User{}.GetOption)
 	rt.Add("/user/add", http.MethodPost, controller.User{}.Add).Role(core.RoleAdmin)
-	rt.Add("/user/edit", http.MethodPost, controller.User{}.Edit).Role(core.RoleAdmin)
+	rt.Add("/user/edit", http.MethodPut, controller.User{}.Edit).Role(core.RoleAdmin)
 	rt.Add("/user/remove", http.MethodDelete, controller.User{}.Remove).Role(core.RoleAdmin)
-	rt.Add("/user/changePassword", http.MethodPost, controller.User{}.ChangePassword)
+	rt.Add("/user/changePassword", http.MethodPut, controller.User{}.ChangePassword)
 
 	// namespace route
 	rt.Add("/namespace/getList", http.MethodGet, controller.Namespace{}.GetList)
@@ -39,7 +39,7 @@ func Init() *router.Router {
 	rt.Add("/namespace/getBindUserList", http.MethodGet, controller.Namespace{}.GetBindUserList)
 	rt.Add("/namespace/getUserOption", http.MethodGet, controller.Namespace{}.GetUserOption)
 	rt.Add("/namespace/add", http.MethodPost, controller.Namespace{}.Add).Role(core.RoleAdmin)
-	rt.Add("/namespace/edit", http.MethodPost, controller.Namespace{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/namespace/edit", http.MethodPut, controller.Namespace{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/namespace/addUser", http.MethodPost, controller.Namespace{}.AddUser).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/namespace/removeUser", http.MethodDelete, controller.Namespace{}.RemoveUser).Roles([]string{core.RoleAdmin, core.RoleManager})
 
@@ -52,8 +52,8 @@ func Init() *router.Router {
 	rt.Add("/project/getProjectFileList", http.MethodGet, controller.Project{}.GetProjectFileList)
 	rt.Add("/project/getProjectFileContent", http.MethodGet, controller.Project{}.GetProjectFileContent)
 	rt.Add("/project/add", http.MethodPost, controller.Project{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
-	rt.Add("/project/edit", http.MethodPost, controller.Project{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
-	rt.Add("/project/setAutoDeploy", http.MethodPost, controller.Project{}.SetAutoDeploy).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/project/edit", http.MethodPut, controller.Project{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/project/setAutoDeploy", http.MethodPut, controller.Project{}.SetAutoDeploy).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/project/remove", http.MethodDelete, controller.Project{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/project/uploadFile", http.MethodPost, controller.Project{}.UploadFile).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/project/removeFile", http.MethodDelete, controller.Project{}.RemoveFile).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
@@ -62,9 +62,9 @@ func Init() *router.Router {
 	rt.Add("/project/removeServer", http.MethodDelete, controller.Project{}.RemoveServer).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/project/removeUser", http.MethodDelete, controller.Project{}.RemoveUser).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/project/addFile", http.MethodPost, controller.Project{}.AddFile).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
-	rt.Add("/project/editFile", http.MethodPost, controller.Project{}.EditFile).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/project/editFile", http.MethodPut, controller.Project{}.EditFile).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/project/addTask", http.MethodPost, controller.Project{}.AddTask).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
-	rt.Add("/project/removeTask", http.MethodPost, controller.Project{}.RemoveTask).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/project/removeTask", http.MethodDelete, controller.Project{}.RemoveTask).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/project/getTaskList", http.MethodGet, controller.Project{}.GetTaskList).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/project/getReviewList", http.MethodGet, controller.Project{}.GetReviewList)
 
@@ -73,8 +73,8 @@ func Init() *router.Router {
 	rt.Add("/monitor/getTotal", http.MethodGet, controller.Monitor{}.GetTotal)
 	rt.Add("/monitor/check", http.MethodPost, controller.Monitor{}.Check).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/monitor/add", http.MethodPost, controller.Monitor{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
-	rt.Add("/monitor/edit", http.MethodPost, controller.Monitor{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
-	rt.Add("/monitor/toggle", http.MethodPost, controller.Monitor{}.Toggle).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/monitor/edit", http.MethodPut, controller.Monitor{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/monitor/toggle", http.MethodPut, controller.Monitor{}.Toggle).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/monitor/remove", http.MethodDelete, controller.Monitor{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 
 	//// deploy route
@@ -85,8 +85,8 @@ func Init() *router.Router {
 	rt.Add("/deploy/getBranchList", http.MethodGet, controller.Deploy{}.GetBranchList)
 	rt.Add("/deploy/getTagList", http.MethodGet, controller.Deploy{}.GetTagList)
 	rt.Add("/deploy/getPreview", http.MethodGet, controller.Deploy{}.GetPreview)
-	rt.Add("/deploy/review", http.MethodPost, controller.Deploy{}.Review).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
-	rt.Add("/deploy/resetState", http.MethodPost, controller.Deploy{}.ResetState).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/deploy/review", http.MethodPut, controller.Deploy{}.Review).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/deploy/resetState", http.MethodPut, controller.Deploy{}.ResetState).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/deploy/publish", http.MethodPost, controller.Deploy{}.Publish, middleware.HasPublishAuth)
 	rt.Add("/deploy/rebuild", http.MethodPost, controller.Deploy{}.Rebuild, middleware.HasPublishAuth)
 	rt.Add("/deploy/greyPublish", http.MethodPost, controller.Deploy{}.GreyPublish, middleware.HasPublishAuth).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
@@ -100,7 +100,7 @@ func Init() *router.Router {
 	rt.Add("/server/getPublicKey", http.MethodGet, controller.Server{}.GetPublicKey)
 	rt.Add("/server/check", http.MethodPost, controller.Server{}.Check).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/add", http.MethodPost, controller.Server{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager})
-	rt.Add("/server/edit", http.MethodPost, controller.Server{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/server/edit", http.MethodPut, controller.Server{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/remove", http.MethodDelete, controller.Server{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager})
 
 	// crontab route
@@ -109,7 +109,7 @@ func Init() *router.Router {
 	rt.Add("/crontab/getRemoteServerList", http.MethodGet, controller.Crontab{}.GetRemoteServerList)
 	rt.Add("/crontab/getBindServerList", http.MethodGet, controller.Crontab{}.GetBindServerList)
 	rt.Add("/crontab/add", http.MethodPost, controller.Crontab{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager})
-	rt.Add("/crontab/edit", http.MethodPost, controller.Crontab{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/crontab/edit", http.MethodPut, controller.Crontab{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/crontab/import", http.MethodPost, controller.Crontab{}.Import).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/crontab/remove", http.MethodDelete, controller.Crontab{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/crontab/addServer", http.MethodPost, controller.Crontab{}.AddServer).Roles([]string{core.RoleAdmin, core.RoleManager})

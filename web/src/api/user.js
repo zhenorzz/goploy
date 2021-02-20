@@ -67,7 +67,7 @@ export function add(data) {
 export function edit(data) {
   return request({
     url: '/user/edit',
-    method: 'post',
+    method: 'put',
     data
   })
 }
@@ -83,7 +83,7 @@ export function remove(id) {
 export function changePassword(oldPwd, newPwd) {
   return request({
     url: '/user/changePassword',
-    method: 'post',
+    method: 'put',
     data: {
       oldPwd,
       newPwd

@@ -33,7 +33,7 @@ export function add(data) {
 export function edit(data) {
   return request({
     url: '/monitor/edit',
-    method: 'post',
+    method: 'put',
     data
   })
 }
@@ -50,7 +50,7 @@ export function check(data) {
 export function toggle(id) {
   return request({
     url: '/monitor/toggle',
-    method: 'post',
+    method: 'put',
     data: { id }
   })
 }

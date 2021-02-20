@@ -55,7 +55,7 @@ export function add(data) {
 export function edit(data) {
   return request({
     url: '/namespace/edit',
-    method: 'post',
+    method: 'put',
     data
   })
 }

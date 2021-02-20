@@ -54,7 +54,7 @@ export function add(data) {
 export function edit(data) {
   return request({
     url: '/server/edit',
-    method: 'post',
+    method: 'put',
     data
   })
 }
