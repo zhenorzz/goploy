@@ -159,7 +159,7 @@
                 Rsync <i class="el-icon-question" /><br>
                 [OPTION...]
               </el-link>
-              <el-input v-model.trim="formData.rsyncOption" type="textarea" :rows="3" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
+              <el-input v-model="formData.rsyncOption" type="textarea" :rows="3" autocomplete="off" placeholder="-rtv --exclude .git --delete-after" />
             </el-form-item>
             <el-form-item prop="notifyTarget">
               <el-link
