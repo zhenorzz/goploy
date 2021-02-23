@@ -211,7 +211,7 @@ func gitFollow(project model.Project, target string) (utils.Commit, error) {
 	if len(target) != 40 {
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitFetch, Message: "git checkout"},
+			Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitFetch, Message: "git fetch"},
 		}
 		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git fetch")
 		if err := git.Fetch(); err != nil {
