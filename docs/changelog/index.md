@@ -1,4 +1,12 @@
-# 更新日志
+# change log
+
+## 1.2.1
+
+*2021-02-24*
+
+### New features
+- server terminal
+- server can stay in any namespace 
 
 ## 1.1.6
 

@@ -41,6 +41,7 @@ export default {
   interval: 'Interval',
   desc: 'Description',
   size: 'Size',
+  namespace: 'Namespace',
   environment: 'Environment',
   branch: 'Branch',
   filename: 'Filename',

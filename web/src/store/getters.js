@@ -7,6 +7,7 @@ const getters = {
   account: state => state.user.account,
   superManager: state => state.user.superManager,
   permission_routes: state => state.permission.routes,
-  ws_message: state => state.websocket.message
+  ws_message: state => state.websocket.message,
+  ws: state => state.websocket.ws
 }
 export default getters

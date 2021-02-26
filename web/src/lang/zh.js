@@ -41,6 +41,7 @@ export default {
   interval: '间隔',
   desc: '描述',
   size: '大小',
+  namespace: '空间',
   environment: '环境',
   branch: '分支',
   filename: '文件名',

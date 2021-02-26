@@ -10,18 +10,17 @@ const serverTable = "`server`"
 
 // Server -
 type Server struct {
-	ID               int64  `json:"id"`
-	LastInstallToken string `json:"lastInstallToken"`
-	Name             string `json:"name"`
-	IP               string `json:"ip"`
-	Port             int    `json:"port"`
-	Owner            string `json:"owner"`
-	Path             string `json:"path"`
-	Password         string `json:"password"`
-	NamespaceID      int64  `json:"namespaceId"`
-	Description      string `json:"description"`
-	InsertTime       string `json:"insertTime"`
-	UpdateTime       string `json:"updateTime"`
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	IP          string `json:"ip"`
+	Port        int    `json:"port"`
+	Owner       string `json:"owner"`
+	Path        string `json:"path"`
+	Password    string `json:"password"`
+	NamespaceID int64  `json:"namespaceId"`
+	Description string `json:"description"`
+	InsertTime  string `json:"insertTime"`
+	UpdateTime  string `json:"updateTime"`
 }
 
 // Servers -
@@ -30,10 +29,10 @@ type Servers []Server
 // GetList -
 func (s Server) GetList(pagination Pagination) (Servers, error) {
 	rows, err := sq.
-		Select("id, name, ip, port, owner, path, password, description, insert_time, update_time").
+		Select("id, namespace_id, name, ip, port, owner, path, password, description, insert_time, update_time").
 		From(serverTable).
 		Where(sq.Eq{
-			"namespace_id": s.NamespaceID,
+			"namespace_id": []int64{0, s.NamespaceID},
 			"state":        Enable,
 		}).
 		Limit(pagination.Rows).
@@ -50,6 +49,7 @@ func (s Server) GetList(pagination Pagination) (Servers, error) {
 
 		if err := rows.Scan(
 			&server.ID,
+			&server.NamespaceID,
 			&server.Name,
 			&server.IP,
 			&server.Port,
@@ -74,7 +74,7 @@ func (s Server) GetTotal() (int64, error) {
 		Select("COUNT(*) AS count").
 		From(serverTable).
 		Where(sq.Eq{
-			"namespace_id": s.NamespaceID,
+			"namespace_id": []int64{0, s.NamespaceID},
 			"state":        Enable,
 		}).
 		RunWith(DB).
@@ -92,7 +92,7 @@ func (s Server) GetAll() (Servers, error) {
 		Select("id, name, ip, owner, description, insert_time, update_time").
 		From(serverTable).
 		Where(sq.Eq{
-			"namespace_id": s.NamespaceID,
+			"namespace_id": []int64{0, s.NamespaceID},
 			"state":        Enable,
 		}).
 		OrderBy("id DESC").
@@ -149,13 +149,14 @@ func (s Server) EditRow() error {
 	_, err := sq.
 		Update(serverTable).
 		SetMap(sq.Eq{
-			"name":        s.Name,
-			"ip":          s.IP,
-			"port":        s.Port,
-			"owner":       s.Owner,
-			"password":    s.Password,
-			"path":        s.Path,
-			"description": s.Description,
+			"namespace_id": s.NamespaceID,
+			"name":         s.Name,
+			"ip":           s.IP,
+			"port":         s.Port,
+			"owner":        s.Owner,
+			"password":     s.Password,
+			"path":         s.Path,
+			"description":  s.Description,
 		}).
 		Where(sq.Eq{"id": s.ID}).
 		RunWith(DB).

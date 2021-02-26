@@ -29,14 +29,16 @@ import (
 )
 
 var (
-	help bool
-	s    string
+	help    bool
+	version bool
+	s       string
 )
 
 func init() {
 	flag.StringVar(&core.AssetDir, "asset-dir", "", "default: ./")
 	flag.StringVar(&s, "s", "", "stop")
 	flag.BoolVar(&help, "help", false, "list available subcommands and some concept guides")
+	flag.BoolVar(&version, "version", false, "show goploy version")
 	// 改变默认的 Usage
 	flag.Usage = usage
 }
@@ -53,6 +55,10 @@ func main() {
 		flag.Usage()
 		return
 	}
+	if version {
+		println(core.Version)
+		return
+	}
 	handleClientSignal()
 	println(`
    ______            __           
@@ -60,18 +66,17 @@ func main() {
  / / __/ __ \/ __ \/ / __ \/ / / /
 / /_/ / /_/ / /_/ / / /_/ / /_/ / 
 \____/\____/ .___/_/\____/\__, /  
-          /_/            /____/   v1.1.6
-`)
+          /_/            /____/   ` + core.Version + "\n")
 	install()
 	pid := strconv.Itoa(os.Getpid())
 	godotenv.Load(core.GetEnvFile())
 	ioutil.WriteFile(path.Join(core.GetAssetDir(), "goploy.pid"), []byte(pid), 0755)
 	println("Start at " + time.Now().String())
-	println("current pid:   " + pid)
+	println("goploy -h for more help")
+	println("Current pid:   " + pid)
 	println("Config Loaded: " + core.GetEnvFile())
 	println("Log:           " + os.Getenv("LOG_PATH"))
 	println("Listen:        " + os.Getenv("PORT"))
-	flag.Usage()
 	println("Running...")
 	core.CreateValidator()
 	model.Init()

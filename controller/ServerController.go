@@ -89,7 +89,8 @@ func (Server) Check(gp *core.Goploy) *core.Response {
 func (Server) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name        string `json:"name" validate:"required"`
-		IP          string `json:"ip" validate:"required,ip|hostname"`
+		NamespaceID int64  `json:"namespaceId" validate:"gte=0"`
+		IP          string `json:"ip" validate:"ip|hostname"`
 		Port        int    `json:"port" validate:"min=0,max=65535"`
 		Owner       string `json:"owner" validate:"required,max=255"`
 		Path        string `json:"path" validate:"required,max=255"`
@@ -103,7 +104,7 @@ func (Server) Add(gp *core.Goploy) *core.Response {
 	}
 
 	id, err := model.Server{
-		NamespaceID: gp.Namespace.ID,
+		NamespaceID: reqData.NamespaceID,
 		Name:        reqData.Name,
 		IP:          reqData.IP,
 		Port:        reqData.Port,
@@ -128,6 +129,7 @@ func (Server) Add(gp *core.Goploy) *core.Response {
 func (Server) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID          int64  `json:"id" validate:"gt=0"`
+		NamespaceID int64  `json:"namespaceId" validate:"gte=0"`
 		Name        string `json:"name" validate:"required"`
 		IP          string `json:"ip" validate:"required,ip|hostname"`
 		Port        int    `json:"port" validate:"min=0,max=65535"`
@@ -142,6 +144,7 @@ func (Server) Edit(gp *core.Goploy) *core.Response {
 	}
 	err := model.Server{
 		ID:          reqData.ID,
+		NamespaceID: reqData.NamespaceID,
 		Name:        reqData.Name,
 		IP:          reqData.IP,
 		Port:        reqData.Port,

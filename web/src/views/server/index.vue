@@ -22,8 +22,11 @@
       <el-table-column prop="description" :label="$t('desc')" min-width="140" show-overflow-tooltip />
       <el-table-column prop="insertTime" :label="$t('insertTime')" width="135" align="center" />
       <el-table-column prop="updateTime" :label="$t('updateTime')" width="135" align="center" />
-      <el-table-column prop="operation" :label="$t('op')" width="130" align="center" fixed="right">
+      <el-table-column prop="operation" :label="$t('op')" width="180" align="center" fixed="right">
         <template slot-scope="scope">
+          <el-tooltip class="item" effect="dark" content="Connect Terminal" placement="bottom">
+            <el-button type="success" icon="el-icon-connection" @click="handleConnect(scope.row)" />
+          </el-tooltip>
           <el-button type="primary" icon="el-icon-edit" @click="handleEdit(scope.row)" />
           <el-button type="danger" icon="el-icon-delete" @click="handleRemove(scope.row)" />
         </template>
@@ -41,6 +44,12 @@
     </el-row>
     <el-dialog :title="$t('setting')" :visible.sync="dialogVisible">
       <el-form ref="form" v-loading="formProps.loading" :rules="formRules" :model="formData" label-width="130px">
+        <el-form-item :label="$t('namespace')" prop="namespaceId">
+          <el-radio-group v-model="formData.namespaceId">
+            <el-radio :label="getNamespace()['id']">当前</el-radio>
+            <el-radio :label="0">不限</el-radio>
+          </el-radio-group>
+        </el-form-item>
         <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
@@ -85,15 +94,33 @@
         </el-row>
       </div>
     </el-dialog>
+    <el-drawer
+      ref="drawer"
+      :title="term.title"
+      :visible.sync="dialogTermVisible"
+      @opened="connectTerminal"
+      @closed="closeTerminal"
+    >
+      <div v-if="dialogTermVisible" ref="xterm" class="xterm" />
+    </el-drawer>
   </el-row>
 </template>
 <script>
+
+import { getNamespace } from '@/utils/namespace'
 import { getList, getTotal, getPublicKey, add, edit, check, remove } from '@/api/server'
+// require component
+import { Terminal } from 'xterm'
+import { FitAddon } from 'xterm-addon-fit'
+import { AttachAddon } from 'xterm-addon-attach'
+// require styles
+import 'xterm/css/xterm.css'
 
 export default {
   name: 'Server',
   data() {
     return {
+      dialogTermVisible: false,
       dialogVisible: false,
       tableLoading: false,
       tableData: [],
@@ -102,6 +129,12 @@ export default {
         rows: 16,
         total: 0
       },
+      term: {
+        window: null,
+        ws: null,
+        server: {},
+        title: ''
+      },
       tempFormData: {},
       formProps: {
         loading: false,
@@ -109,6 +142,7 @@ export default {
       },
       formData: {
         id: 0,
+        namespaceId: '',
         name: '',
         ip: '',
         port: 22,
@@ -118,6 +152,9 @@ export default {
         description: ''
       },
       formRules: {
+        namespaceId: [
+          { required: true, message: 'Namespace required', trigger: 'blur' }
+        ],
         name: [
           { required: true, message: 'Name required', trigger: 'blur' }
         ],
@@ -145,8 +182,8 @@ export default {
     this.getList()
     this.getTotal()
   },
-
   methods: {
+    getNamespace,
     getList() {
       this.tableLoading = true
       getList(this.pagination).then((response) => {
@@ -198,6 +235,12 @@ export default {
       }).catch(() => {
         this.$message.info('Cancel')
       })
+    },
+
+    handleConnect(data) {
+      this.term.server = data
+      this.term.title = `${data.name}(${data.description})`
+      this.dialogTermVisible = true
     },
 
     check() {
@@ -252,6 +295,34 @@ export default {
       })
     },
 
+    connectTerminal() {
+      const isWindows = ['Windows', 'Win16', 'Win32', 'WinCE'].indexOf(navigator.platform) >= 0
+      const term = new Terminal({
+        fontSize: 14,
+        cursorBlink: true,
+        windowsMode: isWindows
+      })
+      const fitAddon = new FitAddon()
+      term.loadAddon(fitAddon)
+      term.open(this.$refs['xterm'])
+      fitAddon.fit()
+      term.focus()
+      this.term.ws = new WebSocket(`ws://${window.location.host + process.env.VUE_APP_BASE_API}/ws/xterm?serverId=${this.term.server.id}&rows=${term.rows}&cols=${term.cols}`)
+      const attachAddon = new AttachAddon(this.term.ws)
+      term.loadAddon(attachAddon)
+      this.term.window = term
+      this.term.ws.onopen = () => {
+      }
+      this.term.ws.onerror = () => {
+        this.term.ws = null
+      }
+    },
+
+    closeTerminal() {
+      this.term.window = null
+      this.term.ws.close()
+    },
+
     storeFormData() {
       this.tempFormData = JSON.parse(JSON.stringify(this.formData))
     },
@@ -269,5 +340,9 @@ export default {
   height: 400px;
   overflow-y: auto;
   @include scrollBar();
+}
+.xterm {
+  width: 100%;
+  height: 100%;
 }
 </style>

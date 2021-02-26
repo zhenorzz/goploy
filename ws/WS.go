@@ -106,7 +106,7 @@ func (hub *Hub) Connect(gp *core.Goploy) *core.Response {
 
 	ticker := time.NewTicker(pingPeriod)
 	stop := make(chan bool, 1)
-	go func(ticker *time.Ticker) {
+	go func() {
 		for {
 			select {
 			case <-ticker.C:
@@ -115,7 +115,7 @@ func (hub *Hub) Connect(gp *core.Goploy) *core.Response {
 				return
 			}
 		}
-	}(ticker)
+	}()
 	// you must read message to trigger pong handler
 	for {
 		_, _, err = c.ReadMessage()

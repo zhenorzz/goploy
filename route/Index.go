@@ -21,6 +21,7 @@ func Init() *router.Router {
 	})
 	// websocket route
 	rt.Add("/ws/connect", http.MethodGet, ws.GetHub().Connect)
+	rt.Add("/ws/xterm", http.MethodGet, ws.GetHub().Xterm)
 
 	// user route
 	rt.Add("/user/login", http.MethodPost, controller.User{}.Login)

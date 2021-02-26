@@ -8,4 +8,4 @@
 * Question
   * [Install](en/question/install.md)
   * [Use](en/question/use.md)
-* [ChangeLog](en/changelog/index.md)
+* [ChangeLog](changelog/index.md)
