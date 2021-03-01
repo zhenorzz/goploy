@@ -27,7 +27,7 @@ const mutations = {
 const actions = {
   init({ dispatch, commit, state }) {
     return new Promise((resolve, reject) => {
-      const websocket = new WebSocket('ws://' + window.location.host + process.env.VUE_APP_BASE_API + '/ws/connect')
+      const websocket = new WebSocket(`${location.protocol.replace('http', 'ws')}//${location.host}${process.env.VUE_APP_BASE_API}/ws/connect`)
       websocket.onopen = () => {
         console.log('websocket连接成功, 时间：' + parseTime(new Date()))
         // 连接成功，当成重连次数0 置0
