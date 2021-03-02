@@ -69,7 +69,7 @@
                 {{ $t('navbar.profile') }}
               </el-dropdown-item>
             </router-link>
-            <el-link :underline="false" href="https://zhenorzz.gitee.io/goploy/" target="__blank">
+            <el-link :underline="false" href="https://docs.goploy.icu/" target="__blank">
               <el-dropdown-item>
                 {{ $t('navbar.doc') }}
               </el-dropdown-item>

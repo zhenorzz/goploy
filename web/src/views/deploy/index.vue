@@ -1079,7 +1079,7 @@ export default {
       this.$refs.taskForm.validate((valid) => {
         if (valid) {
           this.taskFormProps.disabled = true
-          addTask(this.taskFormData).then(response => {
+          addTask(this.taskFormData).then(_ => {
             this.$message.success('Success')
           }).finally(() => {
             this.taskFormProps.disabled = false
@@ -1097,7 +1097,7 @@ export default {
         cancelButtonText: this.$i18n.t('cancel'),
         type: 'warning'
       }).then(() => {
-        removeTask(data.id).then((response) => {
+        removeTask(data.id).then(_ => {
           const projectTaskIndex = this.taskTableData.findIndex(element => element.id === data.id)
           this.taskTableData[projectTaskIndex]['state'] = 0
           this.taskTableData[projectTaskIndex]['editor'] = this.$store.getters.name
@@ -1178,7 +1178,7 @@ export default {
       }).then(() => {
         this.gitLog = []
         this.remoteLog = {}
-        publish(id, '').then((response) => {
+        publish(id, '').then(_ => {
           const projectIndex = this.tableData.findIndex(element => element.id === id)
           this.tableData[projectIndex].deployState = 1
         })
@@ -1188,7 +1188,6 @@ export default {
     },
 
     publishByCommit(data) {
-      console.log(data)
       this.$confirm(this.$i18n.t('deployPage.publishCommitTips', { commit: data.commit }), this.$i18n.t('tips'), {
         confirmButtonText: this.$i18n.t('confirm'),
         cancelButtonText: this.$i18n.t('cancel'),

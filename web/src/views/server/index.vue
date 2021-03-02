@@ -307,7 +307,7 @@ export default {
       term.open(this.$refs['xterm'])
       fitAddon.fit()
       term.focus()
-      this.term.ws = new WebSocket(`ws://${window.location.host + process.env.VUE_APP_BASE_API}/ws/xterm?serverId=${this.term.server.id}&rows=${term.rows}&cols=${term.cols}`)
+      this.term.ws = new WebSocket(`${location.protocol.replace('http', 'ws')}//${window.location.host + process.env.VUE_APP_BASE_API}/ws/xterm?serverId=${this.term.server.id}&rows=${term.rows}&cols=${term.cols}`)
       const attachAddon = new AttachAddon(this.term.ws)
       term.loadAddon(attachAddon)
       this.term.window = term
