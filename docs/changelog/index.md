@@ -2,11 +2,18 @@
 
 ## 1.2.1
 
-*2021-02-24*
+*2021-03-03*
 
 ### New features
 - server terminal
 - server can stay in any namespace 
+
+### Optimization
+- http.put for edit
+
+### Bug fixes
+- fix wss protocol
+- delete trim rsync option
 
 ## 1.1.6
 

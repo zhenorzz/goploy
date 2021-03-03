@@ -16,6 +16,6 @@ repository/*
 .env.*.local
 
 goploy
-goploy.exe
+goploy.exe*
 goploy.mac
 goploy.pid
