@@ -4,9 +4,10 @@
 
 安装前必须保证系统已经安装了下列软件
 
-- MySQL-5.6或更高版本
+- Git >= 2.10
+- MySQL >= 5.6
 - MySQL客户端
-- Rsync(linux mac自带，windows需要安装)
+- Rsync(linux mac自带，windows需要安装[cwRsync](https://www.itefix.net/cwrsync))
 
 # 安装 Goploy
 方法1:
@@ -19,7 +20,7 @@ go get -u github.com/zhenorzz/goploy
 
 下载releases
 - https://github.com/zhenorzz/goploy/releases
-- https://gitee.com/zhenorzz/goploy/releases
+- https://gitee.com/goploy/goploy/releases
 
 # 启动
 
@@ -63,7 +64,7 @@ goploy.exe
     
 # 访问
 
-http://ip:port (账号:密码 admin:admin!@#)
+http://host:port (账号:密码 admin:admin!@#)
 
 # 反向代理
 

@@ -4,9 +4,10 @@
 
 Dependencies
 
+- Git >= 2.10
 - MySQL>=5.6
 - MySQL Client
-- Rsync(linux mac自带，windows需要安装)
+- Rsync(windows need to install [cwRsync](https://www.itefix.net/cwrsync))
 
 # Install Goploy
 Method 1:
@@ -17,9 +18,9 @@ go get -u github.com/zhenorzz/goploy
 
 Method 2: 
 
-Download source code from
-- https://github.com/zhenorzz/goploy
-- https://gitee.com/zhenorzz/goploy
+Download releases
+- https://github.com/zhenorzz/goploy/releases
+- https://gitee.com/goploy/goploy/releases
 
 # Start up
 
@@ -62,7 +63,7 @@ Please enter the listening port(default 80):
     
 # Access
 
-http://ip:port (Account:Password admin:admin!@#)
+http://host:port (Account:Password admin:admin!@#)
 
 # Reverse proxy
 
