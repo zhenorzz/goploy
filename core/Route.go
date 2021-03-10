@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/rakyll/statik/fs"
 	"github.com/zhenorzz/goploy/model"
-	_ "github.com/zhenorzz/goploy/statik"
+	"github.com/zhenorzz/goploy/web"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"mime"
@@ -46,12 +46,12 @@ type Router struct {
 // Start a router
 func (rt *Router) Start() {
 	if os.Getenv("ENV") == "production" {
-		statikFS, err := fs.New()
+		subFS, err := fs.Sub(web.Dist, "dist")
 		if err != nil {
 			log.Fatal(err)
 		}
-		http.Handle("/static/", http.FileServer(statikFS))
-		http.Handle("/favicon.ico", http.FileServer(statikFS))
+		http.Handle("/static/", http.FileServer(http.FS(subFS)))
+		http.Handle("/favicon.ico", http.FileServer(http.FS(subFS)))
 	}
 	http.Handle("/", rt)
 }
@@ -94,11 +94,7 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// else serve file in npm
 	if os.Getenv("ENV") == "production" {
 		if "/" == r.URL.Path {
-			statikFS, err := fs.New()
-			if err != nil {
-				log.Fatal(err)
-			}
-			r, err := statikFS.Open("/index.html")
+			r, err := web.Dist.Open("dist/index.html")
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -109,6 +105,7 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
 	gp, response := rt.checkLogin(w, r)
 	if response != nil {
 		response.JSON(w)

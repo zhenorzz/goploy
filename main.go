@@ -50,6 +50,17 @@ func usage() {
 }
 
 func main() {
+
+	//files, err := subFS.Open("./")
+	//
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//
+	//for _, f := range files {
+	//	fmt.Println(f.Name())
+	//}
+	//return
 	flag.Parse()
 	if help {
 		flag.Usage()

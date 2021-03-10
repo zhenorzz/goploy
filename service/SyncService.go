@@ -301,6 +301,11 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 		rsyncOption = append(rsyncOption, "--rsync-path=mkdir -p "+destDir+" && rsync")
 	}
 	srcPath := core.GetProjectPath(project.ID) + "/"
+	// rsync path can not contain colon
+	// windows like C:\
+	if strings.Contains(srcPath, ":\\") {
+		srcPath = "/cygdrive/" + strings.Replace(srcPath, ":\\", "/", 1)
+	}
 	destPath := remoteMachine + ":" + destDir
 	rsyncOption = append(rsyncOption, srcPath, destPath)
 	cmd := exec.Command("rsync", rsyncOption...)
@@ -311,13 +316,13 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 
 	if err := cmd.Run(); err != nil {
 		core.Log(core.ERROR, "err: "+err.Error()+", detail: "+errbuf.String())
-		publishTraceModel.Detail = errbuf.String()
+		publishTraceModel.Detail = "err: " + err.Error() + ", detail: " + errbuf.String()
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
 		chInput <- syncMessage{
 			serverName: projectServer.ServerName,
 			projectID:  project.ID,
-			detail:     errbuf.String(),
+			detail:     "err: " + err.Error() + ", detail: " + errbuf.String(),
 			state:      model.ProjectFail,
 		}
 		return

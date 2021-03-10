@@ -1,6 +1,6 @@
 module github.com/zhenorzz/goploy
 
-go 1.13
+go 1.16
 
 require (
 	github.com/Masterminds/squirrel v1.4.0
@@ -13,7 +13,6 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/rakyll/statik v0.1.7
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect

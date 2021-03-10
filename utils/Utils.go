@@ -56,7 +56,7 @@ func ParseCommandLine(command string) ([]string, error) {
 			continue
 		}
 
-		if c == '"' || c == '\'' {
+		if c == '"' {
 			state = "quotes"
 			quote = string(c)
 			continue
@@ -90,7 +90,7 @@ func ParseCommandLine(command string) ([]string, error) {
 	return args, nil
 }
 
-func DialSSH(user, password, path, host string, port int)  (*ssh.Client, error) {
+func DialSSH(user, password, path, host string, port int) (*ssh.Client, error) {
 	var (
 		auth         []ssh.AuthMethod
 		addr         string
