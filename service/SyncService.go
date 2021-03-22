@@ -63,7 +63,7 @@ func (gsync Gsync) Exec() {
 		if _, err := publishTraceModel.AddRow(); err != nil {
 			core.Log(core.ERROR, err.Error())
 		}
-		notify(gsync.Project, model.ProjectFail, err.Error())
+		notify(gsync.Project, gsync.ProjectServers, gitCommitInfo, model.ProjectFail, err.Error())
 		return
 	}
 	if gsync.Branch != "" {
@@ -121,7 +121,7 @@ func (gsync Gsync) Exec() {
 			if _, err := publishTraceModel.AddRow(); err != nil {
 				core.Log(core.ERROR, err.Error())
 			}
-			notify(gsync.Project, model.ProjectFail, err.Error())
+			notify(gsync.Project, gsync.ProjectServers, gitCommitInfo, model.ProjectFail, err.Error())
 			return
 		}
 		publishTraceModel.Detail = outputString
@@ -155,7 +155,7 @@ func (gsync Gsync) Exec() {
 			Type:    ws.TypeProject,
 			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeploySuccess, Message: "Success"},
 		}
-		notify(gsync.Project, model.ProjectSuccess, message)
+		notify(gsync.Project, gsync.ProjectServers, gitCommitInfo, model.ProjectSuccess, message)
 
 	} else {
 		gsync.Project.DeployFail()
@@ -164,7 +164,7 @@ func (gsync Gsync) Exec() {
 			Type:    ws.TypeProject,
 			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeployFail, Message: message},
 		}
-		notify(gsync.Project, model.ProjectFail, message)
+		notify(gsync.Project, gsync.ProjectServers, gitCommitInfo, model.ProjectFail, message)
 	}
 	if gsync.Project.SymlinkPath != "" {
 		var wg sync.WaitGroup
@@ -272,7 +272,7 @@ func runAfterPullScript(project model.Project) (string, error) {
 	return outbuf.String(), nil
 }
 
-func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.Project, projectServer model.ProjectServer) {
+func remoteSync(msgChIn chan<- syncMessage, userInfo model.User, project model.Project, projectServer model.ProjectServer) {
 	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
 	destDir := project.Path
 	ext, _ := json.Marshal(struct {
@@ -319,7 +319,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 		publishTraceModel.Detail = "err: " + err.Error() + ", detail: " + errbuf.String()
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
-		chInput <- syncMessage{
+		msgChIn <- syncMessage{
 			serverName: projectServer.ServerName,
 			projectID:  project.ID,
 			detail:     "err: " + err.Error() + ", detail: " + errbuf.String(),
@@ -357,7 +357,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 
 	// no symlink and deploy script
 	if len(afterDeployCommands) == 0 {
-		chInput <- syncMessage{
+		msgChIn <- syncMessage{
 			serverName: projectServer.ServerName,
 			projectID:  project.ID,
 			state:      model.ProjectSuccess,
@@ -379,7 +379,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 		publishTraceModel.Detail = dialError.Error()
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
-		chInput <- syncMessage{
+		msgChIn <- syncMessage{
 			serverName: projectServer.ServerName,
 			projectID:  project.ID,
 			detail:     dialError.Error(),
@@ -394,7 +394,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 		publishTraceModel.Detail = sessionErr.Error()
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
-		chInput <- syncMessage{
+		msgChIn <- syncMessage{
 			serverName: projectServer.ServerName,
 			projectID:  project.ID,
 			detail:     sessionErr.Error(),
@@ -411,7 +411,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 		publishTraceModel.Detail = err.Error()
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
-		chInput <- syncMessage{
+		msgChIn <- syncMessage{
 			serverName: projectServer.ServerName,
 			projectID:  project.ID,
 			detail:     err.Error(),
@@ -425,7 +425,7 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 	publishTraceModel.AddRow()
 
 	defer session.Close()
-	chInput <- syncMessage{
+	msgChIn <- syncMessage{
 		serverName: projectServer.ServerName,
 		projectID:  project.ID,
 		state:      model.ProjectSuccess,
@@ -433,7 +433,22 @@ func remoteSync(chInput chan<- syncMessage, userInfo model.User, project model.P
 	return
 }
 
-func notify(project model.Project, deployState int, detail string) {
+// commit id
+// commit message
+// server ip & name
+// deploy user name
+// deploy time
+func notify(project model.Project, projectServers model.ProjectServers, commitInfo utils.Commit, deployState int, detail string) {
+	serverList := ""
+	for _, projectServer := range projectServers {
+		if projectServer.ServerName != projectServer.ServerIP {
+			serverList += projectServer.ServerName + "(" + projectServer.ServerIP + ")"
+		} else {
+			serverList += projectServer.ServerIP
+		}
+		serverList += ", "
+	}
+	serverList = strings.TrimRight(serverList, ", ")
 	if project.NotifyType == model.NotifyWeiXin {
 		type markdown struct {
 			Content string `json:"content"`
@@ -442,13 +457,17 @@ func notify(project model.Project, deployState int, detail string) {
 			Msgtype  string   `json:"msgtype"`
 			Markdown markdown `json:"markdown"`
 		}
-		content := "Deploy: <font color=\"warning\">" + project.Name + "</font>\n "
-
+		content := "Deploy: <font color=\"warning\">" + project.Name + "</font>\n"
+		content += "Publisher: <font color=\"comment\">" + project.PublisherName + "</font>\n"
+		content += "Branch: <font color=\"comment\">" + commitInfo.Branch + "</font>\n"
+		content += "CommitSHA: <font color=\"comment\">" + commitInfo.Commit + "</font>\n"
+		content += "CommitMessage: <font color=\"comment\">" + commitInfo.Message + "</font>\n"
+		content += "ServerList: <font color=\"comment\">" + serverList + "</font>\n"
 		if deployState == model.ProjectFail {
-			content += "> State: <font color=\"red\">fail</font> \n "
+			content += "State: <font color=\"red\">fail</font> \n"
 			content += "> Detail: <font color=\"comment\">" + detail + "</font>"
 		} else {
-			content += "> State: <font color=\"green\">success</font>"
+			content += "State: <font color=\"green\">success</font>"
 		}
 
 		msg := message{
@@ -471,12 +490,17 @@ func notify(project model.Project, deployState int, detail string) {
 			Msgtype  string   `json:"msgtype"`
 			Markdown markdown `json:"markdown"`
 		}
-		text := "#### Deploy: " + project.Name + "\n"
+		text := "#### Deploy：" + project.Name + "  \n  "
+		text += "#### Publisher：" + project.PublisherName + "  \n  "
+		text += "#### Branch：" + commitInfo.Branch + "  \n  "
+		text += "#### CommitSHA：" + commitInfo.Commit + "  \n  "
+		text += "#### CommitMessage：" + commitInfo.Message + "  \n  "
+		text += "#### ServerList：" + serverList + "  \n  "
 		if deployState == model.ProjectFail {
-			text += "> State: <font color=\"red\">fail</font> \n "
+			text += "#### State： <font color=\"red\">fail</font>  \n  "
 			text += "> Detail: <font color=\"comment\">" + detail + "</font>"
 		} else {
-			text += "> State: <font color=\"green\">success</font>"
+			text += "#### State： <font color=\"green\">success</font>"
 		}
 
 		msg := message{
@@ -497,6 +521,11 @@ func notify(project model.Project, deployState int, detail string) {
 			Text  string `json:"text"`
 		}
 		text := ""
+		text += "Publisher: " + project.PublisherName + "\n"
+		text += "Branch: " + commitInfo.Branch + "\n"
+		text += "CommitSHA: " + commitInfo.Commit + "\n"
+		text += "CommitMessage: " + commitInfo.Message + "\n"
+		text += "ServerList: " + serverList + "\n"
 		if deployState == model.ProjectFail {
 			text += "State: fail\n "
 			text += "Detail: " + detail
@@ -518,9 +547,13 @@ func notify(project model.Project, deployState int, detail string) {
 			Code    int    `json:"code"`
 			Message string `json:"message"`
 			Data    struct {
-				ProjectID   int64  `json:"projectId"`
-				ProjectName string `json:"projectName"`
-				Branch      string `json:"branch"`
+				ProjectID     int64  `json:"projectId"`
+				ProjectName   string `json:"projectName"`
+				Publisher     string `json:"publisher"`
+				Branch        string `json:"branch"`
+				CommitSHA     string `json:"commitSHA"`
+				CommitMessage string `json:"commitMessage"`
+				ServerList    string `json:"serverList"`
 			} `json:"data"`
 		}
 		code := 0
@@ -533,7 +566,11 @@ func notify(project model.Project, deployState int, detail string) {
 		}
 		msg.Data.ProjectID = project.ID
 		msg.Data.ProjectName = project.Name
-		msg.Data.Branch = project.Branch
+		msg.Data.Publisher = project.PublisherName
+		msg.Data.Branch = commitInfo.Branch
+		msg.Data.CommitSHA = commitInfo.Commit
+		msg.Data.CommitMessage = commitInfo.Message
+		msg.Data.ServerList = serverList
 		b, _ := json.Marshal(msg)
 		_, err := http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))
 		if err != nil {

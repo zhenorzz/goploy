@@ -138,7 +138,7 @@ export default {
     sshKeyOwner: 'SSH-Key 所有者',
     sshKeyPath: 'SSH-Key 路径',
     sshKeyPassword: 'SSH-Key 密码',
-    copyPub: '复制共钥',
+    copyPub: '复制公钥',
     copyPubTips: '复制成功，请粘贴到目标服务器~/.ssh/authorized_keys里面',
     testConnection: '测试连接',
     removeServerTips: '此操作将删除服务器({serverName}), 是否继续?'
