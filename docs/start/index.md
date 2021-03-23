@@ -85,3 +85,21 @@ server{
     }
 }
 ```
+
+# 守护进程
+
+推荐使用systemd
+
+```shell
+[Unit]
+Description=The Goploy
+After=network.target
+
+[Service]
+Environment="HOME=/root"
+WorkingDirectory=/var/www/goploy
+ExecStart=/var/www/goploy/goploy
+
+[Install]
+WantedBy=multi-user.target
+```
