@@ -1,5 +1,16 @@
 # change log
 
+## 1.2.2
+
+*2021-03-26*
+
+### Optimization
+- go embed static file
+- more notify content
+
+### Bug fixes
+- fix symlink rollback
+
 ## 1.2.1
 
 *2021-03-03*

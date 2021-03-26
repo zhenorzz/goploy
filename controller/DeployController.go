@@ -9,6 +9,7 @@ import (
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/service"
 	"github.com/zhenorzz/goploy/utils"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
@@ -327,6 +328,10 @@ func (Deploy) Rebuild(gp *core.Goploy) *core.Response {
 		needToPublish = true
 	}
 	if needToPublish == false {
+		if len(project.AfterDeployScript) != 0 {
+			scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
+			ioutil.WriteFile(scriptName, []byte(service.ReplaceScriptVars(project.AfterDeployScript, project)), 0755)
+		}
 		ch := make(chan bool, len(projectServers))
 		for _, projectServer := range projectServers {
 			go func(projectServer model.ProjectServer) {
@@ -361,8 +366,18 @@ func (Deploy) Rebuild(gp *core.Goploy) *core.Response {
 					ch <- false
 					return
 				}
+				afterDeployCommands := []string{"ln -sfn " + symlinkPath + " " + project.Path}
+				if len(project.AfterDeployScript) != 0 {
+					scriptMode := "bash"
+					if len(project.AfterDeployScriptMode) != 0 {
+						scriptMode = project.AfterDeployScriptMode
+					}
+					afterDeployScriptPath := path.Join(project.Path, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
+					afterDeployCommands = append(afterDeployCommands, scriptMode+" "+afterDeployScriptPath)
+					afterDeployCommands = append(afterDeployCommands, "rm -f "+afterDeployScriptPath)
+				}
 				// redirect to project path
-				if err := session.Run("ln -sfn " + symlinkPath + " " + project.Path); err != nil {
+				if err := session.Run(strings.Join(afterDeployCommands, ";")); err != nil {
 					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" ln -sfn err: "+err.Error()+", detail: "+sshErrbuf.String())
 					ch <- false
 					return

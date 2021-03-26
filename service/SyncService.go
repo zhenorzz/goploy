@@ -291,7 +291,7 @@ func remoteSync(msgChIn chan<- syncMessage, userInfo model.User, project model.P
 	// write after deploy script for rsync
 	if len(project.AfterDeployScript) != 0 {
 		scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
-		ioutil.WriteFile(scriptName, []byte(replaceScriptVars(project.AfterDeployScript, project)), 0755)
+		ioutil.WriteFile(scriptName, []byte(ReplaceScriptVars(project.AfterDeployScript, project)), 0755)
 	}
 	rsyncOption, _ := utils.ParseCommandLine(project.RsyncOption)
 	rsyncOption = append([]string{"--exclude", "goploy-after-pull.sh", "--include", "goploy-after-deploy.sh"}, rsyncOption...)
@@ -601,7 +601,7 @@ func removeExpiredBackup(project model.Project, projectServer model.ProjectServe
 	}
 }
 
-func replaceScriptVars(script string, project model.Project) string {
+func ReplaceScriptVars(script string, project model.Project) string {
 	scriptVars := map[string]string{
 		"${PROJECT_PATH}":         project.Path,
 		"${PROJECT_SYMLINK_PATH}": path.Join(project.SymlinkPath, project.LastPublishToken),
