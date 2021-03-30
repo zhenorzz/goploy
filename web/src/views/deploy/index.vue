@@ -19,7 +19,7 @@
       border
       stripe
       highlight-current-row
-      :max-height="tableHeight"
+      :max-height="tableHeight-34"
       :data="tablePageData"
       style="width: 100%;margin-top: 5px;"
     >
@@ -103,18 +103,18 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination
-      hide-on-single-page
-      :total="pagination.total"
-      :page-size="pagination.rows"
-      :current-page.sync="pagination.page"
-      style="margin-top:10px; text-align:right;"
-      background
-      :page-sizes="[20, 50, 100]"
-      layout="sizes, total, prev, pager, next, jumper"
-      @size-change="handleSizeChange"
-      @current-change="handlePageChange"
-    />
+    <el-row type="flex" justify="end" style="margin-top: 10px;">
+      <el-pagination
+        :total="pagination.total"
+        :page-size="pagination.rows"
+        :current-page.sync="pagination.page"
+        background
+        :page-sizes="[20, 50, 100]"
+        layout="sizes, total, prev, pager, next, jumper"
+        @size-change="handleSizeChange"
+        @current-change="handlePageChange"
+      />
+    </el-row>
     <el-dialog :title="$t('detail')" :visible.sync="dialogVisible" class="publish-record">
       <el-row type="flex">
         <el-row v-loading="searchPreview.loading" class="publish-preview">
@@ -641,7 +641,7 @@ export default {
       pagination: {
         total: 0,
         page: 1,
-        rows: 16
+        rows: 20
       },
       taskTableLoading: false,
       taskTableData: [],
@@ -866,6 +866,7 @@ export default {
           return element
         })
         this.pagination.total = this.tableData.length
+        console.log(this.tableData.length)
       }).finally(() => {
         this.tableloading = false
       })

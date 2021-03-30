@@ -216,6 +216,7 @@ func (Crontab) Edit(gp *core.Goploy) *core.Response {
 // import many crontab
 func (Crontab) Import(gp *core.Goploy) *core.Response {
 	type ReqData struct {
+		ServerID int64    `json:"serverId" validate:"gt=0"`
 		Commands []string `json:"commands" validate:"required"`
 	}
 	var reqData ReqData
@@ -247,15 +248,25 @@ func (Crontab) Import(gp *core.Goploy) *core.Response {
 		}
 	}
 
-	var addCommands []string
+	crontabServersModel := model.CrontabServers{}
 	for _, command := range commands {
-		addCommands = append(addCommands, command)
-	}
-	if len(addCommands) != 0 {
-		err := model.Crontab{Creator: gp.UserInfo.Name, CreatorID: gp.UserInfo.ID}.AddRowsInCommand(addCommands)
+		crontabID, err := model.Crontab{
+			NamespaceID: gp.Namespace.ID,
+			Command:     command,
+			Creator:     gp.UserInfo.Name,
+			CreatorID:   gp.UserInfo.ID,
+		}.AddRow()
 		if err != nil {
 			return &core.Response{Code: core.Error, Message: err.Error()}
 		}
+		crontabServerModel := model.CrontabServer{
+			CrontabID: crontabID,
+			ServerID:  reqData.ServerID,
+		}
+		crontabServersModel = append(crontabServersModel, crontabServerModel)
+	}
+	if err := crontabServersModel.AddMany(); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	return &core.Response{}

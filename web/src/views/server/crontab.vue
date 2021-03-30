@@ -374,7 +374,7 @@ export default {
         this.$message.warning(this.$i18n.t('crontabPage.selectItemTips'))
         return
       }
-      importCrontab({ commands: this.selectedItems.map(element => element.command) }).then(response => {
+      importCrontab({ serverId: this.importProps.serverId, commands: this.selectedItems.map(element => element.command) }).then(response => {
         this.getList()
         this.getTotal()
         this.$message.success('Success')
