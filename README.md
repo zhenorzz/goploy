@@ -62,10 +62,11 @@ Although most popular publishing tools are powerful, they are cumbersome to conf
 ![Diagram](./goploy.png)
 
 ## Backend
-1. Install go >= 1.13
+1. Install go >= 1.16
 2. go mod required
-3. go run main.go
-4. use gin (hot reload)
+3. edit .env ENV=dev   
+4. go run main.go
+5. use gin (hot reload)
 
 ## Frontend
 1. cd web

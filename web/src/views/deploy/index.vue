@@ -80,11 +80,11 @@
             >
               {{ isMember() && scope.row.review === 1 ? $t('submit') : $t('deploy') }}
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item :command="getBranchList">Commit list</el-dropdown-item>
+                <el-dropdown-item :command="handleCommitCommand">Commit list</el-dropdown-item>
                 <el-dropdown-item :command="getTagList">Tag list</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
-            <el-button v-else type="primary" @click="getBranchList(scope.row)">{{ $t('deploy') }}</el-button>
+            <el-button v-else type="primary" @click="handleCommitCommand(scope.row)">{{ $t('deploy') }}</el-button>
             <el-dropdown
               v-if="hasGroupManagerPermission() || scope.row.review === 1"
               trigger="click"
@@ -188,7 +188,7 @@
                   align="center"
                 />
               </el-row>
-              <el-button slot="reference" icon="el-icon-notebook-2" style="width: 220px;">条件筛选({{ previewFilterlength }})</el-button>
+              <el-button slot="reference" icon="el-icon-notebook-2" style="width: 220px;">Filter({{ previewFilterlength }})</el-button>
             </el-popover>
             <el-button type="warning" icon="el-icon-refresh" @click="refreshSearchPreviewCondition" />
             <el-button type="primary" icon="el-icon-search" style="margin-left: 2px;" @click="searchPreviewList" />
@@ -223,7 +223,6 @@
                 -------------GIT-------------
               </el-row>
               <el-row style="margin:5px 0">Time: {{ item.updateTime }}</el-row>
-              <!-- 用数组的形式 兼容以前版本 -->
               <el-row v-if="item.state !== 0">
                 <el-row>Branch: {{ item['branch'] }}</el-row>
                 <el-row>Commit:
@@ -336,6 +335,7 @@
         highlight-current-row
         max-height="447px"
         :data="commitTableData"
+        style="width: 100%"
       >
         <el-table-column type="expand">
           <template slot-scope="props">
@@ -362,11 +362,26 @@
             {{ parseTime(scope.row.timestamp) }}
           </template>
         </el-table-column>
-        <el-table-column prop="operation" :label="$t('op')" width="260" align="center" fixed="right">
+        <el-table-column prop="operation" :label="$t('op')" width="180" align="center" fixed="right">
           <template slot-scope="scope">
-            <el-button type="danger" @click="publishByCommit(scope.row)">{{ $t('deploy') }}</el-button>
-            <el-button v-if="!isMember()" type="primary" @click="handleAddProjectTask(scope.row)">{{ $t('crontab') }}</el-button>
-            <el-button v-if="!isMember()" type="warning" @click="handleGreyPublish(scope.row)">{{ $t('grey') }}</el-button>
+            <el-button v-if="commitDialogReferer!=='task'" type="danger" @click="publishByCommit(scope.row)">{{ $t('deploy') }}</el-button>
+            <el-popover
+              :ref="`task${scope.row.commit}`"
+              placement="bottom"
+              trigger="click"
+              width="270"
+            >
+              <el-date-picker
+                v-model="scope.row.date"
+                :picker-options="taskFormProps.pickerOptions"
+                type="datetime"
+                value-format="yyyy-MM-dd HH:mm:ss"
+                style="width: 180px"
+              />
+              <el-button type="primary" :disabled="!scope.row['date']" @click="submitTask(scope.row)">{{ $t('confirm') }}</el-button>
+              <el-button v-if="!isMember() && commitDialogReferer==='task'" slot="reference" type="primary">{{ $t('crontab') }}</el-button>
+            </el-popover>
+            <el-button v-if="!isMember() && commitDialogReferer!=='task'" type="warning" @click="handleGreyPublish(scope.row)">{{ $t('grey') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -452,6 +467,9 @@
       </div>
     </el-dialog>
     <el-dialog :title="$t('manage')" :visible.sync="taskListDialogVisible">
+      <el-row class="app-bar" type="flex" justify="end">
+        <el-button type="primary" icon="el-icon-plus" @click="handleAddProjectTask" />
+      </el-row>
       <el-table
         v-loading="taskTableLoading"
         border
@@ -588,23 +606,6 @@
         <el-button @click="reviewListDialogVisible = false">{{ $t('cancel') }}</el-button>
       </div>
     </el-dialog>
-    <el-dialog :title="$t('setting')" :visible.sync="taskDialogVisible" width="600px">
-      <el-form ref="taskForm" :rules="taskFormRules" :model="taskFormData" label-width="120px">
-        <el-form-item :label="$t('time')" prop="date">
-          <el-date-picker
-            v-model="taskFormData.date"
-            :picker-options="taskFormProps.pickerOptions"
-            type="datetime"
-            value-format="yyyy-MM-dd HH:mm:ss"
-            style="width: 400px"
-          />
-        </el-form-item>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="taskDialogVisible = false">{{ $t('cancel') }}</el-button>
-        <el-button :disabled="taskFormProps.disabled" type="primary" @click="submitTask">{{ $t('confirm') }}</el-button>
-      </div>
-    </el-dialog>
   </el-row>
 </template>
 <script>
@@ -625,13 +626,14 @@ export default {
       commitDialogVisible: false,
       tagDialogVisible: false,
       greyServerDialogVisible: false,
-      taskDialogVisible: false,
       taskListDialogVisible: false,
       reviewDialogVisible: false,
       reviewListDialogVisible: false,
       dialogVisible: false,
       traceLoading: false,
       tableloading: false,
+      dateVisible: false,
+      commitDialogReferer: '',
       tableData: [],
       searchProject: {
         name: '',
@@ -651,27 +653,12 @@ export default {
         rows: 20
       },
       taskFormProps: {
-        disabled: false,
+        dateVisible: true,
         pickerOptions: {
           disabledDate(time) {
             return time.getTime() < Date.now() - 3600 * 1000 * 24
           }
         }
-      },
-      taskFormData: {
-        id: 0,
-        projectId: '',
-        branch: '',
-        commitId: '',
-        date: ''
-      },
-      taskFormRules: {
-        commitId: [
-          { required: true, message: 'CommitID required', trigger: 'change' }
-        ],
-        date: [
-          { required: true, message: 'Date required', trigger: 'change' }
-        ]
       },
       reviewTableLoading: false,
       reviewTableData: [],
@@ -866,7 +853,6 @@ export default {
           return element
         })
         this.pagination.total = this.tableData.length
-        console.log(this.tableData.length)
       }).finally(() => {
         this.tableloading = false
       })
@@ -981,16 +967,21 @@ export default {
       getBindServerList(data.projectId).then((response) => {
         this.greyServerFormProps.serverOption = response.data.list
       })
-      // 先把projectID写入添加服务器的表单
+      // add projectID to server form
       this.greyServerFormData.projectId = data.projectId
       this.greyServerFormData.commit = data.commit
       this.greyServerDialogVisible = true
     },
 
-    getBranchList(data) {
-      const id = data.id
+    handleCommitCommand(data) {
+      this.commitDialogReferer = 'commit'
       this.selectedItem = data
       this.commitDialogVisible = true
+      this.getBranchList()
+    },
+
+    getBranchList() {
+      const id = this.selectedItem.id
       this.branchLoading = true
       this.branch = ''
       this.branchOption = []
@@ -1044,15 +1035,6 @@ export default {
       })
     },
 
-    handleAddProjectTask(data) {
-      this.taskDialogVisible = true
-      this.taskFormData.id = 0
-      this.taskFormData.projectId = this.selectedItem.id
-      this.taskFormData.branch = data.branch
-      this.taskFormData.commitId = data.commit
-      this.taskFormData.date = ''
-    },
-
     getTaskList() {
       this.taskTableLoading = true
       getTaskList(this.taskPagination, this.selectedItem.id).then(response => {
@@ -1076,19 +1058,20 @@ export default {
       this.getTaskList()
     },
 
-    submitTask() {
-      this.$refs.taskForm.validate((valid) => {
-        if (valid) {
-          this.taskFormProps.disabled = true
-          addTask(this.taskFormData).then(_ => {
-            this.$message.success('Success')
-          }).finally(() => {
-            this.taskFormProps.disabled = false
-            this.taskDialogVisible = false
-          })
-        } else {
-          return false
-        }
+    handleAddProjectTask() {
+      this.commitDialogReferer = 'task'
+      this.commitDialogVisible = true
+      this.getBranchList()
+    },
+
+    submitTask(data) {
+      addTask(data).then(() => {
+        this.$message.success('Success')
+      }).finally(() => {
+        this.$refs[`task${data.commit}`].doClose()
+        this.taskPagination.page = 1
+        this.commitDialogVisible = false
+        this.getTaskList()
       })
     },
 

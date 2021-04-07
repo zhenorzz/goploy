@@ -4,8 +4,9 @@
 
 Dependencies
 
+- go >= 1.16
 - Git >= 2.10
-- MySQL>=5.6
+- MySQL>=5.7
 - MySQL Client
 - Rsync(windows need to install [cwRsync](https://www.itefix.net/cwrsync))
 

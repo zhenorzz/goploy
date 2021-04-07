@@ -4,8 +4,9 @@
 
 安装前必须保证系统已经安装了下列软件
 
+- go >= 1.16
 - Git >= 2.10
-- MySQL >= 5.6
+- MySQL >= 5.7
 - MySQL客户端
 - Rsync(linux mac自带，windows需要安装[cwRsync](https://www.itefix.net/cwrsync))
 
