@@ -298,7 +298,6 @@ func remoteSync(msgChIn chan<- syncMessage, userInfo model.User, project model.P
 	rsyncOption = append(rsyncOption, "-e", "ssh -p "+strconv.Itoa(projectServer.ServerPort)+" -o StrictHostKeyChecking=no")
 	if len(project.SymlinkPath) != 0 {
 		destDir = path.Join(project.SymlinkPath, project.Name, project.LastPublishToken)
-		rsyncOption = append(rsyncOption, "--rsync-path=mkdir -p "+destDir+" && rsync")
 	}
 	srcPath := core.GetProjectPath(project.ID) + "/"
 	// rsync path can not contain colon
@@ -307,7 +306,7 @@ func remoteSync(msgChIn chan<- syncMessage, userInfo model.User, project model.P
 		srcPath = "/cygdrive/" + strings.Replace(srcPath, ":\\", "/", 1)
 	}
 	destPath := remoteMachine + ":" + destDir
-	rsyncOption = append(rsyncOption, srcPath, destPath)
+	rsyncOption = append(rsyncOption, "--rsync-path=mkdir -p "+destDir+" && rsync", srcPath, destPath)
 	cmd := exec.Command("rsync", rsyncOption...)
 	var outbuf, errbuf bytes.Buffer
 	cmd.Stdout = &outbuf
