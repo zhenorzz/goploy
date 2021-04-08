@@ -147,7 +147,7 @@ export default {
         ip: '',
         port: 22,
         owner: '',
-        path: '',
+        path: '/root/.ssh/id_rsa',
         password: '',
         description: ''
       },
