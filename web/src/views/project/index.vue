@@ -3,7 +3,7 @@
     <el-row class="app-bar" type="flex" justify="space-between">
       <el-row>
         <el-input v-model="projectName" style="width:200px" placeholder="Filter the project name" />
-        <el-button type="primary" icon="el-icon-search" @click="searchProjectList" />
+        <el-button :loading="tableloading" type="primary" icon="el-icon-search" @click="searchProjectList" />
       </el-row>
       <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
@@ -107,9 +107,9 @@
               <el-row type="flex">
                 <el-input v-model.trim="formData.url" autocomplete="off" placeholder="HTTPS、HTTP、SSH" @change="formProps.branch = []" />
                 <el-button
-                  :icon="formProps.lsBranchLoading ? 'el-icon-loading' : 'el-icon-view'"
+                  :icon="'el-icon-view'"
                   type="success"
-                  :disabled="formProps.lsBranchLoading"
+                  :loading="formProps.lsBranchLoading"
                   @click="getRemoteBranchList"
                 >{{ $t('projectPage.testConnection') }}</el-button>
               </el-row>
@@ -142,9 +142,9 @@
                   />
                 </el-select>
                 <el-button
-                  :icon="formProps.lsBranchLoading ? 'el-icon-loading' : 'el-icon-search'"
+                  :icon="'el-icon-search'"
                   type="success"
-                  :disabled="formProps.lsBranchLoading"
+                  :loading="formProps.lsBranchLoading"
                   @click="getRemoteBranchList"
                 >{{ $t('projectPage.lishBranch') }}</el-button>
               </el-row>

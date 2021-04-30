@@ -191,7 +191,7 @@
               <el-button slot="reference" icon="el-icon-notebook-2" style="width: 220px;">Filter({{ previewFilterlength }})</el-button>
             </el-popover>
             <el-button type="warning" icon="el-icon-refresh" @click="refreshSearchPreviewCondition" />
-            <el-button type="primary" icon="el-icon-search" style="margin-left: 2px;" @click="searchPreviewList" />
+            <el-button :loading="searchPreview.loading" type="primary" icon="el-icon-search" style="margin-left: 2px;" @click="searchPreviewList" />
           </el-row>
           <el-radio-group v-model="publishToken" @change="handleTraceChange">
             <el-row v-for="(item, index) in gitTraceList" :key="index">

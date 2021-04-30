@@ -100,7 +100,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-row type="flex" justify="space-between">
-          <el-button type="success" @click="check">{{ $t('monitorPage.testAppState') }}</el-button>
+          <el-button :loading="formProps.loading" type="success" @click="check">{{ $t('monitorPage.testAppState') }}</el-button>
           <el-row>
             <el-button @click="dialogVisible = false">{{ $t('cancel') }}</el-button>
             <el-button :disabled="formProps.disabled" type="primary" @click="submit">{{ $t('confirm') }}</el-button>

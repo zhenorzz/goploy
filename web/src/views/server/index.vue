@@ -68,6 +68,7 @@
             <el-button
               :icon="'el-icon-copy-document'"
               type="success"
+              :loading="formProps.copyPubLoading"
               :disabled="formData.path===''"
               @click="getPublicKey"
             >{{ $t('serverPage.copyPub') }}</el-button>
@@ -86,7 +87,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-row type="flex" justify="space-between">
-          <el-button type="success" @click="check">{{ $t('serverPage.testConnection') }}</el-button>
+          <el-button :loading="formProps.loading" type="success" @click="check">{{ $t('serverPage.testConnection') }}</el-button>
           <el-row>
             <el-button @click="dialogVisible = false">{{ $t('cancel') }}</el-button>
             <el-button :disabled="formProps.disabled" type="primary" @click="submit">{{ $t('confirm') }}</el-button>
@@ -138,6 +139,7 @@ export default {
       tempFormData: {},
       formProps: {
         loading: false,
+        copyPubLoading: false,
         disabled: false
       },
       formData: {
@@ -200,8 +202,11 @@ export default {
     },
 
     getPublicKey() {
+      this.formProps.copyPubLoading = true
       getPublicKey(this.formData.path).then((response) => {
         this.copy(response.data, this.$t('serverPage.copyPubTips'))
+      }).finally(() => {
+        this.formProps.copyPubLoading = false
       })
     },
 
