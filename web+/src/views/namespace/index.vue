@@ -99,7 +99,7 @@
         border
         stripe
         highlight-current-row
-        :data="tableUserData.filter((row) => row.role !== $global.Admin)"
+        :data="tableUserData.filter((row) => row.role !== role.Admin)"
         style="width: 100%"
       >
         <el-table-column prop="userId" :label="$t('userId')" />
@@ -165,9 +165,9 @@
           <el-select v-model="addUserFormData.role">
             <el-option
               v-for="(role, index) in [
-                $global.Manager,
-                $global.GroupManager,
-                $global.Member,
+                role.Manager,
+                role.GroupManager,
+                role.Member,
               ]"
               :key="index"
               :label="role"

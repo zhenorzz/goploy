@@ -168,7 +168,7 @@
         :model="formData"
         label-width="120px"
       >
-        <el-tabs v-model="formProps.tab" @tab-click="handleTabClick">
+        <el-tabs v-model="formProps.tab">
           <el-tab-pane :label="$t('baseSetting')" name="base">
             <el-form-item :label="$t('name')" prop="name">
               <el-input
@@ -325,7 +325,7 @@
                 <el-option
                   v-for="(item, index) in userOption.filter(
                     (item) =>
-                      [$global.Admin, $global.Manager].indexOf(item.role) === -1
+                      [role.Admin, role.Manager].indexOf(item.role) === -1
                   )"
                   :key="index"
                   :label="item.userName"
@@ -663,7 +663,7 @@
         >
           <template #default="scope">
             <el-button
-              v-show="scope.row.role !== $global.GroupManager"
+              v-show="role.hasManagerPermission()"
               type="danger"
               icon="el-icon-delete"
               @click="removeUser(scope.row)"
@@ -846,8 +846,7 @@
           >
             <el-option
               v-for="(item, index) in userOption.filter(
-                (item) =>
-                  [$global.Admin, $global.Manager].indexOf(item.role) === -1
+                (item) => [role.Admin, role.Manager].indexOf(item.role) === -1
               )"
               :key="index"
               :label="item.userName"
@@ -896,6 +895,7 @@ import {
   removeServer,
   removeUser,
 } from '@/api/project'
+import { role } from '@/utils/namespace'
 import { VAceEditor } from 'vue3-ace-editor'
 import 'ace-builds/src-noconflict/mode-sh'
 import 'ace-builds/src-noconflict/mode-python'
@@ -920,6 +920,7 @@ export default defineComponent({
       }
     }
     return {
+      role,
       scriptLangOption: [
         { label: 'sh', value: 'sh', lang: 'sh' },
         { label: 'zsh', value: 'zsh', lang: 'sh' },
@@ -1163,8 +1164,6 @@ export default defineComponent({
           this.$message.info('Cancel')
         })
     },
-
-    handleTabClick(vueEvent) {},
 
     getScriptLang(scriptMode = '') {
       if (scriptMode !== '') {

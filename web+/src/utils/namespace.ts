@@ -8,6 +8,37 @@ interface Namespace {
   role: string
 }
 
+export const role = Object.freeze({
+  Admin: 'admin',
+  Manager: 'manager',
+  GroupManager: 'group-manager',
+  Member: 'member',
+  toString(): string {
+    return getNamespace()['role']
+  },
+  isAdmin(): boolean {
+    return role.Admin === getNamespace()['role']
+  },
+  isManager(): boolean {
+    return role.Manager === getNamespace()['role']
+  },
+  isGroupManager(): boolean {
+    return role.GroupManager === getNamespace()['role']
+  },
+  isMember(): boolean {
+    return role.Member === getNamespace()['role']
+  },
+  hasAdminPermission(): boolean {
+    return role.isAdmin()
+  },
+  hasManagerPermission(): boolean {
+    return role.isAdmin() || role.isManager()
+  },
+  hasGroupManagerPermission(): boolean {
+    return role.isAdmin() || role.isManager() || role.isGroupManager()
+  },
+})
+
 export function getNamespace(): Namespace {
   const namespace = localStorage.getItem(NamespaceKey)
   return namespace ? JSON.parse(namespace) : undefined

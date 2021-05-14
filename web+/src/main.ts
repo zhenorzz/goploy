@@ -9,7 +9,6 @@ import SvgIcon from '@/components/SvgIcon/index.vue' // svg component
 import ElementPlus from 'element-plus'
 import 'element-plus/lib/theme-chalk/index.css'
 import 'vite-plugin-svg-icons/register' // register svg sprite map
-import global from '@/global' // global config
 import App from './App.vue'
 
 const app = createApp(App)
@@ -21,7 +20,5 @@ app.use(router)
 app.use(store)
 app.use(i18n)
 app.component('SvgIcon', SvgIcon)
-
-app.config.globalProperties.$global = global
 
 app.mount('#app')

@@ -144,13 +144,18 @@
               >{{ $t('initial') }}</el-button
             >
             <el-button
-              v-else-if="hasManagerPermission() && scope.row.deployState === 1"
+              v-else-if="
+                role.hasManagerPermission() && scope.row.deployState === 1
+              "
               type="primary"
               @click="resetState(scope.row)"
-              >{{ $t('deployPage.resetState') }}</el-button
             >
+              {{ $t('deployPage.resetState') }}
+            </el-button>
             <el-dropdown
-              v-else-if="hasGroupManagerPermission() || scope.row.review === 0"
+              v-else-if="
+                role.hasGroupManagerPermission() || scope.row.review === 0
+              "
               split-button
               trigger="click"
               type="primary"
@@ -181,7 +186,7 @@
               {{ $t('deploy') }}
             </el-button>
             <el-dropdown
-              v-if="hasGroupManagerPermission() || scope.row.review === 1"
+              v-if="role.hasGroupManagerPermission() || scope.row.review === 1"
               trigger="click"
               @command="(commandFunc) => commandFunc(scope.row)"
             >
@@ -191,7 +196,7 @@
               <template #dropdown>
                 <el-dropdown-menu style="min-width: 84px; text-align: center">
                   <el-dropdown-item
-                    v-if="hasGroupManagerPermission()"
+                    v-if="role.hasGroupManagerPermission()"
                     :command="handleTaskCommand"
                   >
                     {{ $t('deployPage.taskDeploy') }}
@@ -212,7 +217,7 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-row type="flex" justify="end" style="margin-top: 10px">
+    <el-row type="flex" justify="end" style="width: 100%; margin-top: 10px">
       <el-pagination
         v-model:current-page="pagination.page"
         :total="pagination.total"
@@ -306,9 +311,9 @@
                 />
               </el-row>
               <el-row type="flex" align="middle" style="margin-top: 5px">
-                <label class="publish-filter-label">{{
-                  $t('deployDate')
-                }}</label>
+                <label class="publish-filter-label">
+                  {{ $t('deployDate') }}
+                </label>
                 <el-date-picker
                   v-model="searchPreview.deployDate"
                   class="dmp-date-picker"
@@ -640,7 +645,7 @@
               </el-button>
               <template #reference>
                 <el-button
-                  v-if="!isMember() && commitDialogReferer === 'task'"
+                  v-if="!role.isMember() && commitDialogReferer === 'task'"
                   type="primary"
                 >
                   {{ $t('crontab') }}
@@ -648,7 +653,7 @@
               </template>
             </el-popover>
             <el-button
-              v-if="!isMember() && commitDialogReferer !== 'task'"
+              v-if="!role.isMember() && commitDialogReferer !== 'task'"
               type="warning"
               @click="handleGreyPublish(scope.row)"
             >
@@ -732,7 +737,7 @@
               {{ $t('deploy') }}
             </el-button>
             <el-button
-              v-if="!isMember()"
+              v-if="!role.isMember()"
               type="warning"
               @click="handleGreyPublish(scope.row)"
             >
@@ -1032,6 +1037,7 @@ import {
   getReviewList,
 } from '@/api/project'
 import { getUserOption } from '@/api/namespace'
+import { role } from '@/utils/namespace'
 import { empty, parseTime, parseGitURL } from '@/utils'
 import { defineComponent } from 'vue'
 
@@ -1040,6 +1046,7 @@ export default defineComponent({
   mixins: [tableHeight],
   data() {
     return {
+      role,
       userId: '',
       userOption: [],
       publishToken: '',
