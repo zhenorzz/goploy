@@ -136,7 +136,7 @@ import {
   UserEdit,
   UserRemove,
 } from '@/api/user'
-import { RuleItem } from 'async-validator'
+import Validator, { RuleItem } from 'async-validator'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { defineComponent } from 'vue'
 
@@ -170,7 +170,6 @@ export default defineComponent({
             trigger: 'blur',
             validator: (_, value) => {
               if (!validUsername(value)) {
-                console.log('Greater than 5 characters')
                 return new Error('Greater than 5 characters')
               } else {
                 return true
@@ -267,7 +266,7 @@ export default defineComponent({
     },
 
     submit() {
-      ;(this.$refs.form as any).validate((valid: boolean) => {
+      ;(this.$refs.form as Validator).validate((valid: boolean) => {
         if (valid) {
           if (this.formData.id === 0) {
             this.add()

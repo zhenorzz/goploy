@@ -2,26 +2,30 @@ import Axios from './axios'
 import { HttpResponse, Pagination, Total, ID } from './types'
 
 export class Login {
+  readonly url = '/user/login'
+  readonly method = 'post'
   public param: {
     account: string
     password: string
   }
   public datagram!: {
-    namespaceList: Array<{ id: number; name: string; role: string }>
+    namespaceList: { id: number; name: string; role: string }[]
   }
   constructor(param: Login['param']) {
     this.param = param
   }
   public request(): Promise<HttpResponse<this['datagram']>> {
     return Axios.request({
-      url: '/user/login',
-      method: 'post',
+      url: this.url,
+      method: this.method,
       data: { ...this.param },
     })
   }
 }
 
 export class Info {
+  readonly url = '/user/info'
+  readonly method = 'get'
   public datagram!: {
     userInfo: {
       account: string
@@ -32,8 +36,8 @@ export class Info {
   }
   public request(): Promise<HttpResponse<this['datagram']>> {
     return Axios.request({
-      url: '/user/info',
-      method: 'get',
+      url: this.url,
+      method: this.method,
     })
   }
 }
@@ -56,7 +60,11 @@ export class UserData {
 }
 
 export class UserList {
+  readonly url = '/user/getList'
+  readonly method = 'get'
+
   public pagination: Pagination
+
   public datagram!: {
     list: UserData['datagram']['detail'][]
   }
@@ -65,14 +73,17 @@ export class UserList {
   }
   public request(): Promise<HttpResponse<this['datagram']>> {
     return Axios.request({
-      url: '/user/getList',
-      method: 'get',
+      url: this.url,
+      method: this.method,
       params: { ...this.pagination },
     })
   }
 }
 
 export class UserTotal {
+  readonly url = '/user/getTotal'
+  readonly method = 'get'
+
   public datagram!: Total
 
   public request(): Promise<HttpResponse<this['datagram']>> {
@@ -84,6 +95,8 @@ export class UserTotal {
 }
 
 export class UserOption {
+  readonly url = '/user/getOption'
+  readonly method = 'get'
   public datagram!: {
     list: {
       id: number
@@ -100,13 +113,15 @@ export class UserOption {
   }
   public request(): Promise<HttpResponse<this['datagram']>> {
     return Axios.request({
-      url: '/user/getOption',
-      method: 'get',
+      url: this.url,
+      method: this.method,
     })
   }
 }
 
 export class UserAdd {
+  readonly url = '/user/add'
+  readonly method = 'post'
   public param: {
     account: string
     password: string
@@ -120,14 +135,16 @@ export class UserAdd {
   }
   public request(): Promise<HttpResponse<this['datagram']>> {
     return Axios.request({
-      url: '/user/add',
-      method: 'post',
+      url: this.url,
+      method: this.method,
       data: { ...this.param },
     })
   }
 }
 
 export class UserEdit {
+  readonly url = '/user/edit'
+  readonly method = 'put'
   public param: {
     id: number
     password: string
@@ -140,28 +157,32 @@ export class UserEdit {
   }
   public request(): Promise<HttpResponse<never>> {
     return Axios.request({
-      url: '/user/edit',
-      method: 'post',
+      url: this.url,
+      method: this.method,
       data: { ...this.param },
     })
   }
 }
 
 export class UserRemove {
+  readonly url = '/user/remove'
+  readonly method = 'delete'
   public param: ID
   constructor(param: ID) {
     this.param = param
   }
   public request(): Promise<HttpResponse<never>> {
     return Axios.request({
-      url: '/user/remove',
-      method: 'delete',
+      url: this.url,
+      method: this.method,
       data: { ...this.param },
     })
   }
 }
 
 export class UserChangePassword {
+  readonly url = '/user/changePassword'
+  readonly method = 'put'
   public param: {
     oldPwd: string
     newPwd: string
@@ -171,8 +192,8 @@ export class UserChangePassword {
   }
   public request(): Promise<HttpResponse<never>> {
     return Axios.request({
-      url: '/user/changePassword',
-      method: 'put',
+      url: this.url,
+      method: this.method,
       data: { ...this.param },
     })
   }
