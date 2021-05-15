@@ -167,11 +167,10 @@ export default defineComponent({
       formRules: {
         account: [
           {
-            required: true,
-            message: 'Account required',
             trigger: 'blur',
             validator: (_, value) => {
               if (!validUsername(value)) {
+                console.log('Greater than 5 characters')
                 return new Error('Greater than 5 characters')
               } else {
                 return true

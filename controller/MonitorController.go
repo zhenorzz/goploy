@@ -28,7 +28,7 @@ func (Monitor) GetList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetList monitor list
+// GetTotal monitor total
 func (Monitor) GetTotal(gp *core.Goploy) *core.Response {
 	total, err := model.Monitor{NamespaceID: gp.Namespace.ID}.GetTotal()
 	if err != nil {
@@ -136,7 +136,7 @@ func (Monitor) Edit(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// Stop one Monitor
+// Toggle Monitor state
 func (Monitor) Toggle(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
@@ -152,7 +152,7 @@ func (Monitor) Toggle(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// RemoveRow one Monitor
+// Remove one Monitor
 func (Monitor) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
