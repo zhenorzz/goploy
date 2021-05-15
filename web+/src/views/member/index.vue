@@ -126,38 +126,27 @@
     </el-dialog>
   </el-row>
 </template>
-<script>
+<script lang="ts">
 import { validUsername, validPassword } from '@/utils/validate'
-import { getList, getTotal, add, edit, remove } from '@/api/user'
+import {
+  UserData,
+  UserList,
+  UserTotal,
+  UserAdd,
+  UserEdit,
+  UserRemove,
+} from '@/api/user'
+import { RuleItem } from 'async-validator'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'Member',
   data() {
-    const validateUsername = (rule, value, callback) => {
-      if (!validUsername(value)) {
-        callback(new Error('Greater than 5 characters'))
-      } else {
-        callback()
-      }
-    }
-    const validatePassword = (rule, value, callback) => {
-      if (!value) {
-        callback()
-      } else if (!validPassword(value)) {
-        callback(
-          new Error(
-            '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]'
-          )
-        )
-      } else {
-        callback()
-      }
-    }
     return {
       dialogVisible: false,
       tableLoading: false,
-      tableData: [],
+      tableData: [] as UserList['datagram']['list'],
       tempFormData: {},
       pagination: {
         page: 1,
@@ -181,11 +170,38 @@ export default defineComponent({
             required: true,
             message: 'Account required',
             trigger: 'blur',
-            validator: validateUsername,
-          },
+            validator: (_, value) => {
+              if (!validUsername(value)) {
+                return new Error('Greater than 5 characters')
+              } else {
+                return true
+              }
+            },
+          } as RuleItem,
         ],
-        password: [{ trigger: 'blur', validator: validatePassword }],
-        name: [{ required: true, message: 'Name required', trigger: 'blur' }],
+        password: [
+          {
+            trigger: 'blur',
+            validator: (_, value) => {
+              if (!value) {
+                return true
+              } else if (!validPassword(value)) {
+                return new Error(
+                  '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]'
+                )
+              } else {
+                return true
+              }
+            },
+          } as RuleItem,
+        ],
+        name: [
+          {
+            required: true,
+            message: 'Name required',
+            trigger: 'blur',
+          } as RuleItem,
+        ],
       },
     }
   },
@@ -197,7 +213,8 @@ export default defineComponent({
   methods: {
     getList() {
       this.tableLoading = true
-      getList(this.pagination)
+      new UserList(this.pagination)
+        .request()
         .then((response) => {
           this.tableData = response.data.list
         })
@@ -207,12 +224,12 @@ export default defineComponent({
     },
 
     getTotal() {
-      getTotal(this.crontabCommand).then((response) => {
+      new UserTotal().request().then((response) => {
         this.pagination.total = response.data.total
       })
     },
 
-    handleCurrentChange(val) {
+    handleCurrentChange(val: number) {
       this.pagination.page = val
       this.getList()
     },
@@ -222,14 +239,14 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleEdit(data) {
+    handleEdit(data: UserData['datagram']['detail']) {
       this.restoreFormData()
       this.formData = Object.assign(this.formData, data)
       this.dialogVisible = true
     },
 
-    handleRemove(data) {
-      this.$confirm(
+    handleRemove(data: UserData['datagram']['detail']) {
+      ElMessageBox.confirm(
         this.$t('memberPage.removeUserTips', { name: data.name }),
         this.$t('tips'),
         {
@@ -239,19 +256,19 @@ export default defineComponent({
         }
       )
         .then(() => {
-          remove(data.id).then(() => {
-            this.$message.success('Success')
+          new UserRemove(data).request().then(() => {
+            ElMessage.success('Success')
             this.getList()
             this.getTotal()
           })
         })
         .catch(() => {
-          this.$message.info('Cancel')
+          ElMessage.info('Cancel')
         })
     },
 
     submit() {
-      this.$refs.form.validate((valid) => {
+      ;(this.$refs.form as any).validate((valid: boolean) => {
         if (valid) {
           if (this.formData.id === 0) {
             this.add()
@@ -266,9 +283,10 @@ export default defineComponent({
 
     add() {
       this.formProps.disabled = true
-      add(this.formData)
+      new UserAdd(this.formData)
+        .request()
         .then(() => {
-          this.$message.success('Success')
+          ElMessage.success('Success')
           this.getList()
           this.getTotal()
           this.dialogVisible = false
@@ -280,9 +298,10 @@ export default defineComponent({
 
     edit() {
       this.formProps.disabled = true
-      edit(this.formData)
+      new UserEdit(this.formData)
+        .request()
         .then(() => {
-          this.$message.success('Success')
+          ElMessage.success('Success')
           this.getList()
           this.dialogVisible = false
         })

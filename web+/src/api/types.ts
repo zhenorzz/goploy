@@ -1,19 +1,19 @@
 // 接口响应通过格式
-export type HttpResponse<T> = {
+export interface HttpResponse<T> {
   code: number
   message: string
   data: T
 }
 
-export type Pagination = {
+export interface Pagination {
   page: number
   rows: number
 }
 
-export type Total = {
+export interface Total {
   total: number
 }
 
-export type ID = {
+export interface ID {
   id: number
 }

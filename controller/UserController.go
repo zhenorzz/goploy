@@ -227,7 +227,7 @@ func (User) Edit(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// RemoveRow User
+// Remove User
 func (User) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`

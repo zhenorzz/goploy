@@ -53,7 +53,7 @@
 
 <script>
 import { validPassword } from '@/utils/validate'
-import { changePassword } from '@/api/user'
+import { UserChangePassword } from '@/api/user'
 import { defineComponent } from 'vue'
 export default defineComponent({
   name: 'UserProfile',
@@ -125,7 +125,11 @@ export default defineComponent({
       this.$refs.pwdForm.validate((valid) => {
         if (valid) {
           this.pwdForm.loading = true
-          changePassword(this.pwdForm.old, this.pwdForm.new)
+          new UserChangePassword({
+            oldPwd: this.pwdForm.old,
+            newPwd: this.pwdForm.new,
+          })
+            .request()
             .then(() => {
               this.pwdForm.loading = false
               this.$message.success('Success')

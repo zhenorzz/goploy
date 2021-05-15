@@ -1,7 +1,7 @@
 import { Module, MutationTree, ActionTree } from 'vuex'
 import { UserState } from './types'
 import { RootState } from '../../types'
-import { login, getInfo } from '@/api/user'
+import { Login, Info } from '@/api/user'
 import { setLogin, logout } from '@/utils/auth'
 import { getNamespace, setNamespace, setNamespaceList } from '@/utils/namespace'
 import { resetRouter } from '@/router'
@@ -33,7 +33,8 @@ const actions: ActionTree<UserState, RootState> = {
   login(_, userInfo) {
     const { account, password } = userInfo
     return new Promise((resolve, reject) => {
-      login({ account: account.trim(), password: password })
+      new Login({ account: account.trim(), password: password })
+        .request()
         .then((response) => {
           const { data } = response
 
@@ -56,7 +57,8 @@ const actions: ActionTree<UserState, RootState> = {
   // get user info
   getInfo({ commit }) {
     return new Promise((resolve, reject) => {
-      getInfo()
+      new Info()
+        .request()
         .then((response) => {
           const { data } = response
           if (!data) {
