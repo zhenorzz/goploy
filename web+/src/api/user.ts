@@ -88,8 +88,8 @@ export class UserTotal {
 
   public request(): Promise<HttpResponse<this['datagram']>> {
     return Axios.request({
-      url: '/user/getTotal',
-      method: 'get',
+      url: this.url,
+      method: this.method,
     })
   }
 }

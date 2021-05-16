@@ -27,7 +27,7 @@ func (Namespace) GetList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetList server list
+// GetTotal namespace list
 func (Namespace) GetTotal(gp *core.Goploy) *core.Response {
 	total, err := model.Namespace{UserID: gp.UserInfo.ID}.GetTotalByUserID()
 	if err != nil {

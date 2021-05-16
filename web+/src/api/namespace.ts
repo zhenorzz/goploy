@@ -1,79 +1,176 @@
 import Axios from './axios'
+import { HttpResponse, Pagination, Total, ID } from './types'
 
-/**
- * @return {Promise}
- */
-export function getList({ page, rows }) {
-  return Axios.request({
-    url: '/namespace/getList',
-    method: 'get',
-    params: { page, rows },
-  })
+export class NamespaceData {
+  public datagram!: {
+    detail: {
+      id: number
+      name: string
+      userId: number
+      role: string
+      insertTime: string
+      updateTime: string
+    }
+  }
 }
 
-/**
- * @return {Promise}
- */
-export function getTotal() {
-  return Axios.request({
-    url: '/namespace/getTotal',
-    method: 'get',
-    params: {},
-  })
+export class NamespaceUserData {
+  public datagram!: {
+    detail: {
+      id: number
+      namespaceId: number
+      namespaceName: string
+      userId: number
+      userName: string
+      role: string
+      insertTime: string
+      updateTime: string
+    }
+  }
 }
 
-/**
- * @return {Promise}
- */
-export function getUserOption() {
-  return Axios.request({
-    url: '/namespace/getUserOption',
-    method: 'get',
-  })
+export class NamespaceList {
+  readonly url = '/namespace/getList'
+  readonly method = 'get'
+
+  public pagination: Pagination
+
+  public datagram!: {
+    list: NamespaceData['datagram']['detail'][]
+  }
+  constructor(pagination: Pagination) {
+    this.pagination = pagination
+  }
+  public request(): Promise<HttpResponse<this['datagram']>> {
+    return Axios.request({
+      url: this.url,
+      method: this.method,
+      params: { ...this.pagination },
+    })
+  }
 }
 
-/**
- * @param  {id} id
- * @return {Promise}
- */
-export function getBindUserList(id) {
-  return Axios.request({
-    url: '/namespace/getBindUserList',
-    method: 'get',
-    params: { id },
-  })
+export class NamespaceTotal {
+  readonly url = '/namespace/getTotal'
+  readonly method = 'get'
+
+  public datagram!: Total
+
+  public request(): Promise<HttpResponse<this['datagram']>> {
+    return Axios.request({
+      url: this.url,
+      method: this.method,
+    })
+  }
 }
 
-export function add(data) {
-  return Axios.request({
-    url: '/namespace/add',
-    method: 'post',
-    data,
-  })
+export class NamespaceUserOption {
+  readonly url = '/namespace/getUserOption'
+  readonly method = 'get'
+
+  public datagram!: {
+    list: NamespaceUserData['datagram']['detail'][]
+  }
+
+  public request(): Promise<HttpResponse<this['datagram']>> {
+    return Axios.request({
+      url: this.url,
+      method: this.method,
+    })
+  }
 }
 
-export function edit(data) {
-  return Axios.request({
-    url: '/namespace/edit',
-    method: 'put',
-    data,
-  })
+export class NamespaceUserList {
+  readonly url = '/namespace/getBindUserList'
+  readonly method = 'get'
+  public param: ID
+  public datagram!: {
+    list: NamespaceUserData['datagram']['detail'][]
+  }
+  constructor(param: NamespaceUserList['param']) {
+    this.param = param
+  }
+  public request(): Promise<HttpResponse<this['datagram']>> {
+    return Axios.request({
+      url: this.url,
+      method: this.method,
+      params: { ...this.param },
+    })
+  }
 }
 
-export function addUser(data) {
-  return Axios.request({
-    url: '/namespace/addUser',
-    method: 'post',
-    data,
-  })
+export class NamespaceAdd {
+  readonly url = '/namespace/add'
+  readonly method = 'post'
+  public param: {
+    name: string
+  }
+  public datagram!: ID
+  constructor(param: NamespaceAdd['param']) {
+    this.param = param
+  }
+  public request(): Promise<HttpResponse<this['datagram']>> {
+    return Axios.request({
+      url: this.url,
+      method: this.method,
+      data: { ...this.param },
+    })
+  }
 }
 
-export function removeUser(namespaceUserId) {
-  return Axios.request({
-    url: '/namespace/removeUser',
-    method: 'delete',
-    data: {
-      namespaceUserId,
-    },
-  })
+export class NamespaceEdit {
+  readonly url = '/namespace/edit'
+  readonly method = 'put'
+  public param: {
+    id: number
+    name: string
+  }
+  constructor(param: NamespaceEdit['param']) {
+    this.param = param
+  }
+  public request(): Promise<HttpResponse<never>> {
+    return Axios.request({
+      url: this.url,
+      method: this.method,
+      data: { ...this.param },
+    })
+  }
+}
+
+export class NamespaceUserAdd {
+  readonly url = '/namespace/addUser'
+  readonly method = 'post'
+  public param: {
+    namespaceId: number
+    userIds: number[]
+    role: string
+  }
+  constructor(param: NamespaceUserAdd['param']) {
+    this.param = param
+  }
+  public request(): Promise<HttpResponse<never>> {
+    return Axios.request({
+      url: this.url,
+      method: this.method,
+      data: { ...this.param },
+    })
+  }
+}
+
+export class NamespaceUserRemove {
+  readonly url = '/namespace/removeUser'
+  readonly method = 'delete'
+  public param: {
+    namespaceUserId: number
+  }
+  constructor(param: NamespaceUserRemove['param']) {
+    this.param = param
+  }
+  public request(): Promise<HttpResponse<never>> {
+    return Axios.request({
+      url: this.url,
+      method: this.method,
+      data: { ...this.param },
+    })
+  }
 }
