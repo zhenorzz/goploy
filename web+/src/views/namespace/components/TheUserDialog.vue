@@ -165,15 +165,18 @@ export default defineComponent({
       }
     )
 
-    let userOption: Ref<UserOption['datagram']['list']> = ref([])
-    new UserOption().request().then((response) => {
-      userOption.value = response.data.list
-    })
-
     let showUserAddView = ref(false)
     const handleAddUser = () => {
       showUserAddView.value = true
     }
+    let userOption: Ref<UserOption['datagram']['list']> = ref([])
+    watch(showUserAddView, (val: boolean) => {
+      if (val === true) {
+        new UserOption().request().then((response) => {
+          userOption.value = response.data.list
+        })
+      }
+    })
 
     return {
       role,
