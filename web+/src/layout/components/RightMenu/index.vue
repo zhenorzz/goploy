@@ -12,6 +12,13 @@
         <el-button
           type="text"
           size="medium"
+          @click="showTransformDialog('json')"
+        >
+          JSON Pretty
+        </el-button>
+        <el-button
+          type="text"
+          size="medium"
           @click="showTransformDialog('password')"
         >
           Random PWD
@@ -81,52 +88,8 @@
       :close-on-click-modal="false"
     >
       <el-row class="transform-content">
-        <el-row v-show="transformType === 'time'">
-          <el-button
-            style="margin-left: 80px"
-            type="primary"
-            @click="timestamp('now')"
-          >
-            {{ $t('now') }}
-          </el-button>
-          <el-button type="primary" @click="timestamp('today')">
-            {{ $t('today') }}
-          </el-button>
-          <el-button type="primary" @click="timestamp('m1d')">
-            {{ $t('m1d') }}
-          </el-button>
-          <el-button type="primary" @click="timestamp('p1d')">
-            {{ $t('p1d') }}
-          </el-button>
-          <el-row style="margin-top: 10px" type="flex" align="middle">
-            <span style="width: 70px; font-size: 14px; margin-right: 10px">
-              Timestamp
-            </span>
-            <el-input
-              v-model="timeExchange.timestamp"
-              style="width: 200px"
-              :placeholder="timeExchange.placeholder"
-              clearable
-              @keyup.enter="timestampToDate"
-            />
-            <el-button type="primary" @click="timestampToDate">>></el-button>
-            <el-input v-model="timeExchange.date" style="width: 200px" />
-          </el-row>
-          <el-row style="margin-top: 10px" type="flex" align="middle">
-            <span style="width: 70px; font-size: 14px; margin-right: 10px">
-              Date
-            </span>
-            <el-input
-              v-model="dateExchange.date"
-              style="width: 200px"
-              :placeholder="dateExchange.placeholder"
-              clearable
-              @keyup.enter="dateToTimestamp"
-            />
-            <el-button type="primary" @click="dateToTimestamp">>></el-button>
-            <el-input v-model="dateExchange.timestamp" style="width: 200px" />
-          </el-row>
-        </el-row>
+        <TheDatetransform v-model="transformType" />
+        <TheJSONPretty v-model="transformType" />
         <el-row v-show="transformType === 'password'">
           <el-checkbox-group v-model="password.checkbox">
             <el-checkbox :label="1">A-Z</el-checkbox>
@@ -302,25 +265,21 @@ import VueQrcode from '@chenfengyuan/vue-qrcode'
 import cronstrue from 'cronstrue/i18n'
 import { humanSize } from '@/utils'
 import { md5 as hashByMD5 } from '@/utils/md5'
+
 import { defineComponent } from 'vue'
-import useDateTransform from './composables/useDateTransform'
+import TheDatetransform from './TheDatetransform.vue'
+import TheJSONPretty from './TheJSONPretty.vue'
 import useRandomPWD from './composables/useRandomPWD'
 import useUnicode from './composables/useUnicode'
 import useRGBTransform from './composables/useRGBTransform'
 
 export default defineComponent({
   components: {
+    TheDatetransform,
+    TheJSONPretty,
     VueQrcode,
   },
   setup() {
-    const {
-      timeExchange,
-      dateExchange,
-      timestamp,
-      timestampToDate,
-      dateToTimestamp,
-    } = useDateTransform()
-
     const { password, createPassword } = useRandomPWD()
 
     const { unicode, unicodeUnescapeStr } = useUnicode()
@@ -328,11 +287,6 @@ export default defineComponent({
     const { cHexExchange, rgbExchange, hexToRGB, rgbToHex } = useRGBTransform()
 
     return {
-      timeExchange,
-      dateExchange,
-      timestamp,
-      timestampToDate,
-      dateToTimestamp,
       password,
       createPassword,
       unicode,
@@ -357,6 +311,10 @@ export default defineComponent({
       md5: {
         text: '',
       },
+      json: {
+        view: 'raw',
+        input: '',
+      },
       cron: {
         expression: '',
         chinese: '',
@@ -368,6 +326,7 @@ export default defineComponent({
   },
   methods: {
     hashByMD5,
+
     showTransformDialog(type) {
       this.transformVisible = true
       this.transformType = type

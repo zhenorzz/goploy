@@ -267,9 +267,9 @@ const router = createRouter({
 })
 
 export function resetRouter(): void {
-  router.getRoutes().forEach((route) => {
-    route.name && router.removeRoute(route.name)
-  })
+  router
+    .getRoutes()
+    .forEach((route) => route.name && router.removeRoute(route.name))
   constantRoutes.forEach((route: RouteRecordRaw) => router.addRoute(route))
 }
 
