@@ -202,7 +202,7 @@ import {
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'Monitor',
+  name: 'MonitorIndex',
   data() {
     return {
       dialogVisible: false,

@@ -112,7 +112,7 @@ import Validator from 'async-validator'
 import TheUserDialog from './components/TheUserDialog.vue'
 import { defineComponent } from 'vue'
 export default defineComponent({
-  name: 'Namespace',
+  name: 'NamespaceIndex',
   components: { TheUserDialog },
   mixins: [tableHeight],
   data() {

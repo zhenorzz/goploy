@@ -203,7 +203,7 @@ import 'xterm/css/xterm.css'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'Server',
+  name: 'ServerIndex',
   data() {
     return {
       dialogTermVisible: false,

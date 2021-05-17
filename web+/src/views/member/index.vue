@@ -141,7 +141,7 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'Member',
+  name: 'MemberIndex',
   data() {
     return {
       dialogVisible: false,

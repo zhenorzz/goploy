@@ -33,11 +33,13 @@ export const homeRoutes: RouteRecordRaw[] = [
 export const constantRoutes: RouteRecordRaw[] = [
   {
     path: '/login',
+    name: 'login',
     component: () => import('@/views/login/index.vue'),
     meta: { hidden: true },
   },
   {
     path: '/redirect',
+    name: 'redirect',
     component: Layout,
     meta: { hidden: true },
     children: [
@@ -49,11 +51,13 @@ export const constantRoutes: RouteRecordRaw[] = [
   },
   {
     path: '/404',
+    name: '404',
     component: () => import('@/views/404.vue'),
     meta: { hidden: true },
   },
   {
     path: '/user',
+    name: 'user',
     component: Layout,
     redirect: '/user/profile',
     meta: { hidden: true },
@@ -75,6 +79,7 @@ export const constantRoutes: RouteRecordRaw[] = [
 export const asyncRoutes: RouteRecordRaw[] = [
   {
     path: '/deploy',
+    name: 'deploy',
     component: Layout,
     redirect: '/deploy/index',
     meta: {
@@ -84,7 +89,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
     children: [
       {
         path: 'index',
-        name: 'Deploy',
+        name: 'DeployIndex',
         component: () => import('@/views/deploy/index.vue'),
         meta: {
           title: 'deploy',
@@ -96,6 +101,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
   },
   {
     path: '/toolbox',
+    name: 'toolbox',
     component: Layout,
     redirect: '/toolbox/json',
     meta: {
@@ -116,6 +122,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
   },
   {
     path: '/monitor',
+    name: 'monitor',
     component: Layout,
     redirect: '/monitor/index',
     meta: {
@@ -126,7 +133,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
     children: [
       {
         path: 'index',
-        name: 'Monitor',
+        name: 'MonitorIndex',
         component: () => import('@/views/monitor/index.vue'),
         meta: {
           title: 'monitor',
@@ -138,6 +145,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
   },
   {
     path: '/project',
+    name: 'project',
     component: Layout,
     redirect: '/project/index',
     meta: {
@@ -148,7 +156,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
     children: [
       {
         path: 'index',
-        name: 'Project',
+        name: 'ProjectIndex',
         component: () => import('@/views/project/index.vue'),
         meta: {
           title: 'project',
@@ -160,6 +168,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
   },
   {
     path: '/server',
+    name: 'server',
     component: Layout,
     redirect: '/server/index',
     meta: {
@@ -170,7 +179,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
     children: [
       {
         path: 'index',
-        name: 'Server',
+        name: 'ServerIndex',
         component: () => import('@/views/server/index.vue'),
         meta: {
           title: 'serverSetting',
@@ -194,6 +203,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
     path: '/namespace',
     component: Layout,
     redirect: '/namespace/index',
+    name: 'namespace',
     meta: {
       title: 'namespace',
       icon: 'namespace',
@@ -202,7 +212,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
     children: [
       {
         path: 'index',
-        name: 'Namespace',
+        name: 'NamespaceIndex',
         component: () => import('@/views/namespace/index.vue'),
         meta: {
           title: 'namespace',
@@ -216,6 +226,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
     path: '/member',
     component: Layout,
     redirect: '/member/index',
+    name: 'member',
     meta: {
       title: 'member',
       icon: 'user',
@@ -224,7 +235,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
     children: [
       {
         path: 'index',
-        name: 'Member',
+        name: 'MemberIndex',
         component: () => import('@/views/member/index.vue'),
         meta: {
           title: 'member',
@@ -235,7 +246,12 @@ export const asyncRoutes: RouteRecordRaw[] = [
     ],
   },
   // 404 page must be placed at the end !!!
-  { path: '/:pathMatch(.*)*', redirect: '/404', meta: { hidden: true } },
+  {
+    path: '/:pathMatch(.*)*',
+    name: '404*',
+    redirect: '/404',
+    meta: { hidden: true },
+  },
 ]
 
 const router = createRouter({
@@ -251,10 +267,9 @@ const router = createRouter({
 })
 
 export function resetRouter(): void {
-  router
-    .getRoutes()
-    .forEach((route) => route.name && router.removeRoute(route.name))
-
+  router.getRoutes().forEach((route) => {
+    route.name && router.removeRoute(route.name)
+  })
   constantRoutes.forEach((route: RouteRecordRaw) => router.addRoute(route))
 }
 

@@ -904,7 +904,7 @@ import 'ace-builds/src-noconflict/theme-github'
 
 import { defineComponent } from 'vue'
 export default defineComponent({
-  name: 'Project',
+  name: 'ProjectIndex',
   components: {
     VAceEditor,
   },

@@ -1042,7 +1042,7 @@ import { empty, parseTime, parseGitURL } from '@/utils'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  name: 'Deploy',
+  name: 'DeployIndex',
   mixins: [tableHeight],
   data() {
     return {
