@@ -1036,7 +1036,7 @@ import {
   getBindServerList,
   getReviewList,
 } from '@/api/project'
-import { getUserOption } from '@/api/namespace'
+import { NamespaceUserOption } from '@/api/namespace'
 import { role } from '@/utils/namespace'
 import { empty, parseTime, parseGitURL } from '@/utils'
 import { defineComponent } from 'vue'
@@ -1264,7 +1264,7 @@ export default defineComponent({
     parseTime,
     parseGitURL,
     getUserOption() {
-      getUserOption().then((response) => {
+      new NamespaceUserOption().request().then((response) => {
         this.userOption = response.data.list
       })
     },

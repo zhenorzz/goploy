@@ -1,5 +1,4 @@
-import Axios from './axios'
-import { HttpResponse, Pagination, Total, ID } from './types'
+import { Request, Pagination, ID, Total } from './types'
 
 export class NamespaceData {
   public datagram!: {
@@ -29,7 +28,7 @@ export class NamespaceUserData {
   }
 }
 
-export class NamespaceList {
+export class NamespaceList extends Request {
   readonly url = '/namespace/getList'
   readonly method = 'get'
 
@@ -39,48 +38,29 @@ export class NamespaceList {
     list: NamespaceData['datagram']['detail'][]
   }
   constructor(pagination: Pagination) {
+    super()
     this.pagination = pagination
-  }
-  public request(): Promise<HttpResponse<this['datagram']>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-      params: { ...this.pagination },
-    })
+    this.param = { ...pagination }
   }
 }
 
-export class NamespaceTotal {
+export class NamespaceTotal extends Request {
   readonly url = '/namespace/getTotal'
   readonly method = 'get'
 
   public datagram!: Total
-
-  public request(): Promise<HttpResponse<this['datagram']>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-    })
-  }
 }
 
-export class NamespaceUserOption {
+export class NamespaceUserOption extends Request {
   readonly url = '/namespace/getUserOption'
   readonly method = 'get'
 
   public datagram!: {
     list: NamespaceUserData['datagram']['detail'][]
   }
-
-  public request(): Promise<HttpResponse<this['datagram']>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-    })
-  }
 }
 
-export class NamespaceUserList {
+export class NamespaceUserList extends Request {
   readonly url = '/namespace/getBindUserList'
   readonly method = 'get'
   public param: ID
@@ -88,18 +68,12 @@ export class NamespaceUserList {
     list: NamespaceUserData['datagram']['detail'][]
   }
   constructor(param: NamespaceUserList['param']) {
+    super()
     this.param = param
-  }
-  public request(): Promise<HttpResponse<this['datagram']>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-      params: { ...this.param },
-    })
   }
 }
 
-export class NamespaceAdd {
+export class NamespaceAdd extends Request {
   readonly url = '/namespace/add'
   readonly method = 'post'
   public param: {
@@ -107,18 +81,12 @@ export class NamespaceAdd {
   }
   public datagram!: ID
   constructor(param: NamespaceAdd['param']) {
+    super()
     this.param = param
-  }
-  public request(): Promise<HttpResponse<this['datagram']>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-      data: { ...this.param },
-    })
   }
 }
 
-export class NamespaceEdit {
+export class NamespaceEdit extends Request {
   readonly url = '/namespace/edit'
   readonly method = 'put'
   public param: {
@@ -126,18 +94,12 @@ export class NamespaceEdit {
     name: string
   }
   constructor(param: NamespaceEdit['param']) {
+    super()
     this.param = param
-  }
-  public request(): Promise<HttpResponse<never>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-      data: { ...this.param },
-    })
   }
 }
 
-export class NamespaceUserAdd {
+export class NamespaceUserAdd extends Request {
   readonly url = '/namespace/addUser'
   readonly method = 'post'
   public param: {
@@ -146,31 +108,19 @@ export class NamespaceUserAdd {
     role: string
   }
   constructor(param: NamespaceUserAdd['param']) {
+    super()
     this.param = param
-  }
-  public request(): Promise<HttpResponse<never>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-      data: { ...this.param },
-    })
   }
 }
 
-export class NamespaceUserRemove {
+export class NamespaceUserRemove extends Request {
   readonly url = '/namespace/removeUser'
   readonly method = 'delete'
   public param: {
     namespaceUserId: number
   }
   constructor(param: NamespaceUserRemove['param']) {
+    super()
     this.param = param
-  }
-  public request(): Promise<HttpResponse<never>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-      data: { ...this.param },
-    })
   }
 }

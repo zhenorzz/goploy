@@ -97,15 +97,18 @@
     />
   </el-row>
 </template>
-<script>
+<script lang="ts">
 import {
   NamespaceList,
   NamespaceTotal,
   NamespaceAdd,
   NamespaceEdit,
+  NamespaceData,
 } from '@/api/namespace'
 import { role } from '@/utils/namespace'
 import tableHeight from '@/mixin/tableHeight'
+import { ElMessage } from 'element-plus'
+import Validator from 'async-validator'
 import TheUserDialog from './components/TheUserDialog.vue'
 import { defineComponent } from 'vue'
 export default defineComponent({
@@ -119,7 +122,7 @@ export default defineComponent({
       dialogUserVisible: false,
       selectedItem: {},
       tableLoading: false,
-      tableData: [],
+      tableData: [] as NamespaceList['datagram']['list'],
       pagination: {
         page: 1,
         rows: 16,
@@ -131,6 +134,7 @@ export default defineComponent({
       },
       formData: {
         id: 0,
+        name: '',
       },
       formRules: {
         name: [{ required: true, message: 'Name required', trigger: 'blur' }],
@@ -161,7 +165,7 @@ export default defineComponent({
       })
     },
 
-    handlePageChange(val) {
+    handlePageChange(val = 1) {
       this.pagination.page = val
       this.getList()
     },
@@ -171,18 +175,18 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleEdit(data) {
+    handleEdit(data: NamespaceData['datagram']['detail']) {
       this.formData = Object.assign({}, data)
       this.dialogVisible = true
     },
 
-    handleUser(data) {
+    handleUser(data: NamespaceData['datagram']['detail']) {
       this.selectedItem = data
       this.dialogUserVisible = true
     },
 
     submit() {
-      this.$refs.form.validate((valid) => {
+      ;(this.$refs.form as Validator).validate((valid: boolean) => {
         if (valid) {
           if (this.formData.id === 0) {
             this.add()
@@ -197,12 +201,12 @@ export default defineComponent({
 
     add() {
       this.formProps.disabled = true
-      new NamespaceAdd()
-        .request(this.formData)
+      new NamespaceAdd(this.formData)
+        .request()
         .then(() => {
           this.getList()
           this.getTotal()
-          this.$message.success('Need to login again')
+          ElMessage.success('Need to login again')
         })
         .finally(() => {
           this.formProps.disabled = this.dialogVisible = false
@@ -215,7 +219,7 @@ export default defineComponent({
         .request()
         .then(() => {
           this.getList()
-          this.$message.success('Success')
+          ElMessage.success('Success')
         })
         .finally(() => {
           this.formProps.disabled = this.dialogVisible = false

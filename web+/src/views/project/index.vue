@@ -873,7 +873,7 @@
 <script>
 import tableHeight from '@/mixin/tableHeight'
 import { parseGitURL } from '@/utils'
-import { getUserOption } from '@/api/namespace'
+import { NamespaceUserOption } from '@/api/namespace'
 import { getOption as getServerOption } from '@/api/server'
 import {
   getList,

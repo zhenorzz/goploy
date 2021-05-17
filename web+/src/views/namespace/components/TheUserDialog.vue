@@ -51,7 +51,11 @@
             </el-select>
           </el-form-item>
           <el-form-item style="margin-right: 0px; margin-bottom: 5px">
-            <el-button type="primary" @click="handleAddUser">
+            <el-button
+              type="primary"
+              :disabled="formProps.disabled"
+              @click="addUser"
+            >
               {{ $t('confirm') }}
             </el-button>
             <el-button @click="showUserAddView = false">
@@ -62,6 +66,7 @@
       </el-row>
     </el-row>
     <el-table
+      v-loading="tableLoading"
       border
       stripe
       highlight-current-row
@@ -139,11 +144,17 @@ export default defineComponent({
         emit('update:modelValue', val)
       },
     })
-
+    let tableLoading = ref(false)
     const getBindUserList = (namespaceId: number) => {
-      new NamespaceUserList({ id: namespaceId }).request().then((response) => {
-        tableData.value = response.data.list
-      })
+      tableLoading.value = true
+      new NamespaceUserList({ id: namespaceId })
+        .request()
+        .then((response) => {
+          tableData.value = response.data.list
+        })
+        .finally(() => {
+          tableLoading.value = false
+        })
     }
     watch(
       () => props.modelValue,
@@ -168,6 +179,7 @@ export default defineComponent({
       role,
       dialogVisible,
       getBindUserList,
+      tableLoading,
       tableData,
       showUserAddView,
       handleAddUser,
@@ -180,7 +192,7 @@ export default defineComponent({
         disabled: false,
       },
       formData: {
-        namespaceId: this.namespaceId,
+        namespaceId: 0,
         userIds: [],
         role: '',
       },
@@ -196,6 +208,11 @@ export default defineComponent({
         role: [{ required: true, message: 'Role required', trigger: 'change' }],
       },
     }
+  },
+  watch: {
+    namespaceId: function (newVal) {
+      this.formData.namespaceId = newVal
+    },
   },
   methods: {
     addUser() {

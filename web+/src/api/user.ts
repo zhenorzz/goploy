@@ -1,7 +1,6 @@
-import Axios from './axios'
-import { HttpResponse, Pagination, Total, ID } from './types'
+import { Request, Pagination, ID, Total } from './types'
 
-export class Login {
+export class Login extends Request {
   readonly url = '/user/login'
   readonly method = 'post'
   public param: {
@@ -12,18 +11,12 @@ export class Login {
     namespaceList: { id: number; name: string; role: string }[]
   }
   constructor(param: Login['param']) {
+    super()
     this.param = param
-  }
-  public request(): Promise<HttpResponse<this['datagram']>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-      data: { ...this.param },
-    })
   }
 }
 
-export class Info {
+export class Info extends Request {
   readonly url = '/user/info'
   readonly method = 'get'
   public datagram!: {
@@ -33,12 +26,6 @@ export class Info {
       name: string
       superManager: number
     }
-  }
-  public request(): Promise<HttpResponse<this['datagram']>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-    })
   }
 }
 
@@ -59,7 +46,7 @@ export class UserData {
   }
 }
 
-export class UserList {
+export class UserList extends Request {
   readonly url = '/user/getList'
   readonly method = 'get'
 
@@ -69,32 +56,19 @@ export class UserList {
     list: UserData['datagram']['detail'][]
   }
   constructor(pagination: Pagination) {
+    super()
     this.pagination = pagination
-  }
-  public request(): Promise<HttpResponse<this['datagram']>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-      params: { ...this.pagination },
-    })
+    this.param = { ...pagination }
   }
 }
 
-export class UserTotal {
+export class UserTotal extends Request {
   readonly url = '/user/getTotal'
   readonly method = 'get'
-
   public datagram!: Total
-
-  public request(): Promise<HttpResponse<this['datagram']>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-    })
-  }
 }
 
-export class UserOption {
+export class UserOption extends Request {
   readonly url = '/user/getOption'
   readonly method = 'get'
   public datagram!: {
@@ -111,15 +85,9 @@ export class UserOption {
       updateTime: string
     }[]
   }
-  public request(): Promise<HttpResponse<this['datagram']>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-    })
-  }
 }
 
-export class UserAdd {
+export class UserAdd extends Request {
   readonly url = '/user/add'
   readonly method = 'post'
   public param: {
@@ -129,20 +97,13 @@ export class UserAdd {
     contact: string
     superManager: number
   }
-  public datagram!: ID
   constructor(param: UserAdd['param']) {
+    super()
     this.param = param
-  }
-  public request(): Promise<HttpResponse<this['datagram']>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-      data: { ...this.param },
-    })
   }
 }
 
-export class UserEdit {
+export class UserEdit extends Request {
   readonly url = '/user/edit'
   readonly method = 'put'
   public param: {
@@ -153,34 +114,22 @@ export class UserEdit {
     superManager: number
   }
   constructor(param: UserEdit['param']) {
+    super()
     this.param = param
-  }
-  public request(): Promise<HttpResponse<never>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-      data: { ...this.param },
-    })
   }
 }
 
-export class UserRemove {
+export class UserRemove extends Request {
   readonly url = '/user/remove'
   readonly method = 'delete'
   public param: ID
   constructor(param: ID) {
+    super()
     this.param = param
-  }
-  public request(): Promise<HttpResponse<never>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-      data: { ...this.param },
-    })
   }
 }
 
-export class UserChangePassword {
+export class UserChangePassword extends Request {
   readonly url = '/user/changePassword'
   readonly method = 'put'
   public param: {
@@ -188,13 +137,7 @@ export class UserChangePassword {
     newPwd: string
   }
   constructor(param: UserChangePassword['param']) {
+    super()
     this.param = param
-  }
-  public request(): Promise<HttpResponse<never>> {
-    return Axios.request({
-      url: this.url,
-      method: this.method,
-      data: { ...this.param },
-    })
   }
 }
