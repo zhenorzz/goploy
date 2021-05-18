@@ -1,5 +1,5 @@
 <template>
-  <el-row v-show="transformType === 'time'">
+  <el-row v-show="modelValue === 'time'">
     <el-button
       style="margin-left: 80px"
       type="primary"
@@ -49,7 +49,7 @@
 
 <script lang="ts">
 import { parseTime } from '@/utils'
-import { onUnmounted, defineComponent, watch, ref, reactive } from 'vue'
+import { onUnmounted, defineComponent, reactive } from 'vue'
 
 export default defineComponent({
   props: {
@@ -58,16 +58,7 @@ export default defineComponent({
       default: '',
     },
   },
-  emits: ['update:modelValue'],
-  setup(props) {
-    let transformType = ref(props.modelValue)
-    watch(
-      () => props.modelValue,
-      (val: typeof props['modelValue']) => {
-        transformType.value = val
-      }
-    )
-
+  setup() {
     const timeExchange = reactive({
       date: parseTime(new Date().getTime()),
       timestamp: '',
@@ -128,7 +119,6 @@ export default defineComponent({
     })
 
     return {
-      transformType,
       timeExchange,
       dateExchange,
       timestamp,

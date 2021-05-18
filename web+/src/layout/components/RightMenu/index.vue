@@ -90,42 +90,8 @@
       <el-row class="transform-content">
         <TheDatetransform v-model="transformType" />
         <TheJSONPretty v-model="transformType" />
-        <el-row v-show="transformType === 'password'">
-          <el-checkbox-group v-model="password.checkbox">
-            <el-checkbox :label="1">A-Z</el-checkbox>
-            <el-checkbox :label="2">a-z</el-checkbox>
-            <el-checkbox :label="3">0-9</el-checkbox>
-            <el-checkbox :label="4">!@#$%^&*</el-checkbox>
-          </el-checkbox-group>
-          <el-row style="margin-top: 10px" type="flex" align="middle">
-            <span style="width: 60px; font-size: 14px; margin-right: 5px">
-              Length
-            </span>
-            <el-input-number
-              v-model="password.length"
-              :min="1"
-              placeholder="Please enter the password length"
-            />
-            <el-button type="primary" @click="createPassword">Gen</el-button>
-          </el-row>
-
-          <el-input :value="password.text" style="margin-top: 10px" readonly />
-        </el-row>
-        <el-row v-show="transformType === 'unicode'">
-          <el-input
-            v-model="unicode.escape"
-            type="textarea"
-            :autosize="{ minRows: 2 }"
-            placeholder="Please enter unescaped unicode encoding"
-          />
-          <el-input
-            :value="unicodeUnescapeStr"
-            style="margin-top: 10px"
-            type="textarea"
-            :autosize="{ minRows: 2 }"
-            readonly
-          />
-        </el-row>
+        <TheRandomPWD v-model="transformType" />
+        <TheUnicode v-model="transformType" />
         <el-row v-show="transformType === 'decodeURI'">
           <el-input
             v-model="decodeURI.escape"
@@ -153,43 +119,7 @@
             readonly
           />
         </el-row>
-        <el-row v-show="transformType === 'cron'">
-          <el-input
-            v-model="cron.expression"
-            placeholder="* * * * ?"
-            style="width: 450px; margin-bottom: 10px"
-          />
-          <el-button type="primary" @click="crontabTranslate">>></el-button>
-          <el-row style="margin-left: 5px">{{ cron.chinese }}</el-row>
-          <pre>
-    *    *    *    *    *
-    -    -    -    -    -
-    |    |    |    |    |
-    |    |    |    |    +----- Week (0 - 7) (0 for sunday)
-    |    |    |    +---------- Month (1 - 12)
-    |    |    +--------------- Day (1 - 31)
-    |    +-------------------- Hour (0 - 23)
-    +------------------------- Minute (0 - 59)
-          </pre>
-          <el-row style="padding: 0 5px">
-            在以上各个字段中，还可以使用以下特殊字符：
-            <p>
-              星号( *
-              )：代表所有可能的值，例如month字段如果是星号，则表示在满足其它字段的制约条件后每月都执行该命令操作。
-            </p>
-            <p>
-              逗号( , )：可以用逗号隔开的值指定一个列表范围，例如，"1,2,5,7,8,9"
-            </p>
-            <p>
-              中杠( -
-              )：可以用整数之间的中杠表示一个整数范围，例如"2-6"表示"2,3,4,5,6"
-            </p>
-            <p>
-              正斜线( /
-              )：可以用正斜线指定时间的间隔频率，例如"0-23/2"表示每两小时执行一次。同时正斜线可以和星号一起使用，例如*/10，如果用在minute字段，表示每十分钟执行一次。
-            </p>
-          </el-row>
-        </el-row>
+
         <el-row v-show="transformType === 'qrcode'">
           <el-input
             v-model="qrcode.text"
@@ -208,53 +138,9 @@
             :options="{ width: qrcode.width }"
           />
         </el-row>
-        <el-row v-show="transformType === 'byte'" type="flex" align="middle">
-          <span style="width: 40px; font-size: 14px; margin-right: 10px">
-            Byte
-          </span>
-          <el-input
-            v-model="bytes"
-            style="width: 130px"
-            @keyup.enter="bytesToHumanSize"
-          />
-          <el-select v-model="bytesUnit" style="width: 70px">
-            <el-option :value="1" label="B" />
-            <el-option :value="1 * 1024" label="KB" />
-            <el-option :value="1024 * 1024" label="MB" />
-          </el-select>
-          <el-button type="primary" @click="bytesToHumanSize">>></el-button>
-          <el-input v-model="humanSize" style="width: 200px" />
-        </el-row>
-        <el-row v-show="transformType === 'color'">
-          <el-row type="flex" align="middle">
-            <span style="width: 40px; font-size: 14px; margin-right: 10px">
-              HEX
-            </span>
-            <el-input
-              v-model="cHexExchange.hex"
-              style="width: 200px"
-              placeholder="#FFFFFF"
-              clearable
-              @keyup.enter="hexToRGB"
-            />
-            <el-button type="primary" @click="hexToRGB">>></el-button>
-            <el-input v-model="cHexExchange.rgb" style="width: 200px" />
-          </el-row>
-          <el-row style="margin-top: 10px" type="flex" align="middle">
-            <span style="width: 40px; font-size: 14px; margin-right: 10px">
-              RGB
-            </span>
-            <el-input
-              v-model="rgbExchange.rgb"
-              style="width: 200px"
-              placeholder="(255,255,255)"
-              clearable
-              @keyup.enter="rgbToHex"
-            />
-            <el-button type="primary" @click="rgbToHex">>></el-button>
-            <el-input v-model="rgbExchange.hex" style="width: 200px" />
-          </el-row>
-        </el-row>
+        <TheCronstrue v-model="transformType" />
+        <TheByteTransform v-model="transformType" />
+        <TheRGBTransform v-model="transformType" />
       </el-row>
     </el-dialog>
   </div>
@@ -262,40 +148,27 @@
 
 <script>
 import VueQrcode from '@chenfengyuan/vue-qrcode'
-import cronstrue from 'cronstrue/i18n'
-import { humanSize } from '@/utils'
 import { md5 as hashByMD5 } from '@/utils/md5'
 
 import { defineComponent } from 'vue'
 import TheDatetransform from './TheDatetransform.vue'
 import TheJSONPretty from './TheJSONPretty.vue'
-import useRandomPWD from './composables/useRandomPWD'
-import useUnicode from './composables/useUnicode'
-import useRGBTransform from './composables/useRGBTransform'
+import TheRandomPWD from './TheRandomPWD.vue'
+import TheUnicode from './TheUnicode.vue'
+import TheCronstrue from './TheCronstrue.vue'
+import TheByteTransform from './TheByteTransform.vue'
+import TheRGBTransform from './TheRGBTransform.vue'
 
 export default defineComponent({
   components: {
     TheDatetransform,
     TheJSONPretty,
+    TheRandomPWD,
+    TheUnicode,
+    TheCronstrue,
+    TheRGBTransform,
+    TheByteTransform,
     VueQrcode,
-  },
-  setup() {
-    const { password, createPassword } = useRandomPWD()
-
-    const { unicode, unicodeUnescapeStr } = useUnicode()
-
-    const { cHexExchange, rgbExchange, hexToRGB, rgbToHex } = useRGBTransform()
-
-    return {
-      password,
-      createPassword,
-      unicode,
-      unicodeUnescapeStr,
-      cHexExchange,
-      rgbExchange,
-      hexToRGB,
-      rgbToHex,
-    }
   },
   data() {
     return {
@@ -311,17 +184,6 @@ export default defineComponent({
       md5: {
         text: '',
       },
-      json: {
-        view: 'raw',
-        input: '',
-      },
-      cron: {
-        expression: '',
-        chinese: '',
-      },
-      bytes: '',
-      bytesUnit: 1,
-      humanSize: '',
     }
   },
   methods: {
@@ -330,18 +192,6 @@ export default defineComponent({
     showTransformDialog(type) {
       this.transformVisible = true
       this.transformType = type
-    },
-    bytesToHumanSize() {
-      this.humanSize = humanSize(this.bytes * this.bytesUnit)
-    },
-    crontabTranslate() {
-      try {
-        this.cron.chinese = cronstrue.toString(this.cron.expression, {
-          locale: 'zh_CN',
-        })
-      } catch (error) {
-        this.$message.error(error)
-      }
     },
   },
 })

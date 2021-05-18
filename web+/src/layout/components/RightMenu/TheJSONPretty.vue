@@ -1,5 +1,5 @@
 <template>
-  <el-row v-show="transformType === 'json'" style="width: 100%">
+  <el-row v-show="modelValue === 'json'" style="width: 100%">
     <el-row
       class="json-helper"
       type="flex"
@@ -8,15 +8,30 @@
     >
       <el-row>
         <el-button type="text" size="medium" @click="switchJSONView">
-          <svg-icon icon-class="switch" />
+          <svg-icon icon-class="switch" /> JSON Pretty
         </el-button>
-        <el-button type="text" size="medium" @click="expandAll">
+        <el-button
+          v-show="json.view === 'pretty'"
+          type="text"
+          size="medium"
+          @click="expandAll"
+        >
           {{ $t('JSONPage.expandAll') }}
         </el-button>
-        <el-button type="text" size="medium" @click="collapseAll">
+        <el-button
+          v-show="json.view === 'pretty'"
+          type="text"
+          size="medium"
+          @click="collapseAll"
+        >
           {{ $t('JSONPage.collapseAll') }}
         </el-button>
-        <el-button type="text" size="medium" @click="unmarkAll">
+        <el-button
+          v-show="json.view === 'pretty'"
+          type="text"
+          size="medium"
+          @click="unmarkAll"
+        >
           {{ $t('JSONPage.unmarkAll') }}
         </el-button>
       </el-row>
@@ -53,7 +68,7 @@
 <script lang="ts">
 import './jsonTree.css'
 import { jsonTree } from './jsonTree'
-import { defineComponent, watch, ref, reactive } from 'vue'
+import { defineComponent, ref, reactive } from 'vue'
 
 export default defineComponent({
   props: {
@@ -62,16 +77,7 @@ export default defineComponent({
       default: '',
     },
   },
-  emits: ['update:modelValue'],
-  setup(props) {
-    let transformType = ref(props.modelValue)
-    watch(
-      () => props.modelValue,
-      (val: typeof props['modelValue']) => {
-        transformType.value = val
-      }
-    )
-
+  setup() {
     const json = reactive({
       view: 'raw',
       input: '',
@@ -118,7 +124,6 @@ export default defineComponent({
 
     return {
       jsonPrettyString,
-      transformType,
       json,
       handleInput,
       onPaste,
