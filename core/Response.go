@@ -14,12 +14,13 @@ type Response struct {
 
 // response code
 const (
-	Pass            = 0
-	Deny            = 1
-	Error           = 2
-	AccountDisabled = 10000
-	IllegalRequest  = 10001
-	LoginExpired    = 10086
+	Pass             = 0
+	Deny             = 1
+	Error            = 2
+	AccountDisabled  = 10000
+	IllegalRequest   = 10001
+	NamespaceInvalid = 10002
+	LoginExpired     = 10086
 )
 
 //JSON response

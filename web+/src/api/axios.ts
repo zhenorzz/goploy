@@ -1,5 +1,6 @@
 import axios, { AxiosResponse, AxiosRequestConfig, AxiosError } from 'axios'
 import { ElMessageBox, ElMessage } from 'element-plus'
+import { removeNamespace } from '@/utils/namespace'
 import store from '@/store'
 
 // create an axios instance
@@ -25,11 +26,6 @@ service.interceptors.request.use(
 // response interceptor
 service.interceptors.response.use(
   /**
-   * If you want to get http information such as headers or status
-   * Please return  response => response
-   */
-
-  /**
    * Determine the request status by custom code
    * Here is just an example
    * You can also judge the status by HTTP Status Code
@@ -37,26 +33,31 @@ service.interceptors.response.use(
   (response: AxiosResponse) => {
     const res = response.data
     if (res.code !== 0) {
-      ElMessage({
-        message: res.message,
-        type: 'error',
-        duration: 5 * 1000,
-      })
-
-      // 10000:账户停用; 10001:非法Token;  10086:Token 过期了;
+      // 10000:account disabled;
+      // 10001:invaild Token;
+      // 10002:namespace invalid;
+      // 10086:Token expired;
       if ([10000, 10001, 10086].includes(res.code)) {
-        ElMessageBox.confirm(res.message, '确定登出', {
-          confirmButtonText: '重新登录',
-          cancelButtonText: '取消',
+        ElMessageBox.confirm(res.message, 'Confirm logout', {
+          confirmButtonText: 'Re-login',
+          cancelButtonText: 'Cancel',
           type: 'warning',
         }).then(() => {
           store.dispatch('user/logout').then(() => {
             location.reload()
           })
         })
-        return Promise.reject('error')
+        return Promise.reject(res.message)
+      } else if (10002 === res.code) {
+        removeNamespace()
+        return Promise.reject(res.message)
       } else {
-        return Promise.reject('error')
+        ElMessage({
+          message: res.message,
+          type: 'error',
+          duration: 5 * 1000,
+        })
+        return Promise.reject(response)
       }
     } else {
       return res

@@ -75,11 +75,11 @@ const actions: ActionTree<WebsocketState, RootState> = {
               )
               // 一分钟后的连接 一次重连机会已用完 还是连接失败,就弹窗询问用户
               ElMessageBox.confirm(
-                '检测到Websocket与服务器断开连接, 请重连！',
-                '提示',
+                'Detected Websocket disconnect, please reconnect!',
+                'Tips',
                 {
-                  confirmButtonText: '确定',
-                  cancelButtonText: '取消',
+                  confirmButtonText: 'Confirm',
+                  cancelButtonText: 'Cancel',
                   type: 'warning',
                 }
               )
@@ -89,7 +89,7 @@ const actions: ActionTree<WebsocketState, RootState> = {
                 .catch(() => {
                   ElMessage({
                     type: 'info',
-                    message: '取消重连',
+                    message: 'Cancel reconnect',
                   })
                 })
             }

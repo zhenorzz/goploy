@@ -153,6 +153,10 @@ func (rt *Router) checkLogin(w http.ResponseWriter, r *http.Request) (*Goploy, *
 			return nil, &Response{Code: Deny, Message: "Get namespace list error"}
 		}
 
+		if len(namespaceList) == 0 {
+			return nil, &Response{Code: Deny, Message: "No available namespace"}
+		}
+
 		for _, ns := range namespaceList {
 			if ns.ID == namespaceID {
 				namespace = ns
@@ -160,7 +164,7 @@ func (rt *Router) checkLogin(w http.ResponseWriter, r *http.Request) (*Goploy, *
 		}
 
 		if namespace == (model.Namespace{}) {
-			return nil, &Response{Code: Deny, Message: "Namespace no permission"}
+			return nil, &Response{Code: NamespaceInvalid, Message: "Namespace no permission, please login again"}
 		}
 
 		userInfo, err = GetUserInfo(int64(claims["id"].(float64)))
