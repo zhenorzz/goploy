@@ -219,7 +219,7 @@ func install() {
 		panic(err)
 	}
 	println("Database installation is complete")
-	envContent := ""
+	envContent := "# when you edit its value, you need to restart\n"
 	envContent += "DB_TYPE=mysql\n"
 	envContent += fmt.Sprintf(
 		"DB_CONN=%s%s@tcp(%s:%s)/goploy?charset=utf8mb4,utf8\n",
