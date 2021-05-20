@@ -28,7 +28,7 @@ func (w *xtermBufferWriter) Write(p []byte) (int, error) {
 	return w.buffer.Write(p)
 }
 
-// Connect the publish information in websocket
+// Xterm the publish information in websocket
 func (hub *Hub) Xterm(gp *core.Goploy) *core.Response {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
@@ -84,7 +84,6 @@ func (hub *Hub) Xterm(gp *core.Goploy) *core.Response {
 	//ssh.stdout and stderr will write output into comboWriter
 	session.Stdout = comboWriter
 	session.Stderr = comboWriter
-
 	// Request pseudo terminal
 	if err := session.RequestPty("xterm", rows, cols, ssh.TerminalModes{}); err != nil {
 		core.Log(core.ERROR, err.Error())

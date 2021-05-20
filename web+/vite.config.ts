@@ -33,6 +33,7 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
             const reg = RegExp('^' + process.env.VITE_APP_BASE_API)
             return path.replace(reg, '')
           },
+          ws: true,
         },
       },
     },

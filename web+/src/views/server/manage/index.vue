@@ -172,15 +172,7 @@
         </el-row>
       </template>
     </el-dialog>
-    <el-drawer
-      ref="drawer"
-      v-model="dialogTermVisible"
-      :title="term.title"
-      @opened="connectTerminal"
-      @closed="closeTerminal"
-    >
-      <div v-if="dialogTermVisible" ref="xterm" class="xterm" />
-    </el-drawer>
+    <TheXtermDrawer v-model="dialogTermVisible" :server-row="selectedItem" />
   </el-row>
 </template>
 <script>
@@ -194,32 +186,23 @@ import {
   check,
   remove,
 } from '@/api/server'
-// require component
-import { Terminal } from 'xterm'
-import { FitAddon } from 'xterm-addon-fit'
-import { AttachAddon } from 'xterm-addon-attach'
-// require styles
-import 'xterm/css/xterm.css'
+import TheXtermDrawer from './TheXtermDrawer.vue'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'ServerIndex',
+  components: { TheXtermDrawer },
   data() {
     return {
       dialogTermVisible: false,
       dialogVisible: false,
       tableLoading: false,
       tableData: [],
+      selectedItem: {},
       pagination: {
         page: 1,
         rows: 16,
         total: 0,
-      },
-      term: {
-        window: null,
-        ws: null,
-        server: {},
-        title: '',
       },
       tempFormData: {},
       formProps: {
@@ -345,8 +328,7 @@ export default defineComponent({
     },
 
     handleConnect(data) {
-      this.term.server = data
-      this.term.title = `${data.name}(${data.description})`
+      this.selectedItem = data
       this.dialogTermVisible = true
     },
 
@@ -408,39 +390,6 @@ export default defineComponent({
         })
     },
 
-    connectTerminal() {
-      const isWindows =
-        ['Windows', 'Win16', 'Win32', 'WinCE'].indexOf(navigator.platform) >= 0
-      const term = new Terminal({
-        fontSize: 14,
-        cursorBlink: true,
-        windowsMode: isWindows,
-      })
-      const fitAddon = new FitAddon()
-      term.loadAddon(fitAddon)
-      term.open(this.$refs['xterm'])
-      fitAddon.fit()
-      term.focus()
-      this.term.ws = new WebSocket(
-        `${location.protocol.replace('http', 'ws')}//${
-          window.location.host + import.meta.env.VITE_APP_BASE_API
-        }/ws/xterm?serverId=${this.term.server.id}&rows=${term.rows}&cols=${
-          term.cols
-        }`
-      )
-      const attachAddon = new AttachAddon(this.term.ws)
-      term.loadAddon(attachAddon)
-      this.term.window = term
-      this.term.ws.onerror = () => {
-        this.term.ws = null
-      }
-    },
-
-    closeTerminal() {
-      this.term.window = null
-      this.term.ws.close()
-    },
-
     storeFormData() {
       this.tempFormData = JSON.parse(JSON.stringify(this.formData))
     },
@@ -458,9 +407,5 @@ export default defineComponent({
   height: 400px;
   overflow-y: auto;
   @include scrollBar();
-}
-.xterm {
-  width: 100%;
-  height: 100%;
 }
 </style>
