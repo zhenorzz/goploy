@@ -1,12 +1,13 @@
 <template>
   <el-breadcrumb class="app-breadcrumb" separator="/">
-    <transition-group name="breadcrumb">
+    <transition-group name="breadcrumb" tag="span">
       <el-breadcrumb-item v-for="(item, index) in levelList" :key="item.path">
         <span
           v-if="item.redirect === 'noRedirect' || index == levelList.length - 1"
           class="no-redirect"
-          >{{ $t(`route.${item.meta.title}`) }}</span
         >
+          {{ $t(`route.${item.meta.title}`) }}
+        </span>
         <a v-else @click.prevent="handleLink(item)">
           {{ $t(`route.${item.meta.title}`) }}
         </a>
@@ -71,24 +72,32 @@ export default defineComponent({
     color: #97a8be;
     cursor: text;
   }
-  /* breadcrumb transition */
+  .breadcrumb-leave-active {
+    position: absolute;
+  }
+
   .breadcrumb-enter-active,
   .breadcrumb-leave-active {
     transition: all 0.5s;
   }
 
-  .breadcrumb-enter,
   .breadcrumb-leave-active {
-    opacity: 1;
+    opacity: 0;
     transform: translateX(20px);
+  }
+
+  .breadcrumb-enter-active {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+
+  .breadcrumb-enter-to {
+    opacity: 1;
+    transform: translateX(0px);
   }
 
   .breadcrumb-move {
     transition: all 0.5s;
-  }
-
-  .breadcrumb-leave-active {
-    position: absolute;
   }
 }
 </style>

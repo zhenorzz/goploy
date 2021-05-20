@@ -107,7 +107,7 @@ func Init() *router.Router {
 	// crontab route
 	rt.Add("/crontab/getList", http.MethodGet, controller.Crontab{}.GetList)
 	rt.Add("/crontab/getTotal", http.MethodGet, controller.Crontab{}.GetTotal)
-	rt.Add("/crontab/getRemoteServerList", http.MethodGet, controller.Crontab{}.GetRemoteServerList)
+	rt.Add("/crontab/getCrontabsInRemoteServer", http.MethodGet, controller.Crontab{}.GetCrontabsInRemoteServer)
 	rt.Add("/crontab/getBindServerList", http.MethodGet, controller.Crontab{}.GetBindServerList)
 	rt.Add("/crontab/add", http.MethodPost, controller.Crontab{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/crontab/edit", http.MethodPut, controller.Crontab{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})

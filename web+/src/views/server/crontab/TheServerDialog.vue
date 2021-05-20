@@ -10,38 +10,18 @@
       >
         <el-form ref="form" :inline="true" :rules="formRules" :model="formData">
           <el-form-item
-            :label="$t('user')"
-            label-width="60px"
-            prop="userIds"
-            style="margin-bottom: 5px"
+            :label="$t('server')"
+            label-width="120px"
+            prop="serverIds"
           >
-            <el-select v-model="formData.userIds" multiple clearable filterable>
+            <el-select v-model="formData.serverIds" multiple>
               <el-option
-                v-for="(item, index) in userOption.filter(
-                  (item) => item.superManager !== 1
-                )"
+                v-for="(item, index) in serverOption"
                 :key="index"
-                :label="item.name"
+                :label="
+                  item.name + (item.description ? `(${item.description})` : '')
+                "
                 :value="item.id"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item
-            :label="$t('role')"
-            label-width="60px"
-            prop="role"
-            style="margin-bottom: 5px"
-          >
-            <el-select v-model="formData.role">
-              <el-option
-                v-for="(_value, index) in [
-                  role.Manager,
-                  role.GroupManager,
-                  role.Member,
-                ]"
-                :key="index"
-                :label="_value"
-                :value="_value"
               />
             </el-select>
           </el-form-item>
@@ -65,22 +45,31 @@
       border
       stripe
       highlight-current-row
-      :data="tableData.filter((row) => row.role !== role.Admin)"
+      :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="userId" :label="$t('userId')" />
-      <el-table-column prop="userName" :label="$t('userName')" />
-      <el-table-column prop="role" :label="$t('role')" />
+      <el-table-column prop="serverId" :label="$t('serverId')" width="100" />
+      <el-table-column
+        prop="serverName"
+        :label="$t('serverName')"
+        width="120"
+      />
+      <el-table-column
+        prop="serverDescription"
+        :label="$t('serverDescription')"
+        min-width="200"
+        show-overflow-tooltip
+      />
       <el-table-column
         prop="insertTime"
         :label="$t('insertTime')"
-        width="135"
+        width="160"
         align="center"
       />
       <el-table-column
         prop="updateTime"
         :label="$t('updateTime')"
-        width="135"
+        width="160"
         align="center"
       />
       <el-table-column
@@ -108,13 +97,12 @@
 
 <script lang="ts">
 import {
-  NamespaceUserData,
-  NamespaceUserList,
-  NamespaceUserAdd,
-  NamespaceUserRemove,
-} from '@/api/namespace'
-import { UserOption } from '@/api/user'
-import { role } from '@/utils/namespace'
+  CrontabServerData,
+  CrontabServerList,
+  CrontabServerAdd,
+  CrontabServerRemove,
+} from '@/api/crontab'
+import { ServerOption } from '@/api/server'
 import Validator from 'async-validator'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { computed, watch, defineComponent, ref, Ref } from 'vue'
@@ -125,14 +113,14 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
-    namespaceId: {
+    crontabId: {
       type: Number,
       default: 0,
     },
   },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
-    let tableData: Ref<NamespaceUserList['datagram']['list']> = ref([])
+    let tableData: Ref<CrontabServerList['datagram']['list']> = ref([])
     const dialogVisible = computed({
       get: () => props.modelValue,
       set: (val) => {
@@ -140,9 +128,9 @@ export default defineComponent({
       },
     })
     let tableLoading = ref(false)
-    const getBindUserList = (namespaceId: number) => {
+    const getBindServerList = (crontabId: number) => {
       tableLoading.value = true
-      new NamespaceUserList({ id: namespaceId })
+      new CrontabServerList({ id: crontabId })
         .request()
         .then((response) => {
           tableData.value = response.data.list
@@ -151,11 +139,12 @@ export default defineComponent({
           tableLoading.value = false
         })
     }
+
     watch(
       () => props.modelValue,
       (val: typeof props['modelValue']) => {
         if (val === true) {
-          getBindUserList(props.namespaceId)
+          getBindServerList(props.crontabId)
         }
       }
     )
@@ -164,24 +153,23 @@ export default defineComponent({
     const handleAdd = () => {
       showAddView.value = true
     }
-    let userOption: Ref<UserOption['datagram']['list']> = ref([])
+    let serverOption: Ref<ServerOption['datagram']['list']> = ref([])
     watch(showAddView, (val: boolean) => {
       if (val === true) {
-        new UserOption().request().then((response) => {
-          userOption.value = response.data.list
+        new ServerOption().request().then((response) => {
+          serverOption.value = response.data.list
         })
       }
     })
 
     return {
-      role,
       dialogVisible,
-      getBindUserList,
+      getBindServerList,
       tableLoading,
       tableData,
       showAddView,
       handleAdd,
-      userOption,
+      serverOption,
     }
   },
   data() {
@@ -190,26 +178,24 @@ export default defineComponent({
         disabled: false,
       },
       formData: {
-        namespaceId: 0,
-        userIds: [],
-        role: '',
+        crontabId: 0,
+        serverIds: [],
       },
       formRules: {
-        userIds: [
+        serverIds: [
           {
             type: 'array',
             required: true,
-            message: 'User required',
+            message: 'Server required',
             trigger: 'change',
           },
         ],
-        role: [{ required: true, message: 'Role required', trigger: 'change' }],
       },
     }
   },
   watch: {
-    namespaceId: function (newVal) {
-      this.formData.namespaceId = newVal
+    crontabId: function (newVal) {
+      this.formData.crontabId = newVal
     },
   },
   methods: {
@@ -217,12 +203,12 @@ export default defineComponent({
       ;(this.$refs.form as Validator).validate((valid: boolean) => {
         if (valid) {
           this.formProps.disabled = true
-          new NamespaceUserAdd(this.formData)
+          new CrontabServerAdd(this.formData)
             .request()
             .then(() => {
-              this.showAddView = false
+              this.dialogVisible = false
               ElMessage.success('Success')
-              this.getBindUserList(this.formData.namespaceId)
+              this.getBindServerList(this.formData.crontabId)
             })
             .finally(() => {
               this.formProps.disabled = false
@@ -233,9 +219,9 @@ export default defineComponent({
       })
     },
 
-    remove(data: NamespaceUserData['datagram']['detail']) {
+    remove(data: CrontabServerData['datagram']['detail']) {
       ElMessageBox.confirm(
-        this.$t('namespacePage.removeUserTips'),
+        this.$t('crontabPage.removeCrontabServerTips'),
         this.$t('tips'),
         {
           confirmButtonText: this.$t('confirm'),
@@ -244,11 +230,15 @@ export default defineComponent({
         }
       )
         .then(() => {
-          new NamespaceUserRemove({ namespaceUserId: data.id })
+          new CrontabServerRemove({
+            crontabServerId: data.id,
+            crontabId: data.crontabId,
+            serverId: data.serverId,
+          })
             .request()
             .then(() => {
               ElMessage.success('Success')
-              this.getBindUserList(data.namespaceId)
+              this.getBindServerList(data.crontabId)
             })
         })
         .catch(() => {

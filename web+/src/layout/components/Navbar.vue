@@ -166,6 +166,7 @@ import {
   setNamespace,
   removeNamespace,
 } from '@/utils/namespace'
+import { ElLoading } from 'element-plus'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
@@ -197,7 +198,7 @@ export default defineComponent({
     },
     handleNamespaceChange(namespace) {
       setNamespace(namespace)
-      this.$Loading.service({ fullscreen: true })
+      ElLoading.service({ fullscreen: true })
       location.reload()
     },
     handleSetLanguage(lang) {

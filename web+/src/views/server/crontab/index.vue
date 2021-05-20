@@ -183,181 +183,25 @@
         >
       </template>
     </el-dialog>
-    <el-dialog v-model="importVisible" :title="$t('import')">
-      <el-row>
-        <el-row type="flex">
-          <el-select
-            v-model="importProps.serverId"
-            style="width: 100%; margin-right: 5px"
-          >
-            <el-option
-              v-for="(item, index) in serverOption"
-              :key="index"
-              :label="item.label"
-              :value="item.id"
-            />
-          </el-select>
-          <el-button
-            :disabled="importProps.disabled"
-            :icon="importProps.disabled ? 'el-icon-loading' : 'el-icon-refresh'"
-            type="primary"
-            @click="getRemoteServerList"
-            >{{ $t('read') }}</el-button
-          >
-        </el-row>
-        <el-table
-          border
-          stripe
-          highlight-current-row
-          :empty-text="$t('crontabPage.importTips')"
-          :data="serverTableData"
-          style="width: 100%; margin-top: 10px"
-          @selection-change="handleCrontabSelectionChange"
-        >
-          <el-table-column type="selection" width="40" />
-          <el-table-column
-            prop="command"
-            :label="$t('command')"
-            min-width="140"
-            show-overflow-tooltip
-          />
-          <el-table-column
-            prop="description"
-            :label="$t('desc')"
-            min-width="240"
-            show-overflow-tooltip
-          />
-        </el-table>
-      </el-row>
-      <template #footer>
-        <el-button @click="importVisible = false">
-          {{ $t('cancel') }}
-        </el-button>
-        <el-button
-          :disabled="importProps.disabled"
-          type="primary"
-          @click="importCrontab"
-        >
-          {{ $t('confirm') }}
-        </el-button>
-      </template>
-    </el-dialog>
-    <el-dialog v-model="serverVisible" :title="$t('manage')">
-      <el-row class="app-bar" type="flex" justify="end">
-        <el-button
-          type="primary"
-          icon="el-icon-plus"
-          @click="handleAddServer"
-        />
-      </el-row>
-      <el-table
-        border
-        stripe
-        highlight-current-row
-        :data="tableServerData"
-        style="width: 100%"
-      >
-        <el-table-column prop="serverId" :label="$t('serverId')" width="100" />
-        <el-table-column
-          prop="serverName"
-          :label="$t('serverName')"
-          width="120"
-        />
-        <el-table-column
-          prop="serverDescription"
-          :label="$t('serverDescription')"
-          min-width="200"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          prop="insertTime"
-          :label="$t('insertTime')"
-          width="160"
-          align="center"
-        />
-        <el-table-column
-          prop="updateTime"
-          :label="$t('updateTime')"
-          width="160"
-          align="center"
-        />
-        <el-table-column
-          prop="operation"
-          :label="$t('op')"
-          width="80"
-          align="center"
-        >
-          <template #default="scope">
-            <el-button
-              type="danger"
-              icon="el-icon-delete"
-              @click="removeCrontabServer(scope.row)"
-            />
-          </template>
-        </el-table-column>
-      </el-table>
-      <template #footer>
-        <el-button @click="serverVisible = false">
-          {{ $t('cancel') }}
-        </el-button>
-      </template>
-    </el-dialog>
-    <el-dialog v-model="addServerVisible" :title="$t('add')">
-      <el-form
-        ref="addServerForm"
-        :rules="addServerFormRules"
-        :model="addServerFormData"
-      >
-        <el-form-item
-          :label="$t('server')"
-          label-width="120px"
-          prop="serverIds"
-        >
-          <el-select v-model="addServerFormData.serverIds" multiple>
-            <el-option
-              v-for="(item, index) in serverOption"
-              :key="index"
-              :label="item.label"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="addServerVisible = false">
-          {{ $t('cancel') }}
-        </el-button>
-        <el-button
-          :disabled="addServerFormProps.disabled"
-          type="primary"
-          @click="addServer"
-        >
-          {{ $t('confirm') }}
-        </el-button>
-      </template>
-    </el-dialog>
+    <TheImportDialog
+      v-model="importVisible"
+      :on-success="handleImportSuccess"
+    />
+    <TheServerDialog v-model="serverVisible" :crontab-id="selectedItem.id" />
   </el-row>
 </template>
 <script>
 import tableHeight from '@/mixin/tableHeight'
 import cronstrue from 'cronstrue/i18n'
-import {
-  getList,
-  getTotal,
-  getRemoteServerList,
-  getBindServerList,
-  add,
-  edit,
-  remove,
-  importCrontab,
-  addServer,
-  removeCrontabServer,
-} from '@/api/crontab'
+import { getList, getTotal, add, edit, remove } from '@/api/crontab'
 import { getOption as getServerOption } from '@/api/server'
+import TheImportDialog from './TheImportDialog.vue'
+import TheServerDialog from './TheServerDialog.vue'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'Crontab',
+  components: { TheImportDialog, TheServerDialog },
   mixins: [tableHeight],
   data() {
     const validateDate = (rule, value, callback) => {
@@ -375,10 +219,9 @@ export default defineComponent({
       serverVisible: false,
       addServerVisible: false,
       importVisible: false,
-      selectedItems: [],
+      selectedItem: {},
       tableLoading: false,
       tableData: [],
-      tableServerData: [],
       serverOption: [],
       pagination: {
         page: 1,
@@ -403,11 +246,6 @@ export default defineComponent({
           { required: true, message: 'Script required', trigger: 'blur' },
         ],
       },
-      importProps: {
-        serverId: '',
-        disabled: false,
-        loading: false,
-      },
       crontabRemoveFormData: {
         id: 0,
         radio: 0,
@@ -416,24 +254,6 @@ export default defineComponent({
         command: '',
         disabled: false,
       },
-      addServerFormProps: {
-        disabled: false,
-      },
-      addServerFormData: {
-        crontabId: 0,
-        serverIds: [],
-      },
-      addServerFormRules: {
-        serverIds: [
-          {
-            type: 'array',
-            required: true,
-            message: 'Server required',
-            trigger: 'change',
-          },
-        ],
-      },
-      serverTableData: [],
     }
   },
   created() {
@@ -485,40 +305,6 @@ export default defineComponent({
       })
     },
 
-    getRemoteServerList() {
-      if (this.importProps.serverId <= 0) {
-        this.$message.warning(this.$t('crontabPage.selectServerTips'))
-        return
-      }
-      this.importProps.disabled = true
-      getRemoteServerList(this.importProps.serverId)
-        .then((response) => {
-          this.serverTableData = response.data.list.map((command) => {
-            const element = {}
-            const commandSplit = command.split(' ')
-            element.command = command
-            element.date = commandSplit.slice(0, 5).join(' ')
-            element.dateLocale = cronstrue.toString(element.date, {
-              locale: this.getLocale(),
-            })
-            element.script = commandSplit.slice(5).join(' ')
-            element.description = `${element.dateLocale}, ${this.$t('run')}: ${
-              element.script
-            }`
-            return element
-          })
-        })
-        .finally(() => {
-          this.importProps.disabled = false
-        })
-    },
-
-    getBindServerList(crontabID) {
-      getBindServerList(crontabID).then((response) => {
-        this.tableServerData = response.data.list
-      })
-    },
-
     searchList() {
       this.pagination.page = 1
       this.getList()
@@ -534,6 +320,11 @@ export default defineComponent({
       this.importVisible = true
     },
 
+    handleImportSuccess() {
+      this.getList()
+      this.getTotal()
+    },
+
     handleEdit(data) {
       this.formData.id = data.id
       this.formData.date = data.date
@@ -544,8 +335,7 @@ export default defineComponent({
     },
 
     handleServer(data) {
-      this.getBindServerList(data.id)
-      this.addServerFormData.crontabId = data.id
+      this.selectedItem = data
       this.serverVisible = true
     },
 
@@ -557,29 +347,6 @@ export default defineComponent({
       this.crontabRemoveFormData.id = data.id
       this.crontabRemoveFormProps.command = data.command
       this.crontabRemoveVisible = true
-    },
-
-    handleCrontabSelectionChange(items) {
-      this.selectedItems = items
-    },
-
-    importCrontab() {
-      if (this.selectedItems.length === 0) {
-        this.$message.warning(this.$t('crontabPage.selectItemTips'))
-        return
-      }
-      importCrontab({
-        serverId: this.importProps.serverId,
-        commands: this.selectedItems.map((element) => element.command),
-      })
-        .then(() => {
-          this.getList()
-          this.getTotal()
-          this.$message.success('Success')
-        })
-        .finally(() => {
-          this.importVisible = false
-        })
     },
 
     onDateChange() {
@@ -645,50 +412,6 @@ export default defineComponent({
         .finally(() => {
           this.crontabRemoveFormProps.disabled =
             this.crontabRemoveVisible = false
-        })
-    },
-
-    addServer() {
-      this.$refs.addServerForm.validate((valid) => {
-        if (valid) {
-          this.addServerFormProps.disabled = true
-          addServer(this.addServerFormData)
-            .then(() => {
-              this.addServerVisible = false
-              this.$message.success('Success')
-              this.getBindServerList(this.addServerFormData.crontabId)
-            })
-            .finally(() => {
-              this.addServerFormProps.disabled = false
-            })
-        } else {
-          return false
-        }
-      })
-    },
-
-    removeCrontabServer(data) {
-      this.$confirm(
-        this.$t('crontabPage.removeCrontabServerTips'),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          removeCrontabServer({
-            crontabServerId: data.id,
-            crontabId: data.crontabId,
-            serverId: data.serverId,
-          }).then(() => {
-            this.$message.success('Success')
-            this.getBindServerList(data.crontabId)
-          })
-        })
-        .catch(() => {
-          this.$message.info('Cancel')
         })
     },
 

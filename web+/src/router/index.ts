@@ -100,27 +100,6 @@ export const asyncRoutes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: '/toolbox',
-    name: 'toolbox',
-    component: Layout,
-    redirect: '/toolbox/json',
-    meta: {
-      title: 'toolbox',
-      icon: 'toolbox',
-    },
-    children: [
-      {
-        path: 'json',
-        name: 'JSONFormatter',
-        component: () => import('@/views/toolbox/json/index.vue'),
-        meta: {
-          title: 'json',
-          icon: 'json',
-        },
-      },
-    ],
-  },
-  {
     path: '/monitor',
     name: 'monitor',
     component: Layout,
@@ -190,7 +169,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
       {
         path: 'crontab',
         name: 'Crontab',
-        component: () => import('@/views/server/crontab.vue'),
+        component: () => import('@/views/server/crontab/index.vue'),
         meta: {
           title: 'crontab',
           icon: 'crontab',

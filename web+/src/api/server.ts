@@ -1,4 +1,23 @@
 import Axios from './axios'
+import { Request, Pagination, ID, Total } from './types'
+
+export class ServerData {
+  public datagram!: {
+    detail: {
+      id: number
+      name: string
+      ip: string
+      port: number
+      owner: string
+      path: string
+      password: string
+      namespaceId: number
+      description: string
+      insertTime: string
+      updateTime: string
+    }
+  }
+}
 
 /**
  * @return {Promise}
@@ -31,6 +50,15 @@ export function getPublicKey(path) {
     method: 'get',
     params: { path },
   })
+}
+
+export class ServerOption extends Request {
+  readonly url = '/server/getOption'
+  readonly method = 'get'
+
+  public datagram!: {
+    list: ServerData['datagram']['detail'][]
+  }
 }
 
 /**

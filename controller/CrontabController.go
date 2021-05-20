@@ -46,8 +46,8 @@ func (Crontab) GetTotal(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetList crontab list
-func (Crontab) GetRemoteServerList(gp *core.Goploy) *core.Response {
+// GetCrontabsInRemoteServer crontab list
+func (Crontab) GetCrontabsInRemoteServer(gp *core.Goploy) *core.Response {
 	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
