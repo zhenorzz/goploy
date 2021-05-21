@@ -34,7 +34,7 @@ var (
 	Gwg      sync.WaitGroup
 )
 
-// GetCurrentPath if env = 'production' return absolute else return relative
+// GetAssetDir if env = 'production' return absolute else return relative
 func GetAssetDir() string {
 	if AssetDir != "" {
 		return AssetDir

@@ -470,6 +470,13 @@ func (Project) AddFile(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
+	_, err := os.Stat(core.GetProjectFilePath(reqData.ProjectID))
+	if err != nil {
+		err := os.MkdirAll(core.GetProjectFilePath(reqData.ProjectID), os.ModePerm)
+		if err != nil {
+			return &core.Response{Code: core.Error, Message: err.Error()}
+		}
+	}
 	file, err := os.Create(path.Join(core.GetProjectFilePath(reqData.ProjectID), reqData.Filename))
 	if err != nil {
 		panic(err)
@@ -506,6 +513,14 @@ func (Project) EditFile(gp *core.Goploy) *core.Response {
 	projectFileData, err := model.ProjectFile{ID: reqData.ID}.GetData()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	_, err = os.Stat(core.GetProjectFilePath(projectFileData.ProjectID))
+	if err != nil {
+		err := os.MkdirAll(core.GetProjectFilePath(projectFileData.ProjectID), os.ModePerm)
+		if err != nil {
+			return &core.Response{Code: core.Error, Message: err.Error()}
+		}
 	}
 
 	file, err := os.Create(path.Join(core.GetProjectFilePath(projectFileData.ProjectID), projectFileData.Filename))

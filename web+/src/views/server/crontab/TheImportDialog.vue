@@ -1,5 +1,9 @@
 <template>
-  <el-dialog v-model="dialogVisible" :title="$t('import')">
+  <el-dialog
+    v-model="dialogVisible"
+    :title="$t('import')"
+    :close-on-click-modal="false"
+  >
     <el-row>
       <el-row type="flex" style="width: 100%">
         <el-select

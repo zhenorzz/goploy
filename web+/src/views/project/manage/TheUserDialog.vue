@@ -28,30 +28,11 @@
             >
               <el-option
                 v-for="(item, index) in userOption.filter(
-                  (item) => item.superManager !== 1
+                  (item) => [role.Admin, role.Manager].indexOf(item.role) === -1
                 )"
                 :key="index"
-                :label="item.name"
-                :value="item.id"
-              />
-            </el-select>
-          </el-form-item>
-          <el-form-item
-            :label="$t('role')"
-            label-width="60px"
-            prop="role"
-            style="margin-bottom: 5px"
-          >
-            <el-select v-model="formData.role">
-              <el-option
-                v-for="(_value, index) in [
-                  role.Manager,
-                  role.GroupManager,
-                  role.Member,
-                ]"
-                :key="index"
-                :label="_value"
-                :value="_value"
+                :label="item.userName"
+                :value="item.userId"
               />
             </el-select>
           </el-form-item>
@@ -75,12 +56,11 @@
       border
       stripe
       highlight-current-row
-      :data="tableData.filter((row) => row.role !== role.Admin)"
+      :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="userId" :label="$t('userId')" />
+      <el-table-column prop="userId" :label="$t('userId')" width="100" />
       <el-table-column prop="userName" :label="$t('userName')" />
-      <el-table-column prop="role" :label="$t('role')" />
       <el-table-column
         prop="insertTime"
         :label="$t('insertTime')"
@@ -98,9 +78,11 @@
         :label="$t('op')"
         width="80"
         align="center"
+        fixed="right"
       >
         <template #default="scope">
           <el-button
+            v-show="role.hasManagerPermission()"
             type="danger"
             icon="el-icon-delete"
             @click="remove(scope.row)"
@@ -118,12 +100,12 @@
 
 <script lang="ts">
 import {
-  NamespaceUserData,
-  NamespaceUserList,
-  NamespaceUserAdd,
-  NamespaceUserRemove,
-} from '@/api/namespace'
-import { UserOption } from '@/api/user'
+  ProjectUserData,
+  ProjectUserList,
+  ProjectUserAdd,
+  ProjectUserRemove,
+} from '@/api/project'
+import { NamespaceUserOption } from '@/api/namespace'
 import { role } from '@/utils/namespace'
 import Validator from 'async-validator'
 import { ElMessageBox, ElMessage } from 'element-plus'
@@ -135,14 +117,14 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
-    namespaceId: {
+    projectId: {
       type: Number,
       default: 0,
     },
   },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
-    let tableData: Ref<NamespaceUserList['datagram']['list']> = ref([])
+    let tableData: Ref<ProjectUserList['datagram']['list']> = ref([])
     const dialogVisible = computed({
       get: () => props.modelValue,
       set: (val) => {
@@ -150,9 +132,9 @@ export default defineComponent({
       },
     })
     let tableLoading = ref(false)
-    const getBindUserList = (namespaceId: number) => {
+    const getBindUserList = (projectId: number) => {
       tableLoading.value = true
-      new NamespaceUserList({ id: namespaceId })
+      new ProjectUserList({ id: projectId })
         .request()
         .then((response) => {
           tableData.value = response.data.list
@@ -165,7 +147,7 @@ export default defineComponent({
       () => props.modelValue,
       (val: typeof props['modelValue']) => {
         if (val === true) {
-          getBindUserList(props.namespaceId)
+          getBindUserList(props.projectId)
         }
       }
     )
@@ -175,11 +157,11 @@ export default defineComponent({
       showAddView.value = true
     }
     const userLoading = ref(false)
-    let userOption: Ref<UserOption['datagram']['list']> = ref([])
+    let userOption: Ref<NamespaceUserOption['datagram']['list']> = ref([])
     watch(showAddView, (val: boolean) => {
       if (val === true) {
         userLoading.value = true
-        new UserOption()
+        new NamespaceUserOption()
           .request()
           .then((response) => {
             userOption.value = response.data.list
@@ -208,9 +190,8 @@ export default defineComponent({
         disabled: false,
       },
       formData: {
-        namespaceId: 0,
+        projectId: 0,
         userIds: [],
-        role: '',
       },
       formRules: {
         userIds: [
@@ -226,8 +207,8 @@ export default defineComponent({
     }
   },
   watch: {
-    namespaceId: function (newVal) {
-      this.formData.namespaceId = newVal
+    projectId: function (newVal) {
+      this.formData.projectId = newVal
     },
   },
   methods: {
@@ -235,12 +216,12 @@ export default defineComponent({
       ;(this.$refs.form as Validator).validate((valid: boolean) => {
         if (valid) {
           this.formProps.disabled = true
-          new NamespaceUserAdd(this.formData)
+          new ProjectUserAdd(this.formData)
             .request()
             .then(() => {
               this.showAddView = false
               ElMessage.success('Success')
-              this.getBindUserList(this.formData.namespaceId)
+              this.getBindUserList(this.formData.projectId)
             })
             .finally(() => {
               this.formProps.disabled = false
@@ -251,7 +232,7 @@ export default defineComponent({
       })
     },
 
-    remove(data: NamespaceUserData['datagram']['detail']) {
+    remove(data: ProjectUserData['datagram']['detail']) {
       ElMessageBox.confirm(
         this.$t('namespacePage.removeUserTips'),
         this.$t('tips'),
@@ -262,11 +243,11 @@ export default defineComponent({
         }
       )
         .then(() => {
-          new NamespaceUserRemove({ namespaceUserId: data.id })
+          new ProjectUserRemove({ projectUserId: data.id })
             .request()
             .then(() => {
               ElMessage.success('Success')
-              this.getBindUserList(data.namespaceId)
+              this.getBindUserList(data.projectId)
             })
         })
         .catch(() => {

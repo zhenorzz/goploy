@@ -213,7 +213,7 @@ func (Crontab) Edit(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// import many crontab
+// Import many crontab
 func (Crontab) Import(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ServerID int64    `json:"serverId" validate:"gt=0"`
@@ -272,7 +272,7 @@ func (Crontab) Import(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// DeleteRow one Crontab
+// Remove one Crontab
 func (Crontab) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID    int64 `json:"id" validate:"gt=0"`

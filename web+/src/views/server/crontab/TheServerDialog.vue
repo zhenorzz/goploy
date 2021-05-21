@@ -1,5 +1,9 @@
 <template>
-  <el-dialog v-model="dialogVisible" :title="$t('manage')">
+  <el-dialog
+    v-model="dialogVisible"
+    :title="$t('manage')"
+    :close-on-click-modal="false"
+  >
     <el-row class="app-bar" type="flex" justify="end">
       <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
       <el-row
@@ -204,7 +208,6 @@ export default defineComponent({
           new CrontabServerAdd(this.formData)
             .request()
             .then(() => {
-              this.dialogVisible = false
               ElMessage.success('Success')
               this.getBindServerList(this.formData.crontabId)
             })

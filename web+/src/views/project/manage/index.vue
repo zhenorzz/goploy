@@ -568,332 +568,30 @@
         </el-button>
       </template>
     </el-dialog>
-    <el-dialog v-model="dialogServerVisible" :title="$t('manage')">
-      <el-row class="app-bar" type="flex" justify="end">
-        <el-button
-          type="primary"
-          icon="el-icon-plus"
-          @click="handleAddServer"
-        />
-      </el-row>
-      <el-table
-        border
-        stripe
-        highlight-current-row
-        :data="tableServerData"
-        style="width: 100%"
-      >
-        <el-table-column prop="serverId" :label="$t('serverId')" width="100" />
-        <el-table-column
-          prop="serverName"
-          :label="$t('serverName')"
-          min-width="120"
-        />
-        <el-table-column
-          prop="serverDescription"
-          :label="$t('serverDescription')"
-          min-width="200"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          prop="insertTime"
-          :label="$t('insertTime')"
-          width="135"
-          align="center"
-        />
-        <el-table-column
-          prop="updateTime"
-          :label="$t('updateTime')"
-          width="135"
-          align="center"
-        />
-        <el-table-column
-          prop="operation"
-          :label="$t('op')"
-          width="80"
-          align="center"
-          fixed="right"
-        >
-          <template #default="scope">
-            <el-button
-              type="danger"
-              icon="el-icon-delete"
-              @click="removeServer(scope.row)"
-            />
-          </template>
-        </el-table-column>
-      </el-table>
-      <template #footer class="dialog-footer">
-        <el-button @click="dialogServerVisible = false">
-          {{ $t('cancel') }}
-        </el-button>
-      </template>
-    </el-dialog>
-    <el-dialog v-model="dialogUserVisible" :title="$t('manage')">
-      <el-row class="app-bar" type="flex" justify="end">
-        <el-button type="primary" icon="el-icon-plus" @click="handleAddUser" />
-      </el-row>
-      <el-table
-        border
-        stripe
-        highlight-current-row
-        :data="tableUserData"
-        style="width: 100%"
-      >
-        <el-table-column prop="userId" :label="$t('userId')" width="100" />
-        <el-table-column prop="userName" :label="$t('userName')" />
-        <el-table-column
-          prop="insertTime"
-          :label="$t('insertTime')"
-          width="135"
-          align="center"
-        />
-        <el-table-column
-          prop="updateTime"
-          :label="$t('updateTime')"
-          width="135"
-          align="center"
-        />
-        <el-table-column
-          prop="operation"
-          :label="$t('op')"
-          width="80"
-          align="center"
-          fixed="right"
-        >
-          <template #default="scope">
-            <el-button
-              v-show="role.hasManagerPermission()"
-              type="danger"
-              icon="el-icon-delete"
-              @click="removeUser(scope.row)"
-            />
-          </template>
-        </el-table-column>
-      </el-table>
-      <template #footer class="dialog-footer">
-        <el-button @click="dialogUserVisible = false">
-          {{ $t('cancel') }}
-        </el-button>
-      </template>
-    </el-dialog>
-    <el-dialog
+    <TheServerDialog
+      v-model="dialogServerVisible"
+      :project-id="selectedItem.id"
+    />
+    <TheUserDialog v-model="dialogUserVisible" :project-id="selectedItem.id" />
+    <TheFileDialog
       v-model="dialogFileManagerVisible"
-      :title="$t('manage')"
-      custom-class="file-dialog"
-    >
-      <el-row
-        v-if="fileFormProps.show === 'file-list'"
-        type="flex"
-        justify="space-between"
-        align="middle"
-        style="margin: 10px 0"
-      >
-        <span>{{ $t('projectPage.projectFileTips') }}</span>
-        <el-button
-          type="primary"
-          icon="el-icon-plus"
-          @click="handleAppendFile"
-        />
-      </el-row>
-      <el-form
-        ref="fileForm"
-        :rules="fileFormRules"
-        :model="fileFormData"
-        class="file-form"
-      >
-        <template v-if="fileFormProps.show === 'file-list'">
-          <el-form-item
-            v-for="(file, index) in fileFormData.files"
-            :key="index"
-            label-width="0"
-            prop="directory"
-          >
-            <el-row type="flex">
-              <el-input
-                v-model.trim="file.filename"
-                autocomplete="off"
-                placeholder="path/to/example/.env"
-                :disabled="file.state === 'success'"
-                :readonly="file.state === 'success'"
-              >
-                <template #prepend>{{ fileFormProps.projectPath }}</template>
-                <template v-if="file.state === 'success'" #suffix>
-                  <i
-                    class="el-input__icon el-icon-check"
-                    style="color: #67c23a; font-size: 16px; font-weight: 900"
-                  />
-                </template>
-                <template v-else-if="file.state === 'loading'" #suffix>
-                  <i
-                    class="el-input__icon el-icon-loading"
-                    style="font-size: 14px; font-weight: 900"
-                  />
-                </template>
-                <template v-else #suffix>
-                  <i
-                    class="el-input__icon el-icon-close"
-                    style="color: #f56c6c; font-size: 16px; font-weight: 900"
-                  />
-                </template>
-              </el-input>
-              <el-upload
-                ref="upload"
-                style="margin: 0 12px"
-                :action="`${fileFormProps.action}?projectFileId=${file.id}&projectId=${file.projectId}&filename=${file.filename}`"
-                :before-upload="(uploadFile) => beforeUpload(uploadFile, index)"
-                :on-success="
-                  (response, uploadFile, uploadFileList) =>
-                    handleUploadSuccess(
-                      response,
-                      uploadFile,
-                      uploadFileList,
-                      index
-                    )
-                "
-                :show-file-list="false"
-                :disabled="!validateFilename(file, index)"
-                multiple
-              >
-                <el-button
-                  :disabled="!validateFilename(file, index)"
-                  type="text"
-                  icon="el-icon-upload"
-                />
-              </el-upload>
-              <el-button
-                :disabled="!validateFilename(file, index)"
-                type="text"
-                icon="el-icon-edit"
-                @click="getProjectFileContent(file, index)"
-              />
-              <el-button
-                type="text"
-                icon="el-icon-delete"
-                @click="removeFile(index)"
-              />
-            </el-row>
-          </el-form-item>
-        </template>
-        <el-form-item v-else prop="projectFileEdit" label-width="0px">
-          <v-ace-editor
-            v-model:value="fileFormData.content"
-            v-loading="fileFormProps.editContentLoading"
-            :lang="getScriptLang()"
-            theme="github"
-            style="height: 500px"
-          />
-        </el-form-item>
-      </el-form>
-      <template v-if="fileFormProps.show !== 'file-list'" #footer>
-        <el-button @click="fileFormProps.show = 'file-list'">
-          {{ $t('cancel') }}
-        </el-button>
-        <el-button
-          :disabled="fileFormProps.disabled"
-          type="primary"
-          @click="fileSubmit"
-        >
-          {{ $t('confirm') }}
-        </el-button>
-      </template>
-    </el-dialog>
-    <el-dialog v-model="dialogAddServerVisible" :title="$t('add')">
-      <el-form
-        ref="addServerForm"
-        :rules="addServerFormRules"
-        :model="addServerFormData"
-      >
-        <el-form-item :label="$t('server')" label-width="80px" prop="serverIds">
-          <el-select
-            v-model="addServerFormData.serverIds"
-            multiple
-            style="width: 100%"
-          >
-            <el-option
-              v-for="(item, index) in serverOption"
-              :key="index"
-              :label="item.label"
-              :value="item.id"
-            />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogAddServerVisible = false">
-          {{ $t('cancel') }}
-        </el-button>
-        <el-button
-          :disabled="addServerFormProps.disabled"
-          type="primary"
-          @click="addServer"
-        >
-          {{ $t('confirm') }}
-        </el-button>
-      </template>
-    </el-dialog>
-    <el-dialog v-model="dialogAddUserVisible" :title="$t('add')">
-      <el-form
-        ref="addUserForm"
-        :rules="addUserFormRules"
-        :model="addUserFormData"
-      >
-        <el-form-item :label="$t('member')" label-width="80px" prop="userIds">
-          <el-select
-            v-model="addUserFormData.userIds"
-            multiple
-            style="width: 100%"
-          >
-            <el-option
-              v-for="(item, index) in userOption.filter(
-                (item) => [role.Admin, role.Manager].indexOf(item.role) === -1
-              )"
-              :key="index"
-              :label="item.userName"
-              :value="item.userId"
-            />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="dialogAddUserVisible = false">
-          {{ $t('cancel') }}
-        </el-button>
-        <el-button
-          :disabled="addUserFormProps.disabled"
-          type="primary"
-          @click="addUser"
-        >
-          {{ $t('confirm') }}
-        </el-button>
-      </template>
-    </el-dialog>
+      :project-id="selectedItem.id"
+    />
   </el-row>
 </template>
 <script>
 import tableHeight from '@/mixin/tableHeight'
 import { parseGitURL } from '@/utils'
 import { NamespaceUserOption } from '@/api/namespace'
-import { getOption as getServerOption } from '@/api/server'
+import { ServerOption } from '@/api/server'
 import {
   getList,
   getTotal,
-  getBindServerList,
-  getBindUserList,
-  getProjectFileList,
   getRemoteBranchList,
-  getProjectFileContent,
   add,
   edit,
   remove,
-  addServer,
-  addUser,
-  addFile,
-  editFile,
-  removeFile,
   setAutoDeploy,
-  removeServer,
-  removeUser,
 } from '@/api/project'
 import { role } from '@/utils/namespace'
 import { VAceEditor } from 'vue3-ace-editor'
@@ -901,12 +599,17 @@ import 'ace-builds/src-noconflict/mode-sh'
 import 'ace-builds/src-noconflict/mode-python'
 import 'ace-builds/src-noconflict/mode-php'
 import 'ace-builds/src-noconflict/theme-github'
-
+import TheServerDialog from './TheServerDialog.vue'
+import TheUserDialog from './TheUserDialog.vue'
+import TheFileDialog from './TheFileDialog.vue'
 import { defineComponent } from 'vue'
 export default defineComponent({
   name: 'ProjectIndex',
   components: {
     VAceEditor,
+    TheServerDialog,
+    TheUserDialog,
+    TheFileDialog,
   },
   mixins: [tableHeight],
   data() {
@@ -933,8 +636,6 @@ export default defineComponent({
       dialogAutoDeployVisible: false,
       dialogServerVisible: false,
       dialogUserVisible: false,
-      dialogAddServerVisible: false,
-      dialogAddUserVisible: false,
       dialogFileManagerVisible: false,
       serverOption: [],
       userOption: [],
@@ -946,8 +647,6 @@ export default defineComponent({
         rows: 16,
         total: 0,
       },
-      tableServerData: [],
-      tableUserData: [],
       formProps: {
         reviewURLParamOption: [
           {
@@ -1048,53 +747,6 @@ export default defineComponent({
         id: 0,
         autoDeploy: 0,
       },
-      fileFormProps: {
-        projectPath: '/data/www/goploy/',
-        action: import.meta.env.VITE_APP_BASE_API + '/project/uploadFile',
-        show: 'file-list',
-        editContentLoading: false,
-        disabled: false,
-        selectedIndex: -1,
-      },
-      fileFormData: {
-        files: [],
-        content: '',
-      },
-      fileFormRules: {},
-      addServerFormProps: {
-        disabled: false,
-      },
-      addServerFormData: {
-        projectId: 0,
-        serverIds: [],
-      },
-      addServerFormRules: {
-        serverIds: [
-          {
-            type: 'array',
-            required: true,
-            message: 'Server required',
-            trigger: 'change',
-          },
-        ],
-      },
-      addUserFormProps: {
-        disabled: false,
-      },
-      addUserFormData: {
-        projectId: 0,
-        userIds: [],
-      },
-      addUserFormRules: {
-        userIds: [
-          {
-            type: 'array',
-            required: true,
-            message: 'User required',
-            trigger: 'change',
-          },
-        ],
-      },
     }
   },
   created() {
@@ -1182,71 +834,20 @@ export default defineComponent({
     },
 
     handleServer(data) {
-      this.getBindServerList(data.id)
-      // 先把projectID写入添加服务器的表单
-      this.addServerFormData.projectId = data.id
+      this.selectedItem = data
       this.dialogServerVisible = true
     },
 
     handleUser(data) {
-      this.getBindUserList(data.id)
-      // 先把projectID写入添加用户的表单
-      this.addUserFormData.projectId = data.id
+      this.selectedItem = data
       this.dialogUserVisible = true
     },
 
-    handleAddServer() {
-      this.dialogAddServerVisible = true
-    },
-
-    handleAddUser() {
-      this.dialogAddUserVisible = true
-    },
-
     handleFile(data) {
-      this.getProjectFileList(data.id)
       this.selectedItem = data
       this.dialogFileManagerVisible = true
     },
 
-    handleAppendFile() {
-      this.fileFormData.files.push({
-        filename: '',
-        projectId: this.selectedItem.id,
-        state: 'loading',
-        id: 0,
-      })
-    },
-
-    validateFilename(file, index) {
-      const filename = file.filename
-      if (file.state === 'success') {
-        return true
-      } else if (filename === '') {
-        return false
-      } else if (filename.substr(filename.length - 1, 1) === '/') {
-        return false
-      }
-      const filenames = this.fileFormData.files.map((item) => item.filename)
-      filenames.splice(index, 1)
-      return filenames.indexOf(filename) === -1
-    },
-
-    beforeUpload(file, index) {
-      this.fileFormData.files[index].state = 'loading'
-      this.$message.info(this.$i18n.t('uploading'))
-    },
-
-    handleUploadSuccess(response, file, fileList, index) {
-      if (response.code !== 0) {
-        this.fileFormData.files[index].state = 'fail'
-        this.$message.error(response.message)
-      } else {
-        this.fileFormData.files[index].id = response.data.id
-        this.fileFormData.files[index].state = 'success'
-        this.$message.success('Success')
-      }
-    },
     submit() {
       this.$refs.form.validate((valid) => {
         if (valid) {
@@ -1322,154 +923,8 @@ export default defineComponent({
       })
     },
 
-    addServer() {
-      this.$refs.addServerForm.validate((valid) => {
-        if (valid) {
-          this.addServerFormProps.disabled = true
-          addServer(this.addServerFormData)
-            .then(() => {
-              this.dialogAddServerVisible = false
-              this.$message.success('Success')
-              this.getBindServerList(this.addServerFormData.projectId)
-            })
-            .finally(() => {
-              this.addServerFormProps.disabled = false
-            })
-        } else {
-          return false
-        }
-      })
-    },
-
-    addUser() {
-      this.$refs.addUserForm.validate((valid) => {
-        if (valid) {
-          this.addUserFormProps.disabled = true
-          addUser(this.addUserFormData)
-            .then(() => {
-              this.dialogAddUserVisible = false
-              this.$message.success('Success')
-              this.getBindUserList(this.addUserFormData.projectId)
-            })
-            .finally(() => {
-              this.addUserFormProps.disabled = false
-            })
-        } else {
-          return false
-        }
-      })
-    },
-
-    removeServer(data) {
-      this.$confirm(
-        this.$i18n.t('projectPage.removeServerTips', {
-          serverName: data.serverName,
-        }),
-        this.$i18n.t('tips'),
-        {
-          confirmButtonText: this.$i18n.t('confirm'),
-          cancelButtonText: this.$i18n.t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          removeServer(data.id).then(() => {
-            this.$message.success('Success')
-            this.getBindServerList(data.projectId)
-          })
-        })
-        .catch(() => {
-          this.$message.info('Cancel')
-        })
-    },
-
-    removeUser(data) {
-      this.$confirm(
-        this.$i18n.t('projectPage.removeUserTips', { userName: data.userName }),
-        this.$i18n.t('tips'),
-        {
-          confirmButtonText: this.$i18n.t('confirm'),
-          cancelButtonText: this.$i18n.t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          removeUser(data.id).then(() => {
-            this.$message.success('Success')
-            this.getBindUserList(data.projectId)
-          })
-        })
-        .catch(() => {
-          this.$message.info('Cancel')
-        })
-    },
-
-    removeFile(index) {
-      if (this.fileFormData.files[index].id === 0) {
-        this.fileFormData.files.splice(index, 1)
-      } else {
-        this.$confirm(
-          this.$i18n.t('projectPage.removeFileTips', {
-            filename: this.fileFormData.files[index].filename,
-          }),
-          this.$i18n.t('tips'),
-          {
-            confirmButtonText: this.$i18n.t('confirm'),
-            cancelButtonText: this.$i18n.t('cancel'),
-            type: 'warning',
-          }
-        )
-          .then(() => {
-            removeFile(this.fileFormData.files[index].id).then(() => {
-              this.$message.success('Success')
-              this.fileFormData.files.splice(index, 1)
-            })
-          })
-          .catch(() => {
-            this.$message.info('Cancel')
-          })
-      }
-    },
-
-    fileSubmit() {
-      const file = this.fileFormData.files[this.fileFormProps.selectedIndex]
-      this.fileFormProps.disabled = true
-      if (file.id === 0) {
-        addFile({
-          projectId: file.projectId,
-          filename: file.filename,
-          content: this.fileFormData.content,
-        })
-          .then((response) => {
-            this.fileFormData.files[this.fileFormProps.selectedIndex].id =
-              response.data.id
-            this.fileFormData.files[this.fileFormProps.selectedIndex].state =
-              'success'
-            this.fileFormProps.show = 'file-list'
-            this.$message.success('Success')
-          })
-          .finally(() => {
-            this.fileFormProps.disabled = false
-          })
-      } else {
-        editFile({
-          id: file.id,
-          content: this.fileFormData.content,
-        })
-          .then(() => {
-            this.fileFormData.files[this.fileFormProps.selectedIndex].state =
-              'success'
-            this.fileFormProps.show = 'file-list'
-            this.$message.success('Success')
-          })
-          .finally(() => {
-            this.fileFormProps.disabled = false
-          })
-      }
-    },
-
     getOptions() {
-      getServerOption().then((response) => {
+      new ServerOption().request().then((response) => {
         this.serverOption = response.data.list
         this.serverOption.map((element) => {
           element.label =
@@ -1480,7 +935,7 @@ export default defineComponent({
           return element
         })
       })
-      getUserOption().then((response) => {
+      new NamespaceUserOption().request().then((response) => {
         this.userOption = response.data.list
       })
     },
@@ -1499,48 +954,6 @@ export default defineComponent({
     getTotal() {
       getTotal(this.projectName).then((response) => {
         this.pagination.total = response.data.total
-      })
-    },
-
-    getProjectFileList(projectID) {
-      getProjectFileList(projectID).then((response) => {
-        this.fileFormData.files = response.data.list.map((item) => {
-          item.state = 'success'
-          return item
-        })
-      })
-    },
-
-    getProjectFileContent(file, index) {
-      this.fileFormProps.selectedIndex = index
-      this.fileFormProps.show = 'edit-content'
-      this.fileFormData.content = this.fileFormData.files[index]['content']
-        ? this.fileFormData.files[index]['content']
-        : ''
-      if (file.id === 0) {
-        return
-      }
-      this.fileFormProps.editContentLoading = true
-      getProjectFileContent(file.id)
-        .then((response) => {
-          this.fileFormData.content = this.fileFormData.files[index][
-            'content'
-          ] = response.data.content
-        })
-        .finally(() => {
-          this.fileFormProps.editContentLoading = false
-        })
-    },
-
-    getBindServerList(projectID) {
-      getBindServerList(projectID).then((response) => {
-        this.tableServerData = response.data.list
-      })
-    },
-
-    getBindUserList(projectID) {
-      getBindUserList(projectID).then((response) => {
-        this.tableUserData = response.data.list
       })
     },
 

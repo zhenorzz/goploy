@@ -136,7 +136,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
       {
         path: 'index',
         name: 'ProjectIndex',
-        component: () => import('@/views/project/index.vue'),
+        component: () => import('@/views/project/manage/index.vue'),
         meta: {
           title: 'project',
           icon: 'project',
