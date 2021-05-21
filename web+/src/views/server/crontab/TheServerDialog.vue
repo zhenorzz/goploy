@@ -18,9 +18,7 @@
               <el-option
                 v-for="(item, index) in serverOption"
                 :key="index"
-                :label="
-                  item.name + (item.description ? `(${item.description})` : '')
-                "
+                :label="item.label"
                 :value="item.id"
               />
             </el-select>
@@ -120,14 +118,14 @@ export default defineComponent({
   },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
-    let tableData: Ref<CrontabServerList['datagram']['list']> = ref([])
+    const tableData: Ref<CrontabServerList['datagram']['list']> = ref([])
     const dialogVisible = computed({
       get: () => props.modelValue,
       set: (val) => {
         emit('update:modelValue', val)
       },
     })
-    let tableLoading = ref(false)
+    const tableLoading = ref(false)
     const getBindServerList = (crontabId: number) => {
       tableLoading.value = true
       new CrontabServerList({ id: crontabId })
@@ -149,11 +147,11 @@ export default defineComponent({
       }
     )
 
-    let showAddView = ref(false)
+    const showAddView = ref(false)
     const handleAdd = () => {
       showAddView.value = true
     }
-    let serverOption: Ref<ServerOption['datagram']['list']> = ref([])
+    const serverOption: Ref<ServerOption['datagram']['list']> = ref([])
     watch(showAddView, (val: boolean) => {
       if (val === true) {
         new ServerOption().request().then((response) => {

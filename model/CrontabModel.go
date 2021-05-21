@@ -9,7 +9,7 @@ const crontabTable = "`crontab`"
 // Crontab -
 type Crontab struct {
 	ID          int64  `json:"id"`
-	NamespaceID int64  `json:"namespace_id"`
+	NamespaceID int64  `json:"namespaceId"`
 	Command     string `json:"command"`
 	CommandMD5  string `json:"commandMD5"`
 	Creator     string `json:"creator"`

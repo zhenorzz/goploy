@@ -1,5 +1,25 @@
-import Axios from './axios'
 import { Request, Pagination, ID, Total } from './types'
+
+export class CrontabData {
+  public datagram!: {
+    detail: {
+      id: number
+      namespaceId: number
+      command: string
+      commandMD5: string
+      date?: string
+      dateLocale?: string
+      script?: string
+      description?: string
+      creator: string
+      creatorId: number
+      editor: string
+      editorId: number
+      InsertTime: string
+      UpdateTime: string
+    }
+  }
+}
 
 export class CrontabServerData {
   public datagram!: {
@@ -18,26 +38,37 @@ export class CrontabServerData {
   }
 }
 
-/**
- * @return {Promise}
- */
-export function getList({ page, rows }, command) {
-  return Axios.request({
-    url: '/crontab/getList',
-    method: 'get',
-    params: { page, rows, command },
-  })
+export class CrontabList extends Request {
+  readonly url = '/crontab/getList'
+  readonly method = 'get'
+  public param: {
+    command: string
+  }
+  public pagination: Pagination
+
+  public datagram!: {
+    list: CrontabData['datagram']['detail'][]
+  }
+  constructor(param: CrontabList['param'], pagination: Pagination) {
+    super()
+    this.pagination = pagination
+    this.param = { ...param, ...pagination }
+  }
 }
 
-/**
- * @return {Promise}
- */
-export function getTotal(command) {
-  return Axios.request({
-    url: '/crontab/getTotal',
-    method: 'get',
-    params: { command },
-  })
+export class CrontabTotal extends Request {
+  readonly url = '/crontab/getTotal'
+  readonly method = 'get'
+
+  public param: {
+    command: string
+  }
+
+  public datagram!: Total
+  constructor(param: CrontabTotal['param']) {
+    super()
+    this.param = { ...param }
+  }
 }
 
 export class CrontabsInRemoteServer extends Request {
@@ -68,40 +99,45 @@ export class CrontabServerList extends Request {
   }
 }
 
-/**
- * @param  {id} id
- * @return {Promise}
- */
-export function getBindServerList(id) {
-  return Axios.request({
-    url: '/crontab/getBindServerList',
-    method: 'get',
-    params: { id },
-  })
+export class CrontabAdd extends Request {
+  readonly url = '/crontab/add'
+  readonly method = 'post'
+  public param: {
+    command: string
+    serverIds: string[]
+  }
+  public datagram!: ID
+  constructor(param: CrontabAdd['param']) {
+    super()
+    this.param = param
+  }
 }
 
-export function add(data) {
-  return Axios.request({
-    url: '/crontab/add',
-    method: 'post',
-    data,
-  })
+export class CrontabEdit extends Request {
+  readonly url = '/crontab/edit'
+  readonly method = 'put'
+  public param: {
+    id: number
+    command: string
+  }
+  constructor(param: CrontabEdit['param']) {
+    super()
+    this.param = param
+  }
 }
 
-export function edit(data) {
-  return Axios.request({
-    url: '/crontab/edit',
-    method: 'put',
-    data,
-  })
-}
-
-export function remove(data) {
-  return Axios.request({
-    url: '/crontab/remove',
-    method: 'delete',
-    data,
-  })
+export class CrontabRemove extends Request {
+  readonly url = '/crontab/remove'
+  readonly method = 'delete'
+  public param: {
+    id: number
+    radio: number
+  }
+  public datagram!: ID
+  constructor(param: CrontabRemove['param']) {
+    super()
+    this.param = param
+  }
 }
 
 export class CrontabImport extends Request {

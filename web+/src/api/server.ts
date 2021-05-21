@@ -1,10 +1,10 @@
-import Axios from './axios'
-import { Request, Pagination, ID, Total } from './types'
+import { HttpResponse, Request, Pagination, ID, Total } from './types'
 
 export class ServerData {
   public datagram!: {
     detail: {
       id: number
+      label: string
       name: string
       ip: string
       port: number
@@ -19,37 +19,57 @@ export class ServerData {
   }
 }
 
-/**
- * @return {Promise}
- */
-export function getList({ page, rows }) {
-  return Axios.request({
-    url: '/server/getList',
-    method: 'get',
-    params: { page, rows },
-  })
+export class ServerList extends Request {
+  readonly url = '/server/getList'
+  readonly method = 'get'
+
+  public pagination: Pagination
+
+  public datagram!: {
+    list: ServerData['datagram']['detail'][]
+  }
+  constructor(pagination: Pagination) {
+    super()
+    this.pagination = pagination
+    this.param = { ...pagination }
+  }
+  public request(): Promise<HttpResponse<this['datagram']>> {
+    return super.request().then((response) => {
+      response.data.list = response.data.list.map((element) => {
+        element.label =
+          element.name +
+          (element.description.length > 0
+            ? '(' + element.description + ')'
+            : '')
+        return element
+      })
+      return response
+    })
+  }
 }
 
-/**
- * @return {Promise}
- */
-export function getTotal() {
-  return Axios.request({
-    url: '/server/getTotal',
-    method: 'get',
-    params: {},
-  })
+export class ServerTotal extends Request {
+  readonly url = '/server/getTotal'
+  readonly method = 'get'
+  public datagram!: Total
 }
 
-/**
- * @return {Promise}
- */
-export function getPublicKey(path) {
-  return Axios.request({
-    url: '/server/getPublicKey',
-    method: 'get',
-    params: { path },
-  })
+export class ServerPublicKey extends Request {
+  readonly url = '/server/getPublicKey'
+  readonly method = 'get'
+
+  public param: {
+    path: string
+  }
+
+  public datagram!: {
+    key: string
+  }
+
+  constructor(param: ServerPublicKey['param']) {
+    super()
+    this.param = param
+  }
 }
 
 export class ServerOption extends Request {
@@ -59,47 +79,82 @@ export class ServerOption extends Request {
   public datagram!: {
     list: ServerData['datagram']['detail'][]
   }
+  public request(): Promise<HttpResponse<this['datagram']>> {
+    return super.request().then((response) => {
+      response.data.list = response.data.list.map((element) => {
+        element.label =
+          element.name +
+          (element.description.length > 0
+            ? '(' + element.description + ')'
+            : '')
+        return element
+      })
+      return response
+    })
+  }
 }
 
-/**
- * @return {Promise}
- */
-export function getOption() {
-  return Axios.request({
-    url: '/server/getOption',
-    method: 'get',
-  })
+export class ServerAdd extends Request {
+  readonly url = '/server/add'
+  readonly method = 'post'
+  public param: {
+    namespaceId: number
+    name: string
+    ip: string
+    port: number
+    owner: string
+    path: string
+    password: string
+    description: string
+  }
+  constructor(param: ServerAdd['param']) {
+    super()
+    this.param = param
+  }
 }
 
-export function add(data) {
-  return Axios.request({
-    url: '/server/add',
-    method: 'post',
-    data,
-  })
+export class ServerEdit extends Request {
+  readonly url = '/server/edit'
+  readonly method = 'put'
+  public param: {
+    id: number
+    namespaceId: number
+    name: string
+    ip: string
+    port: number
+    owner: string
+    path: string
+    password: string
+    description: string
+  }
+  constructor(param: ServerEdit['param']) {
+    super()
+    this.param = param
+  }
 }
 
-export function edit(data) {
-  return Axios.request({
-    url: '/server/edit',
-    method: 'put',
-    data,
-  })
+export class ServerCheck extends Request {
+  readonly url = '/server/check'
+  readonly method = 'post'
+  public param: {
+    ip: string
+    port: number
+    owner: string
+    path: string
+    password: string
+  }
+  constructor(param: ServerCheck['param']) {
+    super()
+    this.param = param
+  }
 }
 
-export function check(data) {
-  return Axios.request({
-    timeout: 100000,
-    url: '/server/check',
-    method: 'post',
-    data,
-  })
-}
-
-export function remove(id) {
-  return Axios.request({
-    url: '/server/remove',
-    method: 'delete',
-    data: { id },
-  })
+export class ServerRemove extends Request {
+  readonly url = '/server/remove'
+  readonly method = 'delete'
+  public param: ID
+  constructor(param: ServerRemove['param']) {
+    super()
+    this.param = param
+  }
 }

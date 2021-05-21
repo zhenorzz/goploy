@@ -175,19 +175,23 @@
     <TheXtermDrawer v-model="dialogTermVisible" :server-row="selectedItem" />
   </el-row>
 </template>
-<script>
+<script lang="ts">
 import { getNamespace } from '@/utils/namespace'
 import {
-  getList,
-  getTotal,
-  getPublicKey,
-  add,
-  edit,
-  check,
-  remove,
+  ServerList,
+  ServerTotal,
+  ServerPublicKey,
+  ServerAdd,
+  ServerEdit,
+  ServerCheck,
+  ServerRemove,
+  ServerData,
 } from '@/api/server'
 import TheXtermDrawer from './TheXtermDrawer.vue'
+import Validator from 'async-validator'
 import { defineComponent } from 'vue'
+import { copy } from '@/utils'
+import { ElMessageBox, ElMessage } from 'element-plus'
 
 export default defineComponent({
   name: 'ServerIndex',
@@ -197,7 +201,7 @@ export default defineComponent({
       dialogTermVisible: false,
       dialogVisible: false,
       tableLoading: false,
-      tableData: [],
+      tableData: [] as ServerList['datagram']['list'],
       selectedItem: {},
       pagination: {
         page: 1,
@@ -263,7 +267,8 @@ export default defineComponent({
     getNamespace,
     getList() {
       this.tableLoading = true
-      getList(this.pagination)
+      new ServerList(this.pagination)
+        .request()
         .then((response) => {
           this.tableData = response.data.list
         })
@@ -273,16 +278,18 @@ export default defineComponent({
     },
 
     getTotal() {
-      getTotal().then((response) => {
+      new ServerTotal().request().then((response) => {
         this.pagination.total = response.data.total
       })
     },
 
     getPublicKey() {
       this.formProps.copyPubLoading = true
-      getPublicKey(this.formData.path)
+      new ServerPublicKey({ path: this.formData.path })
+        .request()
         .then((response) => {
-          this.copy(response.data, this.$t('serverPage.copyPubTips'))
+          copy(response.data.key)
+          ElMessage.success(this.$t('serverPage.copyPubTips'))
         })
         .finally(() => {
           this.formProps.copyPubLoading = false
@@ -290,7 +297,7 @@ export default defineComponent({
     },
 
     // 分页事件
-    handlePageChange(val) {
+    handlePageChange(val = 1) {
       this.pagination.page = val
       this.getList()
     },
@@ -300,13 +307,13 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleEdit(data) {
+    handleEdit(data: ServerData['datagram']) {
       this.formData = Object.assign({}, data)
       this.dialogVisible = true
     },
 
-    handleRemove(data) {
-      this.$confirm(
+    handleRemove(data: ServerData['datagram']) {
+      ElMessageBox.confirm(
         this.$t('serverPage.removeServerTips', { serverName: data.name }),
         this.$t('tips'),
         {
@@ -316,30 +323,31 @@ export default defineComponent({
         }
       )
         .then(() => {
-          remove(data.id).then(() => {
-            this.$message.success('Success')
+          new ServerRemove(data.id).request().then(() => {
+            ElMessage.success('Success')
             this.getList()
             this.getTotal()
           })
         })
         .catch(() => {
-          this.$message.info('Cancel')
+          ElMessage.info('Cancel')
         })
     },
 
-    handleConnect(data) {
+    handleConnect(data: ServerData['datagram']) {
       this.selectedItem = data
       this.dialogTermVisible = true
     },
 
     check() {
-      this.$refs.form.validate((valid) => {
+      ;(this.$refs.form as Validator).validate((valid: boolean) => {
         if (valid) {
           this.formProps.loading = true
           this.formProps.disabled = true
-          check(this.formData)
+          new ServerCheck(this.formData)
+            .request()
             .then(() => {
-              this.$message.success('Connected')
+              ElMessage.success('Connected')
             })
             .finally(() => {
               this.formProps.loading = false
@@ -352,7 +360,7 @@ export default defineComponent({
     },
 
     submit() {
-      this.$refs.form.validate((valid) => {
+      ;(this.$refs.form as Validator).validate((valid: boolean) => {
         if (valid) {
           if (this.formData.id === 0) {
             this.add()
@@ -367,11 +375,12 @@ export default defineComponent({
 
     add() {
       this.formProps.disabled = true
-      add(this.formData)
+      new ServerAdd(this.formData)
+        .request()
         .then(() => {
           this.getList()
           this.getTotal()
-          this.$message.success('Success')
+          ElMessage.success('Success')
         })
         .finally(() => {
           this.formProps.disabled = this.dialogVisible = false
@@ -380,10 +389,11 @@ export default defineComponent({
 
     edit() {
       this.formProps.disabled = true
-      edit(this.formData)
+      new ServerEdit(this.formData)
+        .request()
         .then(() => {
           this.getList()
-          this.$message.success('Success')
+          ElMessage.success('Success')
         })
         .finally(() => {
           this.formProps.disabled = this.dialogVisible = false

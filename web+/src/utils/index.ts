@@ -51,24 +51,6 @@ export function empty(mixedVar: any): boolean {
 }
 
 /**
- *
- * Parse export css to vars
- */
-export function parseExportCSS(variables: string): { [key: string]: string } {
-  const tmpVars: { [key: string]: string } = {}
-  const cssVars = variables.split('\n')
-  cssVars.pop()
-  cssVars.shift()
-  cssVars
-    .map((cssVar) => cssVar.trim().replace(';', ''))
-    .forEach((cssVar) => {
-      const cssVarSplit = cssVar.split(':').map((cssVar) => cssVar.trim())
-      tmpVars[cssVarSplit[0]] = cssVarSplit[1]
-    })
-  return tmpVars
-}
-
-/**
  * Parse the time to string
  */
 export function parseTime(time: number, cFormat?: string): string {
@@ -256,5 +238,25 @@ export function parseGitURL(url: string): string {
     return url
   } else {
     return 'http://' + url.substring(lastAtIndex + 1).replace(':', '/')
+  }
+}
+
+export function copy(content: string): void {
+  const el = document.createElement('textarea')
+  el.value = content
+  el.setAttribute('readonly', '')
+  el.style.position = 'absolute'
+  el.style.left = '-9999px'
+  document.body.appendChild(el)
+  const selected =
+    document.getSelection().rangeCount > 0
+      ? document.getSelection()?.getRangeAt(0)
+      : false
+  el.select()
+  document.execCommand('copy')
+  document.body.removeChild(el)
+  if (selected) {
+    document.getSelection()?.removeAllRanges()
+    document.getSelection()?.addRange(selected)
   }
 }

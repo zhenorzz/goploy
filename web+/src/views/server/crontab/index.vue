@@ -190,11 +190,20 @@
     <TheServerDialog v-model="serverVisible" :crontab-id="selectedItem.id" />
   </el-row>
 </template>
-<script>
+<script lang="ts">
 import tableHeight from '@/mixin/tableHeight'
 import cronstrue from 'cronstrue/i18n'
-import { getList, getTotal, add, edit, remove } from '@/api/crontab'
-import { getOption as getServerOption } from '@/api/server'
+import {
+  CrontabList,
+  CrontabTotal,
+  CrontabAdd,
+  CrontabEdit,
+  CrontabRemove,
+  CrontabData,
+} from '@/api/crontab'
+import Validator, { RuleItem } from 'async-validator'
+import { ElMessage } from 'element-plus'
+import { ServerOption } from '@/api/server'
 import TheImportDialog from './TheImportDialog.vue'
 import TheServerDialog from './TheServerDialog.vue'
 import { defineComponent } from 'vue'
@@ -204,14 +213,6 @@ export default defineComponent({
   components: { TheImportDialog, TheServerDialog },
   mixins: [tableHeight],
   data() {
-    const validateDate = (rule, value, callback) => {
-      try {
-        cronstrue.toString(value)
-        callback()
-      } catch (error) {
-        callback(error)
-      }
-    }
     return {
       crontabCommand: '',
       dialogVisible: false,
@@ -221,8 +222,8 @@ export default defineComponent({
       importVisible: false,
       selectedItem: {},
       tableLoading: false,
-      tableData: [],
-      serverOption: [],
+      tableData: [] as CrontabList['datagram']['list'],
+      serverOption: [] as ServerOption['datagram']['list'],
       pagination: {
         page: 1,
         rows: 16,
@@ -241,7 +242,20 @@ export default defineComponent({
         serverIds: [],
       },
       formRules: {
-        date: [{ required: true, validator: validateDate, trigger: 'blur' }],
+        date: [
+          {
+            required: true,
+            validator: (_, value) => {
+              try {
+                cronstrue.toString(value)
+                return true
+              } catch (error) {
+                return error
+              }
+            },
+            trigger: 'blur',
+          } as RuleItem,
+        ],
         script: [
           { required: true, message: 'Script required', trigger: 'blur' },
         ],
@@ -265,7 +279,8 @@ export default defineComponent({
   methods: {
     getList() {
       this.tableLoading = true
-      getList(this.pagination, this.crontabCommand)
+      new CrontabList({ command: this.crontabCommand }, this.pagination)
+        .request()
         .then((response) => {
           this.tableData = response.data.list.map((element) => {
             const commandSplit = element.command.split(' ')
@@ -286,22 +301,16 @@ export default defineComponent({
     },
 
     getTotal() {
-      getTotal(this.crontabCommand).then((response) => {
-        this.pagination.total = response.data.total
-      })
+      new CrontabTotal({ command: this.crontabCommand })
+        .request()
+        .then((response) => {
+          this.pagination.total = response.data.total
+        })
     },
 
     getServerOption() {
-      getServerOption().then((response) => {
+      new ServerOption().request().then((response) => {
         this.serverOption = response.data.list
-        this.serverOption.map((element) => {
-          element.label =
-            element.name +
-            (element.description.length > 0
-              ? '(' + element.description + ')'
-              : '')
-          return element
-        })
       })
     },
 
@@ -325,16 +334,16 @@ export default defineComponent({
       this.getTotal()
     },
 
-    handleEdit(data) {
+    handleEdit(data: CrontabData['datagram']['detail']) {
       this.formData.id = data.id
-      this.formData.date = data.date
-      this.formData.script = data.script
+      this.formData.date = data.date || ''
+      this.formData.script = data.script || ''
       this.formData.serverIds = []
-      this.formProps.dateLocale = data.dateLocale
+      this.formProps.dateLocale = data.dateLocale || ''
       this.dialogVisible = true
     },
 
-    handleServer(data) {
+    handleServer(data: CrontabData['datagram']['detail']) {
       this.selectedItem = data
       this.serverVisible = true
     },
@@ -343,7 +352,7 @@ export default defineComponent({
       this.addServerVisible = true
     },
 
-    handleRemove(data) {
+    handleRemove(data: CrontabData['datagram']['detail']) {
       this.crontabRemoveFormData.id = data.id
       this.crontabRemoveFormProps.command = data.command
       this.crontabRemoveVisible = true
@@ -355,13 +364,13 @@ export default defineComponent({
       })
     },
 
-    handlePageChange(val) {
+    handlePageChange(val = 1) {
       this.pagination.page = val
       this.getList()
     },
 
     submit() {
-      this.$refs.form.validate((valid) => {
+      ;(this.$refs.form as Validator).validate((valid: boolean) => {
         if (valid) {
           this.formData.command =
             this.formData.date + ' ' + this.formData.script
@@ -378,11 +387,12 @@ export default defineComponent({
 
     add() {
       this.formProps.disabled = true
-      add(this.formData)
+      new CrontabAdd(this.formData)
+        .request()
         .then(() => {
           this.getList()
           this.getTotal()
-          this.$message.success('Success')
+          ElMessage.success('Success')
         })
         .finally(() => {
           this.formProps.disabled = this.dialogVisible = false
@@ -391,10 +401,11 @@ export default defineComponent({
 
     edit() {
       this.formProps.disabled = true
-      edit(this.formData)
+      new CrontabEdit(this.formData)
+        .request()
         .then(() => {
           this.getList()
-          this.$message.success('Success')
+          ElMessage.success('Success')
         })
         .finally(() => {
           this.formProps.disabled = this.dialogVisible = false
@@ -403,15 +414,16 @@ export default defineComponent({
 
     remove() {
       this.crontabRemoveFormProps.disabled = true
-      remove(this.crontabRemoveFormData)
+      new CrontabRemove(this.crontabRemoveFormData)
+        .request()
         .then(() => {
           this.getList()
           this.getTotal()
-          this.$message.success('Success')
+          ElMessage.success('Success')
         })
         .finally(() => {
-          this.crontabRemoveFormProps.disabled =
-            this.crontabRemoveVisible = false
+          this.crontabRemoveFormProps.disabled = this.crontabRemoveVisible =
+            false
         })
     },
 

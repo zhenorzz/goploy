@@ -23,9 +23,8 @@
 <script>
 import { mapState } from 'vuex'
 import SidebarItem from './SidebarItem.vue'
-import variables from '@/styles/variables.scss'
+import variables from '@/styles/variables.module.scss'
 import { defineComponent } from 'vue'
-import { parseExportCSS } from '@/utils'
 export default defineComponent({
   components: { SidebarItem },
   computed: {
@@ -40,7 +39,7 @@ export default defineComponent({
       return path
     },
     variables() {
-      return parseExportCSS(variables)
+      return variables
     },
     isCollapse() {
       return !this.app.sidebar.opened

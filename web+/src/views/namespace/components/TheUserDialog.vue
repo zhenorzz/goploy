@@ -15,7 +15,13 @@
             prop="userIds"
             style="margin-bottom: 5px"
           >
-            <el-select v-model="formData.userIds" multiple clearable filterable>
+            <el-select
+              v-model="formData.userIds"
+              :loading="userLoading"
+              multiple
+              clearable
+              filterable
+            >
               <el-option
                 v-for="(item, index) in userOption.filter(
                   (item) => item.superManager !== 1
@@ -164,12 +170,19 @@ export default defineComponent({
     const handleAdd = () => {
       showAddView.value = true
     }
+    const userLoading = ref(false)
     let userOption: Ref<UserOption['datagram']['list']> = ref([])
     watch(showAddView, (val: boolean) => {
       if (val === true) {
-        new UserOption().request().then((response) => {
-          userOption.value = response.data.list
-        })
+        userLoading.value = true
+        new UserOption()
+          .request()
+          .then((response) => {
+            userOption.value = response.data.list
+          })
+          .finally(() => {
+            userLoading.value = false
+          })
       }
     })
 
@@ -181,6 +194,7 @@ export default defineComponent({
       tableData,
       showAddView,
       handleAdd,
+      userLoading,
       userOption,
     }
   },

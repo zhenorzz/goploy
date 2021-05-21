@@ -4,14 +4,13 @@
       <el-row type="flex" style="width: 100%">
         <el-select
           v-model="importProps.serverId"
+          :loading="serverLoading"
           style="flex: 1; margin-right: 5px"
         >
           <el-option
             v-for="(item, index) in serverOption"
             :key="index"
-            :label="
-              item.name + (item.description ? `(${item.description})` : '')
-            "
+            :label="item.label"
             :value="item.id"
           />
         </el-select>
@@ -25,6 +24,7 @@
         </el-button>
       </el-row>
       <el-table
+        v-loading="tableLoading"
         border
         stripe
         highlight-current-row
@@ -96,36 +96,43 @@ export default defineComponent({
         emit('update:modelValue', val)
       },
     })
-    let serverOption = ref<ServerOption['datagram']['list']>([])
+    const serverLoading = ref(false)
+    const serverOption = ref<ServerOption['datagram']['list']>([])
     watch(
       () => props.modelValue,
       (val: typeof props['modelValue']) => {
         if (val === true) {
-          new ServerOption().request().then((response) => {
-            serverOption.value = response.data.list
-          })
+          serverLoading.value = true
+          new ServerOption()
+            .request()
+            .then((response) => {
+              serverOption.value = response.data.list
+            })
+            .finally(() => {
+              serverLoading.value = false
+            })
         }
       }
     )
-
-    const importProps = reactive({
-      serverId: '',
-      disabled: false,
-      loading: false,
-    })
-    let tableData = ref<Record<string, string>[]>([])
+    const tableLoading = ref(false)
+    const tableData = ref<Record<string, string>[]>([])
     const getLocale = () => {
       if (locale.value === 'zh-cn') {
         return 'zh_CN'
       }
       return locale.value
     }
+    const importProps = reactive({
+      serverId: '',
+      disabled: false,
+    })
     const getRemoteServerList = () => {
       if (importProps.serverId.length <= 0) {
         ElMessage.warning(t('crontabPage.selectServerTips'))
         return
       }
       importProps.disabled = true
+      tableLoading.value = true
       new CrontabsInRemoteServer({ serverId: Number(importProps.serverId) })
         .request()
         .then((response) => {
@@ -146,10 +153,11 @@ export default defineComponent({
         })
         .finally(() => {
           importProps.disabled = false
+          tableLoading.value = false
         })
     }
 
-    let selectedItems = ref<Record<string, string>[]>([])
+    const selectedItems = ref<Record<string, string>[]>([])
     const onSelectionChange = (items: Record<string, string>[]) => {
       selectedItems.value = items
     }
@@ -175,9 +183,11 @@ export default defineComponent({
 
     return {
       dialogVisible,
+      serverLoading,
       serverOption,
       getRemoteServerList,
       importProps,
+      tableLoading,
       tableData,
       onSelectionChange,
       importCrontab,
