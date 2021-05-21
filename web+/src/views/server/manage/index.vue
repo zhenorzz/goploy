@@ -216,7 +216,7 @@ export default defineComponent({
       },
       formData: {
         id: 0,
-        namespaceId: '',
+        namespaceId: getNamespace()['id'],
         name: '',
         ip: '',
         port: 22,
@@ -307,12 +307,12 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleEdit(data: ServerData['datagram']) {
+    handleEdit(data: ServerData['datagram']['detail']) {
       this.formData = Object.assign({}, data)
       this.dialogVisible = true
     },
 
-    handleRemove(data: ServerData['datagram']) {
+    handleRemove(data: ServerData['datagram']['detail']) {
       ElMessageBox.confirm(
         this.$t('serverPage.removeServerTips', { serverName: data.name }),
         this.$t('tips'),
@@ -323,7 +323,7 @@ export default defineComponent({
         }
       )
         .then(() => {
-          new ServerRemove(data.id).request().then(() => {
+          new ServerRemove({ id: data.id }).request().then(() => {
             ElMessage.success('Success')
             this.getList()
             this.getTotal()
