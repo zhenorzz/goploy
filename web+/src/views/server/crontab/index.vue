@@ -273,7 +273,6 @@ export default defineComponent({
   created() {
     this.getList()
     this.getTotal()
-    this.getServerOption()
   },
 
   methods: {
@@ -321,6 +320,7 @@ export default defineComponent({
     },
 
     handleAdd() {
+      this.getServerOption()
       this.formData.id = 0
       this.dialogVisible = true
     },
