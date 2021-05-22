@@ -82,13 +82,13 @@ func (Deploy) GetPreview(gp *core.Goploy) *core.Response {
 	}
 	return &core.Response{
 		Data: struct {
-			GitTraceList model.PublishTraces `json:"gitTraceList"`
+			GitTraceList model.PublishTraces `json:"list"`
 			Pagination   model.Pagination    `json:"pagination"`
 		}{GitTraceList: gitTraceList, Pagination: pagination},
 	}
 }
 
-// GetDetail deploy detail
+// GetPublishTrace deploy detail
 func (Deploy) GetPublishTrace(gp *core.Goploy) *core.Response {
 	lastPublishToken := gp.URLQuery.Get("lastPublishToken")
 	publishTraceList, err := model.PublishTrace{Token: lastPublishToken}.GetListByToken()
@@ -99,14 +99,14 @@ func (Deploy) GetPublishTrace(gp *core.Goploy) *core.Response {
 	}
 	return &core.Response{
 		Data: struct {
-			PublishTraceList model.PublishTraces `json:"publishTraceList"`
+			PublishTraceList model.PublishTraces `json:"list"`
 		}{PublishTraceList: publishTraceList},
 	}
 }
 
-// GetDetail deploy detail
+// GetPublishTraceDetail deploy detail
 func (Deploy) GetPublishTraceDetail(gp *core.Goploy) *core.Response {
-	id, err := strconv.ParseInt(gp.URLQuery.Get("publish_trace_id"), 10, 64)
+	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}

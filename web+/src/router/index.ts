@@ -113,7 +113,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
       {
         path: 'index',
         name: 'MonitorIndex',
-        component: () => import('@/views/monitor/manage/index.vue'),
+        component: () => import('@/views/monitor/index.vue'),
         meta: {
           title: 'monitor',
           icon: 'monitor',

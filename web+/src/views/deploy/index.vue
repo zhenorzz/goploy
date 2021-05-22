@@ -136,7 +136,12 @@
         align="center"
       >
         <template #default="scope">
-          <el-row class="operation-btn">
+          <el-row
+            class="operation-btn"
+            tyle="flex"
+            justify="space-between"
+            style="width: 100%"
+          >
             <el-button
               v-if="scope.row.deployState === 0"
               type="primary"
@@ -163,7 +168,7 @@
               @command="(commandFunc) => commandFunc(scope.row)"
             >
               {{
-                isMember() && scope.row.review === 1
+                role.isMember() && scope.row.review === 1
                   ? $t('submit')
                   : $t('deploy')
               }}
@@ -229,329 +234,7 @@
         @current-change="handlePageChange"
       />
     </el-row>
-    <el-dialog
-      v-model="dialogVisible"
-      :title="$t('detail')"
-      custom-class="publish-record"
-    >
-      <el-row type="flex">
-        <el-row v-loading="searchPreview.loading" class="publish-preview">
-          <el-row>
-            <el-popover placement="bottom-start" width="318" trigger="click">
-              <el-row type="flex" align="middle">
-                <label class="publish-filter-label">{{ $t('user') }}</label>
-                <el-select
-                  v-model="searchPreview.userId"
-                  style="flex: 1"
-                  clearable
-                >
-                  <el-option
-                    v-for="(item, index) in userOption"
-                    :key="index"
-                    :label="item.userName"
-                    :value="item.userId"
-                  />
-                </el-select>
-              </el-row>
-              <el-row type="flex" align="middle" style="margin-top: 5px">
-                <label class="publish-filter-label">Commit</label>
-                <el-input
-                  v-model.trim="searchPreview.commit"
-                  autocomplete="off"
-                  style="flex: 1"
-                  placeholder="Commit"
-                />
-              </el-row>
-              <el-row type="flex" align="middle" style="margin-top: 5px">
-                <label class="publish-filter-label">{{ $t('branch') }}</label>
-                <el-input
-                  v-model.trim="searchPreview.branch"
-                  autocomplete="off"
-                  style="flex: 1"
-                  :placeholder="$t('branch')"
-                />
-              </el-row>
-              <el-row type="flex" align="middle" style="margin-top: 5px">
-                <label class="publish-filter-label">{{ $t('filename') }}</label>
-                <el-input
-                  v-model.trim="searchPreview.filename"
-                  autocomplete="off"
-                  style="flex: 1"
-                  :placeholder="$t('filename')"
-                />
-              </el-row>
-              <el-row type="flex" align="middle" style="margin-top: 5px">
-                <label class="publish-filter-label">{{ $t('state') }}</label>
-                <el-select
-                  v-model="searchPreview.state"
-                  style="flex: 1"
-                  clearable
-                >
-                  <el-option :label="$t('success')" :value="1" />
-                  <el-option :label="$t('fail')" :value="0" />
-                </el-select>
-              </el-row>
-              <el-row type="flex" align="middle" style="margin-top: 5px">
-                <label class="publish-filter-label">{{
-                  $t('commitDate')
-                }}</label>
-                <el-date-picker
-                  v-model="searchPreview.commitDate"
-                  class="dmp-date-picker"
-                  popper-class="dmp-date-picker-popper"
-                  :picker-options="pickerOptions"
-                  type="daterange"
-                  value-format="yyyy-MM-dd HH:mm:ss"
-                  range-separator="-"
-                  :start-placeholder="$t('startDate')"
-                  :end-placeholder="$t('endDate')"
-                  :default-time="['00:00:00', '23:59:59']"
-                  style="flex: 1"
-                  align="center"
-                />
-              </el-row>
-              <el-row type="flex" align="middle" style="margin-top: 5px">
-                <label class="publish-filter-label">
-                  {{ $t('deployDate') }}
-                </label>
-                <el-date-picker
-                  v-model="searchPreview.deployDate"
-                  class="dmp-date-picker"
-                  popper-class="dmp-date-picker-popper"
-                  :picker-options="pickerOptions"
-                  type="daterange"
-                  value-format="yyyy-MM-dd HH:mm:ss"
-                  range-separator="-"
-                  :start-placeholder="$t('startDate')"
-                  :end-placeholder="$t('endDate')"
-                  :default-time="['00:00:00', '23:59:59']"
-                  style="flex: 1"
-                  align="center"
-                />
-              </el-row>
-              <template #reference>
-                <el-button icon="el-icon-notebook-2" style="width: 220px">
-                  Filter({{ previewFilterlength }})
-                </el-button>
-              </template>
-            </el-popover>
-            <el-button
-              type="warning"
-              icon="el-icon-refresh"
-              @click="refreshSearchPreviewCondition"
-            />
-            <el-button
-              :loading="searchPreview.loading"
-              type="primary"
-              icon="el-icon-search"
-              style="margin-left: 2px"
-              @click="searchPreviewList"
-            />
-          </el-row>
-          <el-radio-group v-model="publishToken" @change="handleTraceChange">
-            <el-row v-for="(item, index) in gitTraceList" :key="index">
-              <el-row style="margin: 5px 0">
-                <el-radio class="publish-commit" :label="item.token" border>
-                  <span class="publish-name">{{ item.publisherName }}</span>
-                  <span class="publish-commitID">
-                    commitID: {{ item.commit }}
-                  </span>
-                  <i
-                    v-if="item.publishState === 1"
-                    class="el-icon-check icon-success"
-                    style="float: right"
-                  />
-                  <i
-                    v-else
-                    class="el-icon-close icon-fail"
-                    style="float: right"
-                  />
-                </el-radio>
-                <el-button type="danger" plain @click="rebuild(item)">
-                  rebuild
-                </el-button>
-              </el-row>
-            </el-row>
-          </el-radio-group>
-          <el-pagination
-            v-model:current-page="previewPagination.page"
-            :total="previewPagination.total"
-            :page-size="previewPagination.rows"
-            style="text-align: right; margin-right: 20px"
-            layout="total, prev, next"
-            @current-change="handlePreviewPageChange"
-          />
-        </el-row>
-        <el-row
-          v-loading="traceLoading"
-          class="project-detail"
-          style="flex: 1; width: 100%"
-        >
-          <el-row v-for="(item, index) in publishLocalTraceList" :key="index">
-            <el-row v-if="item.type === 2">
-              <el-row style="margin: 5px 0">
-                <i v-if="item.state === 1" class="el-icon-check icon-success" />
-                <i v-else class="el-icon-close icon-fail" />
-                -------------GIT-------------
-              </el-row>
-              <el-row style="margin: 5px 0">Time: {{ item.updateTime }}</el-row>
-              <el-row v-if="item.state !== 0">
-                <el-row>Branch: {{ item['branch'] }}</el-row>
-                <el-row>
-                  Commit:
-                  <el-link
-                    type="primary"
-                    :underline="false"
-                    :href="
-                      parseGitURL(searchPreview.url) +
-                      '/commit/' +
-                      item['commit']
-                    "
-                    target="_blank"
-                  >
-                    {{ item['commit'] }}
-                  </el-link>
-                </el-row>
-                <el-row>Message: {{ item['message'] }}</el-row>
-                <el-row>Author: {{ item['author'] }}</el-row>
-                <el-row>
-                  Datetime:
-                  {{ item['timestamp'] ? parseTime(item['timestamp']) : '' }}
-                </el-row>
-                <el-row><span v-html="enterToBR(item['diff'])" /></el-row>
-              </el-row>
-              <el-row v-else style="margin: 5px 0">
-                <span v-html="enterToBR(item.detail)" />
-              </el-row>
-            </el-row>
-            <el-row v-if="item.type === 3">
-              <hr />
-              <el-row style="margin: 5px 0">
-                <i v-if="item.state === 1" class="el-icon-check icon-success" />
-                <i v-else class="el-icon-close icon-fail" />
-                --------After pull--------
-              </el-row>
-              <el-row style="margin: 5px 0">Time: {{ item.updateTime }}</el-row>
-              <el-row>
-                Script:
-                <pre v-html="enterToBR(item.script)"></pre>
-              </el-row>
-              <el-row
-                v-loading="traceDetail[item.id] === true"
-                style="margin: 5px 0"
-              >
-                [goploy ~]#
-                <el-button
-                  v-if="item.state === 1 && !(item.id in traceDetail)"
-                  type="text"
-                  @click="getPublishTraceDetail(item)"
-                >
-                  {{ $t('deployPage.showDetail') }}
-                </el-button>
-                <span v-else v-html="enterToBR(item.detail)" />
-              </el-row>
-            </el-row>
-          </el-row>
-          <el-tabs v-model="activeRomoteTracePane">
-            <el-tab-pane
-              v-for="(item, serverName) in publishRemoteTraceList"
-              :key="serverName"
-              :label="serverName"
-              :name="serverName"
-            >
-              <el-row v-for="(trace, key) in item" :key="key">
-                <el-row v-if="trace.type === 4">
-                  <el-row style="margin: 5px 0">
-                    <i
-                      v-if="trace.state === 1"
-                      class="el-icon-check icon-success"
-                    />
-                    <i v-else class="el-icon-close icon-fail" />
-                    ---------Before deploy---------
-                  </el-row>
-                  <el-row style="margin: 5px 0">
-                    Time: {{ trace.updateTime }}
-                  </el-row>
-                  <el-row>
-                    Script:
-                    <pre v-html="enterToBR(trace.script)"></pre>
-                  </el-row>
-                  <el-row
-                    v-loading="traceDetail[trace.id] === true"
-                    style="margin: 5px 0"
-                  >
-                    [goploy ~]#
-                    <el-button
-                      v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                      type="text"
-                      @click="getPublishTraceDetail(trace)"
-                    >
-                      {{ $t('deployPage.showDetail') }}
-                    </el-button>
-                    <span v-else v-html="enterToBR(trace.detail)" />
-                  </el-row>
-                </el-row>
-                <el-row v-else-if="trace.type === 5">
-                  <el-row style="margin: 5px 0">
-                    <i
-                      v-if="trace.state === 1"
-                      class="el-icon-check icon-success"
-                    />
-                    <i v-else class="el-icon-close icon-fail" />
-                    -----------Rsync------------
-                  </el-row>
-                  <el-row style="margin: 5px 0">
-                    Time: {{ trace.updateTime }}
-                  </el-row>
-                  <el-row>Command: {{ trace.command }}</el-row>
-                  <el-row
-                    v-loading="traceDetail[trace.id] === true"
-                    style="margin: 5px 0"
-                  >
-                    [goploy ~]#
-                    <el-button
-                      v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                      type="text"
-                      @click="getPublishTraceDetail(trace)"
-                    >
-                      {{ $t('deployPage.showDetail') }}
-                    </el-button>
-                    <span v-else v-html="enterToBR(trace.detail)" />
-                  </el-row>
-                </el-row>
-                <el-row v-else-if="trace.type === 6">
-                  <el-row style="margin: 5px 0">
-                    <i
-                      v-if="trace.state === 1"
-                      class="el-icon-check icon-success"
-                    />
-                    <i v-else class="el-icon-close icon-fail" />
-                    --------After deploy--------
-                  </el-row>
-                  <el-row style="margin: 5px 0"
-                    >Time: {{ trace.updateTime }}</el-row
-                  >
-                  <el-row>Script: {{ trace.script }}</el-row>
-                  <el-row
-                    v-loading="traceDetail[trace.id] === true"
-                    style="margin: 5px 0"
-                  >
-                    [goploy ~]#
-                    <el-button
-                      v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                      type="text"
-                      @click="getPublishTraceDetail(trace)"
-                      >{{ $t('deployPage.showDetail') }}</el-button
-                    >
-                    <span v-else v-html="enterToBR(trace.detail)" />
-                  </el-row>
-                </el-row>
-              </el-row>
-            </el-tab-pane>
-          </el-tabs>
-        </el-row>
-      </el-row>
-    </el-dialog>
+    <TheDetailDialog v-model="dialogVisible" :project-row="selectedItem" />
     <el-dialog v-model="commitDialogVisible" title="commit">
       <el-select
         v-model="branch"
@@ -1017,9 +700,6 @@
 import tableHeight from '@/mixin/tableHeight'
 import {
   getList,
-  getPublishTrace,
-  getPublishTraceDetail,
-  getPreview,
   getCommitList,
   getBranchList,
   getTagList,
@@ -1033,16 +713,19 @@ import {
   addTask,
   removeTask,
   getTaskList,
-  getBindServerList,
+  ProjectServerList,
   getReviewList,
 } from '@/api/project'
 import { NamespaceUserOption } from '@/api/namespace'
 import { role } from '@/utils/namespace'
 import { empty, parseTime, parseGitURL } from '@/utils'
+import TheDetailDialog from './TheDetailDialog.vue'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'DeployIndex',
+  components: { TheDetailDialog },
   mixins: [tableHeight],
   data() {
     return {
@@ -1061,6 +744,7 @@ export default defineComponent({
       tableloading: false,
       dateVisible: false,
       commitDialogReferer: '',
+      selectedItem: {},
       tableData: [],
       searchProject: {
         name: '',
@@ -1093,18 +777,6 @@ export default defineComponent({
         total: 0,
         page: 1,
         rows: 20,
-      },
-      searchPreview: {
-        loading: false,
-        projectId: '',
-        userId: '',
-        url: '',
-        state: '',
-        filename: '',
-        branch: '',
-        commit: '',
-        commitDate: [],
-        deployDate: [],
       },
       pickerOptions: {
         shortcuts: [
@@ -1317,128 +989,20 @@ export default defineComponent({
       this.getList()
     },
 
-    getPublishTrace() {
-      this.traceLoading = true
-      getPublishTrace(this.publishToken)
-        .then((response) => {
-          const publishTraceList = response.data.publishTraceList || []
-          this.publishTraceList = publishTraceList.map((element) => {
-            if (element.ext !== '')
-              Object.assign(element, JSON.parse(element.ext))
-            return element
-          })
-
-          this.publishLocalTraceList = this.publishTraceList.filter(
-            (element) => element.type < 4
-          )
-          this.publishRemoteTraceList = {}
-          for (const trace of this.publishTraceList) {
-            if (trace.type < 4) continue
-            if (!this.publishRemoteTraceList[trace.serverName]) {
-              this.publishRemoteTraceList[trace.serverName] = []
-            }
-            this.publishRemoteTraceList[trace.serverName].push(trace)
-          }
-          this.activeRomoteTracePane = Object.keys(
-            this.publishRemoteTraceList
-          )[0]
-        })
-        .finally(() => {
-          this.traceLoading = false
-        })
-    },
-
-    getPublishTraceDetail(data) {
-      this.$set(this.traceDetail, data.id, true)
-      getPublishTraceDetail(data.id)
-        .then((response) => {
-          data.detail =
-            response.data.detail === ''
-              ? this.$t('deployPage.noDetail')
-              : response.data.detail
-        })
-        .finally(() => {
-          this.$set(this.traceDetail, data.id, false)
-        })
-    },
-
-    getPreviewList() {
-      this.searchPreview.loading = true
-      this.traceDetail = {}
-      getPreview(this.previewPagination, {
-        projectId: this.searchPreview.projectId,
-        commitDate: this.searchPreview.commitDate
-          ? this.searchPreview.commitDate.join(',')
-          : '',
-        deployDate: this.searchPreview.deployDate
-          ? this.searchPreview.deployDate.join(',')
-          : '',
-        branch: this.searchPreview.branch,
-        commit: this.searchPreview.commit,
-        filename: this.searchPreview.filename,
-        userId: this.searchPreview.userId || 0,
-        state: this.searchPreview.state === '' ? -1 : this.searchPreview.state,
-      })
-        .then((response) => {
-          const gitTraceList = response.data.gitTraceList || []
-          this.gitTraceList = gitTraceList.map((element) => {
-            if (element.ext !== '')
-              Object.assign(element, JSON.parse(element.ext))
-            element.commit = element['commit']
-              ? element['commit'].substring(0, 6)
-              : ''
-            return element
-          })
-          if (this.gitTraceList.length > 0) {
-            this.publishToken = this.gitTraceList[0].token
-            this.getPublishTrace()
-          } else {
-            this.publishLocalTraceList = []
-            this.publishRemoteTraceList = {}
-          }
-          this.previewPagination.total = response.data.pagination.total
-        })
-        .finally(() => {
-          this.searchPreview.loading = false
-        })
-    },
-
-    refreshSearchPreviewCondition() {
-      this.searchPreview.userId = ''
-      this.searchPreview.state = ''
-      this.searchPreview.filename = ''
-      this.searchPreview.branch = ''
-      this.searchPreview.commit = ''
-      this.searchPreview.commitDate = []
-      this.searchPreview.deployDate = []
-    },
-
-    searchPreviewList() {
-      this.handlePreviewPageChange(1)
-    },
-
     handleDetail(data) {
       this.dialogVisible = true
+      this.selectedItem = data
       this.searchPreview.projectId = data.id
       this.searchPreview.url = data.url
       this.searchPreview.userId = ''
-      this.getPreviewList()
-    },
-
-    handlePreviewPageChange(page) {
-      this.previewPagination.page = page
-      this.getPreviewList()
-    },
-
-    handleTraceChange(lastPublishToken) {
-      this.publishToken = lastPublishToken
-      this.getPublishTrace()
     },
 
     handleGreyPublish(data) {
-      getBindServerList(data.projectId).then((response) => {
-        this.greyServerFormProps.serverOption = response.data.list
-      })
+      new ProjectServerList({ id: data.projectId })
+        .request()
+        .then((response) => {
+          this.greyServerFormProps.serverOption = response.data.list
+        })
       // add projectID to server form
       this.greyServerFormData.projectId = data.projectId
       this.greyServerFormData.commit = data.commit
@@ -1556,7 +1120,7 @@ export default defineComponent({
     submitTask(data) {
       addTask(data)
         .then(() => {
-          this.$message.success('Success')
+          ElMessage.success('Success')
         })
         .finally(() => {
           this.$refs[`task${data.commit}`].doClose()
@@ -1567,14 +1131,14 @@ export default defineComponent({
     },
 
     removeProjectTask(data) {
-      this.$confirm(
-        this.$i18n.t('deployPage.removeProjectTaskTips', {
+      ElMessageBox.confirm(
+        this.$t('deployPage.removeProjectTaskTips', {
           projectName: data.projectName,
         }),
-        this.$i18n.t('tips'),
+        this.$t('tips'),
         {
-          confirmButtonText: this.$i18n.t('confirm'),
-          cancelButtonText: this.$i18n.t('cancel'),
+          confirmButtonText: this.$t('confirm'),
+          cancelButtonText: this.$t('cancel'),
           type: 'warning',
         }
       )
@@ -1594,7 +1158,7 @@ export default defineComponent({
           })
         })
         .catch(() => {
-          this.$message.info('Cancel')
+          ElMessage.info('Cancel')
         })
     },
 
@@ -1630,12 +1194,12 @@ export default defineComponent({
 
     handleProjectReview(data, state) {
       if (state === 1) {
-        this.$confirm(
-          this.$i18n.t('deployPage.reviewTips'),
-          this.$i18n.t('tips'),
+        ElMessageBox.confirm(
+          this.$t('deployPage.reviewTips'),
+          this.$t('tips'),
           {
-            confirmButtonText: this.$i18n.t('confirm'),
-            cancelButtonText: this.$i18n.t('cancel'),
+            confirmButtonText: this.$t('confirm'),
+            cancelButtonText: this.$t('cancel'),
             type: 'warning',
           }
         )
@@ -1649,7 +1213,7 @@ export default defineComponent({
             })
           })
           .catch(() => {
-            this.$message.info('Cancel')
+            ElMessage.info('Cancel')
           })
       } else {
         review(data.id, state).then((response) => {
@@ -1673,17 +1237,17 @@ export default defineComponent({
       } else {
         color = 'color: #909399'
       }
-      this.$confirm('', this.$i18n.t('tips'), {
+      ElMessageBox.confirm('', this.$t('tips'), {
         message: h('p', null, [
           h('span', null, 'Deploy Project: '),
           h(
             'b',
             { style: color },
-            data.name + ' - ' + this.$i18n.t(`envOption[${data.environment}]`)
+            data.name + ' - ' + this.$t(`envOption[${data.environment}]`)
           ),
         ]),
-        confirmButtonText: this.$i18n.t('confirm'),
-        cancelButtonText: this.$i18n.t('cancel'),
+        confirmButtonText: this.$t('confirm'),
+        cancelButtonText: this.$t('cancel'),
         type: 'warning',
       })
         .then(() => {
@@ -1697,17 +1261,17 @@ export default defineComponent({
           })
         })
         .catch(() => {
-          this.$message.info('Cancel')
+          ElMessage.info('Cancel')
         })
     },
 
     publishByCommit(data) {
-      this.$confirm(
-        this.$i18n.t('deployPage.publishCommitTips', { commit: data.commit }),
-        this.$i18n.t('tips'),
+      ElMessageBox.confirm(
+        this.$t('deployPage.publishCommitTips', { commit: data.commit }),
+        this.$t('tips'),
         {
-          confirmButtonText: this.$i18n.t('confirm'),
-          cancelButtonText: this.$i18n.t('cancel'),
+          confirmButtonText: this.$t('confirm'),
+          cancelButtonText: this.$t('cancel'),
           type: 'warning',
         }
       )
@@ -1722,17 +1286,17 @@ export default defineComponent({
           })
         })
         .catch(() => {
-          this.$message.info('Cancel')
+          ElMessage.info('Cancel')
         })
     },
 
     rebuild(data) {
-      this.$confirm(
-        this.$i18n.t('deployPage.publishCommitTips', { commit: data.commit }),
-        this.$i18n.t('tips'),
+      ElMessageBox.confirm(
+        this.$t('deployPage.publishCommitTips', { commit: data.commit }),
+        this.$t('tips'),
         {
-          confirmButtonText: this.$i18n.t('confirm'),
-          cancelButtonText: this.$i18n.t('cancel'),
+          confirmButtonText: this.$t('confirm'),
+          cancelButtonText: this.$t('cancel'),
           type: 'warning',
         }
       )
@@ -1740,7 +1304,7 @@ export default defineComponent({
           this.searchPreview.loading = true
           rebuild(data.projectId, data.token).then((response) => {
             if (response.data === 'symlink') {
-              this.$message.success('Success')
+              ElMessage.success('Success')
             } else {
               const projectIndex = this.tableData.findIndex(
                 (element) => element.id === data.projectId
@@ -1751,17 +1315,17 @@ export default defineComponent({
           })
         })
         .catch(() => {
-          this.$message.info('Cancel')
+          ElMessage.info('Cancel')
         })
     },
 
     resetState(data) {
-      this.$confirm(
-        this.$i18n.t('deployPage.resetStateTips'),
-        this.$i18n.t('tips'),
+      ElMessageBox.confirm(
+        this.$t('deployPage.resetStateTips'),
+        this.$t('tips'),
         {
-          confirmButtonText: this.$i18n.t('confirm'),
-          cancelButtonText: this.$i18n.t('cancel'),
+          confirmButtonText: this.$t('confirm'),
+          cancelButtonText: this.$t('cancel'),
           type: 'warning',
         }
       )
@@ -1777,7 +1341,7 @@ export default defineComponent({
           })
         })
         .catch(() => {
-          this.$message.info('Cancel')
+          ElMessage.info('Cancel')
         })
     },
 
@@ -1785,14 +1349,14 @@ export default defineComponent({
       this.$refs.greyServerForm.validate((valid) => {
         if (valid) {
           const data = this.greyServerFormData
-          this.$confirm(
-            this.$i18n.t('deployPage.publishCommitTips', {
+          ElMessageBox.confirm(
+            this.$t('deployPage.publishCommitTips', {
               commit: data.commit,
             }),
-            this.$i18n.t('tips'),
+            this.$t('tips'),
             {
-              confirmButtonText: this.$i18n.t('confirm'),
-              cancelButtonText: this.$i18n.t('cancel'),
+              confirmButtonText: this.$t('confirm'),
+              cancelButtonText: this.$t('cancel'),
               type: 'warning',
             }
           )
@@ -1810,7 +1374,7 @@ export default defineComponent({
               )
             })
             .catch(() => {
-              this.$message.info('Cancel')
+              ElMessage.info('Cancel')
             })
         } else {
           return false
@@ -1818,7 +1382,7 @@ export default defineComponent({
       })
     },
 
-    enterToBR(detail) {
+    enterToBR(detail: string) {
       return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
     },
   },

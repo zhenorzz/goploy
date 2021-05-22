@@ -208,7 +208,7 @@ func (pt PublishTrace) GetPreview(
 		QueryRow().
 		Scan(&pagination.Total)
 	if err != nil {
-		return nil, pagination, err
+		return publishTraces, pagination, err
 	}
 	return publishTraces, pagination, nil
 }

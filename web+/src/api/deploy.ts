@@ -1,4 +1,85 @@
 import Axios from './axios'
+import { Request, Pagination, ID, Total } from './types'
+
+export class PublishTraceData {
+  public datagram!: {
+    detail: {
+      id: number
+      token: string
+      projectId: number
+      projectName: string
+      detail: string
+      state: number
+      publisherId: number
+      publisherName: string
+      type: number
+      ext: string
+      commit: string
+      serverName: string
+      publishState: number
+      insertTime: string
+      updateTime: string
+    }
+  }
+}
+
+export class DeployPreviewList extends Request {
+  readonly url = '/deploy/getPreview'
+  readonly method = 'get'
+  public param: {
+    projectId: number
+    userId: number
+    state: number
+    commitDate: string
+    branch: string
+    commit: string
+    filename: string
+    deployDate: string
+  }
+  public pagination: Pagination
+
+  public datagram!: {
+    list: PublishTraceData['datagram']['detail'][]
+    pagination: Pagination
+  }
+  constructor(param: DeployPreviewList['param'], pagination: Pagination) {
+    super()
+    this.pagination = pagination
+    this.param = { ...param, ...pagination }
+  }
+}
+
+export class DeployTrace extends Request {
+  readonly url = '/deploy/getPublishTrace'
+  readonly method = 'get'
+  public param: {
+    lastPublishToken: string
+  }
+  public datagram!: {
+    list: PublishTraceData['datagram']['detail'][]
+  }
+  constructor(param: DeployTrace['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class DeployTraceDetail extends Request {
+  readonly url = '/deploy/getPublishTraceDetail'
+  readonly method = 'get'
+  readonly timeout = 0
+  public param: {
+    id: number
+  }
+  public datagram!: {
+    detail: string
+  }
+  constructor(param: DeployTraceDetail['param']) {
+    super()
+    this.param = param
+  }
+}
+
 /**
  * @param  {string}    projectName
  * @return {Promise}
@@ -8,52 +89,6 @@ export function getList(projectName) {
     url: '/deploy/getList',
     method: 'get',
     params: { projectName },
-  })
-}
-
-/**
- * @param  {string}    lastPublishToken
- * @return {Promise}
- */
-export function getPublishTrace(lastPublishToken) {
-  return Axios.request({
-    url: '/deploy/getPublishTrace',
-    method: 'get',
-    params: {
-      lastPublishToken,
-    },
-  })
-}
-
-/**
- * @param  {Number}    publish_trace_id
- * @return {Promise}
- */
-export function getPublishTraceDetail(publish_trace_id) {
-  return Axios.request({
-    url: '/deploy/getPublishTraceDetail',
-    method: 'get',
-    params: {
-      publish_trace_id,
-    },
-    timeout: 0,
-  })
-}
-
-/**
- * @param  {object}  pagination
- * @param  {object}  params
- * @return {Promise}
- */
-export function getPreview({ page, rows }, params) {
-  return Axios.request({
-    url: '/deploy/getPreview',
-    method: 'get',
-    params: {
-      page,
-      rows,
-      ...params,
-    },
   })
 }
 
