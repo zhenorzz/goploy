@@ -67,30 +67,13 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { validUsername, validPassword } from '@/utils/validate'
+import Validator, { RuleItem } from 'async-validator'
 import { defineComponent } from 'vue'
 export default defineComponent({
   name: 'Login',
   data() {
-    const validateUsername = (rule, value, callback) => {
-      if (!validUsername(value)) {
-        callback(new Error('Greater than 5 characters'))
-      } else {
-        callback()
-      }
-    }
-    const validatePassword = (rule, value, callback) => {
-      if (!validPassword(value)) {
-        callback(
-          new Error(
-            '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]'
-          )
-        )
-      } else {
-        callback()
-      }
-    }
     return {
       loginForm: {
         account: import.meta.env.NODE_ENV === 'production' ? '' : 'admin',
@@ -99,10 +82,32 @@ export default defineComponent({
       },
       loginRules: {
         account: [
-          { required: true, trigger: 'blur', validator: validateUsername },
+          {
+            required: true,
+            trigger: 'blur',
+            validator: (_, value) => {
+              if (!validUsername(value)) {
+                return new Error('Greater than 5 characters')
+              } else {
+                return true
+              }
+            },
+          } as RuleItem,
         ],
         password: [
-          { required: true, trigger: 'blur', validator: validatePassword },
+          {
+            required: true,
+            trigger: 'blur',
+            validator: (_, value) => {
+              if (!validPassword(value)) {
+                return new Error(
+                  '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]'
+                )
+              } else {
+                return true
+              }
+            },
+          } as RuleItem,
         ],
       },
       loading: false,
@@ -126,15 +131,11 @@ export default defineComponent({
         this.passwordType = 'password'
       }
       this.$nextTick(() => {
-        this.$refs.password.focus()
+        ;(this.$refs.password as HTMLInputElement).focus()
       })
     },
-    changePhrase() {
-      this.phrase =
-        import.meta.env.VUE_APP_BASE_API + '/user/getPhrase?' + Math.random()
-    },
     handleLogin() {
-      this.$refs.loginForm.validate((valid) => {
+      ;(this.$refs.loginForm as Validator).validate((valid: boolean) => {
         if (valid) {
           this.loading = true
           this.$store
@@ -145,8 +146,6 @@ export default defineComponent({
             })
             .catch(() => {
               this.loading = false
-              this.showPhrase = true
-              this.changePhrase()
             })
         } else {
           console.log('error submit!!')

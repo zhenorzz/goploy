@@ -1013,7 +1013,7 @@
     </el-dialog>
   </el-row>
 </template>
-<script>
+<script lang="ts">
 import tableHeight from '@/mixin/tableHeight'
 import {
   getList,

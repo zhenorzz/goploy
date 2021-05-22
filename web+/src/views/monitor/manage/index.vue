@@ -189,16 +189,19 @@
     </el-dialog>
   </el-row>
 </template>
-<script>
+<script lang="ts">
 import {
-  getList,
-  getTotal,
-  add,
-  edit,
-  check,
-  toggle,
-  remove,
+  MonitorList,
+  MonitorTotal,
+  MonitorAdd,
+  MonitorEdit,
+  MonitorCheck,
+  MonitorToggle,
+  MonitorRemove,
+  MonitorData,
 } from '@/api/monitor'
+import Validator from 'async-validator'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { defineComponent } from 'vue'
 
 export default defineComponent({
@@ -207,7 +210,7 @@ export default defineComponent({
     return {
       dialogVisible: false,
       tableLoading: false,
-      tableData: [],
+      tableData: [] as MonitorList['datagram']['list'],
       pagination: {
         page: 1,
         rows: 16,
@@ -228,6 +231,7 @@ export default defineComponent({
         notifyType: 1,
         notifyTarget: '',
         notifyTimes: 1,
+        description: '',
       },
       formRules: {
         name: [{ required: true, message: 'Name required', trigger: 'blur' }],
@@ -306,7 +310,8 @@ export default defineComponent({
   methods: {
     getList() {
       this.tableLoading = true
-      getList(this.pagination)
+      new MonitorList(this.pagination)
+        .request()
         .then((response) => {
           this.tableData = response.data.list
         })
@@ -316,12 +321,12 @@ export default defineComponent({
     },
 
     getTotal() {
-      getTotal().then((response) => {
+      new MonitorTotal().request().then((response) => {
         this.pagination.total = response.data.total
       })
     },
 
-    handlePageChange(val) {
+    handlePageChange(val = 1) {
       this.pagination.page = val
       this.getList()
     },
@@ -331,75 +336,76 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleEdit(data) {
+    handleEdit(data: MonitorData['datagram']['detail']) {
       this.formData = Object.assign({}, data)
       this.dialogVisible = true
     },
 
-    handleToggle(data) {
+    handleToggle(data: MonitorData['datagram']['detail']) {
       if (data.state === 1) {
-        this.$confirm(
-          this.$i18n.t('monitorPage.toggleStateTips', {
+        ElMessageBox.confirm(
+          this.$t('monitorPage.toggleStateTips', {
             monitorName: data.name,
           }),
-          this.$i18n.t('tips'),
+          this.$t('tips'),
           {
-            confirmButtonText: this.$i18n.t('confirm'),
-            cancelButtonText: this.$i18n.t('cancel'),
+            confirmButtonText: this.$t('confirm'),
+            cancelButtonText: this.$t('cancel'),
             type: 'warning',
           }
         )
           .then(() => {
-            toggle(data.id).then((response) => {
-              this.$message.success('Stop success')
+            new MonitorToggle({ id: data.id }).request().then(() => {
+              ElMessage.success('Stop success')
               this.getList()
             })
           })
           .catch(() => {
-            this.$message.info('Cancel')
+            ElMessage.info('Cancel')
           })
       } else {
-        toggle(data.id).then((response) => {
-          this.$message.success('Open success')
+        new MonitorToggle({ id: data.id }).request().then(() => {
+          ElMessage.success('Open success')
           this.getList()
         })
       }
     },
 
-    handleRemove(data) {
-      this.$confirm(
-        this.$i18n.t('monitorPage.removeMontiorTips', {
+    handleRemove(data: MonitorData['datagram']['detail']) {
+      ElMessageBox.confirm(
+        this.$t('monitorPage.removeMontiorTips', {
           monitorName: data.name,
         }),
-        this.$i18n.t('tips'),
+        this.$t('tips'),
         {
-          confirmButtonText: this.$i18n.t('confirm'),
-          cancelButtonText: this.$i18n.t('cancel'),
+          confirmButtonText: this.$t('confirm'),
+          cancelButtonText: this.$t('cancel'),
           type: 'warning',
         }
       )
         .then(() => {
-          remove(data.id).then((response) => {
-            this.$message.success('Success')
+          new MonitorRemove({ id: data.id }).request().then(() => {
+            ElMessage.success('Success')
             this.getList()
             this.getTotal()
           })
         })
         .catch(() => {
-          this.$message.info('Cancel')
+          ElMessage.info('Cancel')
         })
     },
 
     check() {
-      this.$refs.form.validate((valid) => {
+      ;(this.$refs.form as Validator).validate((valid: boolean) => {
         if (valid) {
           this.formProps.loading = true
           this.formProps.disabled = true
-          check(this.formData)
-            .then((response) => {
-              this.$message.success('Connected success')
+          new MonitorCheck(this.formData)
+            .request()
+            .then(() => {
+              ElMessage.success('Connected success')
             })
-            .finally((_) => {
+            .finally(() => {
               this.formProps.loading = false
               this.formProps.disabled = false
             })
@@ -410,7 +416,7 @@ export default defineComponent({
     },
 
     submit() {
-      this.$refs.form.validate((valid) => {
+      ;(this.$refs.form as Validator).validate((valid: boolean) => {
         if (valid) {
           if (this.formData.id === 0) {
             this.add()
@@ -425,11 +431,12 @@ export default defineComponent({
 
     add() {
       this.formProps.disabled = true
-      add(this.formData)
-        .then((response) => {
+      new MonitorAdd(this.formData)
+        .request()
+        .then(() => {
           this.getList()
           this.getTotal()
-          this.$message.success('Success')
+          ElMessage.success('Success')
         })
         .finally(() => {
           this.formProps.disabled = this.dialogVisible = false
@@ -438,10 +445,11 @@ export default defineComponent({
 
     edit() {
       this.formProps.disabled = true
-      edit(this.formData)
-        .then((response) => {
+      new MonitorEdit(this.formData)
+        .request()
+        .then(() => {
           this.getList()
-          this.$message.success('Success')
+          ElMessage.success('Success')
         })
         .finally(() => {
           this.formProps.disabled = this.dialogVisible = false

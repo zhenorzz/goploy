@@ -1,64 +1,118 @@
 import Axios from './axios'
+import { Request, Pagination, ID, Total } from './types'
 
-/**
- * @return {Promise}
- */
-export function getList({ page, rows }) {
-  return Axios.request({
-    url: '/monitor/getList',
-    method: 'get',
-    params: { page, rows },
-  })
+export class MonitorData {
+  public datagram!: {
+    detail: {
+      id: number
+      namespaceId: number
+      name: string
+      domain: string
+      port: number
+      second: number
+      times: number
+      notifyType: number
+      notifyTarget: string
+      notifyTimes: number
+      description: string
+      errorContent: string
+      state: number
+      insertTime: string
+      updateTime: string
+    }
+  }
 }
 
-/**
- * @return {Promise}
- */
-export function getTotal() {
-  return Axios.request({
-    url: '/monitor/getTotal',
-    method: 'get',
-    params: {},
-  })
+export class MonitorList extends Request {
+  readonly url = '/monitor/getList'
+  readonly method = 'get'
+  public pagination: Pagination
+
+  public datagram!: {
+    list: MonitorData['datagram']['detail'][]
+  }
+  constructor(pagination: Pagination) {
+    super()
+    this.pagination = pagination
+    this.param = { ...pagination }
+  }
 }
 
-export function add(data) {
-  return Axios.request({
-    url: '/monitor/add',
-    method: 'post',
-    data,
-  })
+export class MonitorTotal extends Request {
+  readonly url = '/monitor/getTotal'
+  readonly method = 'get'
+
+  public datagram!: Total
 }
 
-export function edit(data) {
-  return Axios.request({
-    url: '/monitor/edit',
-    method: 'put',
-    data,
-  })
+export class MonitorAdd extends Request {
+  readonly url = '/monitor/add'
+  readonly method = 'post'
+  public param: {
+    name: string
+    domain: string
+    port: number
+    second: number
+    times: number
+    notifyType: number
+    notifyTarget: string
+    notifyTimes: number
+    description: string
+  }
+  constructor(param: MonitorAdd['param']) {
+    super()
+    this.param = param
+  }
 }
 
-export function check(data) {
-  return Axios.request({
-    timeout: 100000,
-    url: '/monitor/check',
-    method: 'post',
-    data,
-  })
+export class MonitorEdit extends Request {
+  readonly url = '/monitor/edit'
+  readonly method = 'put'
+  public param: {
+    id: number
+    name: string
+    domain: string
+    port: number
+    second: number
+    times: number
+    notifyType: number
+    notifyTarget: string
+    notifyTimes: number
+    description: string
+  }
+  constructor(param: MonitorEdit['param']) {
+    super()
+    this.param = param
+  }
 }
 
-export function toggle(id) {
-  return Axios.request({
-    url: '/monitor/toggle',
-    method: 'put',
-    data: { id },
-  })
+export class MonitorRemove extends Request {
+  readonly url = '/monitor/remove'
+  readonly method = 'delete'
+  public param: ID
+  constructor(param: ID) {
+    super()
+    this.param = param
+  }
 }
 
-export function remove(id) {
-  return Axios.request({
-    url: '/monitor/remove',
-    method: 'delete',
-    data: { id },
-  })
+export class MonitorCheck extends Request {
+  readonly url = '/monitor/check'
+  readonly method = 'post'
+  readonly timeout = 100000
+  public param: ID
+  constructor(param: ID) {
+    super()
+    this.param = param
+  }
+}
+
+export class MonitorToggle extends Request {
+  readonly url = '/monitor/toggle'
+  readonly method = 'put'
+  public param: ID
+  constructor(param: ID) {
+    super()
+    this.param = param
+  }
 }

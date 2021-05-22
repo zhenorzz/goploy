@@ -24,6 +24,7 @@ export interface ID {
 export abstract class Request {
   abstract url: string
   abstract method: Method
+  public timeout = 5000
   public param!: ID | Record<string, unknown>
   public datagram!: never | Total | ID | Record<string, unknown>
 
@@ -31,6 +32,7 @@ export abstract class Request {
     const config: AxiosRequestConfig = {
       url: this.url,
       method: this.method,
+      timeout: this.timeout,
     }
     if (this.method.toLowerCase() === 'get') {
       config.params = { ...this.param }
