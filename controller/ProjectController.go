@@ -187,7 +187,7 @@ func (Project) Add(gp *core.Goploy) *core.Response {
 		Name                  string  `json:"name" validate:"required"`
 		URL                   string  `json:"url" validate:"required"`
 		Path                  string  `json:"path" validate:"required"`
-		Environment           uint8   `json:"Environment" validate:"required"`
+		Environment           uint8   `json:"environment" validate:"required"`
 		Branch                string  `json:"branch" validate:"required"`
 		SymlinkPath           string  `json:"symlinkPath"`
 		Review                uint8   `json:"review"`
@@ -283,7 +283,7 @@ func (Project) Edit(gp *core.Goploy) *core.Response {
 		SymlinkPath           string `json:"symlinkPath"`
 		Review                uint8  `json:"review"`
 		ReviewURL             string `json:"reviewURL"`
-		Environment           uint8  `json:"Environment"`
+		Environment           uint8  `json:"environment"`
 		Branch                string `json:"branch"`
 		AfterPullScriptMode   string `json:"afterPullScriptMode"`
 		AfterPullScript       string `json:"afterPullScript"`
@@ -367,7 +367,7 @@ func (Project) SetAutoDeploy(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// RemoveRow Project
+// Remove Project
 func (Project) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`

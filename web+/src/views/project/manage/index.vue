@@ -287,6 +287,7 @@
                   <el-option :label="$t('webhookOption[255]')" :value="255" />
                 </el-select>
                 <el-input
+                  v-if="formData.notifyType > 0"
                   v-model.trim="formData.notifyTarget"
                   style="flex: 1"
                   autocomplete="off"
@@ -579,19 +580,20 @@
     />
   </el-row>
 </template>
-<script>
+<script lang="ts">
 import tableHeight from '@/mixin/tableHeight'
 import { parseGitURL } from '@/utils'
 import { NamespaceUserOption } from '@/api/namespace'
 import { ServerOption } from '@/api/server'
 import {
-  getList,
-  getTotal,
-  getRemoteBranchList,
-  add,
-  edit,
-  remove,
+  ProjectList,
+  ProjectTotal,
+  ProjectRemoteBranchList,
+  ProjectAdd,
+  ProjectEdit,
+  ProjectRemove,
   setAutoDeploy,
+  ProjectData,
 } from '@/api/project'
 import { role } from '@/utils/namespace'
 import { VAceEditor } from 'vue3-ace-editor'
@@ -602,6 +604,8 @@ import 'ace-builds/src-noconflict/theme-github'
 import TheServerDialog from './TheServerDialog.vue'
 import TheUserDialog from './TheUserDialog.vue'
 import TheFileDialog from './TheFileDialog.vue'
+import Validator, { RuleItem } from 'async-validator'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { defineComponent } from 'vue'
 export default defineComponent({
   name: 'ProjectIndex',
@@ -613,15 +617,6 @@ export default defineComponent({
   },
   mixins: [tableHeight],
   data() {
-    const validateNotifyTarget = (rule, value, callback) => {
-      if (value !== 0 && this.formData.notifyType !== '') {
-        callback()
-      } else if (value === 0 && this.formData.notifyType === '') {
-        callback()
-      } else {
-        callback(new Error('Select the notice mode'))
-      }
-    }
     return {
       role,
       scriptLangOption: [
@@ -637,11 +632,11 @@ export default defineComponent({
       dialogServerVisible: false,
       dialogUserVisible: false,
       dialogFileManagerVisible: false,
-      serverOption: [],
-      userOption: [],
+      serverOption: [] as ServerOption['datagram']['list'],
+      userOption: [] as NamespaceUserOption['datagram']['list'],
       selectedItem: {},
       tableloading: false,
-      tableData: [],
+      tableData: [] as ProjectList['datagram']['list'],
       pagination: {
         page: 1,
         rows: 16,
@@ -691,7 +686,7 @@ export default defineComponent({
         reviewURLParam: ['callback=__CALLBACK__'],
         symlink: false,
         disabled: false,
-        branch: [],
+        branch: [] as string[],
         lsBranchLoading: false,
         showServers: true,
         showUsers: true,
@@ -711,8 +706,8 @@ export default defineComponent({
         environment: 1,
         branch: 'master',
         rsyncOption: '-rtv --exclude .git',
-        serverIds: [],
-        userIds: [],
+        serverIds: [] as number[],
+        userIds: [] as number[],
         review: 0,
         reviewURL: '',
         notifyType: 0,
@@ -738,7 +733,21 @@ export default defineComponent({
         branch: [
           { required: true, message: 'Branch required', trigger: ['blur'] },
         ],
-        notifyTarget: [{ validator: validateNotifyTarget, trigger: 'blur' }],
+        notifyTarget: [
+          {
+            trigger: 'blur',
+            validator: (_, value) => {
+              console.log(this.formData)
+              if (value !== '' && this.formData.notifyType > 0) {
+                return true
+              } else if (this.formData.notifyType === 0) {
+                return true
+              } else {
+                return new Error('Select the notice mode')
+              }
+            },
+          } as RuleItem,
+        ],
       },
       autoDeployFormProps: {
         disabled: false,
@@ -764,7 +773,7 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleEdit(data) {
+    handleEdit(data: ProjectData['datagram']['detail']) {
       this.formData = Object.assign({}, data)
       this.formProps.symlink = this.formData.symlinkPath !== ''
       this.formProps.showServers = this.formProps.showUsers = false
@@ -784,72 +793,71 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleCopy(data) {
+    handleCopy(data: ProjectData['datagram']['detail']) {
       this.handleEdit(data)
       this.formData.id = 0
-      this.$set(this.formData, 'serverIds', [])
-      this.$set(this.formData, 'userIds', [])
+      this.formData.serverIds = []
+      this.formData.userIds = []
       this.formProps.showServers = this.formProps.showUsers = true
     },
 
-    handleRemove(data) {
-      this.$confirm(
-        this.$i18n.t('projectPage.removeProjectTips', {
+    handleRemove(data: ProjectData['datagram']['detail']) {
+      ElMessageBox.confirm(
+        this.$t('projectPage.removeProjectTips', {
           projectName: data.name,
         }),
-        this.$i18n.t('tips'),
+        this.$t('tips'),
         {
-          confirmButtonText: this.$i18n.t('confirm'),
-          cancelButtonText: this.$i18n.t('cancel'),
+          confirmButtonText: this.$t('confirm'),
+          cancelButtonText: this.$t('cancel'),
           type: 'warning',
         }
       )
         .then(() => {
           this.tableloading = true
-          remove(data.id).then(() => {
-            this.$message.success('Success')
+          new ProjectRemove({ id: data.id }).request().then(() => {
+            ElMessage.success('Success')
             this.getList()
             this.getTotal()
           })
         })
         .catch(() => {
-          this.$message.info('Cancel')
+          ElMessage.info('Cancel')
         })
     },
 
     getScriptLang(scriptMode = '') {
       if (scriptMode !== '') {
-        return this.scriptLangOption.find((elem) => elem.value === scriptMode)[
-          'lang'
-        ]
+        return this.scriptLangOption.find((elem) => elem.value === scriptMode)
+          ?.lang
       } else {
         return 'sh'
       }
     },
 
-    handleAutoDeploy(data) {
+    handleAutoDeploy(data: ProjectData['datagram']['detail']) {
       this.dialogAutoDeployVisible = true
       this.autoDeployFormData.id = data.id
       this.autoDeployFormData.autoDeploy = data.autoDeploy
     },
 
-    handleServer(data) {
+    handleServer(data: ProjectData['datagram']['detail']) {
       this.selectedItem = data
       this.dialogServerVisible = true
     },
 
-    handleUser(data) {
+    handleUser(data: ProjectData['datagram']['detail']) {
       this.selectedItem = data
       this.dialogUserVisible = true
     },
 
-    handleFile(data) {
+    handleFile(data: ProjectData['datagram']['detail']) {
       this.selectedItem = data
       this.dialogFileManagerVisible = true
     },
 
     submit() {
-      this.$refs.form.validate((valid) => {
+      ;(this.$refs.form as Validator).validate((valid: boolean) => {
         if (valid) {
           if (this.formProps.symlink === false) {
             this.formData.symlinkPath = ''
@@ -860,7 +868,8 @@ export default defineComponent({
           ) {
             const url = new URL(this.formProps.reviewURL)
             this.formProps.reviewURLParam.forEach((param) => {
-              url.searchParams.set(...param.split('='))
+              const [name, value] = param.split('=')
+              url.searchParams.set(name, value)
             })
             this.formData.reviewURL = url.href
           } else {
@@ -879,10 +888,11 @@ export default defineComponent({
 
     add() {
       this.formProps.disabled = true
-      add(this.formData)
+      new ProjectAdd(this.formData)
+        .request()
         .then(() => {
           this.dialogVisible = false
-          this.$message.success('Success')
+          ElMessage.success('Success')
           this.getList()
           this.getTotal()
         })
@@ -893,10 +903,11 @@ export default defineComponent({
 
     edit() {
       this.formProps.disabled = true
-      edit(this.formData)
+      new ProjectEdit(this.formData)
+        .request()
         .then(() => {
           this.dialogVisible = false
-          this.$message.success('Success')
+          ElMessage.success('Success')
           this.getList()
         })
         .finally(() => {
@@ -905,13 +916,13 @@ export default defineComponent({
     },
 
     setAutoDeploy() {
-      this.$refs.autoDeployForm.validate((valid) => {
+      ;(this.$refs.autoDeployForm as Validator).validate((valid: boolean) => {
         if (valid) {
           this.autoDeployFormProps.disabled = true
           setAutoDeploy(this.autoDeployFormData)
             .then(() => {
               this.dialogAutoDeployVisible = false
-              this.$message.success('Success')
+              ElMessage.success('Success')
               this.getList()
             })
             .finally(() => {
@@ -926,14 +937,6 @@ export default defineComponent({
     getOptions() {
       new ServerOption().request().then((response) => {
         this.serverOption = response.data.list
-        this.serverOption.map((element) => {
-          element.label =
-            element.name +
-            (element.description.length > 0
-              ? '(' + element.description + ')'
-              : '')
-          return element
-        })
       })
       new NamespaceUserOption().request().then((response) => {
         this.userOption = response.data.list
@@ -942,7 +945,8 @@ export default defineComponent({
 
     getList() {
       this.tableloading = true
-      getList(this.pagination, this.projectName)
+      new ProjectList({ projectName: this.projectName }, this.pagination)
+        .request()
         .then((response) => {
           this.tableData = response.data.list
         })
@@ -952,9 +956,11 @@ export default defineComponent({
     },
 
     getTotal() {
-      getTotal(this.projectName).then((response) => {
-        this.pagination.total = response.data.total
-      })
+      new ProjectTotal({ projectName: this.projectName })
+        .request()
+        .then((response) => {
+          this.pagination.total = response.data.total
+        })
     },
 
     getRemoteBranchList() {
@@ -962,10 +968,11 @@ export default defineComponent({
         return
       }
       this.formProps.lsBranchLoading = true
-      getRemoteBranchList(this.formData.url)
+      new ProjectRemoteBranchList({ url: this.formData.url })
+        .request()
         .then((response) => {
           this.formProps.branch = response.data.branch
-          this.$message.success('Success')
+          ElMessage.success('Success')
         })
         .finally(() => {
           this.formProps.lsBranchLoading = false
@@ -978,7 +985,7 @@ export default defineComponent({
       this.getTotal()
     },
 
-    handlePageChange(val) {
+    handlePageChange(val = 1) {
       this.pagination.page = val
       this.getList()
     },

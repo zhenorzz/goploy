@@ -1,6 +1,157 @@
 import Axios from './axios'
 import { Request, Pagination, ID, Total } from './types'
 
+export class ProjectData {
+  public datagram!: {
+    detail: {
+      id: number
+      namespaceId: number
+      userId: number
+      name: string
+      url: string
+      path: string
+      environment: number
+      branch: string
+      symlinkPath: string
+      review: number
+      reviewURL: string
+      afterPullScriptMode: string
+      afterPullScript: string
+      afterDeployScriptMode: string
+      afterDeployScript: string
+      rsyncOption: string
+      autoDeploy: number
+      publisherId: number
+      publisherName: string
+      publishExt: string
+      deployState: number
+      lastPublishToken: string
+      notifyType: number
+      notifyTarget: string
+      serverIds: number[]
+      userIds: number[]
+      state: number
+      insertTime: string
+      updateTime: string
+    }
+  }
+}
+
+export class ProjectList extends Request {
+  readonly url = '/project/getList'
+  readonly method = 'get'
+  public param: {
+    projectName: string
+  }
+  public pagination: Pagination
+
+  public datagram!: {
+    list: ProjectData['datagram']['detail'][]
+  }
+  constructor(param: ProjectList['param'], pagination: Pagination) {
+    super()
+    this.pagination = pagination
+    this.param = { ...param, ...pagination }
+  }
+}
+
+export class ProjectTotal extends Request {
+  readonly url = '/project/getTotal'
+  readonly method = 'get'
+
+  public param: {
+    projectName: string
+  }
+
+  public datagram!: Total
+  constructor(param: ProjectTotal['param']) {
+    super()
+    this.param = { ...param }
+  }
+}
+
+export class ProjectRemoteBranchList extends Request {
+  readonly url = '/project/getRemoteBranchList'
+  readonly method = 'get'
+
+  public param: {
+    url: string
+  }
+
+  public datagram!: {
+    branch: string[]
+  }
+  constructor(param: ProjectRemoteBranchList['param']) {
+    super()
+    this.param = { ...param }
+  }
+}
+
+export class ProjectAdd extends Request {
+  readonly url = '/project/add'
+  readonly method = 'post'
+  public param: {
+    name: string
+    url: string
+    path: string
+    environment: number
+    branch: string
+    symlinkPath: string
+    review: number
+    reviewURL: string
+    afterPullScriptMode: string
+    afterPullScript: string
+    afterDeployScriptMode: string
+    afterDeployScript: string
+    rsyncOption: string
+    serverIds: number[]
+    userIds: number[]
+    notifyType: number
+    notifyTarget: string
+  }
+  constructor(param: ProjectAdd['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ProjectEdit extends Request {
+  readonly url = '/project/edit'
+  readonly method = 'put'
+  public param: {
+    id: number
+    name: string
+    url: string
+    path: string
+    symlinkPath: string
+    review: number
+    reviewURL: string
+    environment: number
+    branch: string
+    afterPullScriptMode: string
+    afterPullScript: string
+    afterDeployScriptMode: string
+    afterDeployScript: string
+    rsyncOption: string
+    notifyType: number
+    notifyTarget: string
+  }
+  constructor(param: ProjectEdit['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ProjectRemove extends Request {
+  readonly url = '/project/remove'
+  readonly method = 'delete'
+  public param: ID
+  constructor(param: ID) {
+    super()
+    this.param = param
+  }
+}
+
 export class ProjectServerData {
   public datagram!: {
     detail: {
@@ -187,83 +338,11 @@ export class ProjectFileRemove extends Request {
   }
 }
 
-/**
- * @return {Promise}
- */
-export function getList({ page, rows }, projectName) {
-  return Axios.request({
-    url: '/project/getList',
-    method: 'get',
-    params: { page, rows, projectName },
-  })
-}
-
-/**
- * @return {Promise}
- */
-export function getTotal(projectName) {
-  return Axios.request({
-    url: '/project/getTotal',
-    method: 'get',
-    params: { projectName },
-  })
-}
-
-/**
- * @return {Promise}
- */
-export function getRemoteBranchList(url) {
-  return Axios.request({
-    url: '/project/getRemoteBranchList',
-    method: 'get',
-    timeout: 0,
-    params: { url },
-  })
-}
-
-/**
- * @param  {string} project
- * @param  {string} owner
- * @param  {string} repository
- * @param  {string} serverIds
- * @param  {string} userIds
- * @return {Promise}
- */
-export function add(data) {
-  return Axios.request({
-    url: '/project/add',
-    method: 'post',
-    data,
-  })
-}
-
-/**
- * @param  {string} project
- * @param  {string} owner
- * @param  {string} repository
- * @return {Promise}
- */
-export function edit(data) {
-  return Axios.request({
-    url: '/project/edit',
-    method: 'put',
-    data,
-  })
-}
-
 export function setAutoDeploy(data) {
   return Axios.request({
     url: '/project/setAutoDeploy',
     method: 'put',
     data,
-  })
-}
-
-export function remove(id) {
-  return Axios.request({
-    url: '/project/remove',
-    method: 'delete',
-    data: { id },
   })
 }
 
