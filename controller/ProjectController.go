@@ -699,7 +699,7 @@ func (Project) AddTask(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
 		Branch    string `json:"branch" validate:"required"`
-		CommitID  string `json:"commit" validate:"len=40"`
+		CommitID  string `json:"commitId" validate:"len=40"`
 		Date      string `json:"date" validate:"required"`
 	}
 	var reqData ReqData

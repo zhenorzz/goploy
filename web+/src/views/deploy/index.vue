@@ -109,7 +109,7 @@
       <el-table-column
         prop="deployState"
         :label="$t('state')"
-        width="230"
+        width="200"
         align="center"
       >
         <template #default="scope">
@@ -136,18 +136,14 @@
         align="center"
       >
         <template #default="scope">
-          <el-row
-            class="operation-btn"
-            tyle="flex"
-            justify="space-between"
-            style="width: 100%"
-          >
+          <div class="operation-btn">
             <el-button
               v-if="scope.row.deployState === 0"
               type="primary"
               @click="publish(scope.row)"
-              >{{ $t('initial') }}</el-button
             >
+              {{ $t('initial') }}
+            </el-button>
             <el-button
               v-else-if="
                 role.hasManagerPermission() && scope.row.deployState === 1
@@ -165,7 +161,7 @@
               trigger="click"
               type="primary"
               @click="publish(scope.row)"
-              @command="(commandFunc) => commandFunc(scope.row)"
+              @command="(funcName) => callCommandFunc(funcName, scope.row)"
             >
               {{
                 role.isMember() && scope.row.review === 1
@@ -174,10 +170,10 @@
               }}
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item :command="handleCommitCommand">
+                  <el-dropdown-item :command="'handleCommitCommand'">
                     Commit list
                   </el-dropdown-item>
-                  <el-dropdown-item :command="getTagList">
+                  <el-dropdown-item :command="'handleTagCommand'">
                     Tag list
                   </el-dropdown-item>
                 </el-dropdown-menu>
@@ -193,7 +189,8 @@
             <el-dropdown
               v-if="role.hasGroupManagerPermission() || scope.row.review === 1"
               trigger="click"
-              @command="(commandFunc) => commandFunc(scope.row)"
+              style="margin-left: 5px"
+              @command="(funcName) => callCommandFunc(funcName, scope.row)"
             >
               <el-button type="warning">
                 {{ $t('func') }}<i class="el-icon-arrow-down el-icon--right" />
@@ -202,23 +199,27 @@
                 <el-dropdown-menu style="min-width: 84px; text-align: center">
                   <el-dropdown-item
                     v-if="role.hasGroupManagerPermission()"
-                    :command="handleTaskCommand"
+                    :command="'handleTaskCommand'"
                   >
                     {{ $t('deployPage.taskDeploy') }}
                   </el-dropdown-item>
                   <el-dropdown-item
                     v-if="scope.row.review === 1"
-                    :command="handleReviewCommand"
+                    :command="'handleReviewCommand'"
                   >
                     {{ $t('deployPage.reviewDeploy') }}
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-            <el-button type="success" @click="handleDetail(scope.row)">
+            <el-button
+              type="success"
+              style="margin-left: 5px"
+              @click="handleDetail(scope.row)"
+            >
               {{ $t('detail') }}
             </el-button>
-          </el-row>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -235,206 +236,41 @@
       />
     </el-row>
     <TheDetailDialog v-model="dialogVisible" :project-row="selectedItem" />
-    <el-dialog v-model="commitDialogVisible" title="commit">
-      <el-select
-        v-model="branch"
-        v-loading="branchLoading"
-        filterable
-        default-first-option
-        placeholder="请选择分支"
-        style="width: 100%; margin-bottom: 10px"
-        @change="getCommitList"
-      >
-        <el-option
-          v-for="item in branchOption"
-          :key="item"
-          :label="item"
-          :value="item"
-        />
-      </el-select>
-      <el-table
-        v-loading="commitTableLoading"
-        border
-        stripe
-        highlight-current-row
-        max-height="447px"
-        :data="commitTableData"
-        style="width: 100%"
-      >
-        <el-table-column type="expand">
-          <template #default="props">
-            <span v-html="enterToBR(props.row.diff)" />
-          </template>
-        </el-table-column>
-        <el-table-column prop="commit" label="commit" width="290">
-          <template #default="scope">
-            <el-link
-              type="primary"
-              style="font-size: 12px"
-              :underline="false"
-              :href="parseGitURL(scope.row.url) + '/commit/' + scope.row.commit"
-              target="_blank"
-            >
-              {{ scope.row.commit }}
-            </el-link>
-          </template>
-        </el-table-column>
-        <el-table-column prop="author" label="author" />
-        <el-table-column
-          prop="message"
-          label="message"
-          width="200"
-          show-overflow-tooltip
-        />
-        <el-table-column label="time" width="135" align="center">
-          <template #default="scope">
-            {{ parseTime(scope.row.timestamp) }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="operation"
-          :label="$t('op')"
-          width="180"
-          align="center"
-          fixed="right"
+    <TheCommitListDialog
+      v-model="commitDialogVisible"
+      :project-row="selectedItem"
+    >
+      <template #tableOP="scope">
+        <el-button type="danger" @click="publishByCommit(scope.row)">
+          {{ $t('deploy') }}
+        </el-button>
+        <el-button
+          v-if="!role.isMember()"
+          type="warning"
+          @click="handleGreyPublish(scope.row)"
         >
-          <template #default="scope">
-            <el-button
-              v-if="commitDialogReferer !== 'task'"
-              type="danger"
-              @click="publishByCommit(scope.row)"
-            >
-              {{ $t('deploy') }}
-            </el-button>
-            <el-popover
-              :ref="`task${scope.row.commit}`"
-              placement="bottom"
-              trigger="click"
-              width="270"
-            >
-              <el-date-picker
-                v-model="scope.row.date"
-                :picker-options="taskFormProps.pickerOptions"
-                type="datetime"
-                value-format="yyyy-MM-dd HH:mm:ss"
-                style="width: 180px"
-              />
-              <el-button
-                type="primary"
-                :disabled="!scope.row['date']"
-                @click="submitTask(scope.row)"
-              >
-                {{ $t('confirm') }}
-              </el-button>
-              <template #reference>
-                <el-button
-                  v-if="!role.isMember() && commitDialogReferer === 'task'"
-                  type="primary"
-                >
-                  {{ $t('crontab') }}
-                </el-button>
-              </template>
-            </el-popover>
-            <el-button
-              v-if="!role.isMember() && commitDialogReferer !== 'task'"
-              type="warning"
-              @click="handleGreyPublish(scope.row)"
-            >
-              {{ $t('grey') }}
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <template #footer class="dialog-footer">
-        <el-button @click="commitDialogVisible = false">
-          {{ $t('cancel') }}
+          {{ $t('grey') }}
         </el-button>
       </template>
-    </el-dialog>
-    <el-dialog v-model="tagDialogVisible" title="tag">
-      <el-table
-        v-loading="tagTableLoading"
-        border
-        stripe
-        highlight-current-row
-        max-height="447px"
-        :data="tagTableData"
-      >
-        <el-table-column type="expand">
-          <template #default="props">
-            <span v-html="enterToBR(props.row.diff)" />
-          </template>
-        </el-table-column>
-        <el-table-column prop="tag" label="tag">
-          <template #default="scope">
-            <el-link
-              type="primary"
-              style="font-size: 12px"
-              :underline="false"
-              :href="parseGitURL(scope.row.url) + '/tree/' + scope.row.shortTag"
-              target="_blank"
-            >
-              {{ scope.row.shortTag }}
-            </el-link>
-          </template>
-        </el-table-column>
-        <el-table-column prop="commit" label="commit" width="80">
-          <template #default="scope">
-            <el-link
-              type="primary"
-              style="font-size: 12px"
-              :underline="false"
-              :href="parseGitURL(scope.row.url) + '/commit/' + scope.row.commit"
-              target="_blank"
-            >
-              {{ scope.row.commit.substring(0, 6) }}
-            </el-link>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="author"
-          label="author"
-          width="100"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          prop="message"
-          label="message"
-          width="200"
-          show-overflow-tooltip
-        />
-        <el-table-column label="time" width="135" align="center">
-          <template #default="scope">
-            {{ parseTime(scope.row.timestamp) }}
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="operation"
-          :label="$t('op')"
-          width="160"
-          align="center"
-          fixed="right"
+    </TheCommitListDialog>
+    <TheTagListDialog v-model="tagDialogVisible" :project-row="selectedItem">
+      <template #tableOP="scope">
+        <el-button type="danger" @click="publishByCommit(scope.row)">
+          {{ $t('deploy') }}
+        </el-button>
+        <el-button
+          v-if="!role.isMember()"
+          type="warning"
+          @click="handleGreyPublish(scope.row)"
         >
-          <template #default="scope">
-            <el-button type="danger" @click="publishByCommit(scope.row)">
-              {{ $t('deploy') }}
-            </el-button>
-            <el-button
-              v-if="!role.isMember()"
-              type="warning"
-              @click="handleGreyPublish(scope.row)"
-            >
-              {{ $t('grey') }}
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <template #footer class="dialog-footer">
-        <el-button @click="tagDialogVisible = false">
-          {{ $t('cancel') }}
+          {{ $t('grey') }}
         </el-button>
       </template>
-    </el-dialog>
+    </TheTagListDialog>
+    <TheTaskListDialog
+      v-model="taskListDialogVisible"
+      :project-row="selectedItem"
+    />
     <el-dialog v-model="greyServerDialogVisible" :title="$t('deploy')">
       <el-form
         ref="greyServerForm"
@@ -463,123 +299,6 @@
           @click="greyPublish"
         >
           {{ $t('confirm') }}
-        </el-button>
-      </template>
-    </el-dialog>
-    <el-dialog v-model="taskListDialogVisible" :title="$t('manage')">
-      <el-row class="app-bar" type="flex" justify="end">
-        <el-button
-          type="primary"
-          icon="el-icon-plus"
-          @click="handleAddProjectTask"
-        />
-      </el-row>
-      <el-table
-        v-loading="taskTableLoading"
-        border
-        stripe
-        highlight-current-row
-        max-height="447px"
-        :data="taskTableData"
-      >
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column
-          prop="projectName"
-          :label="$t('projectName')"
-          width="150"
-        />
-        <el-table-column
-          prop="branch"
-          :label="$t('branch')"
-          width="150"
-          align="center"
-        >
-          <template #default="scope">
-            <el-link
-              style="font-size: 12px"
-              :underline="false"
-              :href="
-                parseGitURL(selectedItem.url) +
-                '/tree/' +
-                scope.row.branch.split('/').pop()
-              "
-              target="_blank"
-            >
-              {{ scope.row.branch }}
-            </el-link>
-          </template>
-        </el-table-column>
-        <el-table-column prop="commitId" label="commit" width="290">
-          <template #default="scope">
-            <el-link
-              type="primary"
-              style="font-size: 12px"
-              :underline="false"
-              :href="
-                parseGitURL(selectedItem.url) + '/commit/' + scope.row.commitId
-              "
-              target="_blank"
-            >
-              {{ scope.row.commitId }}
-            </el-link>
-          </template>
-        </el-table-column>
-        <el-table-column prop="date" :label="$t('date')" width="150" />
-        <el-table-column prop="isRun" :label="$t('task')" width="80">
-          <template #default="scope">
-            {{ $t(`runOption[${scope.row.isRun}]`) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="state" :label="$t('state')" width="70">
-          <template #default="scope">
-            {{ $t(`stateOption[${scope.row.state}]`) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="creator" :label="$t('creator')" align="center" />
-        <el-table-column prop="editor" :label="$t('editor')" align="center" />
-        <el-table-column
-          prop="insertTime"
-          :label="$t('insertTime')"
-          width="135"
-          align="center"
-        />
-        <el-table-column
-          prop="updateTime"
-          :label="$t('updateTime')"
-          width="135"
-          align="center"
-        />
-        <el-table-column
-          prop="operation"
-          :label="$t('op')"
-          width="100"
-          align="center"
-          fixed="right"
-        >
-          <template #default="scope">
-            <el-button
-              type="danger"
-              :disabled="scope.row.isRun === 1 || scope.row.state === 0"
-              @click="removeProjectTask(scope.row)"
-            >
-              {{ $t('delete') }}
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-pagination
-        v-model:current-page="taskPagination.page"
-        hide-on-single-page
-        :total="taskPagination.total"
-        :page-size="taskPagination.rows"
-        style="margin-top: 10px; text-align: right"
-        background
-        layout="sizes, total, prev, pager, next"
-        @current-change="handleTaskPageChange"
-      />
-      <template #footer class="dialog-footer">
-        <el-button @click="taskListDialogVisible = false">
-          {{ $t('cancel') }}
         </el-button>
       </template>
     </el-dialog>
@@ -699,40 +418,36 @@
 <script lang="ts">
 import tableHeight from '@/mixin/tableHeight'
 import {
-  getList,
-  getCommitList,
-  getBranchList,
-  getTagList,
+  DeployList,
   publish,
   rebuild,
   resetState,
   review,
   greyPublish,
 } from '@/api/deploy'
-import {
-  addTask,
-  removeTask,
-  getTaskList,
-  ProjectServerList,
-  getReviewList,
-} from '@/api/project'
-import { NamespaceUserOption } from '@/api/namespace'
+import { ProjectServerList, getReviewList } from '@/api/project'
+
 import { role } from '@/utils/namespace'
-import { empty, parseTime, parseGitURL } from '@/utils'
+import { parseTime, parseGitURL } from '@/utils'
 import TheDetailDialog from './TheDetailDialog.vue'
+import TheCommitListDialog from './TheCommitListDialog.vue'
+import TheTagListDialog from './TheTagListDialog.vue'
+import TheTaskListDialog from './TheTaskListDialog.vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { defineComponent } from 'vue'
+import { h, defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'DeployIndex',
-  components: { TheDetailDialog },
+  components: {
+    TheDetailDialog,
+    TheCommitListDialog,
+    TheTagListDialog,
+    TheTaskListDialog,
+  },
   mixins: [tableHeight],
   data() {
     return {
       role,
-      userId: '',
-      userOption: [],
-      publishToken: '',
       commitDialogVisible: false,
       tagDialogVisible: false,
       greyServerDialogVisible: false,
@@ -740,7 +455,6 @@ export default defineComponent({
       reviewDialogVisible: false,
       reviewListDialogVisible: false,
       dialogVisible: false,
-      traceLoading: false,
       tableloading: false,
       dateVisible: false,
       commitDialogReferer: '',
@@ -778,50 +492,7 @@ export default defineComponent({
         page: 1,
         rows: 20,
       },
-      pickerOptions: {
-        shortcuts: [
-          {
-            text: '最近一周',
-            onClick(picker) {
-              const end = new Date()
-              const start = new Date()
-              start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
-              picker.$emit('pick', [start, end])
-            },
-          },
-          {
-            text: '最近一个月',
-            onClick(picker) {
-              const end = new Date()
-              const start = new Date()
-              start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
-              picker.$emit('pick', [start, end])
-            },
-          },
-          {
-            text: '最近三个月',
-            onClick(picker) {
-              const end = new Date()
-              const start = new Date()
-              start.setTime(start.getTime() - 3600 * 1000 * 24 * 90)
-              picker.$emit('pick', [start, end])
-            },
-          },
-        ],
-      },
-      gitTraceList: [],
-      previewPagination: {
-        page: 1,
-        rows: 11,
-        total: 0,
-      },
-      commitTableLoading: false,
-      branchOption: [],
-      branchLoading: false,
       branch: '',
-      commitTableData: [],
-      tagTableLoading: false,
-      tagTableData: [],
       greyServerFormProps: {
         disabled: false,
         serverOption: [],
@@ -841,11 +512,6 @@ export default defineComponent({
           },
         ],
       },
-      publishTraceList: [],
-      publishLocalTraceList: [],
-      publishRemoteTraceList: {},
-      traceDetail: {},
-      activeRomoteTracePane: '',
     }
   },
   computed: {
@@ -870,18 +536,6 @@ export default defineComponent({
         (this.pagination.page - 1) * this.pagination.rows,
         this.pagination.page * this.pagination.rows
       )
-    },
-    previewFilterlength: function () {
-      let number = 0
-      for (const key in this.searchPreview) {
-        if (['projectId', 'loading', 'url'].indexOf(key) !== -1) {
-          continue
-        }
-        if (!empty(this.searchPreview[key])) {
-          number++
-        }
-      }
-      return number
     },
   },
   watch: {
@@ -930,20 +584,14 @@ export default defineComponent({
   },
   created() {
     this.getList()
-    this.getUserOption()
   },
   methods: {
     parseTime,
     parseGitURL,
-    getUserOption() {
-      new NamespaceUserOption().request().then((response) => {
-        this.userOption = response.data.list
-      })
-    },
-
     getList() {
       this.tableloading = true
-      getList()
+      new DeployList()
+        .request()
         .then((response) => {
           this.tableData = response.data.list.map((element) => {
             element.progressPercentage = 0
@@ -990,11 +638,8 @@ export default defineComponent({
     },
 
     handleDetail(data) {
-      this.dialogVisible = true
       this.selectedItem = data
-      this.searchPreview.projectId = data.id
-      this.searchPreview.url = data.url
-      this.searchPreview.userId = ''
+      this.dialogVisible = true
     },
 
     handleGreyPublish(data) {
@@ -1009,77 +654,22 @@ export default defineComponent({
       this.greyServerDialogVisible = true
     },
 
+    callCommandFunc(funcName, data) {
+      this[funcName](data)
+    },
+
     handleCommitCommand(data) {
       this.commitDialogReferer = 'commit'
       this.selectedItem = data
       this.commitDialogVisible = true
-      this.getBranchList()
     },
 
-    getBranchList() {
-      const id = this.selectedItem.id
-      this.branchLoading = true
-      this.branch = ''
-      this.branchOption = []
-      this.commitTableData = []
-      getBranchList(id)
-        .then((response) => {
-          this.branchOption = response.data.branchList.filter((element) => {
-            return element.indexOf('HEAD') === -1
-          })
-        })
-        .finally(() => {
-          this.branchLoading = false
-        })
-    },
-
-    getCommitList() {
-      this.commitTableLoading = true
-      getCommitList(this.selectedItem.id, this.branch)
-        .then((response) => {
-          this.commitTableData = response.data.commitList
-            ? response.data.commitList.map((element) => {
-                return Object.assign(element, {
-                  projectId: this.selectedItem.id,
-                  url: this.selectedItem.url,
-                  branch: this.branch,
-                })
-              })
-            : []
-        })
-        .finally(() => {
-          this.commitTableLoading = false
-        })
-    },
-
-    getTagList(data) {
-      const id = data.id
+    handleTagCommand(data) {
+      this.selectedItem = data
       this.tagDialogVisible = true
-      this.tagTableLoading = true
-      getTagList(id)
-        .then((response) => {
-          this.tagTableData = response.data.tagList
-            ? response.data.tagList.map((element) => {
-                let shortTag = element.tag.replace(/[()]/g, '')
-                for (const tag of shortTag.split(',')) {
-                  if (tag.indexOf('tag: ') !== -1) {
-                    shortTag = tag.replace('tag: ', '').trim()
-                    break
-                  }
-                }
-
-                return Object.assign(element, {
-                  projectId: id,
-                  url: data.url,
-                  shortTag: shortTag,
-                })
-              })
-            : []
-        })
-        .finally(() => {
-          this.tagTableLoading = false
-        })
     },
+
+    getBranchList() {},
 
     getTaskList() {
       this.taskTableLoading = true
@@ -1101,65 +691,7 @@ export default defineComponent({
 
     handleTaskCommand(data) {
       this.selectedItem = data
-      this.taskPagination.page = 1
       this.taskListDialogVisible = true
-      this.getTaskList()
-    },
-
-    handleTaskPageChange(page) {
-      this.taskPagination.page = page
-      this.getTaskList()
-    },
-
-    handleAddProjectTask() {
-      this.commitDialogReferer = 'task'
-      this.commitDialogVisible = true
-      this.getBranchList()
-    },
-
-    submitTask(data) {
-      addTask(data)
-        .then(() => {
-          ElMessage.success('Success')
-        })
-        .finally(() => {
-          this.$refs[`task${data.commit}`].doClose()
-          this.taskPagination.page = 1
-          this.commitDialogVisible = false
-          this.getTaskList()
-        })
-    },
-
-    removeProjectTask(data) {
-      ElMessageBox.confirm(
-        this.$t('deployPage.removeProjectTaskTips', {
-          projectName: data.projectName,
-        }),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          removeTask(data.id).then((_) => {
-            const projectTaskIndex = this.taskTableData.findIndex(
-              (element) => element.id === data.id
-            )
-            this.taskTableData[projectTaskIndex]['state'] = 0
-            this.taskTableData[projectTaskIndex]['editor'] =
-              this.$store.getters.name
-            this.taskTableData[projectTaskIndex]['editorId'] =
-              this.$store.getters.uid
-            this.taskTableData[projectTaskIndex]['updateTime'] = parseTime(
-              new Date()
-            )
-          })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
     },
 
     getReviewList() {
@@ -1228,7 +760,6 @@ export default defineComponent({
 
     publish(data) {
       const id = data.id
-      const h = this.$createElement
       let color = ''
       if (data.environment === 1) {
         color = 'color: #F56C6C'
@@ -1389,69 +920,9 @@ export default defineComponent({
 })
 </script>
 <style rel="stylesheet/scss" lang="scss" scoped>
-@import '@/styles/mixin.scss';
-
-.publish {
-  &-preview {
-    width: 330px;
-    margin-left: 10px;
-  }
-  &-commit {
-    margin-right: 5px;
-    padding-right: 8px;
-    width: 240px;
-    line-height: 12px;
-  }
-  &-commitID {
-    display: inline-block;
-    vertical-align: top;
-  }
-  &-name {
-    width: 60px;
-    display: inline-block;
-    text-align: center;
-    overflow: hidden;
-    vertical-align: top;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-.publish-filter-label {
-  font-size: 12px;
-  width: 70px;
-}
-
-.project-detail {
-  padding-left: 5px;
-  height: 470px;
-  overflow-y: auto;
-  @include scrollBar();
-}
-
 .operation-btn {
-  >>> .el-button {
+  :deep(.el-button) {
     line-height: 1.15;
-  }
-}
-
-.icon-success {
-  color: #67c23a;
-  font-size: 14px;
-  font-weight: 900;
-}
-
-.icon-fail {
-  color: #f56c6c;
-  font-size: 14px;
-  font-weight: 900;
-}
-
-@media screen and (max-width: 1440px) {
-  .publish-record {
-    >>> .el-dialog {
-      width: 75%;
-    }
   }
 }
 </style>

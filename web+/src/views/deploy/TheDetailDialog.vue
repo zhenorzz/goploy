@@ -5,13 +5,13 @@
     custom-class="publish-record"
   >
     <el-row type="flex">
-      <el-row v-loading="filterloading" class="publish-preview">
-        <el-row>
+      <div v-loading="filterloading" class="publish-preview">
+        <div>
           <el-popover placement="bottom-start" width="318" trigger="click">
             <el-row type="flex" align="middle">
               <label class="publish-filter-label">{{ $t('user') }}</label>
               <el-select
-                v-model="searchPreview.userId"
+                v-model="filterParams.userId"
                 style="flex: 1"
                 clearable
               >
@@ -26,7 +26,7 @@
             <el-row type="flex" align="middle" style="margin-top: 5px">
               <label class="publish-filter-label">Commit</label>
               <el-input
-                v-model.trim="searchPreview.commit"
+                v-model.trim="filterParams.commit"
                 autocomplete="off"
                 style="flex: 1"
                 placeholder="Commit"
@@ -35,7 +35,7 @@
             <el-row type="flex" align="middle" style="margin-top: 5px">
               <label class="publish-filter-label">{{ $t('branch') }}</label>
               <el-input
-                v-model.trim="searchPreview.branch"
+                v-model.trim="filterParams.branch"
                 autocomplete="off"
                 style="flex: 1"
                 :placeholder="$t('branch')"
@@ -44,7 +44,7 @@
             <el-row type="flex" align="middle" style="margin-top: 5px">
               <label class="publish-filter-label">{{ $t('filename') }}</label>
               <el-input
-                v-model.trim="searchPreview.filename"
+                v-model.trim="filterParams.filename"
                 autocomplete="off"
                 style="flex: 1"
                 :placeholder="$t('filename')"
@@ -52,11 +52,7 @@
             </el-row>
             <el-row type="flex" align="middle" style="margin-top: 5px">
               <label class="publish-filter-label">{{ $t('state') }}</label>
-              <el-select
-                v-model="searchPreview.state"
-                style="flex: 1"
-                clearable
-              >
+              <el-select v-model="filterParams.state" style="flex: 1" clearable>
                 <el-option :label="$t('success')" :value="1" />
                 <el-option :label="$t('fail')" :value="0" />
               </el-select>
@@ -64,18 +60,17 @@
             <el-row type="flex" align="middle" style="margin-top: 5px">
               <label class="publish-filter-label">{{ $t('commitDate') }}</label>
               <el-date-picker
-                v-model="searchPreview.commitDate"
+                v-model="filterParams.commitDate"
                 class="dmp-date-picker"
                 popper-class="dmp-date-picker-popper"
-                :picker-options="pickerOptions"
+                :shortcuts="shortcuts"
                 type="daterange"
-                value-format="yyyy-MM-dd HH:mm:ss"
+                format="yyyy-MM-dd HH:mm:ss"
                 range-separator="-"
                 :start-placeholder="$t('startDate')"
                 :end-placeholder="$t('endDate')"
                 :default-time="['00:00:00', '23:59:59']"
                 style="flex: 1"
-                align="center"
               />
             </el-row>
             <el-row type="flex" align="middle" style="margin-top: 5px">
@@ -83,23 +78,22 @@
                 {{ $t('deployDate') }}
               </label>
               <el-date-picker
-                v-model="searchPreview.deployDate"
+                v-model="filterParams.deployDate"
                 class="dmp-date-picker"
                 popper-class="dmp-date-picker-popper"
-                :picker-options="pickerOptions"
+                :shortcuts="shortcuts"
                 type="daterange"
-                value-format="yyyy-MM-dd HH:mm:ss"
+                format="yyyy-MM-dd HH:mm:ss"
                 range-separator="-"
                 :start-placeholder="$t('startDate')"
                 :end-placeholder="$t('endDate')"
                 :default-time="['00:00:00', '23:59:59']"
                 style="flex: 1"
-                align="center"
               />
             </el-row>
             <template #reference>
               <el-button icon="el-icon-notebook-2" style="width: 220px">
-                Filter({{ previewFilterlength }})
+                Filter({{ filterlength }})
               </el-button>
             </template>
           </el-popover>
@@ -115,7 +109,7 @@
             style="margin-left: 2px"
             @click="searchPreviewList"
           />
-        </el-row>
+        </div>
         <el-radio-group v-model="publishToken" @change="handleTraceChange">
           <el-row v-for="(item, index) in gitTraceList" :key="index">
             <el-row style="margin: 5px 0">
@@ -142,18 +136,18 @@
           </el-row>
         </el-radio-group>
         <el-pagination
-          v-model:current-page="previewPagination.page"
-          :total="previewPagination.total"
-          :page-size="previewPagination.rows"
+          v-model:current-page="pagination.page"
+          :total="pagination.total"
+          :page-size="pagination.rows"
           style="text-align: right; margin-right: 20px"
           layout="total, prev, next"
           @current-change="handlePageChange"
         />
-      </el-row>
+      </div>
       <el-row
         v-loading="traceLoading"
         class="project-detail"
-        style="flex: 1; width: 100%"
+        style="width: 100%; flex: 1; align-content: flex-start"
       >
         <el-row v-for="(item, index) in publishLocalTraceList" :key="index">
           <el-row v-if="item.type === 2">
@@ -170,9 +164,7 @@
                 <el-link
                   type="primary"
                   :underline="false"
-                  :href="
-                    parseGitURL(searchPreview.url) + '/commit/' + item['commit']
-                  "
+                  :href="`${gitURL}/commit/${item['commit']}`"
                   target="_blank"
                 >
                   {{ item['commit'] }}
@@ -327,10 +319,11 @@ import {
   DeployTraceDetail,
   PublishTraceData,
 } from '@/api/deploy'
+import { NamespaceUserOption } from '@/api/namespace'
 import { role } from '@/utils/namespace'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { empty, parseGitURL, parseTime } from '@/utils'
 import { useI18n } from 'vue-i18n'
-import { computed, watch, defineComponent, ref, Ref, reactive } from 'vue'
+import { computed, watch, defineComponent, ref, reactive } from 'vue'
 
 export default defineComponent({
   props: {
@@ -338,9 +331,9 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
-    projectId: {
-      type: Number,
-      default: 0,
+    projectRow: {
+      type: Object,
+      required: true,
     },
   },
   emits: ['update:modelValue'],
@@ -352,13 +345,24 @@ export default defineComponent({
         emit('update:modelValue', val)
       },
     })
-
+    const userOption = ref<NamespaceUserOption['datagram']['list']>([])
+    const gitURL = ref<string>('')
+    watch(
+      () => props.modelValue,
+      (val: typeof props['modelValue']) => {
+        if (val === true) {
+          getPreviewList(props.projectRow.id)
+          new NamespaceUserOption().request().then((response) => {
+            userOption.value = response.data.list
+          })
+          gitURL.value = parseGitURL(props.projectRow.url)
+        }
+      }
+    )
     const filterloading = ref(false)
-    const filterParams = reactive({
+    const filterParams = reactive<Record<string, any>>({
       loading: false,
-      projectId: '',
       userId: '',
-      url: '',
       state: '',
       filename: '',
       branch: '',
@@ -366,7 +370,7 @@ export default defineComponent({
       commitDate: [],
       deployDate: [],
     })
-    const gitTraceList: Ref<DeployPreviewList['datagram']['list']> = ref([])
+    const gitTraceList = ref<DeployPreviewList['datagram']['list']>([])
     const pagination = reactive({ page: 1, rows: 11, total: 0 })
     let traceDetail = reactive<Record<string, boolean>>({})
     const publishToken = ref('')
@@ -374,6 +378,18 @@ export default defineComponent({
     const publishRemoteTraceList = ref<
       Record<string, DeployTrace['datagram']['list']>
     >({})
+    const filterlength = computed(() => {
+      let number = 0
+      for (const key in filterParams) {
+        if (['projectId', 'loading', 'url'].indexOf(key) !== -1) {
+          continue
+        }
+        if (!empty(filterParams[key])) {
+          number++
+        }
+      }
+      return number
+    })
     const refreshFilterParams = () => {
       filterParams.userId = ''
       filterParams.state = ''
@@ -435,7 +451,7 @@ export default defineComponent({
 
     const handlePageChange = (page: number) => {
       pagination.page = page
-      getPreviewList(props.projectId)
+      getPreviewList(props.projectRow.id)
     }
 
     const traceLoading = ref(false)
@@ -468,7 +484,7 @@ export default defineComponent({
           )[0]
         })
         .finally(() => {
-          traceLoading.value
+          traceLoading.value = false
         })
     }
 
@@ -494,21 +510,16 @@ export default defineComponent({
         })
     }
 
-    watch(
-      () => props.modelValue,
-      (val: typeof props['modelValue']) => {
-        if (val === true) {
-          getPreviewList(props.projectId)
-        }
-      }
-    )
-
     return {
-      role,
       dialogVisible,
+      role,
+      parseTime,
+      userOption,
       filterloading,
       filterParams,
+      filterlength,
       refreshFilterParams,
+      pagination,
       getPreviewList,
       searchPreviewList,
       handlePageChange,
@@ -522,7 +533,105 @@ export default defineComponent({
       getPublishTrace,
       handleTraceChange,
       getPublishTraceDetail,
+      gitURL,
     }
+  },
+  data() {
+    return {
+      shortcuts: [
+        {
+          text: '最近一周',
+          onClick(picker) {
+            const end = new Date()
+            const start = new Date()
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
+            picker.$emit('pick', [start, end])
+          },
+        },
+        {
+          text: '最近一个月',
+          onClick(picker) {
+            const end = new Date()
+            const start = new Date()
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
+            picker.$emit('pick', [start, end])
+          },
+        },
+        {
+          text: '最近三个月',
+          onClick(picker) {
+            const end = new Date()
+            const start = new Date()
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 90)
+            picker.$emit('pick', [start, end])
+          },
+        },
+      ],
+    }
+  },
+  methods: {
+    enterToBR(detail: string) {
+      return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
+    },
   },
 })
 </script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+@import '@/styles/mixin.scss';
+.publish {
+  &-filter-label {
+    font-size: 12px;
+    width: 70px;
+  }
+  &-preview {
+    width: 330px;
+    margin-left: 10px;
+  }
+  &-commit {
+    margin-right: 5px;
+    padding-right: 8px;
+    width: 246px;
+    line-height: 12px;
+  }
+  &-commitID {
+    display: inline-block;
+    vertical-align: top;
+  }
+  &-name {
+    width: 60px;
+    display: inline-block;
+    text-align: center;
+    overflow: hidden;
+    vertical-align: top;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.icon-success {
+  color: #67c23a;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.icon-fail {
+  color: #f56c6c;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.project-detail {
+  padding-left: 5px;
+  height: 470px;
+  overflow-y: auto;
+  @include scrollBar();
+}
+
+@media screen and (max-width: 1440px) {
+  .publish-record {
+    :deep(.el-dialog) {
+      width: 75%;
+    }
+  }
+}
+</style>

@@ -1,5 +1,14 @@
 import Axios from './axios'
 import { Request, Pagination, ID, Total } from './types'
+import { ProjectData } from './project'
+
+export class DeployList extends Request {
+  readonly url = '/deploy/getList'
+  readonly method = 'get'
+  public datagram!: {
+    list: ProjectData['datagram']['detail'][]
+  }
+}
 
 export class PublishTraceData {
   public datagram!: {
@@ -78,57 +87,6 @@ export class DeployTraceDetail extends Request {
     super()
     this.param = param
   }
-}
-
-/**
- * @param  {string}    projectName
- * @return {Promise}
- */
-export function getList(projectName) {
-  return Axios.request({
-    url: '/deploy/getList',
-    method: 'get',
-    params: { projectName },
-  })
-}
-
-/**
- * @param  {int}    id
- * @return {Promise}
- */
-export function getCommitList(id, branch) {
-  return Axios.request({
-    url: '/deploy/getCommitList',
-    method: 'get',
-    params: { id, branch },
-    timeout: 0,
-  })
-}
-
-/**
- * @param  {int}    id
- * @return {Promise}
- */
-export function getBranchList(id) {
-  return Axios.request({
-    url: '/deploy/getBranchList',
-    method: 'get',
-    params: { id },
-    timeout: 0,
-  })
-}
-
-/**
- * @param  {int}    id
- * @return {Promise}
- */
-export function getTagList(id) {
-  return Axios.request({
-    url: '/deploy/getTagList',
-    method: 'get',
-    params: { id },
-    timeout: 0,
-  })
 }
 
 /**

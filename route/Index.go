@@ -69,6 +69,10 @@ func Init() *router.Router {
 	rt.Add("/project/getTaskList", http.MethodGet, controller.Project{}.GetTaskList).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/project/getReviewList", http.MethodGet, controller.Project{}.GetReviewList)
 
+	rt.Add("/repository/getCommitList", http.MethodGet, controller.Repository{}.GetCommitList)
+	rt.Add("/repository/getBranchList", http.MethodGet, controller.Repository{}.GetBranchList)
+	rt.Add("/repository/getTagList", http.MethodGet, controller.Repository{}.GetTagList)
+
 	// monitor route
 	rt.Add("/monitor/getList", http.MethodGet, controller.Monitor{}.GetList)
 	rt.Add("/monitor/getTotal", http.MethodGet, controller.Monitor{}.GetTotal)
@@ -82,9 +86,6 @@ func Init() *router.Router {
 	rt.Add("/deploy/getList", http.MethodGet, controller.Deploy{}.GetList)
 	rt.Add("/deploy/getPublishTrace", http.MethodGet, controller.Deploy{}.GetPublishTrace)
 	rt.Add("/deploy/getPublishTraceDetail", http.MethodGet, controller.Deploy{}.GetPublishTraceDetail)
-	rt.Add("/deploy/getCommitList", http.MethodGet, controller.Deploy{}.GetCommitList)
-	rt.Add("/deploy/getBranchList", http.MethodGet, controller.Deploy{}.GetBranchList)
-	rt.Add("/deploy/getTagList", http.MethodGet, controller.Deploy{}.GetTagList)
 	rt.Add("/deploy/getPreview", http.MethodGet, controller.Deploy{}.GetPreview)
 	rt.Add("/deploy/review", http.MethodPut, controller.Deploy{}.Review).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/deploy/resetState", http.MethodPut, controller.Deploy{}.ResetState).Roles([]string{core.RoleAdmin, core.RoleManager})

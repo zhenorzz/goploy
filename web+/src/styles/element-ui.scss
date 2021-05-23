@@ -1,4 +1,9 @@
 // cover some element-ui styles
+.el-progress {
+  &__text {
+    min-width: 0px !important;
+  }
+}
 
 .el-breadcrumb__inner,
 .el-breadcrumb__inner a {

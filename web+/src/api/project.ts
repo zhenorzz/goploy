@@ -338,39 +338,74 @@ export class ProjectFileRemove extends Request {
   }
 }
 
+export class ProjectTaskData {
+  public datagram!: {
+    detail: {
+      id: number
+      projectId: number
+      branch: string
+      commitId: string
+      date: string
+      state: number
+      isRun: number
+      creator: string
+      creatorId: number
+      editor: string
+      editorId: number
+      insertTime: string
+      updateTime: string
+    }
+  }
+}
+
+export class ProjectTaskList extends Request {
+  readonly url = '/project/getTaskList'
+  readonly method = 'get'
+  public param: ID
+  public pagination: Pagination
+
+  public datagram!: {
+    list: ProjectTaskData['datagram']['detail'][]
+    pagination: Pagination
+  }
+  constructor(param: ProjectTaskList['param'], pagination: Pagination) {
+    super()
+    this.pagination = pagination
+    this.param = { ...param, ...pagination }
+  }
+}
+
+export class ProjectTaskAdd extends Request {
+  readonly url = '/project/addTask'
+  readonly method = 'post'
+  public param: {
+    projectId: number
+    branch: string
+    commitId: string
+    date: string
+  }
+  public datagram!: ID
+  constructor(param: ProjectTaskAdd['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ProjectTaskRemove extends Request {
+  readonly url = '/project/removeTask'
+  readonly method = 'delete'
+  public param: ID
+  constructor(param: ProjectTaskRemove['param']) {
+    super()
+    this.param = param
+  }
+}
+
 export function setAutoDeploy(data) {
   return Axios.request({
     url: '/project/setAutoDeploy',
     method: 'put',
     data,
-  })
-}
-
-export function addTask(data) {
-  return Axios.request({
-    url: '/project/addTask',
-    method: 'post',
-    data,
-  })
-}
-
-export function removeTask(id) {
-  return Axios.request({
-    url: '/project/removeTask',
-    method: 'delete',
-    data: { id },
-  })
-}
-
-/**
- * @param  {id} id
- * @return {Promise}
- */
-export function getTaskList({ page, rows }, id) {
-  return Axios.request({
-    url: '/project/getTaskList',
-    method: 'get',
-    params: { page, rows, id },
   })
 }
 
