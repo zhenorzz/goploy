@@ -3,6 +3,7 @@
     v-model="dialogVisible"
     :title="$t('manage')"
     :close-on-click-modal="false"
+    :fullscreen="$store.state.app.device === 'mobile'"
   >
     <el-row class="app-bar" type="flex" justify="end">
       <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
@@ -98,6 +99,7 @@
         :label="$t('op')"
         width="80"
         align="center"
+        fixed="right"
       >
         <template #default="scope">
           <el-button

@@ -2,11 +2,16 @@ import store from '@/store'
 
 const { body } = document
 const WIDTH = 992 // refer to Bootstrap's responsive design
+import { mapState } from 'vuex'
 import { defineComponent } from 'vue'
+
 export default defineComponent({
+  computed: {
+    ...mapState(['app']),
+  },
   watch: {
     $route() {
-      if (this.device === 'mobile' && this.sidebar.opened) {
+      if (this.app.device === 'mobile' && this.app.sidebar.opened) {
         store.dispatch('app/closeSideBar', { withoutAnimation: false })
       }
     },

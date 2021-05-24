@@ -85,13 +85,20 @@
         @current-change="handlePageChange"
       />
     </el-row>
-    <el-dialog v-model="dialogVisible" :title="$t('setting')">
+    <el-dialog
+      v-model="dialogVisible"
+      :fullscreen="$store.state.app.device === 'mobile'"
+      :title="$t('setting')"
+    >
       <el-form
         ref="form"
         v-loading="formProps.loading"
         :rules="formRules"
         :model="formData"
         label-width="130px"
+        :label-position="
+          $store.state.app.device === 'desktop' ? 'right' : 'top'
+        "
       >
         <el-form-item :label="$t('namespace')" prop="namespaceId">
           <el-radio-group v-model="formData.namespaceId">

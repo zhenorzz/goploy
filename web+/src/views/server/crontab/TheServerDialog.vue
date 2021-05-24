@@ -3,6 +3,7 @@
     v-model="dialogVisible"
     :title="$t('manage')"
     :close-on-click-modal="false"
+    :fullscreen="$store.state.app.device === 'mobile'"
   >
     <el-row class="app-bar" type="flex" justify="end">
       <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
@@ -15,7 +16,7 @@
         <el-form ref="form" :inline="true" :rules="formRules" :model="formData">
           <el-form-item
             :label="$t('server')"
-            label-width="120px"
+            label-width="80px"
             prop="serverIds"
           >
             <el-select v-model="formData.serverIds" multiple>
@@ -79,6 +80,7 @@
         :label="$t('op')"
         width="80"
         align="center"
+        fixed="right"
       >
         <template #default="scope">
           <el-button

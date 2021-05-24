@@ -18,7 +18,7 @@
       :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="id" label="ID" width="160" />
+      <el-table-column prop="id" label="ID" width="80" />
       <el-table-column prop="name" :label="$t('name')" />
       <el-table-column
         prop="insertTime"
@@ -37,6 +37,7 @@
         :label="$t('member')"
         width="80"
         align="center"
+        fixed="right"
       >
         <template #default="scope">
           <el-button type="text" @click="handleUser(scope.row)">
@@ -49,6 +50,7 @@
         :label="$t('op')"
         width="80"
         align="center"
+        fixed="right"
       >
         <template #default="scope">
           <el-button
@@ -69,12 +71,19 @@
         @current-change="handlePageChange"
       />
     </el-row>
-    <el-dialog v-model="dialogVisible" :title="$t('setting')">
+    <el-dialog
+      v-model="dialogVisible"
+      :title="$t('setting')"
+      :fullscreen="$store.state.app.device === 'mobile'"
+    >
       <el-form
         ref="form"
         :rules="formRules"
         :model="formData"
         label-width="80px"
+        :label-position="
+          $store.state.app.device === 'desktop' ? 'right' : 'top'
+        "
       >
         <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />

@@ -3,6 +3,7 @@
     v-model="dialogVisible"
     :title="$t('import')"
     :close-on-click-modal="false"
+    :fullscreen="$store.state.app.device === 'mobile'"
   >
     <el-row>
       <el-row type="flex" style="width: 100%">

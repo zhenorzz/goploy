@@ -45,6 +45,7 @@
         :label="$t('op')"
         width="130"
         align="center"
+        fixed="right"
       >
         <template #default="scope">
           <el-button
@@ -72,12 +73,19 @@
         @current-change="handleCurrentChange"
       />
     </el-row>
-    <el-dialog v-model="dialogVisible" :title="$t('setting')">
+    <el-dialog
+      v-model="dialogVisible"
+      :fullscreen="$store.state.app.device === 'mobile'"
+      :title="$t('setting')"
+    >
       <el-form
         ref="form"
         :rules="formRules"
         :model="formData"
         label-width="80px"
+        :label-position="
+          $store.state.app.device === 'desktop' ? 'right' : 'top'
+        "
       >
         <el-form-item :label="$t('account')" prop="account">
           <el-input v-model="formData.account" autocomplete="off" />

@@ -3,6 +3,7 @@
     ref="drawer"
     v-model="drawerVisible"
     :title="`${serverRow.name}(${serverRow.description})`"
+    :direction="$store.state.app.device === 'mobile' ? 'ttb' : 'rtl'"
     @opened="connectTerminal"
     @closed="closeTerminal"
   >

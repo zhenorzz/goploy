@@ -47,7 +47,6 @@ import ScrollPane from './ScrollPane.vue'
 import path from 'path-browserify'
 import { defineComponent } from 'vue'
 import { mapState } from 'vuex'
-import { deepClone } from '@/utils'
 
 export default defineComponent({
   components: { ScrollPane },

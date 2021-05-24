@@ -1,15 +1,15 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="space-between">
-      <el-row>
+      <el-col :span="16">
         <el-input
           v-model="crontabCommand"
-          style="width: 200px"
+          style="width: 150px"
           placeholder="Fitler the command"
         />
         <el-button type="primary" icon="el-icon-search" @click="searchList" />
-      </el-row>
-      <el-row>
+      </el-col>
+      <el-col :span="8" style="text-align: right">
         <el-tooltip effect="dark" :content="$t('import')" placement="top">
           <el-button
             type="primary"
@@ -18,7 +18,7 @@
           />
         </el-tooltip>
         <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
-      </el-row>
+      </el-col>
     </el-row>
     <el-table
       v-loading="tableLoading"
@@ -60,6 +60,7 @@
         width="80"
         :label="$t('server')"
         align="center"
+        fixed="right"
       >
         <template #default="scope">
           <el-button type="text" @click="handleServer(scope.row)">{{
@@ -98,13 +99,20 @@
         @current-change="handlePageChange"
       />
     </el-row>
-    <el-dialog v-model="dialogVisible" :title="$t('setting')">
+    <el-dialog
+      v-model="dialogVisible"
+      :fullscreen="$store.state.app.device === 'mobile'"
+      :title="$t('setting')"
+    >
       <el-form
         ref="form"
         v-loading="formProps.loading"
         :rules="formRules"
         :model="formData"
         label-width="80px"
+        :label-position="
+          $store.state.app.device === 'desktop' ? 'right' : 'top'
+        "
       >
         <el-form-item :label="$t('time')" prop="date">
           <el-input
@@ -155,6 +163,7 @@
       v-model="crontabRemoveVisible"
       :title="$t('remove')"
       width="500px"
+      :fullscreen="$store.state.app.device === 'mobile'"
     >
       <el-form
         ref="crontabRemoveForm"
@@ -179,8 +188,9 @@
           :disabled="crontabRemoveFormProps.disabled"
           type="primary"
           @click="remove"
-          >{{ $t('confirm') }}</el-button
         >
+          {{ $t('confirm') }}
+        </el-button>
       </template>
     </el-dialog>
     <TheImportDialog
