@@ -10,6 +10,20 @@ export class DeployList extends Request {
   }
 }
 
+export class DeployRebuild extends Request {
+  readonly url = '/deploy/rebuild'
+  readonly method = 'post'
+  public param: {
+    projectId: number
+    token: string
+  }
+  public datagram!: string
+  constructor(param: DeployRebuild['param']) {
+    super()
+    this.param = param
+  }
+}
+
 export class PublishTraceData {
   public datagram!: {
     detail: {
@@ -111,18 +125,6 @@ export function publish(projectId, branch, commit) {
     url: '/deploy/publish',
     method: 'post',
     data: { projectId, branch, commit },
-  })
-}
-
-/**
- * @param  {string}   token
- * @return {Promise}
- */
-export function rebuild(projectId, token) {
-  return Axios.request({
-    url: '/deploy/rebuild',
-    method: 'post',
-    data: { projectId, token },
   })
 }
 

@@ -194,7 +194,7 @@ export default defineComponent({
   data() {
     return {
       formProps: {
-        projectPath: '/data/www/goploy/',
+        projectPath: '${PROJECT_PATH}',
         action: import.meta.env.VITE_APP_BASE_API + '/project/uploadFile',
         show: 'file-list',
         editContentLoading: false,

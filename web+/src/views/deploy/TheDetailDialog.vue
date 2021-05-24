@@ -61,8 +61,6 @@
               <label class="publish-filter-label">{{ $t('commitDate') }}</label>
               <el-date-picker
                 v-model="filterParams.commitDate"
-                class="dmp-date-picker"
-                popper-class="dmp-date-picker-popper"
                 :shortcuts="shortcuts"
                 type="daterange"
                 format="yyyy-MM-dd HH:mm:ss"
@@ -79,8 +77,6 @@
               </label>
               <el-date-picker
                 v-model="filterParams.deployDate"
-                class="dmp-date-picker"
-                popper-class="dmp-date-picker-popper"
                 :shortcuts="shortcuts"
                 type="daterange"
                 format="yyyy-MM-dd HH:mm:ss"
@@ -176,29 +172,33 @@
                 Datetime:
                 {{ item['timestamp'] ? parseTime(item['timestamp']) : '' }}
               </el-row>
-              <el-row><span v-html="enterToBR(item['diff'])" /></el-row>
+              <el-row>
+                <span style="white-space: pre-line">{{ item['diff'] }}</span>
+              </el-row>
             </el-row>
             <el-row v-else style="margin: 5px 0">
-              <span v-html="enterToBR(item.detail)" />
+              <span style="white-space: pre-line">
+                {{ item.detail }}
+              </span>
             </el-row>
           </el-row>
           <el-row v-if="item.type === 3">
-            <hr />
-            <el-row style="margin: 5px 0">
+            <hr style="width: 100%" />
+            <div align="middle">
               <i v-if="item.state === 1" class="el-icon-check icon-success" />
               <i v-else class="el-icon-close icon-fail" />
               --------After pull--------
-            </el-row>
-            <el-row style="margin: 5px 0">Time: {{ item.updateTime }}</el-row>
-            <el-row>
-              Script:
-              <pre v-html="enterToBR(item.script)"></pre>
+            </div>
+            <el-row>Time: {{ item.updateTime }}</el-row>
+            <el-row style="width: 100%">
+              <div>Script:</div>
+              <pre style="white-space: pre-line">{{ item.script }}</pre>
             </el-row>
             <el-row
-              v-loading="traceDetail[item.id] === true"
+              v-loading="traceDetail[item.id] === ''"
               style="margin: 5px 0"
             >
-              [goploy ~]#
+              <span style="padding: 5px 0">[goploy ~]#</span>
               <el-button
                 v-if="item.state === 1 && !(item.id in traceDetail)"
                 type="text"
@@ -206,7 +206,9 @@
               >
                 {{ $t('deployPage.showDetail') }}
               </el-button>
-              <span v-else v-html="enterToBR(item.detail)" />
+              <span v-else style="white-space: pre-line">
+                {{ traceDetail[item.id] }}
+              </span>
             </el-row>
           </el-row>
         </el-row>
@@ -232,13 +234,10 @@
                 </el-row>
                 <el-row>
                   Script:
-                  <pre v-html="enterToBR(trace.script)"></pre>
+                  <pre style="white-space: pre-line">{{ trace.script }}</pre>
                 </el-row>
-                <el-row
-                  v-loading="traceDetail[trace.id] === true"
-                  style="margin: 5px 0"
-                >
-                  [goploy ~]#
+                <el-row v-loading="traceDetail[trace.id] === ''">
+                  <span style="padding: 5px 0">[goploy ~]#</span>
                   <el-button
                     v-if="trace.state === 1 && !(trace.id in traceDetail)"
                     type="text"
@@ -246,7 +245,9 @@
                   >
                     {{ $t('deployPage.showDetail') }}
                   </el-button>
-                  <span v-else v-html="enterToBR(trace.detail)" />
+                  <span v-else style="white-space: pre-line">
+                    {{ traceDetail[trace.id] }}
+                  </span>
                 </el-row>
               </el-row>
               <el-row v-else-if="trace.type === 5">
@@ -262,11 +263,8 @@
                   Time: {{ trace.updateTime }}
                 </el-row>
                 <el-row>Command: {{ trace.command }}</el-row>
-                <el-row
-                  v-loading="traceDetail[trace.id] === true"
-                  style="margin: 5px 0"
-                >
-                  [goploy ~]#
+                <el-row v-loading="traceDetail[trace.id] === ''">
+                  <span style="padding: 5px 0">[goploy ~]#</span>
                   <el-button
                     v-if="trace.state === 1 && !(trace.id in traceDetail)"
                     type="text"
@@ -274,7 +272,9 @@
                   >
                     {{ $t('deployPage.showDetail') }}
                   </el-button>
-                  <span v-else v-html="enterToBR(trace.detail)" />
+                  <span v-else style="white-space: pre-line">
+                    {{ traceDetail[trace.id] }}
+                  </span>
                 </el-row>
               </el-row>
               <el-row v-else-if="trace.type === 6">
@@ -286,22 +286,22 @@
                   <i v-else class="el-icon-close icon-fail" />
                   --------After deploy--------
                 </el-row>
-                <el-row style="margin: 5px 0"
-                  >Time: {{ trace.updateTime }}</el-row
-                >
+                <el-row style="margin: 5px 0">
+                  Time: {{ trace.updateTime }}
+                </el-row>
                 <el-row>Script: {{ trace.script }}</el-row>
-                <el-row
-                  v-loading="traceDetail[trace.id] === true"
-                  style="margin: 5px 0"
-                >
-                  [goploy ~]#
+                <el-row v-loading="traceDetail[trace.id] === ''">
+                  <span style="padding: 5px 0">[goploy ~]#</span>
                   <el-button
                     v-if="trace.state === 1 && !(trace.id in traceDetail)"
                     type="text"
                     @click="getPublishTraceDetail(trace)"
-                    >{{ $t('deployPage.showDetail') }}</el-button
                   >
-                  <span v-else v-html="enterToBR(trace.detail)" />
+                    {{ $t('deployPage.showDetail') }}
+                  </el-button>
+                  <span v-else style="white-space: pre-line">
+                    {{ traceDetail[trace.id] }}
+                  </span>
                 </el-row>
               </el-row>
             </el-row>
@@ -315,6 +315,7 @@
 <script lang="ts">
 import {
   DeployPreviewList,
+  DeployRebuild,
   DeployTrace,
   DeployTraceDetail,
   PublishTraceData,
@@ -322,6 +323,7 @@ import {
 import { NamespaceUserOption } from '@/api/namespace'
 import { role } from '@/utils/namespace'
 import { empty, parseGitURL, parseTime } from '@/utils'
+import { ElMessageBox, ElMessage, ElDatePicker } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { computed, watch, defineComponent, ref, reactive } from 'vue'
 
@@ -333,6 +335,10 @@ export default defineComponent({
     },
     projectRow: {
       type: Object,
+      required: true,
+    },
+    onRebuilt: {
+      type: Function,
       required: true,
     },
   },
@@ -372,7 +378,7 @@ export default defineComponent({
     })
     const gitTraceList = ref<DeployPreviewList['datagram']['list']>([])
     const pagination = reactive({ page: 1, rows: 11, total: 0 })
-    let traceDetail = reactive<Record<string, boolean>>({})
+    const traceDetail = ref<Record<number, string>>({})
     const publishToken = ref('')
     const publishLocalTraceList = ref<DeployTrace['datagram']['list']>([])
     const publishRemoteTraceList = ref<
@@ -402,7 +408,7 @@ export default defineComponent({
 
     const getPreviewList = (projectId: number) => {
       filterloading.value = true
-      traceDetail = {}
+      traceDetail.value = {}
       new DeployPreviewList(
         {
           projectId: projectId,
@@ -496,17 +502,40 @@ export default defineComponent({
     const getPublishTraceDetail = (
       data: PublishTraceData['datagram']['detail']
     ) => {
-      traceDetail[data.id] = true
-      new DeployTraceDetail({ id: data.id })
-        .request()
-        .then((response) => {
-          data.detail =
-            response.data.detail === ''
-              ? t('deployPage.noDetail')
-              : response.data.detail
+      traceDetail.value[data.id] = ''
+      new DeployTraceDetail({ id: data.id }).request().then((response) => {
+        traceDetail.value[data.id] =
+          response.data.detail === ''
+            ? t('deployPage.noDetail')
+            : response.data.detail
+      })
+    }
+
+    const rebuild = (data: PublishTraceData['datagram']['detail']) => {
+      ElMessageBox.confirm(
+        t('deployPage.publishCommitTips', { commit: data.commit }),
+        t('tips'),
+        {
+          confirmButtonText: t('confirm'),
+          cancelButtonText: t('cancel'),
+          type: 'warning',
+        }
+      )
+        .then(() => {
+          filterloading.value = true
+          new DeployRebuild({ projectId: data.projectId, token: data.token })
+            .request()
+            .then((response) => {
+              if (response.data === 'symlink') {
+                ElMessage.success('Success')
+              } else {
+                props.onRebuilt()
+              }
+              dialogVisible.value = false
+            })
         })
-        .finally(() => {
-          traceDetail[data.id] = false
+        .catch(() => {
+          ElMessage.info('Cancel')
         })
     }
 
@@ -523,6 +552,7 @@ export default defineComponent({
       getPreviewList,
       searchPreviewList,
       handlePageChange,
+      rebuild,
       traceDetail,
       gitTraceList,
       publishToken,
@@ -541,7 +571,7 @@ export default defineComponent({
       shortcuts: [
         {
           text: '最近一周',
-          onClick(picker) {
+          onClick(picker: typeof ElDatePicker) {
             const end = new Date()
             const start = new Date()
             start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
@@ -550,7 +580,7 @@ export default defineComponent({
         },
         {
           text: '最近一个月',
-          onClick(picker) {
+          onClick(picker: typeof ElDatePicker) {
             const end = new Date()
             const start = new Date()
             start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
@@ -559,7 +589,7 @@ export default defineComponent({
         },
         {
           text: '最近三个月',
-          onClick(picker) {
+          onClick(picker: typeof ElDatePicker) {
             const end = new Date()
             const start = new Date()
             start.setTime(start.getTime() - 3600 * 1000 * 24 * 90)
@@ -568,11 +598,6 @@ export default defineComponent({
         },
       ],
     }
-  },
-  methods: {
-    enterToBR(detail: string) {
-      return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
-    },
   },
 })
 </script>
@@ -625,6 +650,9 @@ export default defineComponent({
   height: 470px;
   overflow-y: auto;
   @include scrollBar();
+  hr {
+    width: 100%;
+  }
 }
 
 @media screen and (max-width: 1440px) {

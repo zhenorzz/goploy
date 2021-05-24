@@ -27,7 +27,7 @@ export abstract class Request {
   abstract method: Method
   public timeout = 5000
   public param!: ID | Record<string, unknown>
-  public datagram!: never | Total | ID | Record<string, unknown>
+  public datagram!: any
 
   public request(): Promise<HttpResponse<this['datagram']>> {
     const config: AxiosRequestConfig = {

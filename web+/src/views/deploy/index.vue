@@ -235,7 +235,11 @@
         @current-change="handlePageChange"
       />
     </el-row>
-    <TheDetailDialog v-model="dialogVisible" :project-row="selectedItem" />
+    <TheDetailDialog
+      v-model="dialogVisible"
+      :project-row="selectedItem"
+      :on-rebuilt="handleRebuilt"
+    />
     <TheCommitListDialog
       v-model="commitDialogVisible"
       :project-row="selectedItem"
@@ -420,12 +424,11 @@ import tableHeight from '@/mixin/tableHeight'
 import {
   DeployList,
   publish,
-  rebuild,
   resetState,
   review,
   greyPublish,
 } from '@/api/deploy'
-import { ProjectServerList, getReviewList } from '@/api/project'
+import { ProjectServerList, getReviewList, ProjectData } from '@/api/project'
 
 import { role } from '@/utils/namespace'
 import { parseTime, parseGitURL } from '@/utils'
@@ -458,8 +461,8 @@ export default defineComponent({
       tableloading: false,
       dateVisible: false,
       commitDialogReferer: '',
-      selectedItem: {},
-      tableData: [],
+      selectedItem: {} as ProjectData['datagram']['detail'],
+      tableData: [] as DeployList['datagram']['list'],
       searchProject: {
         name: '',
         environment: '',
@@ -637,9 +640,16 @@ export default defineComponent({
       this.getList()
     },
 
-    handleDetail(data) {
+    handleDetail(data: ProjectData['datagram']['detail']) {
       this.selectedItem = data
       this.dialogVisible = true
+    },
+
+    handleRebuilt() {
+      const projectIndex = this.tableData.findIndex(
+        (element) => element.id === this.selectedItem.id
+      )
+      this.tableData[projectIndex].deployState = 1
     },
 
     handleGreyPublish(data) {
@@ -670,24 +680,6 @@ export default defineComponent({
     },
 
     getBranchList() {},
-
-    getTaskList() {
-      this.taskTableLoading = true
-      getTaskList(this.taskPagination, this.selectedItem.id)
-        .then((response) => {
-          const projectTaskList = response.data.list
-          this.taskTableData = projectTaskList.map((element) => {
-            return Object.assign(element, {
-              projectId: this.selectedItem.id,
-              projectName: this.selectedItem.name,
-            })
-          })
-          this.taskPagination.total = response.data.pagination.total
-        })
-        .finally(() => {
-          this.taskTableLoading = false
-        })
-    },
 
     handleTaskCommand(data) {
       this.selectedItem = data
@@ -814,35 +806,6 @@ export default defineComponent({
             this.tableData[projectIndex].deployState = 1
             this.commitDialogVisible = false
             this.tagDialogVisible = false
-          })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
-    },
-
-    rebuild(data) {
-      ElMessageBox.confirm(
-        this.$t('deployPage.publishCommitTips', { commit: data.commit }),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          this.searchPreview.loading = true
-          rebuild(data.projectId, data.token).then((response) => {
-            if (response.data === 'symlink') {
-              ElMessage.success('Success')
-            } else {
-              const projectIndex = this.tableData.findIndex(
-                (element) => element.id === data.projectId
-              )
-              this.tableData[projectIndex].deployState = 1
-            }
-            this.dialogVisible = false
           })
         })
         .catch(() => {
