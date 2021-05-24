@@ -159,6 +159,7 @@
       :title="$t('setting')"
       width="60%"
       custom-class="project-setting-dialog"
+      :fullscreen="$store.state.app.device === 'mobile'"
       :close-on-click-modal="false"
     >
       <el-form
@@ -167,6 +168,9 @@
         :rules="formRules"
         :model="formData"
         label-width="120px"
+        :label-position="
+          $store.state.app.device === 'desktop' ? 'right' : 'top'
+        "
       >
         <el-tabs v-model="formProps.tab">
           <el-tab-pane :label="$t('baseSetting')" name="base">

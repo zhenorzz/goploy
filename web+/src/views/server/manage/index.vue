@@ -89,6 +89,7 @@
       v-model="dialogVisible"
       :fullscreen="$store.state.app.device === 'mobile'"
       :title="$t('setting')"
+      :close-on-click-modal="false"
     >
       <el-form
         ref="form"

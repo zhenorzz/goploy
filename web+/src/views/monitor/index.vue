@@ -113,13 +113,21 @@
         @current-change="handlePageChange"
       />
     </el-row>
-    <el-dialog v-model="dialogVisible" :title="$t('setting')">
+    <el-dialog
+      v-model="dialogVisible"
+      :title="$t('setting')"
+      :fullscreen="$store.state.app.device === 'mobile'"
+      :close-on-click-modal="false"
+    >
       <el-form
         ref="form"
         v-loading="formProps.loading"
         :rules="formRules"
         :model="formData"
         label-width="120px"
+        :label-position="
+          $store.state.app.device === 'desktop' ? 'right' : 'top'
+        "
       >
         <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />

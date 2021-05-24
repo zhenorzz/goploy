@@ -4,6 +4,7 @@
     v-model="drawerVisible"
     :title="`${serverRow.name}(${serverRow.description})`"
     :direction="$store.state.app.device === 'mobile' ? 'ttb' : 'rtl'"
+    :size="$store.state.app.device === 'mobile' ? 469 : '30%'"
     @opened="connectTerminal"
     @closed="closeTerminal"
   >

@@ -4,6 +4,7 @@
     :title="$t('manage')"
     custom-class="file-dialog"
     :close-on-click-modal="false"
+    :fullscreen="$store.state.app.device === 'mobile'"
   >
     <el-row
       v-if="formProps.show === 'file-list'"

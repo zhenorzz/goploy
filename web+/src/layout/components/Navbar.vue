@@ -28,7 +28,10 @@
         </el-dropdown-menu>
       </template>
     </el-dropdown>
-    <breadcrumb class="breadcrumb-container" />
+    <breadcrumb
+      v-show="$store.state.app.device === 'desktop'"
+      class="breadcrumb-container"
+    />
     <div class="right">
       <div v-show="false" class="github">
         <span class="github-btn">
