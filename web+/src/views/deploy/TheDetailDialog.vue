@@ -151,15 +151,19 @@
         class="project-detail"
         style="width: 100%; flex: 1; align-content: flex-start"
       >
-        <el-row v-for="(item, index) in publishLocalTraceList" :key="index">
-          <el-row v-if="item.type === 2">
+        <div
+          v-for="(item, index) in publishLocalTraceList"
+          :key="index"
+          style="width: 100%"
+        >
+          <template v-if="item.type === 2">
             <el-row style="margin: 5px 0">
               <i v-if="item.state === 1" class="el-icon-check icon-success" />
               <i v-else class="el-icon-close icon-fail" />
               -------------GIT-------------
             </el-row>
-            <el-row style="margin: 5px 0">Time: {{ item.updateTime }}</el-row>
-            <el-row v-if="item.state !== 0">
+            <el-row>Time: {{ item.updateTime }}</el-row>
+            <template v-if="item.state !== 0">
               <el-row>Branch: {{ item['branch'] }}</el-row>
               <el-row>
                 Commit:
@@ -181,20 +185,20 @@
               <el-row>
                 <span style="white-space: pre-line">{{ item['diff'] }}</span>
               </el-row>
-            </el-row>
+            </template>
             <el-row v-else style="margin: 5px 0">
               <span style="white-space: pre-line">
                 {{ item.detail }}
               </span>
             </el-row>
-          </el-row>
-          <el-row v-if="item.type === 3">
-            <hr style="width: 100%" />
-            <div align="middle">
+          </template>
+          <div v-if="item.type === 3">
+            <hr />
+            <el-row align="middle">
               <i v-if="item.state === 1" class="el-icon-check icon-success" />
               <i v-else class="el-icon-close icon-fail" />
               --------After pull--------
-            </div>
+            </el-row>
             <el-row>Time: {{ item.updateTime }}</el-row>
             <el-row style="width: 100%">
               <div>Script:</div>
@@ -216,8 +220,8 @@
                 {{ traceDetail[item.id] }}
               </span>
             </el-row>
-          </el-row>
-        </el-row>
+          </div>
+        </div>
         <el-tabs v-model="activeRomoteTracePane">
           <el-tab-pane
             v-for="(item, serverName) in publishRemoteTraceList"
@@ -225,8 +229,8 @@
             :label="serverName"
             :name="serverName"
           >
-            <el-row v-for="(trace, key) in item" :key="key">
-              <el-row v-if="trace.type === 4">
+            <div v-for="(trace, key) in item" :key="key">
+              <template v-if="trace.type === 4">
                 <el-row style="margin: 5px 0">
                   <i
                     v-if="trace.state === 1"
@@ -242,7 +246,7 @@
                   Script:
                   <pre style="white-space: pre-line">{{ trace.script }}</pre>
                 </el-row>
-                <el-row v-loading="traceDetail[trace.id] === ''">
+                <div v-loading="traceDetail[trace.id] === ''">
                   <span style="padding: 5px 0">[goploy ~]#</span>
                   <el-button
                     v-if="trace.state === 1 && !(trace.id in traceDetail)"
@@ -251,12 +255,12 @@
                   >
                     {{ $t('deployPage.showDetail') }}
                   </el-button>
-                  <span v-else style="white-space: pre-line">
+                  <div v-else style="white-space: pre-line">
                     {{ traceDetail[trace.id] }}
-                  </span>
-                </el-row>
-              </el-row>
-              <el-row v-else-if="trace.type === 5">
+                  </div>
+                </div>
+              </template>
+              <template v-else-if="trace.type === 5">
                 <el-row style="margin: 5px 0">
                   <i
                     v-if="trace.state === 1"
@@ -269,7 +273,7 @@
                   Time: {{ trace.updateTime }}
                 </el-row>
                 <el-row>Command: {{ trace.command }}</el-row>
-                <el-row v-loading="traceDetail[trace.id] === ''">
+                <div v-loading="traceDetail[trace.id] === ''">
                   <span style="padding: 5px 0">[goploy ~]#</span>
                   <el-button
                     v-if="trace.state === 1 && !(trace.id in traceDetail)"
@@ -278,12 +282,12 @@
                   >
                     {{ $t('deployPage.showDetail') }}
                   </el-button>
-                  <span v-else style="white-space: pre-line">
+                  <div v-else style="white-space: pre-line">
                     {{ traceDetail[trace.id] }}
-                  </span>
-                </el-row>
-              </el-row>
-              <el-row v-else-if="trace.type === 6">
+                  </div>
+                </div>
+              </template>
+              <template v-else-if="trace.type === 6">
                 <el-row style="margin: 5px 0">
                   <i
                     v-if="trace.state === 1"
@@ -296,7 +300,7 @@
                   Time: {{ trace.updateTime }}
                 </el-row>
                 <el-row>Script: {{ trace.script }}</el-row>
-                <el-row v-loading="traceDetail[trace.id] === ''">
+                <div v-loading="traceDetail[trace.id] === ''">
                   <span style="padding: 5px 0">[goploy ~]#</span>
                   <el-button
                     v-if="trace.state === 1 && !(trace.id in traceDetail)"
@@ -305,12 +309,12 @@
                   >
                     {{ $t('deployPage.showDetail') }}
                   </el-button>
-                  <span v-else style="white-space: pre-line">
+                  <div v-else style="white-space: pre-line">
                     {{ traceDetail[trace.id] }}
-                  </span>
-                </el-row>
-              </el-row>
-            </el-row>
+                  </div>
+                </div>
+              </template>
+            </div>
           </el-tab-pane>
         </el-tabs>
       </el-row>
@@ -665,9 +669,6 @@ export default defineComponent({
   height: 470px;
   overflow-y: auto;
   @include scrollBar();
-  hr {
-    width: 100%;
-  }
 }
 
 @media screen and (max-width: 1440px) {
