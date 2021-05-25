@@ -250,13 +250,13 @@ export function copy(content: string): void {
   document.body.appendChild(el)
   const selected =
     document.getSelection().rangeCount > 0
-      ? document.getSelection()?.getRangeAt(0)
+      ? document.getSelection().getRangeAt(0)
       : false
   el.select()
   document.execCommand('copy')
   document.body.removeChild(el)
   if (selected) {
-    document.getSelection()?.removeAllRanges()
-    document.getSelection()?.addRange(selected)
+    document.getSelection().removeAllRanges()
+    document.getSelection().addRange(selected)
   }
 }

@@ -100,6 +100,7 @@
     "255": "自定义"
   },
   "route": {
+    "no-name": "未知",
     "userProfile": "个人信息",
     "deploy": "构建发布",
     "toolbox": "工具箱",

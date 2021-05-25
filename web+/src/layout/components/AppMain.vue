@@ -16,7 +16,7 @@ export default defineComponent({
   name: 'AppMain',
   computed: {
     cachedViews() {
-      return import.meta.env.NODE_ENV === 'production'
+      return import.meta.env.PROD === true
         ? this.$store.state.tagsView.cachedViews
         : []
       // return this.$store.state.tagsView.cachedViews

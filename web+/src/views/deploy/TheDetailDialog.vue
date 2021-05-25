@@ -3,6 +3,7 @@
     v-model="dialogVisible"
     :title="$t('detail')"
     custom-class="publish-record"
+    :fullscreen="$store.state.app.device === 'mobile'"
   >
     <el-row type="flex">
       <div v-loading="filterloading" class="publish-preview">
@@ -629,7 +630,6 @@ export default defineComponent({
   }
   &-preview {
     width: 330px;
-    margin-left: 10px;
   }
   &-commit {
     margin-right: 5px;

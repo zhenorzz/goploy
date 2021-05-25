@@ -103,7 +103,7 @@ func Init() *router.Router {
 	rt.Add("/server/check", http.MethodPost, controller.Server{}.Check).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/add", http.MethodPost, controller.Server{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/edit", http.MethodPut, controller.Server{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})
-	rt.Add("/server/remove", http.MethodDelete, controller.Server{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/server/toggle", http.MethodPut, controller.Server{}.Toggle).Roles([]string{core.RoleAdmin, core.RoleManager})
 
 	// crontab route
 	rt.Add("/crontab/getList", http.MethodGet, controller.Crontab{}.GetList)

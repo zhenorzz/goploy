@@ -23,6 +23,7 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
       }),
     ],
     server: {
+      host: '0.0.0.0',
       proxy: {
         // change xxx-api/login => mock/login
         // detail: https://cli.vuejs.org/config/#devserver-proxy

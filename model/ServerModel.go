@@ -19,6 +19,7 @@ type Server struct {
 	Password    string `json:"password"`
 	NamespaceID int64  `json:"namespaceId"`
 	Description string `json:"description"`
+	State       int8   `json:"state"`
 	InsertTime  string `json:"insertTime"`
 	UpdateTime  string `json:"updateTime"`
 }
@@ -29,11 +30,10 @@ type Servers []Server
 // GetList -
 func (s Server) GetList(pagination Pagination) (Servers, error) {
 	rows, err := sq.
-		Select("id, namespace_id, name, ip, port, owner, path, password, description, insert_time, update_time").
+		Select("id, namespace_id, name, ip, port, owner, path, password, description, state, insert_time, update_time").
 		From(serverTable).
 		Where(sq.Eq{
 			"namespace_id": []int64{0, s.NamespaceID},
-			"state":        Enable,
 		}).
 		Limit(pagination.Rows).
 		Offset((pagination.Page - 1) * pagination.Rows).
@@ -57,6 +57,7 @@ func (s Server) GetList(pagination Pagination) (Servers, error) {
 			&server.Path,
 			&server.Password,
 			&server.Description,
+			&server.State,
 			&server.InsertTime,
 			&server.UpdateTime); err != nil {
 			return nil, err
@@ -75,7 +76,6 @@ func (s Server) GetTotal() (int64, error) {
 		From(serverTable).
 		Where(sq.Eq{
 			"namespace_id": []int64{0, s.NamespaceID},
-			"state":        Enable,
 		}).
 		RunWith(DB).
 		QueryRow().
@@ -164,8 +164,8 @@ func (s Server) EditRow() error {
 	return err
 }
 
-// RemoveRow -
-func (s Server) RemoveRow() error {
+// ToggleRow -
+func (s Server) ToggleRow() error {
 	tx, err := DB.Begin()
 	if err != nil {
 		return errors.New("开启事务失败")
@@ -173,7 +173,7 @@ func (s Server) RemoveRow() error {
 	_, err = sq.
 		Update(serverTable).
 		SetMap(sq.Eq{
-			"state": Disable,
+			"state": s.State,
 		}).
 		Where(sq.Eq{"id": s.ID}).
 		RunWith(tx).
@@ -182,17 +182,17 @@ func (s Server) RemoveRow() error {
 		tx.Rollback()
 		return err
 	}
-
-	_, err = sq.
-		Delete(projectServerTable).
-		Where(sq.Eq{"server_id": s.ID}).
-		RunWith(tx).
-		Exec()
-	if err != nil {
-		tx.Rollback()
-		return err
+	if s.State == Disable {
+		_, err = sq.
+			Delete(projectServerTable).
+			Where(sq.Eq{"server_id": s.ID}).
+			RunWith(tx).
+			Exec()
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
-
 	if err = tx.Commit(); err != nil {
 		return errors.New("事务提交失败")
 	}

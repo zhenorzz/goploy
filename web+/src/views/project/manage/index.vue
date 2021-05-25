@@ -832,8 +832,10 @@ export default defineComponent({
 
     getScriptLang(scriptMode = '') {
       if (scriptMode !== '') {
-        return this.scriptLangOption.find((elem) => elem.value === scriptMode)
-          ?.lang
+        const scriptInfo = this.scriptLangOption.find(
+          (elem) => elem.value === scriptMode
+        )
+        return scriptInfo ? scriptInfo['lang'] : ''
       } else {
         return 'sh'
       }

@@ -13,6 +13,7 @@ export class ServerData {
       password: string
       namespaceId: number
       description: string
+      state: number
       insertTime: string
       updateTime: string
     }
@@ -149,11 +150,14 @@ export class ServerCheck extends Request {
   }
 }
 
-export class ServerRemove extends Request {
-  readonly url = '/server/remove'
-  readonly method = 'delete'
-  public param: ID
-  constructor(param: ServerRemove['param']) {
+export class ServerToggle extends Request {
+  readonly url = '/server/toggle'
+  readonly method = 'put'
+  public param: {
+    id: number
+    state: number
+  }
+  constructor(param: ServerToggle['param']) {
     super()
     this.param = param
   }

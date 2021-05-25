@@ -1,9 +1,10 @@
 import store from '@/store'
 
-const { body } = document
-const WIDTH = 992 // refer to Bootstrap's responsive design
 import { mapState } from 'vuex'
 import { defineComponent } from 'vue'
+
+const { body } = document
+const WIDTH = 992 // refer to Bootstrap's responsive design
 
 export default defineComponent({
   computed: {
@@ -27,6 +28,10 @@ export default defineComponent({
     if (isMobile) {
       store.dispatch('app/toggleDevice', 'mobile')
       store.dispatch('app/closeSideBar', { withoutAnimation: true })
+      import.meta.env.DEV === true &&
+        import('vconsole').then((module) => {
+          new module.default()
+        })
     }
   },
   methods: {

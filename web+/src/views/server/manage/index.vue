@@ -31,6 +31,22 @@
         show-overflow-tooltip
       />
       <el-table-column
+        prop="state"
+        :label="$t('state')"
+        width="70"
+        align="center"
+      >
+        <template #default="scope">
+          <el-switch
+            :value="scope.row.state === 1"
+            active-color="#13ce66"
+            inactive-color="#ff4949"
+            @change="(value) => onSwitchState(value, scope.$index)"
+          >
+          </el-switch>
+        </template>
+      </el-table-column>
+      <el-table-column
         prop="insertTime"
         :label="$t('insertTime')"
         width="135"
@@ -45,7 +61,7 @@
       <el-table-column
         prop="operation"
         :label="$t('op')"
-        width="180"
+        width="130"
         align="center"
         fixed="right"
       >
@@ -66,11 +82,6 @@
             type="primary"
             icon="el-icon-edit"
             @click="handleEdit(scope.row)"
-          />
-          <el-button
-            type="danger"
-            icon="el-icon-delete"
-            @click="handleRemove(scope.row)"
           />
         </template>
       </el-table-column>
@@ -192,7 +203,7 @@ import {
   ServerAdd,
   ServerEdit,
   ServerCheck,
-  ServerRemove,
+  ServerToggle,
   ServerData,
 } from '@/api/server'
 import TheXtermDrawer from './TheXtermDrawer.vue'
@@ -320,26 +331,36 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleRemove(data: ServerData['datagram']['detail']) {
-      ElMessageBox.confirm(
-        this.$t('serverPage.removeServerTips', { serverName: data.name }),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          new ServerRemove({ id: data.id }).request().then(() => {
-            ElMessage.success('Success')
-            this.getList()
-            this.getTotal()
+    onSwitchState(value: boolean, index: number) {
+      const data = this.tableData[index]
+      if (value) {
+        new ServerToggle({ id: data.id, state: value ? 1 : 0 })
+          .request()
+          .then(() => {
+            ElMessage.success('Need to bind project again')
+            this.tableData[index].state = value ? 1 : 0
           })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
+      } else {
+        ElMessageBox.confirm(
+          this.$t('serverPage.removeServerTips', { serverName: data.name }),
+          this.$t('tips'),
+          {
+            confirmButtonText: this.$t('confirm'),
+            cancelButtonText: this.$t('cancel'),
+            type: 'warning',
+          }
+        )
+          .then(() => {
+            new ServerToggle({ id: data.id, state: value ? 1 : 0 })
+              .request()
+              .then(() => {
+                this.tableData[index].state = value ? 1 : 0
+              })
+          })
+          .catch(() => {
+            ElMessage.info('Cancel')
+          })
+      }
     },
 
     handleConnect(data: ServerData['datagram']) {

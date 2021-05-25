@@ -76,8 +76,8 @@ export default defineComponent({
   data() {
     return {
       loginForm: {
-        account: import.meta.env.NODE_ENV === 'production' ? '' : 'admin',
-        password: import.meta.env.NODE_ENV === 'production' ? '' : 'admin!@#',
+        account: import.meta.env.PROD === true ? '' : 'admin',
+        password: import.meta.env.PROD === true ? '' : 'admin!@#',
         phrase: '',
       },
       loginRules: {

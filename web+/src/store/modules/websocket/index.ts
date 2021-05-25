@@ -29,7 +29,7 @@ const mutations: MutationTree<WebsocketState> = {
 
 const actions: ActionTree<WebsocketState, RootState> = {
   init({ dispatch, commit, state }) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const websocket = new WebSocket(
         `${location.protocol.replace('http', 'ws')}//${location.host}${
           import.meta.env.VITE_APP_BASE_API
@@ -42,9 +42,8 @@ const actions: ActionTree<WebsocketState, RootState> = {
         resolve(websocket)
       }
 
-      websocket.onerror = (err) => {
+      websocket.onerror = () => {
         console.log('websocket连接发生错误, 时间：' + parseTime(Date.now()))
-        reject(err)
       }
 
       websocket.onmessage = (event) => {

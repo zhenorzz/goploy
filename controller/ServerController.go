@@ -160,17 +160,18 @@ func (Server) Edit(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// RemoveRow server
-func (Server) Remove(gp *core.Goploy) *core.Response {
+// Toggle server
+func (Server) Toggle(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
+		State int8 `json:"state" validate:"oneof=0 1"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	if err := (model.Server{ID: reqData.ID}).RemoveRow(); err != nil {
+	if err := (model.Server{ID: reqData.ID, State: reqData.State}).ToggleRow(); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	return &core.Response{}
