@@ -132,7 +132,7 @@
         prop="operation"
         :label="$t('op')"
         width="310"
-        fixed="right"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
         align="center"
       >
         <template #default="scope">
@@ -230,7 +230,7 @@
         :page-size="pagination.rows"
         background
         :page-sizes="[20, 50, 100]"
-        layout="sizes, total, prev, pager, next, jumper"
+        layout="prev, pager, next, jumper"
         @size-change="handleSizeChange"
         @current-change="handlePageChange"
       />

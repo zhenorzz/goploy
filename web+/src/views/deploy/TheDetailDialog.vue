@@ -63,11 +63,14 @@
                 v-model="filterParams.commitDate"
                 :shortcuts="shortcuts"
                 type="daterange"
-                format="yyyy-MM-dd HH:mm:ss"
+                format="YYYY-MM-DD"
                 range-separator="-"
                 :start-placeholder="$t('startDate')"
                 :end-placeholder="$t('endDate')"
-                :default-time="['00:00:00', '23:59:59']"
+                :default-time="[
+                  new Date(2000, 1, 1, 0, 0, 0),
+                  new Date(2000, 2, 1, 23, 59, 59),
+                ]"
                 style="flex: 1"
               />
             </el-row>
@@ -79,11 +82,14 @@
                 v-model="filterParams.deployDate"
                 :shortcuts="shortcuts"
                 type="daterange"
-                format="yyyy-MM-dd HH:mm:ss"
+                format="YYYY-MM-DD"
                 range-separator="-"
                 :start-placeholder="$t('startDate')"
                 :end-placeholder="$t('endDate')"
-                :default-time="['00:00:00', '23:59:59']"
+                :default-time="[
+                  new Date(2000, 1, 1, 0, 0, 0),
+                  new Date(2000, 2, 1, 23, 59, 59),
+                ]"
                 style="flex: 1"
               />
             </el-row>
@@ -325,6 +331,7 @@ import { role } from '@/utils/namespace'
 import { empty, parseGitURL, parseTime } from '@/utils'
 import { ElMessageBox, ElMessage, ElDatePicker } from 'element-plus'
 import { useI18n } from 'vue-i18n'
+import dayjs from 'dayjs'
 import { computed, watch, defineComponent, ref, reactive } from 'vue'
 
 export default defineComponent({
@@ -357,6 +364,7 @@ export default defineComponent({
       () => props.modelValue,
       (val: typeof props['modelValue']) => {
         if (val === true) {
+          refreshFilterParams()
           getPreviewList(props.projectRow.id)
           new NamespaceUserOption().request().then((response) => {
             userOption.value = response.data.list
@@ -367,7 +375,6 @@ export default defineComponent({
     )
     const filterloading = ref(false)
     const filterParams = reactive<Record<string, any>>({
-      loading: false,
       userId: '',
       state: '',
       filename: '',
@@ -413,10 +420,18 @@ export default defineComponent({
         {
           projectId: projectId,
           commitDate: filterParams.commitDate
-            ? filterParams.commitDate.join(',')
+            ? filterParams.commitDate
+                .map((date: string) =>
+                  dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+                )
+                .join(',')
             : '',
           deployDate: filterParams.deployDate
-            ? filterParams.deployDate.join(',')
+            ? filterParams.deployDate
+                .map((date: string) =>
+                  dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+                )
+                .join(',')
             : '',
           branch: filterParams.branch,
           commit: filterParams.commit,
