@@ -11,7 +11,7 @@
       :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="account" :label="$t('account')" />
+      <el-table-column prop="account" width="130" :label="$t('account')" />
       <el-table-column prop="name" :label="$t('name')" />
       <el-table-column
         prop="contact"
@@ -45,7 +45,7 @@
         :label="$t('op')"
         width="130"
         align="center"
-        fixed="right"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <el-button

@@ -60,7 +60,7 @@
         width="80"
         :label="$t('server')"
         align="center"
-        fixed="right"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <el-button type="text" @click="handleServer(scope.row)">{{
@@ -73,7 +73,7 @@
         :label="$t('op')"
         width="130"
         align="center"
-        fixed="right"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <el-button

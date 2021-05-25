@@ -37,7 +37,7 @@
         :label="$t('member')"
         width="80"
         align="center"
-        fixed="right"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <el-button type="text" @click="handleUser(scope.row)">
@@ -50,7 +50,7 @@
         :label="$t('op')"
         width="80"
         align="center"
-        fixed="right"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <el-button

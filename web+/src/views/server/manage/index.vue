@@ -63,7 +63,7 @@
         :label="$t('op')"
         width="130"
         align="center"
-        fixed="right"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <el-tooltip
