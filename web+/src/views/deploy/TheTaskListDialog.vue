@@ -1,5 +1,9 @@
 <template>
-  <el-dialog v-model="dialogVisible" :title="$t('manage')">
+  <el-dialog
+    v-model="dialogVisible"
+    :title="$t('manage')"
+    :fullscreen="$store.state.app.device === 'mobile'"
+  >
     <el-row class="app-bar" type="flex" justify="end">
       <el-button
         type="primary"
@@ -85,7 +89,7 @@
         :label="$t('op')"
         width="100"
         align="center"
-        fixed="right"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <el-button

@@ -596,7 +596,7 @@ import {
   ProjectAdd,
   ProjectEdit,
   ProjectRemove,
-  setAutoDeploy,
+  ProjectAutoDeploy,
   ProjectData,
 } from '@/api/project'
 import { role } from '@/utils/namespace'
@@ -924,7 +924,8 @@ export default defineComponent({
       ;(this.$refs.autoDeployForm as Validator).validate((valid: boolean) => {
         if (valid) {
           this.autoDeployFormProps.disabled = true
-          setAutoDeploy(this.autoDeployFormData)
+          new ProjectAutoDeploy(this.autoDeployFormData)
+            .request()
             .then(() => {
               this.dialogAutoDeployVisible = false
               ElMessage.success('Success')

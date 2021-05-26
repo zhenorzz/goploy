@@ -150,7 +150,12 @@
       <el-row
         v-loading="traceLoading"
         class="project-detail"
-        style="width: 100%; flex: 1; align-content: flex-start"
+        style="width: ; flex: 1; align-content: flex-start"
+        :style="{
+          width: '100%',
+          alignContent: 'flex-start',
+          flex: $store.state.app.device === 'mobile' ? '' : 1,
+        }"
       >
         <div
           v-for="(item, index) in publishLocalTraceList"

@@ -1,5 +1,9 @@
 <template>
-  <el-dialog v-model="dialogVisible" title="tag">
+  <el-dialog
+    v-model="dialogVisible"
+    title="tag"
+    :fullscreen="$store.state.app.device === 'mobile'"
+  >
     <el-table
       v-loading="tableLoading"
       border
@@ -63,7 +67,7 @@
         :label="$t('op')"
         width="160"
         align="center"
-        fixed="right"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <slot

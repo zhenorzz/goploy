@@ -1,5 +1,9 @@
 <template>
-  <el-dialog v-model="dialogVisible" title="commit">
+  <el-dialog
+    v-model="dialogVisible"
+    title="commit"
+    :fullscreen="$store.state.app.device === 'mobile'"
+  >
     <el-select
       v-model="branch"
       v-loading="branchLoading"
@@ -62,7 +66,7 @@
         :label="$t('op')"
         width="180"
         align="center"
-        fixed="right"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <slot

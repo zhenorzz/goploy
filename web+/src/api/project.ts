@@ -401,12 +401,17 @@ export class ProjectTaskRemove extends Request {
   }
 }
 
-export function setAutoDeploy(data) {
-  return Axios.request({
-    url: '/project/setAutoDeploy',
-    method: 'put',
-    data,
-  })
+export class ProjectAutoDeploy extends Request {
+  readonly url = '/project/setAutoDeploy'
+  readonly method = 'put'
+  public param: {
+    id: number
+    autoDeploy: number
+  }
+  constructor(param: ProjectAutoDeploy['param']) {
+    super()
+    this.param = param
+  }
 }
 
 export class ProjectReviewList extends Request {

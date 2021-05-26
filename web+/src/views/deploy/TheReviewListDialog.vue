@@ -1,5 +1,9 @@
 <template>
-  <el-dialog v-model="dialogVisible" :title="$t('review')">
+  <el-dialog
+    v-model="dialogVisible"
+    :title="$t('review')"
+    :fullscreen="$store.state.app.device === 'mobile'"
+  >
     <el-table
       v-loading="tableLoading"
       border
@@ -72,7 +76,7 @@
         :label="$t('op')"
         width="180"
         align="center"
-        fixed="right"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <el-button
