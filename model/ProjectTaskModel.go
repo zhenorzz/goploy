@@ -17,7 +17,7 @@ type ProjectTask struct {
 	ID         int64  `json:"id"`
 	ProjectID  int64  `json:"projectId"`
 	Branch     string `json:"branch"`
-	CommitID   string `json:"commitId"`
+	CommitID   string `json:"commit"`
 	Date       string `json:"date"`
 	State      uint8  `json:"state"`
 	IsRun      uint8  `json:"isRun"`
@@ -35,7 +35,7 @@ type ProjectTasks []ProjectTask
 // GetListByProjectID -
 func (pt ProjectTask) GetListByProjectID(pagination Pagination) (ProjectTasks, Pagination, error) {
 	rows, err := sq.
-		Select("id, project_id, branch, commit_id, date, is_run, state, creator, creator_id, editor, editor_id, insert_time, update_time").
+		Select("id, project_id, branch, commit, date, is_run, state, creator, creator_id, editor, editor_id, insert_time, update_time").
 		From(projectTaskTable).
 		Where(sq.Eq{"project_id": pt.ProjectID}).
 		Limit(pagination.Rows).
@@ -86,7 +86,7 @@ func (pt ProjectTask) GetListByProjectID(pagination Pagination) (ProjectTasks, P
 // GetNotRunListLTDate -
 func (pt ProjectTask) GetNotRunListLTDate(date string) (ProjectTasks, error) {
 	rows, err := sq.
-		Select("id, project_id, commit_id, date").
+		Select("id, project_id, commit, date").
 		From(projectTaskTable).
 		Where(sq.LtOrEq{"date": date}).
 		Where(sq.Eq{"state": Enable, "is_run": NotRun}).
@@ -117,7 +117,7 @@ func (pt ProjectTask) GetNotRunListLTDate(date string) (ProjectTasks, error) {
 func (pt ProjectTask) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(projectTaskTable).
-		Columns("project_id", "branch", "commit_id", "date", "creator", "creator_id").
+		Columns("project_id", "branch", "commit", "date", "creator", "creator_id").
 		Values(pt.ProjectID, pt.Branch, pt.CommitID, pt.Date, pt.Creator, pt.CreatorID).
 		RunWith(DB).
 		Exec()

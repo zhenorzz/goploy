@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`project_user`  (
 CREATE TABLE IF NOT EXISTS `goploy`.`project_task` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `project_id` int(10) unsigned NOT NULL DEFAULT '0',
-  `commit_id` char(40) NOT NULL DEFAULT '',
+  `commit` char(40) NOT NULL DEFAULT '',
   `branch` varchar(255) NOT NULL DEFAULT '',
   `date` datetime DEFAULT NULL,
   `state` tinyint(4) unsigned NOT NULL DEFAULT '1',

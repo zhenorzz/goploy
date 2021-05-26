@@ -91,9 +91,7 @@ export class DeployTraceDetail extends Request {
   readonly url = '/deploy/getPublishTraceDetail'
   readonly method = 'get'
   readonly timeout = 0
-  public param: {
-    id: number
-  }
+  public param: ID
   public datagram!: {
     detail: string
   }
@@ -142,15 +140,16 @@ export function greyPublish(projectId, commit, serverIds) {
   })
 }
 
-/**
- * @param  {int}    projectReviewId
- * @param  {int}    state
- * @return {Promise}
- */
-export function review(projectReviewId, state) {
-  return Axios.request({
-    url: '/deploy/review',
-    method: 'put',
-    data: { projectReviewId, state },
-  })
+export class DeployReview extends Request {
+  readonly url = '/deploy/review'
+  readonly method = 'put'
+  readonly timeout = 0
+  public param: {
+    projectReviewId: number
+    state: number
+  }
+  constructor(param: DeployReview['param']) {
+    super()
+    this.param = param
+  }
 }

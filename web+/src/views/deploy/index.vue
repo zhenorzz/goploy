@@ -306,129 +306,16 @@
         </el-button>
       </template>
     </el-dialog>
-    <el-dialog v-model="reviewListDialogVisible" :title="$t('review')">
-      <el-table
-        v-loading="reviewTableLoading"
-        border
-        stripe
-        highlight-current-row
-        max-height="447px"
-        :data="reviewTableData"
-      >
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column
-          prop="projectName"
-          :label="$t('projectName')"
-          width="150"
-        />
-        <el-table-column
-          prop="branch"
-          :label="$t('branch')"
-          width="150"
-          align="center"
-        >
-          <template #default="scope">
-            <el-link
-              style="font-size: 12px"
-              :underline="false"
-              :href="
-                parseGitURL(selectedItem.url) +
-                '/tree/' +
-                scope.row.branch.split('/').pop()
-              "
-              target="_blank"
-            >
-              {{ scope.row.branch }}
-            </el-link>
-          </template>
-        </el-table-column>
-        <el-table-column prop="commitId" label="commit" width="290">
-          <template #default="scope">
-            <el-link
-              type="primary"
-              style="font-size: 12px"
-              :underline="false"
-              :href="
-                parseGitURL(selectedItem.url) + '/commit/' + scope.row.commitId
-              "
-              target="_blank"
-            >
-              {{ scope.row.commitId }}
-            </el-link>
-          </template>
-        </el-table-column>
-        <el-table-column prop="state" :label="$t('state')" width="50">
-          <template #default="scope">
-            {{ $t(`deployPage.reviewStateOption[${scope.row.state}]`) }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="creator" :label="$t('creator')" align="center" />
-        <el-table-column prop="editor" :label="$t('editor')" align="center" />
-        <el-table-column
-          prop="insertTime"
-          :label="$t('insertTime')"
-          width="135"
-          align="center"
-        />
-        <el-table-column
-          prop="updateTime"
-          :label="$t('updateTime')"
-          width="135"
-          align="center"
-        />
-        <el-table-column
-          prop="operation"
-          :label="$t('op')"
-          width="180"
-          align="center"
-          fixed="right"
-        >
-          <template #default="scope">
-            <el-button
-              type="success"
-              :disabled="scope.row.state !== 0"
-              @click="handleProjectReview(scope.row, 1)"
-            >
-              {{ $t('approve') }}
-            </el-button>
-            <el-button
-              type="danger"
-              :disabled="scope.row.state !== 0"
-              @click="handleProjectReview(scope.row, 2)"
-            >
-              {{ $t('deny') }}
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-pagination
-        v-model:current-page="reviewPagination.page"
-        hide-on-single-page
-        :total="reviewPagination.total"
-        :page-size="reviewPagination.rows"
-        style="margin-top: 10px; text-align: right"
-        background
-        layout="sizes, total, prev, pager, next"
-        @current-change="handleReviewPageChange"
-      />
-      <template #footer class="dialog-footer">
-        <el-button @click="reviewListDialogVisible = false">
-          {{ $t('cancel') }}
-        </el-button>
-      </template>
-    </el-dialog>
+    <TheReviewListDialog
+      v-model="reviewListDialogVisible"
+      :project-row="selectedItem"
+    />
   </el-row>
 </template>
 <script lang="ts">
 import tableHeight from '@/mixin/tableHeight'
-import {
-  DeployList,
-  publish,
-  resetState,
-  review,
-  greyPublish,
-} from '@/api/deploy'
-import { ProjectServerList, getReviewList, ProjectData } from '@/api/project'
+import { DeployList, publish, resetState, greyPublish } from '@/api/deploy'
+import { ProjectServerList, ProjectData } from '@/api/project'
 
 import { role } from '@/utils/namespace'
 import { parseTime, parseGitURL } from '@/utils'
@@ -436,6 +323,7 @@ import TheDetailDialog from './TheDetailDialog.vue'
 import TheCommitListDialog from './TheCommitListDialog.vue'
 import TheTagListDialog from './TheTagListDialog.vue'
 import TheTaskListDialog from './TheTaskListDialog.vue'
+import TheReviewListDialog from './TheReviewListDialog.vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { h, defineComponent } from 'vue'
 
@@ -446,6 +334,7 @@ export default defineComponent({
     TheCommitListDialog,
     TheTagListDialog,
     TheTaskListDialog,
+    TheReviewListDialog,
   },
   mixins: [tableHeight],
   data() {
@@ -469,28 +358,6 @@ export default defineComponent({
         autoDeploy: '',
       },
       pagination: {
-        total: 0,
-        page: 1,
-        rows: 20,
-      },
-      taskTableLoading: false,
-      taskTableData: [],
-      taskPagination: {
-        total: 0,
-        page: 1,
-        rows: 20,
-      },
-      taskFormProps: {
-        dateVisible: true,
-        pickerOptions: {
-          disabledDate(time) {
-            return time.getTime() < Date.now() - 3600 * 1000 * 24
-          },
-        },
-      },
-      reviewTableLoading: false,
-      reviewTableData: [],
-      reviewPagination: {
         total: 0,
         page: 1,
         rows: 20,
@@ -542,7 +409,7 @@ export default defineComponent({
     },
   },
   watch: {
-    '$store.getters.ws_message': function (response) {
+    '$store.state.websocket.message': function (response) {
       if (response.type !== 1) {
         return
       }
@@ -679,75 +546,14 @@ export default defineComponent({
       this.tagDialogVisible = true
     },
 
-    getBranchList() {},
-
     handleTaskCommand(data) {
       this.selectedItem = data
       this.taskListDialogVisible = true
     },
 
-    getReviewList() {
-      this.reviewTableLoading = true
-      getReviewList(this.reviewPagination, this.selectedItem.id)
-        .then((response) => {
-          const projectTaskList = response.data.list
-          this.reviewTableData = projectTaskList.map((element) => {
-            return Object.assign(element, {
-              projectId: this.selectedItem.id,
-              projectName: this.selectedItem.name,
-            })
-          })
-          this.reviewPagination.total = response.data.pagination.total
-        })
-        .finally(() => {
-          this.reviewTableLoading = false
-        })
-    },
-
     handleReviewCommand(data) {
       this.selectedItem = data
-      this.reviewPagination.page = 1
       this.reviewListDialogVisible = true
-      this.getReviewList()
-    },
-
-    handleReviewPageChange(page) {
-      this.reviewPagination.page = page
-      this.getReviewList()
-    },
-
-    handleProjectReview(data, state) {
-      if (state === 1) {
-        ElMessageBox.confirm(
-          this.$t('deployPage.reviewTips'),
-          this.$t('tips'),
-          {
-            confirmButtonText: this.$t('confirm'),
-            cancelButtonText: this.$t('cancel'),
-            type: 'warning',
-          }
-        )
-          .then(() => {
-            review(data.id, state).then((response) => {
-              const projectIndex = this.tableData.findIndex(
-                (element) => element.id === data.projectId
-              )
-              this.tableData[projectIndex].state = state
-              this.reviewListDialogVisible = false
-            })
-          })
-          .catch(() => {
-            ElMessage.info('Cancel')
-          })
-      } else {
-        review(data.id, state).then((response) => {
-          const projectIndex = this.tableData.findIndex(
-            (element) => element.id === data.projectId
-          )
-          this.tableData[projectIndex].state = state
-          this.reviewListDialogVisible = false
-        })
-      }
     },
 
     publish(data) {

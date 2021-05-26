@@ -42,16 +42,16 @@
           </el-link>
         </template>
       </el-table-column>
-      <el-table-column prop="commitId" label="commit" width="290">
+      <el-table-column prop="commit" label="commit" width="290">
         <template #default="scope">
           <el-link
             type="primary"
             style="font-size: 12px"
             :underline="false"
-            :href="`${gitURL}/commit/${scope.row.commitId}`"
+            :href="`${gitURL}/commit/${scope.row.commit}`"
             target="_blank"
           >
-            {{ scope.row.commitId }}
+            {{ scope.row.commit }}
           </el-link>
         </template>
       </el-table-column>
@@ -215,9 +215,7 @@ export default defineComponent({
 
     const commitDialogVisible = ref(false)
     const handleAddProjectTask = () => {
-      // this.commitDialogReferer = 'task'
       commitDialogVisible.value = true
-      // this.getBranchList()
     }
 
     return {
@@ -272,6 +270,7 @@ export default defineComponent({
             this.tableData[projectTaskIndex]['updateTime'] = parseTime(
               new Date().getTime()
             )
+            ElMessage.success('The task is disabled')
           })
         })
         .catch(() => {

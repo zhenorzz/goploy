@@ -648,29 +648,6 @@ func (Project) RemoveUser(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// GetTaskList -
-func (Project) GetTaskList(gp *core.Goploy) *core.Response {
-	pagination, err := model.PaginationFrom(gp.URLQuery)
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-	projectTaskList, pagination, err := model.ProjectTask{ProjectID: id}.GetListByProjectID(pagination)
-
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-	return &core.Response{
-		Data: struct {
-			ProjectTasks model.ProjectTasks `json:"list"`
-			Pagination   model.Pagination   `json:"pagination"`
-		}{ProjectTasks: projectTaskList, Pagination: pagination},
-	}
-}
-
 // GetReviewList -
 func (Project) GetReviewList(gp *core.Goploy) *core.Response {
 	pagination, err := model.PaginationFrom(gp.URLQuery)
@@ -694,12 +671,35 @@ func (Project) GetReviewList(gp *core.Goploy) *core.Response {
 	}
 }
 
+// GetTaskList -
+func (Project) GetTaskList(gp *core.Goploy) *core.Response {
+	pagination, err := model.PaginationFrom(gp.URLQuery)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	projectTaskList, pagination, err := model.ProjectTask{ProjectID: id}.GetListByProjectID(pagination)
+
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	return &core.Response{
+		Data: struct {
+			ProjectTasks model.ProjectTasks `json:"list"`
+			Pagination   model.Pagination   `json:"pagination"`
+		}{ProjectTasks: projectTaskList, Pagination: pagination},
+	}
+}
+
 // AddTask to project
 func (Project) AddTask(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
 		Branch    string `json:"branch" validate:"required"`
-		CommitID  string `json:"commitId" validate:"len=40"`
+		Commit    string `json:"commit" validate:"len=40"`
 		Date      string `json:"date" validate:"required"`
 	}
 	var reqData ReqData
@@ -709,7 +709,7 @@ func (Project) AddTask(gp *core.Goploy) *core.Response {
 
 	id, err := model.ProjectTask{
 		ProjectID: reqData.ProjectID,
-		CommitID:  reqData.CommitID,
+		CommitID:  reqData.Commit,
 		Branch:    reqData.Branch,
 		Date:      reqData.Date,
 		Creator:   gp.UserInfo.Name,

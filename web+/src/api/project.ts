@@ -344,7 +344,7 @@ export class ProjectTaskData {
       id: number
       projectId: number
       branch: string
-      commitId: string
+      commit: string
       date: string
       state: number
       isRun: number
@@ -381,7 +381,7 @@ export class ProjectTaskAdd extends Request {
   public param: {
     projectId: number
     branch: string
-    commitId: string
+    commit: string
     date: string
   }
   public datagram!: ID
@@ -409,14 +409,19 @@ export function setAutoDeploy(data) {
   })
 }
 
-/**
- * @param  {id} id
- * @return {Promise}
- */
-export function getReviewList({ page, rows }, id) {
-  return Axios.request({
-    url: '/project/getReviewList',
-    method: 'get',
-    params: { page, rows, id },
-  })
+export class ProjectReviewList extends Request {
+  readonly url = '/project/getReviewList'
+  readonly method = 'get'
+  public param: ID
+  public pagination: Pagination
+
+  public datagram!: {
+    list: ProjectTaskData['datagram']['detail'][]
+    pagination: Pagination
+  }
+  constructor(param: ProjectReviewList['param'], pagination: Pagination) {
+    super()
+    this.pagination = pagination
+    this.param = { ...param, ...pagination }
+  }
 }

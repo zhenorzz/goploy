@@ -741,7 +741,6 @@ export default defineComponent({
           {
             trigger: 'blur',
             validator: (_, value) => {
-              console.log(this.formData)
               if (value !== '' && this.formData.notifyType > 0) {
                 return true
               } else if (this.formData.notifyType === 0) {
