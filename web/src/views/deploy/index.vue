@@ -314,7 +314,12 @@
 </template>
 <script lang="ts">
 import tableHeight from '@/mixin/tableHeight'
-import { DeployList, publish, resetState, greyPublish } from '@/api/deploy'
+import {
+  DeployList,
+  DeployPublish,
+  DeployResetState,
+  DeployGreyPublish,
+} from '@/api/deploy'
 import { ProjectServerList, ProjectData } from '@/api/project'
 
 import { role } from '@/utils/namespace'
@@ -325,7 +330,9 @@ import TheTagListDialog from './TheTagListDialog.vue'
 import TheTaskListDialog from './TheTaskListDialog.vue'
 import TheReviewListDialog from './TheReviewListDialog.vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
+import Validator from 'async-validator'
 import { h, defineComponent } from 'vue'
+import { CommitData } from '@/api/repository'
 
 export default defineComponent({
   name: 'DeployIndex',
@@ -348,8 +355,6 @@ export default defineComponent({
       reviewListDialogVisible: false,
       dialogVisible: false,
       tableloading: false,
-      dateVisible: false,
-      commitDialogReferer: '',
       selectedItem: {} as ProjectData['datagram']['detail'],
       tableData: [] as DeployList['datagram']['list'],
       searchProject: {
@@ -362,14 +367,13 @@ export default defineComponent({
         page: 1,
         rows: 20,
       },
-      branch: '',
       greyServerFormProps: {
         disabled: false,
         serverOption: [],
       },
       greyServerFormData: {
         projectId: 0,
-        commit: 0,
+        commit: '',
         serverIds: [],
       },
       greyServerFormRules: {
@@ -448,7 +452,9 @@ export default defineComponent({
           Object.assign(this.tableData[projectIndex], data['ext'])
         }
         this.tableData[projectIndex].publisherName = data.username
-        this.tableData[projectIndex].updateTime = parseTime(new Date())
+        this.tableData[projectIndex].updateTime = parseTime(
+          new Date().getTime()
+        )
       }
     },
   },
@@ -497,12 +503,12 @@ export default defineComponent({
         })
     },
 
-    handleSizeChange(val) {
+    handleSizeChange(val = 1) {
       this.pagination.rows = val
       this.handlePageChange(1)
     },
 
-    handlePageChange(page) {
+    handlePageChange(page = 1) {
       this.pagination.page = page
       this.getList()
     },
@@ -519,44 +525,43 @@ export default defineComponent({
       this.tableData[projectIndex].deployState = 1
     },
 
-    handleGreyPublish(data) {
-      new ProjectServerList({ id: data.projectId })
+    handleGreyPublish(data: CommitData['datagram']['detail']) {
+      new ProjectServerList({ id: this.selectedItem.id })
         .request()
         .then((response) => {
           this.greyServerFormProps.serverOption = response.data.list
         })
       // add projectID to server form
-      this.greyServerFormData.projectId = data.projectId
+      this.greyServerFormData.projectId = this.selectedItem.id
       this.greyServerFormData.commit = data.commit
       this.greyServerDialogVisible = true
     },
 
-    callCommandFunc(funcName, data) {
+    callCommandFunc(funcName: string, data: ProjectData['datagram']['detail']) {
       this[funcName](data)
     },
 
-    handleCommitCommand(data) {
-      this.commitDialogReferer = 'commit'
+    handleCommitCommand(data: ProjectData['datagram']['detail']) {
       this.selectedItem = data
       this.commitDialogVisible = true
     },
 
-    handleTagCommand(data) {
+    handleTagCommand(data: ProjectData['datagram']['detail']) {
       this.selectedItem = data
       this.tagDialogVisible = true
     },
 
-    handleTaskCommand(data) {
+    handleTaskCommand(data: ProjectData['datagram']['detail']) {
       this.selectedItem = data
       this.taskListDialogVisible = true
     },
 
-    handleReviewCommand(data) {
+    handleReviewCommand(data: ProjectData['datagram']['detail']) {
       this.selectedItem = data
       this.reviewListDialogVisible = true
     },
 
-    publish(data) {
+    publish(data: ProjectData['datagram']['detail']) {
       const id = data.id
       let color = ''
       if (data.environment === 1) {
@@ -580,21 +585,21 @@ export default defineComponent({
         type: 'warning',
       })
         .then(() => {
-          this.gitLog = []
-          this.remoteLog = {}
-          publish(id, '').then((_) => {
-            const projectIndex = this.tableData.findIndex(
-              (element) => element.id === id
-            )
-            this.tableData[projectIndex].deployState = 1
-          })
+          new DeployPublish({ projectId: id, commit: '', branch: '' })
+            .request()
+            .then(() => {
+              const projectIndex = this.tableData.findIndex(
+                (element) => element.id === id
+              )
+              this.tableData[projectIndex].deployState = 1
+            })
         })
         .catch(() => {
           ElMessage.info('Cancel')
         })
     },
 
-    publishByCommit(data) {
+    publishByCommit(data: CommitData['datagram']['detail']) {
       ElMessageBox.confirm(
         this.$t('deployPage.publishCommitTips', { commit: data.commit }),
         this.$t('tips'),
@@ -605,21 +610,27 @@ export default defineComponent({
         }
       )
         .then(() => {
-          publish(data.projectId, data.branch, data.commit).then((response) => {
-            const projectIndex = this.tableData.findIndex(
-              (element) => element.id === data.projectId
-            )
-            this.tableData[projectIndex].deployState = 1
-            this.commitDialogVisible = false
-            this.tagDialogVisible = false
+          new DeployPublish({
+            projectId: this.selectedItem.id,
+            branch: data.branch,
+            commit: data.commit,
           })
+            .request()
+            .then(() => {
+              const projectIndex = this.tableData.findIndex(
+                (element) => element.id === this.selectedItem.id
+              )
+              this.tableData[projectIndex].deployState = 1
+              this.commitDialogVisible = false
+              this.tagDialogVisible = false
+            })
         })
         .catch(() => {
           ElMessage.info('Cancel')
         })
     },
 
-    resetState(data) {
+    resetState(data: ProjectData['datagram']['detail']) {
       ElMessageBox.confirm(
         this.$t('deployPage.resetStateTips'),
         this.$t('tips'),
@@ -630,7 +641,7 @@ export default defineComponent({
         }
       )
         .then(() => {
-          resetState(data.id).then((response) => {
+          new DeployResetState({ projectId: data.id }).request().then(() => {
             const projectIndex = this.tableData.findIndex(
               (element) => element.id === data.id
             )
@@ -646,7 +657,7 @@ export default defineComponent({
     },
 
     greyPublish() {
-      this.$refs.greyServerForm.validate((valid) => {
+      ;(this.$refs.greyServerForm as Validator).validate((valid: boolean) => {
         if (valid) {
           const data = this.greyServerFormData
           ElMessageBox.confirm(
@@ -661,8 +672,13 @@ export default defineComponent({
             }
           )
             .then(() => {
-              greyPublish(data.projectId, data.commit, data.serverIds).then(
-                (response) => {
+              new DeployGreyPublish({
+                projectId: data.projectId,
+                commit: data.commit,
+                serverIds: data.serverIds,
+              })
+                .request()
+                .then(() => {
                   const projectIndex = this.tableData.findIndex(
                     (element) => element.id === data.projectId
                   )
@@ -670,8 +686,7 @@ export default defineComponent({
                   this.commitDialogVisible = false
                   this.tagDialogVisible = false
                   this.greyServerDialogVisible = false
-                }
-              )
+                })
             })
             .catch(() => {
               ElMessage.info('Cancel')

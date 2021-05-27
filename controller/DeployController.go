@@ -474,7 +474,7 @@ func (Deploy) Webhook(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	project.PublisherID = gp.UserInfo.ID
-	project.PublisherName = gp.UserInfo.Name
+	project.PublisherName = "webhook"
 	project.DeployState = model.ProjectDeploying
 	project.LastPublishToken = uuid.New().String()
 	err = project.Publish()

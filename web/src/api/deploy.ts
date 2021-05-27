@@ -101,43 +101,44 @@ export class DeployTraceDetail extends Request {
   }
 }
 
-/**
- * @param  {int}      projectId
- * @return {Promise}
- */
-export function resetState(projectId) {
-  return Axios.request({
-    url: '/deploy/resetState',
-    method: 'put',
-    data: { projectId },
-  })
+export class DeployPublish extends Request {
+  readonly url = '/deploy/publish'
+  readonly method = 'post'
+  public param: {
+    projectId: number
+    branch: string
+    commit: string
+  }
+  constructor(param: DeployPublish['param']) {
+    super()
+    this.param = param
+  }
 }
 
-/**
- * @param  {int}      projectId
- * @param  {string}   commit
- * @return {Promise}
- */
-export function publish(projectId, branch, commit) {
-  return Axios.request({
-    url: '/deploy/publish',
-    method: 'post',
-    data: { projectId, branch, commit },
-  })
+export class DeployGreyPublish extends Request {
+  readonly url = '/deploy/greyPublish'
+  readonly method = 'post'
+  public param: {
+    projectId: number
+    commit: string
+    serverIds: number[]
+  }
+  constructor(param: DeployGreyPublish['param']) {
+    super()
+    this.param = param
+  }
 }
 
-/**
- * @param  {int}      projectId
- * @param  {string}   commit
- * @param  {Array}    serverIds
- * @return {Promise}
- */
-export function greyPublish(projectId, commit, serverIds) {
-  return Axios.request({
-    url: '/deploy/greyPublish',
-    method: 'post',
-    data: { projectId, commit, serverIds },
-  })
+export class DeployResetState extends Request {
+  readonly url = '/deploy/resetState'
+  readonly method = 'post'
+  public param: {
+    projectId: number
+  }
+  constructor(param: DeployResetState['param']) {
+    super()
+    this.param = param
+  }
 }
 
 export class DeployReview extends Request {
