@@ -211,6 +211,7 @@ export default defineComponent({
     },
     async logout() {
       await this.$store.dispatch('user/logout')
+      await this.$store.dispatch('tagsView/delAllViews')
       removeNamespace()
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
     },

@@ -73,8 +73,10 @@ const mutations: MutationTree<TagsViewState> = {
 
 const actions: ActionTree<TagsViewState, RootState> = {
   addView({ dispatch }, view) {
-    dispatch('addVisitedView', view)
-    dispatch('addCachedView', view)
+    if (view.name !== 'login') {
+      dispatch('addVisitedView', view)
+      dispatch('addCachedView', view)
+    }
   },
   addVisitedView({ commit }, view) {
     commit('ADD_VISITED_VIEW', view)
