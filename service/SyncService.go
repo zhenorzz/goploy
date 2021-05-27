@@ -297,7 +297,7 @@ func remoteSync(msgChIn chan<- syncMessage, userInfo model.User, project model.P
 	rsyncOption = append([]string{"--exclude", "goploy-after-pull.sh", "--include", "goploy-after-deploy.sh"}, rsyncOption...)
 	rsyncOption = append(rsyncOption, "-e", "ssh -p "+strconv.Itoa(projectServer.ServerPort)+" -o StrictHostKeyChecking=no")
 	if len(project.SymlinkPath) != 0 {
-		destDir = path.Join(project.SymlinkPath, project.Name, project.LastPublishToken)
+		destDir = path.Join(project.SymlinkPath, project.LastPublishToken)
 	}
 	srcPath := core.GetProjectPath(project.ID) + "/"
 	// rsync path can not contain colon
@@ -339,7 +339,9 @@ func remoteSync(msgChIn chan<- syncMessage, userInfo model.User, project model.P
 
 	var afterDeployCommands []string
 	if len(project.SymlinkPath) != 0 {
-		afterDeployCommands = append(afterDeployCommands, "ln -sfn "+destDir+" "+project.Path)
+		// use relative path to fix docker symlink
+		relativeDestDir := strings.Replace(destDir, path.Dir(project.Path), ".", 1)
+		afterDeployCommands = append(afterDeployCommands, "ln -sfn "+relativeDestDir+" "+project.Path)
 		// change the destination folder time, make sure it can not be clean
 		afterDeployCommands = append(afterDeployCommands, "touch -m "+destDir)
 	}

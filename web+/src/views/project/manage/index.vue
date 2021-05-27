@@ -198,7 +198,7 @@
                   v-model.trim="formData.url"
                   style="flex: 1"
                   autocomplete="off"
-                  placeholder="HTTPS、HTTP、SSH"
+                  placeholder="repository url, allow HTTPS、HTTP、SSH"
                   @change="formProps.branch = []"
                 />
                 <el-button
@@ -216,6 +216,7 @@
                 v-model.trim="formData.path"
                 autocomplete="off"
                 placeholder="/var/www/goploy"
+                @input="() => handleSymlink(formProps.symlink)"
               />
             </el-form-item>
             <el-form-item :label="$t('environment')" prop="environment">
@@ -385,21 +386,33 @@
               v-html="$t('projectPage.symlinkHeaderTips')"
             />
             <el-form-item label="" label-width="10px">
-              <el-radio-group v-model="formProps.symlink">
+              <el-radio-group
+                v-model="formProps.symlink"
+                @change="handleSymlink"
+              >
                 <el-radio :label="false">{{ $t('close') }}</el-radio>
-                <el-radio :label="true">{{ $t('open') }}</el-radio>
+                <el-radio :label="true">
+                  {{ $t('open') }}
+                </el-radio>
               </el-radio-group>
+              <div>
+                (path:
+                project.path.dirname/goploy-symlink/project.path.basename/uuid-version)
+              </div>
             </el-form-item>
             <el-form-item
               v-show="formProps.symlink"
               :label="$t('directory')"
               prop="symlink_path"
-              label-width="80px"
+              label-width="50px"
             >
               <el-input
-                v-model.trim="formData.symlinkPath"
+                v-model="formData.symlinkPath"
                 autocomplete="off"
-              />
+                readonly
+              >
+                <template #append>/uuid-version</template>
+              </el-input>
             </el-form-item>
             <el-row
               v-show="formProps.symlink"
@@ -474,7 +487,7 @@
                   width="400"
                   trigger="hover"
                 >
-                  <el-row>
+                  <div>
                     <el-row>
                       <span>${PROJECT_NAME}：</span>
                       <span>
@@ -495,13 +508,13 @@
                       <span>${PROJECT_SYMLINK_PATH}：</span>
                       <span>
                         {{
-                          formData.symlinkPath !== ''
+                          formProps.symlink === true
                             ? formData.symlinkPath
                             : 'project.symlink_path'
                         }}
                       </span>
                     </el-row>
-                  </el-row>
+                  </div>
                   <template #reference>
                     <el-button>
                       {{ $t('projectPage.predefinedVar') }}
@@ -611,6 +624,7 @@ import TheFileDialog from './TheFileDialog.vue'
 import Validator, { RuleItem } from 'async-validator'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { defineComponent } from 'vue'
+import path from 'path-browserify'
 export default defineComponent({
   name: 'ProjectIndex',
   components: {
@@ -840,6 +854,22 @@ export default defineComponent({
       }
     },
 
+    getSymlinkPath(projectPath: string) {
+      return path.normalize(
+        path.dirname(projectPath) +
+          '/goploy-symlink/' +
+          path.basename(projectPath)
+      )
+    },
+
+    handleSymlink(value: boolean) {
+      if (value) {
+        this.formData.symlinkPath = this.getSymlinkPath(this.formData.path)
+      } else {
+        this.formData.symlinkPath = ''
+      }
+    },
+
     handleAutoDeploy(data: ProjectData['datagram']['detail']) {
       this.dialogAutoDeployVisible = true
       this.autoDeployFormData.id = data.id
@@ -864,9 +894,6 @@ export default defineComponent({
     submit() {
       ;(this.$refs.form as Validator).validate((valid: boolean) => {
         if (valid) {
-          if (this.formProps.symlink === false) {
-            this.formData.symlinkPath = ''
-          }
           if (
             this.formData.review === 1 &&
             this.formProps.reviewURL.length > 0

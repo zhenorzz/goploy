@@ -12,7 +12,7 @@
   "contact": "联系方式",
   "project": "项目",
   "projectName": "项目名称",
-  "projectURL": "项目地址",
+  "projectURL": "仓库地址",
   "projectPath": "部署路径",
   "autoDeploy": "自动部署",
   "member": "成员",
