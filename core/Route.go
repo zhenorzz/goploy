@@ -50,7 +50,7 @@ func (rt *Router) Start() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		http.Handle("/static/", http.FileServer(http.FS(subFS)))
+		http.Handle("/assets/", http.FileServer(http.FS(subFS)))
 		http.Handle("/favicon.ico", http.FileServer(http.FS(subFS)))
 	}
 	http.Handle("/", rt)

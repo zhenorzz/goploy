@@ -10,10 +10,8 @@ import ElementPlus from 'element-plus'
 import 'element-plus/lib/theme-chalk/index.css'
 import 'vite-plugin-svg-icons/register' // register svg sprite map
 import App from './App.vue'
-
 const app = createApp(App)
 app.use(ElementPlus, {
-  i18n: i18n.global.t,
   size: 'mini',
 })
 app.use(router)

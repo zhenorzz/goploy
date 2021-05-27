@@ -3,7 +3,6 @@ import Cookies from 'js-cookie'
 import elementEnLocale from 'element-plus/lib/locale/lang/en' // element-ui lang
 import elementZhLocale from 'element-plus/lib/locale/lang/zh-cn'
 import localMessages from '@intlify/vite-plugin-vue-i18n/messages'
-
 const messages = {
   [elementEnLocale.name]: {
     // el 这个属性很关键，一定要保证有这个属性，
@@ -37,5 +36,4 @@ const i18n = createI18n({
   locale: getLanguage(),
   messages,
 })
-
 export default i18n
