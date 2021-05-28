@@ -329,7 +329,7 @@ import TheCommitListDialog from './TheCommitListDialog.vue'
 import TheTagListDialog from './TheTagListDialog.vue'
 import TheTaskListDialog from './TheTaskListDialog.vue'
 import TheReviewListDialog from './TheReviewListDialog.vue'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessageBox, ElMessage, ElNotification } from 'element-plus'
 import Validator from 'async-validator'
 import { h, defineComponent } from 'vue'
 import { CommitData } from '@/api/repository'
@@ -389,7 +389,7 @@ export default defineComponent({
     }
   },
   computed: {
-    tablePageData: function () {
+    tablePageData() {
       let tableData = this.tableData
       if (this.searchProject.name !== '') {
         tableData = this.tableData.filter(
@@ -420,7 +420,8 @@ export default defineComponent({
       const data = response.message
       data.message = this.enterToBR(data.message)
       if (data.state === 0) {
-        this.$notify.error({
+        ElNotification({
+          type: 'error',
           title: data.projectName,
           dangerouslyUseHTMLString: true,
           message: data.message,

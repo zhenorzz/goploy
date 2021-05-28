@@ -167,7 +167,7 @@ func (Deploy) Publish(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// Publish the project
+// Rebuild the project
 func (Deploy) Rebuild(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Token string `json:"token"`

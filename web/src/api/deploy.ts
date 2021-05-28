@@ -1,5 +1,4 @@
-import Axios from './axios'
-import { Request, Pagination, ID, Total } from './types'
+import { Request, Pagination, ID } from './types'
 import { ProjectData } from './project'
 
 export class DeployList extends Request {
