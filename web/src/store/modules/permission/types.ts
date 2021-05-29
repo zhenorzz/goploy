@@ -1,4 +1,4 @@
 import { RouteRecordRaw } from 'vue-router'
-export type PermissionState = {
+export interface PermissionState {
   routes: RouteRecordRaw[]
 }

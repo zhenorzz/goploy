@@ -1,3 +1,3 @@
-export type SettingState = {
+export interface SettingState {
   fixedHeader: boolean
 }

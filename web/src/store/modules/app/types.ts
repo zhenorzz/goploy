@@ -1,4 +1,4 @@
-export type AppState = {
+export interface AppState {
   sidebar: Sidebar
   device: string
   language: string

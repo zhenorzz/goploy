@@ -1,4 +1,4 @@
-export type UserState = {
+export interface UserState {
   id: number
   account: string
   name: string

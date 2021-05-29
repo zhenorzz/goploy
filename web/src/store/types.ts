@@ -5,7 +5,7 @@ import { UserState } from './modules/user/types'
 import { TagsViewState } from './modules/tagsView/types'
 import { WebsocketState } from './modules/websocket/types'
 
-export type RootState = {
+export interface RootState {
   app: AppState
   setting: SettingState
   permission: PermissionState

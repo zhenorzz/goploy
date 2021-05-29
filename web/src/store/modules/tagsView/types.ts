@@ -1,5 +1,5 @@
 import { RouteLocationNormalizedLoaded } from 'vue-router'
-export type TagsViewState = {
+export interface TagsViewState {
   visitedViews: RouteLocationNormalizedLoaded[]
   cachedViews: RouteLocationNormalizedLoaded[]
 }

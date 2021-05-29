@@ -39,7 +39,9 @@
         <el-tooltip class="item" effect="dark" placement="bottom-end">
           <el-button type="text" icon="el-icon-question" />
           <template #content>
-            <span v-html="$t('JSONPage.tips')"></span>
+            <span style="white-space: pre-line">
+              {{ $t('JSONPage.tips') }}
+            </span>
           </template>
         </el-tooltip>
       </el-row>

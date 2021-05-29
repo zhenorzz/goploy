@@ -376,15 +376,15 @@
             </el-form-item>
             <el-row
               v-show="formData.review"
-              style="margin: 0 10px"
-              v-html="$t('projectPage.reviewFooterTips')"
-            />
+              style="margin: 0 10px; white-space: pre-wrap"
+            >
+              {{ $t('projectPage.reviewFooterTips') }}
+            </el-row>
           </el-tab-pane>
           <el-tab-pane :label="$t('projectPage.symlinkLabel')" name="symlink">
-            <el-row
-              style="margin: 0 10px"
-              v-html="$t('projectPage.symlinkHeaderTips')"
-            />
+            <el-row style="margin: 0 10px; white-space: pre-line">
+              {{ $t('projectPage.symlinkHeaderTips') }}
+            </el-row>
             <el-form-item label="" label-width="10px">
               <el-radio-group
                 v-model="formProps.symlink"
@@ -416,16 +416,19 @@
             </el-form-item>
             <el-row
               v-show="formProps.symlink"
-              style="margin: 0 10px"
-              v-html="$t('projectPage.symlinkFooterTips')"
-            />
+              style="margin: 0 10px; white-space: pre-line"
+            >
+              {{ $t('projectPage.symlinkFooterTips') }}
+            </el-row>
           </el-tab-pane>
           <el-tab-pane name="afterPullScript">
             <template #label>
               {{ $t('projectPage.afterPullScriptLabel') }}
               <el-tooltip class="item" effect="dark" placement="bottom">
                 <template #content>
-                  <div v-html="$t('projectPage.afterPullScriptTips')" />
+                  <div style="white-space: pre-line">
+                    {{ $t('projectPage.afterPullScriptTips') }}
+                  </div>
                 </template>
                 <i class="el-icon-question" style="padding-left: 3px" />
               </el-tooltip>
@@ -460,7 +463,9 @@
               {{ $t('projectPage.afterDeployScriptLabel') }}
               <el-tooltip class="item" effect="dark" placement="bottom">
                 <template #content>
-                  <div v-html="$t('projectPage.afterDeployScriptTips')" />
+                  <div style="white-space: pre-line">
+                    {{ $t('projectPage.afterDeployScriptTips') }}
+                  </div>
                 </template>
                 <i class="el-icon-question" style="padding-left: 3px" />
               </el-tooltip>
@@ -553,9 +558,9 @@
     </el-dialog>
     <el-dialog v-model="dialogAutoDeployVisible" :title="$t('setting')">
       <el-form ref="autoDeployForm" :model="autoDeployFormData">
-        <el-row style="margin: 10px">{{
-          $t('projectPage.autoDeployTitle')
-        }}</el-row>
+        <el-row style="margin: 10px">
+          {{ $t('projectPage.autoDeployTitle') }}
+        </el-row>
         <el-radio-group
           v-model="autoDeployFormData.autoDeploy"
           style="margin: 10px"
@@ -565,13 +570,14 @@
         </el-radio-group>
         <el-row
           v-show="autoDeployFormData.autoDeploy === 1"
-          style="margin: 10px"
-          v-html="
+          style="margin: 10px; white-space: pre-line"
+        >
+          {{
             $t('projectPage.autoDeployTips', {
               projectId: autoDeployFormData.id,
             })
-          "
-        />
+          }}
+        </el-row>
       </el-form>
       <template #footer class="dialog-footer">
         <el-button @click="dialogAutoDeployVisible = false">
