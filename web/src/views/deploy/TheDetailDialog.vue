@@ -2,7 +2,6 @@
   <el-dialog
     v-model="dialogVisible"
     :title="$t('detail')"
-    custom-class="publish-record"
     :fullscreen="$store.state.app.device === 'mobile'"
   >
     <el-row type="flex">
@@ -674,13 +673,5 @@ export default defineComponent({
   height: 470px;
   overflow-y: auto;
   @include scrollBar();
-}
-
-@media screen and (max-width: 1440px) {
-  .publish-record {
-    :deep(.el-dialog) {
-      width: 75%;
-    }
-  }
 }
 </style>

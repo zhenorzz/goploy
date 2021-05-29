@@ -704,10 +704,3 @@ export default defineComponent({
   },
 })
 </script>
-<style rel="stylesheet/scss" lang="scss" scoped>
-.operation-btn {
-  :deep(.el-button) {
-    line-height: 1.15;
-  }
-}
-</style>

@@ -1039,28 +1039,19 @@ export default defineComponent({
   },
 })
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
 @import '@/styles/mixin.scss';
-.project-setting-dialog {
-  >>> .el-dialog__body {
-    padding-top: 10px;
-  }
-}
 .file-dialog {
-  >>> .el-dialog__body {
-    padding-top: 0px;
-    padding-bottom: 0px;
+  .el-dialog__body {
+    padding-top: 20px;
   }
-  >>> .el-icon-upload {
+  .el-icon-upload {
     font-size: 14px;
   }
   .file-form {
     height: 520px;
     overflow-y: auto;
     @include scrollBar();
-  }
-  >>> .CodeMirror {
-    height: 500px;
   }
 }
 </style>
