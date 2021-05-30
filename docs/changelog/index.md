@@ -1,5 +1,17 @@
 # change log
 
+## 1.3.1
+
+*2021-05-30*
+
+### Optimization
+- vite + vue3 + ts
+- mobile compatible
+
+### Bug fixes
+- symlink in docker
+- placeholder
+
 ## 1.2.2
 
 *2021-03-26*

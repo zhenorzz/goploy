@@ -276,7 +276,7 @@
               <template #label>
                 <el-link
                   type="primary"
-                  href="https://zhenorzz.gitee.io/goploy/#/dependency/notice"
+                  href="https://zhenorzz.github.io/goploy/#/dependency/notice"
                   target="_blank"
                 >
                   {{ $t('projectPage.deployNotice') }}
