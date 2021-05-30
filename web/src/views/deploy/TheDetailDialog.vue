@@ -630,7 +630,7 @@ export default defineComponent({
 .publish {
   &-filter-label {
     font-size: 12px;
-    width: 70px;
+    width: 80px;
   }
   &-preview {
     width: 330px;

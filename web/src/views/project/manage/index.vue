@@ -382,10 +382,10 @@
             </el-row>
           </el-tab-pane>
           <el-tab-pane :label="$t('projectPage.symlinkLabel')" name="symlink">
-            <el-row style="margin: 0 10px; white-space: pre-line">
+            <el-row style="margin: 0 10px 18px; white-space: pre-line">
               {{ $t('projectPage.symlinkHeaderTips') }}
             </el-row>
-            <el-form-item label="" label-width="10px">
+            <el-form-item label="Symlink" label-width="80px">
               <el-radio-group
                 v-model="formProps.symlink"
                 @change="handleSymlink"
@@ -395,28 +395,24 @@
                   {{ $t('open') }}
                 </el-radio>
               </el-radio-group>
-              <div>
-                (path:
-                project.path.dirname/goploy-symlink/project.path.basename/uuid-version)
-              </div>
             </el-form-item>
             <el-form-item
               v-show="formProps.symlink"
               :label="$t('directory')"
               prop="symlink_path"
-              label-width="50px"
+              label-width="80px"
             >
-              <el-input
-                v-model="formData.symlinkPath"
-                autocomplete="off"
-                readonly
-              >
+              <el-input v-model="formData.symlinkPath" readonly disabled>
                 <template #append>/uuid-version</template>
               </el-input>
+              <div class="el-form-item__error">
+                (path =
+                project.path.dirname/goploy-symlink/project.path.basename/uuid-version)
+              </div>
             </el-form-item>
             <el-row
               v-show="formProps.symlink"
-              style="margin: 0 10px; white-space: pre-line"
+              style="margin: 5px 10px 0; white-space: pre-line"
             >
               {{ $t('projectPage.symlinkFooterTips') }}
             </el-row>
