@@ -185,14 +185,14 @@ func install() {
 	if len(mysqlPort) == 0 {
 		mysqlPort = "3306"
 	}
-	println("Please enter the absolute path of the log directory(default /tmp/):")
+	println("Please enter the absolute path of the log directory(default stdout):")
 	logPath, err := inputReader.ReadString('\n')
 	if err != nil {
 		panic("There were errors reading, exiting program.")
 	}
 	logPath = utils.ClearNewline(logPath)
 	if len(logPath) == 0 {
-		logPath = "/tmp/"
+		logPath = "stdout"
 	}
 	println("Please enter the listening port(default 80):")
 	port, err := inputReader.ReadString('\n')
