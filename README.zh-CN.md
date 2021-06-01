@@ -28,6 +28,8 @@
 
 [DEMO](http://demo.goploy.icu) admin:admin!@# (不一定能打开，看心情)
 
+[Docker](https://hub.docker.com/r/zhenorzz/goploy)
+
 [帮助文档](https://docs.goploy.icu)
 
 ## 内容列表

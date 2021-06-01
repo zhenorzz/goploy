@@ -23,6 +23,10 @@ go get -u github.com/zhenorzz/goploy
 - https://github.com/zhenorzz/goploy/releases
 - https://gitee.com/goploy/goploy/releases
 
+方法3：
+
+[Docker](https://hub.docker.com/r/zhenorzz/goploy)
+
 # 启动
 
 ```shell

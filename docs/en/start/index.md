@@ -23,6 +23,10 @@ Download releases
 - https://github.com/zhenorzz/goploy/releases
 - https://gitee.com/goploy/goploy/releases
 
+Method 3:
+
+[Docker](https://hub.docker.com/r/zhenorzz/goploy)
+
 # Start up
 
 ```shell
