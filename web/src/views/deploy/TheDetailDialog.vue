@@ -192,7 +192,7 @@
               </el-row>
             </template>
             <el-row v-else style="margin: 5px 0">
-              <span style="white-space: pre-line">
+              <span style="white-space: pre-line; padding: 5px 0">
                 {{ item.detail }}
               </span>
             </el-row>
@@ -221,7 +221,7 @@
               >
                 {{ $t('deployPage.showDetail') }}
               </el-button>
-              <span v-else style="white-space: pre-line">
+              <span v-else style="white-space: pre-line; padding: 5px 0">
                 {{ traceDetail[item.id] }}
               </span>
             </el-row>
@@ -260,7 +260,7 @@
                   >
                     {{ $t('deployPage.showDetail') }}
                   </el-button>
-                  <div v-else style="white-space: pre-line">
+                  <div v-else style="white-space: pre-line; padding: 5px 0">
                     {{ traceDetail[trace.id] }}
                   </div>
                 </div>
@@ -287,7 +287,7 @@
                   >
                     {{ $t('deployPage.showDetail') }}
                   </el-button>
-                  <div v-else style="white-space: pre-line">
+                  <div v-else style="white-space: pre-line; padding: 5px 0">
                     {{ traceDetail[trace.id] }}
                   </div>
                 </div>
@@ -305,8 +305,11 @@
                   Time: {{ trace.updateTime }}
                 </el-row>
                 <el-row>Script: {{ trace.script }}</el-row>
-                <div v-loading="traceDetail[trace.id] === ''">
-                  <span style="padding: 5px 0">[goploy ~]#</span>
+                <div
+                  v-loading="traceDetail[trace.id] === ''"
+                  style="margin: 5px 0"
+                >
+                  <span>[goploy ~]#</span>
                   <el-button
                     v-if="trace.state === 1 && !(trace.id in traceDetail)"
                     type="text"
@@ -314,7 +317,7 @@
                   >
                     {{ $t('deployPage.showDetail') }}
                   </el-button>
-                  <div v-else style="white-space: pre-line">
+                  <div v-else style="white-space: pre-line; padding: 5px 0">
                     {{ traceDetail[trace.id] }}
                   </div>
                 </div>
@@ -485,24 +488,27 @@ export default defineComponent({
     }
 
     const traceLoading = ref(false)
-    const publishTraceList = ref<DeployTrace['datagram']['list']>([])
     const activeRomoteTracePane = ref('')
     const getPublishTrace = (publishToken: string) => {
       traceLoading.value = true
       new DeployTrace({ lastPublishToken: publishToken })
         .request()
         .then((response) => {
-          publishTraceList.value = response.data.list.map((element) => {
-            if (element.ext !== '')
+          const publishTraceList = response.data.list.map((element) => {
+            if (element.ext !== '') {
               Object.assign(element, JSON.parse(element.ext))
+            }
             return element
           })
 
-          publishLocalTraceList.value = publishTraceList.value.filter(
+          publishLocalTraceList.value = publishTraceList.filter(
             (element) => element.type < 4
           )
           publishRemoteTraceList.value = {}
-          for (const trace of publishTraceList.value) {
+          for (const trace of publishTraceList) {
+            if (trace.detail !== '') {
+              traceDetail.value[trace.id] = trace.detail
+            }
             if (trace.type < 4) continue
             if (!publishRemoteTraceList.value[trace.serverName]) {
               publishRemoteTraceList.value[trace.serverName] = []

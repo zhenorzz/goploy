@@ -1,5 +1,5 @@
 <p align=center>
-    <img src="https://github.com/zhenorzz/goploy/blob/master/banner.png" alt="logo" title="logo" />
+    <img src="https://raw.githubusercontent.com/zhenorzz/goploy/master/banner.png" alt="logo" title="logo" />
 </p>
 
 <p align="center">
