@@ -1,3 +1,11 @@
+if %1 == with-web (
+    cd web
+
+    call npm run build
+
+    cd ..
+)
+
 ::go build linux
 SET GOOS=linux
 SET GOARCH=amd64
