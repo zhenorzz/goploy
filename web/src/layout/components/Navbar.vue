@@ -379,6 +379,7 @@ export default defineComponent({
       .user-wrapper {
         position: relative;
         cursor: pointer;
+        margin-top: 5px;
       }
 
       .avatar-box {

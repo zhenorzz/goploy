@@ -369,7 +369,7 @@ export default defineComponent({
       },
       greyServerFormProps: {
         disabled: false,
-        serverOption: [],
+        serverOption: [] as ProjectServerList['datagram']['list'],
       },
       greyServerFormData: {
         projectId: 0,
@@ -389,7 +389,7 @@ export default defineComponent({
     }
   },
   computed: {
-    tablePageData() {
+    tablePageData(): DeployList['datagram']['list'] {
       let tableData = this.tableData
       if (this.searchProject.name !== '') {
         tableData = this.tableData.filter(
@@ -398,12 +398,12 @@ export default defineComponent({
       }
       if (this.searchProject.environment !== '') {
         tableData = this.tableData.filter(
-          (item) => item.environment === this.searchProject.environment
+          (item) => item.environment === Number(this.searchProject.environment)
         )
       }
       if (this.searchProject.autoDeploy !== '') {
         tableData = this.tableData.filter(
-          (item) => item.autoDeploy === this.searchProject.autoDeploy
+          (item) => item.autoDeploy === Number(this.searchProject.autoDeploy)
         )
       }
       return tableData.slice(
@@ -539,7 +539,9 @@ export default defineComponent({
     },
 
     callCommandFunc(funcName: string, data: ProjectData['datagram']['detail']) {
-      this[funcName](data)
+      ;(this[funcName] as (data: ProjectData['datagram']['detail']) => void)(
+        data
+      )
     },
 
     handleCommitCommand(data: ProjectData['datagram']['detail']) {
