@@ -113,6 +113,7 @@ export default defineComponent({
         el: {} as HTMLDivElement,
       }
       tabList.value.push(item)
+      activeName.value = item.name
       serverId.value = ''
 
       nextTick(() => {
