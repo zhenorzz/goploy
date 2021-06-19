@@ -167,6 +167,7 @@ import {
   getNamespace,
   getNamespaceList,
   setNamespace,
+  setNamespaceIdCookie,
   removeNamespaceIdCookie,
 } from '@/utils/namespace'
 import { ElLoading } from 'element-plus'
@@ -201,6 +202,7 @@ export default defineComponent({
     },
     handleNamespaceChange(namespace) {
       setNamespace(namespace)
+      setNamespaceIdCookie(namespace.id.toString())
       ElLoading.service({ fullscreen: true })
       location.reload()
     },
