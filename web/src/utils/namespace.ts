@@ -45,13 +45,19 @@ export function getNamespace(): Namespace {
 }
 
 export function setNamespace(namespace: Namespace): void {
-  Cookies.set(NamespaceKey, namespace.id.toString(), { expires: 365 })
   localStorage.setItem(NamespaceKey, JSON.stringify(namespace))
 }
 
-export function removeNamespace(): void {
+export function getNamespaceIdCookie(): string | undefined {
+  return Cookies.get(NamespaceKey)
+}
+
+export function setNamespaceIdCookie(namespaceId: string): void {
+  Cookies.set(NamespaceKey, namespaceId, { expires: 365 })
+}
+
+export function removeNamespaceIdCookie(): void {
   Cookies.remove(NamespaceKey)
-  localStorage.removeItem(NamespaceKey)
 }
 
 export function getNamespaceList(): Array<Namespace> {

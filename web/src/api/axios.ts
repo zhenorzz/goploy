@@ -1,6 +1,6 @@
 import axios, { AxiosResponse, AxiosRequestConfig, AxiosError } from 'axios'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { removeNamespace } from '@/utils/namespace'
+import { removeNamespaceIdCookie } from '@/utils/namespace'
 import store from '@/store'
 
 // create an axios instance
@@ -49,7 +49,7 @@ service.interceptors.response.use(
         })
         return Promise.reject(res.message)
       } else if (10002 === res.code) {
-        removeNamespace()
+        removeNamespaceIdCookie()
         return Promise.reject(res.message)
       } else {
         ElMessage({

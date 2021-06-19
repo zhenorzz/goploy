@@ -3,7 +3,12 @@ import { UserState } from './types'
 import { RootState } from '../../types'
 import { Login, Info } from '@/api/user'
 import { setLogin, logout } from '@/utils/auth'
-import { getNamespace, setNamespace, setNamespaceList } from '@/utils/namespace'
+import {
+  getNamespaceIdCookie,
+  setNamespace,
+  setNamespaceIdCookie,
+  setNamespaceList,
+} from '@/utils/namespace'
 import { resetRouter } from '@/router'
 
 const state: UserState = {
@@ -37,11 +42,10 @@ const actions: ActionTree<UserState, RootState> = {
         .request()
         .then((response) => {
           const { data } = response
-
-          let namespace = getNamespace()
-          if (!namespace) {
-            namespace = data.namespaceList[data.namespaceList.length - 1]
+          if (!getNamespaceIdCookie()) {
+            const namespace = data.namespaceList[data.namespaceList.length - 1]
             setNamespace(namespace)
+            setNamespaceIdCookie(namespace.id.toString())
           }
           setNamespaceList(data.namespaceList)
 

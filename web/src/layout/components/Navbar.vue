@@ -167,7 +167,7 @@ import {
   getNamespace,
   getNamespaceList,
   setNamespace,
-  removeNamespace,
+  removeNamespaceIdCookie,
 } from '@/utils/namespace'
 import { ElLoading } from 'element-plus'
 import { defineComponent } from 'vue'
@@ -212,7 +212,7 @@ export default defineComponent({
     async logout() {
       await this.$store.dispatch('user/logout')
       await this.$store.dispatch('tagsView/delAllViews')
-      removeNamespace()
+      removeNamespaceIdCookie()
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
     },
   },
