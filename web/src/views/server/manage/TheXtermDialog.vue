@@ -1,0 +1,158 @@
+<template>
+  <el-dialog
+    v-model="dialogVisible"
+    title="WebSSH"
+    :close-on-click-modal="false"
+    :fullscreen="$store.state.app.device === 'mobile'"
+  >
+    <el-select
+      v-model="serverId"
+      v-loading="serverLoading"
+      filterable
+      default-first-option
+      placeholder="please select server"
+      style="width: 100%; margin-bottom: 10px"
+      @change="handleSelectServer"
+    >
+      <el-option
+        v-for="item in serverOption"
+        :key="item.id"
+        :label="item.name"
+        :value="item.id"
+      />
+    </el-select>
+    <el-tabs v-model="activeName" closable @tab-remove="removeTab">
+      <el-tab-pane
+        v-for="item in tabList"
+        :key="item.name"
+        :label="item.label"
+        :name="item.name"
+      >
+        <div
+          :ref="
+            (el) => {
+              item.el = el
+            }
+          "
+          class="xterm"
+          :style="
+            $store.state.app.device === 'mobile'
+              ? 'height: calc(100vh - 212px)'
+              : 'height:500px'
+          "
+        />
+      </el-tab-pane>
+    </el-tabs>
+  </el-dialog>
+</template>
+
+<script lang="ts">
+import 'xterm/css/xterm.css'
+import { xterm } from './xterm'
+import {
+  computed,
+  watch,
+  onBeforeUpdate,
+  defineComponent,
+  ref,
+  nextTick,
+} from 'vue'
+import { ServerOption } from '@/api/server'
+
+export default defineComponent({
+  props: {
+    modelValue: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
+    const dialogVisible = computed({
+      get: () => props.modelValue,
+      set: (val) => {
+        emit('update:modelValue', val)
+      },
+    })
+
+    const serverLoading = ref(false)
+    const serverOption = ref<ServerOption['datagram']['list']>([])
+    watch(dialogVisible, (val: boolean) => {
+      if (val === true) {
+        serverLoading.value = true
+        new ServerOption()
+          .request()
+          .then((response) => {
+            serverOption.value = response.data.list
+          })
+          .finally(() => {
+            serverLoading.value = false
+          })
+      }
+    })
+    const activeName = ref('')
+    const tabList = ref<{ label: string; name: string; el: HTMLDivElement }[]>(
+      []
+    )
+    const serverId = ref('')
+    const xterms = ref<xterm[]>([])
+    onBeforeUpdate(() => {
+      xterms.value = []
+    })
+    const handleSelectServer = () => {
+      const selectedServer = serverOption.value.find(
+        (_) => _.id === Number(serverId.value)
+      )
+      if (!selectedServer) {
+        return
+      }
+      const tabLen = tabList.value.length
+      const item = {
+        label: selectedServer.ip,
+        name: '' + tabLen,
+        el: {} as HTMLDivElement,
+      }
+      tabList.value.push(item)
+      serverId.value = ''
+
+      nextTick(() => {
+        xterms.value[tabLen] = new xterm(item.el, selectedServer.id)
+        xterms.value[tabLen].connect()
+      })
+    }
+
+    const removeTab = (targetName: string) => {
+      if (activeName.value === targetName) {
+        tabList.value.forEach((tab, index) => {
+          if (tab.name === targetName) {
+            let nextTab = tabList.value[index + 1] || tabList.value[index - 1]
+            if (nextTab) {
+              activeName.value = nextTab.name
+            }
+          }
+        })
+      }
+      tabList.value = tabList.value.filter((tab) => tab.name !== targetName)
+      xterms.value[Number(targetName)].close()
+    }
+
+    return {
+      xterms,
+      dialogVisible,
+      serverLoading,
+      serverOption,
+      serverId,
+      tabList,
+      activeName,
+      handleSelectServer,
+      removeTab,
+    }
+  },
+})
+</script>
+<style lang="scss" scoped>
+.xterm {
+  width: 100%;
+  height: 100%;
+}
+</style>

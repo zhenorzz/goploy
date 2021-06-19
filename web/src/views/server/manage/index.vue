@@ -1,6 +1,9 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
+      <el-button @click="dialogTermVisible = true">
+        <svg-icon icon-class="terminal" />
+      </el-button>
       <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
     <el-table
@@ -61,23 +64,11 @@
       <el-table-column
         prop="operation"
         :label="$t('op')"
-        width="130"
+        width="80"
         align="center"
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
-          <el-tooltip
-            class="item"
-            effect="dark"
-            content="Connect Terminal"
-            placement="bottom"
-          >
-            <el-button
-              type="success"
-              icon="el-icon-connection"
-              @click="handleConnect(scope.row)"
-            />
-          </el-tooltip>
           <el-button
             type="primary"
             icon="el-icon-edit"
@@ -191,7 +182,7 @@
         </el-row>
       </template>
     </el-dialog>
-    <TheXtermDrawer v-model="dialogTermVisible" :server-row="selectedItem" />
+    <TheXtermDialog v-model="dialogTermVisible" />
   </el-row>
 </template>
 <script lang="ts">
@@ -206,7 +197,7 @@ import {
   ServerToggle,
   ServerData,
 } from '@/api/server'
-import TheXtermDrawer from './TheXtermDrawer.vue'
+import TheXtermDialog from './TheXtermDialog.vue'
 import Validator from 'async-validator'
 import { defineComponent } from 'vue'
 import { copy } from '@/utils'
@@ -214,7 +205,7 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 
 export default defineComponent({
   name: 'ServerIndex',
-  components: { TheXtermDrawer },
+  components: { TheXtermDialog },
   data() {
     return {
       dialogTermVisible: false,
@@ -361,11 +352,6 @@ export default defineComponent({
             ElMessage.info('Cancel')
           })
       }
-    },
-
-    handleConnect(data: ServerData['datagram']) {
-      this.selectedItem = data
-      this.dialogTermVisible = true
     },
 
     check() {
