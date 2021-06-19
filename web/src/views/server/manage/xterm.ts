@@ -5,7 +5,7 @@ export class xterm {
   private serverId: number
   private element: HTMLDivElement
   private websocket!: WebSocket
-  private terminal: Terminal | null = null
+  private terminal!: Terminal
   constructor(element: HTMLDivElement, serverId: number) {
     this.element = element
     this.serverId = serverId
@@ -19,8 +19,8 @@ export class xterm {
       windowsMode: isWindows,
     })
     const fitAddon = new FitAddon()
-    this.terminal.loadAddon(fitAddon)
     this.terminal.open(this.element)
+    this.terminal.loadAddon(fitAddon)
     fitAddon.fit()
     this.websocket = new WebSocket(
       `${location.protocol.replace('http', 'ws')}//${
@@ -29,11 +29,10 @@ export class xterm {
         this.terminal.cols
       }`
     )
-    const attachAddon = new AttachAddon(this.websocket)
-    this.terminal.loadAddon(attachAddon)
+    this.terminal.loadAddon(new AttachAddon(this.websocket))
   }
   public close(): void {
-    this.terminal = null
     this.websocket.close()
+    this.terminal.dispose()
   }
 }

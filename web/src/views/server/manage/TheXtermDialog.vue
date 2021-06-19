@@ -17,7 +17,7 @@
       <el-option
         v-for="item in serverOption"
         :key="item.id"
-        :label="item.name"
+        :label="`${item.name}(${item.description})`"
         :value="item.id"
       />
     </el-select>
@@ -49,14 +49,7 @@
 <script lang="ts">
 import 'xterm/css/xterm.css'
 import { xterm } from './xterm'
-import {
-  computed,
-  watch,
-  onBeforeUpdate,
-  defineComponent,
-  ref,
-  nextTick,
-} from 'vue'
+import { computed, watch, defineComponent, ref, nextTick } from 'vue'
 import { ServerOption } from '@/api/server'
 
 export default defineComponent({
@@ -95,10 +88,7 @@ export default defineComponent({
       []
     )
     const serverId = ref('')
-    const xterms = ref<xterm[]>([])
-    onBeforeUpdate(() => {
-      xterms.value = []
-    })
+    let xterms: xterm[] = []
     const handleSelectServer = () => {
       const selectedServer = serverOption.value.find(
         (_) => _.id === Number(serverId.value)
@@ -115,10 +105,9 @@ export default defineComponent({
       tabList.value.push(item)
       activeName.value = item.name
       serverId.value = ''
-
       nextTick(() => {
-        xterms.value[tabLen] = new xterm(item.el, selectedServer.id)
-        xterms.value[tabLen].connect()
+        xterms[tabLen] = new xterm(item.el, selectedServer.id)
+        xterms[tabLen].connect()
       })
     }
 
@@ -133,12 +122,11 @@ export default defineComponent({
           }
         })
       }
+      xterms[Number(targetName)].close()
       tabList.value = tabList.value.filter((tab) => tab.name !== targetName)
-      xterms.value[Number(targetName)].close()
     }
 
     return {
-      xterms,
       dialogVisible,
       serverLoading,
       serverOption,
