@@ -17,7 +17,7 @@ export default defineComponent({
   computed: {
     cachedViews() {
       return import.meta.env.PROD === true
-        ? this.$store.state.tagsView.cachedViews
+        ? this.$store.state.tagsView.cachedViews.join(',')
         : []
     },
   },

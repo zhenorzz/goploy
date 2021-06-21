@@ -62,10 +62,7 @@ export default defineComponent({
   emits: ['update:modelValue'],
   setup(props, { emit }) {
     const dialogVisible = computed({
-      get: () => {
-        console.log(props.modelValue)
-        return props.modelValue
-      },
+      get: () => props.modelValue,
       set: (val) => {
         emit('update:modelValue', val)
       },
