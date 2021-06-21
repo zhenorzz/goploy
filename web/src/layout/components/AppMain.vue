@@ -19,7 +19,6 @@ export default defineComponent({
       return import.meta.env.PROD === true
         ? this.$store.state.tagsView.cachedViews
         : []
-      // return this.$store.state.tagsView.cachedViews
     },
   },
 })

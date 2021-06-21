@@ -53,6 +53,11 @@
   }
 }
 
-.el-table th {
-	display: table-cell!important;
+.el-table {
+  th {
+    display: table-cell!important;
+  }
+  &__fixed-right{
+    height: 100% !important;
+  }
 }
