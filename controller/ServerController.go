@@ -62,7 +62,9 @@ func (Server) GetPublicKey(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	return &core.Response{
-		Data: string(contentByte),
+		Data: struct {
+			Key string `json:"key"`
+		}{Key: string(contentByte)},
 	}
 }
 
@@ -163,8 +165,8 @@ func (Server) Edit(gp *core.Goploy) *core.Response {
 // Toggle server
 func (Server) Toggle(gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		ID int64 `json:"id" validate:"gt=0"`
-		State int8 `json:"state" validate:"oneof=0 1"`
+		ID    int64 `json:"id" validate:"gt=0"`
+		State int8  `json:"state" validate:"oneof=0 1"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
