@@ -1,5 +1,17 @@
 # change log
 
+## 1.3.2
+
+*2021-06-25*
+
+### Optimization
+- web ssh
+
+### Bug fixes
+- fix illegal namespace
+- fix web keep alive
+- fix copy public key
+
 ## 1.3.1
 
 *2021-05-30*
