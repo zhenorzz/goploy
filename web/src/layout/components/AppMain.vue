@@ -3,7 +3,7 @@
     <router-view v-slot="{ Component }">
       <transition name="fade-transform" mode="out-in">
         <keep-alive :include="cachedViews">
-          <component :is="Component" />
+          <component :is="Component" :key="key" />
         </keep-alive>
       </transition>
     </router-view>
@@ -18,7 +18,10 @@ export default defineComponent({
     cachedViews() {
       return import.meta.env.PROD === true
         ? this.$store.state.tagsView.cachedViews.join(',')
-        : []
+        : ''
+    },
+    key() {
+      return this.$route.path
     },
   },
 })

@@ -5,6 +5,7 @@ import { Login, Info } from '@/api/user'
 import { setLogin, logout } from '@/utils/auth'
 import {
   getNamespaceIdCookie,
+  Namespace,
   setNamespace,
   setNamespaceIdCookie,
   setNamespaceList,
@@ -46,6 +47,11 @@ const actions: ActionTree<UserState, RootState> = {
             const namespace = data.namespaceList[data.namespaceList.length - 1]
             setNamespace(namespace)
             setNamespaceIdCookie(namespace.id.toString())
+          } else {
+            const namespace = data.namespaceList.find(
+              (_) => _.id.toString() === getNamespaceIdCookie()
+            ) as Namespace
+            setNamespace(namespace)
           }
           setNamespaceList(data.namespaceList)
 

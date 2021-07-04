@@ -2,7 +2,7 @@ import Cookies from 'js-cookie'
 const NamespaceKey = 'goploy_namespace'
 const NamespaceListKey = 'goploy_namespace_list'
 
-interface Namespace {
+export interface Namespace {
   id: number
   name: string
   role: string
