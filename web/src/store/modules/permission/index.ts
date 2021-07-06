@@ -66,6 +66,7 @@ const actions: ActionTree<PermissionState, RootState> = {
           accessRoutes[0].path + '/' + accessRoutes[0].children[0].path
       }
       accessRoutes = homeRoutes.concat(accessRoutes)
+
       commit('SET_ROUTES', accessRoutes)
       resolve(accessRoutes)
     })
