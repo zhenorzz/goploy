@@ -33,14 +33,23 @@
       highlight-current-row
       :max-height="tableHeight - 34"
       :data="tablePageData"
+      :default-sort="tableDefaultSort"
       style="width: 100%; margin-top: 5px"
+      @sort-change="sortChange"
     >
-      <el-table-column prop="id" label="ID" width="80" align="center" />
+      <el-table-column
+        sortable="custom"
+        prop="id"
+        label="ID"
+        width="80"
+        align="center"
+      />
       <el-table-column
         prop="name"
         :label="$t('name')"
         min-width="150"
         align="center"
+        sortable="custom"
       >
         <template #default="scope">
           <b v-if="scope.row.environment === 1" style="color: #f56c6c">
@@ -127,6 +136,7 @@
         :label="$t('time')"
         width="160"
         align="center"
+        sortable="custom"
       />
       <el-table-column
         prop="operation"
@@ -355,6 +365,7 @@ export default defineComponent({
       reviewListDialogVisible: false,
       dialogVisible: false,
       tableloading: false,
+      tableDefaultSort: {} as { prop: string; order: string },
       selectedItem: {} as ProjectData['datagram']['detail'],
       tableData: [] as DeployList['datagram']['list'],
       searchProject: {
@@ -460,6 +471,7 @@ export default defineComponent({
     },
   },
   created() {
+    this.tableDefaultSort = this.getTableSort()
     this.getList()
   },
   methods: {
@@ -498,10 +510,45 @@ export default defineComponent({
             return element
           })
           this.pagination.total = this.tableData.length
+          this.sortChange(this.tableDefaultSort)
         })
         .finally(() => {
           this.tableloading = false
         })
+    },
+
+    sortChange({ prop, order }: { prop: string; order: string }) {
+      this.setTableSort(prop, order)
+      if (!prop && !order) {
+        prop = 'id'
+        order = 'descending'
+      }
+      if (prop === 'name') {
+        prop = 'environment'
+      }
+      this.tableData = this.tableData.sort(
+        (
+          row1: ProjectData['datagram']['detail'],
+          row2: ProjectData['datagram']['detail']
+        ): number => {
+          let val1
+          let val2
+          if (order === 'ascending') {
+            val1 = row1[prop]
+            val2 = row2[prop]
+          } else if (order === 'descending') {
+            val1 = row2[prop]
+            val2 = row1[prop]
+          }
+          if (val1 < val2) {
+            return -1
+          } else if (val1 > val2) {
+            return 1
+          } else {
+            return 0
+          }
+        }
+      )
     },
 
     handleSizeChange(val = 1) {
@@ -511,7 +558,6 @@ export default defineComponent({
 
     handlePageChange(page = 1) {
       this.pagination.page = page
-      this.getList()
     },
 
     handleDetail(data: ProjectData['datagram']['detail']) {
@@ -702,6 +748,18 @@ export default defineComponent({
 
     enterToBR(detail: string) {
       return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
+    },
+
+    getTableSort(): { prop: string; order: string } {
+      const sortJsonStr = localStorage.getItem('deploy-table-sort')
+      if (sortJsonStr) {
+        return JSON.parse(sortJsonStr) as { prop: string; order: string }
+      }
+      return { prop: 'id', order: 'descending' }
+    },
+
+    setTableSort(prop: string, order: string) {
+      localStorage.setItem('deploy-table-sort', JSON.stringify({ prop, order }))
     },
   },
 })

@@ -1,5 +1,12 @@
 # change log
 
+## 1.3.3
+
+*2021-06-25*
+
+### New features
+- support deploy table sorting
+
 ## 1.3.2
 
 *2021-06-25*
