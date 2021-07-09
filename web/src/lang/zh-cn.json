@@ -57,6 +57,7 @@
   "time": "时间",
   "insertTime": "创建时间",
   "updateTime": "更新时间",
+  "modifiedTime": "修改时间",
   "commitDate": "提交日期",
   "deployDate": "构建日期",
   "startDate": "开始日期",

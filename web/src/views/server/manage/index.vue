@@ -1,6 +1,9 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
+      <el-button @click="dialogSftpVisible = true">
+        <svg-icon icon-class="ftp" />
+      </el-button>
       <el-button @click="dialogTermVisible = true">
         <svg-icon icon-class="terminal" />
       </el-button>
@@ -183,6 +186,7 @@
       </template>
     </el-dialog>
     <TheXtermDialog v-model="dialogTermVisible" />
+    <TheSftpDialog v-model="dialogSftpVisible" />
   </el-row>
 </template>
 <script lang="ts">
@@ -198,6 +202,7 @@ import {
   ServerData,
 } from '@/api/server'
 import TheXtermDialog from './TheXtermDialog.vue'
+import TheSftpDialog from './TheSftpDialog.vue'
 import Validator from 'async-validator'
 import { defineComponent } from 'vue'
 import { copy } from '@/utils'
@@ -205,10 +210,11 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 
 export default defineComponent({
   name: 'ServerIndex',
-  components: { TheXtermDialog },
+  components: { TheXtermDialog, TheSftpDialog },
   data() {
     return {
       dialogTermVisible: false,
+      dialogSftpVisible: false,
       dialogVisible: false,
       tableLoading: false,
       tableData: [] as ServerList['datagram']['list'],

@@ -22,6 +22,7 @@ func Init() *router.Router {
 	// websocket route
 	rt.Add("/ws/connect", http.MethodGet, ws.GetHub().Connect)
 	rt.Add("/ws/xterm", http.MethodGet, ws.GetHub().Xterm)
+	rt.Add("/ws/sftp", http.MethodGet, ws.GetHub().Sftp)
 
 	// user route
 	rt.Add("/user/login", http.MethodPost, controller.User{}.Login)
@@ -104,6 +105,7 @@ func Init() *router.Router {
 	rt.Add("/server/add", http.MethodPost, controller.Server{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/edit", http.MethodPut, controller.Server{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/toggle", http.MethodPut, controller.Server{}.Toggle).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/server/remoteFile", http.MethodGet, controller.Server{}.RemoteFile).Roles([]string{core.RoleAdmin, core.RoleManager})
 
 	// crontab route
 	rt.Add("/crontab/getList", http.MethodGet, controller.Crontab{}.GetList)

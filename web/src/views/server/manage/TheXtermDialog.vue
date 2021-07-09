@@ -11,7 +11,7 @@
       filterable
       default-first-option
       placeholder="please select server"
-      style="width: 100%; margin-bottom: 10px"
+      style="width: 100%"
       @change="handleSelectServer"
     >
       <el-option
@@ -37,7 +37,7 @@
           class="xterm"
           :style="
             $store.state.app.device === 'mobile'
-              ? 'height: calc(100vh - 212px)'
+              ? 'height: calc(100vh - 202px)'
               : 'height:500px'
           "
         />

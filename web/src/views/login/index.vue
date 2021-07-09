@@ -61,8 +61,9 @@
         class="login-form-btn"
         style="width: 100%; margin-bottom: 30px"
         @click.prevent="handleLogin"
-        >Sign in</el-button
       >
+        Sign in
+      </el-button>
     </el-form>
   </div>
 </template>

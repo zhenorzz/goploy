@@ -57,6 +57,7 @@
   "time": "Time",
   "insertTime": "Insert time",
   "updateTime": "Update time",
+  "modifiedTime": "Modified time",
   "commitDate": "Commit date",
   "deployDate": "Deploy date",
   "startDate": "Start date",

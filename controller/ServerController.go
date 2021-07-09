@@ -1,10 +1,14 @@
 package controller
 
 import (
+	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/utils"
+	"io"
 	"io/ioutil"
+	"path"
+	"strconv"
 )
 
 // Server struct
@@ -177,4 +181,37 @@ func (Server) Toggle(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	return &core.Response{}
+}
+
+// RemoteFile sftp download file
+func (Server) RemoteFile(gp *core.Goploy) *core.Response {
+	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: "invalid server id"}
+	}
+
+	filename := gp.URLQuery.Get("file")
+	server, err := (model.Server{ID: id}).GetData()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	//defer client.Close()
+	sftpClient, err := sftp.NewClient(client)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	srcFile, _ := sftpClient.Open(filename) //远程
+	FileStat, _ := srcFile.Stat()
+	FileSize := strconv.FormatInt(FileStat.Size(), 10)
+	gp.ResponseWriter.Header().Set("Content-Disposition", "attachment; filename="+path.Base(filename))
+	gp.ResponseWriter.Header().Set("Content-Type", "application/octet-stream")
+	gp.ResponseWriter.Header().Set("Content-Length", FileSize)
+	_, _ = io.Copy(gp.ResponseWriter, srcFile)
+	_ = srcFile.Close()
+	_ = sftpClient.Close()
+	return nil
 }
