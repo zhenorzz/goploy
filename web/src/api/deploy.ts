@@ -130,7 +130,7 @@ export class DeployGreyPublish extends Request {
 
 export class DeployResetState extends Request {
   readonly url = '/deploy/resetState'
-  readonly method = 'post'
+  readonly method = 'put'
   public param: {
     projectId: number
   }

@@ -25,10 +25,6 @@ func (hub *Hub) Sftp(gp *core.Goploy) *core.Response {
 		},
 	}
 
-	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
 	c, err := upgrader.Upgrade(gp.ResponseWriter, gp.Request, nil)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -37,22 +33,31 @@ func (hub *Hub) Sftp(gp *core.Goploy) *core.Response {
 	c.SetReadLimit(maxMessageSize)
 	c.SetReadDeadline(time.Now().Add(pongWait))
 	c.SetPongHandler(func(string) error { c.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+
+	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
+	if err != nil {
+		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		return nil
+	}
 	server, err := (model.Server{ID: serverID}).GetData()
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		return nil
 	}
 	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
 	if err != nil {
-		core.Log(core.ERROR, err.Error())
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		return nil
 	}
 	defer client.Close()
 
 	//此时获取了sshClient，下面使用sshClient构建sftpClient
 	sftpClient, err := sftp.NewClient(client)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		return nil
 	}
+
 	ticker := time.NewTicker(pingPeriod)
 	defer ticker.Stop()
 	stop := make(chan bool, 1)
@@ -97,7 +102,6 @@ func (hub *Hub) Sftp(gp *core.Goploy) *core.Response {
 			if err != nil {
 				code = core.Error
 				msg = err.Error()
-				core.Log(core.ERROR, err.Error())
 			} else {
 				for _, f := range fileInfos {
 					if f.Mode()&os.ModeSymlink != 0 {

@@ -5,6 +5,7 @@
 *2021-06-25*
 
 ### New features
+- web sftp
 - support deploy table sorting
 
 ## 1.3.2

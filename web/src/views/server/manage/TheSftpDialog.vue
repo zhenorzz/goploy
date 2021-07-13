@@ -155,24 +155,36 @@ export default defineComponent({
       if (!selectedServer) {
         return
       }
-      ws = new WebSocket(
-        `${location.protocol.replace('http', 'ws')}//${
-          window.location.host + import.meta.env.VITE_APP_BASE_API
-        }/ws/sftp?serverId=${selectedServer.id}`
-      )
-      ws.onopen = (event) => {
-        console.log(event)
+      if (ws) {
+        ws.close()
+        tableData.value = []
+        dirHistory = []
+        dir.value = '/'
+      }
+      try {
+        ws = new WebSocket(
+          `${location.protocol.replace('http', 'ws')}//${
+            window.location.host + import.meta.env.VITE_APP_BASE_API
+          }/ws/sftp?serverId=${selectedServer.id}`
+        )
+      } catch (error) {
+        console.error(error)
+      }
+
+      ws.onopen = () => {
         wsConnected.value = true
       }
       ws.onerror = (error) => {
         console.log(error)
       }
       ws.onclose = (event) => {
+        if (event.reason !== '') {
+          ElMessage.error('sftp close, reason: ' + event.reason)
+        }
         console.log(event)
       }
       ws.onmessage = (event) => {
         const responseData = JSON.parse(event.data)
-        console.log(responseData)
         tableLoading.value = false
         if (responseData['code'] > 0) {
           ElMessage.error(responseData['message'])
@@ -193,7 +205,7 @@ export default defineComponent({
     }
     const tableLoading = ref(false)
     const dir = ref('/')
-    const dirHistory: string[] = []
+    let dirHistory: string[] = []
     const goto = (target: string) => {
       tableLoading.value = true
       dir.value = path.normalize(target)

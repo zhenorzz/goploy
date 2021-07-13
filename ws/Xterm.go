@@ -38,18 +38,6 @@ func (hub *Hub) Xterm(gp *core.Goploy) *core.Response {
 			return false
 		},
 	}
-	rows, err := strconv.Atoi(gp.URLQuery.Get("rows"))
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-	cols, err := strconv.Atoi(gp.URLQuery.Get("cols"))
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
 	c, err := upgrader.Upgrade(gp.ResponseWriter, gp.Request, nil)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -58,27 +46,45 @@ func (hub *Hub) Xterm(gp *core.Goploy) *core.Response {
 	c.SetReadLimit(maxMessageSize)
 	c.SetReadDeadline(time.Now().Add(pongWait))
 	c.SetPongHandler(func(string) error { c.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+
+	rows, err := strconv.Atoi(gp.URLQuery.Get("rows"))
+	if err != nil {
+		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		return nil
+	}
+	cols, err := strconv.Atoi(gp.URLQuery.Get("cols"))
+	if err != nil {
+		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		return nil
+	}
+	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
+	if err != nil {
+		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		return nil
+	}
+
 	server, err := (model.Server{ID: serverID}).GetData()
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		return nil
 	}
 	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
 	if err != nil {
-		core.Log(core.ERROR, err.Error())
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		return nil
 	}
 	defer client.Close()
 	// create session
 	session, err := client.NewSession()
 	if err != nil {
-		core.Log(core.ERROR, err.Error())
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		return nil
 	}
 	defer session.Close()
 	sessionStdin, err := session.StdinPipe()
 	if err != nil {
-		core.Log(core.ERROR, err.Error())
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		return nil
 	}
 	comboWriter := new(xtermBufferWriter)
 	//ssh.stdout and stderr will write output into comboWriter
@@ -86,13 +92,13 @@ func (hub *Hub) Xterm(gp *core.Goploy) *core.Response {
 	session.Stderr = comboWriter
 	// Request pseudo terminal
 	if err := session.RequestPty("xterm", rows, cols, ssh.TerminalModes{}); err != nil {
-		core.Log(core.ERROR, err.Error())
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		return nil
 	}
 	// Start remote shell
 	if err := session.Shell(); err != nil {
-		core.Log(core.ERROR, err.Error())
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		return nil
 	}
 
 	ticker := time.NewTicker(pingPeriod)
