@@ -233,14 +233,14 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-row type="flex" justify="end" style="width: 100%; margin-top: 10px">
+    <el-row type="flex" justify="end" style="width: 100%; margin-top: 5px">
       <el-pagination
         v-model:current-page="pagination.page"
         :total="pagination.total"
         :page-size="pagination.rows"
         background
         :page-sizes="[20, 50, 100]"
-        layout="prev, pager, next, jumper"
+        layout="total, prev, pager, next"
         @size-change="handleSizeChange"
         @current-change="handlePageChange"
       />
