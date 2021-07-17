@@ -219,13 +219,13 @@ CREATE TABLE IF NOT EXISTS `namespace_user` (
   UNIQUE KEY `uk_namespace_user` (`namespace_id`,`user_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `system_config` (
-  `id` int(10) unsigned NOT NULL,
-  `key` varchar(255) NOT NULL DEFAULT '',
-  `value` varchar(255) NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_key` (`key`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE IF NOT EXISTS `goploy`.`system_config` (
+    `id`    int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `key`   varchar(255) NOT NULL DEFAULT '',
+    `value` varchar(255) NOT NULL DEFAULT '',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `udx_key` (`key`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 REPLACE INTO `user`(`id`, `account`, `password`, `name`, `contact`, `state`, `super_manager`) VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '', 1, 1);
 REPLACE INTO `namespace`(`id`, `name`) VALUES (1, 'goploy');
