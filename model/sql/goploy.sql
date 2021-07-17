@@ -1,6 +1,8 @@
 CREATE DATABASE IF NOT EXISTS `goploy`;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`log`  (
+use `goploy`;
+
+CREATE TABLE IF NOT EXISTS `log`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `type` tinyint(3) UNSIGNED NOT NULL DEFAULT 1 COMMENT 'log type',
   `ip` int(10) UNSIGNED NOT NULL DEFAULT 0,
@@ -11,7 +13,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`log`  (
   INDEX `idx_create_time`(`create_time`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`project`  (
+CREATE TABLE IF NOT EXISTS `project`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `namespace_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `name` varchar(255) NOT NULL DEFAULT '' COMMENT 'project name',
@@ -40,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`project`  (
    PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`project_file` (
+CREATE TABLE IF NOT EXISTS `project_file` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `project_id` int(10) unsigned NOT NULL,
   `filename` varchar(255) NOT NULL DEFAULT '',
@@ -50,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`project_file` (
   KEY `idx_project_id` (`project_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`project_server`  (
+CREATE TABLE IF NOT EXISTS `project_server`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `project_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `server_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
@@ -60,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`project_server`  (
   UNIQUE INDEX `uk_project_server`(`project_id`, `server_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`project_user`  (
+CREATE TABLE IF NOT EXISTS `project_user`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `project_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `user_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
@@ -70,7 +72,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`project_user`  (
   UNIQUE INDEX `uk_project_user`(`project_id`, `user_id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`project_task` (
+CREATE TABLE IF NOT EXISTS `project_task` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `project_id` int(10) unsigned NOT NULL DEFAULT '0',
   `commit` char(40) NOT NULL DEFAULT '',
@@ -88,7 +90,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`project_task` (
   KEY `idx_project_update` (`project_id`,`update_time`) USING BTREE COMMENT 'project_id,update_time'
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`project_review` (
+CREATE TABLE IF NOT EXISTS `project_review` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `project_id` int(10) unsigned NOT NULL DEFAULT '0',
   `commit_id` char(40) NOT NULL DEFAULT '',
@@ -104,7 +106,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`project_review` (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`publish_trace` (
+CREATE TABLE IF NOT EXISTS `publish_trace` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `token` char(36) CHARACTER SET utf8mb4 NOT NULL DEFAULT '',
   `project_id` int(10) unsigned NOT NULL DEFAULT '0',
@@ -122,7 +124,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`publish_trace` (
   KEY `idx_project_id` (`project_id`) USING BTREE COMMENT 'project_id'
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`monitor` (
+CREATE TABLE IF NOT EXISTS `monitor` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `namespace_id` int(10) unsigned NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -141,7 +143,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`monitor` (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`server`  (
+CREATE TABLE IF NOT EXISTS `server`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `namespace_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `name` varchar(255) NOT NULL DEFAULT '',
@@ -158,7 +160,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`server`  (
   UNIQUE KEY `uk_namespace_ip` (`namespace_id`,`ip`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`crontab` (
+CREATE TABLE IF NOT EXISTS `crontab` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `namespace_id` int(10) unsigned NOT NULL DEFAULT 0,
   `command` varchar(255) NOT NULL DEFAULT '',
@@ -173,7 +175,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`crontab` (
   UNIQUE KEY `uk_command_md5` (`namespace_id`,`command_md5`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`crontab_server` (
+CREATE TABLE IF NOT EXISTS `crontab_server` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `crontab_id` int(10) unsigned NOT NULL,
   `server_id` int(10) unsigned NOT NULL,
@@ -183,7 +185,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`crontab_server` (
   UNIQUE KEY `idx_crontab_server` (`crontab_id`,`server_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`user`  (
+CREATE TABLE IF NOT EXISTS `user`  (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `account` varchar(30) NOT NULL DEFAULT '',
   `password` varchar(60) NOT NULL DEFAULT '',
@@ -197,7 +199,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`user`  (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`namespace` (
+CREATE TABLE IF NOT EXISTS `namespace` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(20) NOT NULL DEFAULT '',
   `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -206,7 +208,7 @@ CREATE TABLE IF NOT EXISTS `goploy`.`namespace` (
   UNIQUE KEY `uk_name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`namespace_user` (
+CREATE TABLE IF NOT EXISTS `namespace_user` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `namespace_id` int(10) unsigned NOT NULL,
   `user_id` int(10) unsigned NOT NULL,
@@ -217,6 +219,16 @@ CREATE TABLE IF NOT EXISTS `goploy`.`namespace_user` (
   UNIQUE KEY `uk_namespace_user` (`namespace_id`,`user_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-REPLACE INTO `goploy`.`user`(`id`, `account`, `password`, `name`, `contact`, `state`, `super_manager`) VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '', 1, 1);
-REPLACE INTO `goploy`.`namespace`(`id`, `name`) VALUES (1, 'goploy');
-REPLACE INTO `goploy`.`namespace_user`(`id`, `namespace_id`, `user_id`, `role`) VALUES (1, 1, 1, 'admin');
+CREATE TABLE `system_config` (
+  `id` int(10) unsigned NOT NULL,
+  `key` varchar(255) NOT NULL DEFAULT '',
+  `value` varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_key` (`key`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+REPLACE INTO `user`(`id`, `account`, `password`, `name`, `contact`, `state`, `super_manager`) VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '', 1, 1);
+REPLACE INTO `namespace`(`id`, `name`) VALUES (1, 'goploy');
+REPLACE INTO `namespace_user`(`id`, `namespace_id`, `user_id`, `role`) VALUES (1, 1, 1, 'admin');
+REPLACE INTO `system_config` (`key`, `value`) VALUES ('version', '');
+

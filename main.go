@@ -5,8 +5,10 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/hashicorp/go-version"
 	"github.com/joho/godotenv"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
@@ -29,23 +31,24 @@ import (
 )
 
 var (
-	help    bool
-	version bool
-	s       string
+	help bool
+	v    bool
+	s    string
 )
+
+const appVersion = "1.3.3"
 
 func init() {
 	flag.StringVar(&core.AssetDir, "asset-dir", "", "default: ./")
 	flag.StringVar(&s, "s", "", "stop")
 	flag.BoolVar(&help, "help", false, "list available subcommands and some concept guides")
-	flag.BoolVar(&version, "version", false, "show goploy version")
+	flag.BoolVar(&v, "version", false, "show goploy version")
 	// 改变默认的 Usage
 	flag.Usage = usage
 }
 
 func usage() {
-	fmt.Fprintf(os.Stderr, `Options:
-`)
+	fmt.Fprintf(os.Stderr, "Options:\n")
 	flag.PrintDefaults()
 }
 
@@ -56,8 +59,8 @@ func main() {
 		flag.Usage()
 		return
 	}
-	if version {
-		println(core.Version)
+	if v {
+		println(appVersion)
 		return
 	}
 	handleClientSignal()
@@ -67,11 +70,11 @@ func main() {
  / / __/ __ \/ __ \/ / __ \/ / / /
 / /_/ / /_/ / /_/ / / /_/ / /_/ / 
 \____/\____/ .___/_/\____/\__, /  
-          /_/            /____/   ` + core.Version + "\n")
+          /_/            /____/   ` + appVersion + "\n")
 	install()
 	pid := strconv.Itoa(os.Getpid())
-	godotenv.Load(core.GetEnvFile())
-	ioutil.WriteFile(path.Join(core.GetAssetDir(), "goploy.pid"), []byte(pid), 0755)
+	_ = godotenv.Load(core.GetEnvFile())
+	_ = ioutil.WriteFile(path.Join(core.GetAssetDir(), "goploy.pid"), []byte(pid), 0755)
 	println("Start at " + time.Now().String())
 	println("goploy -h for more help")
 	println("Current pid:   " + pid)
@@ -88,6 +91,7 @@ func main() {
 	srv := http.Server{
 		Addr: ":" + os.Getenv("PORT"),
 	}
+	go checkUpdate()
 	core.Gwg.Add(1)
 	go func() {
 		defer core.Gwg.Done()
@@ -111,7 +115,7 @@ func main() {
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal("ListenAndServe: ", err.Error())
 	}
-	os.Remove(path.Join(core.GetAssetDir(), "goploy.pid"))
+	_ = os.Remove(path.Join(core.GetAssetDir(), "goploy.pid"))
 	println("Goroutine is trying to shutdown, wait for a minute")
 	core.Gwg.Wait()
 	println("Goroutine shutdown gracefully")
@@ -205,7 +209,7 @@ func install() {
 		panic(err)
 	}
 	defer db.Close()
-	if err := model.ImportSQL(db); err != nil {
+	if err := model.ImportSQL(db, "sql/goploy.sql"); err != nil {
 		panic(err)
 	}
 	println("Database installation is complete")
@@ -248,5 +252,39 @@ func handleClientSignal() {
 			log.Fatal("handle stop, ", err.Error())
 		}
 		os.Exit(1)
+	}
+}
+
+func checkUpdate() {
+	resp, err := http.Get("https://api.github.com/repos/zhenorzz/goploy/releases/latest")
+	if err != nil {
+		println("Check failed")
+		println(err.Error())
+		return
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		println("Check failed")
+		println(err.Error())
+		return
+	}
+	var result map[string]interface{}
+	if err := json.Unmarshal(body, &result); err != nil {
+		println("Check failed")
+		println(err.Error())
+		return
+	}
+	tagName := result["tag_name"].(string)
+	tagVer, err := version.NewVersion(tagName)
+	if err != nil {
+		println("Check version error")
+		println(err.Error())
+		return
+	}
+	currentVer, _ := version.NewVersion(appVersion)
+	if tagVer.GreaterThan(currentVer) {
+		println("New release available")
+		println(result["html_url"].(string))
 	}
 }
