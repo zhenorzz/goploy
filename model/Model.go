@@ -5,6 +5,7 @@ import (
 	"embed"
 	"errors"
 	"github.com/hashicorp/go-version"
+	"github.com/zhenorzz/goploy/utils"
 	"log"
 	"net/url"
 	"os"
@@ -78,6 +79,7 @@ func ImportSQL(db *sql.DB, sqlPath string) error {
 		return err
 	}
 	for _, query := range strings.Split(string(sqlContent), ";") {
+		query = utils.ClearNewline(query)
 		if len(query) == 0 {
 			continue
 		}
