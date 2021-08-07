@@ -388,6 +388,7 @@ func remoteSync(msgChIn chan<- syncMessage, userInfo model.User, project model.P
 		}
 		return
 	}
+	defer client.Close()
 
 	session, sessionErr := client.NewSession()
 	if sessionErr != nil {
@@ -403,6 +404,7 @@ func remoteSync(msgChIn chan<- syncMessage, userInfo model.User, project model.P
 		}
 		return
 	}
+	defer session.Close()
 
 	var sshOutbuf, sshErrbuf bytes.Buffer
 	session.Stdout = &sshOutbuf
@@ -439,7 +441,6 @@ func remoteSync(msgChIn chan<- syncMessage, userInfo model.User, project model.P
 	publishTraceModel.State = model.Success
 	publishTraceModel.AddRow()
 
-	defer session.Close()
 	msgChIn <- syncMessage{
 		serverName: projectServer.ServerName,
 		projectID:  project.ID,
@@ -601,6 +602,7 @@ func removeExpiredBackup(project model.Project, projectServer model.ProjectServe
 		core.Log(core.ERROR, err.Error())
 		return
 	}
+	defer client.Close()
 	session, err := client.NewSession()
 	if err != nil {
 		core.Log(core.ERROR, err.Error())
@@ -610,8 +612,7 @@ func removeExpiredBackup(project model.Project, projectServer model.ProjectServe
 	var sshOutbuf, sshErrbuf bytes.Buffer
 	session.Stdout = &sshOutbuf
 	session.Stderr = &sshErrbuf
-	destDir := path.Join(project.SymlinkPath, project.Name)
-	if err = session.Run("cd " + destDir + ";ls -t | awk 'NR>10' | xargs rm -rf"); err != nil {
+	if err = session.Run("cd " + project.SymlinkPath + ";ls -t | awk 'NR>10' | xargs rm -rf"); err != nil {
 		core.Log(core.ERROR, err.Error())
 	}
 }

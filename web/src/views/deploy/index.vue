@@ -429,13 +429,13 @@ export default defineComponent({
         return
       }
       const data = response.message
-      data.message = this.enterToBR(data.message)
+      const message = this.enterToBR(data.message)
       if (data.state === 0) {
         ElNotification({
           type: 'error',
           title: data.projectName,
           dangerouslyUseHTMLString: true,
-          message: data.message,
+          message: message,
           duration: 0,
         })
       }
@@ -447,7 +447,7 @@ export default defineComponent({
         this.tableData[projectIndex].progressPercentage = percent
         this.tableData[projectIndex].progressStatus = 'warning'
         this.tableData[projectIndex].tagType = 'warning'
-        this.tableData[projectIndex].tagText = data.message
+        this.tableData[projectIndex].tagText = message
         this.tableData[projectIndex].deployState = 1
         if (percent === 0) {
           this.tableData[projectIndex].progressStatus = 'exception'
