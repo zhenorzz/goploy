@@ -7,6 +7,7 @@ import (
 	"errors"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/repository"
 	"github.com/zhenorzz/goploy/service"
 	"github.com/zhenorzz/goploy/utils"
 	"io/ioutil"
@@ -197,7 +198,7 @@ func (Deploy) Rebuild(gp *core.Goploy) *core.Response {
 	}
 
 	needToPublish := project.SymlinkPath == ""
-	var commitInfo utils.Commit
+	var commitInfo repository.CommitInfo
 	publishTraceServerCount := 0
 	for _, publishTrace := range publishTraceList {
 		// publish failed

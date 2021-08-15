@@ -443,7 +443,7 @@ export default defineComponent({
         (element) => element.id === data.projectId
       )
       if (projectIndex !== -1) {
-        const percent = 12.5 * data.state
+        const percent = 25 * data.state
         this.tableData[projectIndex].progressPercentage = percent
         this.tableData[projectIndex].progressStatus = 'warning'
         this.tableData[projectIndex].tagType = 'warning'
@@ -454,7 +454,7 @@ export default defineComponent({
           this.tableData[projectIndex].tagType = 'danger'
           this.tableData[projectIndex].tagText = 'Fail'
           this.tableData[projectIndex].deployState = 3
-        } else if (percent > 98) {
+        } else if (percent === 100) {
           this.tableData[projectIndex].progressStatus = 'success'
           this.tableData[projectIndex].tagType = 'success'
           this.tableData[projectIndex].deployState = 2

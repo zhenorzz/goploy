@@ -3,7 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/web"
 	"io/fs"

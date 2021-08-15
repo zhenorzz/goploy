@@ -6,7 +6,7 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -166,7 +166,7 @@ func (u User) EditRow() error {
 		Update(userTable).
 		SetMap(sq.Eq{
 			"name":          u.Name,
-			"contact":        u.Contact,
+			"contact":       u.Contact,
 			"super_manager": u.SuperManager,
 		}).
 		Where(sq.Eq{"id": u.ID})

@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/repository"
 	"github.com/zhenorzz/goploy/utils"
 	"strconv"
 	"strings"
@@ -22,18 +23,21 @@ func (Repository) GetCommitList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	srcPath := core.GetProjectPath(project.ID)
-	git := utils.GIT{Dir: srcPath}
-	if err := git.Log(gp.URLQuery.Get("branch"), "--stat", "--pretty=format:`start`%H`%an`%at`%s`%d`", "-n", "10"); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
+
+	repo, err := repository.GetRepo("git")
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	commitList := utils.ParseGITLog(git.Output.String())
+	list, err := repo.BranchLog(project.ID, gp.URLQuery.Get("branch"), 10)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
 
 	return &core.Response{
 		Data: struct {
-			CommitList []utils.Commit `json:"list"`
-		}{CommitList: commitList},
+			CommitList []repository.CommitInfo `json:"list"`
+		}{CommitList: list},
 	}
 }
 
@@ -85,31 +89,20 @@ func (Repository) GetTagList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	srcPath := core.GetProjectPath(project.ID)
-	git := utils.GIT{Dir: srcPath}
 
-	if err := git.Add("."); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
+	repo, err := repository.GetRepo("git")
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	if err := git.Reset("--hard"); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
+	list, err := repo.BranchLog(project.ID, gp.URLQuery.Get("branch"), 10)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-
-	if err := git.Pull(); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
-	}
-
-	if err := git.Log("--tags", "-n", "10", "--no-walk", "--stat", "--pretty=format:`start`%H`%an`%at`%s`%d`"); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
-	}
-
-	tagList := utils.ParseGITLog(git.Output.String())
 
 	return &core.Response{
 		Data: struct {
-			TagList []utils.Commit `json:"list"`
-		}{TagList: tagList},
+			TagList []repository.CommitInfo `json:"list"`
+		}{TagList: list},
 	}
 }
-

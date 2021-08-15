@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/repository"
 	"github.com/zhenorzz/goploy/utils"
 	"github.com/zhenorzz/goploy/ws"
 	"io/ioutil"
@@ -45,12 +46,32 @@ func (gsync Gsync) Exec() {
 		PublisherName: gsync.UserInfo.Name,
 		Type:          model.Pull,
 	}
-	var gitCommitInfo utils.Commit
 	var err error
+
+	repo, err := repository.GetRepo("git")
+	if err != nil {
+		gsync.Project.DeployFail()
+		publishTraceModel.Detail = err.Error()
+		publishTraceModel.State = model.Fail
+		ws.GetHub().Data <- &ws.Data{
+			Type:    ws.TypeProject,
+			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeployFail, Message: err.Error()},
+		}
+		if _, err := publishTraceModel.AddRow(); err != nil {
+			core.Log(core.ERROR, err.Error())
+		}
+		return
+	}
+
+	ws.GetHub().Data <- &ws.Data{
+		Type:    ws.TypeProject,
+		Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.RepoFollow, Message: "Repo follow"},
+	}
+
 	if len(gsync.CommitID) == 0 {
-		gitCommitInfo, err = gitFollow(gsync.Project, "origin/"+gsync.Project.Branch)
+		err = repo.Follow(gsync.Project, "origin/"+gsync.Project.Branch)
 	} else {
-		gitCommitInfo, err = gitFollow(gsync.Project, gsync.CommitID)
+		err = repo.Follow(gsync.Project, gsync.CommitID)
 	}
 	if err != nil {
 		gsync.Project.DeployFail()
@@ -63,25 +84,20 @@ func (gsync Gsync) Exec() {
 		if _, err := publishTraceModel.AddRow(); err != nil {
 			core.Log(core.ERROR, err.Error())
 		}
-		notify(gsync.Project, gsync.ProjectServers, gitCommitInfo, model.ProjectFail, err.Error())
+		notify(gsync.Project, gsync.ProjectServers, repository.CommitInfo{}, model.ProjectFail, err.Error())
 		return
 	}
+
+	commitList, _ := repo.CommitLog(gsync.Project.ID, 1)
+	commitInfo := commitList[0]
+
 	if gsync.Branch != "" {
-		gitCommitInfo.Branch = gsync.Branch
+		commitInfo.Branch = gsync.Branch
 	} else {
-		gitCommitInfo.Branch = "origin/" + gsync.Project.Branch
+		commitInfo.Branch = "origin/" + gsync.Project.Branch
 	}
-	ws.GetHub().Data <- &ws.Data{
-		Type: ws.TypeProject,
-		Message: ws.ProjectMessage{
-			ProjectID:   gsync.Project.ID,
-			ProjectName: gsync.Project.Name,
-			State:       ws.GitDone,
-			Message:     "Get commit info",
-			Ext:         gitCommitInfo,
-		},
-	}
-	ext, _ := json.Marshal(gitCommitInfo)
+
+	ext, _ := json.Marshal(commitInfo)
 	publishTraceModel.Ext = string(ext)
 	publishTraceModel.State = model.Success
 	if _, err := publishTraceModel.AddRow(); err != nil {
@@ -121,7 +137,7 @@ func (gsync Gsync) Exec() {
 			if _, err := publishTraceModel.AddRow(); err != nil {
 				core.Log(core.ERROR, err.Error())
 			}
-			notify(gsync.Project, gsync.ProjectServers, gitCommitInfo, model.ProjectFail, err.Error())
+			notify(gsync.Project, gsync.ProjectServers, commitInfo, model.ProjectFail, err.Error())
 			return
 		}
 		publishTraceModel.Detail = outputString
@@ -152,10 +168,16 @@ func (gsync Gsync) Exec() {
 		gsync.Project.DeploySuccess()
 		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(gsync.Project.ID, 10)+" deploy success")
 		ws.GetHub().Data <- &ws.Data{
-			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeploySuccess, Message: "Success"},
+			Type: ws.TypeProject,
+			Message: ws.ProjectMessage{
+				ProjectID:   gsync.Project.ID,
+				ProjectName: gsync.Project.Name,
+				State:       ws.DeploySuccess,
+				Message:     "Success",
+				Ext:         commitInfo,
+			},
 		}
-		notify(gsync.Project, gsync.ProjectServers, gitCommitInfo, model.ProjectSuccess, message)
+		notify(gsync.Project, gsync.ProjectServers, commitInfo, model.ProjectSuccess, message)
 
 	} else {
 		gsync.Project.DeployFail()
@@ -164,8 +186,9 @@ func (gsync Gsync) Exec() {
 			Type:    ws.TypeProject,
 			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeployFail, Message: message},
 		}
-		notify(gsync.Project, gsync.ProjectServers, gitCommitInfo, model.ProjectFail, message)
+		notify(gsync.Project, gsync.ProjectServers, commitInfo, model.ProjectFail, message)
 	}
+
 	if gsync.Project.SymlinkPath != "" {
 		var wg sync.WaitGroup
 		for _, projectServer := range gsync.ProjectServers {
@@ -178,74 +201,6 @@ func (gsync Gsync) Exec() {
 		wg.Wait()
 	}
 	return
-}
-
-func gitFollow(project model.Project, target string) (utils.Commit, error) {
-	commit := utils.Commit{}
-	if err := (Repository{ProjectID: project.ID}.Create()); err != nil {
-		return commit, err
-	}
-	ws.GetHub().Data <- &ws.Data{
-		Type:    ws.TypeProject,
-		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitCreate, Message: "git create"},
-	}
-
-	git := utils.GIT{Dir: core.GetProjectPath(project.ID)}
-	ws.GetHub().Data <- &ws.Data{
-		Type:    ws.TypeProject,
-		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitClean, Message: "git clean"},
-	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git add .")
-	if err := git.Add("."); err != nil {
-		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
-		return commit, errors.New(git.Err.String())
-	}
-
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git reset --hard")
-	if err := git.Reset("--hard"); err != nil {
-		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
-		return commit, errors.New(git.Err.String())
-	}
-
-	// the length of commit id is 40
-	if len(target) != 40 {
-		ws.GetHub().Data <- &ws.Data{
-			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitFetch, Message: "git fetch"},
-		}
-		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git fetch")
-		if err := git.Fetch(); err != nil {
-			core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
-			return commit, errors.New(git.Err.String())
-		}
-	}
-
-	ws.GetHub().Data <- &ws.Data{
-		Type:    ws.TypeProject,
-		Message: ws.ProjectMessage{ProjectID: project.ID, ProjectName: project.Name, State: ws.GitCheckout, Message: "git checkout"},
-	}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git checkout -B goploy "+target)
-	if err := git.Checkout("-B", "goploy", target); err != nil {
-		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
-		return commit, errors.New(git.Err.String())
-	}
-
-	commit, err := gitCommitLog(project)
-	if err != nil {
-		return commit, err
-	}
-	return commit, err
-}
-
-func gitCommitLog(project model.Project) (utils.Commit, error) {
-	git := utils.GIT{Dir: core.GetProjectPath(project.ID)}
-
-	if err := git.Log("--stat", "--pretty=format:`start`%H`%an`%at`%s`%d`", "-n", "1"); err != nil {
-		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
-		return utils.Commit{}, errors.New(git.Err.String())
-	}
-	commitList := utils.ParseGITLog(git.Output.String())
-	return commitList[0], nil
 }
 
 func runAfterPullScript(project model.Project) (string, error) {
@@ -454,7 +409,7 @@ func remoteSync(msgChIn chan<- syncMessage, userInfo model.User, project model.P
 // server ip & name
 // deploy user name
 // deploy time
-func notify(project model.Project, projectServers model.ProjectServers, commitInfo utils.Commit, deployState int, detail string) {
+func notify(project model.Project, projectServers model.ProjectServers, commitInfo repository.CommitInfo, deployState int, detail string) {
 	serverList := ""
 	for _, projectServer := range projectServers {
 		if projectServer.ServerName != projectServer.ServerIP {

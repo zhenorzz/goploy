@@ -3,8 +3,6 @@ package utils
 import (
 	"bytes"
 	"os/exec"
-	"strconv"
-	"strings"
 )
 
 type GIT struct {
@@ -89,33 +87,4 @@ func (git *GIT) Reset(options ...string) error {
 		return err
 	}
 	return nil
-}
-
-type Commit struct {
-	Branch    string `json:"branch"`
-	Commit    string `json:"commit"`
-	Author    string `json:"author"`
-	Timestamp int    `json:"timestamp"`
-	Message   string `json:"message"`
-	Tag       string `json:"tag"`
-	Diff      string `json:"diff"`
-}
-
-func ParseGITLog(rawCommitLog string) []Commit {
-	unformatCommitList := strings.Split(rawCommitLog, "`start`")
-	unformatCommitList = unformatCommitList[1:]
-	var commitList []Commit
-	for _, commitRow := range unformatCommitList {
-		commitRowSplit := strings.Split(commitRow, "`")
-		timestamp, _ := strconv.Atoi(commitRowSplit[2])
-		commitList = append(commitList, Commit{
-			Commit:    commitRowSplit[0],
-			Author:    commitRowSplit[1],
-			Timestamp: timestamp,
-			Message:   commitRowSplit[3],
-			Tag:       commitRowSplit[4],
-			Diff:      strings.Trim(commitRowSplit[5], "\n"),
-		})
-	}
-	return commitList
 }
