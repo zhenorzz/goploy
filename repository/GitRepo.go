@@ -79,6 +79,29 @@ func (gitRepo GitRepo) Follow(project model.Project, target string) error {
 	return nil
 }
 
+func (GitRepo) BranchList(projectID int64) ([]string, error) {
+	git := utils.GIT{Dir: core.GetProjectPath(projectID)}
+
+	if err := git.Fetch(); err != nil {
+		return []string{}, errors.New(git.Err.String())
+	}
+
+	if err := git.Branch("-r", "--sort=-committerdate"); err != nil {
+		return []string{}, errors.New(git.Err.String())
+	}
+
+	rawBranchList := strings.Split(git.Output.String(), "\n")
+
+	var list []string
+	for _, row := range rawBranchList {
+		branch := strings.Trim(row, " ")
+		if len(branch) != 0 {
+			list = append(list, branch)
+		}
+	}
+	return list, nil
+}
+
 func (GitRepo) CommitLog(projectID int64, rows int) ([]CommitInfo, error) {
 	git := utils.GIT{Dir: core.GetProjectPath(projectID)}
 

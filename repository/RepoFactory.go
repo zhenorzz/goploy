@@ -8,6 +8,7 @@ import (
 type Repo interface {
 	Create(projectID int64) error
 	Follow(project model.Project, target string) error
+	BranchList(projectID int64) ([]string, error)
 	CommitLog(projectID int64, rows int) ([]CommitInfo, error)
 	BranchLog(projectID int64, branch string, rows int) ([]CommitInfo, error)
 	TagLog(projectID int64, rows int) ([]CommitInfo, error)

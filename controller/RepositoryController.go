@@ -4,9 +4,7 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/repository"
-	"github.com/zhenorzz/goploy/utils"
 	"strconv"
-	"strings"
 )
 
 // Repository struct
@@ -52,25 +50,17 @@ func (Repository) GetBranchList(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	srcPath := core.GetProjectPath(project.ID)
-	git := utils.GIT{Dir: srcPath}
 
-	if err := git.Fetch(); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
+	repo, err := repository.GetRepo("git")
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	if err := git.Branch("-r", "--sort=-committerdate"); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error() + ", detail: " + git.Err.String()}
+	branchList, err := repo.BranchList(project.ID)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	unformatBranchList := strings.Split(git.Output.String(), "\n")
-	var branchList []string
-	for _, row := range unformatBranchList {
-		branch := strings.Trim(row, " ")
-		if len(branch) != 0 {
-			branchList = append(branchList, branch)
-		}
-	}
 	return &core.Response{
 		Data: struct {
 			BranchList []string `json:"list"`
@@ -95,7 +85,7 @@ func (Repository) GetTagList(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	list, err := repo.BranchLog(project.ID, gp.URLQuery.Get("branch"), 10)
+	list, err := repo.TagLog(project.ID, 10)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}

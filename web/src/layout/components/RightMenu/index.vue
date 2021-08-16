@@ -1,6 +1,6 @@
 <template>
   <div class="fab">
-    <el-popover placement="right-end" trigger="hover" popper-class="fab-popper">
+    <el-popover placement="left-end" trigger="click" popper-class="fab-popper">
       <div style="margin: 0 10px">
         <el-button
           type="text"
