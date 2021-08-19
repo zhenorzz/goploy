@@ -49,7 +49,7 @@ func (svnRepo SvnRepo) Follow(project model.Project, target string) error {
 	// the length of commit id is 40
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" svn up")
 	if strings.Index(target, "r") == 0 {
-		if err := svn.Pull(target); err != nil {
+		if err := svn.Pull("-r", target); err != nil {
 			core.Log(core.ERROR, err.Error()+", detail: "+svn.Err.String())
 			return errors.New(svn.Err.String())
 		}
