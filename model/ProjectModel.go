@@ -12,6 +12,7 @@ type Project struct {
 	ID                    int64  `json:"id"`
 	NamespaceID           int64  `json:"namespaceId"`
 	UserID                int64  `json:"userId,omitempty"`
+	RepoType              string `json:"repoType"`
 	Name                  string `json:"name"`
 	URL                   string `json:"url"`
 	Path                  string `json:"path"`
@@ -70,6 +71,7 @@ func (p Project) AddRow() (int64, error) {
 		Columns(
 			"namespace_id",
 			"name",
+			"repo_type",
 			"url",
 			"path",
 			"environment",
@@ -88,6 +90,7 @@ func (p Project) AddRow() (int64, error) {
 		Values(
 			p.NamespaceID,
 			p.Name,
+			p.RepoType,
 			p.URL,
 			p.Path,
 			p.Environment,
@@ -118,6 +121,7 @@ func (p Project) EditRow() error {
 		Update(projectTable).
 		SetMap(sq.Eq{
 			"name":                     p.Name,
+			"repo_type":                p.RepoType,
 			"url":                      p.URL,
 			"path":                     p.Path,
 			"environment":              p.Environment,
@@ -230,6 +234,7 @@ func (p Project) GetList(pagination Pagination) (Projects, error) {
 		Select(`
 			project.id, 
 			name, 
+			repo_type, 
 			url, 
 			path, 
 			environment,
@@ -276,6 +281,7 @@ func (p Project) GetList(pagination Pagination) (Projects, error) {
 		if err := rows.Scan(
 			&project.ID,
 			&project.Name,
+			&project.RepoType,
 			&project.URL,
 			&project.Path,
 			&project.Environment,
@@ -333,6 +339,7 @@ func (p Project) GetUserProjectList() (Projects, error) {
 		Select(`
 			project.id, 
 			project.name,
+			project.repo_type,
 			project.url,
 			project.publisher_id,
 			project.publisher_name,
@@ -364,6 +371,7 @@ func (p Project) GetUserProjectList() (Projects, error) {
 		if err := rows.Scan(
 			&project.ID,
 			&project.Name,
+			&project.RepoType,
 			&project.URL,
 			&project.PublisherID,
 			&project.PublisherName,
@@ -387,7 +395,7 @@ func (p Project) GetUserProjectList() (Projects, error) {
 func (p Project) GetData() (Project, error) {
 	var project Project
 	err := sq.
-		Select("id, namespace_id, name, url, path, environment, branch, symlink_path, review, review_url, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, project.last_publish_token, insert_time, update_time").
+		Select("id, namespace_id, name, repo_type, url, path, environment, branch, symlink_path, review, review_url, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, project.last_publish_token, insert_time, update_time").
 		From(projectTable).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -396,6 +404,7 @@ func (p Project) GetData() (Project, error) {
 			&project.ID,
 			&project.NamespaceID,
 			&project.Name,
+			&project.RepoType,
 			&project.URL,
 			&project.Path,
 			&project.Environment,

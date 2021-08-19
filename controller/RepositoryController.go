@@ -22,7 +22,7 @@ func (Repository) GetCommitList(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	repo, err := repository.GetRepo("git")
+	repo, err := repository.GetRepo(project.RepoType)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
@@ -51,7 +51,7 @@ func (Repository) GetBranchList(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	repo, err := repository.GetRepo("git")
+	repo, err := repository.GetRepo(project.RepoType)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
@@ -80,7 +80,7 @@ func (Repository) GetTagList(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	repo, err := repository.GetRepo("git")
+	repo, err := repository.GetRepo(project.RepoType)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}

@@ -74,6 +74,7 @@ export class ProjectRemoteBranchList extends Request {
   readonly method = 'get'
 
   public param: {
+    repoType: string
     url: string
   }
 
@@ -91,6 +92,7 @@ export class ProjectAdd extends Request {
   readonly method = 'post'
   public param: {
     name: string
+    repoType: string
     url: string
     path: string
     environment: number
@@ -120,6 +122,7 @@ export class ProjectEdit extends Request {
   public param: {
     id: number
     name: string
+    repoType: string
     url: string
     path: string
     symlinkPath: string

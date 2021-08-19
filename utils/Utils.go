@@ -19,6 +19,8 @@ func GetScriptExt(scriptMode string) string {
 		return "php"
 	case "python":
 		return "py"
+	case "cmd":
+		return "bat"
 	default:
 		return "sh"
 	}

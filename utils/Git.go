@@ -33,13 +33,6 @@ func (git *GIT) Clone(options ...string) error {
 	return nil
 }
 
-func (git *GIT) Clean(options ...string) error {
-	if err := git.Run("clean", options...); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (git *GIT) Checkout(options ...string) error {
 	if err := git.Run("checkout", options...); err != nil {
 		return err
@@ -84,6 +77,13 @@ func (git *GIT) Branch(options ...string) error {
 
 func (git *GIT) Reset(options ...string) error {
 	if err := git.Run("reset", options...); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (git *GIT) LsRemote(options ...string) error {
+	if err := git.Run("ls-remote", options...); err != nil {
 		return err
 	}
 	return nil

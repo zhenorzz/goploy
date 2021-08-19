@@ -188,12 +188,17 @@
                   <template #content>
                     ssh://[username:password@]host.xz[:port]/path/to/repo.git/<br />
                     git@host.xz[:port]/path/to/repo.git/<br />
-                    http[s]://[username:password@]host.xz[:port]/path/to/repo.git/
+                    http[s]://[username:password@]host.xz[:port]/path/to/repo.git/<br />
+                    svn://host.xz[:port]/path --username= --password=
                   </template>
                   <i class="el-icon-question" />
                 </el-tooltip>
               </template>
               <el-row type="flex">
+                <el-select v-model="formData.repoType" style="width: 65px">
+                  <el-option label="git" value="git" />
+                  <el-option label="svn" value="svn" />
+                </el-select>
                 <el-input
                   v-model.trim="formData.url"
                   style="flex: 1"
@@ -619,6 +624,7 @@ import { VAceEditor } from 'vue3-ace-editor'
 import 'ace-builds/src-noconflict/mode-sh'
 import 'ace-builds/src-noconflict/mode-python'
 import 'ace-builds/src-noconflict/mode-php'
+import 'ace-builds/src-noconflict/mode-batchfile'
 import 'ace-builds/src-noconflict/theme-github'
 import TheServerDialog from './TheServerDialog.vue'
 import TheUserDialog from './TheUserDialog.vue'
@@ -645,6 +651,7 @@ export default defineComponent({
         { label: 'bash', value: 'bash', lang: 'sh' },
         { label: 'python', value: 'python', lang: 'python' },
         { label: 'php', value: 'php', lang: 'php' },
+        { label: 'bat', value: 'cmd', lang: 'batchfile' },
       ],
       projectName: '',
       dialogVisible: false,
@@ -716,6 +723,7 @@ export default defineComponent({
       formData: {
         id: 0,
         name: '',
+        repoType: 'git',
         url: '',
         path: '',
         symlinkPath: '',
@@ -999,11 +1007,20 @@ export default defineComponent({
     },
 
     getRemoteBranchList() {
+      if (this.formData.url === '') {
+        ElMessage.error('url can not be blank')
+        this.formProps.branch = []
+        return
+      }
+
       if (this.formProps.branch.length > 0) {
         return
       }
       this.formProps.lsBranchLoading = true
-      new ProjectRemoteBranchList({ url: this.formData.url })
+      new ProjectRemoteBranchList({
+        repoType: this.formData.repoType,
+        url: this.formData.url,
+      })
         .request()
         .then((response) => {
           this.formProps.branch = response.data.branch

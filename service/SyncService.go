@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -48,7 +49,7 @@ func (gsync Gsync) Exec() {
 	}
 	var err error
 
-	repo, err := repository.GetRepo("git")
+	repo, err := repository.GetRepo(gsync.Project.RepoType)
 	if err != nil {
 		gsync.Project.DeployFail()
 		publishTraceModel.Detail = err.Error()
@@ -212,7 +213,15 @@ func runAfterPullScript(project model.Project) (string, error) {
 		scriptMode = project.AfterPullScriptMode
 	}
 	ioutil.WriteFile(scriptFullName, []byte(project.AfterPullScript), 0755)
-	handler := exec.Command(scriptMode, scriptFullName)
+	var commandOptions []string
+
+	if project.AfterPullScriptMode == "cmd" {
+		commandOptions = append(commandOptions, "/C")
+		scriptFullName, _ = filepath.Abs(scriptFullName)
+	}
+	commandOptions = append(commandOptions, scriptFullName)
+
+	handler := exec.Command(scriptMode, commandOptions...)
 	handler.Dir = srcPath
 	var outbuf, errbuf bytes.Buffer
 	handler.Stdout = &outbuf
@@ -222,7 +231,6 @@ func runAfterPullScript(project model.Project) (string, error) {
 		core.Log(core.ERROR, errbuf.String())
 		return "", errors.New(errbuf.String())
 	}
-
 	os.Remove(scriptName)
 	return outbuf.String(), nil
 }

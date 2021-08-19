@@ -153,7 +153,6 @@ func (Deploy) Publish(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	project, err := model.Project{ID: reqData.ProjectID}.GetData()
-
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
@@ -534,7 +533,6 @@ func projectDeploy(gp *core.Goploy, project model.Project, commitID string, bran
 	}
 
 	projectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
-
 	if err != nil {
 		return err
 	}

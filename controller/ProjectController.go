@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/repository"
 	"github.com/zhenorzz/goploy/utils"
 	"io/ioutil"
 	"os"
@@ -87,26 +88,19 @@ func (Project) GetRemoteBranchList(gp *core.Goploy) *core.Response {
 		}
 	}
 
-	cmd := exec.Command("git", "ls-remote", "-h", url)
-	var cmdOutbuf, cmdErrbuf bytes.Buffer
-	cmd.Stdout = &cmdOutbuf
-	cmd.Stderr = &cmdErrbuf
-	if err := cmd.Run(); err != nil {
-		return &core.Response{Code: core.Error, Message: cmdErrbuf.String()}
+	repo, err := repository.GetRepo(gp.URLQuery.Get("repoType"))
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	var branch []string
-	for _, branchWithSha := range strings.Split(cmdOutbuf.String(), "\n") {
-		if len(branchWithSha) != 0 {
-			branchWithShaSlice := strings.Fields(branchWithSha)
-			branchWithHead := branchWithShaSlice[len(branchWithShaSlice)-1]
-			branchWithHeadSlice := strings.Split(branchWithHead, "/")
-			branch = append(branch, branchWithHeadSlice[len(branchWithHeadSlice)-1])
-		}
+
+	list, err := repo.RemoteBranchList(url)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
 	return &core.Response{Data: struct {
 		Branch []string `json:"branch"`
-	}{Branch: branch}}
+	}{Branch: list}}
 }
 
 // GetBindServerList -
@@ -185,6 +179,7 @@ func (Project) GetProjectFileContent(gp *core.Goploy) *core.Response {
 func (Project) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name                  string  `json:"name" validate:"required"`
+		RepoType              string  `json:"repoType" validate:"required"`
 		URL                   string  `json:"url" validate:"required"`
 		Path                  string  `json:"path" validate:"required"`
 		Environment           uint8   `json:"environment" validate:"required"`
@@ -214,6 +209,7 @@ func (Project) Add(gp *core.Goploy) *core.Response {
 	projectID, err := model.Project{
 		NamespaceID:           gp.Namespace.ID,
 		Name:                  reqData.Name,
+		RepoType:              reqData.RepoType,
 		URL:                   reqData.URL,
 		Path:                  reqData.Path,
 		Environment:           reqData.Environment,
@@ -278,6 +274,7 @@ func (Project) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID                    int64  `json:"id" validate:"gt=0"`
 		Name                  string `json:"name"`
+		RepoType              string `json:"repoType"`
 		URL                   string `json:"url"`
 		Path                  string `json:"path"`
 		SymlinkPath           string `json:"symlinkPath"`
@@ -310,6 +307,7 @@ func (Project) Edit(gp *core.Goploy) *core.Response {
 	err = model.Project{
 		ID:                    reqData.ID,
 		Name:                  reqData.Name,
+		RepoType:              reqData.RepoType,
 		URL:                   reqData.URL,
 		Path:                  reqData.Path,
 		Environment:           reqData.Environment,

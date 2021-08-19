@@ -79,6 +79,24 @@ func (gitRepo GitRepo) Follow(project model.Project, target string) error {
 	return nil
 }
 
+func (GitRepo) RemoteBranchList(url string) ([]string, error) {
+	git := utils.GIT{}
+	if err := git.LsRemote("-h", url); err != nil {
+		return []string{}, errors.New(git.Err.String())
+	}
+
+	var list []string
+	for _, branchWithSha := range strings.Split(git.Output.String(), "\n") {
+		if len(branchWithSha) != 0 {
+			branchWithShaSlice := strings.Fields(branchWithSha)
+			branchWithHead := branchWithShaSlice[len(branchWithShaSlice)-1]
+			branchWithHeadSlice := strings.Split(branchWithHead, "/")
+			list = append(list, branchWithHeadSlice[len(branchWithHeadSlice)-1])
+		}
+	}
+	return list, nil
+}
+
 func (GitRepo) BranchList(projectID int64) ([]string, error) {
 	git := utils.GIT{Dir: core.GetProjectPath(projectID)}
 
@@ -152,7 +170,7 @@ func parseGITLog(rawCommitLog string) []CommitInfo {
 	var commitList []CommitInfo
 	for _, commitRow := range unformatCommitList {
 		commitRowSplit := strings.Split(commitRow, "`")
-		timestamp, _ := strconv.Atoi(commitRowSplit[2])
+		timestamp, _ := strconv.ParseInt(commitRowSplit[2], 10, 64)
 		commitList = append(commitList, CommitInfo{
 			Commit:    commitRowSplit[0],
 			Author:    commitRowSplit[1],
