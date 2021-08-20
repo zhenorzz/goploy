@@ -17,9 +17,9 @@ type SystemConfig struct {
 func (sc SystemConfig) GetDataByKey() (SystemConfig, error) {
 	var systemConfig SystemConfig
 	err := sq.
-		Select("id, key, value").
+		Select("id, `key`, value").
 		From(systemConfigTable).
-		Where(sq.Eq{"key": sc.Key}).
+		Where(sq.Eq{"`key`": sc.Key}).
 		RunWith(DB).
 		QueryRow().
 		Scan(&systemConfig.ID, &systemConfig.Key, &systemConfig.Value)
@@ -36,7 +36,7 @@ func (sc SystemConfig) EditRowByKey() error {
 		SetMap(sq.Eq{
 			"value": sc.Value,
 		}).
-		Where(sq.Eq{"key": sc.Key})
+		Where(sq.Eq{"`key`": sc.Key})
 	_, err := builder.RunWith(DB).Exec()
 	return err
 }

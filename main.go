@@ -36,7 +36,7 @@ var (
 	s    string
 )
 
-const appVersion = "1.3.3"
+const appVersion = "1.3.4"
 
 func init() {
 	flag.StringVar(&core.AssetDir, "asset-dir", "", "default: ./")
@@ -53,7 +53,6 @@ func usage() {
 }
 
 func main() {
-
 	flag.Parse()
 	if help {
 		flag.Usage()
@@ -72,8 +71,12 @@ func main() {
 \____/\____/ .___/_/\____/\__, /  
           /_/            /____/   ` + appVersion + "\n")
 	install()
-	pid := strconv.Itoa(os.Getpid())
 	_ = godotenv.Load(core.GetEnvFile())
+	model.Init()
+	if err := model.Update(appVersion); err != nil {
+		println(err.Error())
+	}
+	pid := strconv.Itoa(os.Getpid())
 	_ = ioutil.WriteFile(path.Join(core.GetAssetDir(), "goploy.pid"), []byte(pid), 0755)
 	println("Start at " + time.Now().String())
 	println("goploy -h for more help")
@@ -83,7 +86,6 @@ func main() {
 	println("Listen:        " + os.Getenv("PORT"))
 	println("Running...")
 	core.CreateValidator()
-	model.Init()
 	ws.Init()
 	route.Init()
 	task.Init()

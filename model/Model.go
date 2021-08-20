@@ -100,8 +100,7 @@ func Update(targetVerStr string) error {
 	}
 
 	if systemConfig.Value == "" {
-		systemConfig.Value = targetVerStr
-		return systemConfig.EditRowByKey()
+		systemConfig.Value = "0.0.1"
 	}
 
 	currentVer, err := version.NewVersion(systemConfig.Value)
@@ -115,7 +114,7 @@ func Update(targetVerStr string) error {
 	}
 
 	if ret := currentVer.Compare(targetVer); ret == 0 {
-		return errors.New("currentVer equal targetVer")
+		return nil
 	} else if ret == 1 {
 		return errors.New("currentVer greater than targetVer")
 	}
@@ -143,7 +142,7 @@ func Update(targetVerStr string) error {
 			}
 		}
 	}
-
+	println(`Update app success`)
 	systemConfig.Value = targetVerStr
 	return systemConfig.EditRowByKey()
 }

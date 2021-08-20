@@ -2,6 +2,19 @@
 
 ## 1.3.3
 
+*2021-08-20*
+
+### New features
+- support update app version
+- support svn
+- customize symlink backup number
+- add cmd mode in pull script 
+
+### Optimization
+- repository factory (for support other protocol in the future)
+
+## 1.3.3
+
 *2021-07-16*
 
 ### New features
