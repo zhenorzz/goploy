@@ -390,7 +390,7 @@
             <el-row style="margin: 0 10px 18px; white-space: pre-line">
               {{ $t('projectPage.symlinkHeaderTips') }}
             </el-row>
-            <el-form-item label="Symlink" label-width="80px">
+            <el-form-item label="Symlink" label-width="120px">
               <el-radio-group
                 v-model="formProps.symlink"
                 @change="handleSymlink"
@@ -403,9 +403,19 @@
             </el-form-item>
             <el-form-item
               v-show="formProps.symlink"
-              :label="$t('directory')"
+              label="Backup number"
+              label-width="120px"
+            >
+              <el-input-number
+                v-model="formData.symlinkBackupNumber"
+                :min="1"
+              />
+            </el-form-item>
+            <el-form-item
+              v-show="formProps.symlink"
+              label="Directory"
               prop="symlink_path"
-              label-width="80px"
+              label-width="120px"
             >
               <el-input v-model="formData.symlinkPath" readonly disabled>
                 <template #append>/uuid-version</template>
@@ -727,6 +737,7 @@ export default defineComponent({
         url: '',
         path: '',
         symlinkPath: '',
+        symlinkBackupNumber: 10,
         afterPullScriptMode: '',
         afterPullScript: '',
         afterDeployScriptMode: '',

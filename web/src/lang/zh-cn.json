@@ -181,7 +181,7 @@
     "publishReview": "发布审核",
     "reviewFooterTips": "只有成员构建项目才会触发审核\n审核方式：\n1. 前往构建发布页面进行审核\n2. 推送到URL:http(s)://domain?custom-param=1&callback=***\n3. http get callback的值即可完成审核\n重复访问callback只会发布一次，并且发布过不会再次发布",
     "symlinkLabel": "软链部署(推荐)",
-    "symlinkHeaderTips": "项目先同步到指定目录(rsync 软链目录)，然后ln -s 部署路径 软链目录\n可以避免项目在同步传输文件的过程中，外部访问到部分正在同步的文件\n备份最近10次的部署文件，以便快速回滚\n",
+    "symlinkHeaderTips": "项目先同步到指定目录(rsync 软链目录)，然后ln -s 部署路径 软链目录\n可以避免项目在同步传输文件的过程中，外部访问到部分正在同步的文件\n",
     "symlinkFooterTips": "如果部署路径已存在在目标服务器，请手动删除该目录rm -rf 部署路径，否则软链将会不成功\n",
     "afterPullScriptLabel": "拉取后运行脚本",
     "afterPullScriptTips": "拉取代码后在宿主服务器运行的脚本\n运行方式：打包成一份脚本文件\n检查服务器是否安装该脚本类型(默认以bash运行)",

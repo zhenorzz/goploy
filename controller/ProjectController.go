@@ -185,6 +185,7 @@ func (Project) Add(gp *core.Goploy) *core.Response {
 		Environment           uint8   `json:"environment" validate:"required"`
 		Branch                string  `json:"branch" validate:"required"`
 		SymlinkPath           string  `json:"symlinkPath"`
+		SymlinkBackupNumber   uint8   `json:"symlinkBackupNumber"`
 		Review                uint8   `json:"review"`
 		ReviewURL             string  `json:"reviewURL"`
 		AfterPullScriptMode   string  `json:"afterPullScriptMode"`
@@ -215,6 +216,7 @@ func (Project) Add(gp *core.Goploy) *core.Response {
 		Environment:           reqData.Environment,
 		Branch:                reqData.Branch,
 		SymlinkPath:           reqData.SymlinkPath,
+		SymlinkBackupNumber:   reqData.SymlinkBackupNumber,
 		Review:                reqData.Review,
 		ReviewURL:             reqData.ReviewURL,
 		AfterPullScriptMode:   reqData.AfterPullScriptMode,
@@ -278,6 +280,7 @@ func (Project) Edit(gp *core.Goploy) *core.Response {
 		URL                   string `json:"url"`
 		Path                  string `json:"path"`
 		SymlinkPath           string `json:"symlinkPath"`
+		SymlinkBackupNumber   uint8  `json:"symlinkBackupNumber"`
 		Review                uint8  `json:"review"`
 		ReviewURL             string `json:"reviewURL"`
 		Environment           uint8  `json:"environment"`
@@ -313,6 +316,7 @@ func (Project) Edit(gp *core.Goploy) *core.Response {
 		Environment:           reqData.Environment,
 		Branch:                reqData.Branch,
 		SymlinkPath:           reqData.SymlinkPath,
+		SymlinkBackupNumber:   reqData.SymlinkBackupNumber,
 		Review:                reqData.Review,
 		ReviewURL:             reqData.ReviewURL,
 		AfterPullScriptMode:   reqData.AfterPullScriptMode,

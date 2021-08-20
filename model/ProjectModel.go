@@ -19,6 +19,7 @@ type Project struct {
 	Environment           uint8  `json:"environment"`
 	Branch                string `json:"branch"`
 	SymlinkPath           string `json:"symlinkPath"`
+	SymlinkBackupNumber   uint8  `json:"symlinkBackupNumber"`
 	Review                uint8  `json:"review"`
 	ReviewURL             string `json:"reviewURL"`
 	AfterPullScriptMode   string `json:"afterPullScriptMode"`
@@ -77,6 +78,7 @@ func (p Project) AddRow() (int64, error) {
 			"environment",
 			"branch",
 			"symlink_path",
+			"symlink_backup_number",
 			"review",
 			"review_url",
 			"after_pull_script_mode",
@@ -96,6 +98,7 @@ func (p Project) AddRow() (int64, error) {
 			p.Environment,
 			p.Branch,
 			p.SymlinkPath,
+			p.SymlinkBackupNumber,
 			p.Review,
 			p.ReviewURL,
 			p.AfterPullScriptMode,
@@ -127,6 +130,7 @@ func (p Project) EditRow() error {
 			"environment":              p.Environment,
 			"branch":                   p.Branch,
 			"symlink_path":             p.SymlinkPath,
+			"symlink_backup_number":    p.SymlinkBackupNumber,
 			"review":                   p.Review,
 			"review_url":               p.ReviewURL,
 			"after_pull_script_mode":   p.AfterPullScriptMode,
@@ -240,6 +244,7 @@ func (p Project) GetList(pagination Pagination) (Projects, error) {
 			environment,
 			branch,
 			symlink_path, 
+			symlink_backup_number, 
 			review, 
 			review_url, 
 			after_pull_script_mode,
@@ -287,6 +292,7 @@ func (p Project) GetList(pagination Pagination) (Projects, error) {
 			&project.Environment,
 			&project.Branch,
 			&project.SymlinkPath,
+			&project.SymlinkBackupNumber,
 			&project.Review,
 			&project.ReviewURL,
 			&project.AfterPullScriptMode,
@@ -395,7 +401,32 @@ func (p Project) GetUserProjectList() (Projects, error) {
 func (p Project) GetData() (Project, error) {
 	var project Project
 	err := sq.
-		Select("id, namespace_id, name, repo_type, url, path, environment, branch, symlink_path, review, review_url, after_pull_script_mode, after_pull_script, after_deploy_script_mode, after_deploy_script, rsync_option, auto_deploy, deploy_state, notify_type, notify_target, project.last_publish_token, insert_time, update_time").
+		Select(`
+			id, 
+			namespace_id, 
+			name, 
+			repo_type, 
+			url, 
+			path, 
+			environment, 
+			branch, 
+			symlink_path, 
+			symlink_backup_number, 
+			review, 
+			review_url,
+			after_pull_script_mode, 
+			after_pull_script, 
+			after_deploy_script_mode, 
+			after_deploy_script, 
+			rsync_option, 
+			auto_deploy, 
+			deploy_state, 
+			notify_type, 
+			notify_target, 
+			project.
+			last_publish_token, 
+			insert_time, 
+			update_time`).
 		From(projectTable).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -410,6 +441,7 @@ func (p Project) GetData() (Project, error) {
 			&project.Environment,
 			&project.Branch,
 			&project.SymlinkPath,
+			&project.SymlinkBackupNumber,
 			&project.Review,
 			&project.ReviewURL,
 			&project.AfterPullScriptMode,

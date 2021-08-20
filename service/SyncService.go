@@ -575,7 +575,7 @@ func removeExpiredBackup(project model.Project, projectServer model.ProjectServe
 	var sshOutbuf, sshErrbuf bytes.Buffer
 	session.Stdout = &sshOutbuf
 	session.Stderr = &sshErrbuf
-	if err = session.Run("cd " + project.SymlinkPath + ";ls -t | awk 'NR>10' | xargs rm -rf"); err != nil {
+	if err = session.Run("cd " + project.SymlinkPath + ";ls -t | awk 'NR>" + strconv.Itoa(int(project.SymlinkBackupNumber)) + "' | xargs rm -rf"); err != nil {
 		core.Log(core.ERROR, err.Error())
 	}
 }

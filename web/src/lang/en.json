@@ -186,7 +186,7 @@
     "publishReview": "Review",
     "reviewFooterTips": "Only members deploy projects will trigger review\n1. Go to the Deploy page for review\n2. Push to URL:http(s)://domain?custom-param=1&callback=***\n3. Access the callback value\nRepeated access callback will only be published once",
     "symlinkLabel": "Symlink deploy",
-    "symlinkHeaderTips": "The project synchronize to the specified directory(rsync /symlinkPath), and ln -s projectPath symlinkPath\nIt can prevent the project from external access that are being synchronized during the process of synchronizing files\nBack up the latest 10 deployment files for quick rollback\n",
+    "symlinkHeaderTips": "The project synchronize to the specified directory(rsync /symlinkPath), and ln -s projectPath symlinkPath\nIt can prevent the project from external access that are being synchronized during the process of synchronizing files\n",
     "symlinkFooterTips": "If the deployment path already exists on the target server, please delete the directory manually(rm -rf projectPath), otherwise the symlink will fail\n",
     "afterPullScriptLabel": "After pull script",
     "afterPullScriptTips": "The script that runs on the host server after pull\nFor example: bash after-pull-script.sh",
