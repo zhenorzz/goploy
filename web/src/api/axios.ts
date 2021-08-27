@@ -1,7 +1,7 @@
 import axios, { AxiosResponse, AxiosRequestConfig, AxiosError } from 'axios'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { removeNamespaceIdCookie } from '@/utils/namespace'
-import store from '@/store'
+import { logout } from '@/utils/auth'
 
 // create an axios instance
 const service = axios.create({
@@ -43,9 +43,8 @@ service.interceptors.response.use(
           cancelButtonText: 'Cancel',
           type: 'warning',
         }).then(() => {
-          store.dispatch('user/logout').then(() => {
-            location.reload()
-          })
+          logout()
+          location.reload()
         })
         return Promise.reject(res.message)
       } else if (10002 === res.code) {
