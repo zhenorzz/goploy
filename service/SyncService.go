@@ -374,27 +374,13 @@ func remoteSync(msgChIn chan<- syncMessage, userInfo model.User, project model.P
 	session.Stderr = &sshErrbuf
 	if err := session.Run(strings.Join(afterDeployCommands, ";")); err != nil {
 		core.Log(core.ERROR, "ssh exec err: "+err.Error())
-		publishTraceModel.Detail = err.Error()
+		publishTraceModel.Detail = "err: " + err.Error() + ", detail: " + sshErrbuf.String()
 		publishTraceModel.State = model.Fail
 		publishTraceModel.AddRow()
 		msgChIn <- syncMessage{
 			serverName: projectServer.ServerName,
 			projectID:  project.ID,
 			detail:     err.Error(),
-			state:      model.ProjectFail,
-		}
-		return
-	}
-
-	if sshErrbuf.String() != "" {
-		core.Log(core.ERROR, "ssh command err: "+sshErrbuf.String())
-		publishTraceModel.Detail = sshErrbuf.String()
-		publishTraceModel.State = model.Fail
-		publishTraceModel.AddRow()
-		msgChIn <- syncMessage{
-			serverName: projectServer.ServerName,
-			projectID:  project.ID,
-			detail:     sshErrbuf.String(),
 			state:      model.ProjectFail,
 		}
 		return
