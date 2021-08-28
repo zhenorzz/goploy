@@ -42,11 +42,11 @@
 
 ## 捐赠
 
-如果你觉得这个项目帮助到了你，你可以帮作者买一杯奶茶表示鼓励 🥛
+如果你觉得这个项目帮助到了你，你可以请作者喝一杯奶茶表示鼓励 🥛
 
 <p>
-  <img src="http://img.goploy.icu/weixin.png" width="200">
-  <img src="http://img.goploy.icu/alipay.png" width="209">
+  <img src="https://www.goploy.icu/weixin.png" width="200">
+  <img src="https://www.goploy.icu/alipay.png" width="209">
 </p>
 
 企业二次定制，联系QQ群主。
