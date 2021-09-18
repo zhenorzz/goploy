@@ -19,6 +19,7 @@ type Server struct {
 	Password    string `json:"password"`
 	NamespaceID int64  `json:"namespaceId"`
 	Description string `json:"description"`
+	OSInfo      string `json:"osInfo"`
 	State       int8   `json:"state"`
 	InsertTime  string `json:"insertTime"`
 	UpdateTime  string `json:"updateTime"`
@@ -30,7 +31,7 @@ type Servers []Server
 // GetList -
 func (s Server) GetList(pagination Pagination) (Servers, error) {
 	rows, err := sq.
-		Select("id, namespace_id, name, ip, port, owner, path, password, description, state, insert_time, update_time").
+		Select("id, namespace_id, name, ip, port, owner, path, password, description, os_info, state, insert_time, update_time").
 		From(serverTable).
 		Where(sq.Eq{
 			"namespace_id": []int64{0, s.NamespaceID},
@@ -57,6 +58,7 @@ func (s Server) GetList(pagination Pagination) (Servers, error) {
 			&server.Path,
 			&server.Password,
 			&server.Description,
+			&server.OSInfo,
 			&server.State,
 			&server.InsertTime,
 			&server.UpdateTime); err != nil {
@@ -133,8 +135,8 @@ func (s Server) GetData() (Server, error) {
 func (s Server) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(serverTable).
-		Columns("namespace_id", "name", "ip", "port", "owner", "password", "path", "description").
-		Values(s.NamespaceID, s.Name, s.IP, s.Port, s.Owner, s.Password, s.Path, s.Description).
+		Columns("namespace_id", "name", "ip", "port", "owner", "password", "path", "description", "os_info").
+		Values(s.NamespaceID, s.Name, s.IP, s.Port, s.Owner, s.Password, s.Path, s.Description, s.OSInfo).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -157,6 +159,7 @@ func (s Server) EditRow() error {
 			"password":     s.Password,
 			"path":         s.Path,
 			"description":  s.Description,
+			"os_info":      s.OSInfo,
 		}).
 		Where(sq.Eq{"id": s.ID}).
 		RunWith(DB).

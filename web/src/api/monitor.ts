@@ -1,4 +1,3 @@
-import Axios from './axios'
 import { Request, Pagination, ID, Total } from './types'
 
 export class MonitorData {

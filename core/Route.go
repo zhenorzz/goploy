@@ -138,12 +138,12 @@ func (rt *Router) checkLogin(w http.ResponseWriter, r *http.Request) (*Goploy, *
 			return nil, &Response{Code: LoginExpired, Message: "Login expired"}
 		}
 
-		namespaceCookie, err := r.Cookie(NamespaceCookieName)
-		if err != nil {
-			return nil, &Response{Code: IllegalRequest, Message: "Illegal namespace"}
+		namespaceIDRaw := r.Header.Get(NamespaceHeaderName)
+		if namespaceIDRaw == "" {
+			namespaceIDRaw = r.URL.Query().Get(NamespaceHeaderName)
 		}
 
-		namespaceID, err := strconv.ParseInt(namespaceCookie.Value, 10, 64)
+		namespaceID, err := strconv.ParseInt(namespaceIDRaw, 10, 64)
 		if err != nil {
 			return nil, &Response{Code: Deny, Message: "Invalid namespace"}
 		}

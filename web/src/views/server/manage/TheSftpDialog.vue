@@ -110,6 +110,7 @@
 <script lang="ts">
 import path from 'path-browserify'
 import { ElMessage } from 'element-plus'
+import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import { computed, watch, defineComponent, ref } from 'vue'
 import { ServerOption } from '@/api/server'
 import { humanSize } from '@/utils'
@@ -165,7 +166,9 @@ export default defineComponent({
         ws = new WebSocket(
           `${location.protocol.replace('http', 'ws')}//${
             window.location.host + import.meta.env.VITE_APP_BASE_API
-          }/ws/sftp?serverId=${selectedServer.id}`
+          }/ws/sftp?serverId=${
+            selectedServer.id
+          }&${NamespaceKey}=${getNamespaceId()}`
         )
       } catch (error) {
         console.error(error)

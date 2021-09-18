@@ -1,6 +1,7 @@
 import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import { AttachAddon } from 'xterm-addon-attach'
+import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 export class xterm {
   private serverId: number
   private element: HTMLDivElement
@@ -25,9 +26,9 @@ export class xterm {
     this.websocket = new WebSocket(
       `${location.protocol.replace('http', 'ws')}//${
         window.location.host + import.meta.env.VITE_APP_BASE_API
-      }/ws/xterm?serverId=${this.serverId}&rows=${this.terminal.rows}&cols=${
-        this.terminal.cols
-      }`
+      }/ws/xterm?${NamespaceKey}=${getNamespaceId()}&serverId=${
+        this.serverId
+      }&rows=${this.terminal.rows}&cols=${this.terminal.cols}`
     )
     this.terminal.loadAddon(new AttachAddon(this.websocket))
   }

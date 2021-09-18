@@ -1,4 +1,4 @@
-import { HttpResponse, Request, Pagination, ID, Total } from './types'
+import { HttpResponse, Request, Pagination, Total } from './types'
 
 export class ServerData {
   public datagram!: {

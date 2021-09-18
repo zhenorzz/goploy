@@ -154,6 +154,7 @@ CREATE TABLE IF NOT EXISTS `server`  (
   `owner` varchar(255) NOT NULL DEFAULT '',
   `path` varchar(255) NOT NULL DEFAULT '',
   `password` varchar(255) NOT NULL DEFAULT '',
+  `os_info` varchar(255) NOT NULL DEFAULT '' COMMENT 'os|cpu cores|mem',
   `description` varchar(255) NOT NULL DEFAULT '',
   `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

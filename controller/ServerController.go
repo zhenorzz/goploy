@@ -1,14 +1,17 @@
 package controller
 
 import (
+	"bytes"
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/utils"
 	"io"
 	"io/ioutil"
+	"os/exec"
 	"path"
 	"strconv"
+	"strings"
 )
 
 // Server struct
@@ -85,14 +88,16 @@ func (Server) Check(gp *core.Goploy) *core.Response {
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	if _, err := utils.DialSSH(reqData.Owner, reqData.Password, reqData.Path, reqData.IP, reqData.Port); err != nil {
+	if Conn, err := utils.DialSSH(reqData.Owner, reqData.Password, reqData.Path, reqData.IP, reqData.Port); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
+	} else {
+		_ = Conn.Close()
 	}
 	return &core.Response{Message: "Connected"}
 }
 
 // Add server
-func (Server) Add(gp *core.Goploy) *core.Response {
+func (s Server) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name        string `json:"name" validate:"required"`
 		NamespaceID int64  `json:"namespaceId" validate:"gte=0"`
@@ -118,6 +123,7 @@ func (Server) Add(gp *core.Goploy) *core.Response {
 		Path:        reqData.Path,
 		Password:    reqData.Password,
 		Description: reqData.Description,
+		OSInfo:      s.getOSInfo(reqData.Owner, reqData.IP, strconv.Itoa(reqData.Port), reqData.Path),
 	}.AddRow()
 
 	if err != nil {
@@ -132,7 +138,7 @@ func (Server) Add(gp *core.Goploy) *core.Response {
 }
 
 // Edit server
-func (Server) Edit(gp *core.Goploy) *core.Response {
+func (s Server) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID          int64  `json:"id" validate:"gt=0"`
 		NamespaceID int64  `json:"namespaceId" validate:"gte=0"`
@@ -158,6 +164,7 @@ func (Server) Edit(gp *core.Goploy) *core.Response {
 		Path:        reqData.Path,
 		Password:    reqData.Password,
 		Description: reqData.Description,
+		OSInfo:      s.getOSInfo(reqData.Owner, reqData.IP, strconv.Itoa(reqData.Port), reqData.Path),
 	}.EditRow()
 
 	if err != nil {
@@ -214,4 +221,24 @@ func (Server) RemoteFile(gp *core.Goploy) *core.Response {
 	_ = srcFile.Close()
 	_ = sftpClient.Close()
 	return nil
+}
+
+// version|cpu cores|mem
+func (Server) getOSInfo(owner, ip, port, path string) string {
+	osInfoScript := `cat /etc/os-release | grep "PRETTY_NAME" | awk -F\" '{print $2}' && cat /proc/cpuinfo  | grep "processor" | wc -l && cat /proc/meminfo | grep MemTotal | awk '{print $2}'`
+
+	cmd := exec.Command("ssh",
+		owner+"@"+ip,
+		"-p", port,
+		"-i", path,
+		"-o", "StrictHostKeyChecking=no",
+		osInfoScript)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	if err := cmd.Run(); err != nil {
+		return ""
+	}
+	// version|cpu cores|mem
+	return strings.Replace(strings.Trim(out.String(), "\n"), "\n", "|", -1)
 }

@@ -19,7 +19,7 @@
     >
       <el-table-column prop="id" label="ID" width="100" />
       <el-table-column prop="name" :label="$t('name')" min-width="140" />
-      <el-table-column prop="ip" label="Host" min-width="140">
+      <el-table-column prop="ip" label="Host" min-width="140" sortable>
         <template #default="scope">
           {{ scope.row.ip }}:{{ scope.row.port }}
         </template>
@@ -30,6 +30,25 @@
         width="120"
         show-overflow-tooltip
       />
+      <el-table-column label="OS" min-width="100" show-overflow-tooltip>
+        <template #default="scope">
+          <svg-icon
+            v-if="scope.row.osInfo !== ''"
+            :icon-class="getOSIcon(scope.row.osInfo)"
+          />
+          {{ getOS(scope.row.osInfo) }}
+        </template>
+      </el-table-column>
+      <el-table-column
+        prop="osInfo"
+        label="CPU/MEMORY"
+        min-width="100"
+        show-overflow-tooltip
+      >
+        <template #default="scope">
+          {{ getOSDetail(scope.row.osInfo) }}
+        </template>
+      </el-table-column>
       <el-table-column
         prop="description"
         :label="$t('desc')"
@@ -205,7 +224,7 @@ import TheXtermDialog from './TheXtermDialog.vue'
 import TheSftpDialog from './TheSftpDialog.vue'
 import Validator from 'async-validator'
 import { defineComponent } from 'vue'
-import { copy } from '@/utils'
+import { copy, humanSize } from '@/utils'
 import { ElMessageBox, ElMessage } from 'element-plus'
 
 export default defineComponent({
@@ -427,6 +446,24 @@ export default defineComponent({
 
     restoreFormData() {
       this.formData = JSON.parse(JSON.stringify(this.tempFormData))
+    },
+
+    getOS(osInfo: string): string {
+      if (osInfo === '') return ''
+      return osInfo.split('|')[0]
+    },
+
+    getOSIcon(osInfo: string): string {
+      if (osInfo === '') return ''
+      else if (osInfo.toLowerCase().includes('centos')) return 'centos'
+      else if (osInfo.toLowerCase().includes('ubuntu')) return 'ubuntu'
+      else return 'question-mark-blue'
+    },
+
+    getOSDetail(osInfo: string): string {
+      if (osInfo === '') return ''
+      const osArr = osInfo.split('|')
+      return osArr[1] + ' cores ' + humanSize(Number(osArr[2]) * 1024)
     },
   },
 })

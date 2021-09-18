@@ -1,5 +1,4 @@
-import Cookies from 'js-cookie'
-const NamespaceKey = 'goploy_namespace'
+export const NamespaceKey = 'G-N-ID'
 const NamespaceListKey = 'goploy_namespace_list'
 
 export interface Namespace {
@@ -13,20 +12,21 @@ export const role = Object.freeze({
   Manager: 'manager',
   GroupManager: 'group-manager',
   Member: 'member',
+  Namespace: getNamespace(),
   toString(): string {
-    return getNamespace()['role']
+    return role.Namespace['role']
   },
   isAdmin(): boolean {
-    return role.Admin === getNamespace()['role']
+    return role.Admin === role.Namespace['role']
   },
   isManager(): boolean {
-    return role.Manager === getNamespace()['role']
+    return role.Manager === role.Namespace['role']
   },
   isGroupManager(): boolean {
-    return role.GroupManager === getNamespace()['role']
+    return role.GroupManager === role.Namespace['role']
   },
   isMember(): boolean {
-    return role.Member === getNamespace()['role']
+    return role.Member === role.Namespace['role']
   },
   hasAdminPermission(): boolean {
     return role.isAdmin()
@@ -40,24 +40,30 @@ export const role = Object.freeze({
 })
 
 export function getNamespace(): Namespace {
-  const namespace = localStorage.getItem(NamespaceKey)
-  return namespace ? JSON.parse(namespace) : undefined
+  const namespaceId = getNamespaceId()
+  const namespaceList = getNamespaceList()
+  if (namespaceId && namespaceList) {
+    return namespaceList.find(
+      (_) => _.id.toString() === namespaceId
+    ) as Namespace
+  }
+  return { id: 0, name: '', role: '' }
 }
 
-export function setNamespace(namespace: Namespace): void {
-  localStorage.setItem(NamespaceKey, JSON.stringify(namespace))
+export function getNamespaceId(): string | undefined {
+  const namespaceId =
+    sessionStorage.getItem(NamespaceKey) || localStorage.getItem(NamespaceKey)
+  return namespaceId || undefined
 }
 
-export function getNamespaceIdCookie(): string | undefined {
-  return Cookies.get(NamespaceKey)
+export function setNamespaceId(namespaceId: string): void {
+  sessionStorage.setItem(NamespaceKey, namespaceId)
+  localStorage.setItem(NamespaceKey, namespaceId)
 }
 
-export function setNamespaceIdCookie(namespaceId: string): void {
-  Cookies.set(NamespaceKey, namespaceId, { expires: 365 })
-}
-
-export function removeNamespaceIdCookie(): void {
-  Cookies.remove(NamespaceKey)
+export function removeNamespaceId(): void {
+  sessionStorage.removeItem(NamespaceKey)
+  localStorage.removeItem(NamespaceKey)
 }
 
 export function getNamespaceList(): Array<Namespace> {

@@ -1,6 +1,10 @@
 import axios, { AxiosResponse, AxiosRequestConfig, AxiosError } from 'axios'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { removeNamespaceIdCookie } from '@/utils/namespace'
+import {
+  NamespaceKey,
+  getNamespaceId,
+  removeNamespaceId,
+} from '@/utils/namespace'
 import { logout } from '@/utils/auth'
 
 // create an axios instance
@@ -14,6 +18,7 @@ const service = axios.create({
 service.interceptors.request.use(
   (config: AxiosRequestConfig) => {
     // do something before request is sent
+    config.headers[NamespaceKey] = getNamespaceId()
     return config
   },
   (error: AxiosError) => {
@@ -48,7 +53,7 @@ service.interceptors.response.use(
         })
         return Promise.reject(res.message)
       } else if (10002 === res.code) {
-        removeNamespaceIdCookie()
+        removeNamespaceId()
         return Promise.reject(res.message)
       } else {
         ElMessage({

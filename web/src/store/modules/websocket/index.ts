@@ -3,6 +3,7 @@ import { WebsocketState } from './types'
 import { RootState } from '../../types'
 import { parseTime } from '@/utils'
 import { ElMessageBox, ElMessage } from 'element-plus'
+import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 
 const state: WebsocketState = {
   ws: null,
@@ -33,7 +34,7 @@ const actions: ActionTree<WebsocketState, RootState> = {
       const websocket = new WebSocket(
         `${location.protocol.replace('http', 'ws')}//${location.host}${
           import.meta.env.VITE_APP_BASE_API
-        }/ws/connect`
+        }/ws/connect?${NamespaceKey}=${getNamespaceId()}`
       )
       websocket.onopen = () => {
         console.log('websocket连接成功, 时间：' + parseTime(Date.now()))

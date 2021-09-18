@@ -13,8 +13,6 @@ const whiteList = ['/login'] // no redirect whitelist
 router.beforeEach(async (to) => {
   // start progress bar
   NProgress.start()
-  // set page title
-  document.title = 'Goploy'
   // determine whether the user has logged in
   if (isLogin()) {
     if (to.path === '/login') {
@@ -29,7 +27,6 @@ router.beforeEach(async (to) => {
       } else {
         try {
           // get user info
-          // note: roles must be a object array! such as: ['admin'] or ,['developer','editor']
           await store.dispatch('user/getInfo')
           // generate accessible routes map based on roles
           const accessRoutes = await store.dispatch('permission/generateRoutes')

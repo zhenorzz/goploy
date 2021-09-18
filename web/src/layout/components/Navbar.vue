@@ -166,9 +166,8 @@ import Hamburger from '@/components/Hamburger/index.vue'
 import {
   getNamespace,
   getNamespaceList,
-  setNamespace,
-  setNamespaceIdCookie,
-  removeNamespaceIdCookie,
+  setNamespaceId,
+  removeNamespaceId,
 } from '@/utils/namespace'
 import { ElLoading } from 'element-plus'
 import { defineComponent } from 'vue'
@@ -195,14 +194,14 @@ export default defineComponent({
     //   this.starCount = data.stargazers_count
     //   this.forkCount = data.forks_count
     // })
+    document.title = `Goploy-${this.namespace.name}`
   },
   methods: {
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
     },
     handleNamespaceChange(namespace) {
-      setNamespace(namespace)
-      setNamespaceIdCookie(namespace.id.toString())
+      setNamespaceId(namespace.id.toString())
       ElLoading.service({ fullscreen: true })
       location.reload()
     },
@@ -214,7 +213,7 @@ export default defineComponent({
     async logout() {
       await this.$store.dispatch('user/logout')
       await this.$store.dispatch('tagsView/delAllViews')
-      removeNamespaceIdCookie()
+      removeNamespaceId()
       this.$router.push(`/login?redirect=${this.$route.fullPath}`)
     },
   },

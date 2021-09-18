@@ -4,10 +4,8 @@ import { RootState } from '../../types'
 import { Login, Info } from '@/api/user'
 import { setLogin, logout } from '@/utils/auth'
 import {
-  getNamespaceIdCookie,
-  Namespace,
-  setNamespace,
-  setNamespaceIdCookie,
+  getNamespaceId,
+  setNamespaceId,
   setNamespaceList,
 } from '@/utils/namespace'
 import { resetRouter } from '@/router'
@@ -43,15 +41,9 @@ const actions: ActionTree<UserState, RootState> = {
         .request()
         .then((response) => {
           const { data } = response
-          if (!getNamespaceIdCookie()) {
+          if (!getNamespaceId()) {
             const namespace = data.namespaceList[data.namespaceList.length - 1]
-            setNamespace(namespace)
-            setNamespaceIdCookie(namespace.id.toString())
-          } else {
-            const namespace = data.namespaceList.find(
-              (_) => _.id.toString() === getNamespaceIdCookie()
-            ) as Namespace
-            setNamespace(namespace)
+            setNamespaceId(namespace.id.toString())
           }
           setNamespaceList(data.namespaceList)
 

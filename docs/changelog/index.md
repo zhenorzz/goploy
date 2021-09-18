@@ -1,6 +1,18 @@
 # change log
 
-## 1.3.3
+## 1.3.5
+
+*2021-09-18*
+
+### New features
+- allow sort server ip
+- add server configuration
+- support multiple browser tabs
+
+### Optimization
+- fix vite hot reload
+
+## 1.3.4
 
 *2021-08-20*
 

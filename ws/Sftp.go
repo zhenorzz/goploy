@@ -57,6 +57,7 @@ func (hub *Hub) Sftp(gp *core.Goploy) *core.Response {
 		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
 		return nil
 	}
+	defer sftpClient.Close()
 
 	ticker := time.NewTicker(pingPeriod)
 	defer ticker.Stop()
