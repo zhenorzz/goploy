@@ -12,3 +12,14 @@ proxy_set_header Connection      "upgrade";
 # Illegal request
 
 请检查反向代理是否正确，查看network是否有带cookie
+
+# centos6安装rsync源
+```shell
+cd /etc/yum.repos.d/
+mkdir bak
+mv * bak/
+curl -o /etc/yum.repos.d/CentOS-Base.repo http://file.kangle.odata.cc/repo/Centos-6.repo
+curl -o /etc/yum.repos.d/epel.repo http://file.kangle.odata.cc/repo/epel-6.repo
+yum clean all
+yum makecache
+```
