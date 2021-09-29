@@ -105,7 +105,8 @@ func Init() *router.Router {
 	rt.Add("/server/add", http.MethodPost, controller.Server{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/edit", http.MethodPut, controller.Server{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/toggle", http.MethodPut, controller.Server{}.Toggle).Roles([]string{core.RoleAdmin, core.RoleManager})
-	rt.Add("/server/remoteFile", http.MethodGet, controller.Server{}.RemoteFile).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/server/downloadFile", http.MethodGet, controller.Server{}.DownloadFile).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/server/uploadFile", http.MethodPost, controller.Server{}.UploadFile).Roles([]string{core.RoleAdmin, core.RoleManager})
 
 	// crontab route
 	rt.Add("/crontab/getList", http.MethodGet, controller.Crontab{}.GetList)

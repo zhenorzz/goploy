@@ -190,14 +190,13 @@ func (Server) Toggle(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// RemoteFile sftp download file
-func (Server) RemoteFile(gp *core.Goploy) *core.Response {
+// DownloadFile sftp download file
+func (Server) DownloadFile(gp *core.Goploy) *core.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: "invalid server id"}
 	}
 
-	filename := gp.URLQuery.Get("file")
 	server, err := (model.Server{ID: id}).GetData()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -206,11 +205,12 @@ func (Server) RemoteFile(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	//defer client.Close()
+	defer client.Close()
 	sftpClient, err := sftp.NewClient(client)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
+	filename := gp.URLQuery.Get("file")
 	srcFile, _ := sftpClient.Open(filename) //远程
 	FileStat, _ := srcFile.Stat()
 	FileSize := strconv.FormatInt(FileStat.Size(), 10)
@@ -220,6 +220,54 @@ func (Server) RemoteFile(gp *core.Goploy) *core.Response {
 	_, _ = io.Copy(gp.ResponseWriter, srcFile)
 	_ = srcFile.Close()
 	_ = sftpClient.Close()
+	return nil
+}
+
+// UploadFile sftp upload file
+func (Server) UploadFile(gp *core.Goploy) *core.Response {
+	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: "invalid server id"}
+	}
+	server, err := (model.Server{ID: id}).GetData()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	file, fileHandler, err := gp.Request.FormFile("file")
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	defer file.Close()
+
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	defer client.Close()
+
+	sftpClient, err := sftp.NewClient(client)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	defer sftpClient.Close()
+
+	filePath := gp.URLQuery.Get("filePath")
+	remoteFile, err := sftpClient.Create(filePath + "/" + fileHandler.Filename)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	_, err = remoteFile.Write(fileBytes)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
 	return nil
 }
 

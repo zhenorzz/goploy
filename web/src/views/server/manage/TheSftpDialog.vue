@@ -23,7 +23,7 @@
     </el-select>
     <el-input
       v-model="dir"
-      style="width: 100%"
+      style="flex: 1; margin-right: 4px"
       :disabled="!wsConnected"
       :readonly="!wsConnected"
       @keyup.enter="goto(dir)"
@@ -49,6 +49,18 @@
           icon="el-icon-refresh"
           @click="refresh"
         />
+        <el-upload
+          v-if="wsConnected"
+          style="display: inline-block; width: 30px; text-align: right"
+          :action="uploadHref(serverId)"
+          :before-upload="beforeUpload"
+          multiple
+          :on-success="handleUploadSuccess"
+          :on-error="handleUploadError"
+          :show-file-list="false"
+        >
+          <el-button type="primary" icon="el-icon-upload" />
+        </el-upload>
       </template>
     </el-input>
     <el-table
@@ -86,21 +98,26 @@
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
-          <el-button
-            style="margin-right: 10px"
-            :disabled="!scope.row.isDir"
-            type="text"
-            icon="el-icon-right"
-            @click="goto(`${dir}/${scope.row.name}`)"
-          />
-          <el-link
-            :disabled="scope.row.isDir"
-            :href="downloadHref(`${dir}/${scope.row.name}`)"
-            target="_blank"
-            :underline="false"
-          >
-            <i class="el-icon-download"></i>
-          </el-link>
+          <template v-if="scope.row.uploading">
+            <i class="el-icon-loading"></i>
+          </template>
+          <template v-else>
+            <el-button
+              style="margin-right: 10px"
+              :disabled="!scope.row.isDir"
+              type="text"
+              icon="el-icon-right"
+              @click="goto(`${dir}/${scope.row.name}`)"
+            />
+            <el-link
+              :disabled="scope.row.isDir"
+              :href="downloadHref(`${dir}/${scope.row.name}`)"
+              target="_blank"
+              :underline="false"
+            >
+              <i class="el-icon-download"></i>
+            </el-link>
+          </template>
         </template>
       </el-table-column>
     </el-table>
@@ -109,11 +126,21 @@
 
 <script lang="ts">
 import path from 'path-browserify'
-import { ElMessage } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import { computed, watch, defineComponent, ref } from 'vue'
 import { ServerOption } from '@/api/server'
-import { humanSize } from '@/utils'
+import { useI18n } from 'vue-i18n'
+import { humanSize, parseTime } from '@/utils'
+import { HttpResponse } from '@/api/types'
+export interface sftpFile {
+  name: string
+  size: number
+  mode: string
+  modTime: string
+  isDir: boolean
+  uploading: boolean
+}
 export default defineComponent({
   props: {
     modelValue: {
@@ -123,6 +150,7 @@ export default defineComponent({
   },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
+    const { t } = useI18n()
     const dialogVisible = computed({
       get: () => props.modelValue,
       set: (val) => {
@@ -146,7 +174,7 @@ export default defineComponent({
       }
     })
     const serverId = ref('')
-    const tableData = ref([])
+    const tableData = ref([] as sftpFile[])
     const wsConnected = ref(false)
     let ws: WebSocket
     const handleSelectServer = () => {
@@ -201,6 +229,7 @@ export default defineComponent({
               mode: '',
               modTime: '',
               isDir: true,
+              uploading: false,
             })
           }
         }
@@ -228,10 +257,78 @@ export default defineComponent({
     }
     const downloadHref = (file: string) => {
       file = path.normalize(file)
-      return `${import.meta.env.VITE_APP_BASE_API}/server/remoteFile?id=${
+      return `${
+        import.meta.env.VITE_APP_BASE_API
+      }/server/downloadFile?${NamespaceKey}=${getNamespaceId()}&id=${
         serverId.value
       }&file=${file}`
     }
+
+    const uploadHref = (serverId: string) => {
+      return `${
+        import.meta.env.VITE_APP_BASE_API
+      }/server/uploadFile?${NamespaceKey}=${getNamespaceId()}&id=${serverId}&filePath=${
+        dir.value
+      }`
+    }
+
+    const handleUploadSuccess = (
+      response: HttpResponse<string>,
+      file: File
+    ) => {
+      const tableIndex = tableData.value.findIndex((_) => file.name === _.name)
+      if (tableIndex >= 0) {
+        if (response.code > 0) {
+          ElMessage.error(`upload failed, detail: ${response.message}`)
+          tableData.value.splice(tableIndex, 1)
+        } else {
+          tableData.value[tableIndex].uploading = false
+        }
+      }
+      return true
+    }
+
+    const handleUploadError = (err: Error, file: File) => {
+      const tableIndex = tableData.value.findIndex((_) => file.name === _.name)
+      if (tableIndex >= 0) {
+        ElMessage.error(`upload failed, detail: ${err.message}`)
+        tableData.value.splice(tableIndex, 1)
+      }
+      return true
+    }
+
+    const beforeUpload = async (file: File) => {
+      const tableIndex = tableData.value.findIndex((_) => file.name === _.name)
+      if (tableIndex >= 0) {
+        const overwriteFile = await ElMessageBox.confirm('', t('tips'), {
+          message: `${file.name} is already exist, would you like to overwrite it?`,
+          confirmButtonText: t('confirm'),
+          cancelButtonText: t('cancel'),
+          type: 'warning',
+        })
+          .then(() => {
+            tableData.value.splice(tableIndex, 1)
+            return true
+          })
+          .catch(() => {
+            ElMessage.info(t('cancel'))
+            return false
+          })
+        if (overwriteFile === false) {
+          return Promise.reject()
+        }
+      }
+      tableData.value.unshift({
+        name: file.name,
+        size: file.size,
+        mode: '-rw-rw-rw-',
+        modTime: parseTime(file.lastModified),
+        isDir: false,
+        uploading: true,
+      })
+      return Promise.resolve()
+    }
+
     return {
       dialogVisible,
       serverLoading,
@@ -247,6 +344,10 @@ export default defineComponent({
       back,
       refresh,
       downloadHref,
+      uploadHref,
+      handleUploadSuccess,
+      handleUploadError,
+      beforeUpload,
     }
   },
 })
