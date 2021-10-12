@@ -132,7 +132,7 @@
                 />
               </el-radio>
               <el-button type="danger" plain @click="rebuild(item)">
-                rebuild
+                rollback
               </el-button>
             </el-row>
           </el-row>

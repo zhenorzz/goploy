@@ -249,10 +249,10 @@ func (Deploy) Rebuild(gp *core.Goploy) *core.Response {
 				var sshOutbuf, sshErrbuf bytes.Buffer
 				session.Stdout = &sshOutbuf
 				session.Stderr = &sshErrbuf
-				symlinkPath := path.Join(project.SymlinkPath, project.Name, reqData.Token)
+				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
 
 				// check if the path is exist or not
-				if err := session.Run("cd " + symlinkPath); err != nil {
+				if err := session.Run("cd " + destDir); err != nil {
 					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" check symlink path err: "+err.Error()+", detail: "+sshErrbuf.String())
 					ch <- false
 					return
@@ -264,7 +264,10 @@ func (Deploy) Rebuild(gp *core.Goploy) *core.Response {
 					ch <- false
 					return
 				}
-				afterDeployCommands := []string{"ln -sfn " + symlinkPath + " " + project.Path}
+				relativeDestDir := strings.Replace(destDir, path.Dir(project.Path), ".", 1)
+				var afterDeployCommands []string
+				afterDeployCommands = append(afterDeployCommands, "ln -sfn "+relativeDestDir+" "+project.Path)
+				afterDeployCommands = append(afterDeployCommands, "touch -m "+destDir)
 				if len(project.AfterDeployScript) != 0 {
 					scriptMode := "bash"
 					if len(project.AfterDeployScriptMode) != 0 {

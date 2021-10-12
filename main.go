@@ -218,7 +218,7 @@ func install() {
 	envContent := "# when you edit its value, you need to restart\n"
 	envContent += "DB_TYPE=mysql\n"
 	envContent += fmt.Sprintf(
-		"DB_CONN=%s%s@tcp(%s:%s)/goploy?charset=utf8mb4,utf8\n",
+		"DB_CONN=%s%s@(%s:%s)/goploy?charset=utf8mb4,utf8\n",
 		mysqlUser,
 		mysqlPassword,
 		mysqlHost,
