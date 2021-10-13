@@ -1,6 +1,37 @@
 #!/bin/bash
-GOOS=linux GOARCH=amd64 go build -o goploy main.go
 
-GOOS=darwin GOARCH=amd64 go build -o goploy.mac main.go
+echo "Change version number? [Version number/N]";
+read x
 
-GOOS=windows GOARCH=amd64 go build -o goploy.exe main.go
+if [[ $x =~ ^[1-9].[0-9].[0-9]$ ]]
+then
+  sed -i -e "s/const appVersion = \"[0-9].[0-9].[0-9]\"/const appVersion = \"$x\"/g" main.go
+  sed -i -e "s/'[0-9].[0-9].[0-9]'/'$x'/g" model/sql/goploy.sql
+  sed -i -e "s/GOPLOY_VER=v1.3.5/GOPLOY_VER=v$x/g" docker/Dockerfile
+fi
+
+echo "Build web? [Y/N]";
+read x
+
+if [ "$x" == Y ] || [ "$x" == y ]
+then
+    cd web
+    npm run build
+    cd ..
+fi
+
+
+echo "Building goploy";
+
+GOOS=linux
+GOARCH=amd64
+go build -o goploy main.go
+
+GOOS=darwin
+GOARCH=amd64
+go build -o goploy.mac main.go
+
+GOOS=windows
+GOARCH=amd64
+go build -o goploy.exe main.go
+
