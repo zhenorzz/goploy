@@ -6,8 +6,7 @@ export class MonitorData {
       id: number
       namespaceId: number
       name: string
-      domain: string
-      port: number
+      url: string
       second: number
       times: number
       notifyType: number
@@ -49,8 +48,7 @@ export class MonitorAdd extends Request {
   readonly method = 'post'
   public param: {
     name: string
-    domain: string
-    port: number
+    url: string
     second: number
     times: number
     notifyType: number
@@ -70,8 +68,7 @@ export class MonitorEdit extends Request {
   public param: {
     id: number
     name: string
-    domain: string
-    port: number
+    url: string
     second: number
     times: number
     notifyType: number
@@ -99,8 +96,10 @@ export class MonitorCheck extends Request {
   readonly url = '/monitor/check'
   readonly method = 'post'
   readonly timeout = 100000
-  public param: ID
-  constructor(param: ID) {
+  public param: {
+    url: string
+  }
+  constructor(param: MonitorCheck['param']) {
     super()
     this.param = param
   }

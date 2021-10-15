@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -19,16 +20,32 @@ func ticker() {
 	// create ticker
 	minute := time.Tick(time.Minute)
 	second := time.Tick(time.Second)
-	for {
-		select {
-		case <-second:
-			monitorTask()
-		case <-minute:
-			projectTask()
-		case <-stop:
-			return
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		for {
+			select {
+			case <-second:
+				monitorTask()
+			case <-stop:
+				wg.Done()
+				return
+			}
 		}
-	}
+	}()
+
+	go func() {
+		for {
+			select {
+			case <-minute:
+				projectTask()
+			case <-stop:
+				wg.Done()
+				return
+			}
+		}
+	}()
+	wg.Wait()
 }
 
 func Shutdown(ctx context.Context) error {

@@ -130,8 +130,7 @@ CREATE TABLE IF NOT EXISTS `monitor` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `namespace_id` int(10) unsigned NOT NULL,
   `name` varchar(255) NOT NULL,
-  `domain` varchar(50) NOT NULL,
-  `port` smallint(5) unsigned NOT NULL DEFAULT '80',
+  `url` varchar(255) NOT NULL,
   `second` int(10) unsigned NOT NULL DEFAULT '1' COMMENT 'How many seconds to run',
   `times` smallint(5) unsigned NOT NULL DEFAULT '1' COMMENT 'How many times of failures',
   `description` varchar(255) NOT NULL DEFAULT '',
@@ -222,7 +221,7 @@ CREATE TABLE IF NOT EXISTS `namespace_user` (
   UNIQUE KEY `uk_namespace_user` (`namespace_id`,`user_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `goploy`.`system_config` (
+CREATE TABLE IF NOT EXISTS `system_config` (
     `id`    int(10) unsigned NOT NULL AUTO_INCREMENT,
     `key`   varchar(255) NOT NULL DEFAULT '',
     `value` varchar(255) NOT NULL DEFAULT '',
@@ -233,5 +232,5 @@ CREATE TABLE IF NOT EXISTS `goploy`.`system_config` (
 REPLACE INTO `user`(`id`, `account`, `password`, `name`, `contact`, `state`, `super_manager`) VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '', 1, 1);
 REPLACE INTO `namespace`(`id`, `name`) VALUES (1, 'goploy');
 REPLACE INTO `namespace_user`(`id`, `namespace_id`, `user_id`, `role`) VALUES (1, 1, 1, 'admin');
-REPLACE INTO `system_config` (`key`, `value`) VALUES ('version', '1.3.4');
+REPLACE INTO `system_config` (`key`, `value`) VALUES ('version', '1.3.6');
 

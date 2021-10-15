@@ -1,5 +1,19 @@
 # change log
 
+## 1.3.6
+
+*2021-10-15*
+
+### New features
+- monitor support http
+
+### Optimization
+- delete cache
+
+### Bug fixes
+- fix task block
+- fix symlink rollback
+
 ## 1.3.5
 
 *2021-09-18*

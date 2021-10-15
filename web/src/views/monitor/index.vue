@@ -132,15 +132,15 @@
         <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="Domain/IP" prop="domain">
-          <el-input
-            v-model="formData.domain"
-            autocomplete="off"
-            placeholder="Skip http(s)"
-          />
-        </el-form-item>
-        <el-form-item label="port" prop="port">
-          <el-input v-model.number="formData.port" autocomplete="off" />
+        <el-form-item prop="url">
+          <template #label>
+            URL
+            <el-tooltip placement="top">
+              <template #content>scheme:opaque[?query][#fragment]</template>
+              <i class="el-icon-question" />
+            </el-tooltip>
+          </template>
+          <el-input v-model="formData.url" autocomplete="off" placeholder="" />
         </el-form-item>
         <el-form-item :label="$t('interval') + '(s)'" prop="second">
           <el-input v-model.number="formData.second" autocomplete="off" />
@@ -232,8 +232,7 @@ export default defineComponent({
       formData: {
         id: 0,
         name: '',
-        domain: '',
-        port: 80,
+        url: '',
         second: 3,
         times: 1,
         notifyType: 1,
@@ -243,9 +242,7 @@ export default defineComponent({
       },
       formRules: {
         name: [{ required: true, message: 'Name required', trigger: 'blur' }],
-        domain: [
-          { required: true, message: 'Host or IP required', trigger: 'blur' },
-        ],
+        url: [{ required: true, message: 'URL required', trigger: 'blur' }],
         port: [
           {
             type: 'number',

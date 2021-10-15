@@ -3,9 +3,7 @@ package controller
 import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
-	"net"
-	"strconv"
-	"time"
+	"github.com/zhenorzz/goploy/service"
 )
 
 // Monitor struct
@@ -44,15 +42,13 @@ func (Monitor) GetTotal(gp *core.Goploy) *core.Response {
 // Check one monitor
 func (Monitor) Check(gp *core.Goploy) *core.Response {
 	type ReqData struct {
-		Domain string `json:"domain" validate:"required"`
-		Port   int    `json:"port" validate:"min=0,max=65535"`
+		URL string `json:"url" validate:"required"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	_, err := net.DialTimeout("tcp", reqData.Domain+":"+strconv.Itoa(reqData.Port), 5*time.Second)
-	if err != nil {
+	if err := (service.Gnet{URL: reqData.URL}.Ping()); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 	return &core.Response{Message: "Connected"}
@@ -62,8 +58,7 @@ func (Monitor) Check(gp *core.Goploy) *core.Response {
 func (Monitor) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name         string `json:"name" validate:"required"`
-		Domain       string `json:"domain" validate:"required"`
-		Port         int    `json:"port" validate:"min=0,max=65535"`
+		URL          string `json:"url" validate:"required"`
 		Second       int    `json:"second" validate:"gt=0"`
 		Times        uint16 `json:"times" validate:"gt=0"`
 		NotifyType   uint8  `json:"notifyType" validate:"gt=0"`
@@ -79,8 +74,7 @@ func (Monitor) Add(gp *core.Goploy) *core.Response {
 	id, err := model.Monitor{
 		NamespaceID:  gp.Namespace.ID,
 		Name:         reqData.Name,
-		Domain:       reqData.Domain,
-		Port:         reqData.Port,
+		URL:          reqData.URL,
 		Second:       reqData.Second,
 		Times:        reqData.Times,
 		NotifyType:   reqData.NotifyType,
@@ -104,7 +98,7 @@ func (Monitor) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"gt=0"`
 		Name         string `json:"name" validate:"required"`
-		Domain       string `json:"domain" validate:"required"`
+		URL          string `json:"url" validate:"required"`
 		Port         int    `json:"port" validate:"min=0,max=65535"`
 		Second       int    `json:"second" validate:"gt=0"`
 		Times        uint16 `json:"times" validate:"gt=0"`
@@ -120,8 +114,7 @@ func (Monitor) Edit(gp *core.Goploy) *core.Response {
 	err := model.Monitor{
 		ID:           reqData.ID,
 		Name:         reqData.Name,
-		Domain:       reqData.Domain,
-		Port:         reqData.Port,
+		URL:          reqData.URL,
 		Second:       reqData.Second,
 		Times:        reqData.Times,
 		NotifyType:   reqData.NotifyType,

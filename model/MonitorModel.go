@@ -13,8 +13,7 @@ type Monitor struct {
 	ID           int64  `json:"id"`
 	NamespaceID  int64  `json:"namespaceId"`
 	Name         string `json:"name"`
-	Domain       string `json:"domain"`
-	Port         int    `json:"port"`
+	URL          string `json:"url"`
 	Second       int    `json:"second"`
 	Times        uint16 `json:"times"`
 	NotifyType   uint8  `json:"notifyType"`
@@ -33,7 +32,7 @@ type Monitors []Monitor
 // GetList -
 func (m Monitor) GetList(pagination Pagination) (Monitors, error) {
 	rows, err := sq.
-		Select("id, name, domain, port, second, times, notify_type, notify_target, notify_times, description, error_content, state, insert_time, update_time").
+		Select("id, name, url, second, times, notify_type, notify_target, notify_times, description, error_content, state, insert_time, update_time").
 		From(monitorTable).
 		Where(sq.Eq{
 			"namespace_id": m.NamespaceID,
@@ -53,8 +52,7 @@ func (m Monitor) GetList(pagination Pagination) (Monitors, error) {
 		if err := rows.Scan(
 			&monitor.ID,
 			&monitor.Name,
-			&monitor.Domain,
-			&monitor.Port,
+			&monitor.URL,
 			&monitor.Second,
 			&monitor.Times,
 			&monitor.NotifyType,
@@ -95,13 +93,13 @@ func (m Monitor) GetTotal() (int64, error) {
 func (m Monitor) GetData() (Monitor, error) {
 	var monitor Monitor
 	err := sq.
-		Select("id, name, domain, ip, port, second, times, notify_type, notify_target, notify_times, state").
+		Select("id, name, url, second, times, notify_type, notify_target, notify_times, state").
 		From(monitorTable).
 		Where(sq.Eq{"id": m.ID}).
 		OrderBy("id DESC").
 		RunWith(DB).
 		QueryRow().
-		Scan(&monitor.ID, &monitor.Name, &monitor.Domain, &monitor.Port, &monitor.Second, &monitor.Times, &monitor.NotifyType, &monitor.NotifyTarget, &monitor.NotifyTimes, &monitor.State)
+		Scan(&monitor.ID, &monitor.Name, &monitor.URL, &monitor.Second, &monitor.Times, &monitor.NotifyType, &monitor.NotifyTarget, &monitor.NotifyTimes, &monitor.State)
 	if err != nil {
 		return monitor, errors.New("数据查询失败")
 	}
@@ -111,7 +109,7 @@ func (m Monitor) GetData() (Monitor, error) {
 // GetAllByState -
 func (m Monitor) GetAllByState() (Monitors, error) {
 	rows, err := sq.
-		Select("id, name, domain, port, second, times, notify_type, notify_target, notify_times, description").
+		Select("id, name, url, second, times, notify_type, notify_target, notify_times, description").
 		From(monitorTable).
 		Where(sq.Eq{
 			"state": m.State,
@@ -128,8 +126,7 @@ func (m Monitor) GetAllByState() (Monitors, error) {
 		if err := rows.Scan(
 			&monitor.ID,
 			&monitor.Name,
-			&monitor.Domain,
-			&monitor.Port,
+			&monitor.URL,
 			&monitor.Second,
 			&monitor.Times,
 			&monitor.NotifyType,
@@ -148,8 +145,8 @@ func (m Monitor) GetAllByState() (Monitors, error) {
 func (m Monitor) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(monitorTable).
-		Columns("namespace_id", "name", "domain", "port", "second", "times", "notify_type", "notify_target", "notify_times", "description", "error_content").
-		Values(m.NamespaceID, m.Name, m.Domain, m.Port, m.Second, m.Times, m.NotifyType, m.NotifyTarget, m.NotifyTimes, m.Description, "").
+		Columns("namespace_id", "name", "url", "second", "times", "notify_type", "notify_target", "notify_times", "description", "error_content").
+		Values(m.NamespaceID, m.Name, m.URL, m.Second, m.Times, m.NotifyType, m.NotifyTarget, m.NotifyTimes, m.Description, "").
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -165,8 +162,7 @@ func (m Monitor) EditRow() error {
 		Update(monitorTable).
 		SetMap(sq.Eq{
 			"name":          m.Name,
-			"domain":        m.Domain,
-			"port":          m.Port,
+			"url":           m.URL,
 			"second":        m.Second,
 			"times":         m.Times,
 			"notify_type":   m.NotifyType,
@@ -208,7 +204,7 @@ func (m Monitor) TurnOff(errorContent string) error {
 	_, err := sq.
 		Update(monitorTable).
 		SetMap(sq.Eq{
-			"state": Disable,
+			"state":         Disable,
 			"error_content": errorContent,
 		}).
 		Where(sq.Eq{"id": m.ID}).

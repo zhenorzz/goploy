@@ -148,12 +148,10 @@ func (rt *Router) checkLogin(w http.ResponseWriter, r *http.Request) (*Goploy, *
 			return nil, &Response{Code: Deny, Message: "Invalid namespace"}
 		}
 
-		namespaceList, err := GetNamespace(int64(claims["id"].(float64)))
+		namespaceList, err := model.Namespace{UserID: int64(claims["id"].(float64))}.GetAllByUserID()
 		if err != nil {
 			return nil, &Response{Code: Deny, Message: "Get namespace list error"}
-		}
-
-		if len(namespaceList) == 0 {
+		} else if len(namespaceList) == 0 {
 			return nil, &Response{Code: Deny, Message: "No available namespace"}
 		}
 
@@ -166,8 +164,7 @@ func (rt *Router) checkLogin(w http.ResponseWriter, r *http.Request) (*Goploy, *
 		if namespace == (model.Namespace{}) {
 			return nil, &Response{Code: NamespaceInvalid, Message: "Namespace no permission, please login again"}
 		}
-
-		userInfo, err = GetUserInfo(int64(claims["id"].(float64)))
+		userInfo, err = model.User{ID: int64(claims["id"].(float64))}.GetData()
 		if err != nil {
 			return nil, &Response{Code: Deny, Message: "Get user information error"}
 		}

@@ -2,9 +2,7 @@ package controller
 
 import (
 	"database/sql"
-	"github.com/patrickmn/go-cache"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/zhenorzz/goploy/core"
@@ -37,9 +35,9 @@ func (User) Login(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.AccountDisabled, Message: "Account is disabled"}
 	}
 
-	namespaceList, err := core.GetNamespace(userData.ID)
+	namespaceList, err := model.Namespace{UserID: userData.ID}.GetAllByUserID()
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: "尚未分配空间，请联系管理员"}
+		return &core.Response{Code: core.Error, Message: "No space assigned, please contact the administrator"}
 	}
 
 	token, err := userData.CreateToken()
@@ -47,15 +45,7 @@ func (User) Login(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	model.User{ID: userData.ID, LastLoginTime: time.Now().Format("20060102150405")}.UpdateLastLoginTime()
-
-	core.Cache.Set("userInfo:"+strconv.Itoa(int(userData.ID)), &userData, cache.DefaultExpiration)
-
-	namespaceList, err = model.Namespace{UserID: userData.ID}.GetAllByUserID()
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-	core.Cache.Set("namespace:"+strconv.Itoa(int(userData.ID)), &namespaceList, cache.DefaultExpiration)
+	_ = model.User{ID: userData.ID, LastLoginTime: time.Now().Format("20060102150405")}.UpdateLastLoginTime()
 
 	cookie := http.Cookie{Name: core.LoginCookieName, Value: token, Path: "/", MaxAge: 86400, HttpOnly: true}
 	http.SetCookie(gp.ResponseWriter, &cookie)
