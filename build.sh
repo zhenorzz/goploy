@@ -23,15 +23,10 @@ fi
 
 echo "Building goploy";
 
-GOOS=linux
-GOARCH=amd64
-go build -o goploy main.go
+env GOOS=linux go build -o goploy main.go
 
-GOOS=darwin
-GOARCH=amd64
-go build -o goploy.mac main.go
+env GOOS=darwin go build -o goploy.mac main.go
 
-GOOS=windows
-GOARCH=amd64
-go build -o goploy.exe main.go
+env GOOS=windows go build -o goploy.exe main.go
+
 

@@ -31,7 +31,7 @@ VOLUME ["/opt/goploy/repository/"]
 
 ENTRYPOINT \
     echo 'DB_TYPE=mysql' > /opt/goploy/.env;\
-    echo "DB_CONN=${MYSQL_USER}:${MYSQL_PASSWORD}@tcp(${MYSQL_HOST}:${MYSQL_PORT})/goploy?charset=utf8" >> /opt/goploy/.env;\
+    echo "DB_CONN=${MYSQL_USER}:${MYSQL_PASSWORD}@(${MYSQL_HOST}:${MYSQL_PORT})/goploy?charset=utf8" >> /opt/goploy/.env;\
     echo 'SIGN_KEY=please-study-jwt' >> /opt/goploy/.env;\
     echo 'LOG_PATH=stdout' >> /opt/goploy/.env;\
     echo 'ENV=production' >> /opt/goploy/.env;\
