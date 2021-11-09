@@ -43,6 +43,13 @@
         />
       </el-tab-pane>
     </el-tabs>
+    <el-input
+      v-show="tabList.length > 0"
+      v-model="command"
+      type="textarea"
+      placeholder="Send to all windows"
+      @keyup.enter="enterCommand"
+    />
   </el-dialog>
 </template>
 
@@ -126,6 +133,14 @@ export default defineComponent({
       tabList.value = tabList.value.filter((tab) => tab.name !== targetName)
     }
 
+    const command = ref('')
+    const enterCommand = () => {
+      xterms.forEach((item: xterm) => {
+        item.send(command.value)
+      })
+      command.value = ''
+    }
+
     return {
       dialogVisible,
       serverLoading,
@@ -135,6 +150,8 @@ export default defineComponent({
       activeName,
       handleSelectServer,
       removeTab,
+      command,
+      enterCommand,
     }
   },
 })

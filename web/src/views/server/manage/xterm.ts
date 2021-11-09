@@ -36,4 +36,8 @@ export class xterm {
     this.websocket.close()
     this.terminal.dispose()
   }
+
+  public send(message: string): void {
+    this.websocket.send(message)
+  }
 }
