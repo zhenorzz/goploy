@@ -53,7 +53,7 @@ export function empty(mixedVar: any): boolean {
 /**
  * Parse the time to string
  */
-export function parseTime(time: number, cFormat?: string): string {
+export function parseTime(time: number | Date, cFormat?: string): string {
   const format = cFormat || '{y}-{m}-{d} {h}:{i}:{s}'
   let date
   if (typeof time === 'object') {

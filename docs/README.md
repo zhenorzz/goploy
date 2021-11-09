@@ -22,7 +22,9 @@
 
 完整的安装指引，上手无难度！
 
-[DEMO](http://demo.goploy.icu) admin:admin!@# 
+[DEMO](http://demo.goploy.icu) admin:admin!@#
+
+[Goploy-Agent](https://github.com/zhenorzz/goploy-agent) Monitor server performance
 
 ## 背景
 大部分流行的发布工具功能虽然强大，但是配置较为麻烦，上手难度大，中小型项目难以使用。

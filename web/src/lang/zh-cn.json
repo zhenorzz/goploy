@@ -55,6 +55,12 @@
   "m1d": "减一天",
   "p1d": "加一天",
   "time": "时间",
+  "lastHour": "最近一小时",
+  "last6Hours": "最近六小时",
+  "lastDay": "最近一天",
+  "lastWeek": "最近一周",
+  "lastMonth": "最近一个月",
+  "last3Months": "最近三个月",
   "insertTime": "创建时间",
   "updateTime": "更新时间",
   "modifiedTime": "修改时间",
@@ -110,6 +116,7 @@
     "project": "项目设置",
     "server": "服务器管理",
     "serverSetting": "服务器设置",
+    "serverAgent": "服务器监控",
     "template": "模板设置",
     "crontab": "Crontab管理",
     "namespace": "空间设置",
@@ -138,10 +145,6 @@
   "namespacePage": {
     "removeUserTips": "此操作将永久删除该用户的绑定关系, 是否继续?"
   },
-  "templatePage": {
-    "scriptNotice": "注意：安装包上传至目标服务器的/tmp目录",
-    "templateDeleteTips": "此操作将删除模板({templateName}), 是否继续?"
-  },
   "serverPage": {
     "sshKeyOwner": "SSH-Key 所有者",
     "sshKeyPath": "SSH-Key 路径",
@@ -149,7 +152,15 @@
     "copyPub": "复制共钥",
     "copyPubTips": "复制成功，请粘贴到目标服务器~/.ssh/authorized_keys里面",
     "testConnection": "测试连接",
-    "removeServerTips": "此操作将删除服务器({serverName}), 是否继续?"
+    "removeServerTips": "此操作将删除服务器({serverName}), 是否继续?",
+    "cpuUsage": "CPU使用率",
+    "ramUsage": "RAM使用率",
+    "loadavg": "系统负载",
+    "tcp": "TCP连接情况",
+    "pubBandwidth": "公网带宽",
+    "loBandwidth": "内网带宽",
+    "diskUsage": "硬盘使用率",
+    "diskIO": "硬盘IO"
   },
   "crontabPage": {
     "removeServerCrontabLabel": "删除服务器Crontab任务",

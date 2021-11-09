@@ -600,30 +600,30 @@ export default defineComponent({
     return {
       shortcuts: [
         {
-          text: '最近一周',
+          text: this.$t('lastWeek'),
           onClick(picker: typeof ElDatePicker) {
             const end = new Date()
             const start = new Date()
             start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
-            picker.$emit('pick', [start, end])
+            picker.emit('pick', [dayjs(start), dayjs(end)])
           },
         },
         {
-          text: '最近一个月',
+          text: this.$t('lastMonth'),
           onClick(picker: typeof ElDatePicker) {
             const end = new Date()
             const start = new Date()
             start.setTime(start.getTime() - 3600 * 1000 * 24 * 30)
-            picker.$emit('pick', [start, end])
+            picker.emit('pick', [dayjs(start), dayjs(end)])
           },
         },
         {
-          text: '最近三个月',
+          text: this.$t('last3Months'),
           onClick(picker: typeof ElDatePicker) {
             const end = new Date()
             const start = new Date()
             start.setTime(start.getTime() - 3600 * 1000 * 24 * 90)
-            picker.$emit('pick', [start, end])
+            picker.emit('pick', [dayjs(start), dayjs(end)])
           },
         },
       ],

@@ -2,6 +2,17 @@
 
 ## 1.3.6
 
+*2021-11-09*
+
+### New features
+- monitor server performance  
+
+### Bug fixes
+- fix web redirect
+- fix web date select i18n
+
+## 1.3.6
+
 *2021-10-15*
 
 ### New features

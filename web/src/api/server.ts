@@ -162,3 +162,17 @@ export class ServerToggle extends Request {
     this.param = param
   }
 }
+
+export class ServerReport extends Request {
+  readonly url = '/server/report'
+  readonly method = 'get'
+  public param: {
+    serverId: number
+    type: number
+    datetimeRange: string
+  }
+  constructor(param: ServerReport['param']) {
+    super()
+    this.param = param
+  }
+}

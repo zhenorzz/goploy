@@ -18,6 +18,7 @@ func Init() *router.Router {
 		"/user/login":      {},
 		"/deploy/webhook":  {},
 		"/deploy/callback": {},
+		"/agent/report":    {},
 	})
 	// websocket route
 	rt.Add("/ws/connect", http.MethodGet, ws.GetHub().Connect)
@@ -107,6 +108,7 @@ func Init() *router.Router {
 	rt.Add("/server/toggle", http.MethodPut, controller.Server{}.Toggle).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/downloadFile", http.MethodGet, controller.Server{}.DownloadFile).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/uploadFile", http.MethodPost, controller.Server{}.UploadFile).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/server/report", http.MethodGet, controller.Server{}.Report).Roles([]string{core.RoleAdmin, core.RoleManager})
 
 	// crontab route
 	rt.Add("/crontab/getList", http.MethodGet, controller.Crontab{}.GetList)
@@ -119,6 +121,9 @@ func Init() *router.Router {
 	rt.Add("/crontab/remove", http.MethodDelete, controller.Crontab{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/crontab/addServer", http.MethodPost, controller.Crontab{}.AddServer).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/crontab/removeCrontabServer", http.MethodDelete, controller.Crontab{}.RemoveCrontabServer).Roles([]string{core.RoleAdmin, core.RoleManager})
+
+	// agent route
+	rt.Add("/agent/report", http.MethodPost, controller.Agent{}.Report)
 
 	rt.Start()
 	return rt

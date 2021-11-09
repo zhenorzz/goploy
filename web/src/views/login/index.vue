@@ -69,6 +69,7 @@
 </template>
 
 <script lang="ts">
+import { param2Obj } from '@/utils'
 import { validUsername, validPassword } from '@/utils/validate'
 import Validator, { RuleItem } from 'async-validator'
 import { defineComponent } from 'vue'
@@ -113,7 +114,7 @@ export default defineComponent({
       },
       loading: false,
       passwordType: 'password',
-      redirect: undefined,
+      redirect: '',
     }
   },
   watch: {
@@ -142,7 +143,11 @@ export default defineComponent({
           this.$store
             .dispatch('user/login', this.loginForm)
             .then(() => {
-              this.$router.push({ path: this.redirect || '/' })
+              console.log(this.$router.getRoutes())
+              this.$router.push({
+                path: this.redirect || '/',
+                query: this.redirect ? param2Obj(this.redirect) : {},
+              })
               this.loading = false
             })
             .catch(() => {

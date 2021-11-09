@@ -1,6 +1,6 @@
 FROM alpine
 LABEL maintainer="zhenorzz@gmail.com"
-ARG GOPLOY_VER=v1.3.6
+ARG GOPLOY_VER=v1.3.7
 ENV GOPLOY_VER=${GOPLOY_VER}
 
 ENV MYSQL_PORT=3306

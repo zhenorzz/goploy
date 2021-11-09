@@ -167,6 +167,17 @@ export const asyncRoutes: RouteRecordRaw[] = [
         },
       },
       {
+        path: 'agent',
+        name: 'ServerAgent',
+        component: () => import('@/views/server/agent/index.vue'),
+        meta: {
+          hidden: true,
+          title: 'serverAgent',
+          icon: 'monitor',
+          roles: ['admin', 'manager'],
+        },
+      },
+      {
         path: 'crontab',
         name: 'Crontab',
         component: () => import('@/views/server/crontab/index.vue'),

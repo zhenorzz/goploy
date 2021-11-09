@@ -10,6 +10,7 @@
     "@chenfengyuan/vue-qrcode": "^2.0.0-beta",
     "axios": "^0.21.4",
     "cronstrue": "^1.113.0",
+    "echarts": "^5.2.1",
     "element-plus": "^1.0.2-beta.70",
     "js-cookie": "^2.2.1",
     "listenercount": "^1.0.1",

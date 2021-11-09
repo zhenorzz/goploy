@@ -3,18 +3,10 @@ import Cookies from 'js-cookie'
 import elementEnLocale from 'element-plus/lib/locale/lang/en' // element-ui lang
 import elementZhLocale from 'element-plus/lib/locale/lang/zh-cn'
 import localMessages from '@intlify/vite-plugin-vue-i18n/messages'
-const messages = {
-  [elementEnLocale.name]: {
-    // el 这个属性很关键，一定要保证有这个属性，
-    el: elementEnLocale.el,
-    // 定义您自己的字典，但是请不要和 `el` 重复，这样会导致 ElementPlus 内部组件的翻译失效.
-    ...localMessages[elementEnLocale.name],
-  },
-  [elementZhLocale.name]: {
-    el: elementZhLocale.el,
-    // 定义您自己的字典，但是请不要和 `el` 重复，这样会导致 ElementPlus 内部组件的翻译失效.
-    ...localMessages[elementZhLocale.name],
-  },
+
+export const elementLocale = {
+  [elementEnLocale.name]: elementEnLocale,
+  [elementZhLocale.name]: elementZhLocale,
 }
 
 export function getLanguage(): string {
@@ -23,7 +15,7 @@ export function getLanguage(): string {
 
   // if has not choose language
   const language = navigator.language.toLowerCase()
-  const locales = Object.keys(messages)
+  const locales = Object.keys(localMessages)
   for (const locale of locales) {
     if (language.indexOf(locale) > -1) {
       return locale
@@ -32,8 +24,9 @@ export function getLanguage(): string {
   return 'en'
 }
 const i18n = createI18n({
+  legacy: false,
   globalInjection: true,
   locale: getLanguage(),
-  messages,
+  messages: localMessages,
 })
 export default i18n

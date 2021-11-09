@@ -86,11 +86,15 @@
       <el-table-column
         prop="operation"
         :label="$t('op')"
-        width="80"
+        width="130"
         align="center"
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
+          <el-button
+            icon="el-icon-data-line"
+            @click="handleMonitor(scope.row)"
+          />
           <el-button
             type="primary"
             icon="el-icon-edit"
@@ -345,6 +349,10 @@ export default defineComponent({
     handleEdit(data: ServerData['datagram']['detail']) {
       this.formData = Object.assign({}, data)
       this.dialogVisible = true
+    },
+
+    handleMonitor(data: ServerData['datagram']['detail']) {
+      this.$router.push({ path: '/server/agent', query: { serverId: data.id } })
     },
 
     onSwitchState(value: boolean, index: number) {

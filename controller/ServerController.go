@@ -62,9 +62,9 @@ func (Server) GetOption(gp *core.Goploy) *core.Response {
 
 // GetPublicKey -
 func (Server) GetPublicKey(gp *core.Goploy) *core.Response {
-	path := gp.URLQuery.Get("path")
+	publicKeyPath := gp.URLQuery.Get("path")
 
-	contentByte, err := ioutil.ReadFile(path + ".pub")
+	contentByte, err := ioutil.ReadFile(publicKeyPath + ".pub")
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
@@ -269,6 +269,59 @@ func (Server) UploadFile(gp *core.Goploy) *core.Response {
 	}
 
 	return nil
+}
+
+func (Server) Report(gp *core.Goploy) *core.Response {
+	serverId, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: "invalid server id"}
+	}
+	logType, err := strconv.Atoi(gp.URLQuery.Get("type"))
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: "invalid server id"}
+	}
+	datetimeRange := strings.Split(gp.URLQuery.Get("datetimeRange"), ",")
+	if len(datetimeRange) != 2 {
+		return &core.Response{Code: core.Error, Message: "invalid datetime range"}
+	}
+	serverAgentLogs, err := (model.ServerAgentLog{ServerId: serverId, Type: logType}).GetListBetweenTime(datetimeRange[0], datetimeRange[1])
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	type Flag struct {
+		Count int
+		Curr  int
+	}
+
+	flagMap := map[string]Flag{}
+
+	for _, log := range serverAgentLogs {
+		if _, ok := flagMap[log.Item]; !ok {
+			flagMap[log.Item] = Flag{}
+		}
+		flagMap[log.Item] = Flag{Count: flagMap[log.Item].Count + 1}
+	}
+
+	serverAgentMap := map[string]model.ServerAgentLogs{}
+	for _, log := range serverAgentLogs {
+		flagMap[log.Item] = Flag{
+			Count: flagMap[log.Item].Count,
+			Curr:  flagMap[log.Item].Curr + 1,
+		}
+		step := flagMap[log.Item].Count / 60
+		if flagMap[log.Item].Count <= 60 ||
+			flagMap[log.Item].Curr%step == 0 ||
+			flagMap[log.Item].Count-1 == flagMap[log.Item].Curr {
+			serverAgentMap[log.Item] = append(serverAgentMap[log.Item], log)
+		}
+	}
+
+	return &core.Response{
+		Data: struct {
+			ServerAgentMap map[string]model.ServerAgentLogs `json:"map"`
+		}{ServerAgentMap: serverAgentMap},
+	}
 }
 
 // version|cpu cores|mem

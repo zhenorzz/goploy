@@ -55,6 +55,12 @@
   "m1d": "M1D",
   "p1d": "P1D",
   "time": "Time",
+  "lastHour": "Last hour",
+  "last6Hours": "Last 6 hours",
+  "lastDay": "Last day",
+  "lastWeek": "Last week",
+  "lastMonth": "Last month",
+  "last3Months": "Last 3 months",
   "insertTime": "Insert time",
   "updateTime": "Update time",
   "modifiedTime": "Modified time",
@@ -110,6 +116,7 @@
     "project": "Project",
     "server": "Server",
     "serverSetting": "Server",
+    "serverAgent": "Monitor",
     "template": "Template",
     "crontab": "Crontab",
     "namespace": "Namespace",
@@ -138,11 +145,6 @@
   "namespacePage": {
     "removeUserTips": "This action will delete the user\"s binding relationship, continue?"
   },
-  "templatePage": {
-    "scriptNotice": "Note\": The package has been uploaded to the /tmp directory",
-    "templateDeleteTips":
-      "This action will delete the template({templateName}), continue?"
-  },
   "serverPage": {
     "sshKeyOwner": "SSH-Key Owner",
     "sshKeyPath": "SSH-Key Path",
@@ -151,7 +153,15 @@
     "copyPubTips": "Copy success. Paste it to ~/.ssh/authorized_keys",
     "testConnection": "Test",
     "removeServerTips":
-      "This action will delete the server({serverName}), continue?"
+      "This action will delete the server({serverName}), continue?",
+    "cpuUsage": "CPU usage rate",
+    "ramUsage": "RAM usage rate",
+    "loadavg": "Loadavg",
+    "tcp": "TCP",
+    "pubBandwidth": "Public network bandwidth",
+    "loBandwidth": "Intranet bandwidth",
+    "diskUsage": "Disk usage rate",
+    "diskIO": "Disk IO"
   },
   "crontabPage": {
     "removeServerCrontabLabel": "Delete crontab in the server",

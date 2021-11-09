@@ -214,7 +214,7 @@ export default defineComponent({
       await this.$store.dispatch('user/logout')
       await this.$store.dispatch('tagsView/delAllViews')
       removeNamespaceId()
-      this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+      this.$router.push(`/login`)
     },
   },
 })
