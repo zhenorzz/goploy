@@ -2,15 +2,13 @@ import { Request, ID } from './types'
 
 export class CommitData {
   public datagram!: {
-    detail: {
-      branch: string
-      commit: string
-      author: string
-      timestamp: number
-      message: string
-      tag: string
-      diff: string
-    }
+    branch: string
+    commit: string
+    author: string
+    timestamp: number
+    message: string
+    tag: string
+    diff: string
   }
 }
 
@@ -39,7 +37,7 @@ export class RepositoryCommitList extends Request {
   }
 
   public datagram!: {
-    list: CommitData['datagram']['detail'][]
+    list: CommitData['datagram'][]
   }
   constructor(param: RepositoryCommitList['param']) {
     super()
@@ -54,7 +52,7 @@ export class RepositoryTagList extends Request {
   public param: ID
 
   public datagram!: {
-    list: CommitData['datagram']['detail'][]
+    list: CommitData['datagram'][]
   }
   constructor(param: RepositoryTagList['param']) {
     super()

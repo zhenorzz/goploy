@@ -811,7 +811,7 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleEdit(data: ProjectData['datagram']['detail']) {
+    handleEdit(data: ProjectData['datagram']) {
       this.formData = Object.assign({}, data)
       this.formProps.symlink = this.formData.symlinkPath !== ''
       this.formProps.showServers = this.formProps.showUsers = false
@@ -831,7 +831,7 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleCopy(data: ProjectData['datagram']['detail']) {
+    handleCopy(data: ProjectData['datagram']) {
       this.handleEdit(data)
       this.formData.id = 0
       this.formData.serverIds = []
@@ -839,7 +839,7 @@ export default defineComponent({
       this.formProps.showServers = this.formProps.showUsers = true
     },
 
-    handleRemove(data: ProjectData['datagram']['detail']) {
+    handleRemove(data: ProjectData['datagram']) {
       ElMessageBox.confirm(
         this.$t('projectPage.removeProjectTips', {
           projectName: data.name,
@@ -891,23 +891,23 @@ export default defineComponent({
       }
     },
 
-    handleAutoDeploy(data: ProjectData['datagram']['detail']) {
+    handleAutoDeploy(data: ProjectData['datagram']) {
       this.dialogAutoDeployVisible = true
       this.autoDeployFormData.id = data.id
       this.autoDeployFormData.autoDeploy = data.autoDeploy
     },
 
-    handleServer(data: ProjectData['datagram']['detail']) {
+    handleServer(data: ProjectData['datagram']) {
       this.selectedItem = data
       this.dialogServerVisible = true
     },
 
-    handleUser(data: ProjectData['datagram']['detail']) {
+    handleUser(data: ProjectData['datagram']) {
       this.selectedItem = data
       this.dialogUserVisible = true
     },
 
-    handleFile(data: ProjectData['datagram']['detail']) {
+    handleFile(data: ProjectData['datagram']) {
       this.selectedItem = data
       this.dialogFileManagerVisible = true
     },

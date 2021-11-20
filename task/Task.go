@@ -39,6 +39,7 @@ func ticker() {
 			select {
 			case <-minute:
 				projectTask()
+				serverMonitorTask()
 			case <-stop:
 				wg.Done()
 				return

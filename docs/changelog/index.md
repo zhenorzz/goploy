@@ -1,5 +1,19 @@
 # change log
 
+## 1.3.8
+
+*2021-11-09*
+
+### New features
+- server notify
+- send command to all xterm
+
+### Optimization
+- ts type
+
+### Bug fixes
+- fix web re-login
+
 ## 1.3.7
 
 *2021-11-09*

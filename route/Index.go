@@ -109,6 +109,10 @@ func Init() *router.Router {
 	rt.Add("/server/downloadFile", http.MethodGet, controller.Server{}.DownloadFile).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/uploadFile", http.MethodPost, controller.Server{}.UploadFile).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/report", http.MethodGet, controller.Server{}.Report).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/server/getAllMonitor", http.MethodGet, controller.Server{}.GetAllMonitor)
+	rt.Add("/server/addMonitor", http.MethodPost, controller.Server{}.AddMonitor).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/server/editMonitor", http.MethodPut, controller.Server{}.EditMonitor).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/server/deleteMonitor", http.MethodDelete, controller.Server{}.DeleteMonitor).Roles([]string{core.RoleAdmin, core.RoleManager})
 
 	// crontab route
 	rt.Add("/crontab/getList", http.MethodGet, controller.Crontab{}.GetList)

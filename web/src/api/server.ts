@@ -1,22 +1,20 @@
-import { HttpResponse, Request, Pagination, Total } from './types'
+import { HttpResponse, Request, Pagination, Total, ID } from './types'
 
 export class ServerData {
   public datagram!: {
-    detail: {
-      id: number
-      label: string
-      name: string
-      ip: string
-      port: number
-      owner: string
-      path: string
-      password: string
-      namespaceId: number
-      description: string
-      state: number
-      insertTime: string
-      updateTime: string
-    }
+    id: number
+    label: string
+    name: string
+    ip: string
+    port: number
+    owner: string
+    path: string
+    password: string
+    namespaceId: number
+    description: string
+    state: number
+    insertTime: string
+    updateTime: string
   }
 }
 
@@ -27,7 +25,7 @@ export class ServerList extends Request {
   public pagination: Pagination
 
   public datagram!: {
-    list: ServerData['datagram']['detail'][]
+    list: ServerData['datagram'][]
   }
   constructor(pagination: Pagination) {
     super()
@@ -78,7 +76,7 @@ export class ServerOption extends Request {
   readonly method = 'get'
 
   public datagram!: {
-    list: ServerData['datagram']['detail'][]
+    list: ServerData['datagram'][]
   }
   public request(): Promise<HttpResponse<this['datagram']>> {
     return super.request().then((response) => {
@@ -172,6 +170,101 @@ export class ServerReport extends Request {
     datetimeRange: string
   }
   constructor(param: ServerReport['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ServerMonitorData {
+  public datagram!: {
+    id: number
+    serverId: number
+    item: string
+    formula: string
+    operator: string
+    value: string
+    groupCycle: number
+    lastCycle: number
+    silentCycle: number
+    startTime: string
+    endTime: string
+    notifyType: number
+    notifyTarget: string
+    insertTime: string
+    updateTime: string
+  }
+}
+
+export class ServerMonitorList extends Request {
+  readonly url = '/server/getAllMonitor'
+  readonly method = 'get'
+
+  public param: {
+    serverId: number
+  }
+
+  public datagram!: {
+    list: ServerMonitorData['datagram'][]
+  }
+
+  constructor(param: ServerMonitorList['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ServerMonitorAdd extends Request {
+  readonly url = '/server/addMonitor'
+  readonly method = 'post'
+  public param: {
+    serverId: number
+    item: string
+    formula: string
+    operator: string
+    value: string
+    groupCycle: number
+    lastCycle: number
+    silentCycle: number
+    startTime: string
+    endTime: string
+    notifyType: number
+    notifyTarget: string
+  }
+  constructor(param: ServerMonitorAdd['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ServerMonitorEdit extends Request {
+  readonly url = '/server/editMonitor'
+  readonly method = 'put'
+  public param: {
+    id: number
+    serverId: number
+    item: string
+    formula: string
+    operator: string
+    value: string
+    groupCycle: number
+    lastCycle: number
+    silentCycle: number
+    startTime: string
+    endTime: string
+    notifyType: number
+    notifyTarget: string
+  }
+  constructor(param: ServerMonitorEdit['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ServerMonitorDelete extends Request {
+  readonly url = '/server/deleteMonitor'
+  readonly method = 'delete'
+  public param: ID
+  constructor(param: ServerMonitorDelete['param']) {
     super()
     this.param = param
   }

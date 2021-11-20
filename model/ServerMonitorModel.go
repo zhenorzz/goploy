@@ -1,142 +1,178 @@
 package model
 
 import (
-	"errors"
-
+	"bytes"
+	"encoding/json"
+	"fmt"
 	sq "github.com/Masterminds/squirrel"
+	"net/http"
+	"time"
 )
 
-const serverTable = "`server`"
+const serverMonitorTable = "`server_monitor`"
 
-// Server -
-type Server struct {
-	ID          int64  `json:"id"`
-	Name        string `json:"name"`
-	IP          string `json:"ip"`
-	Port        int    `json:"port"`
-	Owner       string `json:"owner"`
-	Path        string `json:"path"`
-	Password    string `json:"password"`
-	NamespaceID int64  `json:"namespaceId"`
-	Description string `json:"description"`
-	OSInfo      string `json:"osInfo"`
-	State       int8   `json:"state"`
-	InsertTime  string `json:"insertTime"`
-	UpdateTime  string `json:"updateTime"`
+// ServerMonitor -
+type ServerMonitor struct {
+	ID           int64  `json:"id"`
+	ServerID     int64  `json:"serverId"`
+	Item         string `json:"item"`
+	Formula      string `json:"formula"`
+	Operator     string `json:"operator"`
+	Value        string `json:"value"`
+	GroupCycle   int    `json:"groupCycle"`
+	LastCycle    int    `json:"lastCycle"`
+	SilentCycle  int    `json:"silentCycle"`
+	StartTime    string `json:"startTime"`
+	EndTime      string `json:"endTime"`
+	NotifyType   uint8  `json:"notifyType"`
+	NotifyTarget string `json:"notifyTarget"`
+	InsertTime   string `json:"insertTime"`
+	UpdateTime   string `json:"updateTime"`
 }
 
-// Servers -
-type Servers []Server
-
-// GetList -
-func (s Server) GetList(pagination Pagination) (Servers, error) {
-	rows, err := sq.
-		Select("id, namespace_id, name, ip, port, owner, path, password, description, os_info, state, insert_time, update_time").
-		From(serverTable).
-		Where(sq.Eq{
-			"namespace_id": []int64{0, s.NamespaceID},
-		}).
-		Limit(pagination.Rows).
-		Offset((pagination.Page - 1) * pagination.Rows).
-		OrderBy("id DESC").
-		RunWith(DB).
-		Query()
-	if err != nil {
-		return nil, err
-	}
-	servers := Servers{}
-	for rows.Next() {
-		var server Server
-
-		if err := rows.Scan(
-			&server.ID,
-			&server.NamespaceID,
-			&server.Name,
-			&server.IP,
-			&server.Port,
-			&server.Owner,
-			&server.Path,
-			&server.Password,
-			&server.Description,
-			&server.OSInfo,
-			&server.State,
-			&server.InsertTime,
-			&server.UpdateTime); err != nil {
-			return nil, err
-		}
-		servers = append(servers, server)
-	}
-
-	return servers, nil
-}
-
-// GetTotal -
-func (s Server) GetTotal() (int64, error) {
-	var total int64
-	err := sq.
-		Select("COUNT(*) AS count").
-		From(serverTable).
-		Where(sq.Eq{
-			"namespace_id": []int64{0, s.NamespaceID},
-		}).
-		RunWith(DB).
-		QueryRow().
-		Scan(&total)
-	if err != nil {
-		return 0, err
-	}
-	return total, nil
-}
+// ServerMonitors -
+type ServerMonitors []ServerMonitor
 
 // GetAll -
-func (s Server) GetAll() (Servers, error) {
+func (sm ServerMonitor) GetAll() (ServerMonitors, error) {
 	rows, err := sq.
-		Select("id, name, ip, owner, description, insert_time, update_time").
-		From(serverTable).
-		Where(sq.Eq{
-			"namespace_id": []int64{0, s.NamespaceID},
-			"state":        Enable,
-		}).
+		Select(
+			"id",
+			"server_id",
+			"item",
+			"formula",
+			"operator",
+			"value",
+			"group_cycle",
+			"last_cycle",
+			"silent_cycle",
+			"start_time",
+			"end_time",
+			"notify_type",
+			"notify_target",
+			"insert_time",
+			"update_time",
+		).
+		From(serverMonitorTable).
+		Where(sq.Eq{"server_id": sm.ServerID}).
 		OrderBy("id DESC").
 		RunWith(DB).
 		Query()
 	if err != nil {
 		return nil, err
 	}
-	servers := Servers{}
+	serverMonitors := ServerMonitors{}
 	for rows.Next() {
-		var server Server
-		if err := rows.Scan(&server.ID, &server.Name, &server.IP, &server.Owner, &server.Description, &server.InsertTime, &server.UpdateTime); err != nil {
+		var serverMonitor ServerMonitor
+		if err := rows.Scan(
+			&serverMonitor.ID,
+			&serverMonitor.ServerID,
+			&serverMonitor.Item,
+			&serverMonitor.Formula,
+			&serverMonitor.Operator,
+			&serverMonitor.Value,
+			&serverMonitor.GroupCycle,
+			&serverMonitor.LastCycle,
+			&serverMonitor.SilentCycle,
+			&serverMonitor.StartTime,
+			&serverMonitor.EndTime,
+			&serverMonitor.NotifyType,
+			&serverMonitor.NotifyTarget,
+			&serverMonitor.InsertTime,
+			&serverMonitor.UpdateTime,
+		); err != nil {
 			return nil, err
 		}
-		servers = append(servers, server)
+		serverMonitors = append(serverMonitors, serverMonitor)
 	}
-	return servers, nil
+	return serverMonitors, nil
 }
 
-// GetData -
-func (s Server) GetData() (Server, error) {
-	var server Server
-	err := sq.
-		Select("id, namespace_id, name, ip, port, owner, path, password").
-		From(serverTable).
-		Where(sq.Eq{"id": s.ID}).
+// GetAllModBy -
+func (sm ServerMonitor) GetAllModBy(number int, time string) (ServerMonitors, error) {
+	rows, err := sq.
+		Select(
+			"id",
+			"server_id",
+			"item",
+			"formula",
+			"operator",
+			"value",
+			"group_cycle",
+			"last_cycle",
+			"silent_cycle",
+			"start_time",
+			"end_time",
+			"notify_type",
+			"notify_target",
+		).
+		From(serverMonitorTable).
+		Where("? % `group_cycle` = 0", number).
+		Where(sq.GtOrEq{"end_time": time}).
+		Where(sq.LtOrEq{"start_time": time}).
 		OrderBy("id DESC").
 		RunWith(DB).
-		QueryRow().
-		Scan(&server.ID, &server.NamespaceID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.Path, &server.Password)
+		Query()
 	if err != nil {
-		return server, errors.New("数据查询失败")
+		return nil, err
 	}
-	return server, nil
+	serverMonitors := ServerMonitors{}
+	for rows.Next() {
+		var serverMonitor ServerMonitor
+		if err := rows.Scan(
+			&serverMonitor.ID,
+			&serverMonitor.ServerID,
+			&serverMonitor.Item,
+			&serverMonitor.Formula,
+			&serverMonitor.Operator,
+			&serverMonitor.Value,
+			&serverMonitor.GroupCycle,
+			&serverMonitor.LastCycle,
+			&serverMonitor.SilentCycle,
+			&serverMonitor.StartTime,
+			&serverMonitor.EndTime,
+			&serverMonitor.NotifyType,
+			&serverMonitor.NotifyTarget,
+		); err != nil {
+			return nil, err
+		}
+		serverMonitors = append(serverMonitors, serverMonitor)
+	}
+	return serverMonitors, nil
 }
 
 // AddRow return LastInsertId
-func (s Server) AddRow() (int64, error) {
+func (sm ServerMonitor) AddRow() (int64, error) {
 	result, err := sq.
-		Insert(serverTable).
-		Columns("namespace_id", "name", "ip", "port", "owner", "password", "path", "description", "os_info").
-		Values(s.NamespaceID, s.Name, s.IP, s.Port, s.Owner, s.Password, s.Path, s.Description, s.OSInfo).
+		Insert(serverMonitorTable).
+		Columns(
+			"server_id",
+			"item",
+			"formula",
+			"operator",
+			"value",
+			"group_cycle",
+			"last_cycle",
+			"silent_cycle",
+			"start_time",
+			"end_time",
+			"notify_type",
+			"notify_target",
+		).
+		Values(
+			sm.ServerID,
+			sm.Item,
+			sm.Formula,
+			sm.Operator,
+			sm.Value,
+			sm.GroupCycle,
+			sm.LastCycle,
+			sm.SilentCycle,
+			sm.StartTime,
+			sm.EndTime,
+			sm.NotifyType,
+			sm.NotifyTarget,
+		).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -147,57 +183,118 @@ func (s Server) AddRow() (int64, error) {
 }
 
 // EditRow -
-func (s Server) EditRow() error {
+func (sm ServerMonitor) EditRow() error {
 	_, err := sq.
-		Update(serverTable).
+		Update(serverMonitorTable).
 		SetMap(sq.Eq{
-			"namespace_id": s.NamespaceID,
-			"name":         s.Name,
-			"ip":           s.IP,
-			"port":         s.Port,
-			"owner":        s.Owner,
-			"password":     s.Password,
-			"path":         s.Path,
-			"description":  s.Description,
-			"os_info":      s.OSInfo,
+			"item":          sm.Item,
+			"formula":       sm.Formula,
+			"operator":      sm.Operator,
+			"value":         sm.Value,
+			"group_cycle":   sm.GroupCycle,
+			"last_cycle":    sm.LastCycle,
+			"silent_cycle":  sm.SilentCycle,
+			"start_time":    sm.StartTime,
+			"end_time":      sm.EndTime,
+			"notify_type":   sm.NotifyType,
+			"notify_target": sm.NotifyTarget,
 		}).
-		Where(sq.Eq{"id": s.ID}).
+		Where(sq.Eq{"id": sm.ID}).
 		RunWith(DB).
 		Exec()
 	return err
 }
 
-// ToggleRow -
-func (s Server) ToggleRow() error {
-	tx, err := DB.Begin()
-	if err != nil {
-		return errors.New("开启事务失败")
-	}
-	_, err = sq.
-		Update(serverTable).
-		SetMap(sq.Eq{
-			"state": s.State,
-		}).
-		Where(sq.Eq{"id": s.ID}).
-		RunWith(tx).
+// DeleteRow -
+func (sm ServerMonitor) DeleteRow() error {
+	_, err := sq.
+		Delete(serverMonitorTable).
+		Where(sq.Eq{"id": sm.ID}).
+		RunWith(DB).
 		Exec()
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	if s.State == Disable {
-		_, err = sq.
-			Delete(projectServerTable).
-			Where(sq.Eq{"server_id": s.ID}).
-			RunWith(tx).
-			Exec()
-		if err != nil {
-			tx.Rollback()
-			return err
+	return err
+}
+
+func (sm ServerMonitor) Notify(server Server, cycleValue string) {
+	if sm.NotifyType == NotifyWeiXin {
+		type markdown struct {
+			Content string `json:"content"`
 		}
+		type message struct {
+			Msgtype  string   `json:"msgtype"`
+			Markdown markdown `json:"markdown"`
+		}
+		content := fmt.Sprintf("Server: %s(%s)\n ", server.Name, server.Description)
+		content += "Item: <font color=\"warning\">" + sm.Item + " warning</font>\n "
+		content += fmt.Sprintf("Event: %s value: %s, %s %s \n ", sm.Formula, cycleValue, sm.Operator, sm.Value)
+
+		msg := message{
+			Msgtype: "markdown",
+			Markdown: markdown{
+				Content: content,
+			},
+		}
+		b, _ := json.Marshal(msg)
+		_, _ = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
+	} else if sm.NotifyType == NotifyDingTalk {
+		type markdown struct {
+			Title string `json:"title"`
+			Text  string `json:"text"`
+		}
+		type message struct {
+			Msgtype  string   `json:"msgtype"`
+			Markdown markdown `json:"markdown"`
+		}
+		content := fmt.Sprintf("Server: %s(%s)\n ", server.Name, server.Description)
+		content += "Item: " + sm.Item + "\n "
+		content += fmt.Sprintf("Event: %s value: %s, %s %s \n ", sm.Formula, cycleValue, sm.Operator, sm.Value)
+
+		msg := message{
+			Msgtype: "markdown",
+			Markdown: markdown{
+				Title: fmt.Sprintf("%s %s warning", server.Name, sm.Item),
+				Text:  content,
+			},
+		}
+		b, _ := json.Marshal(msg)
+		_, _ = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
+	} else if sm.NotifyType == NotifyFeiShu {
+		type message struct {
+			Title string `json:"title"`
+			Text  string `json:"text"`
+		}
+
+		content := fmt.Sprintf("Server: %s(%s)\n ", server.Name, server.Description)
+		content += "Item: " + sm.Item + "\n "
+		content += fmt.Sprintf("Event: %s value: %s, %s %s \n ", sm.Formula, cycleValue, sm.Operator, sm.Value)
+
+		msg := message{
+			Title: fmt.Sprintf("%s %s warning", server.Name, sm.Item),
+			Text:  content,
+		}
+		b, _ := json.Marshal(msg)
+		_, _ = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
+	} else if sm.NotifyType == NotifyCustom {
+		type message struct {
+			Code    int    `json:"code"`
+			Message string `json:"message"`
+			Data    struct {
+				Server      Server        `json:"server"`
+				MonitorRule ServerMonitor `json:"monitorRule"`
+				Value       string        `json:"value"`
+				Time        string        `json:"time"`
+			} `json:"data"`
+		}
+		code := 0
+		msg := message{
+			Code:    code,
+			Message: fmt.Sprintf("%s %s warning", server.Name, sm.Item),
+		}
+		msg.Data.Server = server
+		msg.Data.MonitorRule = sm
+		msg.Data.Value = cycleValue
+		msg.Data.Time = time.Now().Format("2006-01-02 15:04:05")
+		b, _ := json.Marshal(msg)
+		_, _ = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	}
-	if err = tx.Commit(); err != nil {
-		return errors.New("事务提交失败")
-	}
-	return nil
 }

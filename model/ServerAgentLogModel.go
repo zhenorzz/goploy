@@ -15,12 +15,6 @@ type ServerAgentLog struct {
 	ReportTime string `json:"reportTime"`
 }
 
-const (
-	Undefined = iota
-	CPUUsage
-	RAMUsage
-)
-
 // ServerAgentLogs -
 type ServerAgentLogs []ServerAgentLog
 
@@ -54,6 +48,32 @@ func (sal ServerAgentLog) GetListBetweenTime(low, high string) (ServerAgentLogs,
 		serverAgentLogs = append(serverAgentLogs, serverAgentLog)
 	}
 	return serverAgentLogs, nil
+}
+
+// GetCycleValue -
+func (sal ServerAgentLog) GetCycleValue(groupCycle int, formula string) (value string, err error) {
+	var builder sq.SelectBuilder
+	switch formula {
+	case "min":
+		builder = sq.
+			Select("min(value) as value")
+	case "max":
+		builder = sq.
+			Select("max(value) as value")
+	default:
+		builder = sq.
+			Select("avg(value) as value")
+	}
+
+	err = builder.
+		From(serverAgentLogTable).
+		Where(sq.Eq{"server_id": sal.ServerId}).
+		Where(sq.Eq{"item": sal.Item}).
+		Where("now() - interval ? minute", groupCycle).
+		RunWith(DB).
+		QueryRow().
+		Scan(&value)
+	return
 }
 
 // AddRow return LastInsertId

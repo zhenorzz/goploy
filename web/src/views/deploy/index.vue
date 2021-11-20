@@ -366,7 +366,7 @@ export default defineComponent({
       dialogVisible: false,
       tableloading: false,
       tableDefaultSort: {} as { prop: string; order: string },
-      selectedItem: {} as ProjectData['datagram']['detail'],
+      selectedItem: {} as ProjectData['datagram'],
       tableData: [] as DeployList['datagram']['list'],
       searchProject: {
         name: '',
@@ -528,8 +528,8 @@ export default defineComponent({
       }
       this.tableData = this.tableData.sort(
         (
-          row1: ProjectData['datagram']['detail'],
-          row2: ProjectData['datagram']['detail']
+          row1: ProjectData['datagram'],
+          row2: ProjectData['datagram']
         ): number => {
           let val1
           let val2
@@ -560,7 +560,7 @@ export default defineComponent({
       this.pagination.page = page
     },
 
-    handleDetail(data: ProjectData['datagram']['detail']) {
+    handleDetail(data: ProjectData['datagram']) {
       this.selectedItem = data
       this.dialogVisible = true
     },
@@ -572,7 +572,7 @@ export default defineComponent({
       this.tableData[projectIndex].deployState = 1
     },
 
-    handleGreyPublish(data: CommitData['datagram']['detail']) {
+    handleGreyPublish(data: CommitData['datagram']) {
       new ProjectServerList({ id: this.selectedItem.id })
         .request()
         .then((response) => {
@@ -584,33 +584,31 @@ export default defineComponent({
       this.greyServerDialogVisible = true
     },
 
-    callCommandFunc(funcName: string, data: ProjectData['datagram']['detail']) {
-      ;(this[funcName] as (data: ProjectData['datagram']['detail']) => void)(
-        data
-      )
+    callCommandFunc(funcName: string, data: ProjectData['datagram']) {
+      ;(this[funcName] as (data: ProjectData['datagram']) => void)(data)
     },
 
-    handleCommitCommand(data: ProjectData['datagram']['detail']) {
+    handleCommitCommand(data: ProjectData['datagram']) {
       this.selectedItem = data
       this.commitDialogVisible = true
     },
 
-    handleTagCommand(data: ProjectData['datagram']['detail']) {
+    handleTagCommand(data: ProjectData['datagram']) {
       this.selectedItem = data
       this.tagDialogVisible = true
     },
 
-    handleTaskCommand(data: ProjectData['datagram']['detail']) {
+    handleTaskCommand(data: ProjectData['datagram']) {
       this.selectedItem = data
       this.taskListDialogVisible = true
     },
 
-    handleReviewCommand(data: ProjectData['datagram']['detail']) {
+    handleReviewCommand(data: ProjectData['datagram']) {
       this.selectedItem = data
       this.reviewListDialogVisible = true
     },
 
-    publish(data: ProjectData['datagram']['detail']) {
+    publish(data: ProjectData['datagram']) {
       const id = data.id
       let color = ''
       if (data.environment === 1) {
@@ -648,7 +646,7 @@ export default defineComponent({
         })
     },
 
-    publishByCommit(data: CommitData['datagram']['detail']) {
+    publishByCommit(data: CommitData['datagram']) {
       ElMessageBox.confirm(
         this.$t('deployPage.publishCommitTips', { commit: data.commit }),
         this.$t('tips'),
@@ -679,7 +677,7 @@ export default defineComponent({
         })
     },
 
-    resetState(data: ProjectData['datagram']['detail']) {
+    resetState(data: ProjectData['datagram']) {
       ElMessageBox.confirm(
         this.$t('deployPage.resetStateTips'),
         this.$t('tips'),

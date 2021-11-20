@@ -2,29 +2,25 @@ import { Request, Pagination, ID, Total } from './types'
 
 export class NamespaceData {
   public datagram!: {
-    detail: {
-      id: number
-      name: string
-      userId: number
-      role: string
-      insertTime: string
-      updateTime: string
-    }
+    id: number
+    name: string
+    userId: number
+    role: string
+    insertTime: string
+    updateTime: string
   }
 }
 
 export class NamespaceUserData {
   public datagram!: {
-    detail: {
-      id: number
-      namespaceId: number
-      namespaceName: string
-      userId: number
-      userName: string
-      role: string
-      insertTime: string
-      updateTime: string
-    }
+    id: number
+    namespaceId: number
+    namespaceName: string
+    userId: number
+    userName: string
+    role: string
+    insertTime: string
+    updateTime: string
   }
 }
 
@@ -35,7 +31,7 @@ export class NamespaceList extends Request {
   public pagination: Pagination
 
   public datagram!: {
-    list: NamespaceData['datagram']['detail'][]
+    list: NamespaceData['datagram'][]
   }
   constructor(pagination: Pagination) {
     super()
@@ -56,7 +52,7 @@ export class NamespaceUserOption extends Request {
   readonly method = 'get'
 
   public datagram!: {
-    list: NamespaceUserData['datagram']['detail'][]
+    list: NamespaceUserData['datagram'][]
   }
 }
 
@@ -65,7 +61,7 @@ export class NamespaceUserList extends Request {
   readonly method = 'get'
   public param: ID
   public datagram!: {
-    list: NamespaceUserData['datagram']['detail'][]
+    list: NamespaceUserData['datagram'][]
   }
   constructor(param: NamespaceUserList['param']) {
     super()

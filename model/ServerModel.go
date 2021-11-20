@@ -126,7 +126,7 @@ func (s Server) GetData() (Server, error) {
 		QueryRow().
 		Scan(&server.ID, &server.NamespaceID, &server.Name, &server.IP, &server.Port, &server.Owner, &server.Path, &server.Password)
 	if err != nil {
-		return server, errors.New("数据查询失败")
+		return server, err
 	}
 	return server, nil
 }

@@ -184,12 +184,12 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleEdit(data: NamespaceData['datagram']['detail']) {
+    handleEdit(data: NamespaceData['datagram']) {
       this.formData = Object.assign({}, data)
       this.dialogVisible = true
     },
 
-    handleUser(data: NamespaceData['datagram']['detail']) {
+    handleUser(data: NamespaceData['datagram']) {
       this.selectedItem = data
       this.dialogUserVisible = true
     },

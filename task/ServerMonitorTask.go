@@ -2,72 +2,87 @@ package task
 
 import (
 	"database/sql"
-	"github.com/google/uuid"
+	"fmt"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/service"
-	"sync"
+	"strings"
 	"time"
 )
 
-func projectTask() {
-	date := time.Now().Format("2006-01-02 15:04:05")
-	projectTasks, err := model.ProjectTask{}.GetNotRunListLTDate(date)
+type ServerMonitorCache struct {
+	lastCycle   int
+	silentCycle int
+}
+
+var serverMonitorCaches = map[int64]ServerMonitorCache{}
+
+var loop = 0
+
+func serverMonitorTask() {
+	loop++
+	var serverCaches = map[int64]model.Server{}
+	serverMonitorTasks, err := model.ServerMonitor{}.GetAllModBy(loop, time.Now().Format("15:04"))
 	if err != nil && err != sql.ErrNoRows {
-		core.Log(core.ERROR, "get project task list error, detail:"+err.Error())
+		core.Log(core.ERROR, "get server monitor list error, detail:"+err.Error())
 	}
-	wg := sync.WaitGroup{}
-	for _, projectTask := range projectTasks {
-		project, err := model.Project{ID: projectTask.ProjectID}.GetData()
+	for _, serverMonitor := range serverMonitorTasks {
+		monitorCache, ok := serverMonitorCaches[serverMonitor.ID]
+		if !ok {
+			serverMonitorCaches[serverMonitor.ID] = ServerMonitorCache{}
+			monitorCache = serverMonitorCaches[serverMonitor.ID]
+		}
 
+		if monitorCache.silentCycle > 0 {
+			monitorCache.silentCycle++
+			if monitorCache.silentCycle >= serverMonitor.SilentCycle {
+				monitorCache.silentCycle = 0
+			}
+			serverMonitorCaches[serverMonitor.ID] = monitorCache
+			continue
+		}
+
+		cycleValue, err := model.ServerAgentLog{
+			ServerId: serverMonitor.ServerID,
+			Item:     serverMonitor.Item,
+		}.GetCycleValue(serverMonitor.GroupCycle, serverMonitor.Formula)
 		if err != nil {
-			core.Log(core.ERROR, "publish task has no project, detail:"+err.Error())
+			core.Log(core.ERROR, "get cycle value failed, detail:"+err.Error())
 			continue
 		}
 
-		if project.DeployState == model.ProjectDeploying {
-			core.Log(core.ERROR, "The project in publish is being build by other")
-			continue
+		compareRes := false
+		switch serverMonitor.Operator {
+		case ">=":
+			compareRes = strings.Compare(cycleValue, serverMonitor.Value) >= 0
+		case ">":
+			compareRes = strings.Compare(cycleValue, serverMonitor.Value) > 0
+		case "<=":
+			compareRes = strings.Compare(cycleValue, serverMonitor.Value) <= 0
+		case "<":
+			compareRes = strings.Compare(cycleValue, serverMonitor.Value) < 0
+		case "!=":
+			compareRes = strings.Compare(cycleValue, serverMonitor.Value) != 0
+		}
+		if compareRes {
+			monitorCache.lastCycle++
+		} else {
+			monitorCache.lastCycle = 0
 		}
 
-		if err := projectTask.SetRun(); err != nil {
-			core.Log(core.ERROR, "publish task set run fail, detail:"+err.Error())
-			continue
-		}
+		if monitorCache.lastCycle >= serverMonitor.LastCycle {
+			monitorCache.silentCycle = 1
+			monitorCache.lastCycle = 0
 
-		projectServers, err := model.ProjectServer{ProjectID: projectTask.ProjectID}.GetBindServerListByProjectID()
-
-		if err != nil {
-			core.Log(core.ERROR, "publish task has no server, detail:"+err.Error())
-			continue
+			if _, ok := serverCaches[serverMonitor.ServerID]; !ok {
+				server, err := model.Server{ID: serverMonitor.ServerID}.GetData()
+				if err != nil {
+					core.Log(core.ERROR, fmt.Sprintf("monitor task %d has no server, detail: %s", serverMonitor.ID, err.Error()))
+					continue
+				}
+				serverCaches[serverMonitor.ServerID] = server
+			}
+			serverMonitor.Notify(serverCaches[serverMonitor.ServerID], cycleValue)
 		}
-
-		userInfo, err := model.User{ID: 1}.GetData()
-		if err != nil {
-			core.Log(core.ERROR, "publish task has no user, detail:"+err.Error())
-			continue
-		}
-
-		project.PublisherID = userInfo.ID
-		project.PublisherName = userInfo.Name
-		project.DeployState = model.ProjectDeploying
-		project.LastPublishToken = uuid.New().String()
-		err = project.Publish()
-		if err != nil {
-			core.Log(core.ERROR, "publish task change state error, detail:"+err.Error())
-			continue
-		}
-		wg.Add(1)
-		go func(projectTask model.ProjectTask) {
-			defer wg.Done()
-			service.Gsync{
-				UserInfo:       userInfo,
-				Project:        project,
-				ProjectServers: projectServers,
-				CommitID:       projectTask.CommitID,
-				Branch:         projectTask.Branch,
-			}.Exec()
-		}(projectTask)
+		serverMonitorCaches[serverMonitor.ID] = monitorCache
 	}
-	wg.Wait()
 }

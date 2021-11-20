@@ -2,39 +2,35 @@ import { Request, Pagination, ID, Total } from './types'
 
 export class CrontabData {
   public datagram!: {
-    detail: {
-      id: number
-      namespaceId: number
-      command: string
-      commandMD5: string
-      date?: string
-      dateLocale?: string
-      script?: string
-      description?: string
-      creator: string
-      creatorId: number
-      editor: string
-      editorId: number
-      InsertTime: string
-      UpdateTime: string
-    }
+    id: number
+    namespaceId: number
+    command: string
+    commandMD5: string
+    date?: string
+    dateLocale?: string
+    script?: string
+    description?: string
+    creator: string
+    creatorId: number
+    editor: string
+    editorId: number
+    InsertTime: string
+    UpdateTime: string
   }
 }
 
 export class CrontabServerData {
   public datagram!: {
-    detail: {
-      id: number
-      crontabId: number
-      serverId: number
-      serverName: string
-      serverIP: string
-      serverPort: number
-      serverOwner: string
-      serverDescription: string
-      insertTime: string
-      updateTime: string
-    }
+    id: number
+    crontabId: number
+    serverId: number
+    serverName: string
+    serverIP: string
+    serverPort: number
+    serverOwner: string
+    serverDescription: string
+    insertTime: string
+    updateTime: string
   }
 }
 
@@ -47,7 +43,7 @@ export class CrontabList extends Request {
   public pagination: Pagination
 
   public datagram!: {
-    list: CrontabData['datagram']['detail'][]
+    list: CrontabData['datagram'][]
   }
   constructor(param: CrontabList['param'], pagination: Pagination) {
     super()
@@ -91,7 +87,7 @@ export class CrontabServerList extends Request {
   readonly method = 'get'
   public param: ID
   public datagram!: {
-    list: CrontabServerData['datagram']['detail'][]
+    list: CrontabServerData['datagram'][]
   }
   constructor(param: CrontabServerList['param']) {
     super()

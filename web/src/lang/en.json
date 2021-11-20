@@ -161,7 +161,15 @@
     "pubBandwidth": "Public network bandwidth",
     "loBandwidth": "Intranet bandwidth",
     "diskUsage": "Disk usage rate",
-    "diskIO": "Disk IO"
+    "diskIO": "Disk IO",
+    "addMonitor": "Create monitor",
+    "monitorList": "Monitor list",
+    "removeMonitorTips": "This action will delete the monitor({item}), continue?",
+    "item": "Item",
+    "formula": "Formula",
+    "cycle": "Cycle",
+    "vaildPeriod": "Vaild period",
+    "silentCycle": "Silent cycle"
   },
   "crontabPage": {
     "removeServerCrontabLabel": "Delete crontab in the server",

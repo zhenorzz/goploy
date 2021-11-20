@@ -529,9 +529,7 @@ export default defineComponent({
       getPublishTrace(publishToken.value)
     }
 
-    const getPublishTraceDetail = (
-      data: PublishTraceData['datagram']['detail']
-    ) => {
+    const getPublishTraceDetail = (data: PublishTraceData['datagram']) => {
       traceDetail.value[data.id] = ''
       new DeployTraceDetail({ id: data.id }).request().then((response) => {
         traceDetail.value[data.id] =
@@ -541,7 +539,7 @@ export default defineComponent({
       })
     }
 
-    const rebuild = (data: PublishTraceData['datagram']['detail']) => {
+    const rebuild = (data: PublishTraceData['datagram']) => {
       ElMessageBox.confirm(
         t('deployPage.publishCommitTips', { commit: data.commit }),
         t('tips'),

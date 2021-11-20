@@ -346,12 +346,12 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleEdit(data: ServerData['datagram']['detail']) {
+    handleEdit(data: ServerData['datagram']) {
       this.formData = Object.assign({}, data)
       this.dialogVisible = true
     },
 
-    handleMonitor(data: ServerData['datagram']['detail']) {
+    handleMonitor(data: ServerData['datagram']) {
       this.$router.push({ path: '/server/agent', query: { serverId: data.id } })
     },
 

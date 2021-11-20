@@ -341,12 +341,12 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleEdit(data: MonitorData['datagram']['detail']) {
+    handleEdit(data: MonitorData['datagram']) {
       this.formData = Object.assign({}, data)
       this.dialogVisible = true
     },
 
-    handleToggle(data: MonitorData['datagram']['detail']) {
+    handleToggle(data: MonitorData['datagram']) {
       if (data.state === 1) {
         ElMessageBox.confirm(
           this.$t('monitorPage.toggleStateTips', {
@@ -376,7 +376,7 @@ export default defineComponent({
       }
     },
 
-    handleRemove(data: MonitorData['datagram']['detail']) {
+    handleRemove(data: MonitorData['datagram']) {
       ElMessageBox.confirm(
         this.$t('monitorPage.removeMontiorTips', {
           monitorName: data.name,

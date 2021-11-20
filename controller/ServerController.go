@@ -272,7 +272,7 @@ func (Server) UploadFile(gp *core.Goploy) *core.Response {
 }
 
 func (Server) Report(gp *core.Goploy) *core.Response {
-	serverId, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
+	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: "invalid server id"}
 	}
@@ -284,7 +284,7 @@ func (Server) Report(gp *core.Goploy) *core.Response {
 	if len(datetimeRange) != 2 {
 		return &core.Response{Code: core.Error, Message: "invalid datetime range"}
 	}
-	serverAgentLogs, err := (model.ServerAgentLog{ServerId: serverId, Type: logType}).GetListBetweenTime(datetimeRange[0], datetimeRange[1])
+	serverAgentLogs, err := (model.ServerAgentLog{ServerId: serverID, Type: logType}).GetListBetweenTime(datetimeRange[0], datetimeRange[1])
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
@@ -322,6 +322,134 @@ func (Server) Report(gp *core.Goploy) *core.Response {
 			ServerAgentMap map[string]model.ServerAgentLogs `json:"map"`
 		}{ServerAgentMap: serverAgentMap},
 	}
+}
+
+// GetAllMonitor -
+func (Server) GetAllMonitor(gp *core.Goploy) *core.Response {
+	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
+	serverMonitorList, err := model.ServerMonitor{ServerID: serverID}.GetAll()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	return &core.Response{
+		Data: struct {
+			List model.ServerMonitors `json:"list"`
+		}{List: serverMonitorList},
+	}
+}
+
+// AddMonitor server
+func (s Server) AddMonitor(gp *core.Goploy) *core.Response {
+	type ReqData struct {
+		ServerID     int64  `json:"serverId" validate:"required"`
+		Item         string `json:"item" validate:"required"`
+		Formula      string `json:"formula" validate:"required"`
+		Operator     string `json:"operator" validate:"required"`
+		Value        string `json:"value" validate:"required"`
+		GroupCycle   int    `json:"groupCycle" validate:"required"`
+		LastCycle    int    `json:"lastCycle" validate:"required"`
+		SilentCycle  int    `json:"silentCycle" validate:"required"`
+		StartTime    string `json:"startTime" validate:"required,len=5"`
+		EndTime      string `json:"endTime" validate:"required,len=5"`
+		NotifyType   uint8  `json:"notifyType" validate:"gt=0"`
+		NotifyTarget string `json:"notifyTarget" validate:"required"`
+	}
+
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	id, err := model.ServerMonitor{
+		ServerID:     reqData.ServerID,
+		Item:         reqData.Item,
+		Formula:      reqData.Formula,
+		Operator:     reqData.Operator,
+		Value:        reqData.Value,
+		GroupCycle:   reqData.GroupCycle,
+		LastCycle:    reqData.LastCycle,
+		SilentCycle:  reqData.SilentCycle,
+		StartTime:    reqData.StartTime,
+		EndTime:      reqData.EndTime,
+		NotifyType:   reqData.NotifyType,
+		NotifyTarget: reqData.NotifyTarget,
+	}.AddRow()
+
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+
+	}
+	return &core.Response{
+		Data: struct {
+			ID int64 `json:"id"`
+		}{ID: id},
+	}
+}
+
+// EditMonitor server
+func (s Server) EditMonitor(gp *core.Goploy) *core.Response {
+	type ReqData struct {
+		ID           int64  `json:"id" validate:"required"`
+		Item         string `json:"item" validate:"required"`
+		Formula      string `json:"formula" validate:"required"`
+		Operator     string `json:"operator" validate:"required"`
+		Value        string `json:"value" validate:"required"`
+		GroupCycle   int    `json:"groupCycle" validate:"required"`
+		LastCycle    int    `json:"lastCycle" validate:"required"`
+		SilentCycle  int    `json:"silentCycle" validate:"required"`
+		StartTime    string `json:"startTime" validate:"required,len=5"`
+		EndTime      string `json:"endTime" validate:"required,len=5"`
+		NotifyType   uint8  `json:"notifyType" validate:"gt=0"`
+		NotifyTarget string `json:"notifyTarget" validate:"required"`
+	}
+
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	err := model.ServerMonitor{
+		ID:           reqData.ID,
+		Item:         reqData.Item,
+		Formula:      reqData.Formula,
+		Operator:     reqData.Operator,
+		Value:        reqData.Value,
+		GroupCycle:   reqData.GroupCycle,
+		LastCycle:    reqData.LastCycle,
+		SilentCycle:  reqData.SilentCycle,
+		StartTime:    reqData.StartTime,
+		EndTime:      reqData.EndTime,
+		NotifyType:   reqData.NotifyType,
+		NotifyTarget: reqData.NotifyTarget,
+	}.EditRow()
+
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+
+	}
+	return &core.Response{}
+}
+
+// DeleteMonitor server
+func (s Server) DeleteMonitor(gp *core.Goploy) *core.Response {
+	type ReqData struct {
+		ID int64 `json:"id" validate:"required"`
+	}
+
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	err := model.ServerMonitor{
+		ID: reqData.ID,
+	}.DeleteRow()
+
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+
+	}
+	return &core.Response{}
 }
 
 // version|cpu cores|mem

@@ -5,7 +5,7 @@ export class DeployList extends Request {
   readonly url = '/deploy/getList'
   readonly method = 'get'
   public datagram!: {
-    list: ProjectData['datagram']['detail'][]
+    list: ProjectData['datagram'][]
   }
 }
 
@@ -25,23 +25,21 @@ export class DeployRebuild extends Request {
 
 export class PublishTraceData {
   public datagram!: {
-    detail: {
-      id: number
-      token: string
-      projectId: number
-      projectName: string
-      detail: string
-      state: number
-      publisherId: number
-      publisherName: string
-      type: number
-      ext: string
-      commit: string
-      serverName: string
-      publishState: number
-      insertTime: string
-      updateTime: string
-    }
+    id: number
+    token: string
+    projectId: number
+    projectName: string
+    detail: string
+    state: number
+    publisherId: number
+    publisherName: string
+    type: number
+    ext: string
+    commit: string
+    serverName: string
+    publishState: number
+    insertTime: string
+    updateTime: string
   }
 }
 
@@ -61,7 +59,7 @@ export class DeployPreviewList extends Request {
   public pagination: Pagination
 
   public datagram!: {
-    list: PublishTraceData['datagram']['detail'][]
+    list: PublishTraceData['datagram'][]
     pagination: Pagination
   }
   constructor(param: DeployPreviewList['param'], pagination: Pagination) {
@@ -78,7 +76,7 @@ export class DeployTrace extends Request {
     lastPublishToken: string
   }
   public datagram!: {
-    list: PublishTraceData['datagram']['detail'][]
+    list: PublishTraceData['datagram'][]
   }
   constructor(param: DeployTrace['param']) {
     super()

@@ -245,13 +245,13 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleEdit(data: UserData['datagram']['detail']) {
+    handleEdit(data: UserData['datagram']) {
       this.restoreFormData()
       this.formData = Object.assign(this.formData, data)
       this.dialogVisible = true
     },
 
-    handleRemove(data: UserData['datagram']['detail']) {
+    handleRemove(data: UserData['datagram']) {
       ElMessageBox.confirm(
         this.$t('memberPage.removeUserTips', { name: data.name }),
         this.$t('tips'),

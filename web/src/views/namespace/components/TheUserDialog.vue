@@ -253,7 +253,7 @@ export default defineComponent({
       })
     },
 
-    remove(data: NamespaceUserData['datagram']['detail']) {
+    remove(data: NamespaceUserData['datagram']) {
       ElMessageBox.confirm(
         this.$t('namespacePage.removeUserTips'),
         this.$t('tips'),

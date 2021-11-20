@@ -171,7 +171,28 @@ CREATE TABLE IF NOT EXISTS `server_agent_log` (
   `report_time` datetime NOT NULL,
   `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
-KEY `idx_server_type_item_time` (`server_id`,`type`,`item`,`report_time`) USING BTREE
+  KEY `idx_server_type_item_time` (`server_id`,`type`,`item`,`report_time`) USING BTREE,
+  KEY `idx_server_item_time` (`server_id`,`item`,`report_time`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `server_monitor` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `server_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `item` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `formula` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'avg|max|min',
+  `operator` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `value` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `group_cycle` int(10) unsigned NOT NULL DEFAULT '0' COMMENT 'uint minute',
+  `last_cycle` int(10) unsigned NOT NULL DEFAULT '0',
+  `silent_cycle` int(10) unsigned NOT NULL DEFAULT '0',
+  `start_time` char(5) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '00:00',
+  `end_time` char(5) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '23:59',
+  `notify_type` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '1=企业微信 2=钉钉 3=飞书 255=custom',
+  `notify_target` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_server_item` (`server_id`,`item`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `crontab` (
@@ -244,5 +265,5 @@ CREATE TABLE IF NOT EXISTS `system_config` (
 REPLACE INTO `user`(`id`, `account`, `password`, `name`, `contact`, `state`, `super_manager`) VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '', 1, 1);
 REPLACE INTO `namespace`(`id`, `name`) VALUES (1, 'goploy');
 REPLACE INTO `namespace_user`(`id`, `namespace_id`, `user_id`, `role`) VALUES (1, 1, 1, 'admin');
-REPLACE INTO `system_config` (`key`, `value`) VALUES ('version', '1.3.7');
+REPLACE INTO `system_config` (`key`, `value`) VALUES ('version', '1.3.8');
 

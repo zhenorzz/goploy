@@ -344,7 +344,7 @@ export default defineComponent({
       this.getTotal()
     },
 
-    handleEdit(data: CrontabData['datagram']['detail']) {
+    handleEdit(data: CrontabData['datagram']) {
       this.formData.id = data.id
       this.formData.date = data.date || ''
       this.formData.script = data.script || ''
@@ -353,7 +353,7 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleServer(data: CrontabData['datagram']['detail']) {
+    handleServer(data: CrontabData['datagram']) {
       this.selectedItem = data
       this.serverVisible = true
     },
@@ -362,7 +362,7 @@ export default defineComponent({
       this.addServerVisible = true
     },
 
-    handleRemove(data: CrontabData['datagram']['detail']) {
+    handleRemove(data: CrontabData['datagram']) {
       this.crontabRemoveFormData.id = data.id
       this.crontabRemoveFormProps.command = data.command
       this.crontabRemoveVisible = true

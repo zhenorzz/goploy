@@ -31,18 +31,16 @@ export class Info extends Request {
 
 export class UserData {
   public datagram!: {
-    detail: {
-      account: string
-      contact: string
-      id: number
-      insertTime: string
-      lastLoginTime: string
-      name: string
-      password: string
-      state: number
-      superManager: number
-      updateTime: string
-    }
+    account: string
+    contact: string
+    id: number
+    insertTime: string
+    lastLoginTime: string
+    name: string
+    password: string
+    state: number
+    superManager: number
+    updateTime: string
   }
 }
 
@@ -53,7 +51,7 @@ export class UserList extends Request {
   public pagination: Pagination
 
   public datagram!: {
-    list: UserData['datagram']['detail'][]
+    list: UserData['datagram'][]
   }
   constructor(pagination: Pagination) {
     super()

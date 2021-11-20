@@ -222,7 +222,7 @@ export default defineComponent({
       })
     },
 
-    remove(data: CrontabServerData['datagram']['detail']) {
+    remove(data: CrontabServerData['datagram']) {
       ElMessageBox.confirm(
         this.$t('crontabPage.removeCrontabServerTips'),
         this.$t('tips'),

@@ -235,7 +235,7 @@ export default defineComponent({
     }
   },
   methods: {
-    submitTask(data: ProjectTaskData['datagram']['detail']) {
+    submitTask(data: ProjectTaskData['datagram']) {
       const date = dayjs(data.date).format('YYYY-MM-DD HH:mm:ss')
       new ProjectTaskAdd({ ...data, date })
         .request()
@@ -249,7 +249,7 @@ export default defineComponent({
           this.handlePageChange()
         })
     },
-    removeProjectTask(data: ProjectTaskData['datagram']['detail']) {
+    removeProjectTask(data: ProjectTaskData['datagram']) {
       ElMessageBox.confirm(
         this.$t('deployPage.removeProjectTaskTips', {
           projectName: this.projectRow.name,

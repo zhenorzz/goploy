@@ -1,7 +1,10 @@
 package model
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"net/http"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -211,4 +214,86 @@ func (m Monitor) TurnOff(errorContent string) error {
 		RunWith(DB).
 		Exec()
 	return err
+}
+
+func (m Monitor) Notify(err error) {
+	if m.NotifyType == NotifyWeiXin {
+		type markdown struct {
+			Content string `json:"content"`
+		}
+		type message struct {
+			Msgtype  string   `json:"msgtype"`
+			Markdown markdown `json:"markdown"`
+		}
+		content := "Monitor: <font color=\"warning\">" + m.Name + "</font>\n "
+		content += "> <font color=\"warning\">can not access</font> \n "
+		content += "> <font color=\"comment\">" + err.Error() + "</font> \n "
+
+		msg := message{
+			Msgtype: "markdown",
+			Markdown: markdown{
+				Content: content,
+			},
+		}
+		b, _ := json.Marshal(msg)
+		_, _ = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
+	} else if m.NotifyType == NotifyDingTalk {
+		type markdown struct {
+			Title string `json:"title"`
+			Text  string `json:"text"`
+		}
+		type message struct {
+			Msgtype  string   `json:"msgtype"`
+			Markdown markdown `json:"markdown"`
+		}
+		text := "#### Monitor: " + m.Name + " can not access \n >" + err.Error()
+
+		msg := message{
+			Msgtype: "markdown",
+			Markdown: markdown{
+				Title: m.Name,
+				Text:  text,
+			},
+		}
+		b, _ := json.Marshal(msg)
+		_, _ = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
+	} else if m.NotifyType == NotifyFeiShu {
+		type message struct {
+			Title string `json:"title"`
+			Text  string `json:"text"`
+		}
+
+		text := "can not access\n "
+		text += "detail:  " + err.Error()
+
+		msg := message{
+			Title: "Monitor:" + m.Name,
+			Text:  text,
+		}
+		b, _ := json.Marshal(msg)
+		_, _ = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
+	} else if m.NotifyType == NotifyCustom {
+		type message struct {
+			Code    int    `json:"code"`
+			Message string `json:"message"`
+			Data    struct {
+				MonitorName string `json:"monitorName"`
+				URL         string `json:"url"`
+				Port        int    `json:"port"`
+				Second      int    `json:"second"`
+				Times       uint16 `json:"times"`
+			} `json:"data"`
+		}
+		code := 0
+		msg := message{
+			Code:    code,
+			Message: "Monitor:" + m.Name + "can not access",
+		}
+		msg.Data.MonitorName = m.Name
+		msg.Data.URL = m.URL
+		msg.Data.Second = m.Second
+		msg.Data.Times = m.Times
+		b, _ := json.Marshal(msg)
+		_, _ = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
+	}
 }
