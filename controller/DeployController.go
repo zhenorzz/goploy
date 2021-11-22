@@ -228,7 +228,7 @@ func (Deploy) Rebuild(gp *core.Goploy) *core.Response {
 	if needToPublish == false {
 		if len(project.AfterDeployScript) != 0 {
 			scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
-			ioutil.WriteFile(scriptName, []byte(service.ReplaceScriptVars(project.AfterDeployScript, project)), 0755)
+			ioutil.WriteFile(scriptName, []byte(service.ReplaceProjectVars(project.AfterDeployScript, project)), 0755)
 		}
 		ch := make(chan bool, len(projectServers))
 		for _, projectServer := range projectServers {

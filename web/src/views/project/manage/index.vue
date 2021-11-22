@@ -445,18 +445,72 @@
               </el-tooltip>
             </template>
             <el-form-item prop="afterPullScript" label-width="0px">
-              <el-select
-                v-model="formData.afterPullScriptMode"
-                :placeholder="$t('projectPage.scriptMode') + '(Default: bash)'"
-                style="width: 100%"
-              >
-                <el-option
-                  v-for="(item, index) in scriptLangOption"
-                  :key="index"
-                  :label="item.label"
-                  :value="item.value"
-                />
-              </el-select>
+              <el-row type="flex">
+                <el-select
+                  v-model="formData.afterPullScriptMode"
+                  :placeholder="
+                    $t('projectPage.scriptMode') + '(Default: bash)'
+                  "
+                  style="flex: 1"
+                >
+                  <el-option
+                    v-for="(item, index) in scriptLangOption"
+                    :key="index"
+                    :label="item.label"
+                    :value="item.value"
+                  />
+                </el-select>
+                <el-popover
+                  placement="bottom-end"
+                  :title="$t('projectPage.predefinedVar')"
+                  width="400"
+                  trigger="hover"
+                >
+                  <div>
+                    <el-row>
+                      <span>${PROJECT_NAME}：</span>
+                      <span>
+                        {{
+                          formData.name !== '' ? formData.name : 'project.name'
+                        }}
+                      </span>
+                    </el-row>
+                    <el-row>
+                      <span>${REPOSITORY_PATH}：</span>
+                      <span>Repository path</span>
+                    </el-row>
+                    <el-row>
+                      <span>${COMMIT_ID}：</span>
+                      <span>Commit ID</span>
+                    </el-row>
+                    <el-row>
+                      <span>${COMMIT_SHORT_ID}：</span>
+                      <span>Commit ID (6 char)</span>
+                    </el-row>
+                    <el-row>
+                      <span>${COMMIT_BRANCH}：</span>
+                      <span>Commit branch</span>
+                    </el-row>
+                    <el-row>
+                      <span>${COMMIT_TAG}：</span>
+                      <span>Commit tag</span>
+                    </el-row>
+                    <el-row>
+                      <span>${COMMIT_AUTHOR}：</span>
+                      <span>Commit author</span>
+                    </el-row>
+                    <el-row>
+                      <span>${COMMIT_TIMESTAMP}：</span>
+                      <span>Commit timestamp</span>
+                    </el-row>
+                  </div>
+                  <template #reference>
+                    <el-button>
+                      {{ $t('projectPage.predefinedVar') }}
+                    </el-button>
+                  </template>
+                </el-popover>
+              </el-row>
             </el-form-item>
             <el-form-item prop="afterPullScript" label-width="0px">
               <!-- <span>No support for demo</span> -->
