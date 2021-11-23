@@ -3,7 +3,6 @@ name: Docker Image CI
 on:
   workflow_dispatch:
   release:
-    types: [published, edited]
 
 jobs:
 
