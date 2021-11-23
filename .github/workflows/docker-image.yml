@@ -2,7 +2,7 @@ name: Docker Image CI
 
 on:
   release:
-    types: [published]
+    types: [published, edited]
 
 jobs:
 
