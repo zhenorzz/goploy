@@ -30,6 +30,8 @@ Complete installation instructions, no difficulty in getting started!
 
 [Docker](https://hub.docker.com/r/zhenorzz/goploy)
 
+[Dockerfile](./docker/Dockerfile)
+
 [Document](https://docs.goploy.icu)
 
 [Goploy-Agent](https://github.com/zhenorzz/goploy-agent) Monitor server performance

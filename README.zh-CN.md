@@ -30,6 +30,8 @@
 
 [Docker](https://hub.docker.com/r/zhenorzz/goploy)
 
+[Dockerfile](./docker/Dockerfile)
+
 [帮助文档](https://docs.goploy.icu)
 
 [Goploy-Agent](https://github.com/zhenorzz/goploy-agent) 监控服务器性能

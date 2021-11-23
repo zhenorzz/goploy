@@ -22,9 +22,13 @@ Support all kinds of code release and rollback, which can be done through the we
 
 Complete installation instructions, no difficulty in getting started!
 
+[Dockerfile](https://github.com/zhenorzz/goploy/blob/master/docker/Dockerfile)
+
 # How to use?
 
-run it with all needed parameter:
+Import sql file: [goploy.sql](https://github.com/zhenorzz/goploy/blob/master/model/sql/goploy.sql)
+
+Run it with all needed parameter:
 
 ```console
 docker run --rm \
@@ -38,7 +42,6 @@ docker run --rm \
 ```
 
 That's it.
-
 
 ## Environment variables
 

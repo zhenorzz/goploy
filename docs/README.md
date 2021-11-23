@@ -24,6 +24,10 @@
 
 [DEMO](http://demo.goploy.icu) admin:admin!@#
 
+[Docker](https://hub.docker.com/r/zhenorzz/goploy)
+
+[Dockerfile](https://github.com/zhenorzz/goploy/blob/master/docker/Dockerfile)
+
 [Goploy-Agent](https://github.com/zhenorzz/goploy-agent) Monitor server performance
 
 ## 背景

@@ -22,6 +22,10 @@ Complete installation instructions, no difficulty in getting started!
 
 [DEMO](http://demo.goploy.icu) admin:admin!@# 
 
+[Docker](https://hub.docker.com/r/zhenorzz/goploy)
+
+[Dockerfile](https://github.com/zhenorzz/goploy/blob/master/docker/Dockerfile)
+
 ## Background
 Although most popular publishing tools are powerful, they are cumbersome to configure, difficult to get started, and difficult to use for projects.
 
