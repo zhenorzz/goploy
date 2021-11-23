@@ -1,0 +1,24 @@
+name: Docker Image CI
+
+on:
+  release:
+    types: [published]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: |
+          docker version
+          # 登录阿里云镜像仓库
+          docker login --username=${{ secrets.DOCKER_USERNAME }} --password=${{ secrets.DOCKER_PASSWORD }}
+          cd xxl-job-admin
+          # 使用Dockerfile构建镜像
+          docker build -t zhenorzz/goploy . --file docker/Dockerfile 
+          # 推送镜像到镜像仓库
+          docker push zhenorzz/goploy
