@@ -209,8 +209,8 @@
                 <el-button
                   :icon="'el-icon-view'"
                   type="success"
-                  :loading="formProps.lsBranchLoading"
-                  @click="getRemoteBranchList"
+                  :loading="formProps.pinging"
+                  @click="pingRepos"
                 >
                   {{ $t('projectPage.testConnection') }}
                 </el-button>
@@ -242,14 +242,14 @@
                   style="flex: 1"
                 >
                   <el-option
-                    v-for="item in formProps.branch"
-                    :key="item"
-                    :label="item"
-                    :value="item"
+                    v-for="branch in formProps.branch"
+                    :key="branch"
+                    :label="branch"
+                    :value="branch"
                   />
                 </el-select>
                 <el-button
-                  :icon="'el-icon-search'"
+                  icon="el-icon-search"
                   type="success"
                   :loading="formProps.lsBranchLoading"
                   @click="getRemoteBranchList"
@@ -676,6 +676,7 @@ import { ServerOption } from '@/api/server'
 import {
   ProjectList,
   ProjectTotal,
+  ProjectPingRepos,
   ProjectRemoteBranchList,
   ProjectAdd,
   ProjectEdit,
@@ -778,6 +779,7 @@ export default defineComponent({
         symlink: false,
         disabled: false,
         branch: [] as string[],
+        pinging: false,
         lsBranchLoading: false,
         showServers: true,
         showUsers: true,
@@ -1068,6 +1070,26 @@ export default defineComponent({
         .request()
         .then((response) => {
           this.pagination.total = response.data.total
+        })
+    },
+
+    pingRepos() {
+      if (this.formData.url === '') {
+        ElMessage.error('url can not be blank')
+        this.formProps.branch = []
+        return
+      }
+      this.formProps.pinging = true
+      new ProjectPingRepos({
+        repoType: this.formData.repoType,
+        url: this.formData.url,
+      })
+        .request()
+        .then(() => {
+          ElMessage.success('Success')
+        })
+        .finally(() => {
+          this.formProps.pinging = false
         })
     },
 

@@ -30,6 +30,8 @@ EXPOSE 80
 
 VOLUME ["/opt/goploy/repository/"]
 
+WORKDIR /opt/goploy/
+
 ENTRYPOINT \
     echo 'DB_TYPE=mysql' > /opt/goploy/.env;\
     echo "DB_CONN=${MYSQL_USER}:${MYSQL_PASSWORD}@(${MYSQL_HOST}:${MYSQL_PORT})/goploy?charset=utf8" >> /opt/goploy/.env;\

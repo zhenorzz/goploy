@@ -52,6 +52,54 @@ func (Project) GetTotal(gp *core.Goploy) *core.Response {
 	}
 }
 
+// PingRepos -
+func (Project) PingRepos(gp *core.Goploy) *core.Response {
+	url := gp.URLQuery.Get("url")
+
+	if strings.Contains(url, "git@") {
+		host := strings.Split(url, "git@")[1]
+		host = strings.Split(host, ":")[0]
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return &core.Response{Code: core.Error, Message: err.Error()}
+		}
+		knownHostsPath := homeDir + "/.ssh/known_hosts"
+		var cmdOutbuf, cmdErrbuf bytes.Buffer
+		cmd := exec.Command("ssh-keygen", "-F", host, "-f", knownHostsPath)
+		cmd.Stdout = &cmdOutbuf
+		cmd.Stderr = &cmdErrbuf
+		if err := cmd.Run(); err != nil {
+			cmdOutbuf.Reset()
+			cmdErrbuf.Reset()
+			cmd := exec.Command("ssh-keyscan", host)
+			cmd.Stdout = &cmdOutbuf
+			cmd.Stderr = &cmdErrbuf
+			if err := cmd.Run(); err != nil {
+				return &core.Response{Code: core.Error, Message: cmdErrbuf.String()}
+			}
+			f, err := os.OpenFile(knownHostsPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				return &core.Response{Code: core.Error, Message: err.Error()}
+			}
+			defer f.Close()
+			if _, err := f.Write(cmdOutbuf.Bytes()); err != nil {
+				return &core.Response{Code: core.Error, Message: err.Error()}
+			}
+		}
+	}
+
+	repo, err := repository.GetRepo(gp.URLQuery.Get("repoType"))
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	if err := repo.Ping(url); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	return &core.Response{}
+}
+
 // GetRemoteBranchList -
 func (Project) GetRemoteBranchList(gp *core.Goploy) *core.Response {
 	url := gp.URLQuery.Get("url")

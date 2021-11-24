@@ -6,6 +6,7 @@ import (
 )
 
 type Repo interface {
+	Ping(url string) error
 	// Create one repository
 	Create(projectID int64) error
 	// Follow the repository code and update to latest

@@ -13,7 +13,15 @@ import (
 	"time"
 )
 
-type SvnRepo struct {
+type SvnRepo struct{}
+
+// Ping -
+func (SvnRepo) Ping(url string) error {
+	svn := utils.SVN{}
+	if err := svn.LS(url); err != nil {
+		return errors.New(svn.Err.String())
+	}
+	return nil
 }
 
 // Create -

@@ -6,11 +6,13 @@ export class ProjectData {
     namespaceId: number
     userId: number
     name: string
+    repoType: string
     url: string
     path: string
     environment: number
     branch: string
     symlinkPath: string
+    symlinkBackupNumber: number
     review: number
     reviewURL: string
     afterPullScriptMode: string
@@ -62,6 +64,24 @@ export class ProjectTotal extends Request {
 
   public datagram!: Total
   constructor(param: ProjectTotal['param']) {
+    super()
+    this.param = { ...param }
+  }
+}
+
+export class ProjectPingRepos extends Request {
+  readonly url = '/project/pingRepos'
+  readonly method = 'get'
+
+  public param: {
+    repoType: string
+    url: string
+  }
+
+  public datagram!: {
+    branch: string[]
+  }
+  constructor(param: ProjectPingRepos['param']) {
     super()
     this.param = { ...param }
   }

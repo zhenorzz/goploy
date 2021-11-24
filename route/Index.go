@@ -49,6 +49,7 @@ func Init() *router.Router {
 	// project route
 	rt.Add("/project/getList", http.MethodGet, controller.Project{}.GetList)
 	rt.Add("/project/getTotal", http.MethodGet, controller.Project{}.GetTotal)
+	rt.Add("/project/pingRepos", http.MethodGet, controller.Project{}.PingRepos)
 	rt.Add("/project/getRemoteBranchList", http.MethodGet, controller.Project{}.GetRemoteBranchList)
 	rt.Add("/project/getBindServerList", http.MethodGet, controller.Project{}.GetBindServerList)
 	rt.Add("/project/getBindUserList", http.MethodGet, controller.Project{}.GetBindUserList)

@@ -46,3 +46,10 @@ func (svn *SVN) Log(options ...string) error {
 	}
 	return nil
 }
+
+func (svn *SVN) LS(options ...string) error {
+	if err := svn.Run("ls", options...); err != nil {
+		return err
+	}
+	return nil
+}

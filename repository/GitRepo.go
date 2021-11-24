@@ -10,7 +10,16 @@ import (
 	"strings"
 )
 
-type GitRepo struct {
+type GitRepo struct{}
+
+// Ping -
+func (GitRepo) Ping(url string) error {
+	git := utils.GIT{}
+	if err := git.LsRemote("-h", url); err != nil {
+		return errors.New(git.Err.String())
+	}
+
+	return nil
 }
 
 // Create -
