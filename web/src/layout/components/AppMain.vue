@@ -18,7 +18,7 @@ export default defineComponent({
     cachedViews() {
       return import.meta.env.PROD === true
         ? this.$store.state.tagsView.cachedViews.join(',')
-        : ''
+        : []
     },
     key() {
       return this.$route.path
