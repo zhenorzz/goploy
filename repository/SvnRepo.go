@@ -18,7 +18,7 @@ type SvnRepo struct{}
 // Ping -
 func (SvnRepo) Ping(url string) error {
 	svn := utils.SVN{}
-	if err := svn.LS(url); err != nil {
+	if err := svn.LS(strings.Split(url, " ")...); err != nil {
 		return errors.New(svn.Err.String())
 	}
 	return nil
@@ -40,7 +40,9 @@ func (SvnRepo) Create(projectID int64) error {
 		return err
 	}
 	svn := utils.SVN{}
-	if err := svn.Clone(project.URL, srcPath); err != nil {
+	options := strings.Split(project.URL, " ")
+	options = append(options, srcPath)
+	if err := svn.Clone(options...); err != nil {
 		core.Log(core.ERROR, "The project fail to initialize, projectID:"+strconv.FormatInt(project.ID, 10)+" ,error: "+err.Error()+", detail: "+svn.Err.String())
 		return err
 	}
