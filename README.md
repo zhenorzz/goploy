@@ -40,7 +40,7 @@ Complete installation instructions, no difficulty in getting started!
 
 ## Content
 
-- [Background](#Background)
+- [Feature](#Feature)
 - [Install](#Install)
 - [Use](#Use)
 - [Preview](#Preview)
@@ -51,8 +51,18 @@ Complete installation instructions, no difficulty in getting started!
 - [Contribute](#Contribute)
 - [License](#License)
 
-## Background
-Although most popular publishing tools are powerful, they are cumbersome to configure, difficult to get started, and difficult to use for projects.
+## Feature
+
+Use Goploy to automate your development workflow, so you can focus on work that matters most. 
+
+Goploy is commonly used for:
+
+- Building projects
+- Deployment
+- Monitor app and server
+- Second cron 
+- Xterm
+- Sftp
 
 ## Install
 1. Install mysql
