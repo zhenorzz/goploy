@@ -42,7 +42,7 @@ func serverMonitorTask() {
 		}
 
 		cycleValue, err := model.ServerAgentLog{
-			ServerId: serverMonitor.ServerID,
+			ServerID: serverMonitor.ServerID,
 			Item:     serverMonitor.Item,
 		}.GetCycleValue(serverMonitor.GroupCycle, serverMonitor.Formula)
 		if err != nil {

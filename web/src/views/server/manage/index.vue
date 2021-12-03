@@ -86,11 +86,12 @@
       <el-table-column
         prop="operation"
         :label="$t('op')"
-        width="130"
+        width="180"
         align="center"
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
+          <el-button icon="el-icon-time" @click="handleCron(scope.row)" />
           <el-button
             icon="el-icon-data-line"
             @click="handleMonitor(scope.row)"
@@ -349,6 +350,10 @@ export default defineComponent({
     handleEdit(data: ServerData['datagram']) {
       this.formData = Object.assign({}, data)
       this.dialogVisible = true
+    },
+
+    handleCron(data: ServerData['datagram']) {
+      this.$router.push({ path: '/server/cron', query: { serverId: data.id } })
     },
 
     handleMonitor(data: ServerData['datagram']) {

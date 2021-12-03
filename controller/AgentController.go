@@ -24,7 +24,7 @@ func (Agent) Report(gp *core.Goploy) *core.Response {
 	}
 
 	err := model.ServerAgentLog{
-		ServerId:   reqData.ServerId,
+		ServerID:   reqData.ServerId,
 		Type:       reqData.Type,
 		Item:       reqData.Item,
 		Value:      reqData.Value,

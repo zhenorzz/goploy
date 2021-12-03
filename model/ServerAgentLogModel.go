@@ -8,7 +8,7 @@ const serverAgentLogTable = "`server_agent_log`"
 
 // ServerAgentLog -
 type ServerAgentLog struct {
-	ServerId   int64  `json:"serverId,omitempty"`
+	ServerID   int64  `json:"serverId,omitempty"`
 	Type       int    `json:"type,omitempty"`
 	Item       string `json:"item"`
 	Value      string `json:"value"`
@@ -27,7 +27,7 @@ func (sal ServerAgentLog) GetListBetweenTime(low, high string) (ServerAgentLogs,
 			"report_time",
 		).
 		From(serverAgentLogTable).
-		Where(sq.Eq{"server_id": sal.ServerId}).
+		Where(sq.Eq{"server_id": sal.ServerID}).
 		Where(sq.Eq{"type": sal.Type}).
 		Where(sq.Expr("report_time BETWEEN ? AND ?", low, high)).
 		RunWith(DB).
@@ -67,7 +67,7 @@ func (sal ServerAgentLog) GetCycleValue(groupCycle int, formula string) (value s
 
 	err = builder.
 		From(serverAgentLogTable).
-		Where(sq.Eq{"server_id": sal.ServerId}).
+		Where(sq.Eq{"server_id": sal.ServerID}).
 		Where(sq.Eq{"item": sal.Item}).
 		Where("now() - interval ? minute", groupCycle).
 		RunWith(DB).
@@ -81,7 +81,7 @@ func (sal ServerAgentLog) AddRow() error {
 	_, err := sq.
 		Insert(serverAgentLogTable).
 		Columns("server_id", "type", "item", "value", "report_time").
-		Values(sal.ServerId, sal.Type, sal.Item, sal.Value, sal.ReportTime).
+		Values(sal.ServerID, sal.Type, sal.Item, sal.Value, sal.ReportTime).
 		RunWith(DB).
 		Exec()
 	if err != nil {

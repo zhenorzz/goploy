@@ -83,6 +83,7 @@
   "import": "Import",
   "read": "Read",
   "run": "Run",
+  "expression": "Expression",
   "delete": "Delete",
   "remove": "Remove",
   "install": "Install",
@@ -119,6 +120,7 @@
     "serverAgent": "Monitor",
     "template": "Template",
     "crontab": "Crontab",
+    "serverCron": "Cron",
     "namespace": "Namespace",
     "member": "Member"
   },

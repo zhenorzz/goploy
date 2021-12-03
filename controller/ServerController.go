@@ -284,7 +284,7 @@ func (Server) Report(gp *core.Goploy) *core.Response {
 	if len(datetimeRange) != 2 {
 		return &core.Response{Code: core.Error, Message: "invalid datetime range"}
 	}
-	serverAgentLogs, err := (model.ServerAgentLog{ServerId: serverID, Type: logType}).GetListBetweenTime(datetimeRange[0], datetimeRange[1])
+	serverAgentLogs, err := (model.ServerAgentLog{ServerID: serverID, Type: logType}).GetListBetweenTime(datetimeRange[0], datetimeRange[1])
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}

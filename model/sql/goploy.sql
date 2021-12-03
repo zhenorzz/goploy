@@ -195,29 +195,33 @@ CREATE TABLE IF NOT EXISTS `server_monitor` (
   KEY `idx_server_item` (`server_id`,`item`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `crontab` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `namespace_id` int(10) unsigned NOT NULL DEFAULT 0,
-  `command` varchar(255) NOT NULL DEFAULT '',
-  `command_md5` char(32) NOT NULL DEFAULT '' COMMENT 'command md5 for replace',
-  `creator_id` int(10) unsigned NOT NULL DEFAULT '0',
-  `creator` varchar(255) NOT NULL DEFAULT '',
-  `editor_id` int(10) unsigned NOT NULL DEFAULT '0',
-  `editor` varchar(255) NOT NULL DEFAULT '',
-  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `uk_command_md5` (`namespace_id`,`command_md5`) USING BTREE
+CREATE TABLE IF NOT EXISTS `cron` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `server_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `expression` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+    `command` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+    `single_mode` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '1:wait the current run completed',
+    `log_level` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '0:none 1:stdout 2: 1+stderr ',
+    `description` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+    `creator` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+    `editor` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+    `state` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '0.disable 1.enable',
+    `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE IF NOT EXISTS `crontab_server` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `crontab_id` int(10) unsigned NOT NULL,
-  `server_id` int(10) unsigned NOT NULL,
-  `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `idx_crontab_server` (`crontab_id`,`server_id`) USING BTREE
+CREATE TABLE IF NOT EXISTS `cron_log` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `cron_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `server_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `exec_code` int(10) NOT NULL DEFAULT '0' COMMENT 'shell exec code',
+    `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `report_time` datetime NOT NULL,
+    `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`) USING BTREE,
+    KEY `idx_cron` (`cron_id`),
+    KEY `idx_server_cron` (`server_id`,`cron_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `user`  (

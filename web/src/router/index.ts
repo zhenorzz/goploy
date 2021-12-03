@@ -178,11 +178,12 @@ export const asyncRoutes: RouteRecordRaw[] = [
         },
       },
       {
-        path: 'crontab',
-        name: 'Crontab',
-        component: () => import('@/views/server/crontab/index.vue'),
+        path: 'cron',
+        name: 'ServerCron',
+        component: () => import('@/views/server/cron/index.vue'),
         meta: {
-          title: 'crontab',
+          hidden: true,
+          title: 'serverCron',
           icon: 'crontab',
           roles: ['admin', 'manager'],
         },

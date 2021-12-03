@@ -17,8 +17,8 @@ export default defineComponent({
   computed: {
     cachedViews() {
       return import.meta.env.PROD === true
-        ? this.$store.state.tagsView.cachedViews.join(',')
-        : []
+        ? this.$store.state.tagsView.cachedViews.join(',').split(',')
+        : ['ServerCron', 'ServerAgent']
     },
     key() {
       return this.$route.path

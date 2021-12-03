@@ -581,11 +581,16 @@ func ReplaceCommitVars(script string, commitInfo repository.CommitInfo) string {
 		"${COMMIT_TAG}":       commitInfo.Tag,
 		"${COMMIT_BRANCH}":    commitInfo.Branch,
 		"${COMMIT_ID}":        commitInfo.Commit,
-		"${COMMIT_SHORT_ID}":  commitInfo.Commit[0:6],
+		"${COMMIT_SHORT_ID}":  commitInfo.Commit,
 		"${COMMIT_AUTHOR}":    commitInfo.Author,
 		"${COMMIT_TIMESTAMP}": strconv.FormatInt(commitInfo.Timestamp, 10),
 		"${COMMIT_MESSAGE}":   commitInfo.Message,
 	}
+
+	if len(commitInfo.Commit) > 6 {
+		scriptVars["${COMMIT_SHORT_ID}"] = commitInfo.Commit[0:6]
+	}
+
 	for key, value := range scriptVars {
 		script = strings.Replace(script, key, value, -1)
 	}

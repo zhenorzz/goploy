@@ -11,22 +11,16 @@ import (
 
 // Init router
 func Init() *router.Router {
-	var rt = new(router.Router)
+	var rt = router.NewRouter()
 	// rt.Middleware(example)
-	// no need to check login
-	rt.RegisterWhiteList(map[string]struct{}{
-		"/user/login":      {},
-		"/deploy/webhook":  {},
-		"/deploy/callback": {},
-		"/agent/report":    {},
-	})
+
 	// websocket route
 	rt.Add("/ws/connect", http.MethodGet, ws.GetHub().Connect)
 	rt.Add("/ws/xterm", http.MethodGet, ws.GetHub().Xterm)
 	rt.Add("/ws/sftp", http.MethodGet, ws.GetHub().Sftp)
 
 	// user route
-	rt.Add("/user/login", http.MethodPost, controller.User{}.Login)
+	rt.Add("/user/login", http.MethodPost, controller.User{}.Login).White()
 	rt.Add("/user/info", http.MethodGet, controller.User{}.Info)
 	rt.Add("/user/getList", http.MethodGet, controller.User{}.GetList)
 	rt.Add("/user/getTotal", http.MethodGet, controller.User{}.GetTotal)
@@ -95,8 +89,8 @@ func Init() *router.Router {
 	rt.Add("/deploy/publish", http.MethodPost, controller.Deploy{}.Publish, middleware.HasPublishAuth)
 	rt.Add("/deploy/rebuild", http.MethodPost, controller.Deploy{}.Rebuild, middleware.HasPublishAuth)
 	rt.Add("/deploy/greyPublish", http.MethodPost, controller.Deploy{}.GreyPublish, middleware.HasPublishAuth).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
-	rt.Add("/deploy/webhook", http.MethodPost, controller.Deploy{}.Webhook, middleware.FilterEvent)
-	rt.Add("/deploy/callback", http.MethodGet, controller.Deploy{}.Callback)
+	rt.Add("/deploy/webhook", http.MethodPost, controller.Deploy{}.Webhook, middleware.FilterEvent).White()
+	rt.Add("/deploy/callback", http.MethodGet, controller.Deploy{}.Callback).White()
 
 	// server route
 	rt.Add("/server/getList", http.MethodGet, controller.Server{}.GetList)
@@ -126,9 +120,15 @@ func Init() *router.Router {
 	rt.Add("/crontab/remove", http.MethodDelete, controller.Crontab{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/crontab/addServer", http.MethodPost, controller.Crontab{}.AddServer).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/crontab/removeCrontabServer", http.MethodDelete, controller.Crontab{}.RemoveCrontabServer).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/cron/report", http.MethodPost, controller.Cron{}.Report).White()
+	rt.Add("/cron/getList", http.MethodPost, controller.Cron{}.GetList).White()
+	rt.Add("/cron/getLogs", http.MethodPost, controller.Cron{}.GetLogs).White()
+	rt.Add("/cron/add", http.MethodPost, controller.Cron{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/cron/edit", http.MethodPut, controller.Cron{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})
+	rt.Add("/cron/remove", http.MethodDelete, controller.Cron{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager})
 
 	// agent route
-	rt.Add("/agent/report", http.MethodPost, controller.Agent{}.Report)
+	rt.Add("/agent/report", http.MethodPost, controller.Agent{}.Report).White()
 
 	rt.Start()
 	return rt

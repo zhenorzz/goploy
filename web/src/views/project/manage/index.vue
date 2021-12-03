@@ -281,7 +281,7 @@
               <template #label>
                 <el-link
                   type="primary"
-                  href="https://zhenorzz.github.io/goploy/#/dependency/notice"
+                  href="https://docs.goploy.icu/#/dependency/notice"
                   target="_blank"
                 >
                   {{ $t('projectPage.deployNotice') }}
