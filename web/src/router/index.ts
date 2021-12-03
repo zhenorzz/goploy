@@ -162,7 +162,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
         component: () => import('@/views/server/manage/index.vue'),
         meta: {
           title: 'serverSetting',
-          icon: 'setting',
+          icon: 'server',
           roles: ['admin', 'manager'],
         },
       },

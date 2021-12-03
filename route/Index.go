@@ -109,17 +109,6 @@ func Init() *router.Router {
 	rt.Add("/server/editMonitor", http.MethodPut, controller.Server{}.EditMonitor).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/server/deleteMonitor", http.MethodDelete, controller.Server{}.DeleteMonitor).Roles([]string{core.RoleAdmin, core.RoleManager})
 
-	// crontab route
-	rt.Add("/crontab/getList", http.MethodGet, controller.Crontab{}.GetList)
-	rt.Add("/crontab/getTotal", http.MethodGet, controller.Crontab{}.GetTotal)
-	rt.Add("/crontab/getCrontabsInRemoteServer", http.MethodGet, controller.Crontab{}.GetCrontabsInRemoteServer)
-	rt.Add("/crontab/getBindServerList", http.MethodGet, controller.Crontab{}.GetBindServerList)
-	rt.Add("/crontab/add", http.MethodPost, controller.Crontab{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager})
-	rt.Add("/crontab/edit", http.MethodPut, controller.Crontab{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager})
-	rt.Add("/crontab/import", http.MethodPost, controller.Crontab{}.Import).Roles([]string{core.RoleAdmin, core.RoleManager})
-	rt.Add("/crontab/remove", http.MethodDelete, controller.Crontab{}.Remove).Roles([]string{core.RoleAdmin, core.RoleManager})
-	rt.Add("/crontab/addServer", http.MethodPost, controller.Crontab{}.AddServer).Roles([]string{core.RoleAdmin, core.RoleManager})
-	rt.Add("/crontab/removeCrontabServer", http.MethodDelete, controller.Crontab{}.RemoveCrontabServer).Roles([]string{core.RoleAdmin, core.RoleManager})
 	rt.Add("/cron/report", http.MethodPost, controller.Cron{}.Report).White()
 	rt.Add("/cron/getList", http.MethodPost, controller.Cron{}.GetList).White()
 	rt.Add("/cron/getLogs", http.MethodPost, controller.Cron{}.GetLogs).White()
