@@ -34,9 +34,9 @@ type CommitInfo struct {
 }
 
 func GetRepo(repoType string) (Repo, error) {
-	if repoType == "git" {
+	if repoType == model.RepoGit {
 		return GitRepo{}, nil
-	} else if repoType == "svn" {
+	} else if repoType == model.RepoSVN {
 		return SvnRepo{}, nil
 	}
 	return nil, fmt.Errorf("wrong repo type passed")

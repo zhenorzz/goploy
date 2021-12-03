@@ -459,7 +459,14 @@ func (Deploy) Webhook(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Deny, Message: "Webhook auto deploy turn off, go to project setting turn on"}
 	}
 
-	if branch := strings.Split(reqData.Ref, "/")[2]; project.Branch != branch {
+	branch := ""
+	if project.RepoType == model.RepoSVN {
+		branch = reqData.Ref
+	} else {
+		branch = strings.Split(reqData.Ref, "/")[2]
+	}
+
+	if project.Branch != branch {
 		return &core.Response{Code: core.Deny, Message: "Receive branch:" + branch + " push event, not equal to current branch"}
 	}
 

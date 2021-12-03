@@ -54,6 +54,11 @@ const (
 	ProjectWebhookDeploy = 1
 )
 
+const (
+	RepoGit = "git"
+	RepoSVN = "svn"
+)
+
 // Project notify type
 const (
 	NotifyWeiXin   = 1
