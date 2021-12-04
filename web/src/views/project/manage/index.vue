@@ -58,7 +58,17 @@
         :label="$t('branch')"
         align="center"
       />
-      <el-table-column width="95" :label="$t('autoDeploy')">
+      <el-table-column width="80" :label="$t('review')" align="center">
+        <template #default="scope">
+          <span v-if="scope.row.review === 0">{{ $t('close') }}</span>
+          <span v-else>{{ $t('open') }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column
+        width="95"
+        :label="$t('autoDeploy')"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+      >
         <template #default="scope">
           <span v-if="scope.row.autoDeploy === 0">{{ $t('close') }}</span>
           <span v-else>webhook</span>
@@ -69,17 +79,12 @@
           />
         </template>
       </el-table-column>
-      <el-table-column width="80" :label="$t('review')" align="center">
-        <template #default="scope">
-          <span v-if="scope.row.review === 0">{{ $t('close') }}</span>
-          <span v-else>{{ $t('open') }}</span>
-        </template>
-      </el-table-column>
       <el-table-column
         prop="file"
         width="80"
         :label="$t('file')"
         align="center"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <el-button type="text" @click="handleFile(scope.row)">{{
@@ -92,6 +97,7 @@
         width="80"
         :label="$t('server')"
         align="center"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <el-button type="text" @click="handleServer(scope.row)">
@@ -104,6 +110,7 @@
         width="80"
         :label="$t('member')"
         align="center"
+        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <el-button type="text" @click="handleUser(scope.row)">
@@ -477,7 +484,7 @@
                     </el-row>
                     <el-row>
                       <span>${REPOSITORY_PATH}：</span>
-                      <span>Repository path</span>
+                      <span>./repository/project_*</span>
                     </el-row>
                     <el-row>
                       <span>${COMMIT_ID}：</span>
@@ -501,7 +508,7 @@
                     </el-row>
                     <el-row>
                       <span>${COMMIT_TIMESTAMP}：</span>
-                      <span>Commit timestamp</span>
+                      <span>Commit timestamp(second)</span>
                     </el-row>
                   </div>
                   <template #reference>
@@ -637,11 +644,21 @@
           v-show="autoDeployFormData.autoDeploy === 1"
           style="margin: 10px; white-space: pre-line"
         >
-          {{
-            $t('projectPage.autoDeployTips', {
-              projectId: autoDeployFormData.id,
-            })
-          }}
+          <span v-if="selectedItem.repoType === 'svn'">
+            {{
+              $t('projectPage.autoDeploySVNTips', {
+                projectId: autoDeployFormData.id,
+                ref: `{\\"ref\\": \\"${selectedItem.branch}\\"}`,
+              })
+            }}
+          </span>
+          <span v-else>
+            {{
+              $t('projectPage.autoDeployGitTips', {
+                projectId: autoDeployFormData.id,
+              })
+            }}
+          </span>
         </el-row>
       </el-form>
       <template #footer class="dialog-footer">
@@ -949,6 +966,7 @@ export default defineComponent({
 
     handleAutoDeploy(data: ProjectData['datagram']) {
       this.dialogAutoDeployVisible = true
+      this.selectedItem = data
       this.autoDeployFormData.id = data.id
       this.autoDeployFormData.autoDeploy = data.autoDeploy
     },

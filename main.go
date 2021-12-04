@@ -36,7 +36,7 @@ var (
 	s    string
 )
 
-const appVersion = "1.3.8"
+const appVersion = "1.4.0"
 
 func init() {
 	flag.StringVar(&core.AssetDir, "asset-dir", "", "default: ./")

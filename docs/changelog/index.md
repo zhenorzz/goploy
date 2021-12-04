@@ -1,5 +1,19 @@
 # change log
 
+## 1.4.0
+
+*2021-12-04*
+
+### New features
+- second's cron 
+- support svn hook
+
+### Optimization
+- route
+
+### Bug fixes
+- svn commit id length
+
 ## 1.3.8
 
 *2021-11-20*

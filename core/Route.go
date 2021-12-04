@@ -115,12 +115,10 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gp, response := rt.checkLogin(w, r)
-	if response != nil {
-		response.JSON(w)
-		return
+	if response == nil {
+		response = rt.doRequest(gp)
 	}
 
-	response = rt.doRequest(gp)
 	if response != nil {
 		response.JSON(w)
 	}
