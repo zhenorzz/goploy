@@ -446,3 +446,17 @@ export class ProjectReviewList extends Request {
     this.param = { ...param, ...pagination }
   }
 }
+
+export class ReposFileList extends Request {
+  readonly url = '/project/getReposFileList'
+  readonly method = 'get'
+  public param: {
+    id: number
+    path: string
+  }
+
+  constructor(param: ReposFileList['param']) {
+    super()
+    this.param = param
+  }
+}

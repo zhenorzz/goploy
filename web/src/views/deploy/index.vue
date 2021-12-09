@@ -214,6 +214,12 @@
                     {{ $t('deployPage.taskDeploy') }}
                   </el-dropdown-item>
                   <el-dropdown-item
+                    v-if="role.hasGroupManagerPermission()"
+                    :command="'handleFileCompareCommand'"
+                  >
+                    {{ $t('deployPage.fileCompare') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item
                     v-if="scope.row.review === 1"
                     :command="'handleReviewCommand'"
                   >
@@ -320,6 +326,10 @@
       v-model="reviewListDialogVisible"
       :project-row="selectedItem"
     />
+    <TheFileCompareDialog
+      v-model="fileCompareDialogVisible"
+      :project-row="selectedItem"
+    />
   </el-row>
 </template>
 <script lang="ts">
@@ -331,7 +341,6 @@ import {
   DeployGreyPublish,
 } from '@/api/deploy'
 import { ProjectServerList, ProjectData } from '@/api/project'
-
 import { role } from '@/utils/namespace'
 import { parseTime, parseGitURL } from '@/utils'
 import TheDetailDialog from './TheDetailDialog.vue'
@@ -339,6 +348,7 @@ import TheCommitListDialog from './TheCommitListDialog.vue'
 import TheTagListDialog from './TheTagListDialog.vue'
 import TheTaskListDialog from './TheTaskListDialog.vue'
 import TheReviewListDialog from './TheReviewListDialog.vue'
+import TheFileCompareDialog from './TheFileCompareDialog.vue'
 import { ElMessageBox, ElMessage, ElNotification } from 'element-plus'
 import Validator from 'async-validator'
 import { h, defineComponent } from 'vue'
@@ -352,6 +362,7 @@ export default defineComponent({
     TheTagListDialog,
     TheTaskListDialog,
     TheReviewListDialog,
+    TheFileCompareDialog,
   },
   mixins: [tableHeight],
   data() {
@@ -361,6 +372,7 @@ export default defineComponent({
       tagDialogVisible: false,
       greyServerDialogVisible: false,
       taskListDialogVisible: false,
+      fileCompareDialogVisible: false,
       reviewDialogVisible: false,
       reviewListDialogVisible: false,
       dialogVisible: false,
@@ -601,6 +613,11 @@ export default defineComponent({
     handleTaskCommand(data: ProjectData['datagram']) {
       this.selectedItem = data
       this.taskListDialogVisible = true
+    },
+
+    handleFileCompareCommand(data: ProjectData['datagram']) {
+      this.selectedItem = data
+      this.fileCompareDialogVisible = true
     },
 
     handleReviewCommand(data: ProjectData['datagram']) {

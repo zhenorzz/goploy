@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    title="tag"
+    title="Tag"
     :fullscreen="$store.state.app.device === 'mobile'"
   >
     <el-table

@@ -11,6 +11,7 @@
     "axios": "^0.21.4",
     "cron-validator": "^1.2.1",
     "cronstrue": "^1.113.0",
+    "diff": "^5.0.0",
     "echarts": "^5.2.1",
     "element-plus": "^1.0.2-beta.70",
     "js-cookie": "^2.2.1",
@@ -33,6 +34,7 @@
   "devDependencies": {
     "@intlify/vite-plugin-vue-i18n": "^2.1.2",
     "@types/codemirror": "^5.60.0",
+    "@types/diff": "^5.0.1",
     "@types/js-cookie": "^2.2.6",
     "@types/node": "^15.0.2",
     "@types/nprogress": "^0.2.0",

@@ -2,17 +2,22 @@ package controller
 
 import (
 	"bytes"
+	"crypto/md5"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/repository"
 	"github.com/zhenorzz/goploy/service"
 	"github.com/zhenorzz/goploy/utils"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -139,6 +144,151 @@ func (Deploy) ResetState(gp *core.Goploy) *core.Response {
 	}
 
 	return &core.Response{}
+}
+
+// FileCompare -
+func (Deploy) FileCompare(gp *core.Goploy) *core.Response {
+	type ReqData struct {
+		ProjectID int64  `json:"projectId" validate:"gt=0"`
+		FilePath  string `json:"filePath" validate:"required"`
+	}
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	project, err := model.Project{ID: reqData.ProjectID}.GetData()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	srcPath := path.Join(core.GetProjectPath(reqData.ProjectID), reqData.FilePath)
+	file, err := os.Open(srcPath)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	defer file.Close()
+	hash := md5.New()
+	_, _ = io.Copy(hash, file)
+	srcMD5 := hex.EncodeToString(hash.Sum(nil))
+	projectServers, err := model.ProjectServer{ProjectID: reqData.ProjectID}.GetBindServerListByProjectID()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	if len(projectServers) == 0 {
+		return &core.Response{Code: core.Error, Message: "project have no server"}
+	}
+
+	type FileCompareData struct {
+		IP         string `json:"ip"`
+		ServerID   int64  `json:"serverId"`
+		Status     string `json:"status"`
+		IsModified bool   `json:"isModified"`
+	}
+	var fileCompareList []FileCompareData
+	ch := make(chan FileCompareData, len(projectServers))
+
+	distPath := path.Join(project.Path, reqData.FilePath)
+	for _, server := range projectServers {
+		go func(server model.ProjectServer) {
+			fileCompare := FileCompareData{server.ServerIP, server.ServerID, "no change", false}
+			client, err := utils.DialSSH(server.ServerOwner, server.ServerPassword, server.ServerPath, server.ServerIP, server.ServerPort)
+			if err != nil {
+				fileCompare.Status = "client error"
+				ch <- fileCompare
+				return
+			}
+			defer client.Close()
+
+			//此时获取了sshClient，下面使用sshClient构建sftpClient
+			sftpClient, err := sftp.NewClient(client)
+			if err != nil {
+				fileCompare.Status = "sftp error"
+				ch <- fileCompare
+				return
+			}
+			defer sftpClient.Close()
+			file, err := sftpClient.Open(distPath)
+			if err != nil {
+				fileCompare.Status = "file open error"
+				ch <- fileCompare
+				return
+			}
+			defer file.Close()
+			hash := md5.New()
+			_, _ = io.Copy(hash, file)
+			distMD5 := hex.EncodeToString(hash.Sum(nil))
+			if srcMD5 != distMD5 {
+				fileCompare.Status = "modified"
+				fileCompare.IsModified = true
+				ch <- fileCompare
+				return
+			}
+			ch <- fileCompare
+		}(server)
+	}
+
+	for i := 0; i < len(projectServers); i++ {
+		fileCompareList = append(fileCompareList, <-ch)
+	}
+	close(ch)
+	return &core.Response{Data: fileCompareList}
+}
+
+// FileDiff -
+func (Deploy) FileDiff(gp *core.Goploy) *core.Response {
+	type ReqData struct {
+		ProjectID int64  `json:"projectId" validate:"gt=0"`
+		ServerID  int64  `json:"serverId" validate:"gt=0"`
+		FilePath  string `json:"filePath" validate:"required"`
+	}
+	var reqData ReqData
+	if err := verify(gp.Body, &reqData); err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	project, err := model.Project{ID: reqData.ProjectID}.GetData()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	srcText, err := ioutil.ReadFile(path.Join(core.GetProjectPath(reqData.ProjectID), reqData.FilePath))
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	server, err := model.Server{ID: reqData.ServerID}.GetData()
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	defer client.Close()
+
+	//此时获取了sshClient，下面使用sshClient构建sftpClient
+	sftpClient, err := sftp.NewClient(client)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	defer sftpClient.Close()
+
+	distFile, err := sftpClient.Open(path.Join(project.Path, reqData.FilePath))
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	defer distFile.Close()
+	distText, err := ioutil.ReadAll(distFile)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	return &core.Response{Data: struct {
+		SrcText  string `json:"srcText"`
+		DistText string `json:"distText"`
+	}{SrcText: string(srcText), DistText: string(distText)}}
 }
 
 // Publish the project

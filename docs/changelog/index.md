@@ -1,5 +1,12 @@
 # change log
 
+## 1.4.1
+
+*2021-12-09*
+
+### New features
+- file compare
+
 ## 1.4.0
 
 *2021-12-04*

@@ -49,6 +49,7 @@ func Init() *router.Router {
 	rt.Add("/project/getBindUserList", http.MethodGet, controller.Project{}.GetBindUserList)
 	rt.Add("/project/getProjectFileList", http.MethodGet, controller.Project{}.GetProjectFileList)
 	rt.Add("/project/getProjectFileContent", http.MethodGet, controller.Project{}.GetProjectFileContent)
+	rt.Add("/project/getReposFileList", http.MethodGet, controller.Project{}.GetReposFileList)
 	rt.Add("/project/add", http.MethodPost, controller.Project{}.Add).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/project/edit", http.MethodPut, controller.Project{}.Edit).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/project/setAutoDeploy", http.MethodPut, controller.Project{}.SetAutoDeploy).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
@@ -91,6 +92,8 @@ func Init() *router.Router {
 	rt.Add("/deploy/greyPublish", http.MethodPost, controller.Deploy{}.GreyPublish, middleware.HasPublishAuth).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 	rt.Add("/deploy/webhook", http.MethodPost, controller.Deploy{}.Webhook, middleware.FilterEvent).White()
 	rt.Add("/deploy/callback", http.MethodGet, controller.Deploy{}.Callback).White()
+	rt.Add("/deploy/fileCompare", http.MethodPost, controller.Deploy{}.FileCompare).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
+	rt.Add("/deploy/fileDiff", http.MethodPost, controller.Deploy{}.FileDiff).Roles([]string{core.RoleAdmin, core.RoleManager, core.RoleGroupManager})
 
 	// server route
 	rt.Add("/server/getList", http.MethodGet, controller.Server{}.GetList)

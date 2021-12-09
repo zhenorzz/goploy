@@ -151,3 +151,32 @@ export class DeployReview extends Request {
     this.param = param
   }
 }
+
+export class FileCompare extends Request {
+  readonly url = '/deploy/fileCompare'
+  readonly method = 'post'
+  readonly timeout = 0
+  public param: {
+    projectId: number
+    filePath: string
+  }
+  constructor(param: FileCompare['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class FileDiff extends Request {
+  readonly url = '/deploy/fileDiff'
+  readonly method = 'post'
+  readonly timeout = 0
+  public param: {
+    projectId: number
+    serverId: number
+    filePath: string
+  }
+  constructor(param: FileDiff['param']) {
+    super()
+    this.param = param
+  }
+}

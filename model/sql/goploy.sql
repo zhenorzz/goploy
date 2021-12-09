@@ -269,5 +269,5 @@ CREATE TABLE IF NOT EXISTS `system_config` (
 REPLACE INTO `user`(`id`, `account`, `password`, `name`, `contact`, `state`, `super_manager`) VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '', 1, 1);
 REPLACE INTO `namespace`(`id`, `name`) VALUES (1, 'goploy');
 REPLACE INTO `namespace_user`(`id`, `namespace_id`, `user_id`, `role`) VALUES (1, 1, 1, 'admin');
-REPLACE INTO `system_config` (`key`, `value`) VALUES ('version', '1.4.0');
+REPLACE INTO `system_config` (`key`, `value`) VALUES ('version', '1.4.1');
 

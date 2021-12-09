@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    title="commit"
+    title="Commit"
     :fullscreen="$store.state.app.device === 'mobile'"
   >
     <el-select

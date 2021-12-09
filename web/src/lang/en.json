@@ -228,6 +228,7 @@
     "showDetail": "Show detail",
     "noDetail": "No detail",
     "taskDeploy": "Crontab deploy",
+    "fileCompare": "File compare",
     "resetStateTips": "This action will reset project state, continue?",
     "reviewDeploy": "Review deploy",
     "reviewTips": "This action will approve commit, continue?",

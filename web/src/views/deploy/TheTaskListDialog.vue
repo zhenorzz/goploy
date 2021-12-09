@@ -109,7 +109,7 @@
       :page-size="pagination.rows"
       style="margin-top: 10px; text-align: right"
       background
-      layout="sizes, total, prev, pager, next"
+      layout="total, prev, pager, next"
       @current-change="handlePageChange"
     />
     <template #footer class="dialog-footer">
@@ -243,7 +243,6 @@ export default defineComponent({
           ElMessage.success('Success')
         })
         .finally(() => {
-          console.log(this.$refs[`task${data.commit}`])
           this.$refs[`task${data.commit}`].doDestroy()
           this.commitDialogVisible = false
           this.handlePageChange()

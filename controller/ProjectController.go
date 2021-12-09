@@ -202,7 +202,6 @@ func (Project) GetProjectFileList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetProjectFileContent -
 func (Project) GetProjectFileContent(gp *core.Goploy) *core.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
@@ -221,6 +220,39 @@ func (Project) GetProjectFileContent(gp *core.Goploy) *core.Response {
 			Content string `json:"content"`
 		}{Content: string(fileBytes)},
 	}
+}
+
+func (Project) GetReposFileList(gp *core.Goploy) *core.Response {
+	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+	_path := gp.URLQuery.Get("path")
+
+	files, err := ioutil.ReadDir(path.Join(core.GetProjectPath(id), _path))
+	if err != nil {
+		return &core.Response{Code: core.Error, Message: err.Error()}
+	}
+
+	type fileInfo struct {
+		Name    string `json:"name"`
+		Size    int64  `json:"size"`
+		Mode    string `json:"mode"`
+		ModTime string `json:"modTime"`
+		IsDir   bool   `json:"isDir"`
+	}
+	var fileList []fileInfo
+	for _, f := range files {
+		fileList = append(fileList, fileInfo{
+			Name:    f.Name(),
+			Size:    f.Size(),
+			Mode:    f.Mode().String(),
+			ModTime: f.ModTime().Format("2006-01-02 15:04:05"),
+			IsDir:   f.IsDir(),
+		})
+	}
+
+	return &core.Response{Data: fileList}
 }
 
 // Add project
@@ -749,7 +781,7 @@ func (Project) AddTask(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
 		Branch    string `json:"branch" validate:"required"`
-		Commit    string `json:"commit" validate:"len=40"`
+		Commit    string `json:"commit" validate:"required"`
 		Date      string `json:"date" validate:"required"`
 	}
 	var reqData ReqData
