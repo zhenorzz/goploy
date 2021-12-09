@@ -81,7 +81,12 @@ func serverMonitorTask() {
 				}
 				serverCaches[serverMonitor.ServerID] = server
 			}
-			serverMonitor.Notify(serverCaches[serverMonitor.ServerID], cycleValue)
+			body, err := serverMonitor.Notify(serverCaches[serverMonitor.ServerID], cycleValue)
+			if err != nil {
+				core.Log(core.ERROR, fmt.Sprintf("monitor task %d notify error, %s", serverMonitor.ID, err.Error()))
+			} else {
+				core.Log(core.TRACE, fmt.Sprintf("monitor task %d notify return %s", serverMonitor.ID, body))
+			}
 		}
 		serverMonitorCaches[serverMonitor.ID] = monitorCache
 	}

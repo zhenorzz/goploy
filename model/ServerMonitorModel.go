@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
+	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -215,7 +216,9 @@ func (sm ServerMonitor) DeleteRow() error {
 	return err
 }
 
-func (sm ServerMonitor) Notify(server Server, cycleValue string) {
+func (sm ServerMonitor) Notify(server Server, cycleValue string) (string, error) {
+	var err error
+	var resp *http.Response
 	if sm.NotifyType == NotifyWeiXin {
 		type markdown struct {
 			Content string `json:"content"`
@@ -235,7 +238,7 @@ func (sm ServerMonitor) Notify(server Server, cycleValue string) {
 			},
 		}
 		b, _ := json.Marshal(msg)
-		_, _ = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
+		resp, err = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	} else if sm.NotifyType == NotifyDingTalk {
 		type markdown struct {
 			Title string `json:"title"`
@@ -257,7 +260,7 @@ func (sm ServerMonitor) Notify(server Server, cycleValue string) {
 			},
 		}
 		b, _ := json.Marshal(msg)
-		_, _ = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
+		resp, err = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	} else if sm.NotifyType == NotifyFeiShu {
 		type message struct {
 			Title string `json:"title"`
@@ -273,7 +276,7 @@ func (sm ServerMonitor) Notify(server Server, cycleValue string) {
 			Text:  content,
 		}
 		b, _ := json.Marshal(msg)
-		_, _ = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
+		resp, err = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	} else if sm.NotifyType == NotifyCustom {
 		type message struct {
 			Code    int    `json:"code"`
@@ -295,6 +298,13 @@ func (sm ServerMonitor) Notify(server Server, cycleValue string) {
 		msg.Data.Value = cycleValue
 		msg.Data.Time = time.Now().Format("2006-01-02 15:04:05")
 		b, _ := json.Marshal(msg)
-		_, _ = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
+		resp, err = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
+	}
+	defer resp.Body.Close()
+	responseData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	} else {
+		return string(responseData), err
 	}
 }

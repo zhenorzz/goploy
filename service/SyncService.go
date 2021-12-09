@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/repository"
@@ -416,6 +417,8 @@ func (gsync Gsync) notify(deployState int, detail string) {
 	serverList = strings.TrimRight(serverList, ", ")
 	project := gsync.Project
 	commitInfo := gsync.CommitInfo
+	var err error
+	var resp *http.Response
 	if project.NotifyType == model.NotifyWeiXin {
 		type markdown struct {
 			Content string `json:"content"`
@@ -444,10 +447,7 @@ func (gsync Gsync) notify(deployState int, detail string) {
 			},
 		}
 		b, _ := json.Marshal(msg)
-		_, err := http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))
-		if err != nil {
-			core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
-		}
+		resp, err = http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	} else if project.NotifyType == model.NotifyDingTalk {
 		type markdown struct {
 			Title string `json:"title"`
@@ -478,10 +478,7 @@ func (gsync Gsync) notify(deployState int, detail string) {
 			},
 		}
 		b, _ := json.Marshal(msg)
-		_, err := http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))
-		if err != nil {
-			core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
-		}
+		resp, err = http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	} else if project.NotifyType == model.NotifyFeiShu {
 		type message struct {
 			Title string `json:"title"`
@@ -505,10 +502,7 @@ func (gsync Gsync) notify(deployState int, detail string) {
 			Text:  text,
 		}
 		b, _ := json.Marshal(msg)
-		_, err := http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))
-		if err != nil {
-			core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
-		}
+		resp, err = http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	} else if project.NotifyType == model.NotifyCustom {
 		type message struct {
 			Code    int    `json:"code"`
@@ -539,9 +533,18 @@ func (gsync Gsync) notify(deployState int, detail string) {
 		msg.Data.CommitMessage = commitInfo.Message
 		msg.Data.ServerList = serverList
 		b, _ := json.Marshal(msg)
-		_, err := http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))
+		resp, err = http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))
+	}
+
+	if err != nil {
+		core.Log(core.ERROR, fmt.Sprintf("notify projectID:%d %s", project.ID, err.Error()))
+	} else {
+		defer resp.Body.Close()
+		responseData, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
+			core.Log(core.ERROR, fmt.Sprintf("notify projectID:%d read body error", project.ID))
+		} else {
+			core.Log(core.TRACE, fmt.Sprintf("notify projectID:%d return %s", project.ID, string(responseData)))
 		}
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
 
 	sq "github.com/Masterminds/squirrel"
@@ -216,7 +217,9 @@ func (m Monitor) TurnOff(errorContent string) error {
 	return err
 }
 
-func (m Monitor) Notify(err error) {
+func (m Monitor) Notify(errMsg string) (string, error) {
+	var err error
+	var resp *http.Response
 	if m.NotifyType == NotifyWeiXin {
 		type markdown struct {
 			Content string `json:"content"`
@@ -227,7 +230,7 @@ func (m Monitor) Notify(err error) {
 		}
 		content := "Monitor: <font color=\"warning\">" + m.Name + "</font>\n "
 		content += "> <font color=\"warning\">can not access</font> \n "
-		content += "> <font color=\"comment\">" + err.Error() + "</font> \n "
+		content += "> <font color=\"comment\">" + errMsg + "</font> \n "
 
 		msg := message{
 			Msgtype: "markdown",
@@ -236,7 +239,7 @@ func (m Monitor) Notify(err error) {
 			},
 		}
 		b, _ := json.Marshal(msg)
-		_, _ = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
+		resp, err = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	} else if m.NotifyType == NotifyDingTalk {
 		type markdown struct {
 			Title string `json:"title"`
@@ -246,7 +249,7 @@ func (m Monitor) Notify(err error) {
 			Msgtype  string   `json:"msgtype"`
 			Markdown markdown `json:"markdown"`
 		}
-		text := "#### Monitor: " + m.Name + " can not access \n >" + err.Error()
+		text := "#### Monitor: " + m.Name + " can not access \n >" + errMsg
 
 		msg := message{
 			Msgtype: "markdown",
@@ -256,7 +259,7 @@ func (m Monitor) Notify(err error) {
 			},
 		}
 		b, _ := json.Marshal(msg)
-		_, _ = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
+		resp, err = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	} else if m.NotifyType == NotifyFeiShu {
 		type message struct {
 			Title string `json:"title"`
@@ -264,14 +267,14 @@ func (m Monitor) Notify(err error) {
 		}
 
 		text := "can not access\n "
-		text += "detail:  " + err.Error()
+		text += "detail:  " + errMsg
 
 		msg := message{
 			Title: "Monitor:" + m.Name,
 			Text:  text,
 		}
 		b, _ := json.Marshal(msg)
-		_, _ = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
+		resp, err = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	} else if m.NotifyType == NotifyCustom {
 		type message struct {
 			Code    int    `json:"code"`
@@ -294,6 +297,14 @@ func (m Monitor) Notify(err error) {
 		msg.Data.Second = m.Second
 		msg.Data.Times = m.Times
 		b, _ := json.Marshal(msg)
-		_, _ = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
+		resp, err = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
+	}
+
+	defer resp.Body.Close()
+	responseData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	} else {
+		return string(responseData), err
 	}
 }

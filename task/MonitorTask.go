@@ -41,7 +41,12 @@ func monitorTask() {
 				if monitor.Times == uint16(monitorCache.errorTimes) {
 					monitorCache.errorTimes = 0
 					monitorCache.notifyTimes++
-					monitor.Notify(err)
+					body, err := monitor.Notify(err.Error())
+					if err != nil {
+						core.Log(core.ERROR, "monitor "+monitor.Name+" notify error, "+err.Error())
+					} else {
+						core.Log(core.TRACE, "monitor "+monitor.Name+" notify return "+body)
+					}
 					if monitor.NotifyTimes == uint16(monitorCache.notifyTimes) {
 						monitorCache.notifyTimes = 0
 						_ = monitor.TurnOff(err.Error())
