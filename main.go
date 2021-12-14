@@ -187,7 +187,7 @@ func install() {
 	}
 	mysqlPort = utils.ClearNewline(mysqlPort)
 	if len(mysqlPort) != 0 {
-		cfg.DB.Host = mysqlPort
+		cfg.DB.Port = mysqlPort
 	}
 	println("Please enter the absolute path of the log directory(default stdout):")
 	logPath, err := inputReader.ReadString('\n')
@@ -210,7 +210,7 @@ func install() {
 	println("Start to install the database...")
 
 	db, err := sql.Open(cfg.DB.Type, fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/?charset=utf8mb4,utf8\n",
+		"%s:%s@(%s:%s)/?charset=utf8mb4,utf8\n",
 		cfg.DB.User,
 		cfg.DB.Password,
 		cfg.DB.Host,
