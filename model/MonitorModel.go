@@ -261,17 +261,22 @@ func (m Monitor) Notify(errMsg string) (string, error) {
 		b, _ := json.Marshal(msg)
 		resp, err = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	} else if m.NotifyType == NotifyFeiShu {
+		type content struct {
+			Text string `json:"text"`
+		}
 		type message struct {
-			Title string `json:"title"`
-			Text  string `json:"text"`
+			MsgType string  `json:"msg_type"`
+			Content content `json:"content"`
 		}
 
 		text := "can not access\n "
 		text += "detail:  " + errMsg
 
 		msg := message{
-			Title: "Monitor:" + m.Name,
-			Text:  text,
+			MsgType: "text",
+			Content: content{
+				Text: text,
+			},
 		}
 		b, _ := json.Marshal(msg)
 		resp, err = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))

@@ -483,9 +483,12 @@ func (gsync Gsync) notify(deployState int, detail string) {
 		b, _ := json.Marshal(msg)
 		resp, err = http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	} else if project.NotifyType == model.NotifyFeiShu {
+		type content struct {
+			Text string `json:"text"`
+		}
 		type message struct {
-			Title string `json:"title"`
-			Text  string `json:"text"`
+			MsgType string  `json:"msg_type"`
+			Content content `json:"content"`
 		}
 		text := ""
 		text += "Publisher: " + project.PublisherName + "\n"
@@ -501,8 +504,10 @@ func (gsync Gsync) notify(deployState int, detail string) {
 		}
 
 		msg := message{
-			Title: "Deploy:" + project.Name,
-			Text:  text,
+			MsgType: "text",
+			Content: content{
+				Text: text,
+			},
 		}
 		b, _ := json.Marshal(msg)
 		resp, err = http.Post(project.NotifyTarget, "application/json", bytes.NewBuffer(b))
