@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt"
+	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/web"
 	"io/fs"
@@ -12,7 +13,6 @@ import (
 	"mime"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -51,7 +51,7 @@ func NewRouter() *Router {
 
 // Start a router
 func (rt *Router) Start() {
-	if os.Getenv("ENV") == "production" {
+	if config.Toml.Env == "production" {
 		subFS, err := fs.Sub(web.Dist, "dist")
 		if err != nil {
 			log.Fatal(err)
@@ -100,7 +100,7 @@ func (rt *Router) Middleware(middleware func(gp *Goploy) error) {
 func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// If in production env, serve file in go server,
 	// else serve file in npm
-	if os.Getenv("ENV") == "production" {
+	if config.Toml.Env == "production" {
 		if "/" == r.URL.Path {
 			r, err := web.Dist.Open("dist/index.html")
 			if err != nil {
@@ -130,14 +130,14 @@ func (rt *Router) checkLogin(w http.ResponseWriter, r *http.Request) (*Goploy, *
 	var namespace model.Namespace
 	if _, ok := rt.whiteList[r.URL.Path]; !ok {
 		// check token
-		goployTokenCookie, err := r.Cookie(LoginCookieName)
+		goployTokenCookie, err := r.Cookie(config.Toml.Cookie.Name)
 		if err != nil {
 			return nil, &Response{Code: IllegalRequest, Message: "Illegal request"}
 		}
 		unParseToken := goployTokenCookie.Value
 		claims := jwt.MapClaims{}
 		token, err := jwt.ParseWithClaims(unParseToken, claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("SIGN_KEY")), nil
+			return []byte(config.Toml.JWT.Key), nil
 		})
 
 		if err != nil || !token.Valid {
@@ -178,7 +178,7 @@ func (rt *Router) checkLogin(w http.ResponseWriter, r *http.Request) (*Goploy, *
 		goployTokenStr, err := model.User{ID: int64(claims["id"].(float64)), Name: claims["name"].(string)}.CreateToken()
 		if err == nil {
 			// update jwt time
-			cookie := http.Cookie{Name: LoginCookieName, Value: goployTokenStr, Path: "/", MaxAge: 86400, HttpOnly: true}
+			cookie := http.Cookie{Name: config.Toml.Cookie.Name, Value: goployTokenStr, Path: "/", MaxAge: config.Toml.Cookie.Expire, HttpOnly: true}
 			http.SetCookie(w, &cookie)
 		}
 

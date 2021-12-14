@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 )
@@ -47,7 +48,13 @@ func (User) Login(gp *core.Goploy) *core.Response {
 
 	_ = model.User{ID: userData.ID, LastLoginTime: time.Now().Format("20060102150405")}.UpdateLastLoginTime()
 
-	cookie := http.Cookie{Name: core.LoginCookieName, Value: token, Path: "/", MaxAge: 86400, HttpOnly: true}
+	cookie := http.Cookie{
+		Name:     config.Toml.Cookie.Name,
+		Value:    token,
+		Path:     "/",
+		MaxAge:   config.Toml.Cookie.Expire,
+		HttpOnly: true,
+	}
 	http.SetCookie(gp.ResponseWriter, &cookie)
 	return &core.Response{
 		Data: struct {

@@ -2,7 +2,7 @@ package model
 
 import (
 	"errors"
-	"os"
+	"github.com/zhenorzz/goploy/config"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -232,7 +232,7 @@ func (u User) UpdateLastLoginTime() error {
 func (u User) Validate(inputPassword string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(inputPassword))
 	if err != nil {
-		return errors.New("密码错误")
+		return errors.New("password error")
 	}
 	return nil
 }
@@ -245,7 +245,7 @@ func (u User) CreateToken() (string, error) {
 		"exp":  time.Now().Add(time.Hour * 24).Unix(),
 		"nbf":  time.Now().Unix(),
 	})
-	tokenString, err := token.SignedString([]byte(os.Getenv("SIGN_KEY")))
+	tokenString, err := token.SignedString([]byte(config.Toml.JWT.Key))
 
 	//Sign and get the complete encoded token as string
 	return tokenString, err

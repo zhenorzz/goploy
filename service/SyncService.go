@@ -405,6 +405,9 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 // deploy user name
 // deploy time
 func (gsync Gsync) notify(deployState int, detail string) {
+	if gsync.Project.NotifyType == 0 {
+		return
+	}
 	serverList := ""
 	for _, projectServer := range gsync.ProjectServers {
 		if projectServer.ServerName != projectServer.ServerIP {

@@ -4,11 +4,12 @@ import (
 	"database/sql"
 	"embed"
 	"errors"
+	"fmt"
 	"github.com/hashicorp/go-version"
+	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/utils"
 	"log"
 	"net/url"
-	"os"
 	"path"
 	"sort"
 	"strconv"
@@ -49,10 +50,15 @@ var DB *sql.DB
 
 // Init DB
 func Init() {
-	dbType := os.Getenv("DB_TYPE")
-	dbConn := os.Getenv("DB_CONN")
+	dbConn := fmt.Sprintf(
+		"%s:%s@(%s:%s)/goploy?charset=utf8mb4,utf8",
+		config.Toml.DB.User,
+		config.Toml.DB.Password,
+		config.Toml.DB.Host,
+		config.Toml.DB.Port,
+	)
 	var err error
-	DB, err = sql.Open(dbType, dbConn)
+	DB, err = sql.Open(config.Toml.DB.Type, dbConn)
 	if err != nil {
 		log.Fatal(err)
 	}

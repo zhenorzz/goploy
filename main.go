@@ -9,7 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/hashicorp/go-version"
-	"github.com/joho/godotenv"
+	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/route"
@@ -71,7 +71,7 @@ func main() {
 \____/\____/ .___/_/\____/\__, /  
           /_/            /____/   ` + appVersion + "\n")
 	install()
-	_ = godotenv.Load(core.GetEnvFile())
+	config.Create(core.GetConfigFile())
 	model.Init()
 	if err := model.Update(appVersion); err != nil {
 		println(err.Error())
@@ -81,9 +81,9 @@ func main() {
 	println("Start at " + time.Now().String())
 	println("goploy -h for more help")
 	println("Current pid:   " + pid)
-	println("Config Loaded: " + core.GetEnvFile())
-	println("Log:           " + os.Getenv("LOG_PATH"))
-	println("Listen:        " + os.Getenv("PORT"))
+	println("Config Loaded: " + core.GetConfigFile())
+	println("Log:           " + config.Toml.Log.Path)
+	println("Listen:        " + config.Toml.Web.Port)
 	println("Running...")
 	core.CreateValidator()
 	ws.Init()
@@ -91,7 +91,7 @@ func main() {
 	task.Init()
 	// server
 	srv := http.Server{
-		Addr: ":" + os.Getenv("PORT"),
+		Addr: ":" + config.Toml.Web.Port,
 	}
 	go checkUpdate()
 	core.Gwg.Add(1)
@@ -126,10 +126,18 @@ func main() {
 }
 
 func install() {
-	_, err := os.Stat(core.GetEnvFile())
+	_, err := os.Stat(core.GetConfigFile())
 	if err == nil || os.IsExist(err) {
 		println("The configuration file already exists, no need to reinstall (if you need to reinstall, please back up the database `goploy` first, delete the .env file, then restart.)")
 		return
+	}
+	cfg := config.Config{
+		Env:    "production",
+		Cookie: config.CookieConfig{Name: "goploy_token", Expire: 86400},
+		JWT:    config.JWTConfig{Key: time.Now().String()},
+		DB:     config.DBConfig{Type: "mysql", Host: "127.0.0.1", Port: "3306"},
+		Log:    config.LogConfig{Path: "stdout"},
+		Web:    config.WebConfig{Port: "80"},
 	}
 	println("Installation guide ↓")
 	var stdout bytes.Buffer
@@ -153,7 +161,7 @@ func install() {
 	if err != nil {
 		panic("There were errors reading, exiting program.")
 	}
-	mysqlUser = utils.ClearNewline(mysqlUser)
+	cfg.DB.User = utils.ClearNewline(mysqlUser)
 	println("Please enter the mysql password:")
 	mysqlPassword, err := inputReader.ReadString('\n')
 	if err != nil {
@@ -161,7 +169,7 @@ func install() {
 	}
 	mysqlPassword = utils.ClearNewline(mysqlPassword)
 	if len(mysqlPassword) != 0 {
-		mysqlPassword = ":" + mysqlPassword
+		cfg.DB.Password = mysqlPassword
 	}
 	println("Please enter the mysql host(default 127.0.0.1, without port):")
 	mysqlHost, err := inputReader.ReadString('\n')
@@ -169,8 +177,8 @@ func install() {
 		panic("There were errors reading, exiting program.")
 	}
 	mysqlHost = utils.ClearNewline(mysqlHost)
-	if len(mysqlHost) == 0 {
-		mysqlHost = "127.0.0.1"
+	if len(mysqlHost) != 0 {
+		cfg.DB.Host = mysqlHost
 	}
 	println("Please enter the mysql port(default 3306):")
 	mysqlPort, err := inputReader.ReadString('\n')
@@ -178,8 +186,8 @@ func install() {
 		panic("There were errors reading, exiting program.")
 	}
 	mysqlPort = utils.ClearNewline(mysqlPort)
-	if len(mysqlPort) == 0 {
-		mysqlPort = "3306"
+	if len(mysqlPort) != 0 {
+		cfg.DB.Host = mysqlPort
 	}
 	println("Please enter the absolute path of the log directory(default stdout):")
 	logPath, err := inputReader.ReadString('\n')
@@ -187,8 +195,8 @@ func install() {
 		panic("There were errors reading, exiting program.")
 	}
 	logPath = utils.ClearNewline(logPath)
-	if len(logPath) == 0 {
-		logPath = "stdout"
+	if len(logPath) != 0 {
+		cfg.Log.Path = logPath
 	}
 	println("Please enter the listening port(default 80):")
 	port, err := inputReader.ReadString('\n')
@@ -196,17 +204,17 @@ func install() {
 		panic("There were errors reading, exiting program.")
 	}
 	port = utils.ClearNewline(port)
-	if len(port) == 0 {
-		port = "80"
+	if len(port) != 0 {
+		cfg.Web.Port = port
 	}
 	println("Start to install the database...")
 
-	db, err := sql.Open("mysql", fmt.Sprintf(
-		"%s%s@tcp(%s:%s)/?charset=utf8mb4,utf8\n",
-		mysqlUser,
-		mysqlPassword,
-		mysqlHost,
-		mysqlPort))
+	db, err := sql.Open(cfg.DB.Type, fmt.Sprintf(
+		"%s:%s@tcp(%s:%s)/?charset=utf8mb4,utf8\n",
+		cfg.DB.User,
+		cfg.DB.Password,
+		cfg.DB.Host,
+		cfg.DB.Port))
 	if err != nil {
 		panic(err)
 	}
@@ -215,25 +223,11 @@ func install() {
 		panic(err)
 	}
 	println("Database installation is complete")
-	envContent := "# when you edit its value, you need to restart\n"
-	envContent += "DB_TYPE=mysql\n"
-	envContent += fmt.Sprintf(
-		"DB_CONN=%s%s@(%s:%s)/goploy?charset=utf8mb4,utf8\n",
-		mysqlUser,
-		mysqlPassword,
-		mysqlHost,
-		mysqlPort)
-	envContent += fmt.Sprintf("SIGN_KEY=%d\n", time.Now().Unix())
-	envContent += fmt.Sprintf("LOG_PATH=%s\n", logPath)
-	envContent += "ENV=production\n"
-	envContent += fmt.Sprintf("PORT=%s\n", port)
 	println("Start writing configuration file...")
-	file, err := os.Create(core.GetEnvFile())
+	err = config.Write(core.GetConfigFile(), cfg)
 	if err != nil {
-		panic(err)
+		panic("Write config file error, " + err.Error())
 	}
-	defer file.Close()
-	file.WriteString(envContent)
 	println("Write configuration file completed")
 }
 

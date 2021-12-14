@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/zhenorzz/goploy/config"
 	"io"
 	"log"
 	"os"
@@ -24,7 +25,7 @@ const (
 // Log information to file with logged day
 func Log(lv LogLevel, content string) {
 	var logFile io.Writer
-	logPathEnv := os.Getenv("LOG_PATH")
+	logPathEnv := config.Toml.Log.Path
 	if strings.ToLower(logPathEnv) == "stdout" {
 		logFile = os.Stdout
 	} else {

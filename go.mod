@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/go-version v1.3.0
 	github.com/joho/godotenv v1.3.0
 	github.com/leodido/go-urn v1.2.0 // indirect
-	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/pelletier/go-toml/v2 v2.0.0-beta.4 // indirect
 	github.com/pkg/sftp v1.13.1
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
