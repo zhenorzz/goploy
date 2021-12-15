@@ -31,28 +31,15 @@ Import sql file: [goploy.sql](https://github.com/zhenorzz/goploy/blob/master/mod
 Run it with all needed parameter:
 
 ```console
-docker run --rm \
+docker run -it \
     -p 3000:80 \
     -v /path/to/.ssh:/root/.ssh \
     -v /path/to/hosts:/etc/hosts \
-    -e MYSQL_HOST=mysql \
-    -e MYSQL_USER=root \
-    -e MYSQL_PASSWORD=password \
+    -v /path/to/repository:/opt/goploy/repository \
     zhenorzz/goploy
 ```
 
 That's it.
-
-## Environment variables
-
-This image uses environment variables for configuration.
-
-|Available variables     |Default value        |Description                                         |
-|------------------------|---------------------|----------------------------------------------------|
-|`MYSQL_HOST`     |no default     |MYSQL HOST|
-|`MYSQL_PORT`     |3306           |MYSQL PORT|
-|`MYSQL_USER`     |no default     |MYSQL USER|
-|`MYSQL_PASSWORD` |no default     |MYSQL PASSWORD|
 
 ## Mount
 
@@ -62,7 +49,7 @@ If you want to access your own domain in container, you should mount your hosts 
 
 If you would like to keep the repositories you can use `-v /path/to/repository:/opt/goploy/repository`.
 
-*Notice that the filename is case sensitive. If your readme is called `readme.md` you have to mount the file directly, not the directory*
+*Notice that the filename is case-sensitive. If your readme is called `readme.md` you have to mount the file directly, not the directory*
 
 
 # Additional Information

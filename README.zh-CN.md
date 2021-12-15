@@ -62,6 +62,7 @@ Goploy 用于:
 - 秒级定时任务
 - Xterm
 - Sftp
+- LDAP
 
 ## 安装
 1. 安装mysql

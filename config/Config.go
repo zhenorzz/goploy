@@ -41,13 +41,13 @@ type WebConfig struct {
 }
 
 type LDAPConfig struct {
-	Enabled     bool   `toml:"enabled"`
-	URL         string `toml:"url"`
-	BindDN      string `toml:"bindDN"`
-	Password    string `toml:"password"`
-	BaseDN      string `toml:"baseDN"`
-	UID         string `toml:"uid"`
-	DisplayName string `toml:"displayName"`
+	Enabled    bool   `toml:"enabled"`
+	URL        string `toml:"url"`
+	BindDN     string `toml:"bindDN"`
+	Password   string `toml:"password"`
+	BaseDN     string `toml:"baseDN"`
+	UID        string `toml:"uid"`
+	UserFilter string `toml:"userFilter"`
 }
 
 var Toml Config

@@ -1,0 +1,30 @@
+env = 'production'
+[cookie]
+name = 'goploy_token'
+expire = 86400
+
+[jwt]
+key = '2021-12-14 18:43:15.8805255 +0800 CST m=+0.004156701'
+
+[db]
+type = 'mysql'
+user = 'root'
+password = ''
+host = '127.0.0.1'
+port = '3306'
+
+[log]
+path = 'stdout'
+
+[web]
+port = '80'
+
+[ldap]
+enabled = false
+url = ''
+bindDN = ''
+password = ''
+baseDN = ''
+uid = ''
+userFilter = ''
+

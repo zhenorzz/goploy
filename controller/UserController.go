@@ -2,6 +2,8 @@ package controller
 
 import (
 	"database/sql"
+	"fmt"
+	"github.com/go-ldap/ldap/v3"
 	"net/http"
 	"time"
 
@@ -23,13 +25,54 @@ func (User) Login(gp *core.Goploy) *core.Response {
 	if err := verify(gp.Body, &reqData); err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
+
 	userData, err := model.User{Account: reqData.Account}.GetDataByAccount()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	if err := userData.Validate(reqData.Password); err != nil {
-		return &core.Response{Code: core.Deny, Message: err.Error()}
+	if config.Toml.LDAP.Enabled && userData.ID != 1 {
+		conn, err := ldap.DialURL(config.Toml.LDAP.URL)
+		if err != nil {
+			return &core.Response{Code: core.Deny, Message: err.Error()}
+		}
+
+		if config.Toml.LDAP.BindDN != "" {
+			if err := conn.Bind(config.Toml.LDAP.BindDN, config.Toml.LDAP.Password); err != nil {
+				return &core.Response{Code: core.Deny, Message: err.Error()}
+			}
+		}
+
+		filter := fmt.Sprintf("(%s=%s)", config.Toml.LDAP.UID, reqData.Account)
+		if config.Toml.LDAP.UserFilter != "" {
+			filter = fmt.Sprintf("(&(%s)%s)", config.Toml.LDAP.UserFilter, filter)
+		}
+
+		searchRequest := ldap.NewSearchRequest(
+			config.Toml.LDAP.BaseDN,
+			ldap.ScopeWholeSubtree,
+			ldap.NeverDerefAliases,
+			0,
+			0,
+			false,
+			filter,
+			[]string{config.Toml.LDAP.UID},
+			nil)
+
+		sr, err := conn.Search(searchRequest)
+		if err != nil {
+			return &core.Response{Code: core.Deny, Message: err.Error()}
+		}
+		if len(sr.Entries) != 1 {
+			return &core.Response{Code: core.Deny, Message: err.Error()}
+		}
+		if err := conn.Bind(sr.Entries[0].DN, reqData.Password); err != nil {
+			return &core.Response{Code: core.Deny, Message: err.Error()}
+		}
+	} else {
+		if err := userData.Validate(reqData.Password); err != nil {
+			return &core.Response{Code: core.Deny, Message: err.Error()}
+		}
 	}
 
 	if userData.State == model.Disable {

@@ -63,6 +63,7 @@ Goploy is commonly used for:
 - Second cron 
 - Xterm
 - Sftp
+- LDAP
 
 ## Install
 1. Install mysql

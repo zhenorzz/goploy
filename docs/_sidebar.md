@@ -6,6 +6,7 @@
 * 依赖介绍
   * [rysnc](dependency/rsync.md)
   * [构建通知](dependency/notice.md)
+  * [ldap](dependency/ldap.md)
 * 参与开发
   * [PR](develop/pr.md)
   * [前端](develop/frontend.md)

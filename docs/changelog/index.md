@@ -1,5 +1,16 @@
 # change log
 
+## 1.4.2
+
+*2021-12-15*
+
+### New features
+- .env -> goploy.toml
+- support ldap
+
+### Bug fixes
+- fix 飞书构建通知
+
 ## 1.4.1
 
 *2021-12-09*
