@@ -7,12 +7,17 @@ import (
 
 type Config struct {
 	Env    string       `toml:"env"`
+	APP    APPConfig    `toml:"app"`
 	Cookie CookieConfig `toml:"cookie"`
 	JWT    JWTConfig    `toml:"jwt"`
 	DB     DBConfig     `toml:"db"`
 	Log    LogConfig    `toml:"log"`
 	Web    WebConfig    `toml:"web"`
 	LDAP   LDAPConfig   `toml:"ldap"`
+}
+
+type APPConfig struct {
+	DeployLimit int32 `toml:"deployLimit"`
 }
 
 type CookieConfig struct {

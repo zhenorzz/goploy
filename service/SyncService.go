@@ -38,7 +38,6 @@ type syncMessage struct {
 	state      int
 }
 
-// Exec Gsync
 func (gsync Gsync) Exec() {
 	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(gsync.Project.ID, 10)+" deploy start")
 	publishTraceModel := model.PublishTrace{

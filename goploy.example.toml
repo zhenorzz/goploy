@@ -1,4 +1,7 @@
 env = 'production'
+[app]
+deployLimit = 8
+
 [cookie]
 name = 'goploy_token'
 expire = 86400

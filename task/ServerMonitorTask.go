@@ -6,8 +6,31 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"strings"
+	"sync/atomic"
 	"time"
 )
+
+var serverMonitorTick = time.Tick(time.Minute)
+var serverMonitorTaskDone = make(chan struct{})
+
+func startServerMonitorTask() {
+	atomic.AddInt32(&counter, 1)
+	go func() {
+		for {
+			select {
+			case <-serverMonitorTick:
+				serverMonitorTask()
+			case <-serverMonitorTaskDone:
+				atomic.AddInt32(&counter, -1)
+				return
+			}
+		}
+	}()
+}
+
+func shutdownServerMonitorTask() {
+	close(serverMonitorTaskDone)
+}
 
 type ServerMonitorCache struct {
 	lastCycle   int

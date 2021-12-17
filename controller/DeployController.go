@@ -12,6 +12,7 @@ import (
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/repository"
 	"github.com/zhenorzz/goploy/service"
+	"github.com/zhenorzz/goploy/task"
 	"github.com/zhenorzz/goploy/utils"
 	"io"
 	"io/ioutil"
@@ -337,10 +338,6 @@ func (Deploy) Rebuild(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
 
-	//if reqData.Token == project.LastPublishToken {
-	//	return &core.Response{Code: core.Error, Message: "You are in the same position"}
-	//}
-
 	projectServers, err := model.ProjectServer{ProjectID: projectID}.GetBindServerListByProjectID()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -467,17 +464,13 @@ func (Deploy) Rebuild(gp *core.Goploy) *core.Response {
 		if err != nil {
 			return &core.Response{Code: core.Error, Message: err.Error()}
 		}
-		core.Gwg.Add(1)
-		go func() {
-			defer core.Gwg.Done()
-			service.Gsync{
-				UserInfo:       gp.UserInfo,
-				Project:        project,
-				ProjectServers: projectServers,
-				CommitID:       commitInfo.Commit,
-				Branch:         commitInfo.Branch,
-			}.Exec()
-		}()
+		task.AddDeployTask(service.Gsync{
+			UserInfo:       gp.UserInfo,
+			Project:        project,
+			ProjectServers: projectServers,
+			CommitID:       commitInfo.Commit,
+			Branch:         commitInfo.Branch,
+		})
 	}
 	return &core.Response{Data: "publish"}
 }
@@ -498,9 +491,6 @@ func (Deploy) GreyPublish(gp *core.Goploy) *core.Response {
 
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-	if project.DeployState == model.ProjectDeploying {
-		return &core.Response{Code: core.Error, Message: "project is being build"}
 	}
 
 	bindProjectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
@@ -527,17 +517,14 @@ func (Deploy) GreyPublish(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	core.Gwg.Add(1)
-	go func() {
-		defer core.Gwg.Done()
-		service.Gsync{
-			UserInfo:       gp.UserInfo,
-			Project:        project,
-			ProjectServers: projectServers,
-			CommitID:       reqData.Commit,
-			Branch:         reqData.Branch,
-		}.Exec()
-	}()
+	task.AddDeployTask(service.Gsync{
+		UserInfo:       gp.UserInfo,
+		Project:        project,
+		ProjectServers: projectServers,
+		CommitID:       reqData.Commit,
+		Branch:         reqData.Branch,
+	})
+
 	return &core.Response{}
 }
 
@@ -620,10 +607,6 @@ func (Deploy) Webhook(gp *core.Goploy) *core.Response {
 		return &core.Response{Code: core.Deny, Message: "Receive branch:" + branch + " push event, not equal to current branch"}
 	}
 
-	if project.DeployState == model.ProjectDeploying {
-		return &core.Response{Code: core.Deny, Message: "Project is being build by other"}
-	}
-
 	gp.UserInfo, err = model.User{ID: 1}.GetData()
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
@@ -641,15 +624,11 @@ func (Deploy) Webhook(gp *core.Goploy) *core.Response {
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	core.Gwg.Add(1)
-	go func() {
-		defer core.Gwg.Done()
-		service.Gsync{
-			UserInfo:       gp.UserInfo,
-			Project:        project,
-			ProjectServers: projectServers,
-		}.Exec()
-	}()
+	task.AddDeployTask(service.Gsync{
+		UserInfo:       gp.UserInfo,
+		Project:        project,
+		ProjectServers: projectServers,
+	})
 	return &core.Response{Message: "receive push signal"}
 }
 
@@ -688,10 +667,6 @@ func (Deploy) Callback(gp *core.Goploy) *core.Response {
 }
 
 func projectDeploy(gp *core.Goploy, project model.Project, commitID string, branch string) error {
-	if project.DeployState == model.ProjectDeploying {
-		return errors.New("project is being build by other")
-	}
-
 	projectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
 	if err != nil {
 		return err
@@ -704,17 +679,13 @@ func projectDeploy(gp *core.Goploy, project model.Project, commitID string, bran
 	if err != nil {
 		return err
 	}
-	core.Gwg.Add(1)
-	go func() {
-		defer core.Gwg.Done()
-		service.Gsync{
-			UserInfo:       gp.UserInfo,
-			Project:        project,
-			ProjectServers: projectServers,
-			CommitID:       commitID,
-			Branch:         branch,
-		}.Exec()
-	}()
+	task.AddDeployTask(service.Gsync{
+		UserInfo:       gp.UserInfo,
+		Project:        project,
+		ProjectServers: projectServers,
+		CommitID:       commitID,
+		Branch:         branch,
+	})
 	return nil
 }
 

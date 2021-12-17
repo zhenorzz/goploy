@@ -6,9 +6,31 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/service"
-	"sync"
+	"sync/atomic"
 	"time"
 )
+
+var projectTick = time.Tick(time.Minute)
+var projectTaskDone = make(chan struct{})
+
+func startProjectTask() {
+	atomic.AddInt32(&counter, 1)
+	go func() {
+		for {
+			select {
+			case <-projectTick:
+				projectTask()
+			case <-projectTaskDone:
+				atomic.AddInt32(&counter, -1)
+				return
+			}
+		}
+	}()
+}
+
+func shutdownProjectTask() {
+	close(projectTaskDone)
+}
 
 func projectTask() {
 	date := time.Now().Format("2006-01-02 15:04:05")
@@ -16,17 +38,11 @@ func projectTask() {
 	if err != nil && err != sql.ErrNoRows {
 		core.Log(core.ERROR, "get project task list error, detail:"+err.Error())
 	}
-	wg := sync.WaitGroup{}
 	for _, projectTask := range projectTasks {
 		project, err := model.Project{ID: projectTask.ProjectID}.GetData()
 
 		if err != nil {
 			core.Log(core.ERROR, "publish task has no project, detail:"+err.Error())
-			continue
-		}
-
-		if project.DeployState == model.ProjectDeploying {
-			core.Log(core.ERROR, "The project in publish is being build by other")
 			continue
 		}
 
@@ -57,17 +73,13 @@ func projectTask() {
 			core.Log(core.ERROR, "publish task change state error, detail:"+err.Error())
 			continue
 		}
-		wg.Add(1)
-		go func(projectTask model.ProjectTask) {
-			defer wg.Done()
-			service.Gsync{
-				UserInfo:       userInfo,
-				Project:        project,
-				ProjectServers: projectServers,
-				CommitID:       projectTask.CommitID,
-				Branch:         projectTask.Branch,
-			}.Exec()
-		}(projectTask)
+
+		AddDeployTask(service.Gsync{
+			UserInfo:       userInfo,
+			Project:        project,
+			ProjectServers: projectServers,
+			CommitID:       projectTask.CommitID,
+			Branch:         projectTask.Branch,
+		})
 	}
-	wg.Wait()
 }

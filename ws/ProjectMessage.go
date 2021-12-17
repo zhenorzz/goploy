@@ -15,10 +15,11 @@ type ProjectMessage struct {
 
 const (
 	DeployFail      = 0
-	RepoFollow      = 1
-	AfterPullScript = 2
-	Rsync           = 3
-	DeploySuccess   = 4
+	TaskWaiting     = 1
+	RepoFollow      = 2
+	AfterPullScript = 3
+	Rsync           = 4
+	DeploySuccess   = 5
 )
 
 func (projectMessage ProjectMessage) canSendTo(client *Client) error {

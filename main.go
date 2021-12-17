@@ -23,6 +23,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path"
+	"runtime"
 	"strconv"
 	"syscall"
 	"time"
@@ -36,7 +37,7 @@ var (
 	s    string
 )
 
-const appVersion = "1.4.2"
+const appVersion = "1.4.3"
 
 func init() {
 	flag.StringVar(&core.AssetDir, "asset-dir", "", "default: ./")
@@ -82,6 +83,7 @@ func main() {
 	println("goploy -h for more help")
 	println("Current pid:   " + pid)
 	println("Config Loaded: " + core.GetConfigFile())
+	println("Env:           " + config.Toml.Env)
 	println("Log:           " + config.Toml.Log.Path)
 	println("Listen:        " + config.Toml.Web.Port)
 	println("Running...")
@@ -133,6 +135,7 @@ func install() {
 	}
 	cfg := config.Config{
 		Env:    "production",
+		APP:    config.APPConfig{DeployLimit: int32(runtime.NumCPU())},
 		Cookie: config.CookieConfig{Name: "goploy_token", Expire: 86400},
 		JWT:    config.JWTConfig{Key: time.Now().String()},
 		DB:     config.DBConfig{Type: "mysql", Host: "127.0.0.1", Port: "3306"},
