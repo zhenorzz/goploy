@@ -11,7 +11,6 @@ import (
 )
 
 var serverMonitorTick = time.Tick(time.Minute)
-var serverMonitorTaskDone = make(chan struct{})
 
 func startServerMonitorTask() {
 	atomic.AddInt32(&counter, 1)
@@ -20,16 +19,12 @@ func startServerMonitorTask() {
 			select {
 			case <-serverMonitorTick:
 				serverMonitorTask()
-			case <-serverMonitorTaskDone:
+			case <-stop:
 				atomic.AddInt32(&counter, -1)
 				return
 			}
 		}
 	}()
-}
-
-func shutdownServerMonitorTask() {
-	close(serverMonitorTaskDone)
 }
 
 type ServerMonitorCache struct {

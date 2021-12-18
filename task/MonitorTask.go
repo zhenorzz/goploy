@@ -11,7 +11,6 @@ import (
 )
 
 var monitorTick = time.Tick(time.Second)
-var monitorTaskDone = make(chan struct{})
 
 func startMonitorTask() {
 	atomic.AddInt32(&counter, 1)
@@ -20,16 +19,12 @@ func startMonitorTask() {
 			select {
 			case <-monitorTick:
 				monitorTask()
-			case <-monitorTaskDone:
+			case <-stop:
 				atomic.AddInt32(&counter, -1)
 				return
 			}
 		}
 	}()
-}
-
-func shutdownMonitorTask() {
-	close(monitorTaskDone)
 }
 
 type MonitorCache struct {

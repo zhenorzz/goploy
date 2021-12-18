@@ -8,6 +8,8 @@ import (
 
 var counter int32
 
+var stop = make(chan struct{})
+
 func Init() {
 	startMonitorTask()
 	startProjectTask()
@@ -16,10 +18,7 @@ func Init() {
 }
 
 func Shutdown(ctx context.Context) error {
-	shutdownMonitorTask()
-	shutdownProjectTask()
-	shutdownServerMonitorTask()
-	shutdownDeployTask()
+	close(stop)
 	ticker := time.NewTicker(10 * time.Millisecond)
 	for {
 		select {

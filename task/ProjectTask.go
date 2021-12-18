@@ -11,7 +11,6 @@ import (
 )
 
 var projectTick = time.Tick(time.Minute)
-var projectTaskDone = make(chan struct{})
 
 func startProjectTask() {
 	atomic.AddInt32(&counter, 1)
@@ -20,16 +19,12 @@ func startProjectTask() {
 			select {
 			case <-projectTick:
 				projectTask()
-			case <-projectTaskDone:
+			case <-stop:
 				atomic.AddInt32(&counter, -1)
 				return
 			}
 		}
 	}()
-}
-
-func shutdownProjectTask() {
-	close(projectTaskDone)
 }
 
 func projectTask() {
