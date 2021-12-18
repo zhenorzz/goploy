@@ -253,7 +253,7 @@ func handleClientSignal() {
 			log.Fatal("handle stop, ", err.Error())
 		}
 		println("App is trying to shutdown, wait for a minute")
-		for {
+		for i := 0; i < 5; i++ {
 			time.Sleep(time.Second)
 			if _, err := os.Stat(pidFile); errors.Is(err, os.ErrNotExist) {
 				println("Success")
