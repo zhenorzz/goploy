@@ -6,10 +6,8 @@ import (
 	"github.com/zhenorzz/goploy/service"
 )
 
-// Monitor struct
 type Monitor Controller
 
-// GetList monitor list
 func (Monitor) GetList(gp *core.Goploy) *core.Response {
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
@@ -26,7 +24,6 @@ func (Monitor) GetList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetTotal monitor total
 func (Monitor) GetTotal(gp *core.Goploy) *core.Response {
 	total, err := model.Monitor{NamespaceID: gp.Namespace.ID}.GetTotal()
 	if err != nil {
@@ -39,7 +36,6 @@ func (Monitor) GetTotal(gp *core.Goploy) *core.Response {
 	}
 }
 
-// Check one monitor
 func (Monitor) Check(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		URL string `json:"url" validate:"required"`
@@ -54,7 +50,6 @@ func (Monitor) Check(gp *core.Goploy) *core.Response {
 	return &core.Response{Message: "Connected"}
 }
 
-// Add one monitor
 func (Monitor) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name         string `json:"name" validate:"required"`
@@ -93,7 +88,6 @@ func (Monitor) Add(gp *core.Goploy) *core.Response {
 	}
 }
 
-// Edit one monitor
 func (Monitor) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"gt=0"`
@@ -129,7 +123,6 @@ func (Monitor) Edit(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// Toggle Monitor state
 func (Monitor) Toggle(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
@@ -145,7 +138,6 @@ func (Monitor) Toggle(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// Remove one Monitor
 func (Monitor) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`

@@ -17,7 +17,6 @@ import (
 // Server struct
 type Server Controller
 
-// GetList -
 func (Server) GetList(gp *core.Goploy) *core.Response {
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
@@ -34,7 +33,6 @@ func (Server) GetList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetTotal -
 func (Server) GetTotal(gp *core.Goploy) *core.Response {
 	total, err := model.Server{NamespaceID: gp.Namespace.ID}.GetTotal()
 	if err != nil {
@@ -47,7 +45,6 @@ func (Server) GetTotal(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetOption -
 func (Server) GetOption(gp *core.Goploy) *core.Response {
 	serverList, err := model.Server{NamespaceID: gp.Namespace.ID}.GetAll()
 	if err != nil {
@@ -60,7 +57,6 @@ func (Server) GetOption(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetPublicKey -
 func (Server) GetPublicKey(gp *core.Goploy) *core.Response {
 	publicKeyPath := gp.URLQuery.Get("path")
 
@@ -75,7 +71,6 @@ func (Server) GetPublicKey(gp *core.Goploy) *core.Response {
 	}
 }
 
-// Check server
 func (Server) Check(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		IP       string `json:"ip" validate:"required,ip|hostname"`
@@ -96,7 +91,6 @@ func (Server) Check(gp *core.Goploy) *core.Response {
 	return &core.Response{Message: "Connected"}
 }
 
-// Add server
 func (s Server) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name        string `json:"name" validate:"required"`
@@ -137,7 +131,6 @@ func (s Server) Add(gp *core.Goploy) *core.Response {
 	}
 }
 
-// Edit server
 func (s Server) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID          int64  `json:"id" validate:"gt=0"`
@@ -173,7 +166,6 @@ func (s Server) Edit(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// Toggle server
 func (Server) Toggle(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID    int64 `json:"id" validate:"gt=0"`
@@ -324,7 +316,6 @@ func (Server) Report(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetAllMonitor -
 func (Server) GetAllMonitor(gp *core.Goploy) *core.Response {
 	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
 	serverMonitorList, err := model.ServerMonitor{ServerID: serverID}.GetAll()
@@ -338,7 +329,6 @@ func (Server) GetAllMonitor(gp *core.Goploy) *core.Response {
 	}
 }
 
-// AddMonitor server
 func (s Server) AddMonitor(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ServerID     int64  `json:"serverId" validate:"required"`
@@ -386,7 +376,6 @@ func (s Server) AddMonitor(gp *core.Goploy) *core.Response {
 	}
 }
 
-// EditMonitor server
 func (s Server) EditMonitor(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"required"`
@@ -430,7 +419,6 @@ func (s Server) EditMonitor(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// DeleteMonitor server
 func (s Server) DeleteMonitor(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"required"`

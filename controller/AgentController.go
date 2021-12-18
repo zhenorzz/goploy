@@ -5,10 +5,8 @@ import (
 	"github.com/zhenorzz/goploy/model"
 )
 
-// Agent struct
 type Agent Controller
 
-// Report -
 func (Agent) Report(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ServerId   int64  `json:"serverId" validate:"gt=0"`

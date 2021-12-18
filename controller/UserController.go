@@ -12,10 +12,8 @@ import (
 	"github.com/zhenorzz/goploy/model"
 )
 
-// User struct
 type User Controller
 
-// Login -
 func (User) Login(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Account  string `json:"account" validate:"min=5,max=25"`
@@ -107,7 +105,6 @@ func (User) Login(gp *core.Goploy) *core.Response {
 	}
 }
 
-// Info -
 func (User) Info(gp *core.Goploy) *core.Response {
 	type RespData struct {
 		UserInfo struct {
@@ -125,7 +122,6 @@ func (User) Info(gp *core.Goploy) *core.Response {
 	return &core.Response{Data: data}
 }
 
-// GetList -
 func (User) GetList(gp *core.Goploy) *core.Response {
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
@@ -142,7 +138,6 @@ func (User) GetList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetTotal -
 func (User) GetTotal(gp *core.Goploy) *core.Response {
 	total, err := model.User{}.GetTotal()
 	if err != nil {
@@ -155,7 +150,6 @@ func (User) GetTotal(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetOption -
 func (User) GetOption(gp *core.Goploy) *core.Response {
 	users, err := model.User{}.GetAll()
 	if err != nil {
@@ -168,7 +162,6 @@ func (User) GetOption(gp *core.Goploy) *core.Response {
 	}
 }
 
-// Add user
 func (User) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Account      string `json:"account" validate:"min=5,max=25"`
@@ -217,7 +210,6 @@ func (User) Add(gp *core.Goploy) *core.Response {
 	}
 }
 
-// Edit user
 func (User) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"gt=0"`
@@ -267,7 +259,6 @@ func (User) Edit(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// Remove User
 func (User) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
@@ -285,7 +276,6 @@ func (User) Remove(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// ChangePassword -
 func (User) ChangePassword(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		OldPassword string `json:"oldPwd" validate:"password"`

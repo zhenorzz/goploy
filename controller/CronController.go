@@ -8,7 +8,6 @@ import (
 // Cron struct
 type Cron Controller
 
-// Report -
 func (Cron) Report(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ServerId   int64  `json:"serverId" validate:"gt=0"`
@@ -37,7 +36,6 @@ func (Cron) Report(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// GetList cron list
 func (Cron) GetList(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ServerID int64 `json:"serverId" validate:"gt=0"`
@@ -60,7 +58,6 @@ func (Cron) GetList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetLogs cron log list
 func (Cron) GetLogs(gp *core.Goploy) *core.Response {
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
@@ -89,7 +86,6 @@ func (Cron) GetLogs(gp *core.Goploy) *core.Response {
 	}
 }
 
-// Add cron
 func (Cron) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ServerID    int64  `json:"serverId" validate:"gt=0"`
@@ -126,7 +122,6 @@ func (Cron) Add(gp *core.Goploy) *core.Response {
 	}
 }
 
-// Edit cron
 func (Cron) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID          int64  `json:"id" validate:"gt=0"`
@@ -156,7 +151,6 @@ func (Cron) Edit(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// Remove cron
 func (Cron) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`

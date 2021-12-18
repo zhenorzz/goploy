@@ -21,9 +21,6 @@ const (
 //Roles all role
 var Roles = [...]string{RoleAdmin, RoleManager, RoleGroupManager, RoleMember}
 
-// LoginCookieName jwt cookie name
-const LoginCookieName = "goploy_token"
-
 // NamespaceHeaderName namespace cookie name
 const NamespaceHeaderName = "G-N-ID"
 

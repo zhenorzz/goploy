@@ -4,7 +4,6 @@ import (
 	"github.com/zhenorzz/goploy/model"
 )
 
-// ProjectMessage is publish project message struct
 type ProjectMessage struct {
 	ProjectID   int64       `json:"projectId"`
 	ProjectName string      `json:"projectName"`

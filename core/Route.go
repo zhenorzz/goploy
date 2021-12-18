@@ -27,20 +27,19 @@ type Goploy struct {
 	Body           []byte
 }
 
-// 路由定义
 type route struct {
-	pattern     string                     // 正则表达式
+	pattern     string                     //
 	method      string                     // Method specifies the HTTP method (GET, POST, PUT, etc.).
-	roles       []string                   //允许的角色
-	callback    func(gp *Goploy) *Response //Controller函数
-	middlewares []func(gp *Goploy) error   //中间件
+	roles       []string                   // permission role
+	callback    func(gp *Goploy) *Response // Controller function
+	middlewares []func(gp *Goploy) error   // Middlewares run before all callback
 }
 
 // Router is route slice and global middlewares
 type Router struct {
 	whiteList   map[string]struct{}
 	routes      []route
-	middlewares []func(gp *Goploy) error //中间件
+	middlewares []func(gp *Goploy) error // Middlewares run before this route
 }
 
 func NewRouter() *Router {
@@ -64,7 +63,7 @@ func (rt *Router) Start() {
 
 // Add router
 // pattern path
-// callback  where path should be handle
+// callback  where path should be handled
 func (rt *Router) Add(pattern, method string, callback func(gp *Goploy) *Response, middleware ...func(gp *Goploy) error) *Router {
 	r := route{pattern: pattern, method: method, callback: callback}
 	for _, m := range middleware {
@@ -80,7 +79,7 @@ func (rt *Router) White() *Router {
 	return rt
 }
 
-// Roles Add many permission to the route
+// Roles Add much permission to the route
 func (rt *Router) Roles(role []string) *Router {
 	rt.routes[len(rt.routes)-1].roles = append(rt.routes[len(rt.routes)-1].roles, role...)
 	return rt

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/route"
@@ -14,11 +15,10 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/joho/godotenv"
 )
 
 func TestApi(t *testing.T) {
-	godotenv.Load("../.env")
+	config.Create(core.GetConfigFile())
 	core.CreateValidator()
 	model.Init()
 	// <setup code>
@@ -87,7 +87,7 @@ func request(t *testing.T, method, url string, body interface{}) core.Response {
 	}
 	req.Header.Set("Content-Type", "application/json;charset=UTF-8")
 	if token != "" {
-		req.Header.Set("Cookie", fmt.Sprintf("%s=%s", core.LoginCookieName, token))
+		req.Header.Set("Cookie", fmt.Sprintf("%s=%s", config.Toml.Cookie.Name, token))
 	}
 	r := httptest.NewRecorder()
 	handler.ServeHTTP(r, req)

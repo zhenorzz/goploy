@@ -27,10 +27,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// Deploy struct
 type Deploy Controller
 
-// GetList -
 func (Deploy) GetList(gp *core.Goploy) *core.Response {
 	projects, err := model.Project{
 		NamespaceID: gp.Namespace.ID,
@@ -47,7 +45,6 @@ func (Deploy) GetList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetPreview deploy detail
 func (Deploy) GetPreview(gp *core.Goploy) *core.Response {
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
@@ -95,7 +92,6 @@ func (Deploy) GetPreview(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetPublishTrace deploy detail
 func (Deploy) GetPublishTrace(gp *core.Goploy) *core.Response {
 	lastPublishToken := gp.URLQuery.Get("lastPublishToken")
 	publishTraceList, err := model.PublishTrace{Token: lastPublishToken}.GetListByToken()
@@ -111,7 +107,6 @@ func (Deploy) GetPublishTrace(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetPublishTraceDetail deploy detail
 func (Deploy) GetPublishTraceDetail(gp *core.Goploy) *core.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
@@ -130,7 +125,6 @@ func (Deploy) GetPublishTraceDetail(gp *core.Goploy) *core.Response {
 	}
 }
 
-// ResetState -
 func (Deploy) ResetState(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64 `json:"projectId" validate:"gt=0"`
@@ -147,7 +141,6 @@ func (Deploy) ResetState(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// FileCompare -
 func (Deploy) FileCompare(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
@@ -237,7 +230,6 @@ func (Deploy) FileCompare(gp *core.Goploy) *core.Response {
 	return &core.Response{Data: fileCompareList}
 }
 
-// FileDiff -
 func (Deploy) FileDiff(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
@@ -292,7 +284,6 @@ func (Deploy) FileDiff(gp *core.Goploy) *core.Response {
 	}{SrcText: string(srcText), DistText: string(distText)}}
 }
 
-// Publish the project
 func (Deploy) Publish(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
@@ -318,7 +309,6 @@ func (Deploy) Publish(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// Rebuild the project
 func (Deploy) Rebuild(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Token string `json:"token"`
@@ -398,7 +388,7 @@ func (Deploy) Rebuild(gp *core.Goploy) *core.Response {
 				session.Stderr = &sshErrbuf
 				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
 
-				// check if the path is exist or not
+				// check if the path is existed or not
 				if err := session.Run("cd " + destDir); err != nil {
 					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" check symlink path err: "+err.Error()+", detail: "+sshErrbuf.String())
 					ch <- false
@@ -475,7 +465,6 @@ func (Deploy) Rebuild(gp *core.Goploy) *core.Response {
 	return &core.Response{Data: "publish"}
 }
 
-// GreyPublish the project
 func (Deploy) GreyPublish(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64   `json:"projectId" validate:"gt=0"`
@@ -568,13 +557,11 @@ func (Deploy) Review(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// Webhook -
 func (Deploy) Webhook(gp *core.Goploy) *core.Response {
 	projectID, err := strconv.ParseInt(gp.URLQuery.Get("project_id"), 10, 64)
 	if err != nil {
 		return &core.Response{Code: core.Error, Message: err.Error()}
 	}
-	// other event is blocked in deployMiddleware
 	type ReqData struct {
 		Ref string `json:"ref" validate:"required"`
 	}
@@ -632,7 +619,6 @@ func (Deploy) Webhook(gp *core.Goploy) *core.Response {
 	return &core.Response{Message: "receive push signal"}
 }
 
-// Callback -
 func (Deploy) Callback(gp *core.Goploy) *core.Response {
 	projectReviewID, err := strconv.ParseInt(gp.URLQuery.Get("project_review_id"), 10, 64)
 	if err != nil {

@@ -15,10 +15,8 @@ import (
 	"strings"
 )
 
-// Project struct
 type Project Controller
 
-// GetList -
 func (Project) GetList(gp *core.Goploy) *core.Response {
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
@@ -36,7 +34,6 @@ func (Project) GetList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetTotal -
 func (Project) GetTotal(gp *core.Goploy) *core.Response {
 	var total int64
 	var err error
@@ -52,7 +49,6 @@ func (Project) GetTotal(gp *core.Goploy) *core.Response {
 	}
 }
 
-// PingRepos -
 func (Project) PingRepos(gp *core.Goploy) *core.Response {
 	url := gp.URLQuery.Get("url")
 
@@ -100,7 +96,6 @@ func (Project) PingRepos(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// GetRemoteBranchList -
 func (Project) GetRemoteBranchList(gp *core.Goploy) *core.Response {
 	url := gp.URLQuery.Get("url")
 
@@ -151,7 +146,6 @@ func (Project) GetRemoteBranchList(gp *core.Goploy) *core.Response {
 	}{Branch: list}}
 }
 
-// GetBindServerList -
 func (Project) GetBindServerList(gp *core.Goploy) *core.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
@@ -168,7 +162,6 @@ func (Project) GetBindServerList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetBindUserList -
 func (Project) GetBindUserList(gp *core.Goploy) *core.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
@@ -185,7 +178,6 @@ func (Project) GetBindUserList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetProjectFileList -
 func (Project) GetProjectFileList(gp *core.Goploy) *core.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
@@ -255,7 +247,6 @@ func (Project) GetReposFileList(gp *core.Goploy) *core.Response {
 	return &core.Response{Data: fileList}
 }
 
-// Add project
 func (Project) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name                  string  `json:"name" validate:"required"`
@@ -351,7 +342,6 @@ func (Project) Add(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// Edit project
 func (Project) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID                    int64  `json:"id" validate:"gt=0"`
@@ -428,7 +418,6 @@ func (Project) Edit(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// SetAutoDeploy -
 func (Project) SetAutoDeploy(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID         int64 `json:"id" validate:"gt=0"`
@@ -449,7 +438,6 @@ func (Project) SetAutoDeploy(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// Remove Project
 func (Project) Remove(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
@@ -476,7 +464,6 @@ func (Project) Remove(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// UploadFile -
 func (Project) UploadFile(gp *core.Goploy) *core.Response {
 	file, _, err := gp.Request.FormFile("file")
 	if err != nil {
@@ -540,7 +527,6 @@ func (Project) UploadFile(gp *core.Goploy) *core.Response {
 	}
 }
 
-// AddFile to project
 func (Project) AddFile(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
@@ -581,7 +567,6 @@ func (Project) AddFile(gp *core.Goploy) *core.Response {
 	}
 }
 
-// EditFile to project
 func (Project) EditFile(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID      int64  `json:"id" validate:"gt=0"`
@@ -615,7 +600,6 @@ func (Project) EditFile(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// RemoveFile from Project
 func (Project) RemoveFile(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectFileID int64 `json:"projectFileId" validate:"gt=0"`
@@ -642,7 +626,6 @@ func (Project) RemoveFile(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// AddServer to project
 func (Project) AddServer(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64   `json:"projectId" validate:"gt=0"`
@@ -670,7 +653,6 @@ func (Project) AddServer(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// RemoveServer from Project
 func (Project) RemoveServer(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectServerID int64 `json:"projectServerId" validate:"gt=0"`
@@ -686,7 +668,6 @@ func (Project) RemoveServer(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// AddUser to project
 func (Project) AddUser(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64   `json:"projectId" validate:"gt=0"`
@@ -713,7 +694,6 @@ func (Project) AddUser(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// RemoveUser from Project
 func (Project) RemoveUser(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectUserID int64 `json:"projectUserId" validate:"gt=0"`
@@ -730,7 +710,6 @@ func (Project) RemoveUser(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// GetReviewList -
 func (Project) GetReviewList(gp *core.Goploy) *core.Response {
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
@@ -753,7 +732,6 @@ func (Project) GetReviewList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetTaskList -
 func (Project) GetTaskList(gp *core.Goploy) *core.Response {
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
@@ -776,7 +754,6 @@ func (Project) GetTaskList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// AddTask to project
 func (Project) AddTask(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
@@ -808,7 +785,6 @@ func (Project) AddTask(gp *core.Goploy) *core.Response {
 	}
 }
 
-// RemoveTask from project
 func (Project) RemoveTask(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`

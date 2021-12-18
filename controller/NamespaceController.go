@@ -6,10 +6,8 @@ import (
 	"strconv"
 )
 
-// Namespace struct
 type Namespace Controller
 
-// GetList namespace list
 func (Namespace) GetList(gp *core.Goploy) *core.Response {
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
@@ -27,7 +25,6 @@ func (Namespace) GetList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetTotal namespace list
 func (Namespace) GetTotal(gp *core.Goploy) *core.Response {
 	total, err := model.Namespace{UserID: gp.UserInfo.ID}.GetTotalByUserID()
 	if err != nil {
@@ -40,7 +37,6 @@ func (Namespace) GetTotal(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetUserOption user list
 func (Namespace) GetUserOption(gp *core.Goploy) *core.Response {
 	namespaceUsers, err := model.NamespaceUser{NamespaceID: gp.Namespace.ID}.GetAllUserByNamespaceID()
 	if err != nil {
@@ -53,7 +49,6 @@ func (Namespace) GetUserOption(gp *core.Goploy) *core.Response {
 	}
 }
 
-// GetBindUserList user list
 func (Namespace) GetBindUserList(gp *core.Goploy) *core.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
@@ -70,7 +65,6 @@ func (Namespace) GetBindUserList(gp *core.Goploy) *core.Response {
 	}
 }
 
-// Add one namespace
 func (Namespace) Add(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		Name string `json:"name" validate:"required"`
@@ -96,7 +90,6 @@ func (Namespace) Add(gp *core.Goploy) *core.Response {
 	}
 }
 
-// Edit one namespace
 func (Namespace) Edit(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		ID   int64  `json:"id" validate:"gt=0"`
@@ -117,7 +110,6 @@ func (Namespace) Edit(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// AddUser to namespace
 func (Namespace) AddUser(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		NamespaceID int64   `json:"namespaceId" validate:"gt=0"`
@@ -153,7 +145,6 @@ func (Namespace) AddUser(gp *core.Goploy) *core.Response {
 	return &core.Response{}
 }
 
-// RemoveUser from namespace
 func (Namespace) RemoveUser(gp *core.Goploy) *core.Response {
 	type ReqData struct {
 		NamespaceUserID int64 `json:"namespaceUserId" validate:"gt=0"`
