@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/hashicorp/go-version"
@@ -237,7 +238,8 @@ func install() {
 func handleClientSignal() {
 	switch s {
 	case "stop":
-		pidStr, err := ioutil.ReadFile(path.Join(core.GetAssetDir(), "goploy.pid"))
+		pidFile := path.Join(core.GetAssetDir(), "goploy.pid")
+		pidStr, err := ioutil.ReadFile(pidFile)
 		if err != nil {
 			log.Fatal("handle stop, ", err.Error(), ", may be the server not start")
 		}
@@ -250,6 +252,17 @@ func handleClientSignal() {
 		if err != nil {
 			log.Fatal("handle stop, ", err.Error())
 		}
+		println("App is trying to shutdown, wait for a minute")
+		for {
+			time.Sleep(time.Second)
+			if _, err := os.Stat(pidFile); errors.Is(err, os.ErrNotExist) {
+				println("Success")
+				break
+			} else if err != nil {
+				log.Fatal("handle stop, ", err.Error())
+			}
+		}
+
 		os.Exit(1)
 	}
 }
