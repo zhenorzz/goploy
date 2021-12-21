@@ -3,11 +3,19 @@ package controller
 import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/response"
+	"net/http"
 )
 
 type Agent Controller
 
-func (Agent) Report(gp *core.Goploy) *core.Response {
+func (a Agent) Routes() []core.Route {
+	return []core.Route{
+		core.NewRoute("/agent/report", http.MethodPost, a.Report).White(),
+	}
+}
+
+func (Agent) Report(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ServerId   int64  `json:"serverId" validate:"gt=0"`
 		Type       int    `json:"type" validate:"gt=0"`
@@ -18,7 +26,7 @@ func (Agent) Report(gp *core.Goploy) *core.Response {
 
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	err := model.ServerAgentLog{
@@ -30,7 +38,7 @@ func (Agent) Report(gp *core.Goploy) *core.Response {
 	}.AddRow()
 
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{}
+	return response.JSON{}
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/response"
 	"github.com/zhenorzz/goploy/utils"
 	"golang.org/x/crypto/ssh"
 	"net/http"
@@ -29,7 +30,7 @@ func (w *xtermBufferWriter) Write(p []byte) (int, error) {
 }
 
 // Xterm the publish information in websocket
-func (hub *Hub) Xterm(gp *core.Goploy) *core.Response {
+func (hub *Hub) Xterm(gp *core.Goploy) core.Response {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
@@ -40,7 +41,7 @@ func (hub *Hub) Xterm(gp *core.Goploy) *core.Response {
 	}
 	c, err := upgrader.Upgrade(gp.ResponseWriter, gp.Request, nil)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	defer c.Close()
 	c.SetReadLimit(maxMessageSize)
@@ -50,41 +51,41 @@ func (hub *Hub) Xterm(gp *core.Goploy) *core.Response {
 	rows, err := strconv.Atoi(gp.URLQuery.Get("rows"))
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return nil
+		return response.JSON{}
 	}
 	cols, err := strconv.Atoi(gp.URLQuery.Get("cols"))
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return nil
+		return response.JSON{}
 	}
 	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return nil
+		return response.JSON{}
 	}
 
 	server, err := (model.Server{ID: serverID}).GetData()
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return nil
+		return response.JSON{}
 	}
 	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return nil
+		return response.JSON{}
 	}
 	defer client.Close()
 	// create session
 	session, err := client.NewSession()
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return nil
+		return response.JSON{}
 	}
 	defer session.Close()
 	sessionStdin, err := session.StdinPipe()
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return nil
+		return response.JSON{}
 	}
 	comboWriter := new(xtermBufferWriter)
 	//ssh.stdout and stderr will write output into comboWriter
@@ -93,12 +94,12 @@ func (hub *Hub) Xterm(gp *core.Goploy) *core.Response {
 	// Request pseudo terminal
 	if err := session.RequestPty("xterm", rows, cols, ssh.TerminalModes{}); err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return nil
+		return response.JSON{}
 	}
 	// Start remote shell
 	if err := session.Shell(); err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return nil
+		return response.JSON{}
 	}
 
 	ticker := time.NewTicker(pingPeriod)
@@ -148,5 +149,5 @@ func (hub *Hub) Xterm(gp *core.Goploy) *core.Response {
 		}
 	}
 
-	return nil
+	return response.JSON{}
 }

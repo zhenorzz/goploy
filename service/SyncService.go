@@ -370,7 +370,7 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			var sshOutbuf, sshErrbuf bytes.Buffer
 			session.Stdout = &sshOutbuf
 			session.Stderr = &sshErrbuf
-			if err := session.Run(strings.Join(afterDeployCommands, ";")); err != nil {
+			if err := session.Run(strings.Join(afterDeployCommands, "&&")); err != nil {
 				core.Log(core.ERROR, "ssh exec err: "+err.Error())
 				publishTraceModel.Detail = "err: " + err.Error() + ", detail: " + sshErrbuf.String()
 				publishTraceModel.State = model.Fail

@@ -1,12 +1,11 @@
-package core
+package response
 
 import (
 	"encoding/json"
 	"net/http"
 )
 
-//Response struct
-type Response struct {
+type JSON struct {
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
@@ -24,8 +23,6 @@ const (
 )
 
 //JSON response
-func (r *Response) JSON(w http.ResponseWriter) {
-	if err := json.NewEncoder(w).Encode(r); err != nil {
-		Log(ERROR, err.Error())
-	}
+func (j JSON) Write(w http.ResponseWriter) error {
+	return json.NewEncoder(w).Encode(j)
 }

@@ -8,8 +8,7 @@ import (
 )
 
 // Controller struct
-type Controller struct {
-}
+type Controller struct{}
 
 func verify(data []byte, v interface{}) error {
 	err := json.Unmarshal(data, v)

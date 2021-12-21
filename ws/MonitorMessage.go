@@ -10,6 +10,6 @@ const (
 	MonitorTurnOff = 0
 )
 
-func (projectMessage MonitorMessage) canSendTo(client *Client) error {
+func (projectMessage MonitorMessage) canSendTo(*Client) error {
 	return nil
 }

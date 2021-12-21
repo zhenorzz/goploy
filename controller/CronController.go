@@ -3,12 +3,25 @@ package controller
 import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/response"
+	"net/http"
 )
 
 // Cron struct
 type Cron Controller
 
-func (Cron) Report(gp *core.Goploy) *core.Response {
+func (c Cron) Routes() []core.Route {
+	return []core.Route{
+		core.NewRoute("/cron/report", http.MethodPost, c.Report).White(),
+		core.NewRoute("/cron/getList", http.MethodPost, c.GetList).White(),
+		core.NewRoute("/cron/getLogs", http.MethodPost, c.GetLogs).White(),
+		core.NewRoute("/cron/add", http.MethodPost, c.Add).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/cron/edit", http.MethodPut, c.Edit).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/cron/remove", http.MethodDelete, c.Remove).Roles(core.RoleAdmin, core.RoleManager),
+	}
+}
+
+func (Cron) Report(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ServerId   int64  `json:"serverId" validate:"gt=0"`
 		CronId     int64  `json:"cronId" validate:"gt=0"`
@@ -19,7 +32,7 @@ func (Cron) Report(gp *core.Goploy) *core.Response {
 
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	err := model.CronLog{
@@ -31,37 +44,37 @@ func (Cron) Report(gp *core.Goploy) *core.Response {
 	}.AddRow()
 
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{}
+	return response.JSON{}
 }
 
-func (Cron) GetList(gp *core.Goploy) *core.Response {
+func (Cron) GetList(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ServerID int64 `json:"serverId" validate:"gt=0"`
 	}
 
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	crons, err := model.Cron{ServerID: reqData.ServerID}.GetList()
 
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			List model.Crons `json:"list"`
 		}{List: crons},
 	}
 }
 
-func (Cron) GetLogs(gp *core.Goploy) *core.Response {
+func (Cron) GetLogs(gp *core.Goploy) core.Response {
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	type ReqData struct {
@@ -71,22 +84,22 @@ func (Cron) GetLogs(gp *core.Goploy) *core.Response {
 
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	crons, err := model.CronLog{ServerID: reqData.ServerID, CronID: reqData.CronID}.GetList(pagination)
 
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			List model.CronLogs `json:"list"`
 		}{List: crons},
 	}
 }
 
-func (Cron) Add(gp *core.Goploy) *core.Response {
+func (Cron) Add(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ServerID    int64  `json:"serverId" validate:"gt=0"`
 		Expression  string `json:"expression" validate:"required"`
@@ -98,7 +111,7 @@ func (Cron) Add(gp *core.Goploy) *core.Response {
 
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	id, err := model.Cron{
@@ -112,17 +125,17 @@ func (Cron) Add(gp *core.Goploy) *core.Response {
 	}.AddRow()
 
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 
 	}
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			ID int64 `json:"id"`
 		}{ID: id},
 	}
 }
 
-func (Cron) Edit(gp *core.Goploy) *core.Response {
+func (Cron) Edit(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ID          int64  `json:"id" validate:"gt=0"`
 		Expression  string `json:"expression" validate:"required"`
@@ -133,7 +146,7 @@ func (Cron) Edit(gp *core.Goploy) *core.Response {
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	err := model.Cron{
 		ID:          reqData.ID,
@@ -146,23 +159,23 @@ func (Cron) Edit(gp *core.Goploy) *core.Response {
 	}.EditRow()
 
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{}
+	return response.JSON{}
 }
 
-func (Cron) Remove(gp *core.Goploy) *core.Response {
+func (Cron) Remove(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	if err := (model.Cron{ID: reqData.ID}).RemoveRow(); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	return &core.Response{}
+	return response.JSON{}
 }

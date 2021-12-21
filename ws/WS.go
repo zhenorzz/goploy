@@ -4,6 +4,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/response"
 	"net/http"
 	"strings"
 	"time"
@@ -61,27 +62,31 @@ type Hub struct {
 
 // Init websocket
 func Init() {
-	go GetHub().run()
+	go hub.run()
 }
 
-var hub *Hub
-
-// GetHub it will only init once in main.go
-func GetHub() *Hub {
-	if hub == nil {
-		hub = &Hub{
-			Data:       make(chan *Data),
-			clients:    make(map[*Client]bool),
-			Register:   make(chan *Client),
-			Unregister: make(chan *Client),
-			ticker:     make(chan *Client),
-		}
+func (hub *Hub) Routes() []core.Route {
+	return []core.Route{
+		core.NewRoute("/ws/connect", http.MethodGet, hub.Connect),
+		core.NewRoute("/ws/xterm", http.MethodGet, hub.Xterm),
+		core.NewRoute("/ws/sftp", http.MethodGet, hub.Sftp),
 	}
+}
+
+var hub = &Hub{
+	Data:       make(chan *Data),
+	clients:    make(map[*Client]bool),
+	Register:   make(chan *Client),
+	Unregister: make(chan *Client),
+	ticker:     make(chan *Client),
+}
+
+func GetHub() *Hub {
 	return hub
 }
 
 // Connect the publish information in websocket
-func (hub *Hub) Connect(gp *core.Goploy) *core.Response {
+func (hub *Hub) Connect(gp *core.Goploy) core.Response {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
@@ -93,7 +98,7 @@ func (hub *Hub) Connect(gp *core.Goploy) *core.Response {
 	c, err := upgrader.Upgrade(gp.ResponseWriter, gp.Request, nil)
 	if err != nil {
 		core.Log(core.ERROR, err.Error())
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	c.SetReadLimit(maxMessageSize)
 	c.SetReadDeadline(time.Now().Add(pongWait))
@@ -134,7 +139,7 @@ func (hub *Hub) Connect(gp *core.Goploy) *core.Response {
 		stop <- true
 	}()
 
-	return nil
+	return response.JSON{}
 }
 
 // Run goroutine run the sync hub

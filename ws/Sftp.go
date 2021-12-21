@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/response"
 	"github.com/zhenorzz/goploy/utils"
 	"net/http"
 	"os"
@@ -15,7 +16,7 @@ import (
 )
 
 // Sftp the server file information in websocket
-func (hub *Hub) Sftp(gp *core.Goploy) *core.Response {
+func (hub *Hub) Sftp(gp *core.Goploy) core.Response {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
@@ -27,7 +28,7 @@ func (hub *Hub) Sftp(gp *core.Goploy) *core.Response {
 
 	c, err := upgrader.Upgrade(gp.ResponseWriter, gp.Request, nil)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	defer c.Close()
 	c.SetReadLimit(maxMessageSize)
@@ -37,17 +38,17 @@ func (hub *Hub) Sftp(gp *core.Goploy) *core.Response {
 	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
 	if err != nil {
 		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return nil
+		return response.Empty{}
 	}
 	server, err := (model.Server{ID: serverID}).GetData()
 	if err != nil {
 		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return nil
+		return response.Empty{}
 	}
 	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
 	if err != nil {
 		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return nil
+		return response.Empty{}
 	}
 	defer client.Close()
 
@@ -55,7 +56,7 @@ func (hub *Hub) Sftp(gp *core.Goploy) *core.Response {
 	sftpClient, err := sftp.NewClient(client)
 	if err != nil {
 		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return nil
+		return response.Empty{}
 	}
 	defer sftpClient.Close()
 
@@ -97,11 +98,11 @@ func (hub *Hub) Sftp(gp *core.Goploy) *core.Response {
 		}
 		if messageType == websocket.TextMessage {
 			var fileList []fileInfo
-			code := core.Pass
+			code := response.Pass
 			msg := ""
 			fileInfos, err := sftpClient.ReadDir(string(message))
 			if err != nil {
-				code = core.Error
+				code = response.Error
 				msg = err.Error()
 			} else {
 				for _, f := range fileInfos {
@@ -118,7 +119,7 @@ func (hub *Hub) Sftp(gp *core.Goploy) *core.Response {
 				}
 			}
 
-			b, _ := json.Marshal(core.Response{Code: code, Message: msg, Data: fileList})
+			b, _ := json.Marshal(response.JSON{Code: code, Message: msg, Data: fileList})
 			if err := c.WriteMessage(websocket.TextMessage, b); err != nil {
 				core.Log(core.ERROR, err.Error())
 				break
@@ -126,5 +127,5 @@ func (hub *Hub) Sftp(gp *core.Goploy) *core.Response {
 		}
 	}
 
-	return nil
+	return response.Empty{}
 }

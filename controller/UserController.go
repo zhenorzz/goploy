@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/go-ldap/ldap/v3"
+	"github.com/zhenorzz/goploy/response"
 	"net/http"
 	"time"
 
@@ -14,30 +15,44 @@ import (
 
 type User Controller
 
-func (User) Login(gp *core.Goploy) *core.Response {
+func (u User) Routes() []core.Route {
+	return []core.Route{
+		core.NewRoute("/user/login", http.MethodPost, u.Login).White(),
+		core.NewRoute("/user/info", http.MethodGet, u.Info),
+		core.NewRoute("/user/getList", http.MethodGet, u.GetList),
+		core.NewRoute("/user/getTotal", http.MethodGet, u.GetTotal),
+		core.NewRoute("/user/getOption", http.MethodGet, u.GetOption),
+		core.NewRoute("/user/add", http.MethodPost, u.Add).Roles(core.RoleAdmin),
+		core.NewRoute("/user/edit", http.MethodPut, u.Edit).Roles(core.RoleAdmin),
+		core.NewRoute("/user/remove", http.MethodDelete, u.Remove).Roles(core.RoleAdmin),
+		core.NewRoute("/user/changePassword", http.MethodPut, u.ChangePassword),
+	}
+}
+
+func (User) Login(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		Account  string `json:"account" validate:"min=5,max=25"`
 		Password string `json:"password" validate:"password"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	userData, err := model.User{Account: reqData.Account}.GetDataByAccount()
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	if config.Toml.LDAP.Enabled && userData.ID != 1 {
 		conn, err := ldap.DialURL(config.Toml.LDAP.URL)
 		if err != nil {
-			return &core.Response{Code: core.Deny, Message: err.Error()}
+			return response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 
 		if config.Toml.LDAP.BindDN != "" {
 			if err := conn.Bind(config.Toml.LDAP.BindDN, config.Toml.LDAP.Password); err != nil {
-				return &core.Response{Code: core.Deny, Message: err.Error()}
+				return response.JSON{Code: response.Deny, Message: err.Error()}
 			}
 		}
 
@@ -59,32 +74,32 @@ func (User) Login(gp *core.Goploy) *core.Response {
 
 		sr, err := conn.Search(searchRequest)
 		if err != nil {
-			return &core.Response{Code: core.Deny, Message: err.Error()}
+			return response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 		if len(sr.Entries) != 1 {
-			return &core.Response{Code: core.Deny, Message: err.Error()}
+			return response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 		if err := conn.Bind(sr.Entries[0].DN, reqData.Password); err != nil {
-			return &core.Response{Code: core.Deny, Message: err.Error()}
+			return response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 	} else {
 		if err := userData.Validate(reqData.Password); err != nil {
-			return &core.Response{Code: core.Deny, Message: err.Error()}
+			return response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 	}
 
 	if userData.State == model.Disable {
-		return &core.Response{Code: core.AccountDisabled, Message: "Account is disabled"}
+		return response.JSON{Code: response.AccountDisabled, Message: "Account is disabled"}
 	}
 
 	namespaceList, err := model.Namespace{UserID: userData.ID}.GetAllByUserID()
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: "No space assigned, please contact the administrator"}
+		return response.JSON{Code: response.Error, Message: "No space assigned, please contact the administrator"}
 	}
 
 	token, err := userData.CreateToken()
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	_ = model.User{ID: userData.ID, LastLoginTime: time.Now().Format("20060102150405")}.UpdateLastLoginTime()
@@ -97,7 +112,7 @@ func (User) Login(gp *core.Goploy) *core.Response {
 		HttpOnly: true,
 	}
 	http.SetCookie(gp.ResponseWriter, &cookie)
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			Token         string           `json:"token"`
 			NamespaceList model.Namespaces `json:"namespaceList"`
@@ -105,7 +120,7 @@ func (User) Login(gp *core.Goploy) *core.Response {
 	}
 }
 
-func (User) Info(gp *core.Goploy) *core.Response {
+func (User) Info(gp *core.Goploy) core.Response {
 	type RespData struct {
 		UserInfo struct {
 			ID           int64  `json:"id"`
@@ -119,50 +134,50 @@ func (User) Info(gp *core.Goploy) *core.Response {
 	data.UserInfo.Name = gp.UserInfo.Name
 	data.UserInfo.Account = gp.UserInfo.Account
 	data.UserInfo.SuperManager = gp.UserInfo.SuperManager
-	return &core.Response{Data: data}
+	return response.JSON{Data: data}
 }
 
-func (User) GetList(gp *core.Goploy) *core.Response {
+func (User) GetList(gp *core.Goploy) core.Response {
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	users, err := model.User{}.GetList(pagination)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			Users model.Users `json:"list"`
 		}{Users: users},
 	}
 }
 
-func (User) GetTotal(gp *core.Goploy) *core.Response {
+func (User) GetTotal(*core.Goploy) core.Response {
 	total, err := model.User{}.GetTotal()
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			Total int64 `json:"total"`
 		}{Total: total},
 	}
 }
 
-func (User) GetOption(gp *core.Goploy) *core.Response {
+func (User) GetOption(*core.Goploy) core.Response {
 	users, err := model.User{}.GetAll()
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			Users model.Users `json:"list"`
 		}{Users: users},
 	}
 }
 
-func (User) Add(gp *core.Goploy) *core.Response {
+func (User) Add(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		Account      string `json:"account" validate:"min=5,max=25"`
 		Password     string `json:"password" validate:"omitempty,password"`
@@ -173,14 +188,14 @@ func (User) Add(gp *core.Goploy) *core.Response {
 
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	userInfo, err := model.User{Account: reqData.Account}.GetDataByAccount()
 	if err != nil && err != sql.ErrNoRows {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	} else if userInfo != (model.User{}) {
-		return &core.Response{Code: core.Error, Message: "Account is already exist"}
+		return response.JSON{Code: response.Error, Message: "Account is already exist"}
 	}
 	id, err := model.User{
 		Account:      reqData.Account,
@@ -191,26 +206,26 @@ func (User) Add(gp *core.Goploy) *core.Response {
 	}.AddRow()
 
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	if reqData.SuperManager == model.SuperManager {
 		if err := (model.NamespaceUser{UserID: id}).AddAdminByUserID(); err != nil {
-			return &core.Response{Code: core.Error, Message: err.Error()}
+			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 		if err := (model.ProjectUser{UserID: id}).AddAdminByUserID(); err != nil {
-			return &core.Response{Code: core.Error, Message: err.Error()}
+			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 	}
 
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			ID int64 `json:"id"`
 		}{ID: id},
 	}
 }
 
-func (User) Edit(gp *core.Goploy) *core.Response {
+func (User) Edit(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"gt=0"`
 		Password     string `json:"password" validate:"omitempty,password"`
@@ -220,12 +235,12 @@ func (User) Edit(gp *core.Goploy) *core.Response {
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	userInfo, err := model.User{ID: reqData.ID}.GetData()
 
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	err = model.User{
@@ -237,65 +252,65 @@ func (User) Edit(gp *core.Goploy) *core.Response {
 	}.EditRow()
 
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	if userInfo.SuperManager == model.SuperManager && reqData.SuperManager == model.GeneralUser {
 		if err := (model.NamespaceUser{UserID: reqData.ID}).DeleteByUserID(); err != nil {
-			return &core.Response{Code: core.Error, Message: err.Error()}
+			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 		if err := (model.ProjectUser{UserID: reqData.ID}).DeleteByUserID(); err != nil {
-			return &core.Response{Code: core.Error, Message: err.Error()}
+			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 	} else if userInfo.SuperManager == model.GeneralUser && reqData.SuperManager == model.SuperManager {
 		if err := (model.NamespaceUser{UserID: reqData.ID}).AddAdminByUserID(); err != nil {
-			return &core.Response{Code: core.Error, Message: err.Error()}
+			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 		if err := (model.ProjectUser{UserID: reqData.ID}).AddAdminByUserID(); err != nil {
-			return &core.Response{Code: core.Error, Message: err.Error()}
+			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 	}
 
-	return &core.Response{}
+	return response.JSON{}
 }
 
-func (User) Remove(gp *core.Goploy) *core.Response {
+func (User) Remove(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	if reqData.ID == 1 {
-		return &core.Response{Code: core.Error, Message: "Can not delete the super manager"}
+		return response.JSON{Code: response.Error, Message: "Can not delete the super manager"}
 	}
 	if err := (model.User{ID: reqData.ID}).RemoveRow(); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{}
+	return response.JSON{}
 }
 
-func (User) ChangePassword(gp *core.Goploy) *core.Response {
+func (User) ChangePassword(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		OldPassword string `json:"oldPwd" validate:"password"`
 		NewPassword string `json:"newPwd" validate:"password"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	userData, err := model.User{ID: gp.UserInfo.ID}.GetData()
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	if err := userData.Validate(reqData.OldPassword); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	if err := (model.User{ID: gp.UserInfo.ID, Password: reqData.NewPassword}).UpdatePassword(); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{}
+	return response.JSON{}
 }

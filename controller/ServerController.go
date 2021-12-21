@@ -5,11 +5,11 @@ import (
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/response"
 	"github.com/zhenorzz/goploy/utils"
-	"io"
 	"io/ioutil"
+	"net/http"
 	"os/exec"
-	"path"
 	"strconv"
 	"strings"
 )
@@ -17,61 +17,81 @@ import (
 // Server struct
 type Server Controller
 
-func (Server) GetList(gp *core.Goploy) *core.Response {
+func (s Server) Routes() []core.Route {
+	return []core.Route{
+		core.NewRoute("/server/getList", http.MethodGet, s.GetList),
+		core.NewRoute("/server/getTotal", http.MethodGet, s.GetTotal),
+		core.NewRoute("/server/getOption", http.MethodGet, s.GetOption),
+		core.NewRoute("/server/getPublicKey", http.MethodGet, s.GetPublicKey),
+		core.NewRoute("/server/check", http.MethodPost, s.Check).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/server/add", http.MethodPost, s.Add).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/server/edit", http.MethodPut, s.Edit).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/server/toggle", http.MethodPut, s.Toggle).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/server/downloadFile", http.MethodGet, s.DownloadFile).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/server/uploadFile", http.MethodPost, s.UploadFile).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/server/report", http.MethodGet, s.Report).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/server/getAllMonitor", http.MethodGet, s.GetAllMonitor),
+		core.NewRoute("/server/addMonitor", http.MethodPost, s.AddMonitor).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/server/editMonitor", http.MethodPut, s.EditMonitor).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/server/deleteMonitor", http.MethodDelete, s.DeleteMonitor).Roles(core.RoleAdmin, core.RoleManager),
+	}
+}
+
+func (Server) GetList(gp *core.Goploy) core.Response {
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	serverList, err := model.Server{NamespaceID: gp.Namespace.ID}.GetList(pagination)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			Servers model.Servers `json:"list"`
 		}{Servers: serverList},
 	}
 }
 
-func (Server) GetTotal(gp *core.Goploy) *core.Response {
+func (Server) GetTotal(gp *core.Goploy) core.Response {
 	total, err := model.Server{NamespaceID: gp.Namespace.ID}.GetTotal()
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			Total int64 `json:"total"`
 		}{Total: total},
 	}
 }
 
-func (Server) GetOption(gp *core.Goploy) *core.Response {
+func (Server) GetOption(gp *core.Goploy) core.Response {
 	serverList, err := model.Server{NamespaceID: gp.Namespace.ID}.GetAll()
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			Servers model.Servers `json:"list"`
 		}{Servers: serverList},
 	}
 }
 
-func (Server) GetPublicKey(gp *core.Goploy) *core.Response {
+func (Server) GetPublicKey(gp *core.Goploy) core.Response {
 	publicKeyPath := gp.URLQuery.Get("path")
 
 	contentByte, err := ioutil.ReadFile(publicKeyPath + ".pub")
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			Key string `json:"key"`
 		}{Key: string(contentByte)},
 	}
 }
 
-func (Server) Check(gp *core.Goploy) *core.Response {
+func (Server) Check(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		IP       string `json:"ip" validate:"required,ip|hostname"`
 		Port     int    `json:"port" validate:"min=0,max=65535"`
@@ -81,17 +101,17 @@ func (Server) Check(gp *core.Goploy) *core.Response {
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	if Conn, err := utils.DialSSH(reqData.Owner, reqData.Password, reqData.Path, reqData.IP, reqData.Port); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	} else {
 		_ = Conn.Close()
 	}
-	return &core.Response{Message: "Connected"}
+	return response.JSON{Message: "Connected"}
 }
 
-func (s Server) Add(gp *core.Goploy) *core.Response {
+func (s Server) Add(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		Name        string `json:"name" validate:"required"`
 		NamespaceID int64  `json:"namespaceId" validate:"gte=0"`
@@ -105,7 +125,7 @@ func (s Server) Add(gp *core.Goploy) *core.Response {
 
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	id, err := model.Server{
@@ -121,17 +141,17 @@ func (s Server) Add(gp *core.Goploy) *core.Response {
 	}.AddRow()
 
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 
 	}
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			ID int64 `json:"id"`
 		}{ID: id},
 	}
 }
 
-func (s Server) Edit(gp *core.Goploy) *core.Response {
+func (s Server) Edit(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ID          int64  `json:"id" validate:"gt=0"`
 		NamespaceID int64  `json:"namespaceId" validate:"gte=0"`
@@ -145,7 +165,7 @@ func (s Server) Edit(gp *core.Goploy) *core.Response {
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	err := model.Server{
 		ID:          reqData.ID,
@@ -161,124 +181,109 @@ func (s Server) Edit(gp *core.Goploy) *core.Response {
 	}.EditRow()
 
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{}
+	return response.JSON{}
 }
 
-func (Server) Toggle(gp *core.Goploy) *core.Response {
+func (Server) Toggle(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ID    int64 `json:"id" validate:"gt=0"`
 		State int8  `json:"state" validate:"oneof=0 1"`
 	}
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	if err := (model.Server{ID: reqData.ID, State: reqData.State}).ToggleRow(); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{}
+	return response.JSON{}
 }
 
 // DownloadFile sftp download file
-func (Server) DownloadFile(gp *core.Goploy) *core.Response {
+func (Server) DownloadFile(gp *core.Goploy) core.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: "invalid server id"}
+		return response.JSON{Code: response.Error, Message: "invalid server id"}
 	}
-
 	server, err := (model.Server{ID: id}).GetData()
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	defer client.Close()
-	sftpClient, err := sftp.NewClient(client)
-	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
-	}
-	filename := gp.URLQuery.Get("file")
-	srcFile, _ := sftpClient.Open(filename) //远程
-	FileStat, _ := srcFile.Stat()
-	FileSize := strconv.FormatInt(FileStat.Size(), 10)
-	gp.ResponseWriter.Header().Set("Content-Disposition", "attachment; filename="+path.Base(filename))
-	gp.ResponseWriter.Header().Set("Content-Type", "application/octet-stream")
-	gp.ResponseWriter.Header().Set("Content-Length", FileSize)
-	_, _ = io.Copy(gp.ResponseWriter, srcFile)
-	_ = srcFile.Close()
-	_ = sftpClient.Close()
-	return nil
+
+	return response.SftpFile{Filename: gp.URLQuery.Get("file"), Client: client}
 }
 
 // UploadFile sftp upload file
-func (Server) UploadFile(gp *core.Goploy) *core.Response {
+func (Server) UploadFile(gp *core.Goploy) core.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: "invalid server id"}
+		return response.JSON{Code: response.Error, Message: "invalid server id"}
 	}
 	server, err := (model.Server{ID: id}).GetData()
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	file, fileHandler, err := gp.Request.FormFile("file")
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	defer file.Close()
 
 	fileBytes, err := ioutil.ReadAll(file)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	defer client.Close()
 
 	sftpClient, err := sftp.NewClient(client)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	defer sftpClient.Close()
 
 	filePath := gp.URLQuery.Get("filePath")
 	remoteFile, err := sftpClient.Create(filePath + "/" + fileHandler.Filename)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	_, err = remoteFile.Write(fileBytes)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	return nil
+	return response.JSON{}
 }
 
-func (Server) Report(gp *core.Goploy) *core.Response {
+func (Server) Report(gp *core.Goploy) core.Response {
 	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: "invalid server id"}
+		return response.JSON{Code: response.Error, Message: "invalid server id"}
 	}
 	logType, err := strconv.Atoi(gp.URLQuery.Get("type"))
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: "invalid server id"}
+		return response.JSON{Code: response.Error, Message: "invalid server id"}
 	}
 	datetimeRange := strings.Split(gp.URLQuery.Get("datetimeRange"), ",")
 	if len(datetimeRange) != 2 {
-		return &core.Response{Code: core.Error, Message: "invalid datetime range"}
+		return response.JSON{Code: response.Error, Message: "invalid datetime range"}
 	}
 	serverAgentLogs, err := (model.ServerAgentLog{ServerID: serverID, Type: logType}).GetListBetweenTime(datetimeRange[0], datetimeRange[1])
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	type Flag struct {
@@ -309,27 +314,27 @@ func (Server) Report(gp *core.Goploy) *core.Response {
 		}
 	}
 
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			ServerAgentMap map[string]model.ServerAgentLogs `json:"map"`
 		}{ServerAgentMap: serverAgentMap},
 	}
 }
 
-func (Server) GetAllMonitor(gp *core.Goploy) *core.Response {
+func (Server) GetAllMonitor(gp *core.Goploy) core.Response {
 	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
 	serverMonitorList, err := model.ServerMonitor{ServerID: serverID}.GetAll()
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			List model.ServerMonitors `json:"list"`
 		}{List: serverMonitorList},
 	}
 }
 
-func (s Server) AddMonitor(gp *core.Goploy) *core.Response {
+func (s Server) AddMonitor(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ServerID     int64  `json:"serverId" validate:"required"`
 		Item         string `json:"item" validate:"required"`
@@ -347,7 +352,7 @@ func (s Server) AddMonitor(gp *core.Goploy) *core.Response {
 
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	id, err := model.ServerMonitor{
@@ -366,17 +371,17 @@ func (s Server) AddMonitor(gp *core.Goploy) *core.Response {
 	}.AddRow()
 
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 
 	}
-	return &core.Response{
+	return response.JSON{
 		Data: struct {
 			ID int64 `json:"id"`
 		}{ID: id},
 	}
 }
 
-func (s Server) EditMonitor(gp *core.Goploy) *core.Response {
+func (s Server) EditMonitor(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"required"`
 		Item         string `json:"item" validate:"required"`
@@ -394,7 +399,7 @@ func (s Server) EditMonitor(gp *core.Goploy) *core.Response {
 
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	err := model.ServerMonitor{
@@ -413,20 +418,20 @@ func (s Server) EditMonitor(gp *core.Goploy) *core.Response {
 	}.EditRow()
 
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 
 	}
-	return &core.Response{}
+	return response.JSON{}
 }
 
-func (s Server) DeleteMonitor(gp *core.Goploy) *core.Response {
+func (s Server) DeleteMonitor(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"required"`
 	}
 
 	var reqData ReqData
 	if err := verify(gp.Body, &reqData); err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	err := model.ServerMonitor{
@@ -434,10 +439,10 @@ func (s Server) DeleteMonitor(gp *core.Goploy) *core.Response {
 	}.DeleteRow()
 
 	if err != nil {
-		return &core.Response{Code: core.Error, Message: err.Error()}
+		return response.JSON{Code: response.Error, Message: err.Error()}
 
 	}
-	return &core.Response{}
+	return response.JSON{}
 }
 
 // version|cpu cores|mem

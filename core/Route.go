@@ -1,20 +1,20 @@
 package core
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/response"
 	"github.com/zhenorzz/goploy/web"
 	"io/fs"
 	"io/ioutil"
 	"log"
-	"mime"
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 )
 
 // Goploy callback param
@@ -27,29 +27,46 @@ type Goploy struct {
 	Body           []byte
 }
 
-type route struct {
-	pattern     string                     //
-	method      string                     // Method specifies the HTTP method (GET, POST, PUT, etc.).
-	roles       []string                   // permission role
-	callback    func(gp *Goploy) *Response // Controller function
-	middlewares []func(gp *Goploy) error   // Middlewares run before all callback
+type RouteApi interface {
+	Routes() []Route
 }
 
-// Router is route slice and global middlewares
+type Response interface {
+	Write(http.ResponseWriter) error
+}
+
+type Route struct {
+	pattern     string                    //
+	method      string                    // Method specifies the HTTP method (GET, POST, PUT, etc.).
+	roles       map[string]struct{}       // permission role
+	callback    func(gp *Goploy) Response // Controller function
+	middlewares []func(gp *Goploy) error  // Middlewares run before all callback
+	white       bool                      // no need to login
+}
+
+// Router is Route slice and global middlewares
 type Router struct {
-	whiteList   map[string]struct{}
-	routes      []route
-	middlewares []func(gp *Goploy) error // Middlewares run before this route
+	routes      map[string]Route
+	middlewares []func(gp *Goploy) error // Middlewares run before this Route
 }
 
-func NewRouter() *Router {
-	rt := new(Router)
-	rt.whiteList = make(map[string]struct{})
-	return rt
+func NewRouter() Router {
+	return Router{
+		routes: map[string]Route{},
+	}
+}
+
+func NewRoute(pattern, method string, callback func(gp *Goploy) Response) Route {
+	return Route{
+		pattern:  pattern,
+		method:   method,
+		callback: callback,
+		roles:    map[string]struct{}{},
+	}
 }
 
 // Start a router
-func (rt *Router) Start() {
+func (rt Router) Start() {
 	if config.Toml.Env == "production" {
 		subFS, err := fs.Sub(web.Dist, "dist")
 		if err != nil {
@@ -61,42 +78,41 @@ func (rt *Router) Start() {
 	http.Handle("/", rt)
 }
 
-// Add router
-// pattern path
-// callback  where path should be handled
-func (rt *Router) Add(pattern, method string, callback func(gp *Goploy) *Response, middleware ...func(gp *Goploy) error) *Router {
-	r := route{pattern: pattern, method: method, callback: callback}
-	for _, m := range middleware {
-		r.middlewares = append(r.middlewares, m)
+// Middleware global Middleware handle function
+func (rt Router) Middleware(middleware func(gp *Goploy) error) {
+	rt.middlewares = append(rt.middlewares, middleware)
+}
+
+// Add pattern path
+// callback where path should be handled
+func (rt Router) Add(ra RouteApi) Router {
+	for _, r := range ra.Routes() {
+		rt.routes[r.pattern] = r
 	}
-	rt.routes = append(rt.routes, r)
 	return rt
 }
 
 // White no need to check login
-func (rt *Router) White() *Router {
-	rt.whiteList[rt.routes[len(rt.routes)-1].pattern] = struct{}{}
-	return rt
+func (r Route) White() Route {
+	r.white = true
+	return r
 }
 
-// Roles Add much permission to the route
-func (rt *Router) Roles(role []string) *Router {
-	rt.routes[len(rt.routes)-1].roles = append(rt.routes[len(rt.routes)-1].roles, role...)
-	return rt
-}
-
-// Role Add permission to the route
-func (rt *Router) Role(role string) *Router {
-	rt.routes[len(rt.routes)-1].roles = append(rt.routes[len(rt.routes)-1].roles, role)
-	return rt
+// Roles Add much permission to the Route
+func (r Route) Roles(roles ...string) Route {
+	for _, role := range roles {
+		r.roles[role] = struct{}{}
+	}
+	return r
 }
 
 // Middleware global Middleware handle function
-func (rt *Router) Middleware(middleware func(gp *Goploy) error) {
-	rt.middlewares = append(rt.middlewares, middleware)
+func (r Route) Middleware(middleware func(gp *Goploy) error) Route {
+	r.middlewares = append(r.middlewares, middleware)
+	return r
 }
 
-func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (rt Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// If in production env, serve file in go server,
 	// else serve file in npm
 	if config.Toml.Env == "production" {
@@ -113,25 +129,29 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	gp, response := rt.checkLogin(w, r)
-	if response == nil {
-		response = rt.doRequest(gp)
-	}
-
-	if response != nil {
-		response.JSON(w)
+	_, resp := rt.doRequest(w, r)
+	if err := resp.Write(w); err != nil {
+		Log(ERROR, err.Error())
 	}
 	return
 }
 
-func (rt *Router) checkLogin(w http.ResponseWriter, r *http.Request) (*Goploy, *Response) {
-	var userInfo model.User
-	var namespace model.Namespace
-	if _, ok := rt.whiteList[r.URL.Path]; !ok {
+func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Response) {
+	route, ok := rt.routes[r.URL.Path]
+	if !ok {
+		return nil, response.JSON{Code: response.IllegalRequest, Message: "No such method"}
+	}
+	if route.method != r.Method {
+		return nil, response.JSON{Code: response.IllegalRequest, Message: "Invalid request method"}
+	}
+
+	userInfo := model.User{}
+	namespace := model.Namespace{}
+	if !route.white {
 		// check token
 		goployTokenCookie, err := r.Cookie(config.Toml.Cookie.Name)
 		if err != nil {
-			return nil, &Response{Code: IllegalRequest, Message: "Illegal request"}
+			return nil, response.JSON{Code: response.IllegalRequest, Message: "Illegal request"}
 		}
 		unParseToken := goployTokenCookie.Value
 		claims := jwt.MapClaims{}
@@ -140,7 +160,7 @@ func (rt *Router) checkLogin(w http.ResponseWriter, r *http.Request) (*Goploy, *
 		})
 
 		if err != nil || !token.Valid {
-			return nil, &Response{Code: LoginExpired, Message: "Login expired"}
+			return nil, response.JSON{Code: response.LoginExpired, Message: "Login expired"}
 		}
 
 		namespaceIDRaw := r.Header.Get(NamespaceHeaderName)
@@ -150,28 +170,29 @@ func (rt *Router) checkLogin(w http.ResponseWriter, r *http.Request) (*Goploy, *
 
 		namespaceID, err := strconv.ParseInt(namespaceIDRaw, 10, 64)
 		if err != nil {
-			return nil, &Response{Code: Deny, Message: "Invalid namespace"}
+			return nil, response.JSON{Code: response.Deny, Message: "Invalid namespace"}
 		}
 
-		namespaceList, err := model.Namespace{UserID: int64(claims["id"].(float64))}.GetAllByUserID()
+		namespace, err = model.Namespace{
+			ID:     namespaceID,
+			UserID: int64(claims["id"].(float64)),
+		}.GetDataByUserNamespace()
+
 		if err != nil {
-			return nil, &Response{Code: Deny, Message: "Get namespace list error"}
-		} else if len(namespaceList) == 0 {
-			return nil, &Response{Code: Deny, Message: "No available namespace"}
-		}
-
-		for _, ns := range namespaceList {
-			if ns.ID == namespaceID {
-				namespace = ns
+			if err == sql.ErrNoRows {
+				return nil, response.JSON{Code: response.NamespaceInvalid, Message: "No available namespace"}
+			} else {
+				return nil, response.JSON{Code: response.Deny, Message: err.Error()}
 			}
 		}
 
-		if namespace == (model.Namespace{}) {
-			return nil, &Response{Code: NamespaceInvalid, Message: "Namespace no permission, please login again"}
+		if err = route.hasRole(namespace.Role); err != nil {
+			return nil, response.JSON{Code: response.Deny, Message: err.Error()}
 		}
+
 		userInfo, err = model.User{ID: int64(claims["id"].(float64))}.GetData()
 		if err != nil {
-			return nil, &Response{Code: Deny, Message: "Get user information error"}
+			return nil, response.JSON{Code: response.Deny, Message: "Get user information error"}
 		}
 
 		goployTokenStr, err := model.User{ID: int64(claims["id"].(float64)), Name: claims["name"].(string)}.CreateToken()
@@ -185,7 +206,7 @@ func (rt *Router) checkLogin(w http.ResponseWriter, r *http.Request) (*Goploy, *
 
 	// save the body request data because ioutil.ReadAll will clear the requestBody
 	var body []byte
-	if hasContentType(r, "application/json") {
+	if r.ContentLength > 0 {
 		body, _ = ioutil.ReadAll(r.Body)
 	}
 	gp := &Goploy{
@@ -196,63 +217,32 @@ func (rt *Router) checkLogin(w http.ResponseWriter, r *http.Request) (*Goploy, *
 		URLQuery:       r.URL.Query(),
 		Body:           body,
 	}
-	return gp, nil
-}
 
-func (rt *Router) doRequest(gp *Goploy) *Response {
-
+	// common middlewares
 	for _, middleware := range rt.middlewares {
 		err := middleware(gp)
 		if err != nil {
-			return &Response{Code: Error, Message: err.Error()}
-		}
-	}
-	for _, route := range rt.routes {
-		if route.pattern == gp.Request.URL.Path {
-			if route.method != gp.Request.Method {
-				return &Response{Code: Deny, Message: "Invalid request method"}
-			}
-			if err := route.hasRole(gp.Namespace.Role); err != nil {
-				return &Response{Code: Deny, Message: err.Error()}
-			}
-			for _, middleware := range route.middlewares {
-				if err := middleware(gp); err != nil {
-					return &Response{Code: Error, Message: err.Error()}
-				}
-			}
-			return route.callback(gp)
+			return gp, response.JSON{Code: response.Error, Message: err.Error()}
 		}
 	}
 
-	return &Response{Code: Deny, Message: "No such method"}
+	// route middlewares
+	for _, middleware := range route.middlewares {
+		if err := middleware(gp); err != nil {
+			return gp, response.JSON{Code: response.Error, Message: err.Error()}
+		}
+	}
+
+	return gp, route.callback(gp)
 }
 
-func (r *route) hasRole(namespaceRole string) error {
+func (r Route) hasRole(namespaceRole string) error {
 	if len(r.roles) == 0 {
 		return nil
 	}
 
-	for _, role := range r.roles {
-		if role == namespaceRole {
-			return nil
-		}
+	if _, ok := r.roles[namespaceRole]; ok {
+		return nil
 	}
 	return errors.New("no permission")
-}
-
-func hasContentType(r *http.Request, mimetype string) bool {
-	contentType := r.Header.Get("Content-type")
-	if contentType == "" {
-		return false
-	}
-	for _, v := range strings.Split(contentType, ",") {
-		t, _, err := mime.ParseMediaType(v)
-		if err != nil {
-			break
-		}
-		if t == mimetype {
-			return true
-		}
-	}
-	return false
 }

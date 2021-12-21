@@ -1,8 +1,6 @@
 package model
 
 import (
-	"errors"
-
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -47,7 +45,6 @@ func (ns Namespace) EditRow() error {
 	return err
 }
 
-// GetAllByUserID -
 func (ns Namespace) GetAllByUserID() (Namespaces, error) {
 	rows, err := sq.
 		Select("namespace.id, namespace.name, role").
@@ -68,6 +65,18 @@ func (ns Namespace) GetAllByUserID() (Namespaces, error) {
 		namespaces = append(namespaces, namespace)
 	}
 	return namespaces, nil
+}
+
+func (ns Namespace) GetDataByUserNamespace() (Namespace, error) {
+	var namespace Namespace
+	err := sq.Select("namespace.id, namespace.name, role").
+		From(namespaceTable).
+		Join(namespaceUserTable+" ON namespace_user.namespace_id = namespace.id").
+		Where(sq.Eq{"user_id": ns.UserID, "namespace.id": ns.ID}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&namespace.ID, &namespace.Name, &namespace.Role)
+	return namespace, err
 }
 
 // GetListByUserID -
@@ -131,8 +140,5 @@ func (ns Namespace) GetData() (Namespace, error) {
 		RunWith(DB).
 		QueryRow().
 		Scan(&namespace.Name, &namespace.InsertTime, &namespace.UpdateTime)
-	if err != nil {
-		return namespace, errors.New("数据查询失败")
-	}
-	return namespace, nil
+	return namespace, err
 }
