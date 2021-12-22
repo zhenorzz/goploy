@@ -7,6 +7,7 @@ import (
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/response"
 	"github.com/zhenorzz/goploy/utils"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os/exec"
@@ -237,11 +238,6 @@ func (Server) UploadFile(gp *core.Goploy) core.Response {
 	}
 	defer file.Close()
 
-	fileBytes, err := ioutil.ReadAll(file)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
 	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
@@ -259,8 +255,9 @@ func (Server) UploadFile(gp *core.Goploy) core.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+	defer remoteFile.Close()
 
-	_, err = remoteFile.Write(fileBytes)
+	_, err = io.Copy(remoteFile, file)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}

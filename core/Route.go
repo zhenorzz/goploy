@@ -12,9 +12,11 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"log"
+	"mime"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 // Goploy callback param
@@ -206,7 +208,7 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 
 	// save the body request data because ioutil.ReadAll will clear the requestBody
 	var body []byte
-	if r.ContentLength > 0 {
+	if r.ContentLength > 0 && hasContentType(r, "application/json") {
 		body, _ = ioutil.ReadAll(r.Body)
 	}
 	gp := &Goploy{
@@ -245,4 +247,21 @@ func (r Route) hasRole(namespaceRole string) error {
 		return nil
 	}
 	return errors.New("no permission")
+}
+
+func hasContentType(r *http.Request, mimetype string) bool {
+	contentType := r.Header.Get("Content-type")
+	if contentType == "" {
+		return false
+	}
+	for _, v := range strings.Split(contentType, ",") {
+		t, _, err := mime.ParseMediaType(v)
+		if err != nil {
+			break
+		}
+		if t == mimetype {
+			return true
+		}
+	}
+	return false
 }
