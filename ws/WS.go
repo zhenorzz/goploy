@@ -139,7 +139,7 @@ func (hub *Hub) Connect(gp *core.Goploy) core.Response {
 		stop <- true
 	}()
 
-	return response.JSON{}
+	return response.Empty{}
 }
 
 // Run goroutine run the sync hub

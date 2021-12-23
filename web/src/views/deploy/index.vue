@@ -242,7 +242,7 @@
     <el-row type="flex" justify="end" style="width: 100%; margin-top: 5px">
       <el-pagination
         v-model:current-page="pagination.page"
-        :total="pagination.total"
+        :total="tablePageData.length"
         :page-size="pagination.rows"
         background
         :page-sizes="[20, 50, 100]"
@@ -386,7 +386,6 @@ export default defineComponent({
         autoDeploy: '',
       },
       pagination: {
-        total: 0,
         page: 1,
         rows: 20,
       },
@@ -521,7 +520,6 @@ export default defineComponent({
             }
             return element
           })
-          this.pagination.total = this.tableData.length
           this.sortChange(this.tableDefaultSort)
         })
         .finally(() => {

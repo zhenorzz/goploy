@@ -151,10 +151,11 @@ export default defineComponent({
     },
     refreshSelectedTag(view) {
       this.$store.dispatch('tagsView/delCachedView', view).then(() => {
-        const { fullPath } = view
+        const { fullPath, query } = view
         this.$nextTick(() => {
           this.$router.replace({
             path: '/redirect' + fullPath,
+            query,
           })
         })
       })

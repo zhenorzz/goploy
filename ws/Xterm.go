@@ -51,41 +51,41 @@ func (hub *Hub) Xterm(gp *core.Goploy) core.Response {
 	rows, err := strconv.Atoi(gp.URLQuery.Get("rows"))
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return response.JSON{}
+		return response.Empty{}
 	}
 	cols, err := strconv.Atoi(gp.URLQuery.Get("cols"))
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return response.JSON{}
+		return response.Empty{}
 	}
 	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return response.JSON{}
+		return response.Empty{}
 	}
 
 	server, err := (model.Server{ID: serverID}).GetData()
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return response.JSON{}
+		return response.Empty{}
 	}
 	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return response.JSON{}
+		return response.Empty{}
 	}
 	defer client.Close()
 	// create session
 	session, err := client.NewSession()
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return response.JSON{}
+		return response.Empty{}
 	}
 	defer session.Close()
 	sessionStdin, err := session.StdinPipe()
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return response.JSON{}
+		return response.Empty{}
 	}
 	comboWriter := new(xtermBufferWriter)
 	//ssh.stdout and stderr will write output into comboWriter
@@ -94,12 +94,12 @@ func (hub *Hub) Xterm(gp *core.Goploy) core.Response {
 	// Request pseudo terminal
 	if err := session.RequestPty("xterm", rows, cols, ssh.TerminalModes{}); err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return response.JSON{}
+		return response.Empty{}
 	}
 	// Start remote shell
 	if err := session.Shell(); err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
-		return response.JSON{}
+		return response.Empty{}
 	}
 
 	ticker := time.NewTicker(pingPeriod)
@@ -149,5 +149,5 @@ func (hub *Hub) Xterm(gp *core.Goploy) core.Response {
 		}
 	}
 
-	return response.JSON{}
+	return response.Empty{}
 }

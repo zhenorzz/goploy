@@ -359,6 +359,7 @@ func (p Project) GetUserProjectList() (Projects, error) {
 			project.branch, 
 			project.review, 
 			project.last_publish_token,
+			project.auto_deploy,
 			project.deploy_state, 
 			project.update_time`).
 		From(projectUserTable).
@@ -391,6 +392,7 @@ func (p Project) GetUserProjectList() (Projects, error) {
 			&project.Branch,
 			&project.Review,
 			&project.LastPublishToken,
+			&project.AutoDeploy,
 			&project.DeployState,
 			&project.UpdateTime); err != nil {
 			return projects, err
