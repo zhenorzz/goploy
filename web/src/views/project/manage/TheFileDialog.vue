@@ -24,7 +24,7 @@
           label-width="0"
           prop="directory"
         >
-          <el-row type="flex">
+          <el-row type="flex" align="middle">
             <el-input
               v-model.trim="file.filename"
               autocomplete="off"
