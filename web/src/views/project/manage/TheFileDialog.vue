@@ -56,7 +56,7 @@
             <el-upload
               ref="upload"
               style="margin: 0 12px"
-              :action="`${formProps.action}?projectFileId=${file.id}&projectId=${file.projectId}&filename=${file.filename}`"
+              :action="`${formProps.action}&projectFileId=${file.id}&projectId=${file.projectId}&filename=${file.filename}`"
               :before-upload="(uploadFile) => beforeUpload(uploadFile, index)"
               :on-success="
                 (response, uploadFile, uploadFileList) =>
@@ -132,6 +132,7 @@ import { VAceEditor } from 'vue3-ace-editor'
 import { role } from '@/utils/namespace'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { computed, watch, defineComponent, reactive } from 'vue'
+import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import { HttpResponse, ID } from '@/api/types'
 
 interface FormFileInfo {
@@ -196,7 +197,9 @@ export default defineComponent({
     return {
       formProps: {
         projectPath: '${PROJECT_PATH}',
-        action: import.meta.env.VITE_APP_BASE_API + '/project/uploadFile',
+        action: `${
+          import.meta.env.VITE_APP_BASE_API
+        }/project/uploadFile?${NamespaceKey}=${getNamespaceId()}`,
         show: 'file-list',
         editContentLoading: false,
         disabled: false,

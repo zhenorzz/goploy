@@ -272,7 +272,7 @@ func (Server) Report(gp *core.Goploy) core.Response {
 	}
 	logType, err := strconv.Atoi(gp.URLQuery.Get("type"))
 	if err != nil {
-		return response.JSON{Code: response.Error, Message: "invalid server id"}
+		return response.JSON{Code: response.Error, Message: "invalid log type"}
 	}
 	datetimeRange := strings.Split(gp.URLQuery.Get("datetimeRange"), ",")
 	if len(datetimeRange) != 2 {
