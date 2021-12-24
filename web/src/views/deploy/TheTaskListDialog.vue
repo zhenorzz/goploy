@@ -160,7 +160,7 @@ import {
 } from '@/api/project'
 import TheCommitListDialog from './TheCommitListDialog.vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { role } from '@/utils/namespace'
+import { getRole } from '@/utils/namespace'
 import { parseGitURL, parseTime } from '@/utils'
 import { computed, watch, defineComponent, ref, reactive } from 'vue'
 import dayjs from 'dayjs'
@@ -224,7 +224,7 @@ export default defineComponent({
 
     return {
       dialogVisible,
-      role,
+      role: getRole(),
       gitURL,
       tableLoading,
       tableData,

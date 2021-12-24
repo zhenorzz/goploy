@@ -117,7 +117,7 @@
 <script lang="ts">
 import { DeployReview } from '@/api/deploy'
 import { ProjectReviewList } from '@/api/project'
-import { role } from '@/utils/namespace'
+import { getRole } from '@/utils/namespace'
 import { parseGitURL, parseTime } from '@/utils'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { computed, watch, defineComponent, ref, reactive } from 'vue'
@@ -203,7 +203,7 @@ export default defineComponent({
 
     return {
       dialogVisible,
-      role,
+      role: getRole(),
       gitURL,
       parseTime,
       pagination,

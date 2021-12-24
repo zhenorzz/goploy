@@ -341,7 +341,7 @@ import {
   DeployGreyPublish,
 } from '@/api/deploy'
 import { ProjectServerList, ProjectData } from '@/api/project'
-import { role } from '@/utils/namespace'
+import { getRole } from '@/utils/namespace'
 import { parseTime, parseGitURL } from '@/utils'
 import TheDetailDialog from './TheDetailDialog.vue'
 import TheCommitListDialog from './TheCommitListDialog.vue'
@@ -367,7 +367,7 @@ export default defineComponent({
   mixins: [tableHeight],
   data() {
     return {
-      role,
+      role: getRole(),
       commitDialogVisible: false,
       tagDialogVisible: false,
       greyServerDialogVisible: false,

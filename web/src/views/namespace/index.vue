@@ -114,7 +114,7 @@ import {
   NamespaceEdit,
   NamespaceData,
 } from '@/api/namespace'
-import { role } from '@/utils/namespace'
+import { getRole } from '@/utils/namespace'
 import tableHeight from '@/mixin/tableHeight'
 import { ElMessage } from 'element-plus'
 import Validator from 'async-validator'
@@ -126,7 +126,7 @@ export default defineComponent({
   mixins: [tableHeight],
   data() {
     return {
-      role,
+      role: getRole(),
       dialogVisible: false,
       dialogUserVisible: false,
       selectedItem: {},

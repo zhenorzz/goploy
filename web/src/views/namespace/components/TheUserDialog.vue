@@ -126,7 +126,7 @@ import {
   NamespaceUserRemove,
 } from '@/api/namespace'
 import { UserOption } from '@/api/user'
-import { role } from '@/utils/namespace'
+import { getRole } from '@/utils/namespace'
 import Validator from 'async-validator'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { computed, watch, defineComponent, ref, Ref } from 'vue'
@@ -193,7 +193,7 @@ export default defineComponent({
     })
 
     return {
-      role,
+      role: getRole(),
       dialogVisible,
       getBindUserList,
       tableLoading,

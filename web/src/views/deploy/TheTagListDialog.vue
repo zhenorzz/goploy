@@ -89,7 +89,7 @@
 
 <script lang="ts">
 import { RepositoryTagList } from '@/api/repository'
-import { role } from '@/utils/namespace'
+import { getRole } from '@/utils/namespace'
 import { parseGitURL, parseTime } from '@/utils'
 import { computed, watch, defineComponent, ref } from 'vue'
 
@@ -147,7 +147,7 @@ export default defineComponent({
 
     return {
       dialogVisible,
-      role,
+      role: getRole(),
       gitURL,
       parseTime,
       tableLoading,

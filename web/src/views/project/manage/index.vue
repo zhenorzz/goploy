@@ -701,7 +701,7 @@ import {
   ProjectAutoDeploy,
   ProjectData,
 } from '@/api/project'
-import { role } from '@/utils/namespace'
+import { getRole } from '@/utils/namespace'
 import { VAceEditor } from 'vue3-ace-editor'
 import 'ace-builds/src-noconflict/mode-sh'
 import 'ace-builds/src-noconflict/mode-python'
@@ -726,7 +726,7 @@ export default defineComponent({
   mixins: [tableHeight],
   data() {
     return {
-      role,
+      role: getRole(),
       scriptLangOption: [
         { label: 'sh', value: 'sh', lang: 'sh' },
         { label: 'zsh', value: 'zsh', lang: 'sh' },

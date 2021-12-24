@@ -339,7 +339,7 @@ import {
   PublishTraceData,
 } from '@/api/deploy'
 import { NamespaceUserOption } from '@/api/namespace'
-import { role } from '@/utils/namespace'
+import { getRole } from '@/utils/namespace'
 import { empty, parseGitURL, parseTime } from '@/utils'
 import { ElMessageBox, ElMessage, ElDatePicker } from 'element-plus'
 import { useI18n } from 'vue-i18n'
@@ -569,7 +569,7 @@ export default defineComponent({
 
     return {
       dialogVisible,
-      role,
+      role: getRole(),
       parseTime,
       userOption,
       filterloading,

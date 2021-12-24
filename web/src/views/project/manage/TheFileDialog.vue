@@ -129,7 +129,7 @@ import {
   ProjectFileRemove,
 } from '@/api/project'
 import { VAceEditor } from 'vue3-ace-editor'
-import { role } from '@/utils/namespace'
+import { getRole } from '@/utils/namespace'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { computed, watch, defineComponent, reactive } from 'vue'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
@@ -187,7 +187,7 @@ export default defineComponent({
     )
 
     return {
-      role,
+      role: getRole(),
       dialogVisible,
       getProjectFileList,
       formData,

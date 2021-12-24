@@ -7,37 +7,39 @@ export interface Namespace {
   role: string
 }
 
-export const role = Object.freeze({
-  Admin: 'admin',
-  Manager: 'manager',
-  GroupManager: 'group-manager',
-  Member: 'member',
-  Namespace: getNamespace(),
-  toString(): string {
-    return role.Namespace['role']
-  },
-  isAdmin(): boolean {
-    return role.Admin === role.Namespace['role']
-  },
-  isManager(): boolean {
-    return role.Manager === role.Namespace['role']
-  },
-  isGroupManager(): boolean {
-    return role.GroupManager === role.Namespace['role']
-  },
-  isMember(): boolean {
-    return role.Member === role.Namespace['role']
-  },
-  hasAdminPermission(): boolean {
-    return role.isAdmin()
-  },
-  hasManagerPermission(): boolean {
-    return role.isAdmin() || role.isManager()
-  },
-  hasGroupManagerPermission(): boolean {
-    return role.isAdmin() || role.isManager() || role.isGroupManager()
-  },
-})
+export function getRole() {
+  return {
+    Admin: 'admin',
+    Manager: 'manager',
+    GroupManager: 'group-manager',
+    Member: 'member',
+    Namespace: getNamespace(),
+    toString(): string {
+      return this.Namespace['role']
+    },
+    isAdmin(): boolean {
+      return this.Admin === this.Namespace['role']
+    },
+    isManager(): boolean {
+      return this.Manager === this.Namespace['role']
+    },
+    isGroupManager(): boolean {
+      return this.GroupManager === this.Namespace['role']
+    },
+    isMember(): boolean {
+      return this.Member === this.Namespace['role']
+    },
+    hasAdminPermission(): boolean {
+      return this.isAdmin()
+    },
+    hasManagerPermission(): boolean {
+      return this.isAdmin() || this.isManager()
+    },
+    hasGroupManagerPermission(): boolean {
+      return this.isAdmin() || this.isManager() || this.isGroupManager()
+    },
+  }
+}
 
 export function getNamespace(): Namespace {
   const namespaceId = getNamespaceId()
