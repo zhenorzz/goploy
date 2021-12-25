@@ -51,11 +51,12 @@ var DB *sql.DB
 // Init DB
 func Init() {
 	dbConn := fmt.Sprintf(
-		"%s:%s@(%s:%s)/goploy?charset=utf8mb4,utf8",
+		"%s:%s@(%s:%s)/%s?charset=utf8mb4,utf8",
 		config.Toml.DB.User,
 		config.Toml.DB.Password,
 		config.Toml.DB.Host,
 		config.Toml.DB.Port,
+		config.Toml.DB.Database,
 	)
 	var err error
 	DB, err = sql.Open(config.Toml.DB.Type, dbConn)

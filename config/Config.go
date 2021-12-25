@@ -35,6 +35,7 @@ type DBConfig struct {
 	Password string `toml:"password"`
 	Host     string `toml:"host"`
 	Port     string `toml:"port"`
+	Database string `toml:"database"`
 }
 
 type LogConfig struct {
@@ -65,6 +66,22 @@ func Create(filename string) {
 	err = toml.Unmarshal(config, &Toml)
 	if err != nil {
 		panic(err)
+	}
+	setDBDefault()
+}
+
+func setDBDefault() {
+	if Toml.DB.Type == "" {
+		Toml.DB.Type = "mysql"
+	}
+	if Toml.DB.Host == "" {
+		Toml.DB.Host = "127.0.0.1"
+	}
+	if Toml.DB.Port == "" {
+		Toml.DB.Port = "3306"
+	}
+	if Toml.DB.Database == "" {
+		Toml.DB.Database = "goploy"
 	}
 }
 

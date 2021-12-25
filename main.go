@@ -139,7 +139,7 @@ func install() {
 		APP:    config.APPConfig{DeployLimit: int32(runtime.NumCPU())},
 		Cookie: config.CookieConfig{Name: "goploy_token", Expire: 86400},
 		JWT:    config.JWTConfig{Key: time.Now().String()},
-		DB:     config.DBConfig{Type: "mysql", Host: "127.0.0.1", Port: "3306"},
+		DB:     config.DBConfig{Type: "mysql", Host: "127.0.0.1", Port: "3306", Database: "goploy"},
 		Log:    config.LogConfig{Path: "stdout"},
 		Web:    config.WebConfig{Port: "80"},
 	}
