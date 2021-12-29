@@ -171,13 +171,13 @@
             </el-button>
           </el-row>
         </el-form-item>
-        <el-form-item :label="$t('serverPage.sshKeyPassword')" prop="password">
+        <!-- <el-form-item :label="$t('serverPage.sshKeyPassword')" prop="password">
           <el-input
             v-model="formData.password"
             autocomplete="off"
             placeholder=""
           />
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item :label="$t('desc')" prop="description">
           <el-input
             v-model="formData.description"
