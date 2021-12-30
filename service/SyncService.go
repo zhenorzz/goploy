@@ -256,7 +256,7 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			}
 			rsyncOption, _ := utils.ParseCommandLine(project.RsyncOption)
 			rsyncOption = append([]string{"--exclude", "goploy-after-pull.sh", "--include", "goploy-after-deploy.sh"}, rsyncOption...)
-			rsyncOption = append(rsyncOption, "-e", "ssh -p "+strconv.Itoa(projectServer.ServerPort)+" -o StrictHostKeyChecking=no"+" -i "+projectServer.ServerPath)
+			rsyncOption = append(rsyncOption, "-e", fmt.Sprintf("ssh -p %d -o StrictHostKeyChecking=no -i %s", projectServer.ServerPort, projectServer.ServerPath))
 			if len(project.SymlinkPath) != 0 {
 				destDir = path.Join(project.SymlinkPath, project.LastPublishToken)
 			}
