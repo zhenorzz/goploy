@@ -10,7 +10,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os/exec"
 	"strconv"
 	"strings"
 )
@@ -138,7 +137,7 @@ func (s Server) Add(gp *core.Goploy) core.Response {
 		Path:        reqData.Path,
 		Password:    reqData.Password,
 		Description: reqData.Description,
-		OSInfo:      s.getOSInfo(reqData.Owner, reqData.IP, strconv.Itoa(reqData.Port), reqData.Path),
+		OSInfo:      s.getOSInfo(reqData.Owner, reqData.Password, reqData.Path, reqData.IP, reqData.Port),
 	}.AddRow()
 
 	if err != nil {
@@ -178,7 +177,7 @@ func (s Server) Edit(gp *core.Goploy) core.Response {
 		Path:        reqData.Path,
 		Password:    reqData.Password,
 		Description: reqData.Description,
-		OSInfo:      s.getOSInfo(reqData.Owner, reqData.IP, strconv.Itoa(reqData.Port), reqData.Path),
+		OSInfo:      s.getOSInfo(reqData.Owner, reqData.Password, reqData.Path, reqData.IP, reqData.Port),
 	}.EditRow()
 
 	if err != nil {
@@ -443,21 +442,28 @@ func (s Server) DeleteMonitor(gp *core.Goploy) core.Response {
 }
 
 // version|cpu cores|mem
-func (Server) getOSInfo(owner, ip, port, path string) string {
+func (Server) getOSInfo(owner, password, path, ip string, port int) string {
 	osInfoScript := `cat /etc/os-release | grep "PRETTY_NAME" | awk -F\" '{print $2}' && cat /proc/cpuinfo  | grep "processor" | wc -l && cat /proc/meminfo | grep MemTotal | awk '{print $2}'`
-
-	cmd := exec.Command("ssh",
-		owner+"@"+ip,
-		"-p", port,
-		"-i", path,
-		"-o", "StrictHostKeyChecking=no",
-		osInfoScript)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-
-	if err := cmd.Run(); err != nil {
+	println(owner, password, path, ip, port)
+	client, err := utils.DialSSH(owner, password, path, ip, port)
+	if err != nil {
 		return ""
 	}
+	defer client.Close()
+
+	session, err := client.NewSession()
+	if err != nil {
+		return ""
+	}
+	defer session.Close()
+
+	var sshOutbuf, sshErrbuf bytes.Buffer
+	session.Stdout = &sshOutbuf
+	session.Stderr = &sshErrbuf
+	if err := session.Run(osInfoScript); err != nil {
+		return ""
+	}
+
 	// version|cpu cores|mem
-	return strings.Replace(strings.Trim(out.String(), "\n"), "\n", "|", -1)
+	return strings.Replace(strings.Trim(sshOutbuf.String(), "\n"), "\n", "|", -1)
 }
