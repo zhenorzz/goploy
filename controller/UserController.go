@@ -35,7 +35,7 @@ func (User) Login(gp *core.Goploy) core.Response {
 		Password string `json:"password" validate:"password"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -187,7 +187,7 @@ func (User) Add(gp *core.Goploy) core.Response {
 	}
 
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -234,7 +234,7 @@ func (User) Edit(gp *core.Goploy) core.Response {
 		SuperManager int64  `json:"superManager" validate:"min=0,max=1"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	userInfo, err := model.User{ID: reqData.ID}.GetData()
@@ -279,7 +279,7 @@ func (User) Remove(gp *core.Goploy) core.Response {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	if reqData.ID == 1 {
@@ -297,7 +297,7 @@ func (User) ChangePassword(gp *core.Goploy) core.Response {
 		NewPassword string `json:"newPwd" validate:"password"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	userData, err := model.User{ID: gp.UserInfo.ID}.GetData()

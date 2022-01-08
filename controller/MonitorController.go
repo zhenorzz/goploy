@@ -55,7 +55,7 @@ func (Monitor) Check(gp *core.Goploy) core.Response {
 		URL string `json:"url" validate:"required"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	if err := (service.Gnet{URL: reqData.URL}.Ping()); err != nil {
@@ -76,7 +76,7 @@ func (Monitor) Add(gp *core.Goploy) core.Response {
 		Description  string `json:"description" validate:"max=255"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -116,7 +116,7 @@ func (Monitor) Edit(gp *core.Goploy) core.Response {
 		Description  string `json:"description" validate:"max=255"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	err := model.Monitor{
@@ -142,7 +142,7 @@ func (Monitor) Toggle(gp *core.Goploy) core.Response {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -157,7 +157,7 @@ func (Monitor) Remove(gp *core.Goploy) core.Response {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

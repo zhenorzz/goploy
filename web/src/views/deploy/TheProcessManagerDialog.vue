@@ -1,26 +1,26 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    :title="$t('deployPage.fileCompare')"
+    :title="$t('deployPage.processManager')"
     :fullscreen="$store.state.app.device === 'mobile'"
     :close-on-click-modal="false"
   >
     <el-row type="flex">
-      <el-input
-        v-model.trim="filePath"
+      <el-select
+        v-model="name"
+        v-loading="processLoading"
+        filterable
         style="flex: 1"
-        @change="handlePathChange"
+        @change="handleProcessChange"
       >
-        <template #prepend>{$project_path}/</template>
-        <template #append>
-          <el-button
-            type="primary"
-            icon="el-icon-folder-opened"
-            @click="handleSelectPath(filePath)"
-          />
-        </template>
-      </el-input>
-      <el-button type="primary" @click="handleCompare">Compare</el-button>
+        <el-option
+          v-for="item in processOption"
+          :key="item"
+          :label="item"
+          :value="item"
+        />
+      </el-select>
+      <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
     <el-table
       v-loading="tableLoading"
@@ -31,9 +31,7 @@
       style="margin-top: 10px; width: 100%"
       :data="tableData"
     >
-      <el-table-column label="server">
-        <template #default="scope"> {{ scope.row.serverName }} </template>
-      </el-table-column>
+      <el-table-column prop="ip" label="IP" />
       <el-table-column
         prop="status"
         label="Status"
@@ -192,13 +190,9 @@
 </template>
 
 <script lang="ts">
-import { diffLines } from 'diff'
-import path from 'path-browserify'
-import { FileCompare, FileDiff } from '@/api/deploy'
-import { ReposFileList } from '@/api/project'
-import { humanSize } from '@/utils'
+import { DeployProcessList } from '@/api/deploy'
 import { ElMessage } from 'element-plus'
-import { computed, defineComponent, ref } from 'vue'
+import { computed, defineComponent, ref, watch } from 'vue'
 
 export default defineComponent({
   props: {
@@ -219,121 +213,38 @@ export default defineComponent({
         emit('update:modelValue', val)
       },
     })
-    const filePath = ref('')
-    const handlePathChange = () => {
-      filePath.value = path
-        .normalize(filePath.value)
-        .split('/')
-        .filter((dir) => dir !== '..')
-        .join('/')
-    }
-    const fileVisible = ref(false)
-    const fileLoading = ref(false)
-    const fileList = ref([])
 
-    const handleSelectPath = (_path: string) => {
-      fileVisible.value = true
-      fileLoading.value = true
-      _path = _path ? path.normalize(_path) : '/'
-      if (!_path.endsWith('/')) {
-        _path = path.normalize(path.dirname(_path) + '/')
+    watch(
+      () => props.modelValue,
+      (val: typeof props['modelValue']) => {
+        if (val === true) {
+          getProcessList()
+        }
       }
-      filePath.value = _path
-      new ReposFileList({
-        id: props.projectRow.id,
-        path: _path,
-      })
-        .request()
-        .then((response) => {
-          fileList.value = response.data
-        })
-        .finally(() => {
-          fileLoading.value = false
-        })
-    }
-
-    const handleSelectFile = (_path: string) => {
-      filePath.value = _path
-      fileVisible.value = false
-      handleCompare()
-    }
-
-    const tableLoading = ref(false)
-    const tableData = ref([])
-    const handleCompare = () => {
-      if (filePath.value === '') {
-        ElMessage.warning('file path can not be empty')
-        return
-      }
-      tableLoading.value = true
-      new FileCompare({
-        projectId: props.projectRow.id,
-        filePath: filePath.value,
-      })
-        .request()
-        .then((response) => {
-          tableData.value = response.data
-        })
-        .finally(() => {
-          tableLoading.value = false
-        })
-    }
-
-    const fileDiffVisible = ref(false)
-    const diffLoading = ref(false)
-    const changeLines = ref(
-      [] as { text: string; lineNumber: string; type: string }[]
     )
-    const handleDiff = (data: { serverId: number }) => {
-      fileDiffVisible.value = true
-      changeLines.value = []
-      diffLoading.value = true
-      new FileDiff({
-        projectId: props.projectRow.id,
-        serverId: data.serverId,
-        filePath: filePath.value,
-      })
+
+    const processLoading = ref(false)
+    const processOption = ref<DeployProcessList['datagram']['list']>([])
+    const getProcessList = () => {
+      processLoading.value = true
+      new DeployProcessList({ projectId: props.projectRow.id }, {})
         .request()
         .then((response) => {
-          let lineNumber = 0
-          diffLines(response.data.srcText, response.data.distText).forEach(
-            (item) => {
-              const strArr =
-                item.value?.split('\n').filter((item) => item) || []
-              const type = (item.added && '+') || (item.removed && '-') || ''
-              strArr.forEach((text) => {
-                const thisLineNumber = !item.removed ? ++lineNumber : ''
-                changeLines.value.push({
-                  text,
-                  type,
-                  lineNumber: thisLineNumber.toString(),
-                })
-              })
-            }
-          )
+          processOption.value = response.data.list
         })
         .finally(() => {
-          diffLoading.value = false
+          processLoading.value = false
         })
     }
+    const tableLoading = ref(false)
+    const tableData = ref<DeployProcessList['datagram']['list']>([])
 
     return {
       dialogVisible,
-      fileVisible,
-      fileDiffVisible,
-      filePath,
-      handlePathChange,
-      fileLoading,
-      fileList,
-      handleSelectPath,
-      handleSelectFile,
-      handleCompare,
-      humanSize,
+      processOption,
+      processLoading,
       tableLoading,
       tableData,
-      changeLines,
-      handleDiff,
-      diffLoading,
     }
   },
 })

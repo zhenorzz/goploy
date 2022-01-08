@@ -233,11 +233,11 @@ export function parseGitURL(url: string): string {
   if (lastDotGitIndex !== -1) {
     url = url.substring(0, lastDotGitIndex)
   }
-  const lastAtIndex = url.lastIndexOf('@')
+  const lastAtIndex = url.lastIndexOf('git@')
   if (lastAtIndex === -1) {
     return url
   } else {
-    return 'http://' + url.substring(lastAtIndex + 1).replace(':', '/')
+    return '//' + url.substring(lastAtIndex + 4).replace(':', '/')
   }
 }
 

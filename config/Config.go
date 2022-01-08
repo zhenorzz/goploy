@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/pelletier/go-toml/v2"
 	"io/ioutil"
+	"time"
 )
 
 type Config struct {
@@ -17,7 +18,8 @@ type Config struct {
 }
 
 type APPConfig struct {
-	DeployLimit int32 `toml:"deployLimit"`
+	DeployLimit     int32         `toml:"deployLimit"`
+	ShutdownTimeout time.Duration `toml:"shutdownTimeout"`
 }
 
 type CookieConfig struct {
@@ -67,7 +69,14 @@ func Create(filename string) {
 	if err != nil {
 		panic(err)
 	}
+	setAPPDefault()
 	setDBDefault()
+}
+
+func setAPPDefault() {
+	if Toml.APP.ShutdownTimeout == 0 {
+		Toml.APP.ShutdownTimeout = 10
+	}
 }
 
 func setDBDefault() {

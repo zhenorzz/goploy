@@ -85,7 +85,7 @@ func (Namespace) Add(gp *core.Goploy) core.Response {
 		Name string `json:"name" validate:"required"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	id, err := model.Namespace{Name: reqData.Name}.AddRow()
@@ -111,7 +111,7 @@ func (Namespace) Edit(gp *core.Goploy) core.Response {
 		Name string `json:"name" validate:"required"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	err := model.Namespace{
@@ -132,7 +132,7 @@ func (Namespace) AddUser(gp *core.Goploy) core.Response {
 		Role        string  `json:"role" validate:"required"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -165,7 +165,7 @@ func (Namespace) RemoveUser(gp *core.Goploy) core.Response {
 		NamespaceUserID int64 `json:"namespaceUserId" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

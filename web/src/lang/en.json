@@ -229,6 +229,7 @@
     "noDetail": "No detail",
     "taskDeploy": "Crontab deploy",
     "fileCompare": "File compare",
+    "processManager": "Process manager",
     "resetStateTips": "This action will reset project state, continue?",
     "reviewDeploy": "Review deploy",
     "reviewTips": "This action will approve commit, continue?",

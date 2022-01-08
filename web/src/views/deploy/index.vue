@@ -220,6 +220,12 @@
                     {{ $t('deployPage.fileCompare') }}
                   </el-dropdown-item>
                   <el-dropdown-item
+                    v-if="role.hasManagerPermission()"
+                    :command="'handleProcessManagerCommand'"
+                  >
+                    {{ $t('deployPage.processManager') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item
                     v-if="scope.row.review === 1"
                     :command="'handleReviewCommand'"
                   >
@@ -330,6 +336,10 @@
       v-model="fileCompareDialogVisible"
       :project-row="selectedItem"
     />
+    <TheProcessManagerDialog
+      v-model="processManagerDialogVisible"
+      :project-row="selectedItem"
+    />
   </el-row>
 </template>
 <script lang="ts">
@@ -348,6 +358,7 @@ import TheCommitListDialog from './TheCommitListDialog.vue'
 import TheTagListDialog from './TheTagListDialog.vue'
 import TheTaskListDialog from './TheTaskListDialog.vue'
 import TheReviewListDialog from './TheReviewListDialog.vue'
+import TheProcessManagerDialog from './TheProcessManagerDialog.vue'
 import TheFileCompareDialog from './TheFileCompareDialog.vue'
 import { ElMessageBox, ElMessage, ElNotification } from 'element-plus'
 import Validator from 'async-validator'
@@ -363,6 +374,7 @@ export default defineComponent({
     TheTaskListDialog,
     TheReviewListDialog,
     TheFileCompareDialog,
+    TheProcessManagerDialog,
   },
   mixins: [tableHeight],
   data() {
@@ -373,6 +385,7 @@ export default defineComponent({
       greyServerDialogVisible: false,
       taskListDialogVisible: false,
       fileCompareDialogVisible: false,
+      processManagerDialogVisible: false,
       reviewDialogVisible: false,
       reviewListDialogVisible: false,
       dialogVisible: false,
@@ -616,6 +629,11 @@ export default defineComponent({
     handleFileCompareCommand(data: ProjectData['datagram']) {
       this.selectedItem = data
       this.fileCompareDialogVisible = true
+    },
+
+    handleProcessManagerCommand(data: ProjectData['datagram']) {
+      this.selectedItem = data
+      this.processManagerDialogVisible = true
     },
 
     handleReviewCommand(data: ProjectData['datagram']) {

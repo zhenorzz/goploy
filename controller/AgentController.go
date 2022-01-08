@@ -25,7 +25,7 @@ func (Agent) Report(gp *core.Goploy) core.Response {
 	}
 
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

@@ -188,12 +188,9 @@
       </el-form>
       <template #footer>
         <el-row type="flex" justify="space-between">
-          <el-button
-            :loading="formProps.loading"
-            type="success"
-            @click="check"
-            >{{ $t('serverPage.testConnection') }}</el-button
-          >
+          <el-button :loading="formProps.loading" type="success" @click="check">
+            {{ $t('serverPage.testConnection') }}
+          </el-button>
           <el-row>
             <el-button @click="dialogVisible = false">
               {{ $t('cancel') }}

@@ -141,7 +141,7 @@ func (rt Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Response) {
 	route, ok := rt.routes[r.URL.Path]
 	if !ok {
-		return nil, response.JSON{Code: response.IllegalRequest, Message: "No such method"}
+		return nil, response.JSON{Code: response.Deny, Message: "No such method"}
 	}
 	if route.method != r.Method {
 		return nil, response.JSON{Code: response.IllegalRequest, Message: "Invalid request method"}

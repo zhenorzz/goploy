@@ -100,7 +100,7 @@ func (Server) Check(gp *core.Goploy) core.Response {
 		Password string `json:"password" validate:"max=255"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	if Conn, err := utils.DialSSH(reqData.Owner, reqData.Password, reqData.Path, reqData.IP, reqData.Port); err != nil {
@@ -124,7 +124,7 @@ func (s Server) Add(gp *core.Goploy) core.Response {
 	}
 
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -164,7 +164,7 @@ func (s Server) Edit(gp *core.Goploy) core.Response {
 		Description string `json:"description" validate:"max=255"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	err := model.Server{
@@ -192,7 +192,7 @@ func (Server) Toggle(gp *core.Goploy) core.Response {
 		State int8  `json:"state" validate:"oneof=0 1"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -222,11 +222,16 @@ func (Server) DownloadFile(gp *core.Goploy) core.Response {
 
 // UploadFile sftp upload file
 func (Server) UploadFile(gp *core.Goploy) core.Response {
-	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: "invalid server id"}
+	type ReqData struct {
+		ID       int64  `schema:"id" validate:"gt=0"`
+		FilePath string `schema:"filePath"  validate:"required"`
 	}
-	server, err := (model.Server{ID: id}).GetData()
+	var reqData ReqData
+	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	server, err := (model.Server{ID: reqData.ID}).GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -249,8 +254,7 @@ func (Server) UploadFile(gp *core.Goploy) core.Response {
 	}
 	defer sftpClient.Close()
 
-	filePath := gp.URLQuery.Get("filePath")
-	remoteFile, err := sftpClient.Create(filePath + "/" + fileHandler.Filename)
+	remoteFile, err := sftpClient.Create(reqData.FilePath + "/" + fileHandler.Filename)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -265,19 +269,21 @@ func (Server) UploadFile(gp *core.Goploy) core.Response {
 }
 
 func (Server) Report(gp *core.Goploy) core.Response {
-	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: "invalid server id"}
+	type ReqData struct {
+		ServerID      int64  `schema:"serverId" validate:"gt=0"`
+		Type          int    `schema:"type" validate:"gt=0"`
+		DatetimeRange string `schema:"datetimeRange"  validate:"contains=,"`
 	}
-	logType, err := strconv.Atoi(gp.URLQuery.Get("type"))
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: "invalid log type"}
+	var reqData ReqData
+	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	datetimeRange := strings.Split(gp.URLQuery.Get("datetimeRange"), ",")
+
+	datetimeRange := strings.Split(reqData.DatetimeRange, ",")
 	if len(datetimeRange) != 2 {
 		return response.JSON{Code: response.Error, Message: "invalid datetime range"}
 	}
-	serverAgentLogs, err := (model.ServerAgentLog{ServerID: serverID, Type: logType}).GetListBetweenTime(datetimeRange[0], datetimeRange[1])
+	serverAgentLogs, err := (model.ServerAgentLog{ServerID: reqData.ServerID, Type: reqData.Type}).GetListBetweenTime(datetimeRange[0], datetimeRange[1])
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -347,7 +353,7 @@ func (s Server) AddMonitor(gp *core.Goploy) core.Response {
 	}
 
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -394,7 +400,7 @@ func (s Server) EditMonitor(gp *core.Goploy) core.Response {
 	}
 
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -426,7 +432,7 @@ func (s Server) DeleteMonitor(gp *core.Goploy) core.Response {
 	}
 
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

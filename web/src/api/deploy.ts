@@ -180,3 +180,21 @@ export class FileDiff extends Request {
     this.param = param
   }
 }
+
+export class DeployProcessList extends Request {
+  readonly url = '/deploy/getProcessList'
+  readonly method = 'get'
+  public param: {
+    projectId: number
+  }
+  public pagination: Pagination
+
+  public datagram!: {
+    pagination: Pagination
+  }
+  constructor(param: DeployProcessList['param'], pagination: Pagination) {
+    super()
+    this.pagination = pagination
+    this.param = { ...param, ...pagination }
+  }
+}

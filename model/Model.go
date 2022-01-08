@@ -21,9 +21,9 @@ var sqlFile embed.FS
 
 // Pagination struct
 type Pagination struct {
-	Page  uint64 `json:"page"`
-	Rows  uint64 `json:"rows"`
-	Total uint64 `json:"total"`
+	Page  uint64 `json:"page" schema:"page"`
+	Rows  uint64 `json:"rows" schema:"rows"`
+	Total uint64 `json:"total" schema:"total"`
 }
 
 // state type

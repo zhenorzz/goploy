@@ -3,9 +3,9 @@ package task
 import (
 	"container/list"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/service"
 	"github.com/zhenorzz/goploy/ws"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -16,6 +16,7 @@ var deployTick = time.Tick(time.Millisecond)
 func startDeployTask() {
 	atomic.AddInt32(&counter, 1)
 	var deployingNumber int32
+	var wg sync.WaitGroup
 	go func() {
 		for {
 			select {
@@ -24,17 +25,18 @@ func startDeployTask() {
 					atomic.AddInt32(&deployingNumber, 1)
 					deployElem := deployList.Front()
 					if deployElem != nil {
+						wg.Add(1)
 						go func() {
-							core.Gwg.Add(1)
 							deployList.Remove(deployElem).(service.Gsync).Exec()
 							atomic.AddInt32(&deployingNumber, -1)
-							core.Gwg.Done()
+							wg.Done()
 						}()
 					} else {
 						atomic.AddInt32(&deployingNumber, -1)
 					}
 				}
 			case <-stop:
+				wg.Wait()
 				atomic.AddInt32(&counter, -1)
 				return
 			}

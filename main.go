@@ -92,28 +92,30 @@ func main() {
 	ws.Init()
 	route.Init()
 	task.Init()
+	go checkUpdate()
 	// server
 	srv := http.Server{
 		Addr: ":" + config.Toml.Web.Port,
 	}
-	go checkUpdate()
-	core.Gwg.Add(1)
 	go func() {
-		defer core.Gwg.Done()
 		c := make(chan os.Signal, 1)
-		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+		// SIGINT Ctrl+C
+		// SIGTERM A generic signal used to cause program termination
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 		println("Received the signal: " + (<-c).String())
+
 		println("Server is trying to shutdown, wait for a minute")
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), config.Toml.APP.ShutdownTimeout*time.Second)
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
-			println("Server shutdown failed, err: %v\n", err)
+			println("Server shutdown timeout, err: %v\n", err)
 		}
 		println("Server shutdown gracefully")
 
 		println("Task is trying to shutdown, wait for a minute")
 		if err := task.Shutdown(ctx); err != nil {
-			println("Task shutdown failed, err: %v\n", err)
+			println("Task shutdown timeout, err: %v\n", err)
 		}
 		println("Task shutdown gracefully")
 	}()
@@ -121,10 +123,7 @@ func main() {
 		log.Fatal("ListenAndServe: ", err.Error())
 	}
 	_ = os.Remove(path.Join(core.GetAssetDir(), "goploy.pid"))
-	println("Goroutine is trying to shutdown, wait for a minute")
-	core.Gwg.Wait()
-	println("Goroutine shutdown gracefully")
-	println("Success")
+	println("shutdown success")
 	return
 }
 
@@ -136,7 +135,7 @@ func install() {
 	}
 	cfg := config.Config{
 		Env:    "production",
-		APP:    config.APPConfig{DeployLimit: int32(runtime.NumCPU())},
+		APP:    config.APPConfig{DeployLimit: int32(runtime.NumCPU()), ShutdownTimeout: 10},
 		Cookie: config.CookieConfig{Name: "goploy_token", Expire: 86400},
 		JWT:    config.JWTConfig{Key: time.Now().String()},
 		DB:     config.DBConfig{Type: "mysql", Host: "127.0.0.1", Port: "3306", Database: "goploy"},

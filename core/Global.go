@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 //role
@@ -26,7 +25,6 @@ const NamespaceHeaderName = "G-N-ID"
 
 var (
 	AssetDir string
-	Gwg      sync.WaitGroup
 )
 
 // GetAssetDir if env = 'production' return absolute else return relative

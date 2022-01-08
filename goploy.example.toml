@@ -1,6 +1,7 @@
 env = 'production'
 [app]
 deployLimit = 8
+shutdownTimeout = 10
 
 [cookie]
 name = 'goploy_token'

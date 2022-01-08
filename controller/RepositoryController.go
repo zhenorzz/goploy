@@ -22,12 +22,16 @@ func (r Repository) Routes() []core.Route {
 
 // GetCommitList get latest 10 commit list
 func (Repository) GetCommitList(gp *core.Goploy) core.Response {
-	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
-	if err != nil {
+	type ReqData struct {
+		ID     int64  `schema:"id" validate:"gt=0"`
+		Branch string `schema:"branch"  validate:"required"`
+	}
+	var reqData ReqData
+	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	project, err := model.Project{ID: id}.GetData()
+	project, err := model.Project{ID: reqData.ID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -37,7 +41,7 @@ func (Repository) GetCommitList(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	list, err := repo.BranchLog(project.ID, gp.URLQuery.Get("branch"), 10)
+	list, err := repo.BranchLog(project.ID, reqData.Branch, 10)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}

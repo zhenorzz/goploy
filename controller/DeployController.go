@@ -7,6 +7,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/google/uuid"
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/middleware"
@@ -25,8 +27,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Deploy Controller
@@ -46,6 +46,7 @@ func (d Deploy) Routes() []core.Route {
 		core.NewRoute("/deploy/callback", http.MethodGet, d.Callback).White(),
 		core.NewRoute("/deploy/fileCompare", http.MethodPost, d.FileCompare).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
 		core.NewRoute("/deploy/fileDiff", http.MethodPost, d.FileDiff).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
+		core.NewRoute("/deploy/getProcessList", http.MethodGet, d.GetProcessList).Roles(core.RoleAdmin, core.RoleManager),
 	}
 }
 
@@ -66,39 +67,41 @@ func (Deploy) GetList(gp *core.Goploy) core.Response {
 }
 
 func (Deploy) GetPreview(gp *core.Goploy) core.Response {
+	type ReqData struct {
+		ProjectID  int64  `schema:"projectId" validate:"gt=0"`
+		UserID     int64  `schema:"userId"`
+		State      int    `schema:"state"`
+		CommitDate string `schema:"commitDate"`
+		DeployDate string `schema:"deployDate"`
+		Branch     string `schema:"branch"`
+		Commit     string `schema:"commit"`
+		Filename   string `schema:"filename"`
+	}
+	var reqData ReqData
+	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
 	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	projectID, err := strconv.ParseInt(gp.URLQuery.Get("projectId"), 10, 64)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
 
-	userID, err := strconv.ParseInt(gp.URLQuery.Get("userId"), 10, 64)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	state, err := strconv.ParseInt(gp.URLQuery.Get("state"), 10, 64)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	commitDate := strings.Split(gp.URLQuery.Get("commitDate"), ",")
+	commitDate := strings.Split(reqData.CommitDate, ",")
 	for i, date := range commitDate {
 		tm2, _ := time.Parse("2006-01-02 15:04:05", date)
 		commitDate[i] = strconv.FormatInt(tm2.Unix(), 10)
 	}
 	gitTraceList, pagination, err := model.PublishTrace{
-		ProjectID:    projectID,
-		PublisherID:  userID,
-		PublishState: int(state),
+		ProjectID:    reqData.ProjectID,
+		PublisherID:  reqData.UserID,
+		PublishState: reqData.State,
 	}.GetPreview(
-		gp.URLQuery.Get("branch"),
-		gp.URLQuery.Get("commit"),
-		gp.URLQuery.Get("filename"),
+		reqData.Branch,
+		reqData.Commit,
+		reqData.Filename,
 		commitDate,
-		strings.Split(gp.URLQuery.Get("deployDate"), ","),
+		strings.Split(reqData.DeployDate, ","),
 		pagination,
 	)
 	if err != nil {
@@ -150,7 +153,7 @@ func (Deploy) ResetState(gp *core.Goploy) core.Response {
 		ProjectID int64 `json:"projectId" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -167,7 +170,7 @@ func (Deploy) FileCompare(gp *core.Goploy) core.Response {
 		FilePath  string `json:"filePath" validate:"required"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -195,7 +198,8 @@ func (Deploy) FileCompare(gp *core.Goploy) core.Response {
 	}
 
 	type FileCompareData struct {
-		IP         string `json:"ip"`
+		ServerName string `json:"serverName"`
+		ServerIP   string `json:"serverIP"`
 		ServerID   int64  `json:"serverId"`
 		Status     string `json:"status"`
 		IsModified bool   `json:"isModified"`
@@ -206,7 +210,7 @@ func (Deploy) FileCompare(gp *core.Goploy) core.Response {
 	distPath := path.Join(project.Path, reqData.FilePath)
 	for _, server := range projectServers {
 		go func(server model.ProjectServer) {
-			fileCompare := FileCompareData{server.ServerIP, server.ServerID, "no change", false}
+			fileCompare := FileCompareData{server.ServerName, server.ServerIP, server.ServerID, "no change", false}
 			client, err := utils.DialSSH(server.ServerOwner, server.ServerPassword, server.ServerPath, server.ServerIP, server.ServerPort)
 			if err != nil {
 				fileCompare.Status = "client error"
@@ -257,7 +261,7 @@ func (Deploy) FileDiff(gp *core.Goploy) core.Response {
 		FilePath  string `json:"filePath" validate:"required"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -304,6 +308,18 @@ func (Deploy) FileDiff(gp *core.Goploy) core.Response {
 	}{SrcText: string(srcText), DistText: string(distText)}}
 }
 
+func (Deploy) GetProcessList(gp *core.Goploy) core.Response {
+	type ReqData struct {
+		ProjectID int64 `schema:"projectId" validate:"gt=0"`
+	}
+	var reqData ReqData
+	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	fmt.Printf("%v", reqData)
+	return response.JSON{}
+}
+
 func (Deploy) Publish(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
@@ -311,7 +327,7 @@ func (Deploy) Publish(gp *core.Goploy) core.Response {
 		Branch    string `json:"branch"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	project, err := model.Project{ID: reqData.ProjectID}.GetData()
@@ -334,7 +350,7 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 		Token string `json:"token"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	var err error
@@ -493,7 +509,7 @@ func (Deploy) GreyPublish(gp *core.Goploy) core.Response {
 		ServerIDs []int64 `json:"serverIds"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	project, err := model.Project{ID: reqData.ProjectID}.GetData()
@@ -544,7 +560,7 @@ func (Deploy) Review(gp *core.Goploy) core.Response {
 	}
 
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -586,7 +602,7 @@ func (Deploy) Webhook(gp *core.Goploy) core.Response {
 		Ref string `json:"ref" validate:"required"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

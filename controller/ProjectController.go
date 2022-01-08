@@ -82,10 +82,17 @@ func (Project) GetTotal(gp *core.Goploy) core.Response {
 }
 
 func (Project) PingRepos(gp *core.Goploy) core.Response {
-	url := gp.URLQuery.Get("url")
+	type ReqData struct {
+		URL      string `schema:"url" validate:"required"`
+		RepoType string `schema:"repoType" validate:"required"`
+	}
+	var reqData ReqData
+	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
 
-	if strings.Contains(url, "git@") {
-		host := strings.Split(url, "git@")[1]
+	if strings.Contains(reqData.URL, "git@") {
+		host := strings.Split(reqData.URL, "git@")[1]
 		host = strings.Split(host, ":")[0]
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
@@ -116,12 +123,12 @@ func (Project) PingRepos(gp *core.Goploy) core.Response {
 		}
 	}
 
-	repo, err := repository.GetRepo(gp.URLQuery.Get("repoType"))
+	repo, err := repository.GetRepo(reqData.RepoType)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := repo.Ping(url); err != nil {
+	if err := repo.Ping(reqData.URL); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -129,10 +136,17 @@ func (Project) PingRepos(gp *core.Goploy) core.Response {
 }
 
 func (Project) GetRemoteBranchList(gp *core.Goploy) core.Response {
-	url := gp.URLQuery.Get("url")
+	type ReqData struct {
+		URL      string `schema:"url" validate:"required"`
+		RepoType string `schema:"repoType" validate:"required"`
+	}
+	var reqData ReqData
+	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
 
-	if strings.Contains(url, "git@") {
-		host := strings.Split(url, "git@")[1]
+	if strings.Contains(reqData.URL, "git@") {
+		host := strings.Split(reqData.URL, "git@")[1]
 		host = strings.Split(host, ":")[0]
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
@@ -163,12 +177,12 @@ func (Project) GetRemoteBranchList(gp *core.Goploy) core.Response {
 		}
 	}
 
-	repo, err := repository.GetRepo(gp.URLQuery.Get("repoType"))
+	repo, err := repository.GetRepo(reqData.RepoType)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	list, err := repo.RemoteBranchList(url)
+	list, err := repo.RemoteBranchList(reqData.URL)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -247,13 +261,16 @@ func (Project) GetProjectFileContent(gp *core.Goploy) core.Response {
 }
 
 func (Project) GetReposFileList(gp *core.Goploy) core.Response {
-	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
-	if err != nil {
+	type ReqData struct {
+		ID   int64  `schema:"id" validate:"gt=0"`
+		Path string `schema:"path" validate:"required"`
+	}
+	var reqData ReqData
+	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	_path := gp.URLQuery.Get("path")
 
-	files, err := ioutil.ReadDir(path.Join(core.GetProjectPath(id), _path))
+	files, err := ioutil.ReadDir(path.Join(core.GetProjectPath(reqData.ID), reqData.Path))
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -302,7 +319,7 @@ func (Project) Add(gp *core.Goploy) core.Response {
 		NotifyTarget          string  `json:"notifyTarget"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -396,7 +413,7 @@ func (Project) Edit(gp *core.Goploy) core.Response {
 		NotifyTarget          string `json:"notifyTarget"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -456,7 +473,7 @@ func (Project) SetAutoDeploy(gp *core.Goploy) core.Response {
 		AutoDeploy uint8 `json:"autoDeploy" validate:"gte=0"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	err := model.Project{
@@ -475,7 +492,7 @@ func (Project) Remove(gp *core.Goploy) core.Response {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -497,21 +514,23 @@ func (Project) Remove(gp *core.Goploy) core.Response {
 }
 
 func (Project) UploadFile(gp *core.Goploy) core.Response {
+	type ReqData struct {
+		ProjectFileID int64  `schema:"projectFileId" validate:"gt=0"`
+		ProjectId     int64  `schema:"projectId"  validate:"gt=0"`
+		Filename      string `schema:"filename"  validate:"required"`
+	}
+	var reqData ReqData
+	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
 	file, _, err := gp.Request.FormFile("file")
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	defer file.Close()
-	id, err := strconv.ParseInt(gp.URLQuery.Get("projectFileId"), 10, 64)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	projectID, err := strconv.ParseInt(gp.URLQuery.Get("projectId"), 10, 64)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	filename := gp.URLQuery.Get("filename")
-	filePath := path.Join(core.GetProjectFilePath(projectID), filename)
+
+	filePath := path.Join(core.GetProjectFilePath(reqData.ProjectFileID), reqData.Filename)
 
 	if _, err := os.Stat(path.Dir(filePath)); err != nil {
 		if os.IsNotExist(err) {
@@ -535,16 +554,16 @@ func (Project) UploadFile(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if id == 0 {
-		id, err = model.ProjectFile{
-			Filename:  filename,
-			ProjectID: projectID,
+	if reqData.ProjectFileID == 0 {
+		reqData.ProjectFileID, err = model.ProjectFile{
+			Filename:  reqData.Filename,
+			ProjectID: reqData.ProjectId,
 		}.AddRow()
 	} else {
 		err = model.ProjectFile{
-			ID:        id,
-			Filename:  filename,
-			ProjectID: projectID,
+			ID:        reqData.ProjectFileID,
+			Filename:  reqData.Filename,
+			ProjectID: reqData.ProjectId,
 		}.EditRow()
 	}
 
@@ -555,7 +574,7 @@ func (Project) UploadFile(gp *core.Goploy) core.Response {
 	return response.JSON{
 		Data: struct {
 			ID int64 `json:"id"`
-		}{ID: id},
+		}{ID: reqData.ProjectFileID},
 	}
 }
 
@@ -566,7 +585,7 @@ func (Project) AddFile(gp *core.Goploy) core.Response {
 		Filename  string `json:"filename" validate:"required"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -605,7 +624,7 @@ func (Project) EditFile(gp *core.Goploy) core.Response {
 		Content string `json:"content" validate:"required"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -638,7 +657,7 @@ func (Project) RemoveFile(gp *core.Goploy) core.Response {
 	}
 
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -664,7 +683,7 @@ func (Project) AddServer(gp *core.Goploy) core.Response {
 		ServerIDs []int64 `json:"serverIds" validate:"required"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	projectID := reqData.ProjectID
@@ -690,7 +709,7 @@ func (Project) RemoveServer(gp *core.Goploy) core.Response {
 		ProjectServerID int64 `json:"projectServerId" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -706,7 +725,7 @@ func (Project) AddUser(gp *core.Goploy) core.Response {
 		UserIDs   []int64 `json:"userIds" validate:"required"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	projectID := reqData.ProjectID
@@ -731,9 +750,8 @@ func (Project) RemoveUser(gp *core.Goploy) core.Response {
 		ProjectUserID int64 `json:"projectUserId" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
-
 	}
 
 	if err := (model.ProjectUser{ID: reqData.ProjectUserID}).DeleteRow(); err != nil {
@@ -794,7 +812,7 @@ func (Project) AddTask(gp *core.Goploy) core.Response {
 		Date      string `json:"date" validate:"required"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -822,7 +840,7 @@ func (Project) RemoveTask(gp *core.Goploy) core.Response {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := verify(gp.Body, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
