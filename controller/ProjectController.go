@@ -46,6 +46,9 @@ func (p Project) Routes() []core.Route {
 		core.NewRoute("/project/removeTask", http.MethodDelete, p.RemoveTask).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
 		core.NewRoute("/project/getTaskList", http.MethodGet, p.GetTaskList).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
 		core.NewRoute("/project/getReviewList", http.MethodGet, p.GetReviewList),
+		core.NewRoute("/project/getProcessList", http.MethodGet, p.GetProcessList).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/project/addProcess", http.MethodPost, p.AddProcess).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/project/deleteProcess", http.MethodDelete, p.DeleteProcess).Roles(core.RoleAdmin, core.RoleManager),
 	}
 }
 
@@ -845,6 +848,77 @@ func (Project) RemoveTask(gp *core.Goploy) core.Response {
 	}
 
 	if err := (model.ProjectTask{ID: reqData.ID}).RemoveRow(); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	return response.JSON{}
+}
+
+func (Project) GetProcessList(gp *core.Goploy) core.Response {
+	type ReqData struct {
+		ProjectID int64  `schema:"projectId" validate:"gt=0"`
+		Page      uint64 `schema:"page" validate:"gt=0"`
+		Rows      uint64 `schema:"rows" validate:"gt=0"`
+	}
+	var reqData ReqData
+	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	list, err := model.ProjectProcess{ProjectID: reqData.ProjectID}.GetListByProjectID(reqData.Page, reqData.Rows)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	return response.JSON{
+		Data: struct {
+			List model.ProjectProcesses `json:"list"`
+		}{List: list},
+	}
+}
+
+func (Project) AddProcess(gp *core.Goploy) core.Response {
+	type ReqData struct {
+		ProjectID int64  `json:"projectId" validate:"gt=0"`
+		Name      string `json:"name" validate:"required"`
+		Status    string `json:"status"`
+		Start     string `json:"start"`
+		Stop      string `json:"stop"`
+		Restart   string `json:"restart"`
+	}
+	var reqData ReqData
+	if err := decodeJson(gp.Body, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	id, err := model.ProjectProcess{
+		ProjectID: reqData.ProjectID,
+		Name:      reqData.Name,
+		Status:    reqData.Status,
+		Start:     reqData.Start,
+		Stop:      reqData.Stop,
+		Restart:   reqData.Restart,
+	}.AddRow()
+
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	return response.JSON{
+		Data: struct {
+			ID int64 `json:"id"`
+		}{ID: id},
+	}
+}
+
+func (Project) DeleteProcess(gp *core.Goploy) core.Response {
+	type ReqData struct {
+		ID int64 `json:"id" validate:"gt=0"`
+	}
+	var reqData ReqData
+	if err := decodeJson(gp.Body, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	if err := (model.ProjectProcess{ID: reqData.ID}).DeleteRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

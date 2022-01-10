@@ -181,20 +181,21 @@ export class FileDiff extends Request {
   }
 }
 
-export class DeployProcessList extends Request {
-  readonly url = '/deploy/getProcessList'
-  readonly method = 'get'
+export class ManageProcess extends Request {
+  readonly url = '/deploy/manageProcess'
+  readonly method = 'post'
   public param: {
-    projectId: number
+    serverId: number
+    projectProcessId: number
+    command: string
   }
-  public pagination: Pagination
-
   public datagram!: {
-    pagination: Pagination
+    execRes: boolean
+    stdout: string
+    stderr: string
   }
-  constructor(param: DeployProcessList['param'], pagination: Pagination) {
+  constructor(param: ManageProcess['param']) {
     super()
-    this.pagination = pagination
-    this.param = { ...param, ...pagination }
+    this.param = param
   }
 }

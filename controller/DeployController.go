@@ -46,7 +46,7 @@ func (d Deploy) Routes() []core.Route {
 		core.NewRoute("/deploy/callback", http.MethodGet, d.Callback).White(),
 		core.NewRoute("/deploy/fileCompare", http.MethodPost, d.FileCompare).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
 		core.NewRoute("/deploy/fileDiff", http.MethodPost, d.FileDiff).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/deploy/getProcessList", http.MethodGet, d.GetProcessList).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/deploy/manageProcess", http.MethodPost, d.ManageProcess).Roles(core.RoleAdmin, core.RoleManager),
 	}
 }
 
@@ -308,16 +308,65 @@ func (Deploy) FileDiff(gp *core.Goploy) core.Response {
 	}{SrcText: string(srcText), DistText: string(distText)}}
 }
 
-func (Deploy) GetProcessList(gp *core.Goploy) core.Response {
+func (Deploy) ManageProcess(gp *core.Goploy) core.Response {
 	type ReqData struct {
-		ProjectID int64 `schema:"projectId" validate:"gt=0"`
+		ServerID         int64  `json:"serverId" validate:"gt=0"`
+		ProjectProcessID int64  `json:"projectProcessId" validate:"gt=0"`
+		Command          string `json:"command" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	fmt.Printf("%v", reqData)
-	return response.JSON{}
+
+	projectProcess, err := model.ProjectProcess{ID: reqData.ProjectProcessID}.GetData()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	server, err := (model.Server{ID: reqData.ServerID}).GetData()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	script := ""
+
+	switch reqData.Command {
+	case "status":
+		script = projectProcess.Status
+	case "start":
+		script = projectProcess.Start
+	case "stop":
+		script = projectProcess.Stop
+	case "restart":
+		script = projectProcess.Restart
+	default:
+		return response.JSON{Code: response.Error, Message: "Command error"}
+	}
+
+	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer client.Close()
+
+	session, err := client.NewSession()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer session.Close()
+
+	var sshOutbuf, sshErrbuf bytes.Buffer
+	session.Stdout = &sshOutbuf
+	session.Stderr = &sshErrbuf
+	err = session.Run(script)
+	core.Log(core.TRACE, fmt.Sprintf("%s exec cmd %s, result %t, stdout: %s, stderr: %s", gp.UserInfo.Name, script, err == nil, sshOutbuf.String(), sshErrbuf.String()))
+	return response.JSON{
+		Data: struct {
+			ExecRes bool   `json:"execRes"`
+			Stdout  string `json:"stdout"`
+			Stderr  string `json:"stderr"`
+		}{ExecRes: err == nil, Stdout: sshOutbuf.String(), Stderr: sshErrbuf.String()},
+	}
 }
 
 func (Deploy) Publish(gp *core.Goploy) core.Response {

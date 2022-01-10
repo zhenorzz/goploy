@@ -450,7 +450,6 @@ func (s Server) DeleteMonitor(gp *core.Goploy) core.Response {
 // version|cpu cores|mem
 func (Server) getOSInfo(owner, password, path, ip string, port int) string {
 	osInfoScript := `cat /etc/os-release | grep "PRETTY_NAME" | awk -F\" '{print $2}' && cat /proc/cpuinfo  | grep "processor" | wc -l && cat /proc/meminfo | grep MemTotal | awk '{print $2}'`
-	println(owner, password, path, ip, port)
 	client, err := utils.DialSSH(owner, password, path, ip, port)
 	if err != nil {
 		return ""

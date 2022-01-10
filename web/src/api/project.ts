@@ -460,3 +460,49 @@ export class ReposFileList extends Request {
     this.param = param
   }
 }
+
+export class ProjectProcessList extends Request {
+  readonly url = '/project/getProcessList'
+  readonly method = 'get'
+  public param: {
+    projectId: number
+  }
+  public pagination: Pagination
+
+  public datagram!: {
+    list: unknown
+  }
+  constructor(param: ProjectProcessList['param'], pagination: Pagination) {
+    super()
+    this.pagination = pagination
+    this.param = { ...param, ...pagination }
+  }
+}
+
+export class ProjectProcessAdd extends Request {
+  readonly url = '/project/addProcess'
+  readonly method = 'post'
+  public param: {
+    projectId: number
+    name: string
+    start: string
+    stop: string
+    status: string
+    restart: string
+  }
+  public datagram!: ID
+  constructor(param: ProjectProcessAdd['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ProjectProcessDelete extends Request {
+  readonly url = '/project/deleteProcess'
+  readonly method = 'delete'
+  public param: ID
+  constructor(param: ProjectTaskRemove['param']) {
+    super()
+    this.param = param
+  }
+}

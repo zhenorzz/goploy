@@ -7,7 +7,7 @@
   >
     <el-row type="flex">
       <el-select
-        v-model="name"
+        v-model="projectProcessId"
         v-loading="processLoading"
         filterable
         style="flex: 1"
@@ -15,14 +15,25 @@
       >
         <el-option
           v-for="item in processOption"
-          :key="item"
-          :label="item"
-          :value="item"
-        />
+          :key="item.id"
+          :label="item.name"
+          :value="item.id"
+        >
+          <el-row type="flex" justify="space-between">
+            <span style="">{{ item.name }}</span>
+            <el-button
+              style=""
+              type="text"
+              icon="el-icon-delete"
+              @click.stop="handleDelete(item.id)"
+            />
+          </el-row>
+        </el-option>
       </el-select>
       <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
     <el-table
+      ref="table"
       v-loading="tableLoading"
       border
       stripe
@@ -31,27 +42,53 @@
       style="margin-top: 10px; width: 100%"
       :data="tableData"
     >
-      <el-table-column prop="ip" label="IP" />
-      <el-table-column
-        prop="status"
-        label="Status"
-        width="200"
-        show-overflow-tooltip
-      />
+      <el-table-column type="expand">
+        <template #default="{}">
+          <el-row>
+            {{ $t('deployPage.execRes') }}:{{ commandRes.execRes }}
+          </el-row>
+          <el-row style="white-space: pre-wrap">{{ commandRes.stdout }}</el-row>
+          <el-row style="white-space: pre-wrap">{{ commandRes.stderr }}</el-row>
+        </template>
+      </el-table-column>
+      <el-table-column label="Server">
+        <template #default="scope"> {{ scope.row.serverName }} </template>
+      </el-table-column>
       <el-table-column
         prop="operation"
         :label="$t('op')"
-        width="80"
+        width="400"
         align="center"
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <el-button
-            v-if="scope.row.isModified"
+            :loading="commandLoading"
             type="primary"
-            @click="handleDiff(scope.row)"
+            @click="handleProcessCmd(scope.row, 'status')"
           >
-            diff
+            status
+          </el-button>
+          <el-button
+            :loading="commandLoading"
+            type="success"
+            @click="handleProcessCmd(scope.row, 'start')"
+          >
+            start
+          </el-button>
+          <el-button
+            :loading="commandLoading"
+            type="warning"
+            @click="handleProcessCmd(scope.row, 'restart')"
+          >
+            restart
+          </el-button>
+          <el-button
+            :loading="commandLoading"
+            type="danger"
+            @click="handleProcessCmd(scope.row, 'stop')"
+          >
+            stop
           </el-button>
         </template>
       </el-table-column>
@@ -63,135 +100,55 @@
     </template>
   </el-dialog>
   <el-dialog
-    v-model="fileVisible"
-    title="File"
-    :fullscreen="$store.state.app.device === 'mobile'"
-  >
-    <el-table
-      v-loading="fileLoading"
-      border
-      stripe
-      highlight-current-row
-      :data="fileList"
-      style="width: 100%"
-      :max-height="460"
-    >
-      <el-table-column prop="name" :label="$t('name')" min-width="100">
-        <template #default="scope">
-          <i v-if="scope.row.isDir" class="el-icon-folder-opened"></i>
-          {{ scope.row.name }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="size" :label="$t('size')" width="100">
-        <template #default="scope">
-          {{ humanSize(scope.row.size) }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="mode" label="mode" width="100" />
-      <el-table-column
-        prop="modTime"
-        :label="$t('modifiedTime')"
-        width="135"
-        align="center"
-      />
-      <el-table-column
-        prop="operation"
-        :label="$t('op')"
-        width="100"
-        align="center"
-        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
-      >
-        <template #default="scope">
-          <template v-if="scope.row.uploading">
-            <i class="el-icon-loading"></i>
-          </template>
-          <template v-else>
-            <el-button
-              v-if="scope.row.isDir"
-              style="margin-right: 10px"
-              type="text"
-              icon="el-icon-right"
-              @click="handleSelectPath(filePath + scope.row.name + '/')"
-            />
-            <el-button
-              v-else
-              style="margin-right: 10px"
-              type="text"
-              icon="el-icon-check"
-              @click="handleSelectFile(filePath + scope.row.name)"
-            />
-          </template>
-        </template>
-      </el-table-column>
-    </el-table>
-    <template #footer class="dialog-footer">
-      <el-button @click="fileVisible = false">
-        {{ $t('cancel') }}
-      </el-button>
-    </template>
-  </el-dialog>
-  <el-dialog
-    v-model="fileDiffVisible"
+    v-model="processVisible"
     title="File diff"
     :fullscreen="$store.state.app.device === 'mobile'"
   >
-    <div class="file-content">
-      <div v-loading="diffLoading">
-        <div
-          v-for="(item, index) in changeLines"
-          :key="index"
-          class="file-line"
-        >
-          <div
-            class="file-line-number"
-            :style="{
-              'background-color': item.type
-                ? item.type === '+'
-                  ? '#ccFFD8'
-                  : '#ffd7d5'
-                : '',
-            }"
-          >
-            {{ item.lineNumber }}
-          </div>
-          <div
-            class="file-line-type"
-            :style="{
-              'background-color': item.type
-                ? item.type === '+'
-                  ? '#e6ffec'
-                  : '#ffebe9'
-                : '',
-            }"
-          >
-            {{ item.type }}
-          </div>
-          <div
-            class="file-line-text"
-            :style="{
-              'background-color': item.type
-                ? item.type === '+'
-                  ? '#e6ffec'
-                  : '#ffebe9'
-                : '',
-            }"
-          >
-            {{ item.text }}
-          </div>
-        </div>
-      </div>
-    </div>
+    <el-form
+      ref="form"
+      :model="formData"
+      label-width="130px"
+      :label-position="$store.state.app.device === 'desktop' ? 'right' : 'top'"
+    >
+      <el-form-item :label="$t('name')" prop="name" required>
+        <el-input v-model="formData.name" autocomplete="off" />
+      </el-form-item>
+      <el-form-item label="Status">
+        <el-input v-model="formData.status" autocomplete="off" />
+      </el-form-item>
+      <el-form-item label="Start">
+        <el-input v-model="formData.start" autocomplete="off" />
+      </el-form-item>
+      <el-form-item label="Stop">
+        <el-input v-model="formData.stop" autocomplete="off" />
+      </el-form-item>
+      <el-form-item label="Restart">
+        <el-input v-model="formData.restart" autocomplete="off" />
+      </el-form-item>
+    </el-form>
     <template #footer class="dialog-footer">
-      <el-button @click="fileDiffVisible = false">
+      <el-button @click="processVisible = false">
         {{ $t('cancel') }}
+      </el-button>
+      <el-button :disabled="formProps.disabled" type="primary" @click="add">
+        {{ $t('confirm') }}
       </el-button>
     </template>
   </el-dialog>
 </template>
 
 <script lang="ts">
-import { DeployProcessList } from '@/api/deploy'
-import { ElMessage } from 'element-plus'
+import { ManageProcess } from '@/api/deploy'
+import {
+  ProjectProcessList,
+  ProjectProcessAdd,
+  ProjectServerData,
+  ProjectServerList,
+  ProjectProcessDelete,
+} from '@/api/project'
+import Validator from 'async-validator'
+import { ElMessageBox, ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { computed, defineComponent, ref, watch } from 'vue'
 
 export default defineComponent({
@@ -207,6 +164,7 @@ export default defineComponent({
   },
   emits: ['update:modelValue'],
   setup(props, { emit }) {
+    const { t } = useI18n()
     const dialogVisible = computed({
       get: () => props.modelValue,
       set: (val) => {
@@ -218,16 +176,22 @@ export default defineComponent({
       () => props.modelValue,
       (val: typeof props['modelValue']) => {
         if (val === true) {
-          getProcessList()
+          getList()
         }
       }
     )
-
     const processLoading = ref(false)
-    const processOption = ref<DeployProcessList['datagram']['list']>([])
-    const getProcessList = () => {
+    const projectProcessId = ref<number>()
+    const processOption = ref<ProjectProcessList['datagram']['list']>([])
+    const getList = () => {
       processLoading.value = true
-      new DeployProcessList({ projectId: props.projectRow.id }, {})
+      projectProcessId.value = undefined
+      processOption.value = []
+      tableData.value = []
+      new ProjectProcessList(
+        { projectId: props.projectRow.id },
+        { page: 1, rows: 999 }
+      )
         .request()
         .then((response) => {
           processOption.value = response.data.list
@@ -236,16 +200,135 @@ export default defineComponent({
           processLoading.value = false
         })
     }
-    const tableLoading = ref(false)
-    const tableData = ref<DeployProcessList['datagram']['list']>([])
 
+    const table = ref(null)
+    const tableLoading = ref(false)
+    const tableData = ref<ProjectServerList['datagram']['list']>([])
+    const handleProcessChange = () => {
+      tableLoading.value = true
+      new ProjectServerList({ id: props.projectRow.id })
+        .request()
+        .then((response) => {
+          tableData.value = response.data.list
+        })
+        .finally(() => {
+          tableLoading.value = false
+        })
+    }
+    const commandRes = ref<ManageProcess['datagram']>({
+      execRes: true,
+      stdout: '',
+      stderr: '',
+    })
+    const commandLoading = ref(false)
+    const handleProcessCmd = (
+      data: ProjectServerData['datagram'],
+      command: string
+    ) => {
+      ElMessageBox.confirm(t('deployPage.execTips', { command }), t('tips'), {
+        confirmButtonText: t('confirm'),
+        cancelButtonText: t('cancel'),
+        type: 'warning',
+      })
+        .then(() => {
+          commandLoading.value = true
+          new ManageProcess({
+            serverId: data.serverId,
+            projectProcessId: Number(projectProcessId.value),
+            command,
+          })
+            .request()
+            .then((response) => {
+              commandRes.value = response.data
+              table.value.toggleRowExpansion(data, true)
+            })
+            .finally(() => {
+              commandLoading.value = false
+            })
+        })
+        .catch(() => {
+          ElMessage.info('Cancel')
+        })
+    }
     return {
       dialogVisible,
+      getList,
+      projectProcessId,
       processOption,
       processLoading,
+      handleProcessChange,
+      table,
       tableLoading,
       tableData,
+      handleProcessCmd,
+      commandLoading,
+      commandRes,
     }
+  },
+  data() {
+    return {
+      processVisible: false,
+      formProps: {
+        disabled: false,
+      },
+      formData: {
+        projectId: 0,
+        name: '',
+        status: '',
+        start: '',
+        stop: '',
+        restart: '',
+      },
+    }
+  },
+  watch: {
+    projectRow: function (newVal) {
+      this.formData.projectId = newVal.id
+    },
+  },
+  methods: {
+    handleAdd() {
+      this.processVisible = true
+    },
+    handleDelete(id: number) {
+      ElMessageBox.confirm(
+        this.$t('deployPage.deleteProcessTips'),
+        this.$t('tips'),
+        {
+          confirmButtonText: this.$t('confirm'),
+          cancelButtonText: this.$t('cancel'),
+          type: 'warning',
+        }
+      )
+        .then(() => {
+          new ProjectProcessDelete({ id }).request().then(() => {
+            ElMessage.success('Success')
+            this.getList()
+          })
+        })
+        .catch(() => {
+          ElMessage.info('Cancel')
+        })
+    },
+    add() {
+      ;(this.$refs.form as Validator).validate((valid: boolean) => {
+        if (valid) {
+          this.formProps.disabled = true
+          new ProjectProcessAdd(this.formData)
+            .request()
+            .then(() => {
+              this.processVisible = false
+              ElMessage.success('Success')
+              this.getList()
+            })
+            .finally(() => {
+              this.formProps.disabled = false
+            })
+        } else {
+          return false
+        }
+      })
+    },
   },
 })
 </script>
@@ -253,31 +336,7 @@ export default defineComponent({
 <style rel="stylesheet/scss" lang="scss" scoped>
 @import '@/styles/mixin.scss';
 .file {
-  &-content {
-    height: 470px;
-    overflow-y: auto;
-    @include scrollBar();
-  }
-  &-line {
-    display: flex;
-    flex-direction: row;
-    font-size: 12px;
-    line-height: 20px;
-  }
-  &-line-number {
-    width: 50px;
-    text-align: right;
-    padding-right: 10px;
-    padding-left: 10px;
-    color: #6e7781;
-  }
-  &-line-type {
-    width: 22px;
-    text-align: center;
-  }
-  &-line-text {
-    flex: 1;
-    white-space: pre-wrap;
-  }
+  flex: 1;
+  white-space: pre-wrap;
 }
 </style>

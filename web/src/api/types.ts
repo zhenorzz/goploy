@@ -11,7 +11,7 @@ export interface HttpResponse<T> {
 export interface Pagination {
   page: number
   rows: number
-  total: number
+  // total: number
 }
 
 export interface Total {
