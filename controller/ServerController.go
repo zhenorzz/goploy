@@ -272,7 +272,7 @@ func (Server) Report(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ServerID      int64  `schema:"serverId" validate:"gt=0"`
 		Type          int    `schema:"type" validate:"gt=0"`
-		DatetimeRange string `schema:"datetimeRange"  validate:"contains=,"`
+		DatetimeRange string `schema:"datetimeRange"  validate:"required"`
 	}
 	var reqData ReqData
 	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
