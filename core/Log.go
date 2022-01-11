@@ -39,7 +39,12 @@ func Log(lv LogLevel, content string) {
 				fmt.Println(err.Error())
 			}
 		}
-		file := logPath + "/" + time.Now().Format("20060102") + ".log"
+		file := logPath + "/"
+		if config.Toml.Log.Split {
+			file += time.Now().Format("20060102") + ".log"
+		} else {
+			file += "goploy.log"
+		}
 		logFile, err = os.OpenFile(file, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766)
 		if nil != err {
 			fmt.Println(err.Error())

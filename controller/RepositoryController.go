@@ -53,7 +53,6 @@ func (Repository) GetCommitList(gp *core.Goploy) core.Response {
 	}
 }
 
-// GetBranchList get all branch list
 func (Repository) GetBranchList(gp *core.Goploy) core.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
@@ -82,7 +81,6 @@ func (Repository) GetBranchList(gp *core.Goploy) core.Response {
 	}
 }
 
-// GetTagList get latest 10 tag list
 func (Repository) GetTagList(gp *core.Goploy) core.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {

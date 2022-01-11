@@ -110,11 +110,11 @@ func (GitRepo) BranchList(projectID int64) ([]string, error) {
 	git := utils.GIT{Dir: core.GetProjectPath(projectID)}
 
 	if err := git.Fetch(); err != nil {
-		return []string{}, errors.New(git.Err.String())
+		return []string{}, errors.New(err.Error() + " detail: " + git.Err.String())
 	}
 
 	if err := git.Branch("-r", "--sort=-committerdate"); err != nil {
-		return []string{}, errors.New(git.Err.String())
+		return []string{}, errors.New(err.Error() + " detail: " + git.Err.String())
 	}
 
 	rawBranchList := strings.Split(git.Output.String(), "\n")

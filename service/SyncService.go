@@ -220,7 +220,7 @@ func (gsync Gsync) runAfterPullScript() (string, error) {
 	var outbuf, errbuf bytes.Buffer
 	handler.Stdout = &outbuf
 	handler.Stderr = &errbuf
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+project.AfterPullScript)
+	core.Log(core.TRACE, "projectID: "+strconv.FormatInt(project.ID, 10)+project.AfterPullScript)
 	if err := handler.Run(); err != nil {
 		core.Log(core.ERROR, errbuf.String())
 		return "", errors.New(errbuf.String())

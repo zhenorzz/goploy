@@ -356,21 +356,19 @@ export class ProjectFileRemove extends Request {
 
 export class ProjectTaskData {
   public datagram!: {
-    detail: {
-      id: number
-      projectId: number
-      branch: string
-      commit: string
-      date: string
-      state: number
-      isRun: number
-      creator: string
-      creatorId: number
-      editor: string
-      editorId: number
-      insertTime: string
-      updateTime: string
-    }
+    id: number
+    projectId: number
+    branch: string
+    commit: string
+    date: string
+    state: number
+    isRun: number
+    creator: string
+    creatorId: number
+    editor: string
+    editorId: number
+    insertTime: string
+    updateTime: string
   }
 }
 

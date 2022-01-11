@@ -41,7 +41,8 @@ type DBConfig struct {
 }
 
 type LogConfig struct {
-	Path string `toml:"path"`
+	Path  string `toml:"path"`
+	Split bool   `toml:"split"`
 }
 
 type WebConfig struct {
