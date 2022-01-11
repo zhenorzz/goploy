@@ -134,7 +134,7 @@
   </el-dialog>
   <el-dialog
     v-model="fileDiffVisible"
-    title="File diff"
+    :title="$t('deployPage.fileCompare')"
     :fullscreen="$store.state.app.device === 'mobile'"
   >
     <div class="file-content">

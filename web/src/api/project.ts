@@ -461,6 +461,20 @@ export class ReposFileList extends Request {
   }
 }
 
+export class ProjectProcessData {
+  public datagram!: {
+    id: number
+    projectId: number
+    name: string
+    status: string
+    start: string
+    stop: string
+    restart: string
+    insertTime: string
+    updateTime: string
+  }
+}
+
 export class ProjectProcessList extends Request {
   readonly url = '/project/getProcessList'
   readonly method = 'get'
@@ -470,7 +484,7 @@ export class ProjectProcessList extends Request {
   public pagination: Pagination
 
   public datagram!: {
-    list: unknown
+    list: ProjectProcessData['datagram'][]
   }
   constructor(param: ProjectProcessList['param'], pagination: Pagination) {
     super()
@@ -492,6 +506,23 @@ export class ProjectProcessAdd extends Request {
   }
   public datagram!: ID
   constructor(param: ProjectProcessAdd['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ProjectProcessEdit extends Request {
+  readonly url = '/project/editProcess'
+  readonly method = 'put'
+  public param: {
+    id: number
+    name: string
+    start: string
+    stop: string
+    status: string
+    restart: string
+  }
+  constructor(param: ProjectProcessEdit['param']) {
     super()
     this.param = param
   }

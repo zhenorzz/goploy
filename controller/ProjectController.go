@@ -48,6 +48,7 @@ func (p Project) Routes() []core.Route {
 		core.NewRoute("/project/getReviewList", http.MethodGet, p.GetReviewList),
 		core.NewRoute("/project/getProcessList", http.MethodGet, p.GetProcessList).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/project/addProcess", http.MethodPost, p.AddProcess).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/project/editProcess", http.MethodPut, p.EditProcess).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/project/deleteProcess", http.MethodDelete, p.DeleteProcess).Roles(core.RoleAdmin, core.RoleManager),
 	}
 }
@@ -907,6 +908,35 @@ func (Project) AddProcess(gp *core.Goploy) core.Response {
 			ID int64 `json:"id"`
 		}{ID: id},
 	}
+}
+
+func (Project) EditProcess(gp *core.Goploy) core.Response {
+	type ReqData struct {
+		ID      int64  `json:"id" validate:"gt=0"`
+		Name    string `json:"name" validate:"required"`
+		Status  string `json:"status"`
+		Start   string `json:"start"`
+		Stop    string `json:"stop"`
+		Restart string `json:"restart"`
+	}
+	var reqData ReqData
+	if err := decodeJson(gp.Body, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	err := model.ProjectProcess{
+		ID:      reqData.ID,
+		Name:    reqData.Name,
+		Status:  reqData.Status,
+		Start:   reqData.Start,
+		Stop:    reqData.Stop,
+		Restart: reqData.Restart,
+	}.EditRow()
+
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	return response.JSON{}
 }
 
 func (Project) DeleteProcess(gp *core.Goploy) core.Response {

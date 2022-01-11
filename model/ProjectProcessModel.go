@@ -93,6 +93,22 @@ func (pp ProjectProcess) AddRow() (int64, error) {
 	return id, err
 }
 
+func (pp ProjectProcess) EditRow() error {
+	_, err := sq.
+		Update(projectProcessTable).
+		SetMap(sq.Eq{
+			"name":    pp.Name,
+			"start":   pp.Start,
+			"stop":    pp.Stop,
+			"status":  pp.Status,
+			"restart": pp.Restart,
+		}).
+		Where(sq.Eq{"id": pp.ID}).
+		RunWith(DB).
+		Exec()
+	return err
+}
+
 func (pp ProjectProcess) DeleteRow() error {
 	_, err := sq.
 		Delete(projectProcessTable).

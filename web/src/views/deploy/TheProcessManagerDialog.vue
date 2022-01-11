@@ -21,12 +21,20 @@
         >
           <el-row type="flex" justify="space-between">
             <span style="">{{ item.name }}</span>
-            <el-button
-              style=""
-              type="text"
-              icon="el-icon-delete"
-              @click.stop="handleDelete(item.id)"
-            />
+            <el-row>
+              <el-button
+                style=""
+                type="text"
+                icon="el-icon-edit"
+                @click.stop="handleEdit(item)"
+              />
+              <el-button
+                style="margin-left: 20px"
+                type="text"
+                icon="el-icon-delete"
+                @click.stop="handleDelete(item.id)"
+              />
+            </el-row>
           </el-row>
         </el-option>
       </el-select>
@@ -45,7 +53,13 @@
       <el-table-column type="expand">
         <template #default="{}">
           <el-row>
-            {{ $t('deployPage.execRes') }}:{{ commandRes.execRes }}
+            {{ $t('deployPage.execRes') }}:
+            <span
+              :class="commandRes.execRes ? 'exec-success' : 'exec-fail'"
+              style="padding-left: 5px"
+            >
+              {{ commandRes.execRes }}
+            </span>
           </el-row>
           <el-row style="white-space: pre-wrap">{{ commandRes.stdout }}</el-row>
           <el-row style="white-space: pre-wrap">{{ commandRes.stderr }}</el-row>
@@ -93,7 +107,7 @@
         </template>
       </el-table-column>
     </el-table>
-    <template #footer class="dialog-footer">
+    <template #footer>
       <el-button @click="dialogVisible = false">
         {{ $t('cancel') }}
       </el-button>
@@ -101,9 +115,37 @@
   </el-dialog>
   <el-dialog
     v-model="processVisible"
-    title="File diff"
     :fullscreen="$store.state.app.device === 'mobile'"
   >
+    <template #title>
+      {{ $t('deployPage.processManager') }}
+      <el-popover
+        placement="bottom-start"
+        :title="$t('projectPage.predefinedVar')"
+        width="400"
+        trigger="hover"
+      >
+        <div>
+          <el-row>
+            <span>${PROJECT_NAME}：</span>
+            <span>project.name</span>
+          </el-row>
+          <el-row>
+            <span>${PROJECT_PATH}：</span>
+            <span>project.path</span>
+          </el-row>
+          <el-row>
+            <span>${PROJECT_SYMLINK_PATH}：</span>
+            <span>project.symlink_path</span>
+          </el-row>
+        </div>
+        <template #reference>
+          <el-button type="text">
+            {{ $t('projectPage.predefinedVar') }}
+          </el-button>
+        </template>
+      </el-popover>
+    </template>
     <el-form
       ref="form"
       :model="formData"
@@ -126,11 +168,11 @@
         <el-input v-model="formData.restart" autocomplete="off" />
       </el-form-item>
     </el-form>
-    <template #footer class="dialog-footer">
+    <template #footer>
       <el-button @click="processVisible = false">
         {{ $t('cancel') }}
       </el-button>
-      <el-button :disabled="formProps.disabled" type="primary" @click="add">
+      <el-button :disabled="formProps.disabled" type="primary" @click="submit">
         {{ $t('confirm') }}
       </el-button>
     </template>
@@ -140,8 +182,10 @@
 <script lang="ts">
 import { ManageProcess } from '@/api/deploy'
 import {
+  ProjectProcessData,
   ProjectProcessList,
   ProjectProcessAdd,
+  ProjectProcessEdit,
   ProjectServerData,
   ProjectServerList,
   ProjectProcessDelete,
@@ -205,6 +249,9 @@ export default defineComponent({
     const tableLoading = ref(false)
     const tableData = ref<ProjectServerList['datagram']['list']>([])
     const handleProcessChange = () => {
+      if (tableData.value.length > 0) {
+        return
+      }
       tableLoading.value = true
       new ProjectServerList({ id: props.projectRow.id })
         .request()
@@ -272,6 +319,7 @@ export default defineComponent({
         disabled: false,
       },
       formData: {
+        id: 0,
         projectId: 0,
         name: '',
         status: '',
@@ -289,6 +337,16 @@ export default defineComponent({
   methods: {
     handleAdd() {
       this.processVisible = true
+      this.formData.id = 0
+    },
+    handleEdit(data: ProjectProcessData['datagram']) {
+      this.processVisible = true
+      this.formData.id = data.id
+      this.formData.name = data.name
+      this.formData.status = data.status
+      this.formData.start = data.start
+      this.formData.stop = data.stop
+      this.formData.restart = data.restart
     },
     handleDelete(id: number) {
       ElMessageBox.confirm(
@@ -310,33 +368,58 @@ export default defineComponent({
           ElMessage.info('Cancel')
         })
     },
-    add() {
+
+    submit() {
       ;(this.$refs.form as Validator).validate((valid: boolean) => {
         if (valid) {
-          this.formProps.disabled = true
-          new ProjectProcessAdd(this.formData)
-            .request()
-            .then(() => {
-              this.processVisible = false
-              ElMessage.success('Success')
-              this.getList()
-            })
-            .finally(() => {
-              this.formProps.disabled = false
-            })
+          if (this.formData.id === 0) {
+            this.add()
+          } else {
+            this.edit()
+          }
         } else {
           return false
         }
       })
+    },
+
+    add() {
+      this.formProps.disabled = true
+      new ProjectProcessAdd(this.formData)
+        .request()
+        .then(() => {
+          this.processVisible = false
+          ElMessage.success('Success')
+          this.getList()
+        })
+        .finally(() => {
+          this.formProps.disabled = false
+        })
+    },
+
+    edit() {
+      this.formProps.disabled = true
+      new ProjectProcessEdit(this.formData)
+        .request()
+        .then(() => {
+          this.processVisible = false
+          ElMessage.success('Success')
+          this.getList()
+        })
+        .finally(() => {
+          this.formProps.disabled = false
+        })
     },
   },
 })
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>
-@import '@/styles/mixin.scss';
-.file {
-  flex: 1;
-  white-space: pre-wrap;
+.exec-success {
+  color: #67c23a;
+}
+
+.exec-fail {
+  color: #f56c6c;
 }
 </style>

@@ -323,13 +323,16 @@ func (Deploy) ManageProcess(gp *core.Goploy) core.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+	project, err := (model.Project{ID: projectProcess.ProjectID}).GetData()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
 	server, err := (model.Server{ID: reqData.ServerID}).GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	script := ""
-
 	switch reqData.Command {
 	case "status":
 		script = projectProcess.Status
@@ -342,6 +345,7 @@ func (Deploy) ManageProcess(gp *core.Goploy) core.Response {
 	default:
 		return response.JSON{Code: response.Error, Message: "Command error"}
 	}
+	script = service.ReplaceProjectVars(script, project)
 
 	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
 	if err != nil {

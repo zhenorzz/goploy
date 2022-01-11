@@ -575,8 +575,8 @@
                     </el-row>
                     <el-row>
                       <span>${PROJECT_PATH}：</span>
-                      <span
-                        >{{
+                      <span>
+                        {{
                           formData.path !== '' ? formData.path : 'project.path'
                         }}
                       </span>
