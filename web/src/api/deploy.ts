@@ -184,6 +184,7 @@ export class FileDiff extends Request {
 export class ManageProcess extends Request {
   readonly url = '/deploy/manageProcess'
   readonly method = 'post'
+  readonly timeout = 0
   public param: {
     serverId: number
     projectProcessId: number

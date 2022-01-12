@@ -37,7 +37,7 @@
             :href="parseGitURL(scope.row.url)"
             target="_blank"
           >
-            {{ scope.row.url }}
+            {{ hideURLPwd(scope.row.url) }}
           </el-link>
         </template>
       </el-table-column>
@@ -687,7 +687,7 @@
 </template>
 <script lang="ts">
 import tableHeight from '@/mixin/tableHeight'
-import { parseGitURL } from '@/utils'
+import { parseGitURL, hideURLPwd } from '@/utils'
 import { NamespaceUserOption } from '@/api/namespace'
 import { ServerOption } from '@/api/server'
 import {
@@ -877,6 +877,7 @@ export default defineComponent({
   },
   methods: {
     parseGitURL,
+    hideURLPwd,
     handleAdd() {
       this.restoreFormData()
       this.formProps.showServers = this.formProps.showUsers = true

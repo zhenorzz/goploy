@@ -269,5 +269,5 @@ CREATE TABLE IF NOT EXISTS `system_config` (
 INSERT IGNORE INTO `user`(`id`, `account`, `password`, `name`, `contact`, `state`, `super_manager`) VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '', 1, 1);
 INSERT IGNORE INTO `namespace`(`id`, `name`) VALUES (1, 'goploy');
 INSERT IGNORE INTO `namespace_user`(`id`, `namespace_id`, `user_id`, `role`) VALUES (1, 1, 1, 'admin');
-INSERT IGNORE INTO `system_config` (`id`, `key`, `value`) VALUES (1, 'version', '1.4.3');
+INSERT IGNORE INTO `system_config` (`id`, `key`, `value`) VALUES (1, 'version', '1.4.4');
 

@@ -241,6 +241,24 @@ export function parseGitURL(url: string): string {
   }
 }
 
+export function hideURLPwd(url: string): string {
+  const lastAtIndex = url.lastIndexOf('git@')
+  if (lastAtIndex !== -1) {
+    return url
+  }
+
+  try {
+    const urlObj = new URL(url)
+    if (urlObj.password !== '') {
+      urlObj.password = '******'
+    }
+    return urlObj.toString()
+  } catch (error) {
+    console.log(error)
+  }
+  return url
+}
+
 export function copy(content: string): void {
   const el = document.createElement('textarea')
   el.value = content

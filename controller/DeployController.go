@@ -345,6 +345,10 @@ func (Deploy) ManageProcess(gp *core.Goploy) core.Response {
 	default:
 		return response.JSON{Code: response.Error, Message: "Command error"}
 	}
+	if script == "" {
+		return response.JSON{Code: response.Error, Message: "Command empty"}
+	}
+
 	script = service.ReplaceProjectVars(script, project)
 
 	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
