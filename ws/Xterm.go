@@ -6,7 +6,6 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/response"
-	"github.com/zhenorzz/goploy/utils"
 	"golang.org/x/crypto/ssh"
 	"net/http"
 	"strconv"
@@ -69,7 +68,7 @@ func (hub *Hub) Xterm(gp *core.Goploy) core.Response {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
 		return response.Empty{}
 	}
-	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
+	client, err := server.Convert2SSHConfig().Dial()
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
 		return response.Empty{}

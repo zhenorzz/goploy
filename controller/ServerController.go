@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"bytes"
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
@@ -93,17 +92,36 @@ func (Server) GetPublicKey(gp *core.Goploy) core.Response {
 
 func (Server) Check(gp *core.Goploy) core.Response {
 	type ReqData struct {
-		IP       string `json:"ip" validate:"required,ip|hostname"`
-		Port     int    `json:"port" validate:"min=0,max=65535"`
-		Owner    string `json:"owner" validate:"required,max=255"`
-		Path     string `json:"path" validate:"required,max=255"`
-		Password string `json:"password" validate:"max=255"`
+		IP           string `json:"ip" validate:"required,ip|hostname"`
+		Port         int    `json:"port" validate:"min=0,max=65535"`
+		Owner        string `json:"owner" validate:"required,max=255"`
+		Path         string `json:"path" validate:"required,max=255"`
+		Password     string `json:"password" validate:"max=255"`
+		JumpIP       string `json:"jumpIP" validate:"omitempty,ip|hostname"`
+		JumpPort     int    `json:"jumpPort" validate:"min=0,max=65535"`
+		JumpOwner    string `json:"jumpOwner" validate:"max=255"`
+		JumpPath     string `json:"jumpPath" validate:"max=255"`
+		JumpPassword string `json:"jumpPassword"`
 	}
 	var reqData ReqData
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	if Conn, err := utils.DialSSH(reqData.Owner, reqData.Password, reqData.Path, reqData.IP, reqData.Port); err != nil {
+
+	sshConfig := utils.SSHConfig{
+		User:         reqData.Owner,
+		Password:     reqData.Password,
+		Path:         reqData.Path,
+		Host:         reqData.IP,
+		Port:         reqData.Port,
+		JumpUser:     reqData.JumpOwner,
+		JumpPassword: reqData.JumpPassword,
+		JumpPath:     reqData.JumpPath,
+		JumpHost:     reqData.JumpIP,
+		JumpPort:     reqData.JumpPort,
+	}
+
+	if Conn, err := sshConfig.Dial(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	} else {
 		_ = Conn.Close()
@@ -113,14 +131,19 @@ func (Server) Check(gp *core.Goploy) core.Response {
 
 func (s Server) Add(gp *core.Goploy) core.Response {
 	type ReqData struct {
-		Name        string `json:"name" validate:"required"`
-		NamespaceID int64  `json:"namespaceId" validate:"gte=0"`
-		IP          string `json:"ip" validate:"ip|hostname"`
-		Port        int    `json:"port" validate:"min=0,max=65535"`
-		Owner       string `json:"owner" validate:"required,max=255"`
-		Path        string `json:"path" validate:"required,max=255"`
-		Password    string `json:"password"`
-		Description string `json:"description" validate:"max=255"`
+		Name         string `json:"name" validate:"required"`
+		NamespaceID  int64  `json:"namespaceId" validate:"gte=0"`
+		IP           string `json:"ip" validate:"ip|hostname"`
+		Port         int    `json:"port" validate:"min=0,max=65535"`
+		Owner        string `json:"owner" validate:"required,max=255"`
+		Path         string `json:"path" validate:"required,max=255"`
+		Password     string `json:"password"`
+		Description  string `json:"description" validate:"max=255"`
+		JumpIP       string `json:"jumpIP" validate:"omitempty,ip|hostname"`
+		JumpPort     int    `json:"jumpPort" validate:"min=0,max=65535"`
+		JumpOwner    string `json:"jumpOwner" validate:"max=255"`
+		JumpPath     string `json:"jumpPath" validate:"max=255"`
+		JumpPassword string `json:"jumpPassword"`
 	}
 
 	var reqData ReqData
@@ -128,18 +151,24 @@ func (s Server) Add(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	id, err := model.Server{
-		NamespaceID: reqData.NamespaceID,
-		Name:        reqData.Name,
-		IP:          reqData.IP,
-		Port:        reqData.Port,
-		Owner:       reqData.Owner,
-		Path:        reqData.Path,
-		Password:    reqData.Password,
-		Description: reqData.Description,
-		OSInfo:      s.getOSInfo(reqData.Owner, reqData.Password, reqData.Path, reqData.IP, reqData.Port),
-	}.AddRow()
+	server := model.Server{
+		NamespaceID:  reqData.NamespaceID,
+		Name:         reqData.Name,
+		IP:           reqData.IP,
+		Port:         reqData.Port,
+		Owner:        reqData.Owner,
+		Path:         reqData.Path,
+		Password:     reqData.Password,
+		JumpIP:       reqData.JumpIP,
+		JumpPort:     reqData.JumpPort,
+		JumpOwner:    reqData.JumpOwner,
+		JumpPath:     reqData.JumpPath,
+		JumpPassword: reqData.JumpPassword,
+		Description:  reqData.Description,
+	}
+	server.OSInfo = server.Convert2SSHConfig().GetOSInfo()
 
+	id, err := server.AddRow()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 
@@ -153,34 +182,44 @@ func (s Server) Add(gp *core.Goploy) core.Response {
 
 func (s Server) Edit(gp *core.Goploy) core.Response {
 	type ReqData struct {
-		ID          int64  `json:"id" validate:"gt=0"`
-		NamespaceID int64  `json:"namespaceId" validate:"gte=0"`
-		Name        string `json:"name" validate:"required"`
-		IP          string `json:"ip" validate:"required,ip|hostname"`
-		Port        int    `json:"port" validate:"min=0,max=65535"`
-		Owner       string `json:"owner" validate:"required,max=255"`
-		Path        string `json:"path" validate:"required,max=255"`
-		Password    string `json:"password" validate:"max=255"`
-		Description string `json:"description" validate:"max=255"`
+		ID           int64  `json:"id" validate:"gt=0"`
+		NamespaceID  int64  `json:"namespaceId" validate:"gte=0"`
+		Name         string `json:"name" validate:"required"`
+		IP           string `json:"ip" validate:"required,ip|hostname"`
+		Port         int    `json:"port" validate:"min=0,max=65535"`
+		Owner        string `json:"owner" validate:"required,max=255"`
+		Path         string `json:"path" validate:"required,max=255"`
+		Password     string `json:"password" validate:"max=255"`
+		Description  string `json:"description" validate:"max=255"`
+		JumpIP       string `json:"jumpIP" validate:"omitempty,ip|hostname"`
+		JumpPort     int    `json:"jumpPort" validate:"min=0,max=65535"`
+		JumpOwner    string `json:"jumpOwner" validate:"max=255"`
+		JumpPath     string `json:"jumpPath" validate:"max=255"`
+		JumpPassword string `json:"jumpPassword"`
 	}
 	var reqData ReqData
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	err := model.Server{
-		ID:          reqData.ID,
-		NamespaceID: reqData.NamespaceID,
-		Name:        reqData.Name,
-		IP:          reqData.IP,
-		Port:        reqData.Port,
-		Owner:       reqData.Owner,
-		Path:        reqData.Path,
-		Password:    reqData.Password,
-		Description: reqData.Description,
-		OSInfo:      s.getOSInfo(reqData.Owner, reqData.Password, reqData.Path, reqData.IP, reqData.Port),
-	}.EditRow()
+	server := model.Server{
+		ID:           reqData.ID,
+		NamespaceID:  reqData.NamespaceID,
+		Name:         reqData.Name,
+		IP:           reqData.IP,
+		Port:         reqData.Port,
+		Owner:        reqData.Owner,
+		Path:         reqData.Path,
+		Password:     reqData.Password,
+		JumpIP:       reqData.JumpIP,
+		JumpPort:     reqData.JumpPort,
+		JumpOwner:    reqData.JumpOwner,
+		JumpPath:     reqData.JumpPath,
+		JumpPassword: reqData.JumpPassword,
+		Description:  reqData.Description,
+	}
+	server.OSInfo = server.Convert2SSHConfig().GetOSInfo()
 
-	if err != nil {
+	if err := server.EditRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{}
@@ -212,7 +251,7 @@ func (Server) DownloadFile(gp *core.Goploy) core.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
+	client, err := server.Convert2SSHConfig().Dial()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -242,7 +281,7 @@ func (Server) UploadFile(gp *core.Goploy) core.Response {
 	}
 	defer file.Close()
 
-	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
+	client, err := server.Convert2SSHConfig().Dial()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -445,30 +484,4 @@ func (s Server) DeleteMonitor(gp *core.Goploy) core.Response {
 
 	}
 	return response.JSON{}
-}
-
-// version|cpu cores|mem
-func (Server) getOSInfo(owner, password, path, ip string, port int) string {
-	osInfoScript := `cat /etc/os-release | grep "PRETTY_NAME" | awk -F\" '{print $2}' && cat /proc/cpuinfo  | grep "processor" | wc -l && cat /proc/meminfo | grep MemTotal | awk '{print $2}'`
-	client, err := utils.DialSSH(owner, password, path, ip, port)
-	if err != nil {
-		return ""
-	}
-	defer client.Close()
-
-	session, err := client.NewSession()
-	if err != nil {
-		return ""
-	}
-	defer session.Close()
-
-	var sshOutbuf, sshErrbuf bytes.Buffer
-	session.Stdout = &sshOutbuf
-	session.Stderr = &sshErrbuf
-	if err := session.Run(osInfoScript); err != nil {
-		return ""
-	}
-
-	// version|cpu cores|mem
-	return strings.Replace(strings.Trim(sshOutbuf.String(), "\n"), "\n", "|", -1)
 }

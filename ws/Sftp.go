@@ -7,7 +7,6 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/response"
-	"github.com/zhenorzz/goploy/utils"
 	"net/http"
 	"os"
 	"strconv"
@@ -45,7 +44,7 @@ func (hub *Hub) Sftp(gp *core.Goploy) core.Response {
 		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
 		return response.Empty{}
 	}
-	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
+	client, err := server.Convert2SSHConfig().Dial()
 	if err != nil {
 		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
 		return response.Empty{}

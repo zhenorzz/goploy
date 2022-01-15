@@ -256,7 +256,7 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			}
 			rsyncOption, _ := utils.ParseCommandLine(project.RsyncOption)
 			rsyncOption = append([]string{"--exclude", "goploy-after-pull.sh", "--include", "goploy-after-deploy.sh"}, rsyncOption...)
-			rsyncOption = append(rsyncOption, "-e", fmt.Sprintf("ssh -p %d -o StrictHostKeyChecking=no -i %s", projectServer.ServerPort, projectServer.ServerPath))
+			rsyncOption = append(rsyncOption, "-e", projectServer.Convert2SSHConfig().ToRsyncOption())
 			if len(project.SymlinkPath) != 0 {
 				destDir = path.Join(project.SymlinkPath, project.LastPublishToken)
 			}
@@ -335,16 +335,16 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			}{projectServer.ServerID, projectServer.ServerName, strings.Join(afterDeployCommands, ";")})
 			publishTraceModel.Ext = string(ext)
 
-			client, dialError := utils.DialSSH(projectServer.ServerOwner, projectServer.ServerPassword, projectServer.ServerPath, projectServer.ServerIP, projectServer.ServerPort)
-			if dialError != nil {
-				core.Log(core.ERROR, dialError.Error())
-				publishTraceModel.Detail = dialError.Error()
+			client, err := projectServer.Convert2SSHConfig().Dial()
+			if err != nil {
+				core.Log(core.ERROR, err.Error())
+				publishTraceModel.Detail = err.Error()
 				publishTraceModel.State = model.Fail
 				publishTraceModel.AddRow()
 				msgChIn <- syncMessage{
 					serverName: projectServer.ServerName,
 					projectID:  project.ID,
-					detail:     dialError.Error(),
+					detail:     err.Error(),
 					state:      model.ProjectFail,
 				}
 				return
@@ -568,7 +568,7 @@ func (gsync Gsync) removeExpiredBackup() {
 		wg.Add(1)
 		go func(projectServer model.ProjectServer) {
 			defer wg.Done()
-			client, err := utils.DialSSH(projectServer.ServerOwner, projectServer.ServerPassword, projectServer.ServerPath, projectServer.ServerIP, projectServer.ServerPort)
+			client, err := projectServer.Convert2SSHConfig().Dial()
 			if err != nil {
 				core.Log(core.ERROR, err.Error())
 				return

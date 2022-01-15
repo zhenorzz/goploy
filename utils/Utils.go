@@ -2,12 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net"
 	"strings"
-	"time"
-
-	"golang.org/x/crypto/ssh"
 )
 
 // GetScriptExt return script extension default bash
@@ -90,53 +85,6 @@ func ParseCommandLine(command string) ([]string, error) {
 	}
 
 	return args, nil
-}
-
-func DialSSH(user, password, path, host string, port int) (*ssh.Client, error) {
-	var (
-		auth         []ssh.AuthMethod
-		addr         string
-		clientConfig *ssh.ClientConfig
-		config       ssh.Config
-		err          error
-	)
-	// get auth method
-	auth = make([]ssh.AuthMethod, 0)
-
-	pemBytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	var signer ssh.Signer
-	if password == "" {
-		signer, err = ssh.ParsePrivateKey(pemBytes)
-	} else {
-		signer, err = ssh.ParsePrivateKeyWithPassphrase(pemBytes, []byte(password))
-	}
-	if err != nil {
-		return nil, err
-	}
-	auth = append(auth, ssh.PublicKeys(signer))
-
-	config = ssh.Config{
-		Ciphers: []string{"aes128-ctr", "aes192-ctr", "aes256-ctr", "aes128-gcm@openssh.com", "arcfour256", "arcfour128", "aes128-cbc", "3des-cbc", "aes192-cbc", "aes256-cbc"},
-	}
-
-	clientConfig = &ssh.ClientConfig{
-		User:    user,
-		Auth:    auth,
-		Timeout: 30 * time.Second,
-		Config:  config,
-		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
-			return nil
-		},
-	}
-
-	// connect to ssh
-	addr = fmt.Sprintf("%s:%d", host, port)
-
-	return ssh.Dial("tcp", addr, clientConfig)
 }
 
 func ClearNewline(str string) string {

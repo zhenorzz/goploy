@@ -142,7 +142,7 @@
         <el-form-item label="Host" prop="ip">
           <el-input v-model="formData.ip" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="port" prop="port">
+        <el-form-item label="Port" prop="port">
           <el-input v-model.number="formData.port" autocomplete="off" />
         </el-form-item>
         <el-form-item :label="$t('serverPage.sshKeyOwner')" prop="owner">
@@ -183,6 +183,40 @@
             v-model="formData.description"
             type="textarea"
             :autosize="{ minRows: 2 }"
+          />
+        </el-form-item>
+        <el-form-item label="">
+          <el-button
+            type="text"
+            @click="formProps.showAdvance = !formProps.showAdvance"
+          >
+            高级选项
+          </el-button>
+        </el-form-item>
+        <el-form-item v-show="formProps.showAdvance" label="Jump host">
+          <el-input v-model="formData.jumpIP" autocomplete="off" />
+        </el-form-item>
+        <el-form-item v-show="formProps.showAdvance" label="Jump port">
+          <el-input v-model.number="formData.jumpPort" autocomplete="off" />
+        </el-form-item>
+        <el-form-item
+          v-show="formProps.showAdvance"
+          :label="$t('serverPage.sshKeyOwner')"
+        >
+          <el-input
+            v-model="formData.jumpOwner"
+            autocomplete="off"
+            placeholder="root"
+          />
+        </el-form-item>
+        <el-form-item
+          v-show="formProps.showAdvance"
+          :label="$t('serverPage.sshKeyPath')"
+        >
+          <el-input
+            v-model="formData.jumpPath"
+            autocomplete="off"
+            placeholder="/root/.ssh/id_rsa"
           />
         </el-form-item>
       </el-form>
@@ -248,6 +282,7 @@ export default defineComponent({
       tempFormData: {},
       formProps: {
         loading: false,
+        showAdvance: false,
         copyPubLoading: false,
         disabled: false,
       },
@@ -260,6 +295,11 @@ export default defineComponent({
         owner: '',
         path: '/root/.ssh/id_rsa',
         password: '',
+        jumpIP: '',
+        jumpPort: 0,
+        jumpOwner: '',
+        jumpPath: '',
+        jumpPassword: '',
         description: '',
       },
       formRules: {

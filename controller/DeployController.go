@@ -211,7 +211,7 @@ func (Deploy) FileCompare(gp *core.Goploy) core.Response {
 	for _, server := range projectServers {
 		go func(server model.ProjectServer) {
 			fileCompare := FileCompareData{server.ServerName, server.ServerIP, server.ServerID, "no change", false}
-			client, err := utils.DialSSH(server.ServerOwner, server.ServerPassword, server.ServerPath, server.ServerIP, server.ServerPort)
+			client, err := server.Convert2SSHConfig().Dial()
 			if err != nil {
 				fileCompare.Status = "client error"
 				ch <- fileCompare
@@ -280,7 +280,7 @@ func (Deploy) FileDiff(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
+	client, err := server.Convert2SSHConfig().Dial()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -351,7 +351,7 @@ func (Deploy) ManageProcess(gp *core.Goploy) core.Response {
 
 	script = service.ReplaceProjectVars(script, project)
 
-	client, err := utils.DialSSH(server.Owner, server.Password, server.Path, server.IP, server.Port)
+	client, err := server.Convert2SSHConfig().Dial()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -463,7 +463,7 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 		ch := make(chan bool, len(projectServers))
 		for _, projectServer := range projectServers {
 			go func(projectServer model.ProjectServer) {
-				client, err := utils.DialSSH(projectServer.ServerOwner, projectServer.ServerPassword, projectServer.ServerPath, projectServer.ServerIP, projectServer.ServerPort)
+				client, err := projectServer.Convert2SSHConfig().Dial()
 				if err != nil {
 					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" dial err: "+err.Error())
 					ch <- false
