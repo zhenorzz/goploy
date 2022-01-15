@@ -10,6 +10,11 @@ export class ServerData {
     owner: string
     path: string
     password: string
+    jumpIP: string
+    jumpPort: number
+    jumpOwner: string
+    jumpPath: string
+    jumpPassword: string
     namespaceId: number
     description: string
     state: number
@@ -104,6 +109,11 @@ export class ServerAdd extends Request {
     owner: string
     path: string
     password: string
+    jumpIP: string
+    jumpPort: number
+    jumpOwner: string
+    jumpPath: string
+    jumpPassword: string
     description: string
   }
   constructor(param: ServerAdd['param']) {
@@ -124,6 +134,11 @@ export class ServerEdit extends Request {
     owner: string
     path: string
     password: string
+    jumpIP: string
+    jumpPort: number
+    jumpOwner: string
+    jumpPath: string
+    jumpPassword: string
     description: string
   }
   constructor(param: ServerEdit['param']) {
@@ -141,6 +156,11 @@ export class ServerCheck extends Request {
     owner: string
     path: string
     password: string
+    jumpIP: string
+    jumpPort: number
+    jumpOwner: string
+    jumpPath: string
+    jumpPassword: string
   }
   constructor(param: ServerCheck['param']) {
     super()
