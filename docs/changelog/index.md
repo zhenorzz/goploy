@@ -1,5 +1,30 @@
 # change log
 
+## 1.4.4
+
+*2022-01-17*
+
+### New features
+- support jump server
+- process manager
+- split log
+
+### Optimization
+- decode query
+
+## 1.4.3
+
+*2021-12-24*
+
+### Optimization
+- code
+- select db
+### Bug fixes
+- fix exit deploy script
+- fix tag refresh
+- fix deploy filter
+- fix file upload
+
 ## 1.4.2
 
 *2021-12-15*
