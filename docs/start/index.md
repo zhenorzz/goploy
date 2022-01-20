@@ -11,25 +11,17 @@
 - Rsync(linux mac自带，windows需要安装[cwRsync](https://www.itefix.net/cwrsync))
 
 # 安装 Goploy
-方法1:
-
-```
-go get -u github.com/zhenorzz/goploy
-```
-
-方法2: 
 
 下载releases
 - https://github.com/zhenorzz/goploy/releases
 - https://gitee.com/goploy/goploy/releases
-
-方法3：
 
 [Docker](https://hub.docker.com/r/zhenorzz/goploy)
 
 # 启动
 
 ```shell
+# 新手推荐用root启动，避免不必要的问题
 # 运行不了可能需要 chmod a+x, 再不行就发issue或加群
 # Windows
 goploy.exe
@@ -41,14 +33,6 @@ goploy.exe
 
 # 配置
 
-配置goploy有两种方法
-
-- 启动前手动复制配置文件
-    1. cp .env.example .env
-    2. 安装数据库文件 goploy.sql
-
-- 直接启动引导安装
-
 ```shell
 请输入mysql的用户:
 ***
@@ -58,9 +42,7 @@ goploy.exe
 
 请输入mysql的端口(默认3306):
 
-请输入日志目录的绝对路径(默认/tmp/):
-
-请输入sshkey的绝对路径(默认/root/.ssh/id_rsa):
+请输入日志目录的绝对路径(默认stdout):
 
 请输入监听端口(默认80，打开网页时的端口):
 

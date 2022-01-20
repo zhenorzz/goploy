@@ -11,25 +11,18 @@ Dependencies
 - Rsync(windows need to install [cwRsync](https://www.itefix.net/cwrsync))
 
 # Install Goploy
-Method 1:
-
-```
-go get -u github.com/zhenorzz/goploy
-```
-
-Method 2: 
 
 Download releases
 - https://github.com/zhenorzz/goploy/releases
 - https://gitee.com/goploy/goploy/releases
-
-Method 3:
 
 [Docker](https://hub.docker.com/r/zhenorzz/goploy)
 
 # Start up
 
 ```shell
+# It is recommended to use root user to start
+
 # Windows
 goploy.exe
 # Linux
@@ -39,12 +32,6 @@ goploy.exe
 ```
 
 # Configuration
-
-There are two ways to configure goploy
-
-- Manually copy the configuration file before starting
-    1. cp .env.example .env
-    2. Install database files goploy.sql
 
 - Boot installation
 
@@ -57,9 +44,7 @@ Please enter the mysql host(default 127.0.0.1, without port):
 
 Please enter the mysql port(default 3306):
 
-Please enter the absolute path of the log directory(default /tmp/):
-
-Please enter the absolute path of the ssh-key directory(default /root/.ssh/id_rsa):
+Please enter the absolute path of the log directory(default stdout):
 
 Please enter the listening port(default 80):
 
