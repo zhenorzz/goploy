@@ -454,15 +454,6 @@ export default defineComponent({
       }
       const data = response.message
       const message = this.enterToBR(data.message)
-      if (data.state === 0) {
-        ElNotification({
-          type: 'error',
-          title: data.projectName,
-          dangerouslyUseHTMLString: true,
-          message: message,
-          duration: 0,
-        })
-      }
       const projectIndex = this.tableData.findIndex(
         (element) => element.id === data.projectId
       )

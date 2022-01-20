@@ -75,6 +75,13 @@ func (git *GIT) Branch(options ...string) error {
 	return nil
 }
 
+func (git *GIT) Current() error {
+	if err := git.Run("symbolic-ref", "--short", "HEAD"); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (git *GIT) Reset(options ...string) error {
 	if err := git.Run("reset", options...); err != nil {
 		return err
