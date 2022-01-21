@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/zhenorzz/goploy/config"
 	"os"
 	"os/exec"
 	"path"
@@ -55,6 +56,9 @@ func GetConfigFile() string {
 }
 
 func GetRepositoryPath() string {
+	if config.Toml.APP.RepositoryPath != "" {
+		return path.Join(config.Toml.APP.RepositoryPath, "repository")
+	}
 	return path.Join(GetAssetDir(), "repository")
 }
 

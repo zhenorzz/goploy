@@ -20,6 +20,7 @@ type Config struct {
 type APPConfig struct {
 	DeployLimit     int32         `toml:"deployLimit"`
 	ShutdownTimeout time.Duration `toml:"shutdownTimeout"`
+	RepositoryPath  string        `toml:"repositoryPath"`
 }
 
 type CookieConfig struct {
