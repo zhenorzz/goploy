@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"path"
 	"strconv"
 	"strings"
 )
@@ -22,6 +23,7 @@ func (s Server) Routes() []core.Route {
 		core.NewRoute("/server/getTotal", http.MethodGet, s.GetTotal),
 		core.NewRoute("/server/getOption", http.MethodGet, s.GetOption),
 		core.NewRoute("/server/getPublicKey", http.MethodGet, s.GetPublicKey),
+		core.NewRoute("/server/getTerminalRecord", http.MethodGet, s.GetTerminalRecord),
 		core.NewRoute("/server/check", http.MethodPost, s.Check).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/add", http.MethodPost, s.Add).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/edit", http.MethodPut, s.Edit).Roles(core.RoleAdmin, core.RoleManager),
@@ -74,6 +76,10 @@ func (Server) GetOption(gp *core.Goploy) core.Response {
 			Servers model.Servers `json:"list"`
 		}{Servers: serverList},
 	}
+}
+
+func (Server) GetTerminalRecord(*core.Goploy) core.Response {
+	return response.File{Filename: path.Join(core.GetLogPath(), "demo.cast")}
 }
 
 func (Server) GetPublicKey(gp *core.Goploy) core.Response {

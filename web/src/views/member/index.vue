@@ -106,7 +106,7 @@
           </el-radio-group>
           <el-popover
             placement="top-start"
-            :title="$t('desc')"
+            :title="$t('description')"
             width="300"
             trigger="hover"
           >

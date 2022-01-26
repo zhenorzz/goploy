@@ -167,7 +167,7 @@
         <el-form-item :label="$t('monitorPage.notifyTimes')" prop="notifyTimes">
           <el-input v-model.number="formData.notifyTimes" />
         </el-form-item>
-        <el-form-item :label="$t('desc')" prop="description">
+        <el-form-item :label="$t('description')" prop="description">
           <el-input
             v-model="formData.description"
             type="textarea"

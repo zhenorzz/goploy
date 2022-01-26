@@ -1,6 +1,7 @@
 import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import { AttachAddon } from 'xterm-addon-attach'
+import { ElMessage } from 'element-plus'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 export class xterm {
   private serverId: number
@@ -18,6 +19,27 @@ export class xterm {
       fontSize: 14,
       cursorBlink: true,
       windowsMode: isWindows,
+      theme: {
+        foreground: '#ebeef5',
+        background: '#1d2935',
+        cursor: '#e6a23c',
+        black: '#000000',
+        brightBlack: '#555555',
+        red: '#ef4f4f',
+        brightRed: '#ef4f4f',
+        green: '#67c23a',
+        brightGreen: '#67c23a',
+        yellow: '#e6a23c',
+        brightYellow: '#e6a23c',
+        blue: '#409eff',
+        brightBlue: '#409eff',
+        magenta: '#ef4f4f',
+        brightMagenta: '#ef4f4f',
+        cyan: '#17c0ae',
+        brightCyan: '#17c0ae',
+        white: '#bbbbbb',
+        brightWhite: '#ffffff',
+      },
     })
     const fitAddon = new FitAddon()
     this.terminal.open(this.element)
@@ -31,10 +53,13 @@ export class xterm {
       }&rows=${this.terminal.rows}&cols=${this.terminal.cols}`
     )
     this.terminal.loadAddon(new AttachAddon(this.websocket))
+    this.websocket.onclose = function (evt) {
+      ElMessage.error(evt.reason)
+    }
   }
   public close(): void {
-    this.websocket.close()
     this.terminal.dispose()
+    this.websocket.close()
   }
 
   public send(message: string): void {

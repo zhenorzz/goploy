@@ -42,7 +42,7 @@
       </el-table-column>
       <el-table-column
         prop="description"
-        :label="$t('desc')"
+        :label="$t('description')"
         min-width="240"
         show-overflow-tooltip
       />
@@ -131,7 +131,7 @@
             <el-radio :label="2">stdout+stderr</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="$t('desc')" prop="description">
+        <el-form-item :label="$t('description')" prop="description">
           <el-input
             v-model="formData.description"
             type="textarea"

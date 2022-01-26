@@ -55,6 +55,10 @@ func GetConfigFile() string {
 	return path.Join(GetAssetDir(), "goploy.toml")
 }
 
+func GetLogPath() string {
+	return path.Join(GetAssetDir(), "tmp")
+}
+
 func GetRepositoryPath() string {
 	if config.Toml.APP.RepositoryPath != "" {
 		return path.Join(config.Toml.APP.RepositoryPath, "repository")

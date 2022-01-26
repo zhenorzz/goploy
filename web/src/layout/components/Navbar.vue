@@ -33,48 +33,6 @@
       class="breadcrumb-container"
     />
     <div class="right">
-      <div v-show="false" class="github">
-        <span class="github-btn">
-          <a class="gh-btn" href="https://github.com/zhenorzz" target="_blank">
-            <span class="gh-ico" />
-            <span class="gh-text">Follow @zhenorzz</span>
-          </a>
-        </span>
-        <span class="github-btn">
-          <a
-            class="gh-btn"
-            href="https://github.com/zhenorzz/goploy/"
-            target="_blank"
-          >
-            <span class="gh-ico" />
-            <span class="gh-text">Star</span>
-          </a>
-          <a
-            class="gh-count"
-            href="https://github.com/zhenorzz/goploy/stargazers"
-            target="_blank"
-          >
-            {{ starCount }}
-          </a>
-        </span>
-        <span class="github-btn github-forks">
-          <a
-            class="gh-btn"
-            href="https://github.com/zhenorzz/goploy/fork"
-            target="_blank"
-          >
-            <span class="gh-ico" aria-hidden="true" />
-            <span class="gh-text">Fork</span>
-          </a>
-          <a
-            class="gh-count"
-            href="https://github.com/zhenorzz/goploy/network"
-            target="_blank"
-          >
-            {{ forkCount }}
-          </a>
-        </span>
-      </div>
       <div class="international">
         <el-dropdown
           trigger="click"

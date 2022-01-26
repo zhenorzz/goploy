@@ -70,6 +70,12 @@ export const constantRoutes: RouteRecordRaw[] = [
       },
     ],
   },
+  {
+    path: '/server/record',
+    name: 'record',
+    component: () => import('@/views/server/record/index.vue'),
+    meta: { hidden: true },
+  },
 ]
 
 /**
@@ -163,6 +169,26 @@ export const asyncRoutes: RouteRecordRaw[] = [
         meta: {
           title: 'serverSetting',
           icon: 'server',
+          roles: ['admin', 'manager'],
+        },
+      },
+      {
+        path: 'terminal',
+        name: 'ServerTerminal',
+        component: () => import('@/views/server/terminal/index.vue'),
+        meta: {
+          title: 'serverTerminal',
+          icon: 'terminal',
+          roles: ['admin', 'manager'],
+        },
+      },
+      {
+        path: 'sftp',
+        name: 'ServerSFTP',
+        component: () => import('@/views/server/sftp/index.vue'),
+        meta: {
+          title: 'serverSFTP',
+          icon: 'ftp',
           roles: ['admin', 'manager'],
         },
       },

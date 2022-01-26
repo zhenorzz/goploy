@@ -1,43 +1,33 @@
 package response
 
 import (
-	"github.com/pkg/sftp"
-	"golang.org/x/crypto/ssh"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 )
 
-type SftpFile struct {
-	Client   *ssh.Client
+type File struct {
 	Filename string
 }
 
 //JSON response
-func (sf SftpFile) Write(w http.ResponseWriter) error {
-	defer sf.Client.Close()
-
-	sftpClient, err := sftp.NewClient(sf.Client)
+func (f File) Write(w http.ResponseWriter) error {
+	file, err := os.Open(f.Filename)
 	if err != nil {
 		return err
 	}
-	defer sftpClient.Close()
 
-	srcFile, err := sftpClient.Open(sf.Filename) //远程
+	fileStat, err := file.Stat()
 	if err != nil {
 		return err
 	}
-	defer srcFile.Close()
 
-	fileStat, err := srcFile.Stat()
-	if err != nil {
-		return err
-	}
 	w.Header().Set("Content-Disposition", "attachment; filename="+fileStat.Name())
-	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Type", "application/x-asciicast")
 	w.Header().Set("Content-Length", strconv.FormatInt(fileStat.Size(), 10))
-	_, err = io.Copy(w, srcFile)
 
+	_, err = io.Copy(w, file)
 	if err != nil {
 		return err
 	}

@@ -6,8 +6,10 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/response"
+	"github.com/zhenorzz/goploy/utils"
 	"golang.org/x/crypto/ssh"
 	"net/http"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -101,6 +103,8 @@ func (hub *Hub) Xterm(gp *core.Goploy) core.Response {
 		return response.Empty{}
 	}
 
+	recorder, _ := utils.NewRecorder(path.Join(core.GetLogPath(), "demo.cast"), "xterm", rows, cols)
+	defer recorder.Close()
 	ticker := time.NewTicker(pingPeriod)
 	defer ticker.Stop()
 	flushMessageTick := time.NewTicker(time.Millisecond * time.Duration(120))
@@ -124,6 +128,7 @@ func (hub *Hub) Xterm(gp *core.Goploy) core.Response {
 						c.Close()
 						return
 					}
+					recorder.WriteData(comboWriter.buffer.String())
 					comboWriter.buffer.Reset()
 				}
 			case <-stop:

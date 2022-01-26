@@ -1,12 +1,6 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button @click="dialogSftpVisible = true">
-        <svg-icon icon-class="ftp" />
-      </el-button>
-      <el-button @click="dialogTermVisible = true">
-        <svg-icon icon-class="terminal" />
-      </el-button>
       <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
     <el-table
@@ -51,7 +45,7 @@
       </el-table-column>
       <el-table-column
         prop="description"
-        :label="$t('desc')"
+        :label="$t('description')"
         min-width="140"
         show-overflow-tooltip
       />
@@ -178,7 +172,7 @@
             placeholder=""
           />
         </el-form-item> -->
-        <el-form-item :label="$t('desc')" prop="description">
+        <el-form-item :label="$t('description')" prop="description">
           <el-input
             v-model="formData.description"
             type="textarea"
@@ -240,8 +234,6 @@
         </el-row>
       </template>
     </el-dialog>
-    <TheXtermDialog v-model="dialogTermVisible" />
-    <TheSftpDialog v-model="dialogSftpVisible" />
   </el-row>
 </template>
 <script lang="ts">
@@ -256,8 +248,6 @@ import {
   ServerToggle,
   ServerData,
 } from '@/api/server'
-import TheXtermDialog from './TheXtermDialog.vue'
-import TheSftpDialog from './TheSftpDialog.vue'
 import Validator from 'async-validator'
 import { defineComponent } from 'vue'
 import { copy, humanSize } from '@/utils'
@@ -265,11 +255,8 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 
 export default defineComponent({
   name: 'ServerIndex',
-  components: { TheXtermDialog, TheSftpDialog },
   data() {
     return {
-      dialogTermVisible: false,
-      dialogSftpVisible: false,
       dialogVisible: false,
       tableLoading: false,
       tableData: [] as ServerList['datagram']['list'],
