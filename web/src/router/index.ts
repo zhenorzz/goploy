@@ -208,7 +208,6 @@ export const asyncRoutes: RouteRecordRaw[] = [
         name: 'ServerCron',
         component: () => import('@/views/server/cron/index.vue'),
         meta: {
-          hidden: true,
           title: 'serverCron',
           icon: 'crontab',
           roles: ['admin', 'manager'],

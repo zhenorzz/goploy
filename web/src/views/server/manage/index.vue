@@ -85,10 +85,13 @@
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
-          <el-button icon="el-icon-time" @click="handleCron(scope.row)" />
           <el-button
             icon="el-icon-data-line"
             @click="handleMonitor(scope.row)"
+          />
+          <el-button
+            icon="el-icon-document-copy"
+            @click="handleCopy(scope.row)"
           />
           <el-button
             type="primary"
@@ -376,8 +379,10 @@ export default defineComponent({
       this.dialogVisible = true
     },
 
-    handleCron(data: ServerData['datagram']) {
-      this.$router.push({ path: '/server/cron', query: { serverId: data.id } })
+    handleCopy(data: ServerData['datagram']) {
+      this.formData = Object.assign({}, data)
+      this.formData.id = 0
+      this.dialogVisible = true
     },
 
     handleMonitor(data: ServerData['datagram']) {

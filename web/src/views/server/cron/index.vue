@@ -1,8 +1,23 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="space-between">
-      <el-col :span="16"> </el-col>
-      <el-col :span="8" style="text-align: right">
+      <el-col :span="16">
+        <el-select
+          v-model="serverId"
+          placeholder="Select server"
+          style="width: 160px"
+          filterable
+          @change="selectServer"
+        >
+          <el-option
+            v-for="server in serverOption"
+            :key="server.id"
+            :label="server.name"
+            :value="server.id"
+          />
+        </el-select>
+      </el-col>
+      <el-col v-if="serverId !== ''" :span="8" style="text-align: right">
         <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
       </el-col>
     </el-row>
@@ -157,6 +172,7 @@
 <script lang="ts">
 import tableHeight from '@/mixin/tableHeight'
 import cronstrue from 'cronstrue/i18n'
+import { ServerOption } from '@/api/server'
 import { CronList, CronAdd, CronEdit, CronRemove, CronData } from '@/api/cron'
 import Validator, { RuleItem } from 'async-validator'
 import { ElMessage } from 'element-plus'
@@ -167,9 +183,10 @@ export default defineComponent({
   mixins: [tableHeight],
   data() {
     return {
-      serverId: Number(this.$route.query.serverId),
+      serverId: '',
       crontabCommand: '',
       dialogVisible: false,
+      serverOption: [] as ServerOption['datagram']['list'],
       selectedItem: {},
       tableLoading: false,
       tableData: [] as CronList['datagram']['list'],
@@ -222,22 +239,26 @@ export default defineComponent({
     }
   },
 
-  activated() {
-    this.formData.serverId = this.serverId = Number(this.$route.query.serverId)
-    if (!this.serverId) {
-      this.$store.dispatch('tagsView/delView', this.$route).then(() => {
-        this.$router.push('/server/index')
-      })
-    } else {
-      this.storeFormData()
-      this.getList()
-    }
+  created() {
+    this.getServerOption()
+    this.storeFormData()
   },
 
   methods: {
+    selectServer() {
+      this.getList()
+    },
+
+    getServerOption() {
+      new ServerOption().request().then((response) => {
+        this.serverOption = response.data.list
+      })
+    },
+
     getList() {
       this.tableLoading = true
-      new CronList({ serverId: this.serverId }, this.pagination)
+      this.tableData = []
+      new CronList({ serverId: Number(this.serverId) }, this.pagination)
         .request()
         .then((response) => {
           this.tableData = response.data.list
