@@ -44,6 +44,7 @@ func (GitRepo) Create(projectID int64) error {
 		return err
 	}
 
+	git.Dir = srcPath
 	if err := git.Current(); err != nil {
 		core.Log(core.ERROR, fmt.Sprintf("The project fail to get current branch, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
 		return err
@@ -51,7 +52,6 @@ func (GitRepo) Create(projectID int64) error {
 
 	currentBranch := utils.ClearNewline(git.Output.String())
 	if project.Branch != currentBranch {
-		git.Dir = srcPath
 		if err := git.Checkout("-b", project.Branch, "origin/"+project.Branch); err != nil {
 			core.Log(core.ERROR, fmt.Sprintf("The project fail to switch branch, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
 			_ = os.RemoveAll(srcPath)
