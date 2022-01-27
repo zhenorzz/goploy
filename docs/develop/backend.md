@@ -8,7 +8,5 @@
 
 # 启动
 
-- 修改.env ENV=dev
+- 打包前端文件
 - go run main.go
-- 或 Windows使用gin(此方式支持热重启)
-

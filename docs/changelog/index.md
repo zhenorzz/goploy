@@ -1,5 +1,17 @@
 # change log
 
+## 1.4.5
+
+*2022-01-26*
+
+### New features
+- new web shell
+- new sftp
+- support copy server config
+
+### Bug fixed
+- git current branch
+
 ## 1.4.4
 
 *2022-01-17*
