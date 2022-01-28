@@ -3,7 +3,7 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import {
   NamespaceKey,
   getNamespaceId,
-  removeNamespaceId,
+  removeNamespace,
 } from '@/utils/namespace'
 import { logout } from '@/utils/auth'
 
@@ -53,7 +53,7 @@ service.interceptors.response.use(
         })
         return Promise.reject(res.message)
       } else if (10002 === res.code) {
-        removeNamespaceId()
+        removeNamespace()
         return Promise.reject(res.message)
       } else {
         ElMessage({

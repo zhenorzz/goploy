@@ -3,11 +3,7 @@ import { UserState } from './types'
 import { RootState } from '../../types'
 import { Login, Info } from '@/api/user'
 import { setLogin, logout } from '@/utils/auth'
-import {
-  getNamespaceId,
-  setNamespaceId,
-  setNamespaceList,
-} from '@/utils/namespace'
+import { getNamespaceId, setNamespace } from '@/utils/namespace'
 import { resetRouter } from '@/router'
 
 const state: UserState = {
@@ -43,9 +39,8 @@ const actions: ActionTree<UserState, RootState> = {
           const { data } = response
           if (!getNamespaceId()) {
             const namespace = data.namespaceList[data.namespaceList.length - 1]
-            setNamespaceId(namespace.id.toString())
+            setNamespace(namespace)
           }
-          setNamespaceList(data.namespaceList)
 
           setLogin('ok')
           resolve(response)

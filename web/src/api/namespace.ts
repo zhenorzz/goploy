@@ -56,6 +56,15 @@ export class NamespaceUserOption extends Request {
   }
 }
 
+export class NamespaceOption extends Request {
+  readonly url = '/namespace/getOption'
+  readonly method = 'get'
+
+  public datagram!: {
+    list: NamespaceUserData['datagram'][]
+  }
+}
+
 export class NamespaceUserList extends Request {
   readonly url = '/namespace/getBindUserList'
   readonly method = 'get'

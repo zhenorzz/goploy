@@ -1,5 +1,4 @@
 export const NamespaceKey = 'G-N-ID'
-const NamespaceListKey = 'goploy_namespace_list'
 
 export interface Namespace {
   id: number
@@ -42,37 +41,22 @@ export function getRole() {
 }
 
 export function getNamespace(): Namespace {
-  const namespaceId = getNamespaceId()
-  const namespaceList = getNamespaceList()
-  if (namespaceId && namespaceList) {
-    return namespaceList.find(
-      (_) => _.id.toString() === namespaceId
-    ) as Namespace
-  }
-  return { id: 0, name: '', role: '' }
-}
-
-export function getNamespaceId(): string | undefined {
-  const namespaceId =
+  const n =
     sessionStorage.getItem(NamespaceKey) || localStorage.getItem(NamespaceKey)
-  return namespaceId || undefined
+  return n ? JSON.parse(n) : { id: 0, name: '', role: '' }
 }
 
-export function setNamespaceId(namespaceId: string): void {
-  sessionStorage.setItem(NamespaceKey, namespaceId)
-  localStorage.setItem(NamespaceKey, namespaceId)
+export function getNamespaceId(): number {
+  const namespaceId = getNamespace().id
+  return namespaceId
 }
 
-export function removeNamespaceId(): void {
+export function setNamespace(namespace: Namespace): void {
+  sessionStorage.setItem(NamespaceKey, JSON.stringify(namespace))
+  localStorage.setItem(NamespaceKey, JSON.stringify(namespace))
+}
+
+export function removeNamespace(): void {
   sessionStorage.removeItem(NamespaceKey)
   localStorage.removeItem(NamespaceKey)
-}
-
-export function getNamespaceList(): Array<Namespace> {
-  const namespaceList = localStorage.getItem(NamespaceListKey)
-  return namespaceList ? JSON.parse(namespaceList) : []
-}
-
-export function setNamespaceList(namespaceList: Array<Namespace>): void {
-  localStorage.setItem(NamespaceListKey, JSON.stringify(namespaceList))
 }

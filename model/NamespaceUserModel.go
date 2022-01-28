@@ -23,7 +23,29 @@ type NamespaceUser struct {
 // NamespaceUsers -
 type NamespaceUsers []NamespaceUser
 
-// GetBindUserListByNamespaceID -
+func (nu NamespaceUser) GetUserNamespaceList() (NamespaceUsers, error) {
+	rows, err := sq.
+		Select("namespace_id, namespace.name, namespace_user.role").
+		From(namespaceUserTable).
+		Join(namespaceTable + " ON namespace_user.namespace_id = namespace.id").
+		Where(sq.Eq{"user_id": nu.UserID}).
+		RunWith(DB).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	namespaceUsers := NamespaceUsers{}
+	for rows.Next() {
+		var namespaceUser NamespaceUser
+
+		if err := rows.Scan(&namespaceUser.NamespaceID, &namespaceUser.NamespaceName, &namespaceUser.Role); err != nil {
+			return nil, err
+		}
+		namespaceUsers = append(namespaceUsers, namespaceUser)
+	}
+	return namespaceUsers, nil
+}
+
 func (nu NamespaceUser) GetBindUserListByNamespaceID() (NamespaceUsers, error) {
 	rows, err := sq.
 		Select("namespace_user.id, namespace_id, user_id, user.name, namespace_user.role, namespace_user.insert_time, namespace_user.update_time").
@@ -47,7 +69,6 @@ func (nu NamespaceUser) GetBindUserListByNamespaceID() (NamespaceUsers, error) {
 	return namespaceUsers, nil
 }
 
-// GetAllUserByNamespaceID -
 func (nu NamespaceUser) GetAllUserByNamespaceID() (NamespaceUsers, error) {
 	rows, err := sq.
 		Select("user_id, user.name, namespace_user.role").
@@ -71,7 +92,6 @@ func (nu NamespaceUser) GetAllUserByNamespaceID() (NamespaceUsers, error) {
 	return namespaceUsers, nil
 }
 
-// GetAllGteManagerByNamespaceID -
 func (nu NamespaceUser) GetAllGteManagerByNamespaceID() (NamespaceUsers, error) {
 	rows, err := sq.
 		Select("user_id, role").
@@ -97,7 +117,6 @@ func (nu NamespaceUser) GetAllGteManagerByNamespaceID() (NamespaceUsers, error) 
 	return namespaceUsers, nil
 }
 
-// AddMany -
 func (nu NamespaceUsers) AddMany() error {
 	if len(nu) == 0 {
 		return nil
@@ -113,7 +132,6 @@ func (nu NamespaceUsers) AddMany() error {
 	return err
 }
 
-// AddAdminByNamespaceID -
 func (nu NamespaceUser) AddAdminByNamespaceID() error {
 
 	builder := sq.
@@ -127,7 +145,6 @@ func (nu NamespaceUser) AddAdminByNamespaceID() error {
 	return err
 }
 
-// AddAdminByUserID -
 func (nu NamespaceUser) AddAdminByUserID() error {
 	builder := sq.
 		Replace(namespaceUserTable).
@@ -139,7 +156,6 @@ func (nu NamespaceUser) AddAdminByUserID() error {
 	return err
 }
 
-// DeleteRow -
 func (nu NamespaceUser) DeleteRow() error {
 	_, err := sq.
 		Delete(namespaceUserTable).
@@ -149,7 +165,6 @@ func (nu NamespaceUser) DeleteRow() error {
 	return err
 }
 
-// DeleteByUserID -
 func (nu NamespaceUser) DeleteByUserID() error {
 	_, err := sq.
 		Delete(namespaceUserTable).

@@ -215,7 +215,6 @@ export default defineComponent({
         .then(() => {
           this.getList()
           this.getTotal()
-          ElMessage.success('Need to login again')
         })
         .finally(() => {
           this.formProps.disabled = this.dialogVisible = false

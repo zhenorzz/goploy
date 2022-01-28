@@ -14,6 +14,7 @@ func (n Namespace) Routes() []core.Route {
 	return []core.Route{
 		core.NewRoute("/namespace/getList", http.MethodGet, n.GetList),
 		core.NewRoute("/namespace/getTotal", http.MethodGet, n.GetTotal),
+		core.NewRoute("/namespace/getOption", http.MethodGet, n.GetOption),
 		core.NewRoute("/namespace/getBindUserList", http.MethodGet, n.GetBindUserList),
 		core.NewRoute("/namespace/getUserOption", http.MethodGet, n.GetUserOption),
 		core.NewRoute("/namespace/add", http.MethodPost, n.Add).Roles(core.RoleAdmin),
@@ -49,6 +50,18 @@ func (Namespace) GetTotal(gp *core.Goploy) core.Response {
 		Data: struct {
 			Total int64 `json:"total"`
 		}{Total: total},
+	}
+}
+
+func (Namespace) GetOption(gp *core.Goploy) core.Response {
+	namespaceUsers, err := model.NamespaceUser{UserID: gp.UserInfo.ID}.GetUserNamespaceList()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	return response.JSON{
+		Data: struct {
+			NamespaceUsers model.NamespaceUsers `json:"list"`
+		}{NamespaceUsers: namespaceUsers},
 	}
 }
 

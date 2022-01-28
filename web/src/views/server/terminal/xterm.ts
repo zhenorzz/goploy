@@ -54,7 +54,9 @@ export class xterm {
     )
     this.terminal.loadAddon(new AttachAddon(this.websocket))
     this.websocket.onclose = function (evt) {
-      ElMessage.error(evt.reason)
+      if (evt.reason !== '') {
+        ElMessage.error(evt.reason)
+      }
     }
   }
   public close(): void {
