@@ -28,6 +28,7 @@ func (s Server) Routes() []core.Route {
 		core.NewRoute("/server/add", http.MethodPost, s.Add).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/edit", http.MethodPut, s.Edit).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/toggle", http.MethodPut, s.Toggle).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/server/previewFile", http.MethodGet, s.PreviewFile).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/downloadFile", http.MethodGet, s.DownloadFile).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/uploadFile", http.MethodPost, s.UploadFile).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/report", http.MethodGet, s.Report).Roles(core.RoleAdmin, core.RoleManager),
@@ -247,7 +248,23 @@ func (Server) Toggle(gp *core.Goploy) core.Response {
 	return response.JSON{}
 }
 
-// DownloadFile sftp download file
+func (Server) PreviewFile(gp *core.Goploy) core.Response {
+	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: "invalid server id"}
+	}
+	server, err := (model.Server{ID: id}).GetData()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	client, err := server.Convert2SSHConfig().Dial()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	return response.SftpFile{Filename: gp.URLQuery.Get("file"), Client: client, Disposition: "inline"}
+}
+
 func (Server) DownloadFile(gp *core.Goploy) core.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
@@ -262,10 +279,9 @@ func (Server) DownloadFile(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	return response.SftpFile{Filename: gp.URLQuery.Get("file"), Client: client}
+	return response.SftpFile{Filename: gp.URLQuery.Get("file"), Client: client, Disposition: "attachment"}
 }
 
-// UploadFile sftp upload file
 func (Server) UploadFile(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ID       int64  `schema:"id" validate:"gt=0"`

@@ -159,6 +159,16 @@
                 </el-dropdown-item>
                 <el-dropdown-item v-if="selectedFile['isDir'] === false">
                   <el-link
+                    :href="previewHref"
+                    target="_blank"
+                    :underline="false"
+                    style="font-size: 12px"
+                  >
+                    {{ $t('preview') }}
+                  </el-link>
+                </el-dropdown-item>
+                <el-dropdown-item v-if="selectedFile['isDir'] === false">
+                  <el-link
                     :href="downloadHref"
                     target="_blank"
                     :underline="false"
@@ -252,6 +262,14 @@ export default defineComponent({
       }/server/uploadFile?${NamespaceKey}=${getNamespaceId()}&id=${
         this.serverId
       }&filePath=${this.dir}`
+    },
+    previewHref: function () {
+      const file = path.normalize(`${this.dir}/${this.selectedFile['name']}`)
+      return `${
+        import.meta.env.VITE_APP_BASE_API
+      }/server/previewFile?${NamespaceKey}=${getNamespaceId()}&id=${
+        this.serverId
+      }&file=${file}`
     },
     downloadHref: function () {
       const file = path.normalize(`${this.dir}/${this.selectedFile['name']}`)
