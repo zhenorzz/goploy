@@ -139,30 +139,36 @@ func (rt Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Response) {
+	gp := new(Goploy)
 	route, ok := rt.routes[r.URL.Path]
 	if !ok {
-		return nil, response.JSON{Code: response.Deny, Message: "No such method"}
+		return gp, response.JSON{Code: response.Deny, Message: "No such method"}
 	}
 	if route.method != r.Method {
-		return nil, response.JSON{Code: response.IllegalRequest, Message: "Invalid request method"}
+		return gp, response.JSON{Code: response.IllegalRequest, Message: "Invalid request method"}
 	}
 
-	userInfo := model.User{}
-	namespace := model.Namespace{}
 	if !route.white {
+		unParseToken := ""
 		// check token
 		goployTokenCookie, err := r.Cookie(config.Toml.Cookie.Name)
 		if err != nil {
-			return nil, response.JSON{Code: response.IllegalRequest, Message: "Illegal request"}
+			unParseToken = r.URL.Query().Get(config.Toml.Cookie.Name)
+		} else {
+			unParseToken = goployTokenCookie.Value
 		}
-		unParseToken := goployTokenCookie.Value
+
+		if unParseToken == "" {
+			return gp, response.JSON{Code: response.IllegalRequest, Message: "Illegal request"}
+		}
+
 		claims := jwt.MapClaims{}
 		token, err := jwt.ParseWithClaims(unParseToken, claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(config.Toml.JWT.Key), nil
 		})
 
 		if err != nil || !token.Valid {
-			return nil, response.JSON{Code: response.LoginExpired, Message: "Login expired"}
+			return gp, response.JSON{Code: response.LoginExpired, Message: "Login expired"}
 		}
 
 		namespaceIDRaw := r.Header.Get(NamespaceHeaderName)
@@ -172,29 +178,29 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 
 		namespaceID, err := strconv.ParseInt(namespaceIDRaw, 10, 64)
 		if err != nil {
-			return nil, response.JSON{Code: response.Deny, Message: "Invalid namespace"}
+			return gp, response.JSON{Code: response.Deny, Message: "Invalid namespace"}
 		}
 
-		namespace, err = model.Namespace{
+		gp.Namespace, err = model.Namespace{
 			ID:     namespaceID,
 			UserID: int64(claims["id"].(float64)),
 		}.GetDataByUserNamespace()
 
 		if err != nil {
 			if err == sql.ErrNoRows {
-				return nil, response.JSON{Code: response.NamespaceInvalid, Message: "No available namespace"}
+				return gp, response.JSON{Code: response.NamespaceInvalid, Message: "No available namespace"}
 			} else {
-				return nil, response.JSON{Code: response.Deny, Message: err.Error()}
+				return gp, response.JSON{Code: response.Deny, Message: err.Error()}
 			}
 		}
 
-		if err = route.hasRole(namespace.Role); err != nil {
-			return nil, response.JSON{Code: response.Deny, Message: err.Error()}
+		if err = route.hasRole(gp.Namespace.Role); err != nil {
+			return gp, response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 
-		userInfo, err = model.User{ID: int64(claims["id"].(float64))}.GetData()
+		gp.UserInfo, err = model.User{ID: int64(claims["id"].(float64))}.GetData()
 		if err != nil {
-			return nil, response.JSON{Code: response.Deny, Message: "Get user information error"}
+			return gp, response.JSON{Code: response.Deny, Message: "Get user information error"}
 		}
 
 		goployTokenStr, err := model.User{ID: int64(claims["id"].(float64)), Name: claims["name"].(string)}.CreateToken()
@@ -206,18 +212,13 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 
 	}
 
+	gp.Request = r
+	gp.ResponseWriter = w
+	gp.URLQuery = r.URL.Query()
+
 	// save the body request data because ioutil.ReadAll will clear the requestBody
-	var body []byte
 	if r.ContentLength > 0 && hasContentType(r, "application/json") {
-		body, _ = ioutil.ReadAll(r.Body)
-	}
-	gp := &Goploy{
-		UserInfo:       userInfo,
-		Namespace:      namespace,
-		Request:        r,
-		ResponseWriter: w,
-		URLQuery:       r.URL.Query(),
-		Body:           body,
+		gp.Body, _ = ioutil.ReadAll(r.Body)
 	}
 
 	// common middlewares
