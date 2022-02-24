@@ -61,3 +61,8 @@
     height: 100% !important;
   }
 }
+
+.el-pagination .btn-prev .el-icon,
+.el-pagination .btn-next .el-icon {
+  width: 100%;
+}

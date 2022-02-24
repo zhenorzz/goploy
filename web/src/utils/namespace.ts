@@ -43,7 +43,12 @@ export function getRole() {
 export function getNamespace(): Namespace {
   const n =
     sessionStorage.getItem(NamespaceKey) || localStorage.getItem(NamespaceKey)
-  return n ? JSON.parse(n) : { id: 0, name: '', role: '' }
+
+  try {
+    return n ? JSON.parse(n) : { id: 0, name: '', role: '' }
+  } catch (e) {
+    return { id: 0, name: '', role: '' }
+  }
 }
 
 export function getNamespaceId(): number {

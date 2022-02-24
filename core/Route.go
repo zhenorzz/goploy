@@ -38,18 +38,19 @@ type Response interface {
 }
 
 type Route struct {
-	pattern     string                    //
+	pattern     string
 	method      string                    // Method specifies the HTTP method (GET, POST, PUT, etc.).
 	roles       map[string]struct{}       // permission role
-	callback    func(gp *Goploy) Response // Controller function
-	middlewares []func(gp *Goploy) error  // Middlewares run before all callback
 	white       bool                      // no need to login
+	middlewares []func(gp *Goploy) error  // Middlewares run before callback, trigger error will end the request
+	callback    func(gp *Goploy) Response // Controller function
+	logFunc     func(gp *Goploy, resp Response)
 }
 
 // Router is Route slice and global middlewares
 type Router struct {
 	routes      map[string]Route
-	middlewares []func(gp *Goploy) error // Middlewares run before this Route
+	middlewares []func(gp *Goploy) error // Middlewares run before all Route
 }
 
 func NewRouter() Router {
@@ -64,6 +65,16 @@ func NewRoute(pattern, method string, callback func(gp *Goploy) Response) Route 
 		method:   method,
 		callback: callback,
 		roles:    map[string]struct{}{},
+	}
+}
+
+func NewWhiteRoute(pattern, method string, callback func(gp *Goploy) Response) Route {
+	return Route{
+		pattern:  pattern,
+		method:   method,
+		white:    true,
+		roles:    map[string]struct{}{},
+		callback: callback,
 	}
 }
 
@@ -94,12 +105,6 @@ func (rt Router) Add(ra RouteApi) Router {
 	return rt
 }
 
-// White no need to check login
-func (r Route) White() Route {
-	r.white = true
-	return r
-}
-
 // Roles Add much permission to the Route
 func (r Route) Roles(roles ...string) Route {
 	for _, role := range roles {
@@ -111,6 +116,12 @@ func (r Route) Roles(roles ...string) Route {
 // Middleware global Middleware handle function
 func (r Route) Middleware(middleware func(gp *Goploy) error) Route {
 	r.middlewares = append(r.middlewares, middleware)
+	return r
+}
+
+// LogFunc callback finished
+func (r Route) LogFunc(f func(gp *Goploy, resp Response)) Route {
+	r.logFunc = f
 	return r
 }
 
@@ -236,7 +247,13 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 		}
 	}
 
-	return gp, route.callback(gp)
+	resp := route.callback(gp)
+
+	if route.logFunc != nil {
+		route.logFunc(gp, resp)
+	}
+
+	return gp, resp
 }
 
 func (r Route) hasRole(namespaceRole string) error {

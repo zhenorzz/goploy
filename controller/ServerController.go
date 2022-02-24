@@ -3,13 +3,13 @@ package controller
 import (
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/middleware"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/response"
 	"github.com/zhenorzz/goploy/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"path"
 	"strconv"
 	"strings"
 )
@@ -23,14 +23,13 @@ func (s Server) Routes() []core.Route {
 		core.NewRoute("/server/getTotal", http.MethodGet, s.GetTotal),
 		core.NewRoute("/server/getOption", http.MethodGet, s.GetOption),
 		core.NewRoute("/server/getPublicKey", http.MethodGet, s.GetPublicKey),
-		core.NewRoute("/server/getTerminalRecord", http.MethodGet, s.GetTerminalRecord),
 		core.NewRoute("/server/check", http.MethodPost, s.Check).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/add", http.MethodPost, s.Add).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/edit", http.MethodPut, s.Edit).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/toggle", http.MethodPut, s.Toggle).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/server/previewFile", http.MethodGet, s.PreviewFile).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/server/downloadFile", http.MethodGet, s.DownloadFile).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/server/uploadFile", http.MethodPost, s.UploadFile).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/server/previewFile", http.MethodGet, s.PreviewFile).Roles(core.RoleAdmin, core.RoleManager).LogFunc(middleware.AddPreviewLog),
+		core.NewRoute("/server/downloadFile", http.MethodGet, s.DownloadFile).Roles(core.RoleAdmin, core.RoleManager).LogFunc(middleware.AddDownloadLog),
+		core.NewRoute("/server/uploadFile", http.MethodPost, s.UploadFile).Roles(core.RoleAdmin, core.RoleManager).LogFunc(middleware.AddUploadLog),
 		core.NewRoute("/server/report", http.MethodGet, s.Report).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/getAllMonitor", http.MethodGet, s.GetAllMonitor),
 		core.NewRoute("/server/addMonitor", http.MethodPost, s.AddMonitor).Roles(core.RoleAdmin, core.RoleManager),
@@ -77,10 +76,6 @@ func (Server) GetOption(gp *core.Goploy) core.Response {
 			Servers model.Servers `json:"list"`
 		}{Servers: serverList},
 	}
-}
-
-func (Server) GetTerminalRecord(*core.Goploy) core.Response {
-	return response.File{Filename: path.Join(core.GetLogPath(), "demo.cast")}
 }
 
 func (Server) GetPublicKey(gp *core.Goploy) core.Response {
@@ -289,19 +284,19 @@ func (Server) UploadFile(gp *core.Goploy) core.Response {
 	}
 	var reqData ReqData
 	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
+		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
+
+	file, fileHandler, err := gp.Request.FormFile("file")
+	if err != nil {
+		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
+	}
+	defer file.Close()
 
 	server, err := (model.Server{ID: reqData.ID}).GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-
-	file, fileHandler, err := gp.Request.FormFile("file")
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	defer file.Close()
 
 	client, err := server.Convert2SSHConfig().Dial()
 	if err != nil {

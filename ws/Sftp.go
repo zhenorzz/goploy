@@ -123,6 +123,20 @@ func (hub *Hub) Sftp(gp *core.Goploy) core.Response {
 				core.Log(core.ERROR, err.Error())
 				break
 			}
+
+			// sftp log
+			if err := (model.SftpLog{
+				NamespaceID: gp.Namespace.ID,
+				UserID:      gp.UserInfo.ID,
+				ServerID:    serverID,
+				RemoteAddr:  gp.Request.RemoteAddr,
+				UserAgent:   gp.Request.UserAgent(),
+				Type:        model.SftpLogTypeRead,
+				Path:        string(message),
+				Reason:      msg,
+			}.AddRow()); err != nil {
+				core.Log(core.ERROR, err.Error())
+			}
 		}
 	}
 

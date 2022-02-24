@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -10,6 +11,7 @@ const publishTraceTable = "`publish_trace`"
 type PublishTrace struct {
 	ID            int64  `json:"id"`
 	Token         string `json:"token"`
+	NamespaceID   int64  `json:"namespaceId"`
 	ProjectID     int64  `json:"projectId"`
 	ProjectName   string `json:"projectName"`
 	Detail        string `json:"detail"`
@@ -41,24 +43,86 @@ const (
 	AfterDeploy = 6
 )
 
-// AddRow return LastInsertId
-func (pt PublishTrace) AddRow() (int64, error) {
-	result, err := sq.
-		Insert(publishTraceTable).
-		Columns("token", "project_id", "project_name", "detail", "state", "publisher_id", "publisher_name", "type", "ext").
-		Values(pt.Token, pt.ProjectID, pt.ProjectName, pt.Detail, pt.State, pt.PublisherID, pt.PublisherName, pt.Type, pt.Ext).
-		RunWith(DB).
-		Exec()
+func (pt PublishTrace) GetList(page, limit uint64) (PublishTraces, error) {
+	builder := sq.
+		Select(
+			fmt.Sprintf("%s.token", publishTraceTable),
+			fmt.Sprintf("min(%s.project_id)", publishTraceTable),
+			fmt.Sprintf("min(%s.project_name)", publishTraceTable),
+			fmt.Sprintf("min(%s.publisher_id)", publishTraceTable),
+			fmt.Sprintf("min(%s.publisher_name)", publishTraceTable),
+			fmt.Sprintf("min(%s.state)", publishTraceTable),
+			fmt.Sprintf("IFNULL(GROUP_CONCAT(IF(%s.state = 0, %[1]s.detail, NULL)), '') as detail", publishTraceTable),
+			fmt.Sprintf("min(%s.insert_time) as insert_time", publishTraceTable),
+		).
+		From(publishTraceTable).
+		GroupBy("token")
 
+	if pt.NamespaceID > 0 {
+		builder = builder.
+			Join(fmt.Sprintf("%s ON %[1]s.id = %s.project_id", projectTable, publishTraceTable)).
+			Where(sq.Eq{projectTable + ".namespace_id": pt.NamespaceID})
+	}
+	if pt.PublisherName != "" {
+		builder = builder.Where(sq.Eq{publishTraceTable + ".publisher_name": pt.PublisherName})
+	}
+	if pt.ProjectName != "" {
+		builder = builder.Where(sq.Eq{publishTraceTable + ".project_name": pt.ProjectName})
+	}
+
+	rows, err := builder.RunWith(DB).
+		OrderBy("insert_time DESC").
+		Limit(limit).
+		Offset((page - 1) * limit).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	publishTraces := PublishTraces{}
+	for rows.Next() {
+		var publishTrace PublishTrace
+
+		if err := rows.Scan(
+			&publishTrace.Token,
+			&publishTrace.ProjectID,
+			&publishTrace.ProjectName,
+			&publishTrace.PublisherID,
+			&publishTrace.PublisherName,
+			&publishTrace.State,
+			&publishTrace.Detail,
+			&publishTrace.InsertTime); err != nil {
+			return nil, err
+		}
+		publishTraces = append(publishTraces, publishTrace)
+	}
+
+	return publishTraces, nil
+}
+
+func (pt PublishTrace) GetTotal() (int64, error) {
+	var total int64
+	builder := sq.Select("COUNT(distinct token) AS count").
+		From(publishTraceTable)
+	if pt.NamespaceID > 0 {
+		builder = builder.
+			Join(fmt.Sprintf("%s ON %[1]s.id = %s.project_id", projectTable, publishTraceTable)).
+			Where(sq.Eq{projectTable + ".namespace_id": pt.NamespaceID})
+	}
+	if pt.PublisherName != "" {
+		builder = builder.Where(sq.Eq{publishTraceTable + ".publisher_name": pt.PublisherName})
+	}
+	if pt.ProjectName != "" {
+		builder = builder.Where(sq.Eq{publishTraceTable + ".project_name": pt.ProjectName})
+	}
+	err := builder.RunWith(DB).
+		QueryRow().
+		Scan(&total)
 	if err != nil {
 		return 0, err
 	}
-
-	id, err := result.LastInsertId()
-	return id, err
+	return total, nil
 }
 
-// GetListByToken -
 func (pt PublishTrace) GetListByToken() (PublishTraces, error) {
 	rows, err := sq.
 		Select(
@@ -105,7 +169,6 @@ func (pt PublishTrace) GetListByToken() (PublishTraces, error) {
 	return publishTraces, nil
 }
 
-// GetPreview -
 func (pt PublishTrace) GetPreview(
 	branch string,
 	commit string,
@@ -227,6 +290,23 @@ func (pt PublishTrace) GetDetail() (string, error) {
 		return detail, err
 	}
 	return detail, nil
+}
+
+// AddRow return LastInsertId
+func (pt PublishTrace) AddRow() (int64, error) {
+	result, err := sq.
+		Insert(publishTraceTable).
+		Columns("token", "project_id", "project_name", "detail", "state", "publisher_id", "publisher_name", "type", "ext").
+		Values(pt.Token, pt.ProjectID, pt.ProjectName, pt.Detail, pt.State, pt.PublisherID, pt.PublisherName, pt.Type, pt.Ext).
+		RunWith(DB).
+		Exec()
+
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+	return id, err
 }
 
 // EditUpdateTimeByToken -

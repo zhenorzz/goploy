@@ -1,5 +1,16 @@
 # change log
 
+## 1.4.6
+
+*2022-02-24*
+
+### New features
+- web log
+- sftp file preview
+
+### Bug fixed
+- web cookies undefined
+
 ## 1.4.5
 
 *2022-01-26*
@@ -31,6 +42,7 @@
 ### Optimization
 - code
 - select db
+
 ### Bug fixes
 - fix exit deploy script
 - fix tag refresh

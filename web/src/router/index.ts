@@ -261,6 +261,59 @@ export const asyncRoutes: RouteRecordRaw[] = [
       },
     ],
   },
+  {
+    path: '/log',
+    component: Layout,
+    redirect: '/log/loginLog',
+    name: 'log',
+    meta: {
+      title: 'log',
+      icon: 'log',
+      roles: ['admin'],
+    },
+    children: [
+      {
+        path: 'loginLog',
+        name: 'LoginLog',
+        component: () => import('@/views/log/loginLog.vue'),
+        meta: {
+          title: 'loginLog',
+          icon: 'log',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'publishLog',
+        name: 'PublishLog',
+        component: () => import('@/views/log/publishLog.vue'),
+        meta: {
+          title: 'publishLog',
+          icon: 'log',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'sftpLog',
+        name: 'SftpLog',
+        component: () => import('@/views/log/sftpLog.vue'),
+        meta: {
+          title: 'sftpLog',
+          icon: 'log',
+          roles: ['admin'],
+        },
+      },
+      {
+        path: 'terminalLog',
+        name: 'TerminalLog',
+        component: () => import('@/views/log/terminalLog.vue'),
+        meta: {
+          title: 'terminalLog',
+          icon: 'log',
+          roles: ['admin'],
+        },
+      },
+    ],
+  },
   // 404 page must be placed at the end !!!
   {
     path: '/:pathMatch(.*)*',

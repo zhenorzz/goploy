@@ -19,6 +19,7 @@ const (
 	AccountDisabled  = 10000
 	IllegalRequest   = 10001
 	NamespaceInvalid = 10002
+	IllegalParam     = 10003
 	LoginExpired     = 10086
 )
 

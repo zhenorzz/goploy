@@ -12,11 +12,11 @@ import (
 
 const userTable = "`user`"
 
-// SuperManager super manager
-const SuperManager = 1
-
-// GeneralUser general user
-const GeneralUser = 0
+// user role
+const (
+	SuperManager = 1
+	GeneralUser  = 0
+)
 
 // User -
 type User struct {

@@ -132,7 +132,12 @@
     "template": "模板设置",
     "crontab": "Crontab管理",
     "namespace": "空间设置",
-    "member": "成员设置"
+    "member": "成员设置",
+    "log": "日志记录",
+    "loginLog": "登录日志",
+    "publishLog": "构建日志",
+    "sftpLog": "SFTP日志",
+    "terminalLog": "终端日志"
   },
   "tagsView": {
     "refresh": "刷新",

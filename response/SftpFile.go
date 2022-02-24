@@ -45,8 +45,5 @@ func (sf SftpFile) Write(w http.ResponseWriter) error {
 	w.Header().Set("Content-Length", strconv.FormatInt(fileStat.Size(), 10))
 	_, err = io.Copy(w, srcFile)
 
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

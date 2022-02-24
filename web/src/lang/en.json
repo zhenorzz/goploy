@@ -132,7 +132,12 @@
     "crontab": "Crontab",
     "serverCron": "Cron",
     "namespace": "Namespace",
-    "member": "Member"
+    "member": "Member",
+    "log": "Log",
+    "loginLog": "Login log",
+    "publishLog": "Publish log",
+    "sftpLog": "SFTP log",
+    "terminalLog": "Terminal log"
   },
   "tagsView": {
     "refresh": "Refresh",

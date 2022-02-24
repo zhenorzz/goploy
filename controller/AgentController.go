@@ -11,7 +11,7 @@ type Agent Controller
 
 func (a Agent) Routes() []core.Route {
 	return []core.Route{
-		core.NewRoute("/agent/report", http.MethodPost, a.Report).White(),
+		core.NewWhiteRoute("/agent/report", http.MethodPost, a.Report),
 	}
 }
 

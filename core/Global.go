@@ -73,3 +73,7 @@ func GetProjectFilePath(projectID int64) string {
 func GetProjectPath(projectID int64) string {
 	return path.Join(GetRepositoryPath(), "project_"+strconv.FormatInt(projectID, 10))
 }
+
+func GetTerminalLogPath(tlID int64) string {
+	return path.Join(GetRepositoryPath(), "terminal-log", strconv.FormatInt(tlID, 10)+".cast")
+}

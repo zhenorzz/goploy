@@ -12,9 +12,9 @@ type Cron Controller
 
 func (c Cron) Routes() []core.Route {
 	return []core.Route{
-		core.NewRoute("/cron/report", http.MethodPost, c.Report).White(),
-		core.NewRoute("/cron/getList", http.MethodPost, c.GetList).White(),
-		core.NewRoute("/cron/getLogs", http.MethodPost, c.GetLogs).White(),
+		core.NewWhiteRoute("/cron/report", http.MethodPost, c.Report),
+		core.NewWhiteRoute("/cron/getList", http.MethodPost, c.GetList),
+		core.NewWhiteRoute("/cron/getLogs", http.MethodPost, c.GetLogs),
 		core.NewRoute("/cron/add", http.MethodPost, c.Add).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/cron/edit", http.MethodPut, c.Edit).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/cron/remove", http.MethodDelete, c.Remove).Roles(core.RoleAdmin, core.RoleManager),

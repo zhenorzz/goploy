@@ -63,7 +63,7 @@
         </template>
       </el-table-column>
     </el-table>
-    <el-row type="flex" justify="end" style="margin-top: 10px">
+    <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
         hide-on-single-page
         :total="pagination.total"
@@ -158,7 +158,7 @@ export default defineComponent({
       tempFormData: {},
       pagination: {
         page: 1,
-        rows: 16,
+        rows: 18,
         total: 0,
       },
       formProps: {

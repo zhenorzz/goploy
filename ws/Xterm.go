@@ -6,6 +6,7 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/response"
+	"github.com/zhenorzz/goploy/utils"
 	"golang.org/x/crypto/ssh"
 	"net/http"
 	"strconv"
@@ -101,11 +102,31 @@ func (hub *Hub) Xterm(gp *core.Goploy) core.Response {
 		return response.Empty{}
 	}
 
-	//recorder, _ := utils.NewRecorder(path.Join(core.GetLogPath(), "demo.cast"), "xterm", rows, cols)
-	//defer recorder.Close()
+	// terminal log
+	tlID, err := model.TerminalLog{
+		NamespaceID: gp.Namespace.ID,
+		UserID:      gp.UserInfo.ID,
+		ServerID:    serverID,
+		RemoteAddr:  gp.Request.RemoteAddr,
+		UserAgent:   gp.Request.UserAgent(),
+		StartTime:   time.Now().Format("20060102150405"),
+	}.AddRow()
+	if err != nil {
+		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
+		return response.Empty{}
+	}
+
+	var recorder *utils.Recorder
+	recorder, err = utils.NewRecorder(core.GetTerminalLogPath(tlID), "xterm", rows, cols)
+	if err != nil {
+		core.Log(core.ERROR, err.Error())
+	} else {
+		defer recorder.Close()
+	}
+
 	ticker := time.NewTicker(pingPeriod)
 	defer ticker.Stop()
-	flushMessageTick := time.NewTicker(time.Millisecond * time.Duration(120))
+	flushMessageTick := time.NewTicker(time.Millisecond * time.Duration(50))
 	defer flushMessageTick.Stop()
 	stop := make(chan bool, 1)
 	defer func() {
@@ -126,7 +147,11 @@ func (hub *Hub) Xterm(gp *core.Goploy) core.Response {
 						c.Close()
 						return
 					}
-					//recorder.WriteData(comboWriter.buffer.String())
+					if recorder != nil {
+						if err := recorder.WriteData(comboWriter.buffer.String()); err != nil {
+							core.Log(core.ERROR, err.Error())
+						}
+					}
 					comboWriter.buffer.Reset()
 				}
 			case <-stop:
@@ -149,6 +174,13 @@ func (hub *Hub) Xterm(gp *core.Goploy) core.Response {
 				break
 			}
 		}
+	}
+
+	if err := (model.TerminalLog{
+		ID:      tlID,
+		EndTime: time.Now().Format("20060102150405"),
+	}.EditRow()); err != nil {
+		core.Log(core.ERROR, err.Error())
 	}
 
 	return response.Empty{}

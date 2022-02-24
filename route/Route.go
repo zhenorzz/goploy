@@ -18,6 +18,7 @@ func Init() {
 	rt.Add(controller.Monitor{})
 	rt.Add(controller.Deploy{})
 	rt.Add(controller.Server{})
+	rt.Add(controller.Log{})
 	rt.Add(controller.Cron{})
 	rt.Add(controller.Agent{})
 

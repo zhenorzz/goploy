@@ -2,17 +2,6 @@ CREATE DATABASE IF NOT EXISTS `goploy`;
 
 use `goploy`;
 
-CREATE TABLE IF NOT EXISTS `log`  (
-  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `type` tinyint(3) UNSIGNED NOT NULL DEFAULT 1 COMMENT 'log type',
-  `ip` int(10) UNSIGNED NOT NULL DEFAULT 0,
-  `desc` varchar(30) NOT NULL DEFAULT '' COMMENT 'description',
-  `user_id` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '',
-  `create_time` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT '',
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_create_time`(`create_time`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
-
 CREATE TABLE IF NOT EXISTS `project`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `namespace_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
@@ -284,8 +273,49 @@ CREATE TABLE IF NOT EXISTS `system_config` (
     UNIQUE KEY `udx_key` (`key`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE IF NOT EXISTS `login_log` (
+ `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+ `account` varchar(30) NOT NULL DEFAULT '',
+ `remote_addr` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+ `user_agent` varchar(255) NOT NULL DEFAULT '',
+ `referer` varchar(255) NOT NULL DEFAULT '',
+ `reason` varchar(2555) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+ `login_time` datetime NOT NULL,
+ `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `sftp_log` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `namespace_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `user_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `server_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `remote_addr` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+    `user_agent` varchar(255) NOT NULL DEFAULT '',
+    `type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'READ|PREVIEW|DOWNLOAD|UPLOAD',
+    `path` varchar(255) NOT NULL DEFAULT '',
+    `reason` varchar(2555) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+    `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `terminal_log` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `namespace_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `user_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `server_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `remote_addr` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+    `user_agent` varchar(255) NOT NULL DEFAULT '',
+    `start_time` datetime NOT NULL,
+    `end_time` datetime NOT NULL DEFAULT '1970-01-01 00:00:00',
+    `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 INSERT IGNORE INTO `user`(`id`, `account`, `password`, `name`, `contact`, `state`, `super_manager`) VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '', 1, 1);
 INSERT IGNORE INTO `namespace`(`id`, `name`) VALUES (1, 'goploy');
 INSERT IGNORE INTO `namespace_user`(`id`, `namespace_id`, `user_id`, `role`) VALUES (1, 1, 1, 'admin');
-INSERT IGNORE INTO `system_config` (`id`, `key`, `value`) VALUES (1, 'version', '1.4.5');
+INSERT IGNORE INTO `system_config` (`id`, `key`, `value`) VALUES (1, 'version', '1.4.6');
 

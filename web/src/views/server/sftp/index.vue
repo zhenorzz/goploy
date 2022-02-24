@@ -400,7 +400,7 @@ export default defineComponent({
       this.fileListLoading = true
       this.selectedFile = {} as file
       this.dir = path.normalize(target)
-      this.ws?.send(target)
+      this.ws?.send(this.dir)
     },
 
     dirOpen(dir: string) {

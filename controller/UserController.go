@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/go-ldap/ldap/v3"
+	"github.com/zhenorzz/goploy/middleware"
 	"github.com/zhenorzz/goploy/response"
 	"net/http"
 	"time"
@@ -17,7 +18,7 @@ type User Controller
 
 func (u User) Routes() []core.Route {
 	return []core.Route{
-		core.NewRoute("/user/login", http.MethodPost, u.Login).White(),
+		core.NewWhiteRoute("/user/login", http.MethodPost, u.Login).LogFunc(middleware.AddLoginLog),
 		core.NewRoute("/user/info", http.MethodGet, u.Info),
 		core.NewRoute("/user/getList", http.MethodGet, u.GetList),
 		core.NewRoute("/user/getTotal", http.MethodGet, u.GetTotal),
@@ -36,7 +37,7 @@ func (User) Login(gp *core.Goploy) core.Response {
 	}
 	var reqData ReqData
 	if err := decodeJson(gp.Body, &reqData); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
+		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
 	userData, err := model.User{Account: reqData.Account}.GetDataByAccount()
@@ -77,7 +78,7 @@ func (User) Login(gp *core.Goploy) core.Response {
 			return response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 		if len(sr.Entries) != 1 {
-			return response.JSON{Code: response.Deny, Message: err.Error()}
+			return response.JSON{Code: response.Deny, Message: fmt.Sprintf("No %s record in baseDN %s", reqData.Account, config.Toml.LDAP.BaseDN)}
 		}
 		if err := conn.Bind(sr.Entries[0].DN, reqData.Password); err != nil {
 			return response.JSON{Code: response.Deny, Message: err.Error()}
@@ -91,9 +92,10 @@ func (User) Login(gp *core.Goploy) core.Response {
 	if userData.State == model.Disable {
 		return response.JSON{Code: response.AccountDisabled, Message: "Account is disabled"}
 	}
-
 	namespaceList, err := model.Namespace{UserID: userData.ID}.GetAllByUserID()
 	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	} else if len(namespaceList) == 0 {
 		return response.JSON{Code: response.Error, Message: "No space assigned, please contact the administrator"}
 	}
 
