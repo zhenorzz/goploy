@@ -189,7 +189,7 @@ func (Log) GetTerminalRecord(gp *core.Goploy) core.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	if terminalLog.NamespaceID != gp.Namespace.ID {
+	if gp.UserInfo.SuperManager != model.SuperManager && terminalLog.NamespaceID != gp.Namespace.ID {
 		return response.JSON{Code: response.Error, Message: "You have no access to enter this record"}
 	}
 	return response.File{Filename: core.GetTerminalLogPath(reqData.RecordID)}
