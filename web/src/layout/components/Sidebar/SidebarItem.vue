@@ -48,7 +48,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { isExternal } from '@/utils/validate'
 import AppLink from './Link.vue'
 import FixiOSBug from './FixiOSBug'

@@ -20,7 +20,7 @@
   </el-scrollbar>
 </template>
 
-<script>
+<script lang="ts">
 import { mapState } from 'vuex'
 import SidebarItem from './SidebarItem.vue'
 import variables from '@/styles/variables.module.scss'

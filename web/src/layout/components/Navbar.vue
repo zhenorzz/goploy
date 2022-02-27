@@ -4,7 +4,7 @@
     <hamburger
       :is-active="app.sidebar.opened"
       class="hamburger-container"
-      @toggleClick="toggleSideBar"
+      @toggle-click="toggleSideBar"
     />
     <el-dropdown
       style="float: left; line-height: 48px; cursor: pointer"
@@ -68,7 +68,7 @@
                   <el-avatar
                     v-if="$store.getters.avatar"
                     :size="40"
-                    :src="avatar"
+                    :src="$store.getters.avatar"
                   />
                   <div
                     v-else
@@ -117,76 +117,66 @@
   </div>
 </template>
 
-<script>
+<script lang="ts" setup>
 import logo from '@/assets/images/logo.png'
-import { mapState } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb/index.vue'
 import Hamburger from '@/components/Hamburger/index.vue'
-import { NamespaceOption } from '@/api/namespace'
+import { useI18n } from 'vue-i18n'
+import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
+import { NamespaceUserData, NamespaceOption } from '@/api/namespace'
 import { getNamespace, setNamespace, removeNamespace } from '@/utils/namespace'
-import { ElLoading } from 'element-plus'
-import { defineComponent } from 'vue'
+import { ElLoading, ElMessage } from 'element-plus'
+import { ref, computed } from 'vue'
 
-export default defineComponent({
-  components: {
-    Breadcrumb,
-    Hamburger,
-  },
-  data() {
-    return {
-      logo: logo,
-      starCount: 0,
-      forkCount: 0,
-      namespaceListLoading: false,
-      namespace: getNamespace(),
-      namespaceList: [],
-    }
-  },
-  computed: {
-    ...mapState(['app', 'user']),
-  },
-  created() {
-    document.title = `Goploy-${this.namespace.name}`
-  },
-  methods: {
-    toggleSideBar() {
-      this.$store.dispatch('app/toggleSideBar')
-    },
-    handleNamespaceVisible(visible) {
-      if (visible === true) {
-        this.namespaceListLoading = true
-        new NamespaceOption()
-          .request()
-          .then((response) => {
-            this.namespaceList = response.data.list
-          })
-          .finally(() => {
-            this.namespaceListLoading = false
-          })
-      }
-    },
-    handleNamespaceChange(namespace) {
-      setNamespace({
-        id: namespace.namespaceId,
-        name: namespace.namespaceName,
-        role: namespace.role,
+const namespaceListLoading = ref(false)
+const namespaceList = ref<NamespaceOption['datagram']['list']>()
+const namespace = ref(getNamespace())
+const { locale } = useI18n({ useScope: 'global' })
+const router = useRouter()
+const store = useStore()
+const app = computed(() => store.state['app'])
+const user = computed(() => store.state['user'])
+
+document.title = `Goploy-${namespace.value.name}`
+
+function toggleSideBar() {
+  store.dispatch('app/toggleSideBar')
+}
+function handleNamespaceVisible(visible: boolean) {
+  if (visible === true) {
+    namespaceListLoading.value = true
+    new NamespaceOption()
+      .request()
+      .then((response) => {
+        namespaceList.value = response.data.list
       })
-      ElLoading.service({ fullscreen: true })
-      location.reload()
-    },
-    handleSetLanguage(lang) {
-      this.$i18n.locale = lang
-      this.$store.dispatch('app/setLanguage', lang)
-      this.$message.success('Switch language success')
-    },
-    async logout() {
-      await this.$store.dispatch('user/logout')
-      await this.$store.dispatch('tagsView/delAllViews')
-      removeNamespace()
-      this.$router.push(`/login`)
-    },
-  },
-})
+      .finally(() => {
+        namespaceListLoading.value = false
+      })
+  }
+}
+function handleNamespaceChange(namespace: NamespaceUserData['datagram']) {
+  setNamespace({
+    id: namespace.namespaceId,
+    name: namespace.namespaceName,
+    role: namespace.role,
+  })
+  ElLoading.service({ fullscreen: true })
+  location.reload()
+}
+function handleSetLanguage(lang: string) {
+  locale.value = lang
+  store.dispatch('app/setLanguage', lang)
+  ElMessage.success('Switch language success')
+}
+
+async function logout() {
+  await store.dispatch('user/logout')
+  await store.dispatch('tagsView/delAllViews')
+  removeNamespace()
+  router.push(`/login`)
+}
 </script>
 
 <style lang="scss" scoped>

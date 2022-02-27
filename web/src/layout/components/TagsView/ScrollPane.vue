@@ -9,7 +9,7 @@
   </el-scrollbar>
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent } from 'vue'
 const tagAndTagSpacing = 4 // tagAndTagSpacing
 export default defineComponent({

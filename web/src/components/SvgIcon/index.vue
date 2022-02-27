@@ -10,7 +10,7 @@
   </svg>
 </template>
 
-<script>
+<script lang="ts">
 import { isExternal } from '@/utils/validate'
 import { defineComponent } from 'vue'
 

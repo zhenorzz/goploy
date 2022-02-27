@@ -7,7 +7,7 @@
   </router-link>
 </template>
 
-<script>
+<script lang="ts">
 import { isExternal } from '@/utils/validate'
 import { defineComponent } from 'vue'
 export default defineComponent({

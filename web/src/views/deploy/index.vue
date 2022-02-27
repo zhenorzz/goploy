@@ -263,7 +263,6 @@
       :on-rebuilt="handleRebuilt"
     />
     <TheCommitListDialog
-      ref="test"
       v-model="commitDialogVisible"
       :project-row="selectedItem"
     >
@@ -316,7 +315,7 @@
           </el-checkbox-group>
         </el-form-item>
       </el-form>
-      <template #footer class="dialog-footer">
+      <template #footer>
         <el-button @click="greyServerDialogVisible = false">
           {{ $t('cancel') }}
         </el-button>
@@ -489,9 +488,6 @@ export default defineComponent({
   created() {
     this.tableDefaultSort = this.getTableSort()
     this.getList()
-  },
-  mounted() {
-    console.log(this.$refs['test'])
   },
   methods: {
     parseTime,

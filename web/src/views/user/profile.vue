@@ -1,47 +1,47 @@
 <template>
   <div class="app-container">
     <el-form
-      ref="pwdForm"
-      :model="pwdForm"
-      :rules="pwdForm.rules"
+      ref="form"
+      :rules="formRules"
+      :model="formData"
       label-position="top"
       style="margin-left: 40px"
     >
       <el-form-item :label="$t('userPage.oldPassword')" prop="old">
         <el-input
-          v-model="pwdForm.old"
-          :type="pwdForm.type.old"
+          v-model="formData.old"
+          :type="formProps.type.old"
           style="width: 300px"
         />
-        <span class="show-pwd" @click="showPwd('old')">
+        <span class="show-pwd" @click="showPwd(inputElem.old)">
           <svg-icon icon-class="eye" />
         </span>
       </el-form-item>
       <el-form-item :label="$t('userPage.newPassword')" prop="new">
         <el-input
-          v-model="pwdForm.new"
-          :type="pwdForm.type.new"
+          v-model="formData.new"
+          :type="formProps.type.new"
           style="width: 300px"
           autocomplete="off"
         />
-        <span class="show-pwd" @click="showPwd('new')">
+        <span class="show-pwd" @click="showPwd(inputElem.new)">
           <svg-icon icon-class="eye" />
         </span>
       </el-form-item>
       <el-form-item :label="$t('userPage.rePassword')" prop="confirm">
         <el-input
-          v-model="pwdForm.confirm"
-          :type="pwdForm.type.confirm"
+          v-model="formData.confirm"
+          :type="formProps.type.confirm"
           style="width: 300px"
           autocomplete="off"
         />
-        <span class="show-pwd" @click="showPwd('confirm')">
+        <span class="show-pwd" @click="showPwd(inputElem.confirm)">
           <svg-icon icon-class="eye" />
         </span>
       </el-form-item>
       <el-form-item>
         <el-button
-          :loading="pwdForm.loading"
+          :loading="formProps.loading"
           type="primary"
           @click="changePassword()"
           >{{ $t('save') }}</el-button
@@ -51,100 +51,107 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+export default { name: 'UserProfile' }
+</script>
+<script lang="ts" setup>
+import { ElMessage } from 'element-plus'
 import { validPassword } from '@/utils/validate'
+import Validator, { RuleItem } from 'async-validator'
 import { UserChangePassword } from '@/api/user'
-import { defineComponent } from 'vue'
-export default defineComponent({
-  name: 'UserProfile',
-  data() {
-    const confirmPass = (rule, value, callback) => {
-      if (value === '') {
-        callback(new Error('Please enter the password again'))
-      } else if (value !== this.pwdForm.new) {
-        callback(new Error('The two passwords do not match!'))
-      } else {
-        callback()
-      }
-    }
-    const validatePass = (rule, value, callback) => {
-      if (!validPassword(value)) {
-        callback(
-          new Error(
-            '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]'
-          )
-        )
-      } else {
-        callback()
-      }
-    }
-    return {
-      pwdForm: {
-        old: '',
-        new: '',
-        confirm: '',
-        loading: false,
-        type: {
-          old: 'password',
-          new: 'password',
-          confirm: 'password',
-        },
-        rules: {
-          old: [
-            {
-              required: true,
-              message: 'Old password required',
-              trigger: ['blur'],
-            },
-          ],
-          new: [
-            {
-              required: true,
-              message:
-                '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]',
-              trigger: ['blur'],
-              validator: validatePass,
-            },
-          ],
-          confirm: [
-            { required: true, validator: confirmPass, trigger: ['blur'] },
-          ],
-        },
-      },
-    }
-  },
-  methods: {
-    showPwd(index) {
-      if (this.pwdForm.type[index] === 'password') {
-        this.pwdForm.type[index] = ''
-      } else {
-        this.pwdForm.type[index] = 'password'
-      }
-    },
-    changePassword() {
-      this.$refs.pwdForm.validate((valid) => {
-        if (valid) {
-          this.pwdForm.loading = true
-          new UserChangePassword({
-            oldPwd: this.pwdForm.old,
-            newPwd: this.pwdForm.new,
-          })
-            .request()
-            .then(() => {
-              this.pwdForm.loading = false
-              this.$message.success('Success')
-            })
-            .catch(() => {
-              this.pwdForm.loading = false
-            })
-        } else {
-          console.log('error submit!!')
-          return false
-        }
-      })
-    },
+import { ref } from 'vue'
+enum inputElem {
+  old = 'old',
+  new = 'new',
+  confirm = 'confirm',
+}
+
+const form = ref<Validator>()
+const formData = ref({
+  old: '',
+  new: '',
+  confirm: '',
+})
+const formProps = ref({
+  loading: false,
+  type: {
+    old: 'password',
+    new: 'password',
+    confirm: 'password',
   },
 })
+
+const formRules = {
+  old: [
+    {
+      required: true,
+      message: 'Old password required',
+      trigger: ['blur'],
+    },
+  ],
+  new: [
+    {
+      required: true,
+      message:
+        '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]',
+      trigger: ['blur'],
+      validator: (_, value) => {
+        if (!validPassword(value)) {
+          return new Error(
+            '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]'
+          )
+        } else {
+          return true
+        }
+      },
+    } as RuleItem,
+  ],
+  confirm: [
+    {
+      required: true,
+      validator: (_, value) => {
+        if (value === '') {
+          return new Error('Please enter the password again')
+        } else if (value !== formData.value.new) {
+          return new Error('The two passwords do not match!')
+        } else {
+          return true
+        }
+      },
+      trigger: ['blur'],
+    } as RuleItem,
+  ],
+}
+
+function showPwd(index: inputElem) {
+  if (formProps.value.type[index] === 'password') {
+    formProps.value.type[index] = ''
+  } else {
+    formProps.value.type[index] = 'password'
+  }
+}
+function changePassword() {
+  form.value?.validate((valid: boolean) => {
+    if (valid) {
+      formProps.value.loading = true
+      new UserChangePassword({
+        oldPwd: formData.value.old,
+        newPwd: formData.value.new,
+      })
+        .request()
+        .then(() => {
+          formProps.value.loading = false
+          ElMessage.success('Success')
+        })
+        .catch(() => {
+          formProps.value.loading = false
+        })
+    } else {
+      console.log('error submit!!')
+      return false
+    }
+  })
+}
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>

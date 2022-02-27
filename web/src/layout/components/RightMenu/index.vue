@@ -146,7 +146,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import VueQrcode from '@chenfengyuan/vue-qrcode'
 import { md5 as hashByMD5 } from '@/utils/md5'
 

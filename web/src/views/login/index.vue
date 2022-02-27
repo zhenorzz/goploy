@@ -143,7 +143,6 @@ export default defineComponent({
           this.$store
             .dispatch('user/login', this.loginForm)
             .then(() => {
-              console.log(this.$router.getRoutes())
               this.$router.push({
                 path: this.redirect || '/',
                 query: this.redirect ? param2Obj(this.redirect) : {},
