@@ -44,8 +44,9 @@
           :loading="formProps.loading"
           type="primary"
           @click="changePassword()"
-          >{{ $t('save') }}</el-button
         >
+          {{ $t('save') }}
+        </el-button>
       </el-form-item>
     </el-form>
   </div>
