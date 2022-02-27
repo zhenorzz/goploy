@@ -13,9 +13,9 @@
       :data="tableData"
     >
       <el-table-column type="expand">
-        <template #default="props">
+        <template #default="scope">
           <div style="white-space: pre-line">
-            {{ props.row.diff }}
+            {{ scope.row.diff }}
           </div>
         </template>
       </el-table-column>
