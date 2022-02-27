@@ -7,7 +7,7 @@ export class Login extends Request {
     account: string
     password: string
   }
-  public datagram!: {
+  public declare datagram: {
     namespaceList: { id: number; name: string; role: string }[]
   }
   constructor(param: Login['param']) {
@@ -19,7 +19,7 @@ export class Login extends Request {
 export class Info extends Request {
   readonly url = '/user/info'
   readonly method = 'get'
-  public datagram!: {
+  public declare datagram: {
     userInfo: {
       account: string
       id: number
@@ -50,7 +50,7 @@ export class UserList extends Request {
 
   public pagination: Pagination
 
-  public datagram!: {
+  public declare datagram: {
     list: UserData['datagram'][]
   }
   constructor(pagination: Pagination) {
@@ -63,13 +63,13 @@ export class UserList extends Request {
 export class UserTotal extends Request {
   readonly url = '/user/getTotal'
   readonly method = 'get'
-  public datagram!: Total
+  public declare datagram: Total
 }
 
 export class UserOption extends Request {
   readonly url = '/user/getOption'
   readonly method = 'get'
-  public datagram!: {
+  public declare datagram: {
     list: {
       id: number
       account: string

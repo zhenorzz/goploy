@@ -88,7 +88,11 @@
         "
       >
         <el-form-item :label="$t('account')" prop="account">
-          <el-input v-model="formData.account" autocomplete="off" />
+          <el-input
+            v-model="formData.account"
+            autocomplete="off"
+            :readonly="formData.id > 0"
+          />
         </el-form-item>
         <el-form-item :label="$t('password')" prop="password">
           <el-input v-model="formData.password" autocomplete="off" />
@@ -134,7 +138,11 @@
     </el-dialog>
   </el-row>
 </template>
+
 <script lang="ts">
+export default { name: 'MemberIndex' }
+</script>
+<script lang="ts" setup>
 import { validUsername, validPassword } from '@/utils/validate'
 import {
   UserData,
@@ -146,183 +154,171 @@ import {
 } from '@/api/user'
 import Validator, { RuleItem } from 'async-validator'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  name: 'MemberIndex',
-  data() {
-    return {
-      dialogVisible: false,
-      tableLoading: false,
-      tableData: [] as UserList['datagram']['list'],
-      tempFormData: {},
-      pagination: {
-        page: 1,
-        rows: 18,
-        total: 0,
-      },
-      formProps: {
-        disabled: false,
-      },
-      formData: {
-        id: 0,
-        account: '',
-        password: '',
-        name: '',
-        contact: '',
-        superManager: 0,
-      },
-      formRules: {
-        account: [
-          {
-            trigger: 'blur',
-            validator: (_, value) => {
-              if (!validUsername(value)) {
-                return new Error('Greater than 5 characters')
-              } else {
-                return true
-              }
-            },
-          } as RuleItem,
-        ],
-        password: [
-          {
-            trigger: 'blur',
-            validator: (_, value) => {
-              if (!value) {
-                return true
-              } else if (!validPassword(value)) {
-                return new Error(
-                  '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]'
-                )
-              } else {
-                return true
-              }
-            },
-          } as RuleItem,
-        ],
-        name: [
-          {
-            required: true,
-            message: 'Name required',
-            trigger: 'blur',
-          } as RuleItem,
-        ],
-      },
-    }
-  },
-  created() {
-    this.storeFormData()
-    this.getList()
-    this.getTotal()
-  },
-  methods: {
-    getList() {
-      this.tableLoading = true
-      new UserList(this.pagination)
-        .request()
-        .then((response) => {
-          this.tableData = response.data.list
-        })
-        .finally(() => {
-          this.tableLoading = false
-        })
-    },
-
-    getTotal() {
-      new UserTotal().request().then((response) => {
-        this.pagination.total = response.data.total
-      })
-    },
-
-    handleCurrentChange(val: number) {
-      this.pagination.page = val
-      this.getList()
-    },
-
-    handleAdd() {
-      this.restoreFormData()
-      this.dialogVisible = true
-    },
-
-    handleEdit(data: UserData['datagram']) {
-      this.restoreFormData()
-      this.formData = Object.assign(this.formData, data)
-      this.dialogVisible = true
-    },
-
-    handleRemove(data: UserData['datagram']) {
-      ElMessageBox.confirm(
-        this.$t('memberPage.removeUserTips', { name: data.name }),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          new UserRemove(data).request().then(() => {
-            ElMessage.success('Success')
-            this.getList()
-            this.getTotal()
-          })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
-    },
-
-    submit() {
-      ;(this.$refs.form as Validator).validate((valid: boolean) => {
-        if (valid) {
-          if (this.formData.id === 0) {
-            this.add()
-          } else {
-            this.edit()
-          }
-        } else {
-          return false
-        }
-      })
-    },
-
-    add() {
-      this.formProps.disabled = true
-      new UserAdd(this.formData)
-        .request()
-        .then(() => {
-          ElMessage.success('Success')
-          this.getList()
-          this.getTotal()
-          this.dialogVisible = false
-        })
-        .finally(() => {
-          this.formProps.disabled = false
-        })
-    },
-
-    edit() {
-      this.formProps.disabled = true
-      new UserEdit(this.formData)
-        .request()
-        .then(() => {
-          ElMessage.success('Success')
-          this.getList()
-          this.dialogVisible = false
-        })
-        .finally(() => {
-          this.formProps.disabled = false
-        })
-    },
-
-    storeFormData() {
-      this.tempFormData = JSON.parse(JSON.stringify(this.formData))
-    },
-
-    restoreFormData() {
-      this.formData = JSON.parse(JSON.stringify(this.tempFormData))
-    },
-  },
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
+const dialogVisible = ref(false)
+const tableLoading = ref(false)
+const tableData = ref<UserList['datagram']['list']>()
+const pagination = ref({
+  page: 1,
+  rows: 18,
+  total: 0,
 })
+const form = ref<Validator>()
+const tempFormData = {
+  id: 0,
+  account: '',
+  password: '',
+  name: '',
+  contact: '',
+  superManager: 0,
+}
+const formData = ref(tempFormData)
+const formProps = ref({
+  disabled: false,
+})
+const formRules = {
+  account: [
+    {
+      trigger: 'blur',
+      validator: (_, value) => {
+        if (!validUsername(value)) {
+          return new Error('Greater than 5 characters')
+        } else {
+          return true
+        }
+      },
+    } as RuleItem,
+  ],
+  password: [
+    {
+      trigger: 'blur',
+      validator: (_, value) => {
+        if (!value) {
+          return true
+        } else if (!validPassword(value)) {
+          return new Error(
+            '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]'
+          )
+        } else {
+          return true
+        }
+      },
+    } as RuleItem,
+  ],
+  name: [
+    {
+      required: true,
+      message: 'Name required',
+      trigger: 'blur',
+    } as RuleItem,
+  ],
+}
+
+getList()
+getTotal()
+
+function getList() {
+  tableLoading.value = true
+  new UserList(pagination.value)
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+
+function getTotal() {
+  new UserTotal().request().then((response) => {
+    pagination.value.total = response.data.total
+  })
+}
+
+function handleCurrentChange(val: number) {
+  pagination.value.page = val
+  getList()
+}
+
+function handleAdd() {
+  restoreFormData()
+  dialogVisible.value = true
+}
+
+function handleEdit(data: UserData['datagram']) {
+  restoreFormData()
+  formData.value = Object.assign(formData.value, data)
+  dialogVisible.value = true
+}
+
+function handleRemove(data: UserData['datagram']) {
+  ElMessageBox.confirm(
+    t('memberPage.removeUserTips', { name: data.name }),
+    t('tips'),
+    {
+      confirmButtonText: t('confirm'),
+      cancelButtonText: t('cancel'),
+      type: 'warning',
+    }
+  )
+    .then(() => {
+      new UserRemove(data).request().then(() => {
+        ElMessage.success('Success')
+        getList()
+        getTotal()
+      })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
+}
+
+function submit() {
+  form.value?.validate((valid: boolean) => {
+    if (valid) {
+      if (formData.value.id === 0) {
+        add()
+      } else {
+        edit()
+      }
+    } else {
+      return false
+    }
+  })
+}
+
+function add() {
+  formProps.value.disabled = true
+  new UserAdd(formData.value)
+    .request()
+    .then(() => {
+      ElMessage.success('Success')
+      getList()
+      getTotal()
+      dialogVisible.value = false
+    })
+    .finally(() => {
+      formProps.value.disabled = false
+    })
+}
+
+function edit() {
+  formProps.value.disabled = true
+  new UserEdit(formData.value)
+    .request()
+    .then(() => {
+      ElMessage.success('Success')
+      getList()
+      dialogVisible.value = false
+    })
+    .finally(() => {
+      formProps.value.disabled = false
+    })
+}
+
+function restoreFormData() {
+  formData.value = { ...tempFormData }
+}
 </script>

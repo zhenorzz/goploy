@@ -3,7 +3,7 @@
     <router-view />
   </el-config-provider>
 </template>
-<script>
+<script lang="ts">
 import { ElConfigProvider } from 'element-plus'
 import { elementLocale } from '@/lang'
 import { defineComponent } from 'vue'

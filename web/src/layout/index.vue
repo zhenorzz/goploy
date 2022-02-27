@@ -17,7 +17,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { Navbar, Sidebar, AppMain, RightMenu, TagsView } from './components'
 import ResizeMixin from './mixin/ResizeHandler'
 import { defineComponent } from 'vue'

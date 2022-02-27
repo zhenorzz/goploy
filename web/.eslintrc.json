@@ -11,5 +11,11 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended"
   ],
-  "rules": {}
+  "rules": {
+    "vue/script-setup-uses-vars": "error",
+    "vue/multi-word-component-names": 0
+  },
+  "env": {
+    "vue/setup-compiler-macros": true
+  }
 }

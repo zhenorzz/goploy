@@ -263,6 +263,7 @@
       :on-rebuilt="handleRebuilt"
     />
     <TheCommitListDialog
+      ref="test"
       v-model="commitDialogVisible"
       :project-row="selectedItem"
     >
@@ -360,7 +361,7 @@ import TheTaskListDialog from './TheTaskListDialog.vue'
 import TheReviewListDialog from './TheReviewListDialog.vue'
 import TheProcessManagerDialog from './TheProcessManagerDialog.vue'
 import TheFileCompareDialog from './TheFileCompareDialog.vue'
-import { ElMessageBox, ElMessage, ElNotification } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import Validator from 'async-validator'
 import { h, defineComponent } from 'vue'
 import { CommitData } from '@/api/repository'
@@ -488,6 +489,9 @@ export default defineComponent({
   created() {
     this.tableDefaultSort = this.getTableSort()
     this.getList()
+  },
+  mounted() {
+    console.log(this.$refs['test'])
   },
   methods: {
     parseTime,

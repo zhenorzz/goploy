@@ -79,80 +79,64 @@
         </template>
       </el-table-column>
     </el-table>
-    <template #footer class="dialog-footer">
+    <template #footer>
       <el-button @click="dialogVisible = false">
         {{ $t('cancel') }}
       </el-button>
     </template>
   </el-dialog>
 </template>
-
-<script lang="ts">
+<script lang="ts" setup>
 import { RepositoryTagList } from '@/api/repository'
-import { getRole } from '@/utils/namespace'
 import { parseGitURL, parseTime } from '@/utils'
-import { computed, watch, defineComponent, ref } from 'vue'
-
-export default defineComponent({
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    },
-    projectRow: {
-      type: Object,
-      required: true,
-    },
+import { computed, watch, ref } from 'vue'
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false,
   },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    const dialogVisible = computed({
-      get: () => props.modelValue,
-      set: (val) => {
-        emit('update:modelValue', val)
-      },
-    })
-    const gitURL = ref<string>('')
-    const tableLoading = ref(false)
-    const tableData = ref<RepositoryTagList['datagram']['list']>([])
-    watch(
-      () => props.modelValue,
-      (val: typeof props['modelValue']) => {
-        if (val === true) {
-          gitURL.value = parseGitURL(props.projectRow.url)
-          tableLoading.value = true
-          new RepositoryTagList({ id: props.projectRow.id })
-            .request()
-            .then((response) => {
-              tableData.value = response.data.list.map((element) => {
-                let shortTag = element.tag.replace(/[()]/g, '')
-                for (const tag of shortTag.split(',')) {
-                  if (tag.indexOf('tag: ') !== -1) {
-                    shortTag = tag.replace('tag: ', '').trim()
-                    break
-                  }
-                }
-                return Object.assign(element, {
-                  projectId: props.projectRow.id,
-                  shortTag: shortTag,
-                })
-              })
-            })
-            .finally(() => {
-              tableLoading.value = false
-            })
-        }
-      }
-    )
-
-    return {
-      dialogVisible,
-      role: getRole(),
-      gitURL,
-      parseTime,
-      tableLoading,
-      tableData,
-    }
+  projectRow: {
+    type: Object,
+    required: true,
   },
 })
+const emit = defineEmits(['update:modelValue'])
+const dialogVisible = computed({
+  get: () => props.modelValue,
+  set: (val) => {
+    emit('update:modelValue', val)
+  },
+})
+const gitURL = ref<string>('')
+const tableLoading = ref(false)
+const tableData = ref<RepositoryTagList['datagram']['list']>([])
+watch(
+  () => props.modelValue,
+  (val: typeof props['modelValue']) => {
+    if (val === true) {
+      gitURL.value = parseGitURL(props.projectRow.url)
+      tableLoading.value = true
+      new RepositoryTagList({ id: props.projectRow.id })
+        .request()
+        .then((response) => {
+          tableData.value = response.data.list.map((element) => {
+            let shortTag = element.tag.replace(/[()]/g, '')
+            for (const tag of shortTag.split(',')) {
+              if (tag.indexOf('tag: ') !== -1) {
+                shortTag = tag.replace('tag: ', '').trim()
+                break
+              }
+            }
+            return Object.assign(element, {
+              projectId: props.projectRow.id,
+              shortTag: shortTag,
+            })
+          })
+        })
+        .finally(() => {
+          tableLoading.value = false
+        })
+    }
+  }
+)
 </script>
