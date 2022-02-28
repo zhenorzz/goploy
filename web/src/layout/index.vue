@@ -16,47 +16,30 @@
     <RightMenu />
   </div>
 </template>
-
 <script lang="ts">
+export default { name: 'Layout' }
+</script>
+<script lang="ts" setup>
 import { Navbar, Sidebar, AppMain, RightMenu, TagsView } from './components'
-import ResizeMixin from './mixin/ResizeHandler'
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  name: 'Layout',
-  components: {
-    Navbar,
-    Sidebar,
-    AppMain,
-    RightMenu,
-    TagsView,
-  },
-  mixins: [ResizeMixin],
-  computed: {
-    sidebar() {
-      return this.$store.state.app.sidebar
-    },
-    device() {
-      return this.$store.state.app.device
-    },
-    classObj() {
-      return {
-        hideSidebar: !this.sidebar.opened,
-        openSidebar: this.sidebar.opened,
-        withoutAnimation: this.sidebar.withoutAnimation,
-        mobile: this.device === 'mobile',
-      }
-    },
-  },
-  created() {
-    this.$store.dispatch('websocket/init')
-  },
-  methods: {
-    handleClickOutside() {
-      this.$store.dispatch('app/closeSideBar', { withoutAnimation: false })
-    },
-  },
+import ResizeHandler from './mixin/ResizeHandler'
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+const store = useStore()
+const sidebar = computed(() => store.state['app'].sidebar)
+const device = computed(() => store.state['app'].device)
+const classObj = computed(() => {
+  return {
+    hideSidebar: !sidebar.value.opened,
+    openSidebar: sidebar.value.opened,
+    withoutAnimation: sidebar.value.withoutAnimation,
+    mobile: device.value === 'mobile',
+  }
 })
+ResizeHandler()
+store.dispatch('websocket/init')
+function handleClickOutside() {
+  store.dispatch('app/closeSideBar', { withoutAnimation: false })
+}
 </script>
 
 <style lang="scss" scoped>

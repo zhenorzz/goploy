@@ -91,7 +91,7 @@ const formRules = {
     },
   ],
   new: [
-    {
+    <RuleItem>{
       required: true,
       message:
         '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]',
@@ -105,10 +105,10 @@ const formRules = {
           return true
         }
       },
-    } as RuleItem,
+    },
   ],
   confirm: [
-    {
+    <RuleItem>{
       required: true,
       validator: (_, value) => {
         if (value === '') {
@@ -120,7 +120,7 @@ const formRules = {
         }
       },
       trigger: ['blur'],
-    } as RuleItem,
+    },
   ],
 }
 

@@ -12,7 +12,6 @@
         :key="tag.path"
         :class="isActive(tag) ? 'active' : ''"
         :to="{ path: tag.path, query: tag.query, fullPath: tag.fullPath }"
-        tag="span"
         class="tags-view-item"
         @click.middle="!isAffix(tag) ? closeSelectedTag(tag) : ''"
         @contextmenu.prevent="openMenu(tag, $event)"
@@ -47,6 +46,8 @@ import ScrollPane from './ScrollPane.vue'
 import path from 'path-browserify'
 import { defineComponent } from 'vue'
 import { mapState } from 'vuex'
+import { RootState } from '@/store/types'
+import { RouteRecordRaw } from 'vue-router'
 
 export default defineComponent({
   components: { ScrollPane },
@@ -62,8 +63,8 @@ export default defineComponent({
   },
   computed: {
     ...mapState({
-      visitedViews: (state) => state.tagsView.visitedViews,
-      routes: (state) => state.permission.routes,
+      visitedViews: (state) => (state as RootState).tagsView.visitedViews,
+      routes: (state) => (state as RootState).permission.routes,
     }),
   },
   watch: {
@@ -92,13 +93,13 @@ export default defineComponent({
         this.tagRefs.push(el)
       }
     },
-    isActive(route) {
+    isActive(route: RouteRecordRaw) {
       return route.path === this.$route.path
     },
     isAffix(tag) {
       return tag.meta && tag.meta.affix
     },
-    filterAffixTags(routes, basePath = '/') {
+    filterAffixTags(routes: RouteRecordRaw[], basePath = '/') {
       let tags = []
       routes.forEach((route) => {
         if (route.meta && route.meta.affix) {

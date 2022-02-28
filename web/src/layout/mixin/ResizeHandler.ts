@@ -1,30 +1,20 @@
-import store from '@/store'
-
-import { mapState } from 'vuex'
-import { defineComponent } from 'vue'
-
+import { computed, watch, onBeforeMount, onBeforeUnmount, onMounted } from 'vue'
+import { useStore } from 'vuex'
+import { useRoute } from 'vue-router'
 const { body } = document
 const WIDTH = 992 // refer to Bootstrap's responsive design
-
-export default defineComponent({
-  computed: {
-    ...mapState(['app']),
-  },
-  watch: {
-    $route() {
-      if (this.app.device === 'mobile' && this.app.sidebar.opened) {
-        store.dispatch('app/closeSideBar', { withoutAnimation: false })
-      }
-    },
-  },
-  beforeMount() {
-    window.addEventListener('resize', this.$_resizeHandler)
-  },
-  beforeUnmount() {
-    window.removeEventListener('resize', this.$_resizeHandler)
-  },
-  mounted() {
-    const isMobile = this.$_isMobile()
+export default () => {
+  const store = useStore()
+  const route = useRoute()
+  const app = computed(() => store.state['app'])
+  watch(route, () => {
+    if (app.value.device === 'mobile' && app.value.sidebar.opened) {
+      store.dispatch('app/closeSideBar', { withoutAnimation: false })
+    }
+  })
+  onBeforeMount(() => window.addEventListener('resize', $_resizeHandler))
+  onMounted(() => {
+    const isMobile = $_isMobile()
     if (isMobile) {
       store.dispatch('app/toggleDevice', 'mobile')
       store.dispatch('app/closeSideBar', { withoutAnimation: true })
@@ -33,23 +23,22 @@ export default defineComponent({
           new module.default()
         })
     }
-  },
-  methods: {
-    // use $_ for mixins properties
-    // https://vuejs.org/v2/style-guide/index.html#Private-property-names-essential
-    $_isMobile() {
-      const rect = body.getBoundingClientRect()
-      return rect.width - 1 < WIDTH
-    },
-    $_resizeHandler() {
-      if (!document.hidden) {
-        const isMobile = this.$_isMobile()
-        store.dispatch('app/toggleDevice', isMobile ? 'mobile' : 'desktop')
+  })
+  onBeforeUnmount(() => window.addEventListener('resize', $_resizeHandler))
 
-        if (isMobile) {
-          store.dispatch('app/closeSideBar', { withoutAnimation: true })
-        }
+  function $_isMobile() {
+    const rect = body.getBoundingClientRect()
+    return rect.width - 1 < WIDTH
+  }
+
+  function $_resizeHandler() {
+    if (!document.hidden) {
+      const isMobile = $_isMobile()
+      store.dispatch('app/toggleDevice', isMobile ? 'mobile' : 'desktop')
+
+      if (isMobile) {
+        store.dispatch('app/closeSideBar', { withoutAnimation: true })
       }
-    },
-  },
-})
+    }
+  }
+}
