@@ -16,30 +16,22 @@
   </el-row>
 </template>
 
-<script lang="ts">
-import { defineComponent, reactive } from 'vue'
+<script lang="ts" setup>
+import { reactive } from 'vue'
 import { humanSize } from '@/utils'
-export default defineComponent({
-  props: {
-    modelValue: {
-      type: String,
-      default: '',
-    },
-  },
-  setup() {
-    const byte = reactive({
-      input: '',
-      unit: 1,
-      human: '',
-    })
-
-    const bytesToHumanSize = () => {
-      byte.human = humanSize(Number(byte.input) * byte.unit)
-    }
-    return {
-      byte,
-      bytesToHumanSize,
-    }
+defineProps({
+  modelValue: {
+    type: String,
+    default: '',
   },
 })
+const byte = reactive({
+  input: '',
+  unit: 1,
+  human: '',
+})
+
+const bytesToHumanSize = () => {
+  byte.human = humanSize(Number(byte.input) * byte.unit)
+}
 </script>

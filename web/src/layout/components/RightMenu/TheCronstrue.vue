@@ -36,37 +36,28 @@
   </el-row>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import cronstrue from 'cronstrue/i18n'
 import { ElMessage } from 'element-plus'
-import { defineComponent, reactive } from 'vue'
-
-export default defineComponent({
-  props: {
-    modelValue: {
-      type: String,
-      default: '',
-    },
-  },
-  setup() {
-    const cron = reactive({
-      expression: '',
-      chinese: '',
-    })
-
-    const crontabTranslate = () => {
-      try {
-        cron.chinese = cronstrue.toString(cron.expression, {
-          locale: 'zh_CN',
-        })
-      } catch (error) {
-        ElMessage.error(error)
-      }
-    }
-    return {
-      cron,
-      crontabTranslate,
-    }
+import { reactive } from 'vue'
+defineProps({
+  modelValue: {
+    type: String,
+    default: '',
   },
 })
+const cron = reactive({
+  expression: '',
+  chinese: '',
+})
+
+const crontabTranslate = () => {
+  try {
+    cron.chinese = cronstrue.toString(cron.expression, {
+      locale: 'zh_CN',
+    })
+  } catch (error) {
+    ElMessage.error(error)
+  }
+}
 </script>

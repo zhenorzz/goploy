@@ -146,11 +146,9 @@
   </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import VueQrcode from '@chenfengyuan/vue-qrcode'
 import { md5 as hashByMD5 } from '@/utils/md5'
-
-import { defineComponent } from 'vue'
 import TheDatetransform from './TheDatetransform.vue'
 import TheJSONPretty from './TheJSONPretty.vue'
 import TheRandomPWD from './TheRandomPWD.vue'
@@ -158,43 +156,25 @@ import TheUnicode from './TheUnicode.vue'
 import TheCronstrue from './TheCronstrue.vue'
 import TheByteTransform from './TheByteTransform.vue'
 import TheRGBTransform from './TheRGBTransform.vue'
+import { ref, reactive } from 'vue'
 
-export default defineComponent({
-  components: {
-    TheDatetransform,
-    TheJSONPretty,
-    TheRandomPWD,
-    TheUnicode,
-    TheCronstrue,
-    TheRGBTransform,
-    TheByteTransform,
-    VueQrcode,
-  },
-  data() {
-    return {
-      transformVisible: false,
-      transformType: '',
-      qrcode: {
-        text: 'https://github.com/zhenorzz/goploy',
-        width: 200,
-      },
-      decodeURI: {
-        escape: '',
-      },
-      md5: {
-        text: '',
-      },
-    }
-  },
-  methods: {
-    hashByMD5,
-
-    showTransformDialog(type) {
-      this.transformVisible = true
-      this.transformType = type
-    },
-  },
+const transformVisible = ref(false)
+const transformType = ref('')
+const qrcode = reactive({
+  text: 'https://github.com/zhenorzz/goploy',
+  width: 200,
 })
+
+const decodeURI = reactive({
+  escape: '',
+})
+const md5 = reactive({
+  text: '',
+})
+function showTransformDialog(type) {
+  transformVisible.value = true
+  transformType.value = type
+}
 </script>
 
 <style lang="scss" scoped>

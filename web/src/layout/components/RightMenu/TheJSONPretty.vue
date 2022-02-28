@@ -67,75 +67,59 @@
   </el-row>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import './jsonTree.css'
 import { jsonTree } from './jsonTree'
-import { defineComponent, ref, reactive } from 'vue'
-
-export default defineComponent({
-  props: {
-    modelValue: {
-      type: String,
-      default: '',
-    },
-  },
-  setup() {
-    const json = reactive({
-      view: 'raw',
-      input: '',
-      tree: {},
-    })
-    const jsonPrettyString = ref()
-    const handleInput = () => {
-      const text = json.input
-      jsonPrettyString.value.innerText = ''
-      try {
-        const data = JSON.parse(text)
-        json.tree = jsonTree.create(data, jsonPrettyString.value)
-        json.tree.expand()
-      } catch (error) {
-        jsonPrettyString.value.innerText = error.message
-      }
-    }
-    const onPaste = (e: ClipboardEvent) => {
-      json.view = 'pretty'
-      const clip = e.clipboardData ? e.clipboardData.getData('Text') : ''
-      json.input = clip
-      handleInput()
-      return true
-    }
-
-    const switchJSONView = () => {
-      if (json.view === 'raw') {
-        json.view = 'pretty'
-      } else {
-        json.view = 'raw'
-      }
-    }
-    const expandAll = () => {
-      json.tree && json.tree.expand()
-    }
-
-    const collapseAll = () => {
-      json.tree && json.tree.collapse()
-    }
-
-    const unmarkAll = () => {
-      json.tree && json.tree.unmarkAll()
-    }
-
-    return {
-      jsonPrettyString,
-      json,
-      handleInput,
-      onPaste,
-      switchJSONView,
-      expandAll,
-      collapseAll,
-      unmarkAll,
-    }
+import { ref, reactive } from 'vue'
+defineProps({
+  modelValue: {
+    type: String,
+    default: '',
   },
 })
+const json = reactive({
+  view: 'raw',
+  input: '',
+  tree: {},
+})
+const jsonPrettyString = ref()
+const handleInput = () => {
+  const text = json.input
+  jsonPrettyString.value.innerText = ''
+  try {
+    const data = JSON.parse(text)
+    json.tree = jsonTree.create(data, jsonPrettyString.value)
+    json.tree.expand()
+  } catch (error) {
+    jsonPrettyString.value.innerText = error.message
+  }
+}
+const onPaste = (e: ClipboardEvent) => {
+  json.view = 'pretty'
+  const clip = e.clipboardData ? e.clipboardData.getData('Text') : ''
+  json.input = clip
+  handleInput()
+  return true
+}
+
+const switchJSONView = () => {
+  if (json.view === 'raw') {
+    json.view = 'pretty'
+  } else {
+    json.view = 'raw'
+  }
+}
+const expandAll = () => {
+  json.tree && json.tree.expand()
+}
+
+const collapseAll = () => {
+  json.tree && json.tree.collapse()
+}
+
+const unmarkAll = () => {
+  json.tree && json.tree.unmarkAll()
+}
 </script>
 <style lang="scss" scoped>
 .json-helper {

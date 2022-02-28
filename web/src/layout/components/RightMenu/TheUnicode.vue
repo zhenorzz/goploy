@@ -16,27 +16,18 @@
   </el-row>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent, reactive } from 'vue'
-
-export default defineComponent({
-  props: {
-    modelValue: {
-      type: String,
-      default: '',
-    },
-  },
-  setup() {
-    const unicode = reactive({
-      escape: '',
-    })
-    const unicodeUnescapeStr = computed(() =>
-      unescape(unicode.escape.replace(/\\u/g, '%u'))
-    )
-    return {
-      unicode,
-      unicodeUnescapeStr,
-    }
+<script lang="ts" setup>
+import { computed, reactive } from 'vue'
+defineProps({
+  modelValue: {
+    type: String,
+    default: '',
   },
 })
+const unicode = reactive({
+  escape: '',
+})
+const unicodeUnescapeStr = computed(() =>
+  unescape(unicode.escape.replace(/\\u/g, '%u'))
+)
 </script>
