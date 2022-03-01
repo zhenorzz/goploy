@@ -175,7 +175,7 @@
           />
         </el-form-item>
       </el-form>
-      <template #footer class="dialog-footer">
+      <template #footer>
         <el-row type="flex" justify="space-between">
           <el-button :loading="formProps.loading" type="success" @click="check">
             {{ $t('monitorPage.testAppState') }}
@@ -198,6 +198,9 @@
   </el-row>
 </template>
 <script lang="ts">
+export default { name: 'MonitorIndex' }
+</script>
+<script lang="ts" setup>
 import {
   MonitorList,
   MonitorTotal,
@@ -210,266 +213,251 @@ import {
 } from '@/api/monitor'
 import Validator from 'async-validator'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  name: 'MonitorIndex',
-  data() {
-    return {
-      dialogVisible: false,
-      tableLoading: false,
-      tableData: [] as MonitorList['datagram']['list'],
-      pagination: {
-        page: 1,
-        rows: 16,
-        total: 0,
-      },
-      tempFormData: {},
-      formProps: {
-        loading: false,
-        disabled: false,
-      },
-      formData: {
-        id: 0,
-        name: '',
-        url: '',
-        second: 3,
-        times: 1,
-        notifyType: 1,
-        notifyTarget: '',
-        notifyTimes: 1,
-        description: '',
-      },
-      formRules: {
-        name: [{ required: true, message: 'Name required', trigger: 'blur' }],
-        url: [{ required: true, message: 'URL required', trigger: 'blur' }],
-        port: [
-          {
-            type: 'number',
-            required: true,
-            min: 0,
-            max: 65535,
-            message: '0 ~ 65535',
-            trigger: 'blur',
-          },
-        ],
-        second: [
-          {
-            type: 'number',
-            required: true,
-            min: 1,
-            message: 'Interval required',
-            trigger: 'blur',
-          },
-        ],
-        times: [
-          {
-            type: 'number',
-            required: true,
-            min: 1,
-            max: 65535,
-            message: 'Times required',
-            trigger: 'blur',
-          },
-        ],
-        notifyTarget: [{ required: true, message: 'Webhook required' }],
-        notifyTimes: [
-          {
-            type: 'number',
-            required: true,
-            min: 1,
-            max: 65535,
-            message: 'Notify times required',
-            trigger: 'blur',
-          },
-        ],
-        description: [
-          { max: 255, message: 'Max 255 characters', trigger: 'blur' },
-        ],
-      },
-    }
-  },
-
-  watch: {
-    '$store.getters.ws_message': function (response) {
-      if (response.type !== 3) {
-        return
-      }
-      const data = response.message
-      const monitorIndex = this.tableData.findIndex(
-        (element) => element.id === data.monitorId
-      )
-      if (monitorIndex !== -1) {
-        this.tableData[monitorIndex].errorContent = data.errorContent
-        this.tableData[monitorIndex].state = data.state
-      }
-    },
-  },
-
-  created() {
-    this.storeFormData()
-    this.getList()
-    this.getTotal()
-  },
-
-  methods: {
-    getList() {
-      this.tableLoading = true
-      new MonitorList(this.pagination)
-        .request()
-        .then((response) => {
-          this.tableData = response.data.list
-        })
-        .finally(() => {
-          this.tableLoading = false
-        })
-    },
-
-    getTotal() {
-      new MonitorTotal().request().then((response) => {
-        this.pagination.total = response.data.total
-      })
-    },
-
-    handlePageChange(val = 1) {
-      this.pagination.page = val
-      this.getList()
-    },
-
-    handleAdd() {
-      this.restoreFormData()
-      this.dialogVisible = true
-    },
-
-    handleEdit(data: MonitorData['datagram']) {
-      this.formData = Object.assign({}, data)
-      this.dialogVisible = true
-    },
-
-    handleToggle(data: MonitorData['datagram']) {
-      if (data.state === 1) {
-        ElMessageBox.confirm(
-          this.$t('monitorPage.toggleStateTips', {
-            monitorName: data.name,
-          }),
-          this.$t('tips'),
-          {
-            confirmButtonText: this.$t('confirm'),
-            cancelButtonText: this.$t('cancel'),
-            type: 'warning',
-          }
-        )
-          .then(() => {
-            new MonitorToggle({ id: data.id }).request().then(() => {
-              ElMessage.success('Stop success')
-              this.getList()
-            })
-          })
-          .catch(() => {
-            ElMessage.info('Cancel')
-          })
-      } else {
-        new MonitorToggle({ id: data.id }).request().then(() => {
-          ElMessage.success('Open success')
-          this.getList()
-        })
-      }
-    },
-
-    handleRemove(data: MonitorData['datagram']) {
-      ElMessageBox.confirm(
-        this.$t('monitorPage.removeMontiorTips', {
-          monitorName: data.name,
-        }),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          new MonitorRemove({ id: data.id }).request().then(() => {
-            ElMessage.success('Success')
-            this.getList()
-            this.getTotal()
-          })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
-    },
-
-    check() {
-      ;(this.$refs.form as Validator).validate((valid: boolean) => {
-        if (valid) {
-          this.formProps.loading = true
-          this.formProps.disabled = true
-          new MonitorCheck(this.formData)
-            .request()
-            .then(() => {
-              ElMessage.success('Connected success')
-            })
-            .finally(() => {
-              this.formProps.loading = false
-              this.formProps.disabled = false
-            })
-        } else {
-          return false
-        }
-      })
-    },
-
-    submit() {
-      ;(this.$refs.form as Validator).validate((valid: boolean) => {
-        if (valid) {
-          if (this.formData.id === 0) {
-            this.add()
-          } else {
-            this.edit()
-          }
-        } else {
-          return false
-        }
-      })
-    },
-
-    add() {
-      this.formProps.disabled = true
-      new MonitorAdd(this.formData)
-        .request()
-        .then(() => {
-          this.getList()
-          this.getTotal()
-          ElMessage.success('Success')
-        })
-        .finally(() => {
-          this.formProps.disabled = this.dialogVisible = false
-        })
-    },
-
-    edit() {
-      this.formProps.disabled = true
-      new MonitorEdit(this.formData)
-        .request()
-        .then(() => {
-          this.getList()
-          ElMessage.success('Success')
-        })
-        .finally(() => {
-          this.formProps.disabled = this.dialogVisible = false
-        })
-    },
-
-    storeFormData() {
-      this.tempFormData = JSON.parse(JSON.stringify(this.formData))
-    },
-
-    restoreFormData() {
-      this.formData = JSON.parse(JSON.stringify(this.tempFormData))
-    },
-  },
+import { ref, watch } from 'vue'
+import { useStore } from 'vuex'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
+const store = useStore()
+const dialogVisible = ref(false)
+const tableLoading = ref(false)
+const tableData = ref<MonitorList['datagram']['list']>([])
+const pagination = ref({
+  page: 1,
+  rows: 16,
+  total: 0,
 })
+const form = ref<Validator>()
+const tempFormData = {
+  id: 0,
+  name: '',
+  url: '',
+  second: 3,
+  times: 1,
+  notifyType: 1,
+  notifyTarget: '',
+  notifyTimes: 1,
+  description: '',
+}
+const formData = ref(tempFormData)
+const formProps = ref({
+  loading: false,
+  disabled: false,
+})
+const formRules = {
+  name: [{ required: true, message: 'Name required', trigger: 'blur' }],
+  url: [{ required: true, message: 'URL required', trigger: 'blur' }],
+  port: [
+    {
+      type: 'number',
+      required: true,
+      min: 0,
+      max: 65535,
+      message: '0 ~ 65535',
+      trigger: 'blur',
+    },
+  ],
+  second: [
+    {
+      type: 'number',
+      required: true,
+      min: 1,
+      message: 'Interval required',
+      trigger: 'blur',
+    },
+  ],
+  times: [
+    {
+      type: 'number',
+      required: true,
+      min: 1,
+      max: 65535,
+      message: 'Times required',
+      trigger: 'blur',
+    },
+  ],
+  notifyTarget: [{ required: true, message: 'Webhook required' }],
+  notifyTimes: [
+    {
+      type: 'number',
+      required: true,
+      min: 1,
+      max: 65535,
+      message: 'Notify times required',
+      trigger: 'blur',
+    },
+  ],
+  description: [{ max: 255, message: 'Max 255 characters', trigger: 'blur' }],
+}
+
+watch(
+  () => store.getters.ws_message,
+  function (response) {
+    if (response.type !== 3) {
+      return
+    }
+    const data = response.message
+    const monitorIndex = tableData.value.findIndex(
+      (element) => element.id === data.monitorId
+    )
+    if (monitorIndex !== -1) {
+      tableData.value[monitorIndex].errorContent = data.errorContent
+      tableData.value[monitorIndex].state = data.state
+    }
+  }
+)
+getList()
+getTotal()
+function getList() {
+  tableLoading.value = true
+  new MonitorList(pagination.value)
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+
+function getTotal() {
+  new MonitorTotal().request().then((response) => {
+    pagination.value.total = response.data.total
+  })
+}
+
+function handlePageChange(val = 1) {
+  pagination.value.page = val
+  getList()
+}
+
+function handleAdd() {
+  restoreFormData()
+  dialogVisible.value = true
+}
+
+function handleEdit(data: MonitorData['datagram']) {
+  formData.value = Object.assign({}, data)
+  dialogVisible.value = true
+}
+
+function handleToggle(data: MonitorData['datagram']) {
+  if (data.state === 1) {
+    ElMessageBox.confirm(
+      t('monitorPage.toggleStateTips', {
+        monitorName: data.name,
+      }),
+      t('tips'),
+      {
+        confirmButtonText: t('confirm'),
+        cancelButtonText: t('cancel'),
+        type: 'warning',
+      }
+    )
+      .then(() => {
+        new MonitorToggle({ id: data.id }).request().then(() => {
+          ElMessage.success('Stop success')
+          getList()
+        })
+      })
+      .catch(() => {
+        ElMessage.info('Cancel')
+      })
+  } else {
+    new MonitorToggle({ id: data.id }).request().then(() => {
+      ElMessage.success('Open success')
+      getList()
+    })
+  }
+}
+
+function handleRemove(data: MonitorData['datagram']) {
+  ElMessageBox.confirm(
+    t('monitorPage.removeMontiorTips', {
+      monitorName: data.name,
+    }),
+    t('tips'),
+    {
+      confirmButtonText: t('confirm'),
+      cancelButtonText: t('cancel'),
+      type: 'warning',
+    }
+  )
+    .then(() => {
+      new MonitorRemove({ id: data.id }).request().then(() => {
+        ElMessage.success('Success')
+        getList()
+        getTotal()
+      })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
+}
+
+function check() {
+  form.value?.validate((valid: boolean) => {
+    if (valid) {
+      formProps.value.loading = true
+      formProps.value.disabled = true
+      new MonitorCheck(formData.value)
+        .request()
+        .then(() => {
+          ElMessage.success('Connected success')
+        })
+        .finally(() => {
+          formProps.value.loading = false
+          formProps.value.disabled = false
+        })
+    } else {
+      return false
+    }
+  })
+}
+
+function submit() {
+  form.value?.validate((valid: boolean) => {
+    if (valid) {
+      if (formData.value.id === 0) {
+        add()
+      } else {
+        edit()
+      }
+    } else {
+      return false
+    }
+  })
+}
+
+function add() {
+  formProps.value.disabled = true
+  new MonitorAdd(formData.value)
+    .request()
+    .then(() => {
+      getList()
+      getTotal()
+      ElMessage.success('Success')
+    })
+    .finally(() => {
+      formProps.value.disabled = dialogVisible.value = false
+    })
+}
+
+function edit() {
+  formProps.value.disabled = true
+  new MonitorEdit(formData.value)
+    .request()
+    .then(() => {
+      getList()
+      ElMessage.success('Success')
+    })
+    .finally(() => {
+      formProps.value.disabled = dialogVisible.value = false
+    })
+}
+
+function restoreFormData() {
+  formData.value = { ...tempFormData }
+}
 </script>
 <style lang="scss" scoped>
 @import '@/styles/mixin.scss';
