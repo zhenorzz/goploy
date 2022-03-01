@@ -14,24 +14,20 @@
     </svg>
   </div>
 </template>
-
 <script lang="ts">
-import { defineComponent } from 'vue'
-export default defineComponent({
-  name: 'Hamburger',
-  props: {
-    isActive: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  emits: ['toggleClick'],
-  methods: {
-    toggleClick() {
-      this.$emit('toggleClick')
-    },
+export default { name: 'Hamburger' }
+</script>
+<script lang="ts" setup>
+defineProps({
+  isActive: {
+    type: Boolean,
+    default: false,
   },
 })
+const emit = defineEmits(['toggleClick'])
+function toggleClick() {
+  emit('toggleClick')
+}
 </script>
 
 <style scoped>

@@ -5,6 +5,7 @@
         <span
           v-if="item.redirect === 'noRedirect' || index == levelList.length - 1"
           class="no-redirect"
+          @click.prevent="handleLink(item)"
         >
           {{ $t(`route.${item.meta.title}`) }}
         </span>
@@ -16,49 +17,46 @@
   </el-breadcrumb>
 </template>
 
-<script lang="ts">
-import { pathToRegexp } from 'path-to-regexp'
-import { defineComponent } from 'vue'
-export default defineComponent({
-  data() {
-    return {
-      levelList: null,
-    }
-  },
-  watch: {
-    $route() {
-      this.getBreadcrumb()
-    },
-  },
-  created() {
-    this.getBreadcrumb()
-  },
-  methods: {
-    getBreadcrumb() {
-      // only show routes with meta.title
-      const matched = this.$route.matched.filter(
-        (item) => item.meta && item.meta.title
-      )
-      this.levelList = matched.filter(
-        (item) => item.meta && item.meta.title && item.meta.breadcrumb !== false
-      )
-    },
-    pathCompile(path) {
-      // To solve this problem https://github.com/PanJiaChen/vue-element-admin/issues/561
-      const { params } = this.$route
-      var toPath = pathToRegexp.compile(path)
-      return toPath(params)
-    },
-    handleLink(item) {
-      const { redirect, path } = item
-      if (redirect) {
-        this.$router.push(redirect)
-        return
-      }
-      this.$router.push(this.pathCompile(path))
-    },
-  },
+<script lang="ts" setup>
+import { compile } from 'path-to-regexp'
+import { ref, watch } from 'vue'
+import {
+  RouteRecordRaw,
+  RouteLocationRaw,
+  useRoute,
+  useRouter,
+} from 'vue-router'
+
+const levelList = ref()
+const route = useRoute()
+const router = useRouter()
+watch(route, () => {
+  getBreadcrumb()
 })
+getBreadcrumb()
+function getBreadcrumb() {
+  // only show routes with meta.title
+  const matched = route.matched.filter((item) => item.meta && item.meta.title)
+  levelList.value = matched.filter(
+    (item) => item.meta && item.meta.title && item.meta.breadcrumb !== false
+  )
+}
+
+function pathCompile(path: string) {
+  // To solve this problem https://github.com/PanJiaChen/vue-element-admin/issues/561
+  const { params } = route
+  var toPath = compile(path)
+  return toPath(params)
+}
+
+function handleLink(item: RouteRecordRaw) {
+  const { redirect, path } = item
+  if (redirect) {
+    router.push(<RouteLocationRaw>redirect)
+    return
+  }
+  router.push(pathCompile(path))
+}
 </script>
 
 <style lang="scss" scoped>

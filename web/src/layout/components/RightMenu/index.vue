@@ -94,13 +94,13 @@
         <TheUnicode v-model="transformType" />
         <el-row v-show="transformType === 'decodeURI'">
           <el-input
-            v-model="decodeURI.escape"
+            v-model="uri.escape"
             type="textarea"
             :autosize="{ minRows: 2 }"
             placeholder="Please enter unescaped URI"
           />
           <el-input
-            :value="decodeURI.escape ? decodeURI(decodeURI.escape) : ''"
+            :value="uri.escape ? decodeURI(uri.escape) : ''"
             style="margin-top: 10px"
             type="textarea"
             :autosize="{ minRows: 2 }"
@@ -164,14 +164,13 @@ const qrcode = reactive({
   text: 'https://github.com/zhenorzz/goploy',
   width: 200,
 })
-
-const decodeURI = reactive({
+const uri = reactive({
   escape: '',
 })
 const md5 = reactive({
   text: '',
 })
-function showTransformDialog(type) {
+function showTransformDialog(type: string) {
   transformVisible.value = true
   transformType.value = type
 }
