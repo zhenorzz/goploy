@@ -4,7 +4,7 @@
       <img src="@/assets/images/logo.png" width="120" height="120" />
     </el-row>
     <el-form
-      ref="loginForm"
+      ref="form"
       :model="loginForm"
       :rules="loginRules"
       class="login-form"
@@ -67,99 +67,99 @@
     </el-form>
   </div>
 </template>
-
 <script lang="ts">
+export default { name: 'Login' }
+</script>
+<script lang="ts" setup>
 import { param2Obj } from '@/utils'
 import { validUsername, validPassword } from '@/utils/validate'
 import Validator, { RuleItem } from 'async-validator'
-import { defineComponent } from 'vue'
-export default defineComponent({
-  name: 'Login',
-  data() {
-    return {
-      loginForm: {
-        account: import.meta.env.PROD === true ? '' : 'admin',
-        password: import.meta.env.PROD === true ? '' : 'admin!@#',
-        phrase: '',
-      },
-      loginRules: {
-        account: [
-          {
-            required: true,
-            trigger: 'blur',
-            validator: (_, value) => {
-              if (!validUsername(value)) {
-                return new Error('Greater than 5 characters')
-              } else {
-                return true
-              }
-            },
-          } as RuleItem,
-        ],
-        password: [
-          {
-            required: true,
-            trigger: 'blur',
-            validator: (_, value) => {
-              if (!validPassword(value)) {
-                return new Error(
-                  '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]'
-                )
-              } else {
-                return true
-              }
-            },
-          } as RuleItem,
-        ],
-      },
-      loading: false,
-      passwordType: 'password',
-      redirect: '',
-    }
-  },
-  watch: {
-    $route: {
-      handler: function (route) {
-        this.redirect = route.query && route.query.redirect
-      },
-      immediate: true,
-    },
-  },
-  methods: {
-    showPwd() {
-      if (this.passwordType === 'password') {
-        this.passwordType = ''
-      } else {
-        this.passwordType = 'password'
-      }
-      this.$nextTick(() => {
-        ;(this.$refs.password as HTMLInputElement).focus()
-      })
-    },
-    handleLogin() {
-      ;(this.$refs.loginForm as Validator).validate((valid: boolean) => {
-        if (valid) {
-          this.loading = true
-          this.$store
-            .dispatch('user/login', this.loginForm)
-            .then(() => {
-              this.$router.push({
-                path: this.redirect || '/',
-                query: this.redirect ? param2Obj(this.redirect) : {},
-              })
-              this.loading = false
-            })
-            .catch(() => {
-              this.loading = false
-            })
-        } else {
-          console.log('error submit!!')
-          return false
-        }
-      })
-    },
-  },
+import { useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+import { ref, watch, nextTick } from 'vue'
+const store = useStore()
+const router = useRouter()
+const loginForm = ref({
+  account: import.meta.env.PROD === true ? '' : 'admin',
+  password: import.meta.env.PROD === true ? '' : 'admin!@#',
+  phrase: '',
 })
+const loginRules = {
+  account: [
+    {
+      required: true,
+      trigger: 'blur',
+      validator: (_, value) => {
+        if (!validUsername(value)) {
+          return new Error('Greater than 5 characters')
+        } else {
+          return true
+        }
+      },
+    } as RuleItem,
+  ],
+  password: [
+    {
+      required: true,
+      trigger: 'blur',
+      validator: (_, value) => {
+        if (!validPassword(value)) {
+          return new Error(
+            '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]'
+          )
+        } else {
+          return true
+        }
+      },
+    } as RuleItem,
+  ],
+}
+const passwordType = ref('password')
+const loading = ref(false)
+const redirect = ref()
+watch(
+  useRoute(),
+  (route) => {
+    redirect.value = route.query?.redirect
+  },
+  { immediate: true }
+)
+
+const password = ref<HTMLInputElement>()
+function showPwd() {
+  if (passwordType.value === 'password') {
+    passwordType.value = ''
+  } else {
+    passwordType.value = 'password'
+  }
+  nextTick(() => {
+    password.value?.focus()
+  })
+}
+
+const form = ref<Validator>()
+function handleLogin() {
+  form.value?.validate((valid: boolean) => {
+    if (valid) {
+      loading.value = true
+      store
+        .dispatch('user/login', loginForm.value)
+        .then(() => {
+          router.push({
+            path: redirect.value || '/',
+            query: redirect.value ? param2Obj(redirect.value) : {},
+          })
+          loading.value = false
+        })
+        .catch(() => {
+          loading.value = false
+        })
+    } else {
+      console.log('error submit!!')
+      return false
+    }
+  })
+}
 </script>
 
 <style lang="scss">
