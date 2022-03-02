@@ -112,7 +112,7 @@
       layout="total, prev, pager, next"
       @current-change="handlePageChange"
     />
-    <template #footer class="dialog-footer">
+    <template #footer>
       <el-button @click="dialogVisible = false">
         {{ $t('cancel') }}
       </el-button>
@@ -121,7 +121,13 @@
   <TheCommitListDialog v-model="commitDialogVisible" :project-row="projectRow">
     <template #tableOP="scope">
       <el-popover
-        :ref="`task${scope.row.commit}`"
+        :ref="
+          (el) => {
+            if (el) {
+              taskPopoverRefs[scope.row.commit] = el
+            }
+          }
+        "
         placement="bottom"
         trigger="click"
         width="270"
@@ -142,7 +148,7 @@
           {{ $t('confirm') }}
         </el-button>
         <template #reference>
-          <el-button v-if="!role.isMember()" type="primary">
+          <el-button v-if="!getRole().isMember()" type="primary">
             {{ $t('crontab') }}
           </el-button>
         </template>
@@ -150,8 +156,7 @@
     </template>
   </TheCommitListDialog>
 </template>
-
-<script lang="ts">
+<script lang="ts" setup>
 import {
   ProjectTaskList,
   ProjectTaskAdd,
@@ -162,124 +167,108 @@ import TheCommitListDialog from './TheCommitListDialog.vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { getRole } from '@/utils/namespace'
 import { parseGitURL, parseTime } from '@/utils'
-import { computed, watch, defineComponent, ref, reactive } from 'vue'
+import { computed, watch, ref, reactive } from 'vue'
 import dayjs from 'dayjs'
-
-export default defineComponent({
-  components: { TheCommitListDialog },
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    },
-    projectRow: {
-      type: Object,
-      required: true,
-    },
+import { useStore } from 'vuex'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
+const store = useStore()
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false,
   },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    const dialogVisible = computed({
-      get: () => props.modelValue,
-      set: (val) => {
-        emit('update:modelValue', val)
-      },
-    })
-    const gitURL = ref<string>('')
-    watch(
-      () => props.modelValue,
-      (val: typeof props['modelValue']) => {
-        if (val === true) {
-          gitURL.value = parseGitURL(props.projectRow.url)
-          handlePageChange()
-        }
-      }
-    )
-
-    const tableLoading = ref(false)
-    const tableData = ref<ProjectTaskList['datagram']['list']>([])
-    const pagination = reactive({ page: 1, rows: 11, total: 0 })
-    const getTaskList = () => {
-      tableLoading.value = true
-      new ProjectTaskList({ id: props.projectRow.id }, pagination)
-        .request()
-        .then((response) => {
-          tableData.value = response.data.list
-          pagination.total = response.data.pagination.total
-        })
-        .finally(() => {
-          tableLoading.value = false
-        })
-    }
-
-    const handlePageChange = (page = 1) => {
-      pagination.page = page
-      getTaskList()
-    }
-
-    const commitDialogVisible = ref(false)
-    const handleAddProjectTask = () => {
-      commitDialogVisible.value = true
-    }
-
-    return {
-      dialogVisible,
-      role: getRole(),
-      gitURL,
-      tableLoading,
-      tableData,
-      pagination,
-      handlePageChange,
-      commitDialogVisible,
-      handleAddProjectTask,
-    }
-  },
-  methods: {
-    submitTask(data: ProjectTaskData['datagram']) {
-      const date = dayjs(data.date).format('YYYY-MM-DD HH:mm:ss')
-      new ProjectTaskAdd({ ...data, date })
-        .request()
-        .then(() => {
-          ElMessage.success('Success')
-        })
-        .finally(() => {
-          this.$refs[`task${data.commit}`].doDestroy()
-          this.commitDialogVisible = false
-          this.handlePageChange()
-        })
-    },
-    removeProjectTask(data: ProjectTaskData['datagram']) {
-      ElMessageBox.confirm(
-        this.$t('deployPage.removeProjectTaskTips', {
-          projectName: this.projectRow.name,
-        }),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          new ProjectTaskRemove({ id: data.id }).request().then(() => {
-            const projectTaskIndex = this.tableData.findIndex(
-              (element) => element.id === data.id
-            )
-            this.tableData[projectTaskIndex]['state'] = 0
-            this.tableData[projectTaskIndex]['editor'] =
-              this.$store.getters.name
-            this.tableData[projectTaskIndex]['editorId'] =
-              this.$store.getters.uid
-            this.tableData[projectTaskIndex]['updateTime'] = parseTime(
-              new Date().getTime()
-            )
-            ElMessage.success('The task is disabled')
-          })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
-    },
+  projectRow: {
+    type: Object,
+    required: true,
   },
 })
+const emit = defineEmits(['update:modelValue'])
+const taskPopoverRefs = ref<Record<string, any>>({})
+const dialogVisible = computed({
+  get: () => props.modelValue,
+  set: (val) => {
+    emit('update:modelValue', val)
+  },
+})
+const gitURL = ref('')
+watch(
+  () => props.modelValue,
+  (val: typeof props['modelValue']) => {
+    if (val === true) {
+      gitURL.value = parseGitURL(props.projectRow.url)
+      handlePageChange()
+    }
+  }
+)
+const tableLoading = ref(false)
+const tableData = ref<ProjectTaskList['datagram']['list']>([])
+const pagination = reactive({ page: 1, rows: 11, total: 0 })
+const getTaskList = () => {
+  tableLoading.value = true
+  new ProjectTaskList({ id: props.projectRow.id }, pagination)
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+      pagination.total = response.data.pagination.total
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+
+const handlePageChange = (page = 1) => {
+  pagination.page = page
+  getTaskList()
+}
+
+const commitDialogVisible = ref(false)
+const handleAddProjectTask = () => {
+  commitDialogVisible.value = true
+}
+
+function submitTask(data: ProjectTaskData['datagram']) {
+  const date = dayjs(data.date).format('YYYY-MM-DD HH:mm:ss')
+  new ProjectTaskAdd({ ...data, date })
+    .request()
+    .then(() => {
+      ElMessage.success('Success')
+    })
+    .finally(() => {
+      taskPopoverRefs.value[data.commit].doDestroy(true)
+      commitDialogVisible.value = false
+      handlePageChange()
+    })
+}
+
+function removeProjectTask(data: ProjectTaskData['datagram']) {
+  ElMessageBox.confirm(
+    t('deployPage.removeProjectTaskTips', {
+      projectName: props.projectRow.name,
+    }),
+    t('tips'),
+    {
+      confirmButtonText: t('confirm'),
+      cancelButtonText: t('cancel'),
+      type: 'warning',
+    }
+  )
+    .then(() => {
+      new ProjectTaskRemove({ id: data.id }).request().then(() => {
+        const projectTaskIndex = tableData.value.findIndex(
+          (element) => element.id === data.id
+        )
+        tableData.value[projectTaskIndex]['state'] = 0
+        tableData.value[projectTaskIndex]['editor'] = store.getters.name
+        tableData.value[projectTaskIndex]['editorId'] = store.getters.uid
+        tableData.value[projectTaskIndex]['updateTime'] = parseTime(
+          new Date().getTime()
+        )
+        ElMessage.success('The task is disabled')
+      })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
+}
 </script>
