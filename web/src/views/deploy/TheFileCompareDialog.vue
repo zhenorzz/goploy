@@ -58,7 +58,7 @@
         </template>
       </el-table-column>
     </el-table>
-    <template #footer class="dialog-footer">
+    <template #footer>
       <el-button @click="dialogVisible = false">
         {{ $t('cancel') }}
       </el-button>
@@ -126,7 +126,7 @@
         </template>
       </el-table-column>
     </el-table>
-    <template #footer class="dialog-footer">
+    <template #footer>
       <el-button @click="fileVisible = false">
         {{ $t('cancel') }}
       </el-button>
@@ -183,7 +183,7 @@
         </div>
       </div>
     </div>
-    <template #footer class="dialog-footer">
+    <template #footer>
       <el-button @click="fileDiffVisible = false">
         {{ $t('cancel') }}
       </el-button>
@@ -191,152 +191,127 @@
   </el-dialog>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { diffLines } from 'diff'
 import path from 'path-browserify'
 import { FileCompare, FileDiff } from '@/api/deploy'
-import { ReposFileList } from '@/api/project'
+import { ReposFileList, ProjectData } from '@/api/project'
 import { humanSize } from '@/utils'
 import { ElMessage } from 'element-plus'
-import { computed, defineComponent, ref } from 'vue'
-
-export default defineComponent({
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    },
-    projectRow: {
-      type: Object,
-      required: true,
-    },
+import { computed, PropType, ref } from 'vue'
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false,
   },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    const dialogVisible = computed({
-      get: () => props.modelValue,
-      set: (val) => {
-        emit('update:modelValue', val)
-      },
-    })
-    const filePath = ref('')
-    const handlePathChange = () => {
-      filePath.value = path
-        .normalize(filePath.value)
-        .split('/')
-        .filter((dir) => dir !== '..')
-        .join('/')
-    }
-    const fileVisible = ref(false)
-    const fileLoading = ref(false)
-    const fileList = ref([])
-
-    const handleSelectPath = (_path: string) => {
-      fileVisible.value = true
-      fileLoading.value = true
-      _path = _path ? path.normalize(_path) : '/'
-      if (!_path.endsWith('/')) {
-        _path = path.normalize(path.dirname(_path) + '/')
-      }
-      filePath.value = _path
-      new ReposFileList({
-        id: props.projectRow.id,
-        path: _path,
-      })
-        .request()
-        .then((response) => {
-          fileList.value = response.data
-        })
-        .finally(() => {
-          fileLoading.value = false
-        })
-    }
-
-    const handleSelectFile = (_path: string) => {
-      filePath.value = _path
-      fileVisible.value = false
-      handleCompare()
-    }
-
-    const tableLoading = ref(false)
-    const tableData = ref([])
-    const handleCompare = () => {
-      if (filePath.value === '') {
-        ElMessage.warning('file path can not be empty')
-        return
-      }
-      tableLoading.value = true
-      new FileCompare({
-        projectId: props.projectRow.id,
-        filePath: filePath.value,
-      })
-        .request()
-        .then((response) => {
-          tableData.value = response.data
-        })
-        .finally(() => {
-          tableLoading.value = false
-        })
-    }
-
-    const fileDiffVisible = ref(false)
-    const diffLoading = ref(false)
-    const changeLines = ref(
-      [] as { text: string; lineNumber: string; type: string }[]
-    )
-    const handleDiff = (data: { serverId: number }) => {
-      fileDiffVisible.value = true
-      changeLines.value = []
-      diffLoading.value = true
-      new FileDiff({
-        projectId: props.projectRow.id,
-        serverId: data.serverId,
-        filePath: filePath.value,
-      })
-        .request()
-        .then((response) => {
-          let lineNumber = 0
-          diffLines(response.data.srcText, response.data.distText).forEach(
-            (item) => {
-              const strArr =
-                item.value?.split('\n').filter((item) => item) || []
-              const type = (item.added && '+') || (item.removed && '-') || ''
-              strArr.forEach((text) => {
-                const thisLineNumber = !item.removed ? ++lineNumber : ''
-                changeLines.value.push({
-                  text,
-                  type,
-                  lineNumber: thisLineNumber.toString(),
-                })
-              })
-            }
-          )
-        })
-        .finally(() => {
-          diffLoading.value = false
-        })
-    }
-
-    return {
-      dialogVisible,
-      fileVisible,
-      fileDiffVisible,
-      filePath,
-      handlePathChange,
-      fileLoading,
-      fileList,
-      handleSelectPath,
-      handleSelectFile,
-      handleCompare,
-      humanSize,
-      tableLoading,
-      tableData,
-      changeLines,
-      handleDiff,
-      diffLoading,
-    }
+  projectRow: {
+    type: Object as PropType<ProjectData['datagram']>,
+    required: true,
   },
 })
+const emit = defineEmits(['update:modelValue'])
+const dialogVisible = computed({
+  get: () => props.modelValue,
+  set: (val) => {
+    emit('update:modelValue', val)
+  },
+})
+const filePath = ref('')
+const handlePathChange = () => {
+  filePath.value = path
+    .normalize(filePath.value)
+    .split('/')
+    .filter((dir) => dir !== '..')
+    .join('/')
+}
+const fileVisible = ref(false)
+const fileLoading = ref(false)
+const fileList = ref([])
+
+const handleSelectPath = (_path: string) => {
+  fileVisible.value = true
+  fileLoading.value = true
+  _path = _path ? path.normalize(_path) : '/'
+  if (!_path.endsWith('/')) {
+    _path = path.normalize(path.dirname(_path) + '/')
+  }
+  filePath.value = _path
+  new ReposFileList({
+    id: props.projectRow.id,
+    path: _path,
+  })
+    .request()
+    .then((response) => {
+      fileList.value = response.data
+    })
+    .finally(() => {
+      fileLoading.value = false
+    })
+}
+
+const handleSelectFile = (_path: string) => {
+  filePath.value = _path
+  fileVisible.value = false
+  handleCompare()
+}
+
+const tableLoading = ref(false)
+const tableData = ref([])
+const handleCompare = () => {
+  if (filePath.value === '') {
+    ElMessage.warning('file path can not be empty')
+    return
+  }
+  tableLoading.value = true
+  new FileCompare({
+    projectId: props.projectRow.id,
+    filePath: filePath.value,
+  })
+    .request()
+    .then((response) => {
+      tableData.value = response.data
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+
+const fileDiffVisible = ref(false)
+const diffLoading = ref(false)
+const changeLines = ref(
+  [] as { text: string; lineNumber: string; type: string }[]
+)
+const handleDiff = (data: { serverId: number }) => {
+  fileDiffVisible.value = true
+  changeLines.value = []
+  diffLoading.value = true
+  new FileDiff({
+    projectId: props.projectRow.id,
+    serverId: data.serverId,
+    filePath: filePath.value,
+  })
+    .request()
+    .then((response) => {
+      let lineNumber = 0
+      diffLines(response.data.srcText, response.data.distText).forEach(
+        (item) => {
+          const strArr = item.value?.split('\n').filter((item) => item) || []
+          const type = (item.added && '+') || (item.removed && '-') || ''
+          strArr.forEach((text) => {
+            const thisLineNumber = !item.removed ? ++lineNumber : ''
+            changeLines.value.push({
+              text,
+              type,
+              lineNumber: thisLineNumber.toString(),
+            })
+          })
+        }
+      )
+    })
+    .finally(() => {
+      diffLoading.value = false
+    })
+}
 </script>
 
 <style rel="stylesheet/scss" lang="scss" scoped>

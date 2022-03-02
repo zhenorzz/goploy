@@ -30,9 +30,9 @@
       style="width: 100%"
     >
       <el-table-column type="expand">
-        <template #default="props">
+        <template #default="scope">
           <div style="white-space: pre-line">
-            {{ props.row.diff }}
+            {{ scope.row.diff }}
           </div>
         </template>
       </el-table-column>
@@ -78,100 +78,81 @@
         </template>
       </el-table-column>
     </el-table>
-    <template #footer class="dialog-footer">
+    <template #footer>
       <el-button @click="dialogVisible = false">
         {{ $t('cancel') }}
       </el-button>
     </template>
   </el-dialog>
 </template>
-
-<script lang="ts">
+<script lang="ts" setup>
 import { RepositoryBranchList, RepositoryCommitList } from '@/api/repository'
-import { getRole } from '@/utils/namespace'
+import { ProjectData } from '@/api/project'
 import { parseGitURL, parseTime } from '@/utils'
-import { computed, watch, defineComponent, ref } from 'vue'
-
-export default defineComponent({
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    },
-    projectRow: {
-      type: Object,
-      required: true,
-    },
+import { PropType, computed, watch, ref } from 'vue'
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false,
   },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    const dialogVisible = computed({
-      get: () => props.modelValue,
-      set: (val) => {
-        emit('update:modelValue', val)
-      },
-    })
-    const gitURL = ref<string>('')
-    const branchLoading = ref(false)
-    const branchOption = ref<RepositoryBranchList['datagram']['list']>([])
-    const branch = ref('')
-    const tableData = ref<RepositoryCommitList['datagram']['list']>([])
-    watch(
-      () => props.modelValue,
-      (val: typeof props['modelValue']) => {
-        if (val === true) {
-          gitURL.value = parseGitURL(props.projectRow.url)
-          branchLoading.value = true
-          branchOption.value = []
-          branch.value = ''
-          tableData.value = []
-          new RepositoryBranchList({ id: props.projectRow.id })
-            .request()
-            .then((response) => {
-              branchOption.value = response.data.list.filter((element) => {
-                return element.indexOf('HEAD') === -1
-              })
-            })
-            .finally(() => {
-              branchLoading.value = false
-            })
-        }
-      }
-    )
-
-    const tableLoading = ref(false)
-    const getCommitList = () => {
-      tableLoading.value = true
-      new RepositoryCommitList({
-        id: props.projectRow.id,
-        branch: branch.value,
-      })
+  projectRow: {
+    type: Object as PropType<ProjectData['datagram']>,
+    required: true,
+  },
+})
+const emit = defineEmits(['update:modelValue'])
+const dialogVisible = computed({
+  get: () => props.modelValue,
+  set: (val) => {
+    emit('update:modelValue', val)
+  },
+})
+const gitURL = ref<string>('')
+const branchLoading = ref(false)
+const branchOption = ref<RepositoryBranchList['datagram']['list']>([])
+const branch = ref('')
+const tableData = ref<RepositoryCommitList['datagram']['list']>([])
+watch(
+  () => props.modelValue,
+  (val: typeof props['modelValue']) => {
+    if (val === true) {
+      gitURL.value = parseGitURL(props.projectRow.url)
+      branchLoading.value = true
+      branchOption.value = []
+      branch.value = ''
+      tableData.value = []
+      new RepositoryBranchList({ id: props.projectRow.id })
         .request()
         .then((response) => {
-          tableData.value = response.data.list.map((element) => {
-            return Object.assign(element, {
-              projectId: props.projectRow.id,
-              branch: branch.value,
-            })
+          branchOption.value = response.data.list.filter((element) => {
+            return element.indexOf('HEAD') === -1
           })
         })
         .finally(() => {
-          tableLoading.value = false
+          branchLoading.value = false
         })
     }
+  }
+)
 
-    return {
-      dialogVisible,
-      role: getRole(),
-      gitURL,
-      parseTime,
-      branchLoading,
-      branchOption,
-      branch,
-      tableLoading,
-      tableData,
-      getCommitList,
-    }
-  },
-})
+const tableLoading = ref(false)
+const getCommitList = () => {
+  tableLoading.value = true
+  new RepositoryCommitList({
+    id: props.projectRow.id,
+    branch: branch.value,
+  })
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list.map((element) => {
+        return Object.assign(element, {
+          projectId: props.projectRow.id,
+          branch: branch.value,
+        })
+      })
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
 </script>
