@@ -1,7 +1,7 @@
 import { Request, Pagination, Total } from './types'
 
 export class LoginLogData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     account: string
     remoteAddr: string
@@ -22,7 +22,7 @@ export class LoginLogList extends Request {
     account: string
   }
 
-  public datagram!: {
+  public declare datagram: {
     list: LoginLogData['datagram'][]
   }
   constructor(param: LoginLogList['param'], pagination: Pagination) {
@@ -40,7 +40,7 @@ export class LoginLogTotal extends Request {
     account: string
   }
 
-  public datagram!: Total
+  public declare datagram: Total
 
   constructor(param: LoginLogTotal['param']) {
     super()
@@ -49,7 +49,7 @@ export class LoginLogTotal extends Request {
 }
 
 export class SftpLogData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     namespaceId: number
     userId: number
@@ -75,7 +75,7 @@ export class SftpLogList extends Request {
     serverName: string
   }
 
-  public datagram!: {
+  public declare datagram: {
     list: SftpLogData['datagram'][]
   }
   constructor(param: SftpLogList['param'], pagination: Pagination) {
@@ -94,7 +94,7 @@ export class SftpLogTotal extends Request {
     serverName: string
   }
 
-  public datagram!: Total
+  public declare datagram: Total
 
   constructor(param: SftpLogTotal['param']) {
     super()
@@ -103,7 +103,7 @@ export class SftpLogTotal extends Request {
 }
 
 export class TerminalLogData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     namespaceId: number
     userId: number
@@ -128,7 +128,7 @@ export class TerminalLogList extends Request {
     serverName: string
   }
 
-  public datagram!: {
+  public declare datagram: {
     list: TerminalLogData['datagram'][]
   }
   constructor(param: TerminalLogList['param'], pagination: Pagination) {
@@ -147,7 +147,7 @@ export class TerminalLogTotal extends Request {
     serverName: string
   }
 
-  public datagram!: Total
+  public declare datagram: Total
 
   constructor(param: TerminalLogTotal['param']) {
     super()
@@ -156,7 +156,7 @@ export class TerminalLogTotal extends Request {
 }
 
 export class PublishLogData {
-  public datagram!: {
+  public declare datagram: {
     token: string
     publisherId: number
     publisherName: string
@@ -178,7 +178,7 @@ export class PublishLogList extends Request {
     projectName: string
   }
 
-  public datagram!: {
+  public declare datagram: {
     list: PublishLogData['datagram'][]
   }
   constructor(param: PublishLogList['param'], pagination: Pagination) {
@@ -197,7 +197,7 @@ export class PublishLogTotal extends Request {
     projectName: string
   }
 
-  public datagram!: Total
+  public declare datagram: Total
 
   constructor(param: PublishLogTotal['param']) {
     super()

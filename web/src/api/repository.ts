@@ -1,7 +1,7 @@
 import { Request, ID } from './types'
 
 export class CommitData {
-  public datagram!: {
+  public declare datagram: {
     branch: string
     commit: string
     author: string
@@ -18,7 +18,7 @@ export class RepositoryBranchList extends Request {
   readonly timeout = 0
   public param: ID
 
-  public datagram!: {
+  public declare datagram: {
     list: string[]
   }
   constructor(param: RepositoryBranchList['param']) {
@@ -36,7 +36,7 @@ export class RepositoryCommitList extends Request {
     branch: string
   }
 
-  public datagram!: {
+  public declare datagram: {
     list: CommitData['datagram'][]
   }
   constructor(param: RepositoryCommitList['param']) {
@@ -51,7 +51,7 @@ export class RepositoryTagList extends Request {
   readonly timeout = 0
   public param: ID
 
-  public datagram!: {
+  public declare datagram: {
     list: CommitData['datagram'][]
   }
   constructor(param: RepositoryTagList['param']) {

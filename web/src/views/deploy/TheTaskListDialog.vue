@@ -158,6 +158,7 @@
 </template>
 <script lang="ts" setup>
 import {
+  ProjectData,
   ProjectTaskList,
   ProjectTaskAdd,
   ProjectTaskRemove,
@@ -167,7 +168,7 @@ import TheCommitListDialog from './TheCommitListDialog.vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { getRole } from '@/utils/namespace'
 import { parseGitURL, parseTime } from '@/utils'
-import { computed, watch, ref, reactive } from 'vue'
+import { PropType, computed, watch, ref, reactive } from 'vue'
 import dayjs from 'dayjs'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
@@ -179,7 +180,7 @@ const props = defineProps({
     default: false,
   },
   projectRow: {
-    type: Object,
+    type: Object as PropType<ProjectData['datagram']>,
     required: true,
   },
 })

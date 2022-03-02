@@ -1,7 +1,7 @@
 import { Request, Pagination, ID, Total } from './types'
 
 export class MonitorData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     namespaceId: number
     name: string
@@ -24,7 +24,7 @@ export class MonitorList extends Request {
   readonly method = 'get'
   public pagination: Pagination
 
-  public datagram!: {
+  public declare datagram: {
     list: MonitorData['datagram'][]
   }
   constructor(pagination: Pagination) {
@@ -38,7 +38,7 @@ export class MonitorTotal extends Request {
   readonly url = '/monitor/getTotal'
   readonly method = 'get'
 
-  public datagram!: Total
+  public declare datagram: Total
 }
 
 export class MonitorAdd extends Request {

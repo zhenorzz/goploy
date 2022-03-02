@@ -1,10 +1,10 @@
-import { Request, Pagination, ID } from './types'
+import { Request, Pagination, Total, ID } from './types'
 import { ProjectData } from './project'
 
 export class DeployList extends Request {
   readonly url = '/deploy/getList'
   readonly method = 'get'
-  public datagram!: {
+  public declare datagram: {
     list: ProjectData['datagram'][]
   }
 }
@@ -16,7 +16,7 @@ export class DeployRebuild extends Request {
     projectId: number
     token: string
   }
-  public datagram!: string
+  public declare datagram: string
   constructor(param: DeployRebuild['param']) {
     super()
     this.param = param
@@ -24,7 +24,7 @@ export class DeployRebuild extends Request {
 }
 
 export class PublishTraceData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     token: string
     projectId: number
@@ -58,9 +58,9 @@ export class DeployPreviewList extends Request {
   }
   public pagination: Pagination
 
-  public datagram!: {
+  public declare datagram: {
     list: PublishTraceData['datagram'][]
-    pagination: Pagination
+    pagination: Pagination & Total
   }
   constructor(param: DeployPreviewList['param'], pagination: Pagination) {
     super()
@@ -75,7 +75,7 @@ export class DeployTrace extends Request {
   public param: {
     lastPublishToken: string
   }
-  public datagram!: {
+  public declare datagram: {
     list: PublishTraceData['datagram'][]
   }
   constructor(param: DeployTrace['param']) {
@@ -89,7 +89,7 @@ export class DeployTraceDetail extends Request {
   readonly method = 'get'
   readonly timeout = 0
   public param: ID
-  public datagram!: {
+  public declare datagram: {
     detail: string
   }
   constructor(param: DeployTraceDetail['param']) {
@@ -190,7 +190,7 @@ export class ManageProcess extends Request {
     projectProcessId: number
     command: string
   }
-  public datagram!: {
+  public declare datagram: {
     execRes: boolean
     stdout: string
     stderr: string

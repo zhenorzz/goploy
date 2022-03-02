@@ -1,7 +1,7 @@
 import { HttpResponse, Request, Pagination, Total, ID } from './types'
 
 export class ServerData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     label: string
     name: string
@@ -29,7 +29,7 @@ export class ServerList extends Request {
 
   public pagination: Pagination
 
-  public datagram!: {
+  public declare datagram: {
     list: ServerData['datagram'][]
   }
   constructor(pagination: Pagination) {
@@ -55,7 +55,7 @@ export class ServerList extends Request {
 export class ServerTotal extends Request {
   readonly url = '/server/getTotal'
   readonly method = 'get'
-  public datagram!: Total
+  public declare datagram: Total
 }
 
 export class ServerPublicKey extends Request {
@@ -66,7 +66,7 @@ export class ServerPublicKey extends Request {
     path: string
   }
 
-  public datagram!: {
+  public declare datagram: {
     key: string
   }
 
@@ -80,7 +80,7 @@ export class ServerOption extends Request {
   readonly url = '/server/getOption'
   readonly method = 'get'
 
-  public datagram!: {
+  public declare datagram: {
     list: ServerData['datagram'][]
   }
   public request(): Promise<HttpResponse<this['datagram']>> {
@@ -196,7 +196,7 @@ export class ServerReport extends Request {
 }
 
 export class ServerMonitorData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     serverId: number
     item: string
@@ -223,7 +223,7 @@ export class ServerMonitorList extends Request {
     serverId: number
   }
 
-  public datagram!: {
+  public declare datagram: {
     list: ServerMonitorData['datagram'][]
   }
 

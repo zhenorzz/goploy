@@ -1,7 +1,7 @@
 import { Request, Pagination, ID, Total } from './types'
 
 export class NamespaceData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     name: string
     userId: number
@@ -12,7 +12,7 @@ export class NamespaceData {
 }
 
 export class NamespaceUserData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     namespaceId: number
     namespaceName: string
@@ -30,7 +30,7 @@ export class NamespaceList extends Request {
 
   public pagination: Pagination
 
-  public datagram!: {
+  public declare datagram: {
     list: NamespaceData['datagram'][]
   }
   constructor(pagination: Pagination) {
@@ -44,14 +44,14 @@ export class NamespaceTotal extends Request {
   readonly url = '/namespace/getTotal'
   readonly method = 'get'
 
-  public datagram!: Total
+  public declare datagram: Total
 }
 
 export class NamespaceUserOption extends Request {
   readonly url = '/namespace/getUserOption'
   readonly method = 'get'
 
-  public datagram!: {
+  public declare datagram: {
     list: NamespaceUserData['datagram'][]
   }
 }
@@ -60,7 +60,7 @@ export class NamespaceOption extends Request {
   readonly url = '/namespace/getOption'
   readonly method = 'get'
 
-  public datagram!: {
+  public declare datagram: {
     list: NamespaceUserData['datagram'][]
   }
 }
@@ -69,7 +69,7 @@ export class NamespaceUserList extends Request {
   readonly url = '/namespace/getBindUserList'
   readonly method = 'get'
   public param: ID
-  public datagram!: {
+  public declare datagram: {
     list: NamespaceUserData['datagram'][]
   }
   constructor(param: NamespaceUserList['param']) {
@@ -84,7 +84,7 @@ export class NamespaceAdd extends Request {
   public param: {
     name: string
   }
-  public datagram!: ID
+  public declare datagram: ID
   constructor(param: NamespaceAdd['param']) {
     super()
     this.param = param

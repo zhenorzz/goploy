@@ -1,7 +1,7 @@
 import { Request, Pagination, ID, Total } from './types'
 
 export class ProjectData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     namespaceId: number
     userId: number
@@ -44,7 +44,7 @@ export class ProjectList extends Request {
   }
   public pagination: Pagination
 
-  public datagram!: {
+  public declare datagram: {
     list: ProjectData['datagram'][]
   }
   constructor(param: ProjectList['param'], pagination: Pagination) {
@@ -62,7 +62,7 @@ export class ProjectTotal extends Request {
     projectName: string
   }
 
-  public datagram!: Total
+  public declare datagram: Total
   constructor(param: ProjectTotal['param']) {
     super()
     this.param = { ...param }
@@ -78,7 +78,7 @@ export class ProjectPingRepos extends Request {
     url: string
   }
 
-  public datagram!: {
+  public declare datagram: {
     branch: string[]
   }
   constructor(param: ProjectPingRepos['param']) {
@@ -96,7 +96,7 @@ export class ProjectRemoteBranchList extends Request {
     url: string
   }
 
-  public datagram!: {
+  public declare datagram: {
     branch: string[]
   }
   constructor(param: ProjectRemoteBranchList['param']) {
@@ -173,7 +173,7 @@ export class ProjectRemove extends Request {
 }
 
 export class ProjectServerData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     projectId: number
     serverId: number
@@ -192,7 +192,7 @@ export class ProjectServerList extends Request {
   readonly url = '/project/getBindServerList'
   readonly method = 'get'
   public param: ID
-  public datagram!: {
+  public declare datagram: {
     list: ProjectServerData['datagram'][]
   }
   constructor(param: ProjectServerList['param']) {
@@ -227,7 +227,7 @@ export class ProjectServerRemove extends Request {
 }
 
 export class ProjectUserData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     namespaceId: number
     projectId: number
@@ -243,7 +243,7 @@ export class ProjectUserList extends Request {
   readonly url = '/project/getBindUserList'
   readonly method = 'get'
   public param: ID
-  public datagram!: {
+  public declare datagram: {
     list: ProjectUserData['datagram'][]
   }
   constructor(param: ProjectUserList['param']) {
@@ -278,7 +278,7 @@ export class ProjectUserRemove extends Request {
 }
 
 export class ProjectFileData {
-  public datagram!: {
+  public declare datagram: {
     detail: {
       id: number
       projectId: number
@@ -292,7 +292,7 @@ export class ProjectFileList extends Request {
   readonly url = '/project/getProjectFileList'
   readonly method = 'get'
   public param: ID
-  public datagram!: {
+  public declare datagram: {
     list: ProjectFileData['datagram'][]
   }
   constructor(param: ProjectUserList['param']) {
@@ -305,7 +305,7 @@ export class ProjectFileContent extends Request {
   readonly url = '/project/getProjectFileContent'
   readonly method = 'get'
   public param: ID
-  public datagram!: {
+  public declare datagram: {
     content: string
   }
   constructor(param: ProjectUserList['param']) {
@@ -322,7 +322,7 @@ export class ProjectFileAdd extends Request {
     content: string
     filename: string
   }
-  public datagram!: ID
+  public declare datagram: ID
   constructor(param: ProjectFileAdd['param']) {
     super()
     this.param = param
@@ -355,7 +355,7 @@ export class ProjectFileRemove extends Request {
 }
 
 export class ProjectTaskData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     projectId: number
     branch: string
@@ -378,9 +378,9 @@ export class ProjectTaskList extends Request {
   public param: ID
   public pagination: Pagination
 
-  public datagram!: {
+  public declare datagram: {
     list: ProjectTaskData['datagram'][]
-    pagination: Pagination
+    pagination: Pagination & Total
   }
   constructor(param: ProjectTaskList['param'], pagination: Pagination) {
     super()
@@ -398,7 +398,7 @@ export class ProjectTaskAdd extends Request {
     commit: string
     date: string
   }
-  public datagram!: ID
+  public declare datagram: ID
   constructor(param: ProjectTaskAdd['param']) {
     super()
     this.param = param
@@ -434,9 +434,9 @@ export class ProjectReviewList extends Request {
   public param: ID
   public pagination: Pagination
 
-  public datagram!: {
+  public declare datagram: {
     list: ProjectTaskData['datagram'][]
-    pagination: Pagination
+    pagination: Pagination & Total
   }
   constructor(param: ProjectReviewList['param'], pagination: Pagination) {
     super()
@@ -460,7 +460,7 @@ export class ReposFileList extends Request {
 }
 
 export class ProjectProcessData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     projectId: number
     name: string
@@ -481,7 +481,7 @@ export class ProjectProcessList extends Request {
   }
   public pagination: Pagination
 
-  public datagram!: {
+  public declare datagram: {
     list: ProjectProcessData['datagram'][]
   }
   constructor(param: ProjectProcessList['param'], pagination: Pagination) {
@@ -502,7 +502,7 @@ export class ProjectProcessAdd extends Request {
     status: string
     restart: string
   }
-  public datagram!: ID
+  public declare datagram: ID
   constructor(param: ProjectProcessAdd['param']) {
     super()
     this.param = param

@@ -1,7 +1,7 @@
 import { Request, Pagination, ID } from './types'
 
 export class CronData {
-  public datagram!: {
+  public declare datagram: {
     id: number
     serverId: number
     expression: string
@@ -27,7 +27,7 @@ export class CronList extends Request {
   }
   public pagination: Pagination
 
-  public datagram!: {
+  public declare datagram: {
     list: CronData['datagram'][]
   }
   constructor(param: CronList['param'], pagination: Pagination) {
@@ -47,7 +47,7 @@ export class CronAdd extends Request {
     logLevel: number
     description: string
   }
-  public datagram!: ID
+  public declare datagram: ID
   constructor(param: CronAdd['param']) {
     super()
     this.param = param
