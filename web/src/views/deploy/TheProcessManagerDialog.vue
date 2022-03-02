@@ -178,8 +178,7 @@
     </template>
   </el-dialog>
 </template>
-
-<script lang="ts">
+<script lang="ts" setup>
 import { ManageProcess } from '@/api/deploy'
 import {
   ProjectProcessData,
@@ -189,231 +188,208 @@ import {
   ProjectServerData,
   ProjectServerList,
   ProjectProcessDelete,
+  ProjectData,
 } from '@/api/project'
 import Validator from 'async-validator'
 import { ElMessageBox, ElMessage } from 'element-plus'
+import { computed, watch, ref, PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { computed, defineComponent, ref, watch } from 'vue'
-
-export default defineComponent({
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    },
-    projectRow: {
-      type: Object,
-      required: true,
-    },
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false,
   },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    const { t } = useI18n()
-    const dialogVisible = computed({
-      get: () => props.modelValue,
-      set: (val) => {
-        emit('update:modelValue', val)
-      },
-    })
-
-    watch(
-      () => props.modelValue,
-      (val: typeof props['modelValue']) => {
-        if (val === true) {
-          getList()
-        }
-      }
-    )
-    const processLoading = ref(false)
-    const projectProcessId = ref<number>()
-    const processOption = ref<ProjectProcessList['datagram']['list']>([])
-    const getList = () => {
-      processLoading.value = true
-      projectProcessId.value = undefined
-      processOption.value = []
-      tableData.value = []
-      new ProjectProcessList(
-        { projectId: props.projectRow.id },
-        { page: 1, rows: 999 }
-      )
-        .request()
-        .then((response) => {
-          processOption.value = response.data.list
-        })
-        .finally(() => {
-          processLoading.value = false
-        })
-    }
-
-    const table = ref(null)
-    const tableLoading = ref(false)
-    const tableData = ref<ProjectServerList['datagram']['list']>([])
-    const handleProcessChange = () => {
-      if (tableData.value.length > 0) {
-        return
-      }
-      tableLoading.value = true
-      new ProjectServerList({ id: props.projectRow.id })
-        .request()
-        .then((response) => {
-          tableData.value = response.data.list
-        })
-        .finally(() => {
-          tableLoading.value = false
-        })
-    }
-    const commandRes = ref<ManageProcess['datagram']>({
-      execRes: true,
-      stdout: '',
-      stderr: '',
-    })
-    const commandLoading = ref(false)
-    const handleProcessCmd = (
-      data: ProjectServerData['datagram'],
-      command: string
-    ) => {
-      ElMessageBox.confirm(t('deployPage.execTips', { command }), t('tips'), {
-        confirmButtonText: t('confirm'),
-        cancelButtonText: t('cancel'),
-        type: 'warning',
-      })
-        .then(() => {
-          commandLoading.value = true
-          new ManageProcess({
-            serverId: data.serverId,
-            projectProcessId: Number(projectProcessId.value),
-            command,
-          })
-            .request()
-            .then((response) => {
-              commandRes.value = response.data
-              table.value.toggleRowExpansion(data, true)
-            })
-            .finally(() => {
-              commandLoading.value = false
-            })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
-    }
-    return {
-      dialogVisible,
-      getList,
-      projectProcessId,
-      processOption,
-      processLoading,
-      handleProcessChange,
-      table,
-      tableLoading,
-      tableData,
-      handleProcessCmd,
-      commandLoading,
-      commandRes,
-    }
-  },
-  data() {
-    return {
-      processVisible: false,
-      formProps: {
-        disabled: false,
-      },
-      formData: {
-        id: 0,
-        projectId: 0,
-        name: '',
-        status: '',
-        start: '',
-        stop: '',
-        restart: '',
-      },
-    }
-  },
-  watch: {
-    projectRow: function (newVal) {
-      this.formData.projectId = newVal.id
-    },
-  },
-  methods: {
-    handleAdd() {
-      this.processVisible = true
-      this.formData.id = 0
-    },
-    handleEdit(data: ProjectProcessData['datagram']) {
-      this.processVisible = true
-      this.formData.id = data.id
-      this.formData.name = data.name
-      this.formData.status = data.status
-      this.formData.start = data.start
-      this.formData.stop = data.stop
-      this.formData.restart = data.restart
-    },
-    handleDelete(id: number) {
-      ElMessageBox.confirm(
-        this.$t('deployPage.deleteProcessTips'),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          new ProjectProcessDelete({ id }).request().then(() => {
-            ElMessage.success('Success')
-            this.getList()
-          })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
-    },
-
-    submit() {
-      ;(this.$refs.form as Validator).validate((valid: boolean) => {
-        if (valid) {
-          if (this.formData.id === 0) {
-            this.add()
-          } else {
-            this.edit()
-          }
-        } else {
-          return false
-        }
-      })
-    },
-
-    add() {
-      this.formProps.disabled = true
-      new ProjectProcessAdd(this.formData)
-        .request()
-        .then(() => {
-          this.processVisible = false
-          ElMessage.success('Success')
-          this.getList()
-        })
-        .finally(() => {
-          this.formProps.disabled = false
-        })
-    },
-
-    edit() {
-      this.formProps.disabled = true
-      new ProjectProcessEdit(this.formData)
-        .request()
-        .then(() => {
-          this.processVisible = false
-          ElMessage.success('Success')
-          this.getList()
-        })
-        .finally(() => {
-          this.formProps.disabled = false
-        })
-    },
+  projectRow: {
+    type: Object as PropType<ProjectData['datagram']>,
+    required: true,
   },
 })
-</script>
+const emit = defineEmits(['update:modelValue'])
+const { t } = useI18n()
+const dialogVisible = computed({
+  get: () => props.modelValue,
+  set: (val) => {
+    emit('update:modelValue', val)
+  },
+})
 
+watch(
+  () => props.modelValue,
+  (val: typeof props['modelValue']) => {
+    if (val === true) {
+      getList()
+    }
+  }
+)
+
+const processLoading = ref(false)
+const projectProcessId = ref<number>()
+const processOption = ref<ProjectProcessList['datagram']['list']>([])
+const getList = () => {
+  processLoading.value = true
+  projectProcessId.value = undefined
+  processOption.value = []
+  tableData.value = []
+  new ProjectProcessList(
+    { projectId: props.projectRow.id },
+    { page: 1, rows: 999 }
+  )
+    .request()
+    .then((response) => {
+      processOption.value = response.data.list
+    })
+    .finally(() => {
+      processLoading.value = false
+    })
+}
+
+const table = ref()
+const tableLoading = ref(false)
+const tableData = ref<ProjectServerList['datagram']['list']>([])
+const handleProcessChange = () => {
+  if (tableData.value.length > 0) {
+    return
+  }
+  tableLoading.value = true
+  new ProjectServerList({ id: props.projectRow.id })
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+const commandRes = ref<ManageProcess['datagram']>({
+  execRes: true,
+  stdout: '',
+  stderr: '',
+})
+const commandLoading = ref(false)
+const handleProcessCmd = (
+  data: ProjectServerData['datagram'],
+  command: string
+) => {
+  ElMessageBox.confirm(t('deployPage.execTips', { command }), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
+    .then(() => {
+      commandLoading.value = true
+      new ManageProcess({
+        serverId: data.serverId,
+        projectProcessId: Number(projectProcessId.value),
+        command,
+      })
+        .request()
+        .then((response) => {
+          commandRes.value = response.data
+          table.value.toggleRowExpansion(data, true)
+        })
+        .finally(() => {
+          commandLoading.value = false
+        })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
+}
+
+const processVisible = ref(false)
+const form = ref<Validator>()
+const formData = ref({
+  id: 0,
+  projectId: 0,
+  name: '',
+  status: '',
+  start: '',
+  stop: '',
+  restart: '',
+})
+const formProps = ref({
+  disabled: false,
+})
+
+watch(
+  () => props.projectRow,
+  (val) => {
+    formData.value.projectId = val.id
+  }
+)
+
+function handleAdd() {
+  processVisible.value = true
+  formData.value.id = 0
+}
+function handleEdit(data: ProjectProcessData['datagram']) {
+  processVisible.value = true
+  formData.value.id = data.id
+  formData.value.name = data.name
+  formData.value.status = data.status
+  formData.value.start = data.start
+  formData.value.stop = data.stop
+  formData.value.restart = data.restart
+}
+function handleDelete(id: number) {
+  ElMessageBox.confirm(t('deployPage.deleteProcessTips'), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
+    .then(() => {
+      new ProjectProcessDelete({ id }).request().then(() => {
+        ElMessage.success('Success')
+        getList()
+      })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
+}
+
+function submit() {
+  form.value?.validate((valid: boolean) => {
+    if (valid) {
+      if (formData.value.id === 0) {
+        add()
+      } else {
+        edit()
+      }
+    } else {
+      return false
+    }
+  })
+}
+
+function add() {
+  formProps.value.disabled = true
+  new ProjectProcessAdd(formData.value)
+    .request()
+    .then(() => {
+      processVisible.value = false
+      ElMessage.success('Success')
+      getList()
+    })
+    .finally(() => {
+      formProps.value.disabled = false
+    })
+}
+
+function edit() {
+  formProps.value.disabled = true
+  new ProjectProcessEdit(formData.value)
+    .request()
+    .then(() => {
+      processVisible.value = false
+      ElMessage.success('Success')
+      getList()
+    })
+    .finally(() => {
+      formProps.value.disabled = false
+    })
+}
+</script>
 <style rel="stylesheet/scss" lang="scss" scoped>
 .exec-success {
   color: #67c23a;

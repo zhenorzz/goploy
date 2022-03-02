@@ -106,7 +106,7 @@
       layout="sizes, total, prev, pager, next"
       @current-change="handlePageChange"
     />
-    <template #footer class="dialog-footer">
+    <template #footer>
       <el-button @click="dialogVisible = false">
         {{ $t('cancel') }}
       </el-button>
@@ -114,105 +114,84 @@
   </el-dialog>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { DeployReview } from '@/api/deploy'
 import { ProjectReviewList } from '@/api/project'
-import { getRole } from '@/utils/namespace'
-import { parseGitURL, parseTime } from '@/utils'
+import { parseGitURL } from '@/utils'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { computed, watch, defineComponent, ref, reactive } from 'vue'
+import { computed, watch, ref, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-export default defineComponent({
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    },
-    projectRow: {
-      type: Object,
-      required: true,
-    },
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false,
   },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    const { t } = useI18n()
-    const dialogVisible = computed({
-      get: () => props.modelValue,
-      set: (val) => {
-        emit('update:modelValue', val)
-      },
+  projectRow: {
+    type: Object,
+    required: true,
+  },
+})
+const emit = defineEmits(['update:modelValue'])
+const { t } = useI18n()
+const dialogVisible = computed({
+  get: () => props.modelValue,
+  set: (val) => {
+    emit('update:modelValue', val)
+  },
+})
+const gitURL = ref<string>('')
+const pagination = reactive({ page: 1, rows: 11, total: 0 })
+const tableData = ref<ProjectReviewList['datagram']['list']>([])
+watch(
+  () => props.modelValue,
+  (val: typeof props['modelValue']) => {
+    if (val === true) {
+      gitURL.value = parseGitURL(props.projectRow.url)
+      handlePageChange()
+    }
+  }
+)
+
+const tableLoading = ref(false)
+const getReviewList = () => {
+  tableLoading.value = true
+  new ProjectReviewList({ id: props.projectRow.id }, pagination)
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+      pagination.total = response.data.pagination.total
     })
-    const gitURL = ref<string>('')
-    const pagination = reactive({ page: 1, rows: 11, total: 0 })
-    const tableData = ref<ProjectReviewList['datagram']['list']>([])
-    watch(
-      () => props.modelValue,
-      (val: typeof props['modelValue']) => {
-        if (val === true) {
-          gitURL.value = parseGitURL(props.projectRow.url)
-          handlePageChange()
-        }
-      }
-    )
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
 
-    const tableLoading = ref(false)
-    const getReviewList = () => {
-      tableLoading.value = true
-      new ProjectReviewList({ id: props.projectRow.id }, pagination)
-        .request()
-        .then((response) => {
-          tableData.value = response.data.list
-          pagination.total = response.data.pagination.total
-        })
-        .finally(() => {
-          tableLoading.value = false
-        })
-    }
+const handlePageChange = (page = 1) => {
+  pagination.page = page
+  getReviewList()
+}
 
-    const handlePageChange = (page = 1) => {
-      pagination.page = page
-      getReviewList()
-    }
-
-    const handleProjectReview = (data: { id: number }, state: number) => {
-      if (state === 1) {
-        ElMessageBox.confirm(t('deployPage.reviewTips'), t('tips'), {
-          confirmButtonText: t('confirm'),
-          cancelButtonText: t('cancel'),
-          type: 'warning',
-        })
-          .then(() => {
-            new DeployReview({ projectReviewId: data.id, state })
-              .request()
-              .then(() => {
-                dialogVisible.value = false
-              })
-          })
-          .catch(() => {
-            ElMessage.info('Cancel')
-          })
-      } else {
+const handleProjectReview = (data: { id: number }, state: number) => {
+  if (state === 1) {
+    ElMessageBox.confirm(t('deployPage.reviewTips'), t('tips'), {
+      confirmButtonText: t('confirm'),
+      cancelButtonText: t('cancel'),
+      type: 'warning',
+    })
+      .then(() => {
         new DeployReview({ projectReviewId: data.id, state })
           .request()
           .then(() => {
             dialogVisible.value = false
           })
-      }
-    }
-
-    return {
-      dialogVisible,
-      role: getRole(),
-      gitURL,
-      parseTime,
-      pagination,
-      tableLoading,
-      tableData,
-      getReviewList,
-      handlePageChange,
-      handleProjectReview,
-    }
-  },
-})
+      })
+      .catch(() => {
+        ElMessage.info('Cancel')
+      })
+  } else {
+    new DeployReview({ projectReviewId: data.id, state }).request().then(() => {
+      dialogVisible.value = false
+    })
+  }
+}
 </script>
