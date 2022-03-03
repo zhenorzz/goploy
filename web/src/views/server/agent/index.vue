@@ -32,7 +32,13 @@
         style="margin-bottom: 10px"
       >
         <div
-          :ref="name"
+          :ref="
+            (el) => {
+              if (el) {
+                chartRefs[name] = el
+              }
+            }
+          "
           style="height: 288px; border: solid 1px #e6e6e6; padding: 10px 0"
         ></div>
       </el-col>
@@ -200,7 +206,7 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">
+        <el-button @click="monitorDialogVisible = false">
           {{ $t('cancel') }}
         </el-button>
         <el-button
@@ -311,7 +317,11 @@
     </el-dialog>
   </el-row>
 </template>
+
 <script lang="ts">
+export default { name: 'ServerAgent' }
+</script>
+<script lang="ts" setup>
 import * as echarts from 'echarts'
 import { ElMessageBox, ElMessage, ElDatePicker } from 'element-plus'
 import {
@@ -324,9 +334,62 @@ import {
 } from '@/api/server'
 import Validator from 'async-validator'
 import dayjs, { Dayjs } from 'dayjs'
-import { defineComponent } from 'vue'
+import { ref, onActivated } from 'vue'
 import { deepClone, parseTime } from '@/utils'
-
+import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
+const { t } = useI18n()
+const store = useStore()
+const route = useRoute()
+const router = useRouter()
+const monitorDialogVisible = ref(false)
+const monitorListDialogVisible = ref(false)
+const chartRefs = ref<Record<string, any>>({})
+const chartNameMap = <
+  Record<string, { type: number; title: string; subtitle: string }>
+>{
+  cpuChart: {
+    type: 1,
+    title: t('serverPage.cpuUsage'),
+    subtitle: '(%)',
+  },
+  ramChart: {
+    type: 2,
+    title: t('serverPage.ramUsage'),
+    subtitle: '(%)',
+  },
+  loadavgChart: {
+    type: 3,
+    title: t('serverPage.loadavg'),
+    subtitle: '',
+  },
+  tcpChart: {
+    type: 4,
+    title: t('serverPage.tcp'),
+    subtitle: '(count)',
+  },
+  pubNetChart: {
+    type: 5,
+    title: t('serverPage.pubBandwidth'),
+    subtitle: '(bit/s)',
+  },
+  loNetChart: {
+    type: 6,
+    title: t('serverPage.loBandwidth'),
+    subtitle: '(bit/s)',
+  },
+  diskUsageChart: {
+    type: 7,
+    title: t('serverPage.diskUsage'),
+    subtitle: '(%)',
+  },
+  diskIOChart: {
+    type: 8,
+    title: t('serverPage.diskIO'),
+    subtitle: '(count/s)',
+  },
+}
 const chartBaseOption = {
   title: {
     text: '',
@@ -350,289 +413,228 @@ const chartBaseOption = {
   },
   series: [],
 }
-
-export default defineComponent({
-  name: 'ServerAgent',
-  data() {
-    return {
-      monitorDialogVisible: false,
-      monitorListDialogVisible: false,
-      serverId: Number(this.$route.query.serverId),
-      chartNameMap: {
-        cpuChart: {
-          type: 1,
-          title: this.$t('serverPage.cpuUsage'),
-          subtitle: '(%)',
-        },
-        ramChart: {
-          type: 2,
-          title: this.$t('serverPage.ramUsage'),
-          subtitle: '(%)',
-        },
-        loadavgChart: {
-          type: 3,
-          title: this.$t('serverPage.loadavg'),
-          subtitle: '',
-        },
-        tcpChart: {
-          type: 4,
-          title: this.$t('serverPage.tcp'),
-          subtitle: '(count)',
-        },
-        pubNetChart: {
-          type: 5,
-          title: this.$t('serverPage.pubBandwidth'),
-          subtitle: '(bit/s)',
-        },
-        loNetChart: {
-          type: 6,
-          title: this.$t('serverPage.loBandwidth'),
-          subtitle: '(bit/s)',
-        },
-        diskUsageChart: {
-          type: 7,
-          title: this.$t('serverPage.diskUsage'),
-          subtitle: '(%)',
-        },
-        diskIOChart: {
-          type: 8,
-          title: this.$t('serverPage.diskIO'),
-          subtitle: '(count/s)',
-        },
-      } as Record<string, { type: number; title: string; subtitle: string }>,
-
-      datetimeRange: [] as Dayjs[],
-      shortcuts: [
-        {
-          text: this.$t('lastHour'),
-          onClick(picker: typeof ElDatePicker) {
-            const end = new Date()
-            const start = new Date()
-            start.setTime(start.getTime() - 3600 * 1000)
-            picker.emit('pick', [dayjs(start), dayjs(end)])
-          },
-        },
-        {
-          text: this.$t('last6Hours'),
-          onClick(picker: typeof ElDatePicker) {
-            const end = new Date()
-            const start = new Date()
-            start.setTime(start.getTime() - 3600 * 1000 * 6)
-            picker.emit('pick', [dayjs(start), dayjs(end)])
-          },
-        },
-        {
-          text: this.$t('lastDay'),
-          onClick(picker: typeof ElDatePicker) {
-            const end = new Date()
-            const start = new Date()
-            start.setTime(start.getTime() - 3600 * 1000 * 24)
-            picker.emit('pick', [dayjs(start), dayjs(end)])
-          },
-        },
-        {
-          text: this.$t('lastWeek'),
-          onClick(picker: typeof ElDatePicker) {
-            const end = new Date()
-            const start = new Date()
-            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
-            picker.emit('pick', [dayjs(start), dayjs(end)])
-          },
-        },
-      ],
-      tableData: [] as ServerMonitorData['datagram'][],
-      tableLoading: false,
-      tempFormData: {},
-      formData: {
-        id: 0,
-        serverId: 0,
-        item: '',
-        formula: 'avg',
-        operator: '>=',
-        value: '',
-        groupCycle: 60,
-        lastCycle: 1,
-        silentCycle: 1440,
-        startTime: '00:00',
-        endTime: '23:59',
-        notifyType: 1,
-        notifyTarget: '',
-      },
-      formProps: { loading: false, disabled: false },
-      formRules: {
-        item: [{ required: true, message: 'Target required', trigger: 'blur' }],
-        value: [{ required: true, message: 'Value required', trigger: 'blur' }],
-        notifyTarget: [{ required: true, message: 'Webhook required' }],
-      },
-      itemOptions: [] as string[],
-    }
-  },
-
-  activated() {
-    this.formData.serverId = this.serverId = Number(this.$route.query.serverId)
-    if (!this.serverId) {
-      this.$store.dispatch('tagsView/delView', this.$route).then(() => {
-        this.$router.push('/server/index')
-      })
-    } else {
-      this.storeFormData()
-      this.handleRefresh()
-    }
-  },
-
-  methods: {
-    datetimeChange(values: Date[]) {
-      for (const key in this.chartNameMap) {
-        this.report(key, values)
-      }
-    },
-
-    handleGetList() {
-      this.monitorListDialogVisible = true
-      this.getList()
-    },
-
-    handleAdd() {
-      this.restoreFormData()
-      this.monitorDialogVisible = true
-    },
-
-    handleEdit(data: ServerMonitorData['datagram']) {
-      this.formData = Object.assign({}, data)
-      this.monitorDialogVisible = true
-    },
-
-    handleDelete(data: ServerMonitorData['datagram']) {
-      ElMessageBox.confirm(
-        this.$t('serverPage.removeMonitorTips', {
-          item: data.item,
-        }),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          new ServerMonitorDelete({ id: data.id }).request().then(() => {
-            ElMessage.success('Success')
-            this.getList()
-          })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
-    },
-
-    submit() {
-      ;(this.$refs.form as Validator).validate((valid: boolean) => {
-        if (valid) {
-          if (this.formData.id === 0) {
-            this.add()
-          } else {
-            this.edit()
-          }
-        } else {
-          return false
-        }
-      })
-    },
-
-    add() {
-      this.formProps.disabled = true
-      new ServerMonitorAdd(this.formData)
-        .request()
-        .then(() => {
-          ElMessage.success('Success')
-        })
-        .finally(() => {
-          this.formProps.disabled = this.monitorDialogVisible = false
-        })
-    },
-
-    edit() {
-      this.formProps.disabled = true
-      new ServerMonitorEdit(this.formData)
-        .request()
-        .then(() => {
-          ElMessage.success('Success')
-          this.getList()
-        })
-        .finally(() => {
-          this.formProps.disabled = this.monitorDialogVisible = false
-        })
-    },
-
-    handleRefresh() {
+const shortcuts = [
+  {
+    text: t('lastHour'),
+    onClick(picker: typeof ElDatePicker) {
       const end = new Date()
       const start = new Date()
       start.setTime(start.getTime() - 3600 * 1000)
-      this.datetimeRange = [dayjs(start), dayjs(end)]
-      this.datetimeChange(
-        this.datetimeRange.map((datetime) => datetime.toDate())
-      )
-    },
-
-    getList() {
-      this.tableLoading = true
-      new ServerMonitorList({ serverId: this.serverId })
-        .request()
-        .then((response) => {
-          this.tableData = response.data.list
-        })
-        .finally(() => {
-          this.tableLoading = false
-        })
-    },
-
-    report(chartName: string, values: Date[]) {
-      new ServerReport({
-        serverId: this.serverId,
-        type: this.chartNameMap[chartName].type,
-        datetimeRange: values.map((value) => parseTime(value)).join(','),
-      })
-        .request()
-        .then((response) => {
-          echarts.dispose(this.$refs[chartName] as HTMLElement)
-          let chart = echarts.init(this.$refs[chartName] as HTMLElement)
-          let chartOption = deepClone(chartBaseOption)
-          chartOption.title.text = this.chartNameMap[chartName].title
-          chartOption.title.subtext = this.chartNameMap[chartName].subtitle
-          for (const key in response.data.map) {
-            chartOption.legend.data.push(key)
-            this.itemOptions.push(key)
-            this.itemOptions = this.itemOptions.filter(
-              (e, i, a) => i === a.indexOf(e)
-            )
-            this.itemOptions.sort()
-            const series = {
-              name: key,
-              type: 'line',
-              symbol: 'none',
-              smooth: true,
-              data: response.data.map[key].map(
-                (item: { reportTime: string; value: string }) => {
-                  return [new Date(item.reportTime), item.value]
-                }
-              ),
-            }
-            chartOption.series.push(series)
-          }
-          chart.setOption(chartOption)
-        })
-    },
-
-    storeFormData() {
-      this.tempFormData = JSON.parse(JSON.stringify(this.formData))
-    },
-
-    restoreFormData() {
-      this.formData = JSON.parse(JSON.stringify(this.tempFormData))
+      picker.emit('pick', [dayjs(start), dayjs(end)])
     },
   },
+  {
+    text: t('last6Hours'),
+    onClick(picker: typeof ElDatePicker) {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 3600 * 1000 * 6)
+      picker.emit('pick', [dayjs(start), dayjs(end)])
+    },
+  },
+  {
+    text: t('lastDay'),
+    onClick(picker: typeof ElDatePicker) {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 3600 * 1000 * 24)
+      picker.emit('pick', [dayjs(start), dayjs(end)])
+    },
+  },
+  {
+    text: t('lastWeek'),
+    onClick(picker: typeof ElDatePicker) {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 3600 * 1000 * 24 * 7)
+      picker.emit('pick', [dayjs(start), dayjs(end)])
+    },
+  },
+]
+const datetimeRange = ref<Dayjs[]>()
+const tableData = ref<ServerMonitorData['datagram'][]>()
+const tableLoading = ref(false)
+const form = ref<Validator>()
+const tempFormData = {
+  id: 0,
+  serverId: 0,
+  item: '',
+  formula: 'avg',
+  operator: '>=',
+  value: '',
+  groupCycle: 60,
+  lastCycle: 1,
+  silentCycle: 1440,
+  startTime: '00:00',
+  endTime: '23:59',
+  notifyType: 1,
+  notifyTarget: '',
+}
+const formData = ref(tempFormData)
+const formProps = ref({ loading: false, disabled: false })
+const formRules = {
+  item: [{ required: true, message: 'Target required', trigger: 'blur' }],
+  value: [{ required: true, message: 'Value required', trigger: 'blur' }],
+  notifyTarget: [{ required: true, message: 'Webhook required' }],
+}
+let serverId = Number(route.query.serverId)
+const itemOptions = ref<string[]>([])
+onActivated(() => {
+  formData.value.serverId = serverId = Number(route.query.serverId)
+  if (!serverId) {
+    store.dispatch('tagsView/delView', route).then(() => {
+      router.push('/server/index')
+    })
+  } else {
+    handleRefresh()
+  }
 })
+
+function datetimeChange(values: Date[]) {
+  for (const key in chartNameMap) {
+    report(key, values)
+  }
+}
+
+function handleGetList() {
+  monitorListDialogVisible.value = true
+  getList()
+}
+
+function handleAdd() {
+  restoreFormData()
+  monitorDialogVisible.value = true
+}
+
+function handleEdit(data: ServerMonitorData['datagram']) {
+  formData.value = Object.assign({}, data)
+  monitorDialogVisible.value = true
+}
+
+function handleDelete(data: ServerMonitorData['datagram']) {
+  ElMessageBox.confirm(
+    t('serverPage.removeMonitorTips', {
+      item: data.item,
+    }),
+    t('tips'),
+    {
+      confirmButtonText: t('confirm'),
+      cancelButtonText: t('cancel'),
+      type: 'warning',
+    }
+  )
+    .then(() => {
+      new ServerMonitorDelete({ id: data.id }).request().then(() => {
+        ElMessage.success('Success')
+        getList()
+      })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
+}
+
+function submit() {
+  form.value?.validate((valid: boolean) => {
+    if (valid) {
+      if (formData.value.id === 0) {
+        add()
+      } else {
+        edit()
+      }
+    } else {
+      return false
+    }
+  })
+}
+
+function add() {
+  formProps.value.disabled = true
+  new ServerMonitorAdd(formData.value)
+    .request()
+    .then(() => {
+      ElMessage.success('Success')
+    })
+    .finally(() => {
+      formProps.value.disabled = monitorDialogVisible.value = false
+    })
+}
+
+function edit() {
+  formProps.value.disabled = true
+  new ServerMonitorEdit(formData.value)
+    .request()
+    .then(() => {
+      ElMessage.success('Success')
+      getList()
+    })
+    .finally(() => {
+      formProps.value.disabled = monitorDialogVisible.value = false
+    })
+}
+
+function handleRefresh() {
+  const end = new Date()
+  const start = new Date()
+  start.setTime(start.getTime() - 3600 * 1000)
+  datetimeRange.value = [dayjs(start), dayjs(end)]
+  datetimeChange(datetimeRange.value.map((datetime) => datetime.toDate()))
+}
+
+function getList() {
+  tableLoading.value = true
+  new ServerMonitorList({ serverId })
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+
+function report(chartName: string, values: Date[]) {
+  new ServerReport({
+    serverId,
+    type: chartNameMap[chartName].type,
+    datetimeRange: values.map((value) => parseTime(value)).join(','),
+  })
+    .request()
+    .then((response) => {
+      echarts.dispose(chartRefs.value[chartName] as HTMLElement)
+      let chart = echarts.init(chartRefs.value[chartName] as HTMLElement)
+      let chartOption = deepClone(chartBaseOption)
+      chartOption.title.text = chartNameMap[chartName].title
+      chartOption.title.subtext = chartNameMap[chartName].subtitle
+      for (const key in response.data.map) {
+        chartOption.legend.data.push(key)
+        itemOptions.value.push(key)
+        itemOptions.value = itemOptions.value.filter(
+          (e, i, a) => i === a.indexOf(e)
+        )
+        itemOptions.value.sort()
+        const series = {
+          name: key,
+          type: 'line',
+          symbol: 'none',
+          smooth: true,
+          data: response.data.map[key].map(
+            (item: { reportTime: string; value: string }) => {
+              return [new Date(item.reportTime), item.value]
+            }
+          ),
+        }
+        chartOption.series.push(series)
+      }
+      chart.setOption(chartOption)
+    })
+}
+
+function restoreFormData() {
+  formData.value = { ...tempFormData }
+}
 </script>
+
 <style lang="scss" scoped>
 @import '@/styles/mixin.scss';
 
