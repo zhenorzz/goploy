@@ -154,7 +154,7 @@ import {
   UserEdit,
   UserRemove,
 } from '@/api/user'
-import Validator, { RuleItem } from 'async-validator'
+import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import getTableHeight from '@/composables/tableHeight'
 import { ref } from 'vue'
@@ -165,7 +165,7 @@ const dialogVisible = ref(false)
 const tableLoading = ref(false)
 const tableData = ref<UserList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 18, total: 0 })
-const form = ref<Validator>()
+const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
   account: '',
@@ -178,7 +178,7 @@ const formData = ref(tempFormData)
 const formProps = ref({
   disabled: false,
 })
-const formRules = {
+const formRules = <InstanceType<typeof ElForm>['rules']>{
   account: [
     {
       trigger: 'blur',
@@ -189,7 +189,7 @@ const formRules = {
           return true
         }
       },
-    } as RuleItem,
+    },
   ],
   password: [
     {
@@ -205,14 +205,14 @@ const formRules = {
           return true
         }
       },
-    } as RuleItem,
+    },
   ],
   name: [
     {
       required: true,
       message: 'Name required',
       trigger: 'blur',
-    } as RuleItem,
+    },
   ],
 }
 
@@ -276,15 +276,16 @@ function handleRemove(data: UserData['datagram']) {
 }
 
 function submit() {
-  form.value?.validate((valid: boolean) => {
+  form.value?.validate((valid) => {
     if (valid) {
       if (formData.value.id === 0) {
         add()
       } else {
         edit()
       }
+      return Promise.resolve(true)
     } else {
-      return false
+      return Promise.reject(false)
     }
   })
 }

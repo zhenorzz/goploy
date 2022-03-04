@@ -118,8 +118,8 @@ import {
   NamespaceData,
 } from '@/api/namespace'
 import getTableHeight from '@/composables/tableHeight'
+import type { ElForm } from 'element-plus'
 import { ElMessage } from 'element-plus'
-import Validator from 'async-validator'
 import TheUserDialog from './components/TheUserDialog.vue'
 import { ref } from 'vue'
 
@@ -130,7 +130,7 @@ const tableLoading = ref(false)
 const tableData = ref<NamespaceList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 17, total: 0 })
 const selectedItem = ref<NamespaceData['datagram']>()
-const form = ref<Validator>()
+const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = { id: 0, name: '' }
 const formData = ref(tempFormData)
 const formProps = ref({ disabled: false })
@@ -179,15 +179,16 @@ function handleUser(data: NamespaceData['datagram']) {
 }
 
 function submit() {
-  form.value?.validate((valid: boolean) => {
+  form.value?.validate((valid) => {
     if (valid) {
       if (formData.value.id === 0) {
         add()
       } else {
         edit()
       }
+      return Promise.resolve(true)
     } else {
-      return false
+      return Promise.reject(false)
     }
   })
 }

@@ -177,7 +177,8 @@ import getTableHeight from '@/composables/tableHeight'
 import cronstrue from 'cronstrue/i18n'
 import { ServerOption } from '@/api/server'
 import { CronList, CronAdd, CronEdit, CronRemove, CronData } from '@/api/cron'
-import { ElMessage, ElMessageBox, ElForm } from 'element-plus'
+import type { ElForm } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { locale, t } = useI18n({ useScope: 'global' })
@@ -305,9 +306,9 @@ function submit() {
       } else {
         edit()
       }
-      Promise.resolve(true)
+      return Promise.resolve(true)
     } else {
-      Promise.reject(false)
+      return Promise.reject(false)
     }
   })
 }

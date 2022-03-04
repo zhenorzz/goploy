@@ -190,7 +190,7 @@ import {
   ProjectProcessDelete,
   ProjectData,
 } from '@/api/project'
-import Validator from 'async-validator'
+import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { computed, watch, ref, PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -297,7 +297,7 @@ const handleProcessCmd = (
 }
 
 const processVisible = ref(false)
-const form = ref<Validator>()
+const form = ref<InstanceType<typeof ElForm>>()
 const formData = ref({
   id: 0,
   projectId: 0,
@@ -349,15 +349,16 @@ function handleDelete(id: number) {
 }
 
 function submit() {
-  form.value?.validate((valid: boolean) => {
+  form.value?.validate((valid) => {
     if (valid) {
       if (formData.value.id === 0) {
         add()
       } else {
         edit()
       }
+      return Promise.resolve(true)
     } else {
-      return false
+      return Promise.reject(false)
     }
   })
 }

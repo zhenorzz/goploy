@@ -56,9 +56,9 @@
 export default { name: 'UserProfile' }
 </script>
 <script lang="ts" setup>
+import type { ElForm } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { validPassword } from '@/utils/validate'
-import Validator, { RuleItem } from 'async-validator'
 import { UserChangePassword } from '@/api/user'
 import { ref } from 'vue'
 enum inputElem {
@@ -67,7 +67,7 @@ enum inputElem {
   confirm = 'confirm',
 }
 
-const form = ref<Validator>()
+const form = ref<InstanceType<typeof ElForm>>()
 const formData = ref({
   old: '',
   new: '',
@@ -82,7 +82,7 @@ const formProps = ref({
   },
 })
 
-const formRules = {
+const formRules = <InstanceType<typeof ElForm>['rules']>{
   old: [
     {
       required: true,
@@ -91,7 +91,7 @@ const formRules = {
     },
   ],
   new: [
-    <RuleItem>{
+    {
       required: true,
       message:
         '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]',
@@ -108,7 +108,7 @@ const formRules = {
     },
   ],
   confirm: [
-    <RuleItem>{
+    {
       required: true,
       validator: (_, value) => {
         if (value === '') {
@@ -132,7 +132,7 @@ function showPwd(index: inputElem) {
   }
 }
 function changePassword() {
-  form.value?.validate((valid: boolean) => {
+  form.value?.validate((valid) => {
     if (valid) {
       formProps.value.loading = true
       new UserChangePassword({
@@ -147,9 +147,9 @@ function changePassword() {
         .catch(() => {
           formProps.value.loading = false
         })
+      return Promise.resolve(true)
     } else {
-      console.log('error submit!!')
-      return false
+      return Promise.reject(false)
     }
   })
 }

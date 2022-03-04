@@ -127,7 +127,7 @@ import {
 } from '@/api/namespace'
 import { UserOption } from '@/api/user'
 import { getRole } from '@/utils/namespace'
-import Validator from 'async-validator'
+import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { computed, watch, ref, Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -144,13 +144,13 @@ const props = defineProps({
   },
 })
 const emit = defineEmits(['update:modelValue'])
-const form = ref<Validator>()
+const form = ref<InstanceType<typeof ElForm>>()
 const formProps = ref({ disabled: false })
 const formData = ref({ namespaceId: 0, userIds: [], role: '' })
-const formRules = {
+const formRules = <InstanceType<typeof ElForm>['rules']>{
   userIds: [
     {
-      type: 'array',
+      type: 'string',
       required: true,
       message: 'User required',
       trigger: 'change',
@@ -213,7 +213,7 @@ const handleAdd = () => {
 }
 
 function add() {
-  form.value?.validate((valid: boolean) => {
+  form.value?.validate((valid) => {
     if (valid) {
       formProps.value.disabled = true
       new NamespaceUserAdd(formData.value)
@@ -226,8 +226,9 @@ function add() {
         .finally(() => {
           formProps.value.disabled = false
         })
+      return Promise.resolve(true)
     } else {
-      return false
+      return Promise.reject(false)
     }
   })
 }

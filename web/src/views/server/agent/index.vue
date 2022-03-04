@@ -323,6 +323,7 @@ export default { name: 'ServerAgent' }
 </script>
 <script lang="ts" setup>
 import * as echarts from 'echarts'
+import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage, ElDatePicker } from 'element-plus'
 import {
   ServerMonitorData,
@@ -455,7 +456,7 @@ const shortcuts = [
 const datetimeRange = ref<Dayjs[]>([])
 const tableData = ref<ServerMonitorData['datagram'][]>([])
 const tableLoading = ref(false)
-const form = ref<Validator>()
+const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
   serverId: 0,
@@ -535,15 +536,16 @@ function handleDelete(data: ServerMonitorData['datagram']) {
 }
 
 function submit() {
-  form.value?.validate((valid: boolean) => {
+  form.value?.validate((valid) => {
     if (valid) {
       if (formData.value.id === 0) {
         add()
       } else {
         edit()
       }
+      return Promise.resolve(true)
     } else {
-      return false
+      return Promise.reject(false)
     }
   })
 }

@@ -73,18 +73,19 @@ export default { name: 'Login' }
 <script lang="ts" setup>
 import { param2Obj } from '@/utils'
 import { validUsername, validPassword } from '@/utils/validate'
-import Validator, { RuleItem } from 'async-validator'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
+import type { ElForm } from 'element-plus'
 import { ref, watch, nextTick } from 'vue'
 const store = useStore()
 const router = useRouter()
+const form = ref<InstanceType<typeof ElForm>>()
 const loginForm = ref({
   account: import.meta.env.PROD === true ? '' : 'admin',
   password: import.meta.env.PROD === true ? '' : 'admin!@#',
   phrase: '',
 })
-const loginRules = {
+const loginRules = <InstanceType<typeof ElForm>['rules']>{
   account: [
     {
       required: true,
@@ -96,7 +97,7 @@ const loginRules = {
           return true
         }
       },
-    } as RuleItem,
+    },
   ],
   password: [
     {
@@ -111,7 +112,7 @@ const loginRules = {
           return true
         }
       },
-    } as RuleItem,
+    },
   ],
 }
 const passwordType = ref('password')
@@ -137,9 +138,8 @@ function showPwd() {
   })
 }
 
-const form = ref<Validator>()
 function handleLogin() {
-  form.value?.validate((valid: boolean) => {
+  form.value?.validate((valid) => {
     if (valid) {
       loading.value = true
       store
@@ -154,9 +154,9 @@ function handleLogin() {
         .catch(() => {
           loading.value = false
         })
+      return Promise.resolve(true)
     } else {
-      console.log('error submit!!')
-      return false
+      return Promise.reject(false)
     }
   })
 }

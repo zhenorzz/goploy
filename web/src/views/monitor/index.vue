@@ -214,7 +214,7 @@ import {
   MonitorData,
 } from '@/api/monitor'
 import getTableHeight from '@/composables/tableHeight'
-import Validator from 'async-validator'
+import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref, watch } from 'vue'
 import { useStore } from 'vuex'
@@ -226,7 +226,7 @@ const dialogVisible = ref(false)
 const tableLoading = ref(false)
 const tableData = ref<MonitorList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 16, total: 0 })
-const form = ref<Validator>()
+const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
   name: '',
@@ -243,7 +243,7 @@ const formProps = ref({
   loading: false,
   disabled: false,
 })
-const formRules = {
+const formRules = <InstanceType<typeof ElForm>['rules']>{
   name: [{ required: true, message: 'Name required', trigger: 'blur' }],
   url: [{ required: true, message: 'URL required', trigger: 'blur' }],
   port: [
@@ -395,7 +395,7 @@ function handleRemove(data: MonitorData['datagram']) {
 }
 
 function check() {
-  form.value?.validate((valid: boolean) => {
+  form.value?.validate((valid) => {
     if (valid) {
       formProps.value.loading = true
       formProps.value.disabled = true
@@ -408,22 +408,24 @@ function check() {
           formProps.value.loading = false
           formProps.value.disabled = false
         })
+      return Promise.resolve(true)
     } else {
-      return false
+      return Promise.reject(false)
     }
   })
 }
 
 function submit() {
-  form.value?.validate((valid: boolean) => {
+  form.value?.validate((valid) => {
     if (valid) {
       if (formData.value.id === 0) {
         add()
       } else {
         edit()
       }
+      return Promise.resolve(true)
     } else {
-      return false
+      return Promise.reject(false)
     }
   })
 }
