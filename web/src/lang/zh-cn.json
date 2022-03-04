@@ -180,19 +180,13 @@
     "diskIO": "硬盘IO",
     "addMonitor": "创建警报规则",
     "monitorList": "警报规则列表",
+    "removeCronTips": "此操作将删除该定时任务, 是否继续?",
     "removeMonitorTips": "此操作将删除({item})的监控规则, 是否继续?",
     "item": "条目",
     "formula": "公式",
     "cycle": "周期",
     "vaildPeriod": "有效时段",
     "silentCycle": "通道沉默周期"
-  },
-  "crontabPage": {
-    "removeServerCrontabLabel": "删除服务器Crontab任务",
-    "importTips": "请读取服务器Crontab任务",
-    "selectServerTips": "请先选择服务器",
-    "selectItemTips": "请先选择需要导入的条目",
-    "removeCrontabServerTips": "此操作将永久删除该服务器的绑定关系, 是否继续?"
   },
   "monitorPage": {
     "testAppState": "测试应用状态",

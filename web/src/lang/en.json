@@ -181,19 +181,13 @@
     "diskIO": "Disk IO",
     "addMonitor": "Create monitor",
     "monitorList": "Monitor list",
+    "removeCronTips": "This action will delete the crontab, continue?",
     "removeMonitorTips": "This action will delete the monitor({item}), continue?",
     "item": "Item",
     "formula": "Formula",
     "cycle": "Cycle",
     "vaildPeriod": "Vaild period",
     "silentCycle": "Silent cycle"
-  },
-  "crontabPage": {
-    "removeServerCrontabLabel": "Delete crontab in the server",
-    "importTips": "Please read the crontab in the server",
-    "selectServerTips": "Please select the server",
-    "selectItemTips": "Please select an item",
-    "removeCrontabServerTips": "This action will delete the server\"s binding relationship, continue?"
   },
   "monitorPage": {
     "testAppState": "Test APP state",

@@ -131,14 +131,9 @@ const tableData = ref<NamespaceList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 17, total: 0 })
 const selectedItem = ref<NamespaceData['datagram']>()
 const form = ref<Validator>()
-const tempFormData = {
-  id: 0,
-  name: '',
-}
+const tempFormData = { id: 0, name: '' }
 const formData = ref(tempFormData)
-const formProps = ref({
-  disabled: false,
-})
+const formProps = ref({ disabled: false })
 const formRules = {
   name: [{ required: true, message: 'Name required', trigger: 'blur' }],
 }

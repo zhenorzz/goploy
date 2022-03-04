@@ -170,193 +170,186 @@
   </el-row>
 </template>
 <script lang="ts">
-import tableHeight from '@/mixin/tableHeight'
+export default { name: 'ServerCron' }
+</script>
+<script lang="ts" setup>
+import getTableHeight from '@/composables/tableHeight'
 import cronstrue from 'cronstrue/i18n'
 import { ServerOption } from '@/api/server'
 import { CronList, CronAdd, CronEdit, CronRemove, CronData } from '@/api/cron'
 import Validator, { RuleItem } from 'async-validator'
-import { ElMessage } from 'element-plus'
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  name: 'ServerCron',
-  mixins: [tableHeight],
-  data() {
-    return {
-      serverId: '',
-      crontabCommand: '',
-      dialogVisible: false,
-      serverOption: [] as ServerOption['datagram']['list'],
-      selectedItem: {},
-      tableLoading: false,
-      tableData: [] as CronList['datagram']['list'],
-      pagination: {
-        page: 1,
-        rows: 16,
-        total: 0,
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+const { locale, t } = useI18n({ useScope: 'global' })
+const { tableHeight } = getTableHeight()
+const serverId = ref('')
+const dialogVisible = ref(false)
+const serverOption = ref<ServerOption['datagram']['list']>([])
+const tableLoading = ref(false)
+const tableData = ref<CronList['datagram']['list']>([])
+const pagination = ref({ page: 1, rows: 17, total: 0 })
+const form = ref<Validator>()
+const tempFormData = {
+  id: 0,
+  serverId: 0,
+  expression: '',
+  command: '',
+  singleMode: 0,
+  logLevel: 0,
+  description: '',
+}
+const formData = ref(tempFormData)
+const formProps = ref({
+  loading: false,
+  disabled: false,
+  dateLocale: '',
+})
+const formRules = {
+  expression: [
+    {
+      required: true,
+      validator: (_, value) => {
+        if (value.trim().split(/\s+/).length != 6) {
+          return new Error('6 parts are required.')
+        }
+        try {
+          cronstrue.toString(value)
+          return true
+        } catch (error) {
+          if (typeof error === 'string') {
+            return new Error(error)
+          } else if (error instanceof Error) {
+            return error
+          }
+        }
       },
-      tempFormData: {},
-      formData: {
-        id: 0,
-        serverId: 0,
-        expression: '',
-        command: '',
-        singleMode: 0,
-        logLevel: 0,
-        description: '',
-      },
-      formProps: {
-        loading: false,
-        disabled: false,
-        dateLocale: '',
-      },
-      formRules: {
-        expression: [
-          {
-            required: true,
-            validator: (_, value) => {
-              if (value.trim().split(/\s+/).length != 6) {
-                return new Error('6 parts are required.')
-              }
-              try {
-                cronstrue.toString(value)
-                return true
-              } catch (error) {
-                if (typeof error === 'string') {
-                  return new Error(error)
-                } else if (error instanceof Error) {
-                  return error
-                }
-              }
-            },
-            trigger: 'blur',
-          } as RuleItem,
-        ],
-        command: [
-          { required: true, message: 'Command required', trigger: 'blur' },
-        ],
-      },
-    }
-  },
+      trigger: 'blur',
+    } as RuleItem,
+  ],
+  command: [{ required: true, message: 'Command required', trigger: 'blur' }],
+}
 
-  created() {
-    this.getServerOption()
-    this.storeFormData()
-  },
+getServerOption()
 
-  methods: {
-    selectServer() {
-      this.getList()
-    },
+function selectServer() {
+  getList()
+}
 
-    getServerOption() {
-      new ServerOption().request().then((response) => {
-        this.serverOption = response.data.list
-      })
-    },
+function getServerOption() {
+  new ServerOption().request().then((response) => {
+    serverOption.value = response.data.list
+  })
+}
 
-    getList() {
-      this.tableLoading = true
-      this.tableData = []
-      new CronList({ serverId: Number(this.serverId) }, this.pagination)
-        .request()
-        .then((response) => {
-          this.tableData = response.data.list
-        })
-        .finally(() => {
-          this.tableLoading = false
-        })
-    },
+function getList() {
+  tableLoading.value = true
+  tableData.value = []
+  new CronList({ serverId: Number(serverId.value) }, pagination.value)
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
 
-    handleAdd() {
-      this.restoreFormData()
-      this.dialogVisible = true
-    },
+function handleAdd() {
+  restoreFormData()
+  formData.value.serverId = Number(serverId.value)
+  dialogVisible.value = true
+}
 
-    handleEdit(data: CronData['datagram']) {
-      this.formData = data
-      this.dialogVisible = true
-    },
+function handleEdit(data: CronData['datagram']) {
+  formData.value = data
+  dialogVisible.value = true
+}
 
-    handleRemove(data: CronData['datagram']) {
+function handleRemove(data: CronData['datagram']) {
+  ElMessageBox.confirm(t('serverPage.removeUserTips'), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
+    .then(() => {
       new CronRemove({ id: data.id }).request().then(() => {
-        this.getList()
+        getList()
         ElMessage.success('Success')
       })
-    },
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
+}
 
-    onExpressionChange() {
-      if (this.formData.expression.trim().split(/\s+/).length != 6) {
-        return
+function onExpressionChange() {
+  if (formData.value.expression.trim().split(/\s+/).length != 6) {
+    return
+  }
+  formProps.value.dateLocale = cronstrue.toString(formData.value.expression, {
+    locale: getLocale(),
+  })
+}
+
+function handlePageChange(val = 1) {
+  pagination.value.page = val
+  getList()
+}
+
+function submit() {
+  form.value?.validate((valid: boolean) => {
+    formData.value.expression = formData.value.expression.trim()
+    if (valid) {
+      if (formData.value.id === 0) {
+        add()
+      } else {
+        edit()
       }
-      this.formProps.dateLocale = cronstrue.toString(this.formData.expression, {
-        locale: this.getLocale(),
-      })
-    },
+    } else {
+      return false
+    }
+  })
+}
 
-    handlePageChange(val = 1) {
-      this.pagination.page = val
-      this.getList()
-    },
+function add() {
+  formProps.value.disabled = true
+  new CronAdd(formData.value)
+    .request()
+    .then(() => {
+      getList()
+      ElMessage.success('Success')
+    })
+    .finally(() => {
+      formProps.value.disabled = dialogVisible.value = false
+    })
+}
 
-    submit() {
-      ;(this.$refs.form as Validator).validate((valid: boolean) => {
-        this.formData.expression = this.formData.expression.trim()
-        if (valid) {
-          if (this.formData.id === 0) {
-            this.add()
-          } else {
-            this.edit()
-          }
-        } else {
-          return false
-        }
-      })
-    },
+function edit() {
+  formProps.value.disabled = true
+  new CronEdit(formData.value)
+    .request()
+    .then(() => {
+      getList()
+      ElMessage.success('Success')
+    })
+    .finally(() => {
+      formProps.value.disabled = dialogVisible.value = false
+    })
+}
 
-    add() {
-      this.formProps.disabled = true
-      new CronAdd(this.formData)
-        .request()
-        .then(() => {
-          this.getList()
-          ElMessage.success('Success')
-        })
-        .finally(() => {
-          this.formProps.disabled = this.dialogVisible = false
-        })
-    },
+function getLocale() {
+  if (locale.value === 'zh-cn') {
+    return 'zh_CN'
+  }
+  return locale.value
+}
 
-    edit() {
-      this.formProps.disabled = true
-      new CronEdit(this.formData)
-        .request()
-        .then(() => {
-          this.getList()
-          ElMessage.success('Success')
-        })
-        .finally(() => {
-          this.formProps.disabled = this.dialogVisible = false
-        })
-    },
-
-    getLocale() {
-      if (this.$i18n.locale === 'zh-cn') {
-        return 'zh_CN'
-      }
-      return this.$i18n.locale
-    },
-
-    storeFormData() {
-      this.tempFormData = JSON.parse(JSON.stringify(this.formData))
-    },
-
-    restoreFormData() {
-      this.formData = JSON.parse(JSON.stringify(this.tempFormData))
-    },
-  },
-})
+function restoreFormData() {
+  formData.value = { ...tempFormData }
+}
 </script>
+
 <style lang="scss" scoped>
 @import '@/styles/mixin.scss';
 .template-dialog {
