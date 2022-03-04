@@ -118,7 +118,7 @@
   </el-dialog>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import {
   NamespaceUserData,
   NamespaceUserList,
@@ -129,152 +129,125 @@ import { UserOption } from '@/api/user'
 import { getRole } from '@/utils/namespace'
 import Validator from 'async-validator'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { computed, watch, defineComponent, ref, Ref } from 'vue'
-
-export default defineComponent({
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    },
-    namespaceId: {
-      type: Number,
-      default: 0,
-    },
+import { computed, watch, ref, Ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
+const role = getRole()
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false,
   },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    let tableData: Ref<NamespaceUserList['datagram']['list']> = ref([])
-    const dialogVisible = computed({
-      get: () => props.modelValue,
-      set: (val) => {
-        emit('update:modelValue', val)
-      },
-    })
-    let tableLoading = ref(false)
-    const getBindUserList = (namespaceId: number) => {
-      tableLoading.value = true
-      new NamespaceUserList({ id: namespaceId })
-        .request()
-        .then((response) => {
-          tableData.value = response.data.list
-        })
-        .finally(() => {
-          tableLoading.value = false
-        })
-    }
-    watch(
-      () => props.modelValue,
-      (val: typeof props['modelValue']) => {
-        if (val === true) {
-          getBindUserList(props.namespaceId)
-        }
-      }
-    )
-
-    let showAddView = ref(false)
-    const handleAdd = () => {
-      showAddView.value = true
-    }
-    const userLoading = ref(false)
-    let userOption: Ref<UserOption['datagram']['list']> = ref([])
-    watch(showAddView, (val: boolean) => {
-      if (val === true) {
-        userLoading.value = true
-        new UserOption()
-          .request()
-          .then((response) => {
-            userOption.value = response.data.list
-          })
-          .finally(() => {
-            userLoading.value = false
-          })
-      }
-    })
-
-    return {
-      role: getRole(),
-      dialogVisible,
-      getBindUserList,
-      tableLoading,
-      tableData,
-      showAddView,
-      handleAdd,
-      userLoading,
-      userOption,
-    }
-  },
-  data() {
-    return {
-      formProps: {
-        disabled: false,
-      },
-      formData: {
-        namespaceId: 0,
-        userIds: [],
-        role: '',
-      },
-      formRules: {
-        userIds: [
-          {
-            type: 'array',
-            required: true,
-            message: 'User required',
-            trigger: 'change',
-          },
-        ],
-        role: [{ required: true, message: 'Role required', trigger: 'change' }],
-      },
-    }
-  },
-  watch: {
-    namespaceId: function (newVal) {
-      this.formData.namespaceId = newVal
-    },
-  },
-  methods: {
-    add() {
-      ;(this.$refs.form as Validator).validate((valid: boolean) => {
-        if (valid) {
-          this.formProps.disabled = true
-          new NamespaceUserAdd(this.formData)
-            .request()
-            .then(() => {
-              this.showAddView = false
-              ElMessage.success('Success')
-              this.getBindUserList(this.formData.namespaceId)
-            })
-            .finally(() => {
-              this.formProps.disabled = false
-            })
-        } else {
-          return false
-        }
-      })
-    },
-
-    remove(data: NamespaceUserData['datagram']) {
-      ElMessageBox.confirm(
-        this.$t('namespacePage.removeUserTips'),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          new NamespaceUserRemove({ namespaceUserId: data.id })
-            .request()
-            .then(() => {
-              ElMessage.success('Success')
-              this.getBindUserList(data.namespaceId)
-            })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
-    },
+  namespaceId: {
+    type: Number,
+    default: 0,
   },
 })
+const emit = defineEmits(['update:modelValue'])
+const form = ref<Validator>()
+const formProps = ref({ disabled: false })
+const formData = ref({ namespaceId: 0, userIds: [], role: '' })
+const formRules = {
+  userIds: [
+    {
+      type: 'array',
+      required: true,
+      message: 'User required',
+      trigger: 'change',
+    },
+  ],
+  role: [{ required: true, message: 'Role required', trigger: 'change' }],
+}
+let tableData = ref<NamespaceUserList['datagram']['list']>([])
+const dialogVisible = computed({
+  get: () => props.modelValue,
+  set: (val) => {
+    emit('update:modelValue', val)
+  },
+})
+let tableLoading = ref(false)
+const getBindUserList = (namespaceId: number) => {
+  tableLoading.value = true
+  new NamespaceUserList({ id: namespaceId })
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+watch(
+  () => props.modelValue,
+  (val: typeof props['modelValue']) => {
+    if (val === true) {
+      getBindUserList(props.namespaceId)
+    }
+  }
+)
+watch(
+  () => props.namespaceId,
+  (val: typeof props['namespaceId']) => {
+    formData.value.namespaceId = val
+  }
+)
+
+const userLoading = ref(false)
+let userOption: Ref<UserOption['datagram']['list']> = ref([])
+let showAddView = ref(false)
+watch(showAddView, (val: boolean) => {
+  if (val === true) {
+    userLoading.value = true
+    new UserOption()
+      .request()
+      .then((response) => {
+        userOption.value = response.data.list
+      })
+      .finally(() => {
+        userLoading.value = false
+      })
+  }
+})
+const handleAdd = () => {
+  showAddView.value = true
+}
+
+function add() {
+  form.value?.validate((valid: boolean) => {
+    if (valid) {
+      formProps.value.disabled = true
+      new NamespaceUserAdd(formData.value)
+        .request()
+        .then(() => {
+          showAddView.value = false
+          ElMessage.success('Success')
+          getBindUserList(formData.value.namespaceId)
+        })
+        .finally(() => {
+          formProps.value.disabled = false
+        })
+    } else {
+      return false
+    }
+  })
+}
+
+function remove(data: NamespaceUserData['datagram']) {
+  ElMessageBox.confirm(t('namespacePage.removeUserTips'), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
+    .then(() => {
+      new NamespaceUserRemove({ namespaceUserId: data.id })
+        .request()
+        .then(() => {
+          ElMessage.success('Success')
+          getBindUserList(data.namespaceId)
+        })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
+}
 </script>

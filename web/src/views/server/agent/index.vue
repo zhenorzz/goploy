@@ -343,6 +343,7 @@ const { t } = useI18n()
 const store = useStore()
 const route = useRoute()
 const router = useRouter()
+let serverId = Number(route.query.serverId)
 const monitorDialogVisible = ref(false)
 const monitorListDialogVisible = ref(false)
 const chartRefs = ref<Record<string, any>>({})
@@ -451,8 +452,8 @@ const shortcuts = [
     },
   },
 ]
-const datetimeRange = ref<Dayjs[]>()
-const tableData = ref<ServerMonitorData['datagram'][]>()
+const datetimeRange = ref<Dayjs[]>([])
+const tableData = ref<ServerMonitorData['datagram'][]>([])
 const tableLoading = ref(false)
 const form = ref<Validator>()
 const tempFormData = {
@@ -477,7 +478,6 @@ const formRules = {
   value: [{ required: true, message: 'Value required', trigger: 'blur' }],
   notifyTarget: [{ required: true, message: 'Webhook required' }],
 }
-let serverId = Number(route.query.serverId)
 const itemOptions = ref<string[]>([])
 onActivated(() => {
   formData.value.serverId = serverId = Number(route.query.serverId)

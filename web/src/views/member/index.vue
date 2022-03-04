@@ -159,12 +159,8 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const dialogVisible = ref(false)
 const tableLoading = ref(false)
-const tableData = ref<UserList['datagram']['list']>()
-const pagination = ref({
-  page: 1,
-  rows: 18,
-  total: 0,
-})
+const tableData = ref<UserList['datagram']['list']>([])
+const pagination = ref({ page: 1, rows: 18, total: 0 })
 const form = ref<Validator>()
 const tempFormData = {
   id: 0,

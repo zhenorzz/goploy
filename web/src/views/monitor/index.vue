@@ -221,11 +221,7 @@ const store = useStore()
 const dialogVisible = ref(false)
 const tableLoading = ref(false)
 const tableData = ref<MonitorList['datagram']['list']>([])
-const pagination = ref({
-  page: 1,
-  rows: 16,
-  total: 0,
-})
+const pagination = ref({ page: 1, rows: 16, total: 0 })
 const form = ref<Validator>()
 const tempFormData = {
   id: 0,
