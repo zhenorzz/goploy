@@ -4,7 +4,9 @@
       <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
     <el-table
+      :key="tableHeight"
       v-loading="tableLoading"
+      :max-height="tableHeight"
       border
       stripe
       highlight-current-row
@@ -154,9 +156,11 @@ import {
 } from '@/api/user'
 import Validator, { RuleItem } from 'async-validator'
 import { ElMessageBox, ElMessage } from 'element-plus'
+import getTableHeight from '@/composables/tableHeight'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
+const { tableHeight } = getTableHeight()
 const dialogVisible = ref(false)
 const tableLoading = ref(false)
 const tableData = ref<UserList['datagram']['list']>([])

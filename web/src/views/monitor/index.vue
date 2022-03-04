@@ -4,7 +4,9 @@
       <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
     <el-table
+      :key="tableHeight"
       v-loading="tableLoading"
+      :max-height="tableHeight"
       border
       stripe
       highlight-current-row
@@ -211,6 +213,7 @@ import {
   MonitorRemove,
   MonitorData,
 } from '@/api/monitor'
+import getTableHeight from '@/composables/tableHeight'
 import Validator from 'async-validator'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref, watch } from 'vue'
@@ -218,6 +221,7 @@ import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const store = useStore()
+const { tableHeight } = getTableHeight()
 const dialogVisible = ref(false)
 const tableLoading = ref(false)
 const tableData = ref<MonitorList['datagram']['list']>([])
