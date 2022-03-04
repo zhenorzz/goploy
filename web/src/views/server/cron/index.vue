@@ -177,8 +177,7 @@ import getTableHeight from '@/composables/tableHeight'
 import cronstrue from 'cronstrue/i18n'
 import { ServerOption } from '@/api/server'
 import { CronList, CronAdd, CronEdit, CronRemove, CronData } from '@/api/cron'
-import Validator, { RuleItem } from 'async-validator'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage, ElMessageBox, ElForm } from 'element-plus'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { locale, t } = useI18n({ useScope: 'global' })
@@ -189,7 +188,7 @@ const serverOption = ref<ServerOption['datagram']['list']>([])
 const tableLoading = ref(false)
 const tableData = ref<CronList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 17, total: 0 })
-const form = ref<Validator>()
+const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
   serverId: 0,
@@ -205,7 +204,7 @@ const formProps = ref({
   disabled: false,
   dateLocale: '',
 })
-const formRules = {
+const formRules = <InstanceType<typeof ElForm>['rules']>{
   expression: [
     {
       required: true,
@@ -225,7 +224,7 @@ const formRules = {
         }
       },
       trigger: 'blur',
-    } as RuleItem,
+    },
   ],
   command: [{ required: true, message: 'Command required', trigger: 'blur' }],
 }
@@ -298,7 +297,7 @@ function handlePageChange(val = 1) {
 }
 
 function submit() {
-  form.value?.validate((valid: boolean) => {
+  form.value?.validate((valid) => {
     formData.value.expression = formData.value.expression.trim()
     if (valid) {
       if (formData.value.id === 0) {
@@ -306,8 +305,9 @@ function submit() {
       } else {
         edit()
       }
+      Promise.resolve(true)
     } else {
-      return false
+      Promise.reject(false)
     }
   })
 }
