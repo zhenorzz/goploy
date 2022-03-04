@@ -24,7 +24,7 @@
     </el-row>
     <el-row class="chart-container" :gutter="10">
       <el-col
-        v-for="(item, name) in chartNameMap"
+        v-for="(_, name) in chartNameMap"
         :key="name"
         :xs="24"
         :sm="24"
@@ -333,9 +333,8 @@ import {
   ServerMonitorEdit,
   ServerMonitorDelete,
 } from '@/api/server'
-import Validator from 'async-validator'
 import dayjs, { Dayjs } from 'dayjs'
-import { ref, onActivated } from 'vue'
+import { ref, onActivated, ComponentPublicInstance } from 'vue'
 import { deepClone, parseTime } from '@/utils'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -347,7 +346,7 @@ const router = useRouter()
 let serverId = Number(route.query.serverId)
 const monitorDialogVisible = ref(false)
 const monitorListDialogVisible = ref(false)
-const chartRefs = ref<Record<string, any>>({})
+const chartRefs = ref<Record<string, Element | ComponentPublicInstance>>({})
 const chartNameMap = <
   Record<string, { type: number; title: string; subtitle: string }>
 >{
@@ -603,8 +602,8 @@ function report(chartName: string, values: Date[]) {
   })
     .request()
     .then((response) => {
-      echarts.dispose(chartRefs.value[chartName] as HTMLElement)
-      let chart = echarts.init(chartRefs.value[chartName] as HTMLElement)
+      echarts.dispose(<HTMLDivElement>chartRefs.value[chartName])
+      let chart = echarts.init(<HTMLDivElement>chartRefs.value[chartName])
       let chartOption = deepClone(chartBaseOption)
       chartOption.title.text = chartNameMap[chartName].title
       chartOption.title.subtext = chartNameMap[chartName].subtitle
