@@ -50,61 +50,50 @@
     </el-row>
   </el-row>
 </template>
+
 <script lang="ts">
+export default { name: 'LoginLog' }
+</script>
+<script lang="ts" setup>
 import { LoginLogList, LoginLogTotal } from '@/api/log'
-import tableHeight from '@/mixin/tableHeight'
-import { defineComponent } from 'vue'
+import getTableHeight from '@/composables/tableHeight'
+import { ref } from 'vue'
+const account = ref('')
+const { tableHeight } = getTableHeight()
+const tableLoading = ref(false)
+const tableData = ref<LoginLogList['datagram']['list']>([])
+const pagination = ref({ page: 1, rows: 19, total: 0 })
 
-export default defineComponent({
-  name: 'LoginLog',
-  mixins: [tableHeight],
-  data() {
-    return {
-      tableLoading: false,
-      account: '',
-      tableData: [] as LoginLogList['datagram']['list'],
-      pagination: {
-        page: 1,
-        rows: 19,
-        total: 0,
-      },
-    }
-  },
+getList()
+getTotal()
 
-  created() {
-    this.getList()
-    this.getTotal()
-  },
+function searchList() {
+  pagination.value.page = 1
+  getList()
+  getTotal()
+}
 
-  methods: {
-    searchList() {
-      this.pagination.page = 1
-      this.getList()
-      this.getTotal()
-    },
-    getList() {
-      this.tableLoading = true
-      this.tableData = []
-      new LoginLogList({ account: this.account }, this.pagination)
-        .request()
-        .then((response) => {
-          this.tableData = response.data.list
-        })
-        .finally(() => {
-          this.tableLoading = false
-        })
-    },
-    getTotal() {
-      new LoginLogTotal({ account: this.account })
-        .request()
-        .then((response) => {
-          this.pagination.total = response.data.total
-        })
-    },
-    handlePageChange(val = 1) {
-      this.pagination.page = val
-      this.getList()
-    },
-  },
-})
+function getList() {
+  tableLoading.value = true
+  tableData.value = []
+  new LoginLogList({ account: account.value }, pagination.value)
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+
+function getTotal() {
+  new LoginLogTotal({ account: account.value }).request().then((response) => {
+    pagination.value.total = response.data.total
+  })
+}
+
+function handlePageChange(val = 1) {
+  pagination.value.page = val
+  getList()
+}
 </script>

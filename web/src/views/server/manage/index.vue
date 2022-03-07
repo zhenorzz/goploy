@@ -239,7 +239,12 @@
     </el-dialog>
   </el-row>
 </template>
+
 <script lang="ts">
+export default { name: 'ServerIndex' }
+</script>
+<script lang="ts" setup>
+import type { ElForm } from 'element-plus'
 import { getNamespace } from '@/utils/namespace'
 import {
   ServerList,
@@ -251,264 +256,244 @@ import {
   ServerToggle,
   ServerData,
 } from '@/api/server'
-import Validator from 'async-validator'
-import { defineComponent } from 'vue'
+import { ref } from 'vue'
 import { copy, humanSize } from '@/utils'
 import { ElMessageBox, ElMessage } from 'element-plus'
-
-export default defineComponent({
-  name: 'ServerIndex',
-  data() {
-    return {
-      dialogVisible: false,
-      tableLoading: false,
-      tableData: [] as ServerList['datagram']['list'],
-      selectedItem: {},
-      pagination: {
-        page: 1,
-        rows: 16,
-        total: 0,
-      },
-      tempFormData: {},
-      formProps: {
-        loading: false,
-        showAdvance: false,
-        copyPubLoading: false,
-        disabled: false,
-      },
-      formData: {
-        id: 0,
-        namespaceId: getNamespace()['id'],
-        name: '',
-        ip: '',
-        port: 22,
-        owner: '',
-        path: '/root/.ssh/id_rsa',
-        password: '',
-        jumpIP: '',
-        jumpPort: 0,
-        jumpOwner: '',
-        jumpPath: '',
-        jumpPassword: '',
-        description: '',
-      },
-      formRules: {
-        namespaceId: [
-          { required: true, message: 'Namespace required', trigger: 'blur' },
-        ],
-        name: [{ required: true, message: 'Name required', trigger: 'blur' }],
-        ip: [{ required: true, message: 'IP required', trigger: 'blur' }],
-        port: [
-          {
-            type: 'number',
-            required: true,
-            min: 0,
-            max: 65535,
-            message: '0 ~ 65535',
-            trigger: 'blur',
-          },
-        ],
-        owner: [
-          {
-            required: true,
-            message: 'SSH-KEY owner required',
-            trigger: 'blur',
-          },
-        ],
-        path: [
-          { required: true, message: 'SSH-KEY path required', trigger: 'blur' },
-        ],
-        description: [
-          { max: 255, message: 'Max 255 characters', trigger: 'blur' },
-        ],
-      },
-    }
-  },
-
-  created() {
-    this.storeFormData()
-    this.getList()
-    this.getTotal()
-  },
-  methods: {
-    getNamespace,
-    getList() {
-      this.tableLoading = true
-      new ServerList(this.pagination)
-        .request()
-        .then((response) => {
-          this.tableData = response.data.list
-        })
-        .finally(() => {
-          this.tableLoading = false
-        })
+import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
+const router = useRouter()
+const dialogVisible = ref(false)
+const tableLoading = ref(false)
+const tableData = ref<ServerList['datagram']['list']>([])
+const pagination = ref({ page: 1, rows: 16, total: 0 })
+const form = ref<InstanceType<typeof ElForm>>()
+const tempFormData = {
+  id: 0,
+  namespaceId: getNamespace()['id'],
+  name: '',
+  ip: '',
+  port: 22,
+  owner: '',
+  path: '/root/.ssh/id_rsa',
+  password: '',
+  jumpIP: '',
+  jumpPort: 0,
+  jumpOwner: '',
+  jumpPath: '',
+  jumpPassword: '',
+  description: '',
+}
+const formData = ref(tempFormData)
+const formProps = ref({
+  loading: false,
+  showAdvance: false,
+  copyPubLoading: false,
+  disabled: false,
+})
+const formRules = {
+  namespaceId: [
+    { required: true, message: 'Namespace required', trigger: 'blur' },
+  ],
+  name: [{ required: true, message: 'Name required', trigger: 'blur' }],
+  ip: [{ required: true, message: 'IP required', trigger: 'blur' }],
+  port: [
+    {
+      type: 'number',
+      required: true,
+      min: 0,
+      max: 65535,
+      message: '0 ~ 65535',
+      trigger: 'blur',
     },
+  ],
+  owner: [
+    {
+      required: true,
+      message: 'SSH-KEY owner required',
+      trigger: 'blur',
+    },
+  ],
+  path: [{ required: true, message: 'SSH-KEY path required', trigger: 'blur' }],
+  description: [{ max: 255, message: 'Max 255 characters', trigger: 'blur' }],
+}
 
-    getTotal() {
-      new ServerTotal().request().then((response) => {
-        this.pagination.total = response.data.total
+getList()
+getTotal()
+
+function getList() {
+  tableLoading.value = true
+  new ServerList(pagination.value)
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+
+function getTotal() {
+  new ServerTotal().request().then((response) => {
+    pagination.value.total = response.data.total
+  })
+}
+
+function getPublicKey() {
+  formProps.value.copyPubLoading = true
+  new ServerPublicKey({ path: formData.value.path })
+    .request()
+    .then((response) => {
+      copy(response.data.key)
+      ElMessage.success(t('serverPage.copyPubTips'))
+    })
+    .finally(() => {
+      formProps.value.copyPubLoading = false
+    })
+}
+
+// 分页事件
+function handlePageChange(val = 1) {
+  pagination.value.page = val
+  getList()
+}
+
+function handleAdd() {
+  restoreFormData()
+  dialogVisible.value = true
+}
+
+function handleEdit(data: ServerData['datagram']) {
+  formData.value = Object.assign({}, data)
+  dialogVisible.value = true
+}
+
+function handleCopy(data: ServerData['datagram']) {
+  formData.value = Object.assign({}, data)
+  formData.value.id = 0
+  dialogVisible.value = true
+}
+
+function handleMonitor(data: ServerData['datagram']) {
+  router.push({ path: '/server/agent', query: { serverId: data.id } })
+}
+
+function onSwitchState(value: boolean, index: number) {
+  const data = tableData.value[index]
+  if (value) {
+    new ServerToggle({ id: data.id, state: value ? 1 : 0 })
+      .request()
+      .then(() => {
+        ElMessage.success('Need to bind project again')
+        tableData.value[index].state = value ? 1 : 0
       })
-    },
-
-    getPublicKey() {
-      this.formProps.copyPubLoading = true
-      new ServerPublicKey({ path: this.formData.path })
-        .request()
-        .then((response) => {
-          copy(response.data.key)
-          ElMessage.success(this.$t('serverPage.copyPubTips'))
-        })
-        .finally(() => {
-          this.formProps.copyPubLoading = false
-        })
-    },
-
-    // 分页事件
-    handlePageChange(val = 1) {
-      this.pagination.page = val
-      this.getList()
-    },
-
-    handleAdd() {
-      this.restoreFormData()
-      this.dialogVisible = true
-    },
-
-    handleEdit(data: ServerData['datagram']) {
-      this.formData = Object.assign({}, data)
-      this.dialogVisible = true
-    },
-
-    handleCopy(data: ServerData['datagram']) {
-      this.formData = Object.assign({}, data)
-      this.formData.id = 0
-      this.dialogVisible = true
-    },
-
-    handleMonitor(data: ServerData['datagram']) {
-      this.$router.push({ path: '/server/agent', query: { serverId: data.id } })
-    },
-
-    onSwitchState(value: boolean, index: number) {
-      const data = this.tableData[index]
-      if (value) {
+  } else {
+    ElMessageBox.confirm(
+      t('serverPage.removeServerTips', { serverName: data.name }),
+      t('tips'),
+      {
+        confirmButtonText: t('confirm'),
+        cancelButtonText: t('cancel'),
+        type: 'warning',
+      }
+    )
+      .then(() => {
         new ServerToggle({ id: data.id, state: value ? 1 : 0 })
           .request()
           .then(() => {
-            ElMessage.success('Need to bind project again')
-            this.tableData[index].state = value ? 1 : 0
+            tableData.value[index].state = value ? 1 : 0
           })
+      })
+      .catch(() => {
+        ElMessage.info('Cancel')
+      })
+  }
+}
+
+function check() {
+  form.value?.validate((valid) => {
+    if (valid) {
+      formProps.value.loading = true
+      formProps.value.disabled = true
+      new ServerCheck(formData.value)
+        .request()
+        .then(() => {
+          ElMessage.success('Connected')
+        })
+        .finally(() => {
+          formProps.value.loading = false
+          formProps.value.disabled = false
+        })
+      return Promise.resolve(true)
+    } else {
+      return Promise.reject(false)
+    }
+  })
+}
+
+function submit() {
+  form.value?.validate((valid) => {
+    if (valid) {
+      if (formData.value.id === 0) {
+        add()
       } else {
-        ElMessageBox.confirm(
-          this.$t('serverPage.removeServerTips', { serverName: data.name }),
-          this.$t('tips'),
-          {
-            confirmButtonText: this.$t('confirm'),
-            cancelButtonText: this.$t('cancel'),
-            type: 'warning',
-          }
-        )
-          .then(() => {
-            new ServerToggle({ id: data.id, state: value ? 1 : 0 })
-              .request()
-              .then(() => {
-                this.tableData[index].state = value ? 1 : 0
-              })
-          })
-          .catch(() => {
-            ElMessage.info('Cancel')
-          })
+        edit()
       }
-    },
+      return Promise.resolve(true)
+    } else {
+      return Promise.reject(false)
+    }
+  })
+}
 
-    check() {
-      ;(this.$refs.form as Validator).validate((valid: boolean) => {
-        if (valid) {
-          this.formProps.loading = true
-          this.formProps.disabled = true
-          new ServerCheck(this.formData)
-            .request()
-            .then(() => {
-              ElMessage.success('Connected')
-            })
-            .finally(() => {
-              this.formProps.loading = false
-              this.formProps.disabled = false
-            })
-        } else {
-          return false
-        }
-      })
-    },
+function add() {
+  formProps.value.disabled = true
+  new ServerAdd(formData.value)
+    .request()
+    .then(() => {
+      getList()
+      getTotal()
+      ElMessage.success('Success')
+    })
+    .finally(() => {
+      formProps.value.disabled = dialogVisible.value = false
+    })
+}
 
-    submit() {
-      ;(this.$refs.form as Validator).validate((valid: boolean) => {
-        if (valid) {
-          if (this.formData.id === 0) {
-            this.add()
-          } else {
-            this.edit()
-          }
-        } else {
-          return false
-        }
-      })
-    },
+function edit() {
+  formProps.value.disabled = true
+  new ServerEdit(formData.value)
+    .request()
+    .then(() => {
+      getList()
+      ElMessage.success('Success')
+    })
+    .finally(() => {
+      formProps.value.disabled = dialogVisible.value = false
+    })
+}
 
-    add() {
-      this.formProps.disabled = true
-      new ServerAdd(this.formData)
-        .request()
-        .then(() => {
-          this.getList()
-          this.getTotal()
-          ElMessage.success('Success')
-        })
-        .finally(() => {
-          this.formProps.disabled = this.dialogVisible = false
-        })
-    },
+function restoreFormData() {
+  formData.value = { ...tempFormData }
+}
 
-    edit() {
-      this.formProps.disabled = true
-      new ServerEdit(this.formData)
-        .request()
-        .then(() => {
-          this.getList()
-          ElMessage.success('Success')
-        })
-        .finally(() => {
-          this.formProps.disabled = this.dialogVisible = false
-        })
-    },
+function getOS(osInfo: string): string {
+  if (osInfo === '') return ''
+  return osInfo.split('|')[0]
+}
 
-    storeFormData() {
-      this.tempFormData = JSON.parse(JSON.stringify(this.formData))
-    },
+function getOSIcon(osInfo: string): string {
+  if (osInfo === '') return ''
+  else if (osInfo.toLowerCase().includes('centos')) return 'centos'
+  else if (osInfo.toLowerCase().includes('ubuntu')) return 'ubuntu'
+  else return 'question-mark-blue'
+}
 
-    restoreFormData() {
-      this.formData = JSON.parse(JSON.stringify(this.tempFormData))
-    },
-
-    getOS(osInfo: string): string {
-      if (osInfo === '') return ''
-      return osInfo.split('|')[0]
-    },
-
-    getOSIcon(osInfo: string): string {
-      if (osInfo === '') return ''
-      else if (osInfo.toLowerCase().includes('centos')) return 'centos'
-      else if (osInfo.toLowerCase().includes('ubuntu')) return 'ubuntu'
-      else return 'question-mark-blue'
-    },
-
-    getOSDetail(osInfo: string): string {
-      if (osInfo === '') return ''
-      const osArr = osInfo.split('|')
-      return osArr[1] + ' cores ' + humanSize(Number(osArr[2]) * 1024)
-    },
-  },
-})
+function getOSDetail(osInfo: string): string {
+  if (osInfo === '') return ''
+  const osArr = osInfo.split('|')
+  return osArr[1] + ' cores ' + humanSize(Number(osArr[2]) * 1024)
+}
 </script>
 <style lang="scss" scoped>
 @import '@/styles/mixin.scss';

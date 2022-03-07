@@ -131,21 +131,21 @@
             description="No result"
           ></el-empty>
           <el-dropdown
-            v-for="(file, index) in fileFilteredList"
+            v-for="(item, index) in fileFilteredList"
             :key="index"
             :offset="-30"
             trigger="click"
             placement="right"
           >
             <el-row
-              v-loading="file['uploading']"
+              v-loading="item['uploading']"
               tabindex="1"
               class="file"
-              :class="file.uuid === selectedFile['uuid'] ? 'file-selected' : ''"
-              @click="selectFile(file)"
+              :class="item.uuid === selectedFile['uuid'] ? 'file-selected' : ''"
+              @click="selectFile(item)"
             >
-              <svg-icon class="file-type" :icon-class="file.icon" />
-              <div class="filename" :title="file.name">{{ file.name }}</div>
+              <svg-icon class="file-type" :icon-class="item.icon" />
+              <div class="filename" :title="item.name">{{ item.name }}</div>
             </el-row>
             <template #dropdown>
               <el-dropdown-menu>
@@ -212,7 +212,11 @@
     </el-dialog>
   </el-row>
 </template>
+
 <script lang="ts">
+export default { name: 'ServerSFTP' }
+</script>
+<script lang="ts" setup>
 import svgIds from 'virtual:svg-icons-names'
 import path from 'path-browserify'
 import { humanSize, parseTime } from '@/utils'
@@ -220,8 +224,7 @@ import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import { ElMessage } from 'element-plus'
 import { ServerOption } from '@/api/server'
 import { HttpResponse } from '@/api/types'
-import { defineComponent } from 'vue'
-
+import { ref, computed } from 'vue'
 interface file {
   uuid: number
   isDir: boolean
@@ -232,286 +235,266 @@ interface file {
   icon: string
   uploading: boolean
 }
-
-export default defineComponent({
-  name: 'ServerSFTP',
-  data() {
-    return {
-      fileDetailDialogVisible: false,
-      serverOption: [] as ServerOption['datagram']['list'],
-      serverId: '',
-      ws: null as null | WebSocket,
-      wsConnected: false,
-      dir: '',
-      lastDir: '',
-      backwardHistory: [] as string[],
-      forwardHistory: [] as string[],
-      fileListLoading: false,
-      fileList: [] as file[],
-      fileFilteredList: [] as file[],
-      selectedFile: {} as file,
-      input: '',
-      fileUUID: 0,
-    }
-  },
-
-  computed: {
-    uploadHref: function () {
-      return `${
-        import.meta.env.VITE_APP_BASE_API
-      }/server/uploadFile?${NamespaceKey}=${getNamespaceId()}&id=${
-        this.serverId
-      }&filePath=${this.dir}`
-    },
-    previewHref: function () {
-      const file = path.normalize(`${this.dir}/${this.selectedFile['name']}`)
-      return `${
-        import.meta.env.VITE_APP_BASE_API
-      }/server/previewFile?${NamespaceKey}=${getNamespaceId()}&id=${
-        this.serverId
-      }&file=${file}`
-    },
-    downloadHref: function () {
-      const file = path.normalize(`${this.dir}/${this.selectedFile['name']}`)
-      return `${
-        import.meta.env.VITE_APP_BASE_API
-      }/server/downloadFile?${NamespaceKey}=${getNamespaceId()}&id=${
-        this.serverId
-      }&file=${file}`
-    },
-  },
-
-  created() {
-    this.getServerOption()
-  },
-
-  methods: {
-    humanSize,
-    getServerOption() {
-      new ServerOption().request().then((response) => {
-        this.serverOption = response.data.list
-      })
-    },
-    selectServer() {
-      if (this.ws) {
-        this.ws.close()
-        this.fileList = this.backwardHistory = this.forwardHistory = []
-      }
-      try {
-        this.ws = new WebSocket(
-          `${location.protocol.replace('http', 'ws')}//${
-            window.location.host + import.meta.env.VITE_APP_BASE_API
-          }/ws/sftp?serverId=${
-            this.serverId
-          }&${NamespaceKey}=${getNamespaceId()}`
-        )
-        this.ws.onopen = () => {
-          this.wsConnected = true
-        }
-        this.ws.onerror = (error) => {
-          console.log(error)
-        }
-        this.ws.onclose = (event) => {
-          if (event.reason !== '') {
-            ElMessage.error('sftp close, reason: ' + event.reason)
-          }
-          console.log(event)
-        }
-        this.ws.onmessage = (event) => {
-          const responseData = JSON.parse(event.data)
-          this.fileListLoading = false
-          if (responseData['code'] > 0) {
-            ElMessage.error(responseData['message'])
-            this.fileList = []
-          } else {
-            this.fileList = []
-            const data = responseData['data'] ? responseData['data'] : []
-            this.fileFilteredList = this.fileList = data.map((file: file) => {
-              file.uuid = this.fileUUID++
-              if (file.isDir) {
-                file.icon = 'file-dir'
-              } else {
-                file.icon = this.getIcon(file.name)
-              }
-              return file
-            })
-            this.handleSort('default')
-          }
-        }
-      } catch (error) {
-        console.error(error)
-      }
-    },
-
-    handleSort(command: string) {
-      let compareFunc = (fileA: file, fileB: file): number => {
-        if (fileA.isDir > fileB.isDir) {
-          // 按某种排序标准进行比较, a 小于 b
-          return -1
-        }
-        if (fileA.isDir < fileB.isDir) {
-          return 1
-        }
-        // a must be equal to b
-        return 0
-      }
-      switch (command) {
-        case 'nameAsc':
-          compareFunc = (fileA: file, fileB: file): number => {
-            return fileA.name.localeCompare(fileB.name)
-          }
-          break
-        case 'nameDesc':
-          compareFunc = (fileA: file, fileB: file): number => {
-            return fileB.name.localeCompare(fileA.name)
-          }
-          break
-        case 'sizeAsc':
-          compareFunc = (fileA: file, fileB: file): number => {
-            return fileA.size - fileB.size
-          }
-          break
-        case 'sizeDesc':
-          compareFunc = (fileA: file, fileB: file): number => {
-            return fileB.size - fileA.size
-          }
-          break
-        case 'modTimeAsc':
-          compareFunc = (fileA: file, fileB: file): number => {
-            return (
-              new Date(fileA.modTime).getTime() -
-              new Date(fileB.modTime).getTime()
-            )
-          }
-          break
-        case 'modTimeDesc':
-          compareFunc = (fileA: file, fileB: file): number => {
-            return (
-              new Date(fileB.modTime).getTime() -
-              new Date(fileA.modTime).getTime()
-            )
-          }
-          break
-      }
-      this.fileFilteredList.sort(compareFunc)
-    },
-
-    goto(target: string) {
-      this.fileListLoading = true
-      this.selectedFile = {} as file
-      this.dir = path.normalize(target)
-      this.ws?.send(this.dir)
-    },
-
-    dirOpen(dir: string) {
-      if (this.lastDir !== '') {
-        if (
-          this.backwardHistory.length === 0 ||
-          this.backwardHistory[this.backwardHistory.length - 1] !== this.lastDir
-        ) {
-          this.backwardHistory.push(this.lastDir)
-        }
-      }
-      this.forwardHistory = []
-      this.lastDir = dir
-      this.goto(dir)
-    },
-
-    dotdot(target: string) {
-      this.goto(path.resolve(target, '..'))
-    },
-
-    backward() {
-      const target = this.backwardHistory.pop()
-      if (target) {
-        this.lastDir = target
-        this.forwardHistory.push(this.dir)
-        this.goto(target)
-      }
-    },
-
-    forward() {
-      const target = this.forwardHistory.pop()
-      if (target) {
-        this.lastDir = target
-        this.backwardHistory.push(this.dir)
-        this.goto(target)
-      }
-    },
-
-    refresh() {
-      this.fileListLoading = true
-      this.ws?.send(this.dir)
-    },
-
-    filterFile(value: string) {
-      this.fileFilteredList = this.fileList.filter((file) =>
-        file.name.includes(value)
-      )
-    },
-
-    selectFile(file: file) {
-      this.selectedFile = file
-    },
-
-    async beforeUpload(file: File) {
-      const fileIndex = this.fileList.findIndex(
-        (_: file) => file.name === _.name
-      )
-      if (fileIndex >= 0) {
-        ElMessage.warning(`${file.name} is already exist`)
-        return Promise.reject()
-      }
-      this.fileList.push({
-        uuid: this.fileUUID++,
-        name: file.name,
-        size: file.size,
-        mode: '-rw-rw-rw-',
-        modTime: parseTime(file.lastModified),
-        isDir: false,
-        uploading: true,
-        icon: this.getIcon(file.name),
-      })
-      return Promise.resolve()
-    },
-
-    handleUploadSuccess(response: HttpResponse<string>, file: File) {
-      const fileIndex = this.fileList.findIndex(
-        (_: file) => file.name === _.name
-      )
-      if (fileIndex >= 0) {
-        if (response.code > 0) {
-          ElMessage.error(`upload failed, detail: ${response.message}`)
-          this.fileList.splice(fileIndex, 1)
-        } else {
-          this.fileList[fileIndex].uploading = false
-        }
-      }
-      return true
-    },
-
-    handleUploadError(err: Error, file: File) {
-      const fileIndex = this.fileList.findIndex(
-        (_: file) => file.name === _.name
-      )
-      if (fileIndex >= 0) {
-        ElMessage.error(`upload failed, detail: ${err.message}`)
-        this.fileList.splice(fileIndex, 1)
-      }
-      return true
-    },
-
-    getIcon(filename: string) {
-      let file_ext = path.extname(filename)
-      file_ext = file_ext.length > 0 ? file_ext.substring(1) : ''
-      if (svgIds.includes(`icon-file-${file_ext}`)) {
-        return `file-${file_ext}`
-      } else {
-        return 'file-unknown'
-      }
-    },
-  },
+let ws: WebSocket
+const fileDetailDialogVisible = ref(false)
+const serverOption = ref<ServerOption['datagram']['list']>([])
+const serverId = ref('')
+const wsConnected = ref(false)
+const dir = ref('')
+const lastDir = ref('')
+const backwardHistory = ref<string[]>([])
+const forwardHistory = ref<string[]>([])
+const fileListLoading = ref(false)
+const fileList = ref<file[]>([])
+const fileFilteredList = ref<file[]>([])
+const selectedFile = ref<file>({} as file)
+const input = ref('')
+let fileUUID = 0
+const uploadHref = computed(() => {
+  return `${
+    import.meta.env.VITE_APP_BASE_API
+  }/server/uploadFile?${NamespaceKey}=${getNamespaceId()}&id=${
+    serverId.value
+  }&filePath=${dir.value}`
 })
+const previewHref = computed(() => {
+  if (selectedFile.value == undefined) {
+    return ''
+  }
+  const file = path.normalize(`${dir.value}/${selectedFile.value['name']}`)
+  return `${
+    import.meta.env.VITE_APP_BASE_API
+  }/server/previewFile?${NamespaceKey}=${getNamespaceId()}&id=${
+    serverId.value
+  }&file=${file}`
+})
+const downloadHref = computed(() => {
+  if (selectedFile.value == undefined) {
+    return ''
+  }
+  const file = path.normalize(`${dir.value}/${selectedFile.value['name']}`)
+  return `${
+    import.meta.env.VITE_APP_BASE_API
+  }/server/downloadFile?${NamespaceKey}=${getNamespaceId()}&id=${
+    serverId.value
+  }&file=${file}`
+})
+
+getServerOption()
+
+function getServerOption() {
+  new ServerOption().request().then((response) => {
+    serverOption.value = response.data.list
+  })
+}
+function selectServer() {
+  if (ws) {
+    ws.close()
+    fileList.value = backwardHistory.value = forwardHistory.value = []
+  }
+  try {
+    ws = new WebSocket(
+      `${location.protocol.replace('http', 'ws')}//${
+        window.location.host + import.meta.env.VITE_APP_BASE_API
+      }/ws/sftp?serverId=${serverId.value}&${NamespaceKey}=${getNamespaceId()}`
+    )
+    ws.onopen = () => {
+      wsConnected.value = true
+    }
+    ws.onerror = (error) => {
+      console.log(error)
+    }
+    ws.onclose = (event) => {
+      if (event.reason !== '') {
+        ElMessage.error('sftp close, reason: ' + event.reason)
+      }
+      console.log(event)
+    }
+    ws.onmessage = (event) => {
+      const responseData = JSON.parse(event.data)
+      fileListLoading.value = false
+      if (responseData['code'] > 0) {
+        ElMessage.error(responseData['message'])
+        fileList.value = []
+      } else {
+        fileList.value = []
+        const data = responseData['data'] ? responseData['data'] : []
+        fileFilteredList.value = fileList.value = data.map((file: file) => {
+          file.uuid = fileUUID++
+          if (file.isDir) {
+            file.icon = 'file-dir'
+          } else {
+            file.icon = getIcon(file.name)
+          }
+          return file
+        })
+        handleSort('default')
+      }
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+function handleSort(command: string) {
+  let compareFunc = (fileA: file, fileB: file): number => {
+    if (fileA.isDir > fileB.isDir) {
+      // 按某种排序标准进行比较, a 小于 b
+      return -1
+    }
+    if (fileA.isDir < fileB.isDir) {
+      return 1
+    }
+    // a must be equal to b
+    return 0
+  }
+  switch (command) {
+    case 'nameAsc':
+      compareFunc = (fileA: file, fileB: file): number => {
+        return fileA.name.localeCompare(fileB.name)
+      }
+      break
+    case 'nameDesc':
+      compareFunc = (fileA: file, fileB: file): number => {
+        return fileB.name.localeCompare(fileA.name)
+      }
+      break
+    case 'sizeAsc':
+      compareFunc = (fileA: file, fileB: file): number => {
+        return fileA.size - fileB.size
+      }
+      break
+    case 'sizeDesc':
+      compareFunc = (fileA: file, fileB: file): number => {
+        return fileB.size - fileA.size
+      }
+      break
+    case 'modTimeAsc':
+      compareFunc = (fileA: file, fileB: file): number => {
+        return (
+          new Date(fileA.modTime).getTime() - new Date(fileB.modTime).getTime()
+        )
+      }
+      break
+    case 'modTimeDesc':
+      compareFunc = (fileA: file, fileB: file): number => {
+        return (
+          new Date(fileB.modTime).getTime() - new Date(fileA.modTime).getTime()
+        )
+      }
+      break
+  }
+  fileFilteredList.value.sort(compareFunc)
+}
+
+function goto(target: string) {
+  fileListLoading.value = true
+  selectedFile.value = {} as file
+  dir.value = path.normalize(target)
+  ws?.send(dir.value)
+}
+
+function dirOpen(dir: string) {
+  if (lastDir.value !== '') {
+    if (
+      backwardHistory.value.length === 0 ||
+      backwardHistory.value[backwardHistory.value.length - 1] !== lastDir.value
+    ) {
+      backwardHistory.value.push(lastDir.value)
+    }
+  }
+  forwardHistory.value = []
+  lastDir.value = dir
+  goto(dir)
+}
+
+function dotdot(target: string) {
+  goto(path.resolve(target, '..'))
+}
+
+function backward() {
+  const target = backwardHistory.value.pop()
+  if (target) {
+    lastDir.value = target
+    forwardHistory.value.push(dir.value)
+    goto(target)
+  }
+}
+
+function forward() {
+  const target = forwardHistory.value.pop()
+  if (target) {
+    lastDir.value = target
+    backwardHistory.value.push(dir.value)
+    goto(target)
+  }
+}
+
+function refresh() {
+  fileListLoading.value = true
+  ws?.send(dir.value)
+}
+
+function filterFile(value: string) {
+  fileFilteredList.value = fileList.value.filter((file) =>
+    file.name.includes(value)
+  )
+}
+
+function selectFile(file: file) {
+  selectedFile.value = file
+}
+
+async function beforeUpload(file: File) {
+  const fileIndex = fileList.value.findIndex((_: file) => file.name === _.name)
+  if (fileIndex >= 0) {
+    ElMessage.warning(`${file.name} is already exist`)
+    return Promise.reject()
+  }
+  fileList.value.push({
+    uuid: fileUUID++,
+    name: file.name,
+    size: file.size,
+    mode: '-rw-rw-rw-',
+    modTime: parseTime(file.lastModified),
+    isDir: false,
+    uploading: true,
+    icon: getIcon(file.name),
+  })
+  return Promise.resolve()
+}
+
+function handleUploadSuccess(response: HttpResponse<string>, file: File) {
+  const fileIndex = fileList.value.findIndex((_: file) => file.name === _.name)
+  if (fileIndex >= 0) {
+    if (response.code > 0) {
+      ElMessage.error(`upload failed, detail: ${response.message}`)
+      fileList.value.splice(fileIndex, 1)
+    } else {
+      fileList.value[fileIndex].uploading = false
+    }
+  }
+  return true
+}
+
+function handleUploadError(err: Error, file: File) {
+  const fileIndex = fileList.value.findIndex((_: file) => file.name === _.name)
+  if (fileIndex >= 0) {
+    ElMessage.error(`upload failed, detail: ${err.message}`)
+    fileList.value.splice(fileIndex, 1)
+  }
+  return true
+}
+
+function getIcon(filename: string) {
+  let file_ext = path.extname(filename)
+  file_ext = file_ext.length > 0 ? file_ext.substring(1) : ''
+  if (svgIds.includes(`icon-file-${file_ext}`)) {
+    return `file-${file_ext}`
+  } else {
+    return 'file-unknown'
+  }
+}
 </script>
 <style lang="scss" scoped>
 @import '@/styles/mixin.scss';

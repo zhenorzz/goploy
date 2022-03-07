@@ -4,11 +4,11 @@
       <el-scrollbar>
         <el-row class="nav" justify="start" align="middle">
           <div
-            v-for="(terminal, index) in terminalList"
-            :key="terminal.uuid"
+            v-for="(item, index) in terminalList"
+            :key="item.uuid"
             class="nav-item"
             :class="
-              terminal.uuid === currentTerminalUUID ? 'nav-item-selected' : ''
+              item.uuid === currentTerminalUUID ? 'nav-item-selected' : ''
             "
           >
             <el-row>
@@ -16,16 +16,16 @@
                 <el-button
                   type="text"
                   style="color: #bfcbd9; font-size: 14px"
-                  @click="selectTerminal(terminal)"
+                  @click="selectTerminal(item)"
                 >
-                  {{ terminal.server.name }}
+                  {{ item.server.name }}({{ item.server.description }})
                 </el-button>
               </el-row>
               <el-button
                 type="text"
                 style="color: #bfcbd9"
                 icon="el-icon-close"
-                @click="deleteTerminal(terminal, index)"
+                @click="deleteTerminal(item, index)"
               ></el-button>
             </el-row>
           </div>
@@ -64,7 +64,9 @@
                     size="medium"
                     @click="selectServer(server)"
                   >
-                    {{ server.name }}
+                    <span :title="server.name + '(' + server.description + ')'">
+                      {{ server.name }}({{ server.description }})
+                    </span>
                   </el-button>
                 </el-row>
               </el-row>
@@ -86,7 +88,13 @@
         v-for="terminal in terminalList"
         v-show="terminal.uuid === currentTerminalUUID"
         :key="terminal.uuid"
-        :ref="`terminal${terminal.uuid}`"
+        :ref="
+          (el) => {
+            if (el) {
+              terminalRefs[terminal.uuid] = el
+            }
+          }
+        "
         style="width: 100%; height: 100%"
       ></div>
     </el-row>
@@ -106,82 +114,78 @@
   </el-row>
 </template>
 <script lang="ts">
+export default { name: 'ServerTerminal' }
+</script>
+<script lang="ts" setup>
 import 'xterm/css/xterm.css'
 import { ServerOption, ServerData } from '@/api/server'
 import { xterm } from './xterm'
-import { defineComponent } from 'vue'
+import { ref, nextTick, ComponentPublicInstance } from 'vue'
 interface terminal {
   uuid: number
   xterm?: xterm | void
   server: ServerData['datagram']
 }
-export default defineComponent({
-  name: 'ServerTerminal',
-  data() {
-    return {
-      serverOptionVisible: false,
-      terminalList: [] as terminal[],
-      currentTerminalUUID: 0,
-      serverOption: [] as ServerOption['datagram']['list'],
-      serverFilteredOption: [] as ServerOption['datagram']['list'],
-      serverFilterInput: '',
-      command: '',
-    }
-  },
-  created() {
-    this.getServerOption()
-  },
-  methods: {
-    getServerOption() {
-      new ServerOption().request().then((response) => {
-        this.serverOption = this.serverFilteredOption = response.data.list
-      })
-    },
-    filterServer(value: string) {
-      this.serverFilteredOption = this.serverOption.filter((server) =>
-        server.name.includes(value)
-      )
-    },
-    selectServer(server: ServerData['datagram']) {
-      if (this.terminalList.length === 0) {
-        this.currentTerminalUUID = 0
-      } else {
-        this.currentTerminalUUID =
-          this.terminalList[this.terminalList.length - 1].uuid + 1
-      }
-      this.terminalList.push({ uuid: this.currentTerminalUUID, server })
-      this.serverOptionVisible = false
-      this.$nextTick(() => {
-        const x = new xterm(
-          this.$refs[`terminal${this.currentTerminalUUID}`] as HTMLDivElement,
-          server.id
-        )
-        x.connect()
-        this.terminalList[this.terminalList.length - 1].xterm = x
-      })
-    },
-    selectTerminal(terminal: terminal) {
-      this.currentTerminalUUID = terminal.uuid
-    },
-    deleteTerminal(terminal: terminal, index: number) {
-      terminal.xterm?.close()
-      this.terminalList.splice(index, 1)
-      if (this.currentTerminalUUID === terminal.uuid) {
-        this.currentTerminalUUID =
-          this.terminalList.length === 0
-            ? 0
-            : this.terminalList[this.terminalList.length - 1].uuid
-      }
-    },
-    enterCommand() {
-      this.terminalList.forEach((terminal) => {
-        terminal.xterm?.send(this.command + '\n')
-      })
-      this.command = ''
-    },
-  },
-})
+const serverOptionVisible = ref(false)
+const terminalList = ref<terminal[]>([])
+const currentTerminalUUID = ref(0)
+const serverOption = ref<ServerOption['datagram']['list']>([])
+const serverFilteredOption = ref<ServerOption['datagram']['list']>([])
+const serverFilterInput = ref('')
+const command = ref('')
+const terminalRefs = ref<Record<string, Element | ComponentPublicInstance>>({})
+
+getServerOption()
+
+function getServerOption() {
+  new ServerOption().request().then((response) => {
+    serverOption.value = serverFilteredOption.value = response.data.list
+  })
+}
+function filterServer(value: string) {
+  serverFilteredOption.value = serverOption.value.filter((server) =>
+    server.name.includes(value)
+  )
+}
+function selectServer(server: ServerData['datagram']) {
+  if (terminalList.value.length === 0) {
+    currentTerminalUUID.value = 0
+  } else {
+    currentTerminalUUID.value =
+      terminalList.value[terminalList.value.length - 1].uuid + 1
+  }
+  terminalList.value.push({ uuid: currentTerminalUUID.value, server })
+  serverOptionVisible.value = false
+  nextTick(() => {
+    const x = new xterm(
+      terminalRefs.value[currentTerminalUUID.value] as HTMLDivElement,
+      server.id
+    )
+    x.connect()
+    terminalList.value[terminalList.value.length - 1].xterm = x
+  })
+}
+function selectTerminal(terminal: terminal) {
+  currentTerminalUUID.value = terminal.uuid
+}
+function deleteTerminal(terminal: terminal, index: number) {
+  terminal.xterm?.close()
+  terminalList.value.splice(index, 1)
+  if (currentTerminalUUID.value === terminal.uuid) {
+    currentTerminalUUID.value =
+      terminalList.value.length === 0
+        ? 0
+        : terminalList.value[terminalList.value.length - 1].uuid
+  }
+}
+function enterCommand() {
+  terminalList.value.forEach((terminal) => {
+    terminal.xterm?.send(command.value + '\n')
+  })
+  command.value = ''
+}
 </script>
+
 <style lang="scss" scoped>
 .main {
   flex-direction: column;

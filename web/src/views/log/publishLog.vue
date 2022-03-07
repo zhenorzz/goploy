@@ -233,122 +233,106 @@
     </el-dialog>
   </el-row>
 </template>
+
 <script lang="ts">
+export default { name: 'PublishLog' }
+</script>
+<script lang="ts" setup>
 import { PublishLogData, PublishLogList, PublishLogTotal } from '@/api/log'
 import { DeployTrace, DeployTraceDetail, PublishTraceData } from '@/api/deploy'
 import { parseTime } from '@/utils'
-import tableHeight from '@/mixin/tableHeight'
-import { defineComponent } from 'vue'
+import getTableHeight from '@/composables/tableHeight'
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 
-export default defineComponent({
-  name: 'PublishLog',
-  mixins: [tableHeight],
-  data() {
-    return {
-      dialogVisible: false,
-      tableLoading: false,
-      searchParam: {
-        username: '',
-        projectName: '',
-      },
-      tableData: [] as PublishLogList['datagram']['list'],
-      pagination: {
-        page: 1,
-        rows: 17,
-        total: 0,
-      },
-      traceLoading: false,
-      traceDetail: {} as Record<number, string>,
-      activeRomoteTracePane: '',
-      publishLocalTraceList: [] as DeployTrace['datagram']['list'],
-      publishRemoteTraceList: {} as Record<
-        string,
-        DeployTrace['datagram']['list']
-      >,
-    }
-  },
+const dialogVisible = ref(false)
+const searchParam = ref({ username: '', projectName: '' })
+const { tableHeight } = getTableHeight()
+const tableLoading = ref(false)
+const tableData = ref<PublishLogList['datagram']['list']>([])
+const pagination = ref({ page: 1, rows: 17, total: 0 })
+const traceLoading = ref(false)
+const traceDetail = ref({} as Record<number, string>)
+const activeRomoteTracePane = ref('')
+const publishLocalTraceList = ref<DeployTrace['datagram']['list']>([])
+const publishRemoteTraceList = ref(
+  {} as Record<string, DeployTrace['datagram']['list']>
+)
+getList()
+getTotal()
 
-  created() {
-    this.getList()
-    this.getTotal()
-  },
-
-  methods: {
-    parseTime,
-    searchList() {
-      this.pagination.page = 1
-      this.getList()
-      this.getTotal()
-    },
-    getList() {
-      this.tableLoading = true
-      this.tableData = []
-      new PublishLogList(this.searchParam, this.pagination)
-        .request()
-        .then((response) => {
-          this.tableData = response.data.list
-        })
-        .finally(() => {
-          this.tableLoading = false
-        })
-    },
-    getTotal() {
-      new PublishLogTotal(this.searchParam).request().then((response) => {
-        this.pagination.total = response.data.total
+function searchList() {
+  pagination.value.page = 1
+  getList()
+  getTotal()
+}
+function getList() {
+  tableLoading.value = true
+  tableData.value = []
+  new PublishLogList(searchParam.value, pagination.value)
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+function getTotal() {
+  new PublishLogTotal(searchParam.value).request().then((response) => {
+    pagination.value.total = response.data.total
+  })
+}
+function handlePageChange(val = 1) {
+  pagination.value.page = val
+  getList()
+}
+function handleDetail(data: PublishLogData['datagram']) {
+  dialogVisible.value = true
+  traceLoading.value = true
+  new DeployTrace({ lastPublishToken: data.token })
+    .request()
+    .then((response) => {
+      const publishTraceList = response.data.list.map((element) => {
+        if (element.ext !== '') {
+          Object.assign(element, JSON.parse(element.ext))
+        }
+        return element
       })
-    },
-    handlePageChange(val = 1) {
-      this.pagination.page = val
-      this.getList()
-    },
-    handleDetail(data: PublishLogData['datagram']) {
-      this.dialogVisible = true
-      this.traceLoading = true
-      new DeployTrace({ lastPublishToken: data.token })
-        .request()
-        .then((response) => {
-          const publishTraceList = response.data.list.map((element) => {
-            if (element.ext !== '') {
-              Object.assign(element, JSON.parse(element.ext))
-            }
-            return element
-          })
 
-          this.publishLocalTraceList = publishTraceList.filter(
-            (element) => element.type < 4
-          )
-          this.publishRemoteTraceList = {}
-          for (const trace of publishTraceList) {
-            if (trace.detail !== '') {
-              this.traceDetail[trace.id] = trace.detail
-            }
-            if (trace.type < 4) continue
-            if (!this.publishRemoteTraceList[trace.serverName]) {
-              this.publishRemoteTraceList[trace.serverName] = []
-            }
-            this.publishRemoteTraceList[trace.serverName].push(trace)
-          }
-          this.activeRomoteTracePane = Object.keys(
-            this.publishRemoteTraceList
-          )[0]
-        })
-        .finally(() => {
-          this.traceLoading = false
-        })
-    },
+      publishLocalTraceList.value = publishTraceList.filter(
+        (element) => element.type < 4
+      )
+      publishRemoteTraceList.value = {}
+      for (const trace of publishTraceList) {
+        if (trace.detail !== '') {
+          traceDetail.value[trace.id] = trace.detail
+        }
+        if (trace.type < 4) continue
+        if (!publishRemoteTraceList.value[trace.serverName]) {
+          publishRemoteTraceList.value[trace.serverName] = []
+        }
+        publishRemoteTraceList.value[trace.serverName].push(trace)
+      }
+      activeRomoteTracePane.value = Object.keys(publishRemoteTraceList.value)[0]
+    })
+    .finally(() => {
+      traceLoading.value = false
+    })
+}
 
-    getPublishTraceDetail(data: PublishTraceData['datagram']) {
-      this.traceDetail[data.id] = ''
-      new DeployTraceDetail({ id: data.id }).request().then((response) => {
-        this.traceDetail[data.id] =
-          response.data.detail === ''
-            ? this.$t('deployPage.noDetail')
-            : response.data.detail
-      })
-    },
-  },
-})
+function getPublishTraceDetail(data: PublishTraceData['datagram']) {
+  traceDetail.value[data.id] = ''
+  new DeployTraceDetail({ id: data.id }).request().then((response) => {
+    traceDetail.value[data.id] =
+      response.data.detail === ''
+        ? t('deployPage.noDetail')
+        : response.data.detail
+  })
+}
 </script>
+
 <style scoped lang="scss">
 @import '@/styles/mixin.scss';
 .icon-success {

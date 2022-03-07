@@ -74,85 +74,70 @@
   </el-row>
 </template>
 <script lang="ts">
+export default { name: 'TerminalLog' }
+</script>
+<script lang="ts" setup>
 import 'asciinema-player/dist/bundle/asciinema-player.css'
 import * as AsciinemaPlayer from 'asciinema-player'
 import { TerminalLogData, TerminalLogList, TerminalLogTotal } from '@/api/log'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
-import tableHeight from '@/mixin/tableHeight'
-import { defineComponent } from 'vue'
+import getTableHeight from '@/composables/tableHeight'
+import { ref, nextTick } from 'vue'
+const recordViewer = ref(false)
+const record = ref()
+const searchParam = ref({ username: '', serverName: '' })
+const { tableHeight } = getTableHeight()
+const tableLoading = ref(false)
+const tableData = ref<TerminalLogList['datagram']['list']>([])
+const pagination = ref({ page: 1, rows: 19, total: 0 })
 
-export default defineComponent({
-  name: 'TerminalLog',
-  mixins: [tableHeight],
-  data() {
-    return {
-      recordViewer: false,
-      tableLoading: false,
-      searchParam: {
-        username: '',
-        serverName: '',
-      },
-      tableData: [] as TerminalLogList['datagram']['list'],
-      pagination: {
-        page: 1,
-        rows: 19,
-        total: 0,
-      },
-    }
-  },
-
-  created() {
-    this.getList()
-    this.getTotal()
-  },
-
-  methods: {
-    searchList() {
-      this.pagination.page = 1
-      this.getList()
-      this.getTotal()
-    },
-    getList() {
-      this.tableLoading = true
-      this.tableData = []
-      new TerminalLogList(this.searchParam, this.pagination)
-        .request()
-        .then((response) => {
-          this.tableData = response.data.list
-        })
-        .finally(() => {
-          this.tableLoading = false
-        })
-    },
-    getTotal() {
-      new TerminalLogTotal(this.searchParam).request().then((response) => {
-        this.pagination.total = response.data.total
-      })
-    },
-    handlePageChange(val = 1) {
-      this.pagination.page = val
-      this.getList()
-    },
-    handleRecord(data: TerminalLogData['datagram']) {
-      this.recordViewer = true
-      const castUrl = `${location.origin}${
-        import.meta.env.VITE_APP_BASE_API
-      }/log/getTerminalRecord?${NamespaceKey}=${getNamespaceId()}&recordId=${
-        data.id
-      }`
-      this.$nextTick(() => {
-        AsciinemaPlayer.create(castUrl, this.$refs['record'], {
-          fit: false,
-          fontSize: '14px',
-        })
-      })
-    },
-    closeRecordViewer() {
-      this.recordViewer = false
-    },
-  },
-})
+getList()
+getTotal()
+function searchList() {
+  pagination.value.page = 1
+  getList()
+  getTotal()
+}
+function getList() {
+  tableLoading.value = true
+  tableData.value = []
+  new TerminalLogList(searchParam.value, pagination.value)
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+function getTotal() {
+  new TerminalLogTotal(searchParam.value).request().then((response) => {
+    pagination.value.total = response.data.total
+  })
+}
+function handlePageChange(val = 1) {
+  pagination.value.page = val
+  getList()
+}
+function handleRecord(data: TerminalLogData['datagram']) {
+  recordViewer.value = true
+  const castUrl = `${location.origin}${
+    import.meta.env.VITE_APP_BASE_API
+  }/log/getTerminalRecord?${NamespaceKey}=${getNamespaceId()}&recordId=${
+    data.id
+  }`
+  nextTick(() => {
+    AsciinemaPlayer.create(castUrl, record.value, {
+      fit: false,
+      fontSize: '14px',
+    })
+  })
+}
+function closeRecordViewer() {
+  recordViewer.value = false
+}
 </script>
+
 <style lang="scss" scoped>
 .terminal {
   height: calc(100vh - 124px);

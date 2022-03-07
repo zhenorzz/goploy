@@ -57,61 +57,45 @@
   </el-row>
 </template>
 <script lang="ts">
+export default { name: 'SftpLog' }
+</script>
+<script lang="ts" setup>
 import { SftpLogList, SftpLogTotal } from '@/api/log'
-import tableHeight from '@/mixin/tableHeight'
-import { defineComponent } from 'vue'
+import getTableHeight from '@/composables/tableHeight'
+import { ref } from 'vue'
+const searchParam = ref({ username: '', serverName: '' })
+const { tableHeight } = getTableHeight()
+const tableLoading = ref(false)
+const tableData = ref<SftpLogList['datagram']['list']>([])
+const pagination = ref({ page: 1, rows: 19, total: 0 })
 
-export default defineComponent({
-  name: 'SftpLog',
-  mixins: [tableHeight],
-  data() {
-    return {
-      tableLoading: false,
-      searchParam: {
-        username: '',
-        serverName: '',
-      },
-      tableData: [] as SftpLogList['datagram']['list'],
-      pagination: {
-        page: 1,
-        rows: 19,
-        total: 0,
-      },
-    }
-  },
+getList()
+getTotal()
 
-  created() {
-    this.getList()
-    this.getTotal()
-  },
-
-  methods: {
-    searchList() {
-      this.pagination.page = 1
-      this.getList()
-      this.getTotal()
-    },
-    getList() {
-      this.tableLoading = true
-      this.tableData = []
-      new SftpLogList(this.searchParam, this.pagination)
-        .request()
-        .then((response) => {
-          this.tableData = response.data.list
-        })
-        .finally(() => {
-          this.tableLoading = false
-        })
-    },
-    getTotal() {
-      new SftpLogTotal(this.searchParam).request().then((response) => {
-        this.pagination.total = response.data.total
-      })
-    },
-    handlePageChange(val = 1) {
-      this.pagination.page = val
-      this.getList()
-    },
-  },
-})
+function searchList() {
+  pagination.value.page = 1
+  getList()
+  getTotal()
+}
+function getList() {
+  tableLoading.value = true
+  tableData.value = []
+  new SftpLogList(searchParam.value, pagination.value)
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+function getTotal() {
+  new SftpLogTotal(searchParam.value).request().then((response) => {
+    pagination.value.total = response.data.total
+  })
+}
+function handlePageChange(val = 1) {
+  pagination.value.page = val
+  getList()
+}
 </script>
