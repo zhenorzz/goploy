@@ -519,7 +519,7 @@ func (Project) Remove(gp *core.Goploy) core.Response {
 
 func (Project) UploadFile(gp *core.Goploy) core.Response {
 	type ReqData struct {
-		ProjectFileID int64  `schema:"projectFileId" validate:"gt=0"`
+		ProjectFileID int64  `schema:"projectFileId" validate:"gte=0"`
 		ProjectId     int64  `schema:"projectId"  validate:"gt=0"`
 		Filename      string `schema:"filename"  validate:"required"`
 	}
@@ -593,14 +593,17 @@ func (Project) AddFile(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	_, err := os.Stat(core.GetProjectFilePath(reqData.ProjectID))
+	filePath := path.Join(core.GetProjectFilePath(reqData.ProjectID), reqData.Filename)
+	fileDir := path.Dir(filePath)
+
+	_, err := os.Stat(fileDir)
 	if err != nil {
-		err := os.MkdirAll(core.GetProjectFilePath(reqData.ProjectID), os.ModePerm)
+		err := os.MkdirAll(fileDir, os.ModePerm)
 		if err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 	}
-	file, err := os.Create(path.Join(core.GetProjectFilePath(reqData.ProjectID), reqData.Filename))
+	file, err := os.Create(filePath)
 	if err != nil {
 		panic(err)
 	}
