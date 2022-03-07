@@ -104,6 +104,8 @@
   "stop": "暂停",
   "fail": "失败",
   "state": "状态",
+  "current": "当前",
+  "unlimited": "不限",
   "stateOption": ["失效", "生效"],
   "boolOption": ["否", "是"],
   "runOption": ["未运行", "已运行"],
@@ -186,7 +188,8 @@
     "formula": "公式",
     "cycle": "周期",
     "vaildPeriod": "有效时段",
-    "silentCycle": "通道沉默周期"
+    "silentCycle": "通道沉默周期",
+    "advance": "高级选项"
   },
   "monitorPage": {
     "testAppState": "测试应用状态",

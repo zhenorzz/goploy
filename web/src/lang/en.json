@@ -104,6 +104,8 @@
   "stop": "Stop",
   "fail": "Fail",
   "state": "State",
+  "current": "Current",
+  "unlimited": "Unlimited",
   "stateOption": ["Disable", "Enable"],
   "boolOption": ["No", "Yes"],
   "runOption": ["Not run", "Run"],
@@ -187,7 +189,8 @@
     "formula": "Formula",
     "cycle": "Cycle",
     "vaildPeriod": "Vaild period",
-    "silentCycle": "Silent cycle"
+    "silentCycle": "Silent cycle",
+    "advance": "Advanced setting"
   },
   "monitorPage": {
     "testAppState": "Test APP state",

@@ -4,7 +4,9 @@
       <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
     </el-row>
     <el-table
+      :key="tableHeight"
       v-loading="tableLoading"
+      :max-height="tableHeight"
       border
       stripe
       highlight-current-row
@@ -129,8 +131,10 @@
       >
         <el-form-item :label="$t('namespace')" prop="namespaceId">
           <el-radio-group v-model="formData.namespaceId">
-            <el-radio :label="getNamespace()['id']">当前</el-radio>
-            <el-radio :label="0">不限</el-radio>
+            <el-radio :label="getNamespace()['id']">
+              {{ $t('current') }}
+            </el-radio>
+            <el-radio :label="0">{{ $t('unlimited') }}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item :label="$t('name')" prop="name">
@@ -187,7 +191,7 @@
             type="text"
             @click="formProps.showAdvance = !formProps.showAdvance"
           >
-            高级选项
+            {{ $t('serverPage.advance') }}
           </el-button>
         </el-form-item>
         <el-form-item v-show="formProps.showAdvance" label="Jump host">
@@ -256,6 +260,7 @@ import {
   ServerToggle,
   ServerData,
 } from '@/api/server'
+import getTableHeight from '@/composables/tableHeight'
 import { ref } from 'vue'
 import { copy, humanSize } from '@/utils'
 import { ElMessageBox, ElMessage } from 'element-plus'
@@ -264,6 +269,7 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const router = useRouter()
 const dialogVisible = ref(false)
+const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<ServerList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 16, total: 0 })
