@@ -520,7 +520,7 @@ func (Project) Remove(gp *core.Goploy) core.Response {
 func (Project) UploadFile(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ProjectFileID int64  `schema:"projectFileId" validate:"gte=0"`
-		ProjectId     int64  `schema:"projectId"  validate:"gt=0"`
+		ProjectID     int64  `schema:"projectId"  validate:"gt=0"`
 		Filename      string `schema:"filename"  validate:"required"`
 	}
 	var reqData ReqData
@@ -534,11 +534,11 @@ func (Project) UploadFile(gp *core.Goploy) core.Response {
 	}
 	defer file.Close()
 
-	filePath := path.Join(core.GetProjectFilePath(reqData.ProjectFileID), reqData.Filename)
-
-	if _, err := os.Stat(path.Dir(filePath)); err != nil {
+	filePath := path.Join(core.GetProjectFilePath(reqData.ProjectID), reqData.Filename)
+	fileDir := path.Dir(filePath)
+	if _, err := os.Stat(fileDir); err != nil {
 		if os.IsNotExist(err) {
-			err := os.MkdirAll(path.Dir(filePath), 0755)
+			err := os.MkdirAll(fileDir, 0755)
 			if err != nil {
 				return response.JSON{Code: response.Error, Message: err.Error()}
 			}
@@ -561,13 +561,13 @@ func (Project) UploadFile(gp *core.Goploy) core.Response {
 	if reqData.ProjectFileID == 0 {
 		reqData.ProjectFileID, err = model.ProjectFile{
 			Filename:  reqData.Filename,
-			ProjectID: reqData.ProjectId,
+			ProjectID: reqData.ProjectID,
 		}.AddRow()
 	} else {
 		err = model.ProjectFile{
 			ID:        reqData.ProjectFileID,
 			Filename:  reqData.Filename,
-			ProjectID: reqData.ProjectId,
+			ProjectID: reqData.ProjectID,
 		}.EditRow()
 	}
 
@@ -595,14 +595,17 @@ func (Project) AddFile(gp *core.Goploy) core.Response {
 
 	filePath := path.Join(core.GetProjectFilePath(reqData.ProjectID), reqData.Filename)
 	fileDir := path.Dir(filePath)
-
-	_, err := os.Stat(fileDir)
-	if err != nil {
-		err := os.MkdirAll(fileDir, os.ModePerm)
-		if err != nil {
+	if _, err := os.Stat(fileDir); err != nil {
+		if os.IsNotExist(err) {
+			err := os.MkdirAll(fileDir, 0755)
+			if err != nil {
+				return response.JSON{Code: response.Error, Message: err.Error()}
+			}
+		} else {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 	}
+
 	file, err := os.Create(filePath)
 	if err != nil {
 		panic(err)
@@ -674,7 +677,9 @@ func (Project) RemoveFile(gp *core.Goploy) core.Response {
 	}
 
 	if err := os.Remove(path.Join(core.GetProjectFilePath(projectFileData.ProjectID), projectFileData.Filename)); err != nil {
-		return response.JSON{Code: response.Error, Message: "Delete file fail, Detail: " + err.Error()}
+		if !os.IsNotExist(err) {
+			return response.JSON{Code: response.Error, Message: "Delete file fail, Detail: " + err.Error()}
+		}
 	}
 
 	if err := (model.ProjectFile{ID: reqData.ProjectFileID}).DeleteRow(); err != nil {
