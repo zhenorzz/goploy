@@ -160,8 +160,8 @@ import getTableHeight from '@/composables/tableHeight'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
-const { tableHeight } = getTableHeight()
 const dialogVisible = ref(false)
+const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<UserList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 18, total: 0 })

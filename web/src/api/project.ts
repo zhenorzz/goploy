@@ -279,13 +279,11 @@ export class ProjectUserRemove extends Request {
 
 export class ProjectFileData {
   public declare datagram: {
-    detail: {
-      id: number
-      projectId: number
-      filename: string
-      insertTime: string
-      updateTime: string
-    }
+    id: number
+    projectId: number
+    filename: string
+    insertTime: string
+    updateTime: string
   }
 }
 export class ProjectFileList extends Request {

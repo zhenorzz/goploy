@@ -97,8 +97,7 @@
     </template>
   </el-dialog>
 </template>
-
-<script lang="ts">
+<script lang="ts" setup>
 import {
   ProjectServerData,
   ProjectServerList,
@@ -106,145 +105,122 @@ import {
   ProjectServerRemove,
 } from '@/api/project'
 import { ServerOption } from '@/api/server'
-import Validator from 'async-validator'
+import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { computed, watch, defineComponent, ref, Ref } from 'vue'
-
-export default defineComponent({
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    },
-    projectId: {
-      type: Number,
-      default: 0,
-    },
+import { computed, watch, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false,
   },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    const tableData: Ref<ProjectServerList['datagram']['list']> = ref([])
-    const dialogVisible = computed({
-      get: () => props.modelValue,
-      set: (val) => {
-        emit('update:modelValue', val)
-      },
-    })
-    const tableLoading = ref(false)
-    const getBindServerList = (projectId: number) => {
-      tableLoading.value = true
-      new ProjectServerList({ id: projectId })
-        .request()
-        .then((response) => {
-          tableData.value = response.data.list
-        })
-        .finally(() => {
-          tableLoading.value = false
-        })
-    }
-
-    watch(
-      () => props.modelValue,
-      (val: typeof props['modelValue']) => {
-        if (val === true) {
-          getBindServerList(props.projectId)
-        }
-      }
-    )
-
-    const showAddView = ref(false)
-    const handleAdd = () => {
-      showAddView.value = true
-    }
-    const serverOption: Ref<ServerOption['datagram']['list']> = ref([])
-    watch(showAddView, (val: boolean) => {
-      if (val === true) {
-        new ServerOption().request().then((response) => {
-          serverOption.value = response.data.list
-        })
-      }
-    })
-
-    return {
-      dialogVisible,
-      getBindServerList,
-      tableLoading,
-      tableData,
-      showAddView,
-      handleAdd,
-      serverOption,
-    }
-  },
-  data() {
-    return {
-      formProps: {
-        disabled: false,
-      },
-      formData: {
-        projectId: 0,
-        serverIds: [],
-      },
-      formRules: {
-        serverIds: [
-          {
-            type: 'array',
-            required: true,
-            message: 'Server required',
-            trigger: 'change',
-          },
-        ],
-      },
-    }
-  },
-  watch: {
-    projectId: function (newVal) {
-      this.formData.projectId = newVal
-    },
-  },
-  methods: {
-    add() {
-      ;(this.$refs.form as Validator).validate((valid: boolean) => {
-        if (valid) {
-          this.formProps.disabled = true
-          new ProjectServerAdd(this.formData)
-            .request()
-            .then(() => {
-              ElMessage.success('Success')
-              this.getBindServerList(this.formData.projectId)
-            })
-            .finally(() => {
-              this.formProps.disabled = false
-            })
-        } else {
-          return false
-        }
-      })
-    },
-
-    remove(data: ProjectServerData['datagram']) {
-      ElMessageBox.confirm(
-        this.$t('projectPage.removeServerTips'),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          new ProjectServerRemove({
-            projectServerId: data.id,
-          })
-            .request()
-            .then(() => {
-              ElMessage.success('Success')
-              this.getBindServerList(data.projectId)
-            })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
-    },
+  projectId: {
+    type: Number,
+    default: 0,
   },
 })
+const emit = defineEmits(['update:modelValue'])
+watch(
+  () => props.modelValue,
+  (val: typeof props['modelValue']) => {
+    if (val === true) {
+      getBindServerList(props.projectId)
+    }
+  }
+)
+watch(
+  () => props.projectId,
+  (val) => {
+    formData.value.projectId = val
+  }
+)
+const dialogVisible = computed({
+  get: () => props.modelValue,
+  set: (val) => {
+    emit('update:modelValue', val)
+  },
+})
+
+const showAddView = ref(false)
+const serverOption = ref<ServerOption['datagram']['list']>([])
+watch(showAddView, (val: boolean) => {
+  if (val === true) {
+    new ServerOption().request().then((response) => {
+      serverOption.value = response.data.list
+    })
+  }
+})
+
+const tableLoading = ref(false)
+const tableData = ref<ProjectServerList['datagram']['list']>([])
+const form = ref<InstanceType<typeof ElForm>>()
+const formProps = ref({ disabled: false })
+const formData = ref({ projectId: 0, serverIds: [] })
+const formRules = {
+  serverIds: [
+    {
+      type: 'array',
+      required: true,
+      message: 'Server required',
+      trigger: 'change',
+    },
+  ],
+}
+
+function getBindServerList(projectId: number) {
+  tableLoading.value = true
+  new ProjectServerList({ id: projectId })
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+function handleAdd() {
+  showAddView.value = true
+}
+
+function add() {
+  form.value?.validate((valid) => {
+    if (valid) {
+      formProps.value.disabled = true
+      new ProjectServerAdd(formData.value)
+        .request()
+        .then(() => {
+          ElMessage.success('Success')
+          getBindServerList(formData.value.projectId)
+        })
+        .finally(() => {
+          formProps.value.disabled = false
+        })
+      return Promise.resolve(true)
+    } else {
+      return Promise.reject(false)
+    }
+  })
+}
+
+function remove(data: ProjectServerData['datagram']) {
+  ElMessageBox.confirm(t('projectPage.removeServerTips'), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
+    .then(() => {
+      new ProjectServerRemove({
+        projectServerId: data.id,
+      })
+        .request()
+        .then(() => {
+          ElMessage.success('Success')
+          getBindServerList(data.projectId)
+        })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
+}
 </script>

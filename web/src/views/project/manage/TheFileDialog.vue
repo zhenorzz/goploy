@@ -120,7 +120,7 @@
   </el-dialog>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import {
   ProjectFileList,
   ProjectFileContent,
@@ -129,12 +129,11 @@ import {
   ProjectFileRemove,
 } from '@/api/project'
 import { VAceEditor } from 'vue3-ace-editor'
-import { getRole } from '@/utils/namespace'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { computed, watch, defineComponent, reactive } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import { HttpResponse, ID } from '@/api/types'
-
+import { useI18n } from 'vue-i18n'
 interface FormFileInfo {
   id: number
   projectId: number
@@ -142,206 +141,193 @@ interface FormFileInfo {
   content: string
   state: string
 }
-
-export default defineComponent({
-  components: {
-    VAceEditor,
+const { t } = useI18n()
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false,
   },
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    },
-    projectId: {
-      type: Number,
-      default: 0,
-    },
-  },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    const dialogVisible = computed({
-      get: () => props.modelValue,
-      set: (val) => {
-        emit('update:modelValue', val)
-      },
-    })
-    const formData = reactive({
-      files: [] as FormFileInfo[],
-      content: '',
-      projectId: 0,
-    })
-    const getProjectFileList = (projectId: number) => {
-      new ProjectFileList({ id: projectId }).request().then((response) => {
-        formData.files = response.data.list.map((item) => {
-          return { ...item, state: 'success', content: '' }
-        })
-      })
-    }
-    watch(
-      () => props.modelValue,
-      (val: typeof props['modelValue']) => {
-        if (val === true) {
-          getProjectFileList(props.projectId)
-        }
-      }
-    )
-
-    return {
-      role: getRole(),
-      dialogVisible,
-      getProjectFileList,
-      formData,
-    }
-  },
-  data() {
-    return {
-      formProps: {
-        projectPath: '${PROJECT_PATH}',
-        action: `${
-          import.meta.env.VITE_APP_BASE_API
-        }/project/uploadFile?${NamespaceKey}=${getNamespaceId()}`,
-        show: 'file-list',
-        editContentLoading: false,
-        disabled: false,
-        selectedIndex: -1,
-      },
-    }
-  },
-  watch: {
-    projectId: function (newVal) {
-      this.formData.projectId = newVal
-    },
-  },
-  methods: {
-    getProjectFileContent(file: FormFileInfo, index: number) {
-      this.formProps.selectedIndex = index
-      this.formProps.show = 'edit-content'
-      if (file.id === 0) {
-        this.formData.content = this.formData.files[index]['content']
-        return
-      }
-      this.formData.content = ''
-      this.formProps.editContentLoading = true
-      new ProjectFileContent({ id: file.id })
-        .request()
-        .then((response) => {
-          this.formData.content = this.formData.files[index]['content'] =
-            response.data.content
-        })
-        .finally(() => {
-          this.formProps.editContentLoading = false
-        })
-    },
-    handleAppendFile() {
-      this.formData.files.push({
-        filename: '',
-        projectId: this.projectId,
-        state: 'loading',
-        content: '',
-        id: 0,
-      })
-    },
-    beforeUpload(file: File, index: number) {
-      this.formData.files[index].state = 'loading'
-      ElMessage.info(this.$t('uploading'))
-    },
-
-    handleUploadSuccess(
-      response: HttpResponse<ID>,
-      file: File,
-      fileList: File[],
-      index: number
-    ) {
-      if (response.code !== 0) {
-        this.formData.files[index].state = 'fail'
-        ElMessage.error(response.message)
-      } else {
-        this.formData.files[index].id = response.data.id
-        this.formData.files[index].state = 'success'
-        ElMessage.success('Success')
-      }
-    },
-    validateFilename(file: FormFileInfo, index: number) {
-      const filename = file.filename
-      if (file.state === 'success') {
-        return true
-      } else if (filename === '') {
-        return false
-      } else if (filename.substr(filename.length - 1, 1) === '/') {
-        return false
-      }
-      const filenames = this.formData.files.map((item) => item.filename)
-      filenames.splice(index, 1)
-      return filenames.indexOf(filename) === -1
-    },
-
-    fileSubmit() {
-      const file = this.formData.files[this.formProps.selectedIndex]
-      this.formProps.disabled = true
-      if (file.id === 0) {
-        new ProjectFileAdd({
-          projectId: file.projectId,
-          filename: file.filename,
-          content: this.formData.content,
-        })
-          .request()
-          .then((response) => {
-            this.formData.files[this.formProps.selectedIndex].id =
-              response.data.id
-            this.formData.files[this.formProps.selectedIndex].state = 'success'
-            this.formProps.show = 'file-list'
-            ElMessage.success('Success')
-          })
-          .finally(() => {
-            this.formProps.disabled = false
-          })
-      } else {
-        new ProjectFileEdit({
-          id: file.id,
-          content: this.formData.content,
-        })
-          .request()
-          .then(() => {
-            this.formData.files[this.formProps.selectedIndex].state = 'success'
-            this.formProps.show = 'file-list'
-            ElMessage.success('Success')
-          })
-          .finally(() => {
-            this.formProps.disabled = false
-          })
-      }
-    },
-
-    removeFile(index: number) {
-      if (this.formData.files[index].id === 0) {
-        this.formData.files.splice(index, 1)
-      } else {
-        ElMessageBox.confirm(
-          this.$t('projectPage.removeFileTips', {
-            filename: this.formData.files[index].filename,
-          }),
-          this.$t('tips'),
-          {
-            confirmButtonText: this.$t('confirm'),
-            cancelButtonText: this.$t('cancel'),
-            type: 'warning',
-          }
-        )
-          .then(() => {
-            new ProjectFileRemove({
-              projectFileId: this.formData.files[index].id,
-            })
-              .request()
-              .then(() => {
-                ElMessage.success('Success')
-                this.formData.files.splice(index, 1)
-              })
-          })
-          .catch(() => {
-            ElMessage.info('Cancel')
-          })
-      }
-    },
+  projectId: {
+    type: Number,
+    default: 0,
   },
 })
+const emit = defineEmits(['update:modelValue'])
+const dialogVisible = computed({
+  get: () => props.modelValue,
+  set: (val) => {
+    emit('update:modelValue', val)
+  },
+})
+const formData = ref({
+  files: [] as FormFileInfo[],
+  content: '',
+})
+const formProps = ref({
+  projectId: 0,
+  projectPath: '${PROJECT_PATH}',
+  action: `${
+    import.meta.env.VITE_APP_BASE_API
+  }/project/uploadFile?${NamespaceKey}=${getNamespaceId()}`,
+  show: 'file-list',
+  editContentLoading: false,
+  disabled: false,
+  selectedIndex: -1,
+})
+
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (val === true) {
+      getProjectFileList(props.projectId)
+    }
+  }
+)
+
+watch(
+  () => props.projectId,
+  (val) => {
+    formProps.value.projectId = val
+  }
+)
+
+function getProjectFileList(projectId: number) {
+  new ProjectFileList({ id: projectId }).request().then((response) => {
+    formData.value.files = response.data.list.map((item) => {
+      return { ...item, state: 'success', content: '' }
+    })
+  })
+}
+
+function getProjectFileContent(file: FormFileInfo, index: number) {
+  formProps.value.selectedIndex = index
+  formProps.value.show = 'edit-content'
+  if (file.id === 0) {
+    formData.value.content = formData.value.files[index]['content']
+    return
+  }
+  formData.value.content = ''
+  formProps.value.editContentLoading = true
+  new ProjectFileContent({ id: file.id })
+    .request()
+    .then((response) => {
+      formData.value.content = formData.value.files[index]['content'] =
+        response.data.content
+    })
+    .finally(() => {
+      formProps.value.editContentLoading = false
+    })
+}
+
+function handleAppendFile() {
+  formData.value.files.push({
+    filename: '',
+    projectId: formProps.value.projectId,
+    state: 'loading',
+    content: '',
+    id: 0,
+  })
+}
+
+function beforeUpload(file: File, index: number) {
+  formData.value.files[index].state = 'loading'
+  ElMessage.info(t('uploading'))
+}
+
+function handleUploadSuccess(
+  response: HttpResponse<ID>,
+  file: File,
+  fileList: File[],
+  index: number
+) {
+  if (response.code !== 0) {
+    formData.value.files[index].state = 'fail'
+    ElMessage.error(response.message)
+  } else {
+    formData.value.files[index].id = response.data.id
+    formData.value.files[index].state = 'success'
+    ElMessage.success('Success')
+  }
+}
+function validateFilename(file: FormFileInfo, index: number) {
+  const filename = file.filename
+  if (file.state === 'success') {
+    return true
+  } else if (filename === '') {
+    return false
+  } else if (filename.substr(filename.length - 1, 1) === '/') {
+    return false
+  }
+  const filenames = formData.value.files.map((item) => item.filename)
+  filenames.splice(index, 1)
+  return filenames.indexOf(filename) === -1
+}
+
+function fileSubmit() {
+  const file = formData.value.files[formProps.value.selectedIndex]
+  formProps.value.disabled = true
+  if (file.id === 0) {
+    new ProjectFileAdd({
+      projectId: file.projectId,
+      filename: file.filename,
+      content: formData.value.content,
+    })
+      .request()
+      .then((response) => {
+        formData.value.files[formProps.value.selectedIndex].id =
+          response.data.id
+        formData.value.files[formProps.value.selectedIndex].state = 'success'
+        formProps.value.show = 'file-list'
+        ElMessage.success('Success')
+      })
+      .finally(() => {
+        formProps.value.disabled = false
+      })
+  } else {
+    new ProjectFileEdit({
+      id: file.id,
+      content: formData.value.content,
+    })
+      .request()
+      .then(() => {
+        formData.value.files[formProps.value.selectedIndex].state = 'success'
+        formProps.value.show = 'file-list'
+        ElMessage.success('Success')
+      })
+      .finally(() => {
+        formProps.value.disabled = false
+      })
+  }
+}
+
+function removeFile(index: number) {
+  if (formData.value.files[index].id === 0) {
+    formData.value.files.splice(index, 1)
+  } else {
+    ElMessageBox.confirm(
+      t('projectPage.removeFileTips', {
+        filename: formData.value.files[index].filename,
+      }),
+      t('tips'),
+      {
+        confirmButtonText: t('confirm'),
+        cancelButtonText: t('cancel'),
+        type: 'warning',
+      }
+    )
+      .then(() => {
+        new ProjectFileRemove({
+          projectFileId: formData.value.files[index].id,
+        })
+          .request()
+          .then(() => {
+            ElMessage.success('Success')
+            formData.value.files.splice(index, 1)
+          })
+      })
+      .catch(() => {
+        ElMessage.info('Cancel')
+      })
+  }
+}
 </script>

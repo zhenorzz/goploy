@@ -99,7 +99,7 @@
   </el-dialog>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import {
   ProjectUserData,
   ProjectUserList,
@@ -108,153 +108,132 @@ import {
 } from '@/api/project'
 import { NamespaceUserOption } from '@/api/namespace'
 import { getRole } from '@/utils/namespace'
-import Validator from 'async-validator'
+import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { computed, watch, defineComponent, ref, Ref } from 'vue'
-
-export default defineComponent({
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    },
-    projectId: {
-      type: Number,
-      default: 0,
-    },
+import { computed, watch, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
+const role = getRole()
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false,
   },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    let tableData: Ref<ProjectUserList['datagram']['list']> = ref([])
-    const dialogVisible = computed({
-      get: () => props.modelValue,
-      set: (val) => {
-        emit('update:modelValue', val)
-      },
-    })
-    let tableLoading = ref(false)
-    const getBindUserList = (projectId: number) => {
-      tableLoading.value = true
-      new ProjectUserList({ id: projectId })
-        .request()
-        .then((response) => {
-          tableData.value = response.data.list
-        })
-        .finally(() => {
-          tableLoading.value = false
-        })
-    }
-    watch(
-      () => props.modelValue,
-      (val: typeof props['modelValue']) => {
-        if (val === true) {
-          getBindUserList(props.projectId)
-        }
-      }
-    )
-
-    let showAddView = ref(false)
-    const handleAdd = () => {
-      showAddView.value = true
-    }
-    const userLoading = ref(false)
-    let userOption: Ref<NamespaceUserOption['datagram']['list']> = ref([])
-    watch(showAddView, (val: boolean) => {
-      if (val === true) {
-        userLoading.value = true
-        new NamespaceUserOption()
-          .request()
-          .then((response) => {
-            userOption.value = response.data.list
-          })
-          .finally(() => {
-            userLoading.value = false
-          })
-      }
-    })
-
-    return {
-      role: getRole(),
-      dialogVisible,
-      getBindUserList,
-      tableLoading,
-      tableData,
-      showAddView,
-      handleAdd,
-      userLoading,
-      userOption,
-    }
-  },
-  data() {
-    return {
-      formProps: {
-        disabled: false,
-      },
-      formData: {
-        projectId: 0,
-        userIds: [],
-      },
-      formRules: {
-        userIds: [
-          {
-            type: 'array',
-            required: true,
-            message: 'User required',
-            trigger: 'change',
-          },
-        ],
-        role: [{ required: true, message: 'Role required', trigger: 'change' }],
-      },
-    }
-  },
-  watch: {
-    projectId: function (newVal) {
-      this.formData.projectId = newVal
-    },
-  },
-  methods: {
-    add() {
-      ;(this.$refs.form as Validator).validate((valid: boolean) => {
-        if (valid) {
-          this.formProps.disabled = true
-          new ProjectUserAdd(this.formData)
-            .request()
-            .then(() => {
-              this.showAddView = false
-              ElMessage.success('Success')
-              this.getBindUserList(this.formData.projectId)
-            })
-            .finally(() => {
-              this.formProps.disabled = false
-            })
-        } else {
-          return false
-        }
-      })
-    },
-
-    remove(data: ProjectUserData['datagram']) {
-      ElMessageBox.confirm(
-        this.$t('namespacePage.removeUserTips'),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          new ProjectUserRemove({ projectUserId: data.id })
-            .request()
-            .then(() => {
-              ElMessage.success('Success')
-              this.getBindUserList(data.projectId)
-            })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
-    },
+  projectId: {
+    type: Number,
+    default: 0,
   },
 })
+const emit = defineEmits(['update:modelValue'])
+const dialogVisible = computed({
+  get: () => props.modelValue,
+  set: (val) => {
+    emit('update:modelValue', val)
+  },
+})
+
+watch(
+  () => props.modelValue,
+  (val: typeof props['modelValue']) => {
+    if (val === true) {
+      getBindUserList(props.projectId)
+    }
+  }
+)
+
+watch(
+  () => props.projectId,
+  (val) => {
+    formData.value.projectId = val
+  }
+)
+
+const showAddView = ref(false)
+const userLoading = ref(false)
+const userOption = ref<NamespaceUserOption['datagram']['list']>([])
+watch(showAddView, (val: boolean) => {
+  if (val === true) {
+    userLoading.value = true
+    new NamespaceUserOption()
+      .request()
+      .then((response) => {
+        userOption.value = response.data.list
+      })
+      .finally(() => {
+        userLoading.value = false
+      })
+  }
+})
+
+const tableLoading = ref(false)
+const tableData = ref<ProjectUserList['datagram']['list']>([])
+
+const form = ref<InstanceType<typeof ElForm>>()
+const formProps = ref({ disabled: false })
+const formData = ref({ projectId: 0, userIds: [] })
+const formRules = {
+  userIds: [
+    {
+      type: 'array',
+      required: true,
+      message: 'User required',
+      trigger: 'change',
+    },
+  ],
+  role: [{ required: true, message: 'Role required', trigger: 'change' }],
+}
+
+function getBindUserList(projectId: number) {
+  tableLoading.value = true
+  new ProjectUserList({ id: projectId })
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+
+function handleAdd() {
+  showAddView.value = true
+}
+
+function add() {
+  form.value?.validate((valid) => {
+    if (valid) {
+      formProps.value.disabled = true
+      new ProjectUserAdd(formData.value)
+        .request()
+        .then(() => {
+          showAddView.value = false
+          ElMessage.success('Success')
+          getBindUserList(formData.value.projectId)
+        })
+        .finally(() => {
+          formProps.value.disabled = false
+        })
+      return Promise.resolve(true)
+    } else {
+      return Promise.reject(false)
+    }
+  })
+}
+
+function remove(data: ProjectUserData['datagram']) {
+  ElMessageBox.confirm(t('namespacePage.removeUserTips'), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
+    .then(() => {
+      new ProjectUserRemove({ projectUserId: data.id }).request().then(() => {
+        ElMessage.success('Success')
+        getBindUserList(data.projectId)
+      })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
+}
 </script>

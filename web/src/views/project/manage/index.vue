@@ -661,7 +661,7 @@
           </span>
         </el-row>
       </el-form>
-      <template #footer class="dialog-footer">
+      <template #footer>
         <el-button @click="dialogAutoDeployVisible = false">
           {{ $t('cancel') }}
         </el-button>
@@ -686,7 +686,17 @@
   </el-row>
 </template>
 <script lang="ts">
-import tableHeight from '@/mixin/tableHeight'
+export default { name: 'ProjectIndex' }
+</script>
+<script lang="ts" setup>
+import { VAceEditor } from 'vue3-ace-editor'
+import 'ace-builds/src-noconflict/mode-sh'
+import 'ace-builds/src-noconflict/mode-python'
+import 'ace-builds/src-noconflict/mode-php'
+import 'ace-builds/src-noconflict/mode-batchfile'
+import 'ace-builds/src-noconflict/theme-github'
+import path from 'path-browserify'
+import getTableHeight from '@/composables/tableHeight'
 import { parseGitURL, hideURLPwd } from '@/utils'
 import { NamespaceUserOption } from '@/api/namespace'
 import { ServerOption } from '@/api/server'
@@ -702,462 +712,423 @@ import {
   ProjectData,
 } from '@/api/project'
 import { getRole } from '@/utils/namespace'
-import { VAceEditor } from 'vue3-ace-editor'
-import 'ace-builds/src-noconflict/mode-sh'
-import 'ace-builds/src-noconflict/mode-python'
-import 'ace-builds/src-noconflict/mode-php'
-import 'ace-builds/src-noconflict/mode-batchfile'
-import 'ace-builds/src-noconflict/theme-github'
 import TheServerDialog from './TheServerDialog.vue'
 import TheUserDialog from './TheUserDialog.vue'
 import TheFileDialog from './TheFileDialog.vue'
-import Validator, { RuleItem } from 'async-validator'
+import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { defineComponent } from 'vue'
-import path from 'path-browserify'
-export default defineComponent({
-  name: 'ProjectIndex',
-  components: {
-    VAceEditor,
-    TheServerDialog,
-    TheUserDialog,
-    TheFileDialog,
-  },
-  mixins: [tableHeight],
-  data() {
-    return {
-      role: getRole(),
-      scriptLangOption: [
-        { label: 'sh', value: 'sh', lang: 'sh' },
-        { label: 'zsh', value: 'zsh', lang: 'sh' },
-        { label: 'bash', value: 'bash', lang: 'sh' },
-        { label: 'python', value: 'python', lang: 'python' },
-        { label: 'php', value: 'php', lang: 'php' },
-        { label: 'bat', value: 'cmd', lang: 'batchfile' },
-      ],
-      projectName: '',
-      dialogVisible: false,
-      dialogAutoDeployVisible: false,
-      dialogServerVisible: false,
-      dialogUserVisible: false,
-      dialogFileManagerVisible: false,
-      serverOption: [] as ServerOption['datagram']['list'],
-      userOption: [] as NamespaceUserOption['datagram']['list'],
-      selectedItem: {},
-      tableloading: false,
-      tableData: [] as ProjectList['datagram']['list'],
-      pagination: {
-        page: 1,
-        rows: 16,
-        total: 0,
-      },
-      formProps: {
-        reviewURLParamOption: [
-          {
-            label: 'project_id',
-            value: 'project_id=__PROJECT_ID__',
-          },
-          {
-            label: 'project_name',
-            value: 'project_name=__PROJECT_NAME__',
-          },
-          {
-            label: 'branch',
-            value: 'branch=__BRANCH__',
-          },
-          {
-            label: 'environment',
-            value: 'environment=__ENVIRONMENT__',
-          },
-          {
-            label: 'commit_id',
-            value: 'commit_id=__COMMIT_ID__',
-          },
-          {
-            label: 'publish_time',
-            value: 'publish_time=__PUBLISH_TIME__',
-          },
-          {
-            label: 'publisher_id',
-            value: 'publisher_id=__PUBLISHER_ID__',
-          },
-          {
-            label: 'publisher_name',
-            value: 'publisher_name=__PUBLISHER_NAME__',
-          },
-          {
-            label: 'callback',
-            value: 'callback=__CALLBACK__',
-            disabled: true,
-          },
-        ],
-        reviewURL: '',
-        reviewURLParam: ['callback=__CALLBACK__'],
-        symlink: false,
-        disabled: false,
-        branch: [] as string[],
-        pinging: false,
-        lsBranchLoading: false,
-        showServers: true,
-        showUsers: true,
-        tab: 'base',
-      },
-      tempFormData: {},
-      formData: {
-        id: 0,
-        name: '',
-        repoType: 'git',
-        url: '',
-        path: '',
-        symlinkPath: '',
-        symlinkBackupNumber: 10,
-        afterPullScriptMode: '',
-        afterPullScript: '',
-        afterDeployScriptMode: '',
-        afterDeployScript: '',
-        environment: 1,
-        branch: 'master',
-        rsyncOption: '-rtv --exclude .git',
-        serverIds: [] as number[],
-        userIds: [] as number[],
-        review: 0,
-        reviewURL: '',
-        notifyType: 0,
-        notifyTarget: '',
-      },
-      formRules: {
-        name: [{ required: true, message: 'Name required', trigger: ['blur'] }],
-        url: [
-          {
-            required: true,
-            message: 'Repository url required',
-            trigger: ['blur'],
-          },
-        ],
-        path: [{ required: true, message: 'Path required', trigger: ['blur'] }],
-        environment: [
-          {
-            required: true,
-            message: 'Environment required',
-            trigger: ['blur'],
-          },
-        ],
-        branch: [
-          { required: true, message: 'Branch required', trigger: ['blur'] },
-        ],
-        notifyTarget: [
-          {
-            trigger: 'blur',
-            validator: (_, value) => {
-              if (value !== '' && this.formData.notifyType > 0) {
-                return true
-              } else if (this.formData.notifyType === 0) {
-                return true
-              } else {
-                return new Error('Select the notice mode')
-              }
-            },
-          } as RuleItem,
-        ],
-      },
-      autoDeployFormProps: {
-        disabled: false,
-      },
-      autoDeployFormData: {
-        id: 0,
-        autoDeploy: 0,
-      },
-    }
-  },
-  created() {
-    this.storeFormData()
-    this.getOptions()
-    this.getList()
-    this.getTotal()
-  },
-  methods: {
-    parseGitURL,
-    hideURLPwd,
-    handleAdd() {
-      this.restoreFormData()
-      this.formProps.showServers = this.formProps.showUsers = true
-      this.formProps.symlink = false
-      this.dialogVisible = true
+import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
+const role = getRole()
+const scriptLangOption = [
+  { label: 'sh', value: 'sh', lang: 'sh' },
+  { label: 'zsh', value: 'zsh', lang: 'sh' },
+  { label: 'bash', value: 'bash', lang: 'sh' },
+  { label: 'python', value: 'python', lang: 'python' },
+  { label: 'php', value: 'php', lang: 'php' },
+  { label: 'bat', value: 'cmd', lang: 'batchfile' },
+]
+const projectName = ref('')
+const dialogVisible = ref(false)
+const dialogAutoDeployVisible = ref(false)
+const dialogServerVisible = ref(false)
+const dialogUserVisible = ref(false)
+const dialogFileManagerVisible = ref(false)
+const serverOption = ref<ServerOption['datagram']['list']>([])
+const userOption = ref<NamespaceUserOption['datagram']['list']>([])
+const selectedItem = ref({} as ProjectData['datagram'])
+const { tableHeight } = getTableHeight()
+const tableloading = ref(false)
+const tableData = ref<ProjectList['datagram']['list']>([])
+const pagination = ref({ page: 1, rows: 16, total: 0 })
+const form = ref<InstanceType<typeof ElForm>>()
+const formProps = ref({
+  reviewURLParamOption: [
+    {
+      label: 'project_id',
+      value: 'project_id=__PROJECT_ID__',
     },
-
-    handleEdit(data: ProjectData['datagram']) {
-      this.formData = Object.assign({}, data)
-      this.formProps.symlink = this.formData.symlinkPath !== ''
-      this.formProps.showServers = this.formProps.showUsers = false
-      this.formProps.branch = []
-      this.formProps.reviewURL = ''
-      this.formProps.reviewURLParam = []
-      if (this.formData.review === 1 && this.formData.reviewURL.length > 0) {
-        const url = new URL(this.formData.reviewURL)
-        this.formProps.reviewURLParamOption.forEach((item) => {
-          if (url.searchParams.has(item.value.split('=')[0])) {
-            url.searchParams.delete(item.value.split('=')[0])
-            this.formProps.reviewURLParam.push(item.value)
-          }
-        })
-        this.formProps.reviewURL = url.href
-      }
-      this.dialogVisible = true
+    {
+      label: 'project_name',
+      value: 'project_name=__PROJECT_NAME__',
     },
-
-    handleCopy(data: ProjectData['datagram']) {
-      this.handleEdit(data)
-      this.formData.id = 0
-      this.formData.serverIds = []
-      this.formData.userIds = []
-      this.formProps.showServers = this.formProps.showUsers = true
+    {
+      label: 'branch',
+      value: 'branch=__BRANCH__',
     },
-
-    handleRemove(data: ProjectData['datagram']) {
-      ElMessageBox.confirm(
-        this.$t('projectPage.removeProjectTips', {
-          projectName: data.name,
-        }),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          this.tableloading = true
-          new ProjectRemove({ id: data.id }).request().then(() => {
-            ElMessage.success('Success')
-            this.getList()
-            this.getTotal()
-          })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
+    {
+      label: 'environment',
+      value: 'environment=__ENVIRONMENT__',
     },
-
-    getScriptLang(scriptMode = '') {
-      if (scriptMode !== '') {
-        const scriptInfo = this.scriptLangOption.find(
-          (elem) => elem.value === scriptMode
-        )
-        return scriptInfo ? scriptInfo['lang'] : ''
-      } else {
-        return 'sh'
-      }
+    {
+      label: 'commit_id',
+      value: 'commit_id=__COMMIT_ID__',
     },
-
-    getSymlinkPath(projectPath: string) {
-      return path.normalize(
-        path.dirname(projectPath) +
-          '/goploy-symlink/' +
-          path.basename(projectPath)
-      )
+    {
+      label: 'publish_time',
+      value: 'publish_time=__PUBLISH_TIME__',
     },
-
-    handleSymlink(value: boolean) {
-      if (value) {
-        this.formData.symlinkPath = this.getSymlinkPath(this.formData.path)
-      } else {
-        this.formData.symlinkPath = ''
-      }
+    {
+      label: 'publisher_id',
+      value: 'publisher_id=__PUBLISHER_ID__',
     },
-
-    handleAutoDeploy(data: ProjectData['datagram']) {
-      this.dialogAutoDeployVisible = true
-      this.selectedItem = data
-      this.autoDeployFormData.id = data.id
-      this.autoDeployFormData.autoDeploy = data.autoDeploy
+    {
+      label: 'publisher_name',
+      value: 'publisher_name=__PUBLISHER_NAME__',
     },
-
-    handleServer(data: ProjectData['datagram']) {
-      this.selectedItem = data
-      this.dialogServerVisible = true
+    {
+      label: 'callback',
+      value: 'callback=__CALLBACK__',
+      disabled: true,
     },
-
-    handleUser(data: ProjectData['datagram']) {
-      this.selectedItem = data
-      this.dialogUserVisible = true
-    },
-
-    handleFile(data: ProjectData['datagram']) {
-      this.selectedItem = data
-      this.dialogFileManagerVisible = true
-    },
-
-    submit() {
-      ;(this.$refs.form as Validator).validate((valid: boolean) => {
-        if (valid) {
-          if (
-            this.formData.review === 1 &&
-            this.formProps.reviewURL.length > 0
-          ) {
-            const url = new URL(this.formProps.reviewURL)
-            this.formProps.reviewURLParam.forEach((param) => {
-              const [name, value] = param.split('=')
-              url.searchParams.set(name, value)
-            })
-            this.formData.reviewURL = url.href
-          } else {
-            this.formData.reviewURL = ''
-          }
-          if (this.formData.id === 0) {
-            this.add()
-          } else {
-            this.edit()
-          }
-        } else {
-          return false
-        }
-      })
-    },
-
-    add() {
-      this.formProps.disabled = true
-      new ProjectAdd(this.formData)
-        .request()
-        .then(() => {
-          this.dialogVisible = false
-          ElMessage.success('Success')
-          this.getList()
-          this.getTotal()
-        })
-        .finally(() => {
-          this.formProps.disabled = false
-        })
-    },
-
-    edit() {
-      this.formProps.disabled = true
-      new ProjectEdit(this.formData)
-        .request()
-        .then(() => {
-          this.dialogVisible = false
-          ElMessage.success('Success')
-          this.getList()
-        })
-        .finally(() => {
-          this.formProps.disabled = false
-        })
-    },
-
-    setAutoDeploy() {
-      ;(this.$refs.autoDeployForm as Validator).validate((valid: boolean) => {
-        if (valid) {
-          this.autoDeployFormProps.disabled = true
-          new ProjectAutoDeploy(this.autoDeployFormData)
-            .request()
-            .then(() => {
-              this.dialogAutoDeployVisible = false
-              ElMessage.success('Success')
-              this.getList()
-            })
-            .finally(() => {
-              this.autoDeployFormProps.disabled = false
-            })
-        } else {
-          return false
-        }
-      })
-    },
-
-    getOptions() {
-      new ServerOption().request().then((response) => {
-        this.serverOption = response.data.list
-      })
-      new NamespaceUserOption().request().then((response) => {
-        this.userOption = response.data.list
-      })
-    },
-
-    getList() {
-      this.tableloading = true
-      new ProjectList({ projectName: this.projectName }, this.pagination)
-        .request()
-        .then((response) => {
-          this.tableData = response.data.list
-        })
-        .finally(() => {
-          this.tableloading = false
-        })
-    },
-
-    getTotal() {
-      new ProjectTotal({ projectName: this.projectName })
-        .request()
-        .then((response) => {
-          this.pagination.total = response.data.total
-        })
-    },
-
-    pingRepos() {
-      if (this.formData.url === '') {
-        ElMessage.error('url can not be blank')
-        this.formProps.branch = []
-        return
-      }
-      this.formProps.pinging = true
-      new ProjectPingRepos({
-        repoType: this.formData.repoType,
-        url: this.formData.url,
-      })
-        .request()
-        .then(() => {
-          ElMessage.success('Success')
-        })
-        .finally(() => {
-          this.formProps.pinging = false
-        })
-    },
-
-    getRemoteBranchList() {
-      if (this.formData.url === '') {
-        ElMessage.error('url can not be blank')
-        this.formProps.branch = []
-        return
-      }
-
-      if (this.formProps.branch.length > 0) {
-        return
-      }
-      this.formProps.lsBranchLoading = true
-      new ProjectRemoteBranchList({
-        repoType: this.formData.repoType,
-        url: this.formData.url,
-      })
-        .request()
-        .then((response) => {
-          this.formProps.branch = response.data.branch
-          ElMessage.success('Success')
-        })
-        .finally(() => {
-          this.formProps.lsBranchLoading = false
-        })
-    },
-
-    searchProjectList() {
-      this.pagination.page = 1
-      this.getList()
-      this.getTotal()
-    },
-
-    handlePageChange(val = 1) {
-      this.pagination.page = val
-      this.getList()
-    },
-
-    storeFormData() {
-      this.tempFormData = JSON.parse(JSON.stringify(this.formData))
-    },
-
-    restoreFormData() {
-      this.formData = JSON.parse(JSON.stringify(this.tempFormData))
-    },
-  },
+  ],
+  reviewURL: '',
+  reviewURLParam: ['callback=__CALLBACK__'],
+  symlink: false,
+  disabled: false,
+  branch: [] as string[],
+  pinging: false,
+  lsBranchLoading: false,
+  showServers: true,
+  showUsers: true,
+  tab: 'base',
 })
+const tempFormData = {
+  id: 0,
+  name: '',
+  repoType: 'git',
+  url: '',
+  path: '',
+  symlinkPath: '',
+  symlinkBackupNumber: 10,
+  afterPullScriptMode: '',
+  afterPullScript: '',
+  afterDeployScriptMode: '',
+  afterDeployScript: '',
+  environment: 1,
+  branch: 'master',
+  rsyncOption: '-rtv --exclude .git',
+  serverIds: [] as number[],
+  userIds: [] as number[],
+  review: 0,
+  reviewURL: '',
+  notifyType: 0,
+  notifyTarget: '',
+}
+const formData = ref(tempFormData)
+const formRules = <InstanceType<typeof ElForm>['rules']>{
+  name: [{ required: true, message: 'Name required', trigger: ['blur'] }],
+  url: [
+    {
+      required: true,
+      message: 'Repository url required',
+      trigger: ['blur'],
+    },
+  ],
+  path: [{ required: true, message: 'Path required', trigger: ['blur'] }],
+  environment: [
+    {
+      required: true,
+      message: 'Environment required',
+      trigger: ['blur'],
+    },
+  ],
+  branch: [{ required: true, message: 'Branch required', trigger: ['blur'] }],
+  notifyTarget: [
+    {
+      trigger: 'blur',
+      validator: (_, value) => {
+        if (value !== '' && formData.value.notifyType > 0) {
+          return true
+        } else if (formData.value.notifyType === 0) {
+          return true
+        } else {
+          return new Error('Select the notice mode')
+        }
+      },
+    },
+  ],
+}
+const autoDeployFormProps = ref({ disabled: false })
+const autoDeployFormData = ref({ id: 0, autoDeploy: 0 })
+
+getOptions()
+getList()
+getTotal()
+
+function getOptions() {
+  new ServerOption().request().then((response) => {
+    serverOption.value = response.data.list
+  })
+  new NamespaceUserOption().request().then((response) => {
+    userOption.value = response.data.list
+  })
+}
+
+function getList() {
+  tableloading.value = true
+  new ProjectList({ projectName: projectName.value }, pagination.value)
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableloading.value = false
+    })
+}
+
+function getTotal() {
+  new ProjectTotal({ projectName: projectName.value })
+    .request()
+    .then((response) => {
+      pagination.value.total = response.data.total
+    })
+}
+
+function handleAdd() {
+  restoreFormData()
+  formProps.value.showServers = formProps.value.showUsers = true
+  formProps.value.symlink = false
+  dialogVisible.value = true
+}
+
+function handleEdit(data: ProjectData['datagram']) {
+  formData.value = Object.assign({}, data)
+  formProps.value.symlink = formData.value.symlinkPath !== ''
+  formProps.value.showServers = formProps.value.showUsers = false
+  formProps.value.branch = []
+  formProps.value.reviewURL = ''
+  formProps.value.reviewURLParam = []
+  if (formData.value.review === 1 && formData.value.reviewURL.length > 0) {
+    const url = new URL(formData.value.reviewURL)
+    formProps.value.reviewURLParamOption.forEach((item) => {
+      if (url.searchParams.has(item.value.split('=')[0])) {
+        url.searchParams.delete(item.value.split('=')[0])
+        formProps.value.reviewURLParam.push(item.value)
+      }
+    })
+    formProps.value.reviewURL = url.href
+  }
+  dialogVisible.value = true
+}
+
+function handleCopy(data: ProjectData['datagram']) {
+  handleEdit(data)
+  formData.value.id = 0
+  formData.value.serverIds = []
+  formData.value.userIds = []
+  formProps.value.showServers = formProps.value.showUsers = true
+}
+
+function handleRemove(data: ProjectData['datagram']) {
+  ElMessageBox.confirm(
+    t('projectPage.removeProjectTips', {
+      projectName: data.name,
+    }),
+    t('tips'),
+    {
+      confirmButtonText: t('confirm'),
+      cancelButtonText: t('cancel'),
+      type: 'warning',
+    }
+  )
+    .then(() => {
+      tableloading.value = true
+      new ProjectRemove({ id: data.id }).request().then(() => {
+        ElMessage.success('Success')
+        getList()
+        getTotal()
+      })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
+}
+
+function getScriptLang(scriptMode = '') {
+  if (scriptMode !== '') {
+    const scriptInfo = scriptLangOption.find(
+      (elem) => elem.value === scriptMode
+    )
+    return scriptInfo ? scriptInfo['lang'] : ''
+  } else {
+    return 'sh'
+  }
+}
+
+function getSymlinkPath(projectPath: string) {
+  return path.normalize(
+    path.dirname(projectPath) + '/goploy-symlink/' + path.basename(projectPath)
+  )
+}
+
+function handleSymlink(value: boolean) {
+  if (value) {
+    formData.value.symlinkPath = getSymlinkPath(formData.value.path)
+  } else {
+    formData.value.symlinkPath = ''
+  }
+}
+
+function handleAutoDeploy(data: ProjectData['datagram']) {
+  dialogAutoDeployVisible.value = true
+  selectedItem.value = data
+  autoDeployFormData.value.id = data.id
+  autoDeployFormData.value.autoDeploy = data.autoDeploy
+}
+
+function handleServer(data: ProjectData['datagram']) {
+  selectedItem.value = data
+  dialogServerVisible.value = true
+}
+
+function handleUser(data: ProjectData['datagram']) {
+  selectedItem.value = data
+  dialogUserVisible.value = true
+}
+
+function handleFile(data: ProjectData['datagram']) {
+  selectedItem.value = data
+  dialogFileManagerVisible.value = true
+}
+
+function submit() {
+  form.value?.validate((valid) => {
+    if (valid) {
+      if (formData.value.review === 1 && formProps.value.reviewURL.length > 0) {
+        const url = new URL(formProps.value.reviewURL)
+        formProps.value.reviewURLParam.forEach((param) => {
+          const [name, value] = param.split('=')
+          url.searchParams.set(name, value)
+        })
+        formData.value.reviewURL = url.href
+      } else {
+        formData.value.reviewURL = ''
+      }
+      if (formData.value.id === 0) {
+        add()
+      } else {
+        edit()
+      }
+      return Promise.resolve(true)
+    } else {
+      return Promise.reject(false)
+    }
+  })
+}
+
+function add() {
+  formProps.value.disabled = true
+  new ProjectAdd(formData.value)
+    .request()
+    .then(() => {
+      dialogVisible.value = false
+      ElMessage.success('Success')
+      getList()
+      getTotal()
+    })
+    .finally(() => {
+      formProps.value.disabled = false
+    })
+}
+
+function edit() {
+  formProps.value.disabled = true
+  new ProjectEdit(formData.value)
+    .request()
+    .then(() => {
+      dialogVisible.value = false
+      ElMessage.success('Success')
+      getList()
+    })
+    .finally(() => {
+      formProps.value.disabled = false
+    })
+}
+
+function setAutoDeploy() {
+  form.value?.validate((valid) => {
+    if (valid) {
+      autoDeployFormProps.value.disabled = true
+      new ProjectAutoDeploy(autoDeployFormData.value)
+        .request()
+        .then(() => {
+          dialogAutoDeployVisible.value = false
+          ElMessage.success('Success')
+          getList()
+        })
+        .finally(() => {
+          autoDeployFormProps.value.disabled = false
+        })
+      return Promise.resolve(true)
+    } else {
+      return Promise.reject(false)
+    }
+  })
+}
+
+function pingRepos() {
+  if (formData.value.url === '') {
+    ElMessage.error('url can not be blank')
+    formProps.value.branch = []
+    return
+  }
+  formProps.value.pinging = true
+  new ProjectPingRepos({
+    repoType: formData.value.repoType,
+    url: formData.value.url,
+  })
+    .request()
+    .then(() => {
+      ElMessage.success('Success')
+    })
+    .finally(() => {
+      formProps.value.pinging = false
+    })
+}
+
+function getRemoteBranchList() {
+  if (formData.value.url === '') {
+    ElMessage.error('url can not be blank')
+    formProps.value.branch = []
+    return
+  }
+
+  if (formProps.value.branch.length > 0) {
+    return
+  }
+  formProps.value.lsBranchLoading = true
+  new ProjectRemoteBranchList({
+    repoType: formData.value.repoType,
+    url: formData.value.url,
+  })
+    .request()
+    .then((response) => {
+      formProps.value.branch = response.data.branch
+      ElMessage.success('Success')
+    })
+    .finally(() => {
+      formProps.value.lsBranchLoading = false
+    })
+}
+
+function searchProjectList() {
+  pagination.value.page = 1
+  getList()
+  getTotal()
+}
+
+function handlePageChange(val = 1) {
+  pagination.value.page = val
+  getList()
+}
+
+function restoreFormData() {
+  formData.value = { ...tempFormData }
+}
 </script>
+
 <style lang="scss">
 @import '@/styles/mixin.scss';
 .file-dialog {
