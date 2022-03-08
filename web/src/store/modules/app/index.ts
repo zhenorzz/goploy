@@ -54,11 +54,9 @@ const actions: ActionTree<AppState, RootState> = {
   },
 }
 
-const app: Module<AppState, RootState> = {
+export default <Module<AppState, RootState>>{
   namespaced: true,
   state,
   mutations,
   actions,
 }
-
-export default app

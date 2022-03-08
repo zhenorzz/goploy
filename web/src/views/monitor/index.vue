@@ -290,7 +290,7 @@ const formRules = <InstanceType<typeof ElForm>['rules']>{
 }
 
 watch(
-  () => store.getters.ws_message,
+  () => store.state.websocket.message,
   function (response) {
     if (response.type !== 3) {
       return

@@ -85,11 +85,9 @@ const actions: ActionTree<UserState, RootState> = {
   },
 }
 
-const setting: Module<UserState, RootState> = {
+export default <Module<UserState, RootState>>{
   namespaced: true,
   state,
   mutations,
   actions,
 }
-
-export default setting

@@ -73,11 +73,9 @@ const actions: ActionTree<PermissionState, RootState> = {
   },
 }
 
-const permission: Module<PermissionState, RootState> = {
+export default <Module<PermissionState, RootState>>{
   namespaced: true,
   state,
   mutations,
   actions,
 }
-
-export default permission

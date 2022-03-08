@@ -159,11 +159,9 @@ const actions: ActionTree<TagsViewState, RootState> = {
   },
 }
 
-const tagsView: Module<TagsViewState, RootState> = {
+export default <Module<TagsViewState, RootState>>{
   namespaced: true,
   state,
   mutations,
   actions,
 }
-
-export default tagsView

@@ -126,11 +126,9 @@ const actions: ActionTree<WebsocketState, RootState> = {
   },
 }
 
-const setting: Module<WebsocketState, RootState> = {
+export default <Module<WebsocketState, RootState>>{
   namespaced: true,
   state,
   mutations,
   actions,
 }
-
-export default setting

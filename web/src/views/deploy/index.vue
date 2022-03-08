@@ -171,7 +171,7 @@
               trigger="click"
               type="primary"
               @click="publish(scope.row)"
-              @command="(funcName) => callCommandFunc(funcName, scope.row)"
+              @command="(funcName) => commandFunc[funcName](scope.row)"
             >
               {{
                 role.isMember() && scope.row.review === 1
@@ -200,7 +200,7 @@
               v-if="role.hasGroupManagerPermission() || scope.row.review === 1"
               trigger="click"
               style="margin-left: 5px"
-              @command="(funcName) => callCommandFunc(funcName, scope.row)"
+              @command="(funcName) => commandFunc[funcName](scope.row)"
             >
               <el-button type="warning">
                 {{ $t('func') }}<i class="el-icon-arrow-down el-icon--right" />
@@ -343,7 +343,9 @@
   </el-row>
 </template>
 <script lang="ts">
-import tableHeight from '@/mixin/tableHeight'
+export default { name: 'DeployIndex' }
+</script>
+<script lang="ts" setup>
 import {
   DeployList,
   DeployPublish,
@@ -360,429 +362,401 @@ import TheTaskListDialog from './TheTaskListDialog.vue'
 import TheReviewListDialog from './TheReviewListDialog.vue'
 import TheProcessManagerDialog from './TheProcessManagerDialog.vue'
 import TheFileCompareDialog from './TheFileCompareDialog.vue'
+import getTableHeight from '@/composables/tableHeight'
+import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import Validator from 'async-validator'
-import { h, defineComponent } from 'vue'
+import { computed, watch, h, ref } from 'vue'
 import { CommitData } from '@/api/repository'
-
-export default defineComponent({
-  name: 'DeployIndex',
-  components: {
-    TheDetailDialog,
-    TheCommitListDialog,
-    TheTagListDialog,
-    TheTaskListDialog,
-    TheReviewListDialog,
-    TheFileCompareDialog,
-    TheProcessManagerDialog,
-  },
-  mixins: [tableHeight],
-  data() {
-    return {
-      role: getRole(),
-      commitDialogVisible: false,
-      tagDialogVisible: false,
-      greyServerDialogVisible: false,
-      taskListDialogVisible: false,
-      fileCompareDialogVisible: false,
-      processManagerDialogVisible: false,
-      reviewDialogVisible: false,
-      reviewListDialogVisible: false,
-      dialogVisible: false,
-      tableloading: false,
-      tableDefaultSort: {} as { prop: string; order: string },
-      selectedItem: {} as ProjectData['datagram'],
-      tableData: [] as DeployList['datagram']['list'],
-      searchProject: {
-        name: '',
-        environment: '',
-        autoDeploy: '',
-      },
-      pagination: {
-        page: 1,
-        rows: 20,
-      },
-      greyServerFormProps: {
-        disabled: false,
-        serverOption: [] as ProjectServerList['datagram']['list'],
-      },
-      greyServerFormData: {
-        projectId: 0,
-        commit: '',
-        serverIds: [],
-      },
-      greyServerFormRules: {
-        serverIds: [
-          {
-            type: 'array',
-            required: true,
-            message: 'Server required',
-            trigger: 'change',
-          },
-        ],
-      },
-    }
-  },
-  computed: {
-    tablePageData(): DeployList['datagram']['list'] {
-      let tableData = this.tableData
-      if (this.searchProject.name !== '') {
-        tableData = this.tableData.filter(
-          (item) => item.name.indexOf(this.searchProject.name) !== -1
-        )
-      }
-      if (this.searchProject.environment !== '') {
-        tableData = this.tableData.filter(
-          (item) => item.environment === Number(this.searchProject.environment)
-        )
-      }
-      if (this.searchProject.autoDeploy !== '') {
-        tableData = this.tableData.filter(
-          (item) => item.autoDeploy === Number(this.searchProject.autoDeploy)
-        )
-      }
-      return tableData.slice(
-        (this.pagination.page - 1) * this.pagination.rows,
-        this.pagination.page * this.pagination.rows
-      )
-    },
-  },
-  watch: {
-    '$store.state.websocket.message': function (response) {
-      if (response.type !== 1) {
-        return
-      }
-      const data = response.message
-      const message = this.enterToBR(data.message)
-      const projectIndex = this.tableData.findIndex(
-        (element) => element.id === data.projectId
-      )
-      if (projectIndex !== -1) {
-        const percent = 20 * data.state
-        this.tableData[projectIndex].progressPercentage = percent
-        this.tableData[projectIndex].progressStatus = 'warning'
-        this.tableData[projectIndex].tagType = 'warning'
-        this.tableData[projectIndex].tagText = message
-        this.tableData[projectIndex].deployState = 1
-        if (percent === 0) {
-          this.tableData[projectIndex].progressStatus = 'exception'
-          this.tableData[projectIndex].tagType = 'danger'
-          this.tableData[projectIndex].tagText = 'Fail'
-          this.tableData[projectIndex].deployState = 3
-        } else if (percent === 100) {
-          this.tableData[projectIndex].progressStatus = 'success'
-          this.tableData[projectIndex].tagType = 'success'
-          this.tableData[projectIndex].deployState = 2
-        }
-
-        if (data['ext']) {
-          Object.assign(this.tableData[projectIndex], data['ext'])
-        }
-        this.tableData[projectIndex].publisherName = data.username
-        this.tableData[projectIndex].updateTime = parseTime(
-          new Date().getTime()
-        )
-      }
-    },
-  },
-  created() {
-    this.tableDefaultSort = this.getTableSort()
-    this.getList()
-  },
-  methods: {
-    parseTime,
-    parseGitURL,
-    getList() {
-      this.tableloading = true
-      new DeployList()
-        .request()
-        .then((response) => {
-          this.tableData = response.data.list.map((element) => {
-            element.progressPercentage = 0
-            element.tagType = 'info'
-            element.tagText = 'Not deploy'
-            if (element.deployState === 2) {
-              element.progressPercentage = 100
-              element.progressStatus = 'success'
-              element.tagType = 'success'
-              element.tagText = 'Success'
-            } else if (element.deployState === 1) {
-              element.progressPercentage = 60
-              element.progressStatus = 'warning'
-              element.tagType = 'warning'
-              element.tagText = 'Deploying'
-            } else if (element.deployState === 3) {
-              element.progressPercentage = 0
-              element.progressStatus = 'exception'
-              element.tagType = 'danger'
-              element.tagText = 'Fail'
-            }
-            try {
-              Object.assign(element, JSON.parse(element.publishExt))
-            } catch (error) {
-              console.log('Project not deploy')
-            }
-            return element
-          })
-          this.sortChange(this.tableDefaultSort)
-        })
-        .finally(() => {
-          this.tableloading = false
-        })
-    },
-
-    sortChange({ prop, order }: { prop: string; order: string }) {
-      this.setTableSort(prop, order)
-      if (!prop && !order) {
-        prop = 'id'
-        order = 'descending'
-      }
-      if (prop === 'name') {
-        prop = 'environment'
-      }
-      this.tableData = this.tableData.sort(
-        (
-          row1: ProjectData['datagram'],
-          row2: ProjectData['datagram']
-        ): number => {
-          let val1
-          let val2
-          if (order === 'ascending') {
-            val1 = row1[prop]
-            val2 = row2[prop]
-          } else if (order === 'descending') {
-            val1 = row2[prop]
-            val2 = row1[prop]
-          }
-          if (val1 < val2) {
-            return -1
-          } else if (val1 > val2) {
-            return 1
-          } else {
-            return 0
-          }
-        }
-      )
-    },
-
-    handleSizeChange(val = 1) {
-      this.pagination.rows = val
-      this.handlePageChange(1)
-    },
-
-    handlePageChange(page = 1) {
-      this.pagination.page = page
-    },
-
-    handleDetail(data: ProjectData['datagram']) {
-      this.selectedItem = data
-      this.dialogVisible = true
-    },
-
-    handleRebuilt() {
-      const projectIndex = this.tableData.findIndex(
-        (element) => element.id === this.selectedItem.id
-      )
-      this.tableData[projectIndex].deployState = 1
-    },
-
-    handleGreyPublish(data: CommitData['datagram']) {
-      new ProjectServerList({ id: this.selectedItem.id })
-        .request()
-        .then((response) => {
-          this.greyServerFormProps.serverOption = response.data.list
-        })
-      // add projectID to server form
-      this.greyServerFormData.projectId = this.selectedItem.id
-      this.greyServerFormData.commit = data.commit
-      this.greyServerDialogVisible = true
-    },
-
-    callCommandFunc(funcName: string, data: ProjectData['datagram']) {
-      ;(this[funcName] as (data: ProjectData['datagram']) => void)(data)
-    },
-
-    handleCommitCommand(data: ProjectData['datagram']) {
-      this.selectedItem = data
-      this.commitDialogVisible = true
-    },
-
-    handleTagCommand(data: ProjectData['datagram']) {
-      this.selectedItem = data
-      this.tagDialogVisible = true
-    },
-
-    handleTaskCommand(data: ProjectData['datagram']) {
-      this.selectedItem = data
-      this.taskListDialogVisible = true
-    },
-
-    handleFileCompareCommand(data: ProjectData['datagram']) {
-      this.selectedItem = data
-      this.fileCompareDialogVisible = true
-    },
-
-    handleProcessManagerCommand(data: ProjectData['datagram']) {
-      this.selectedItem = data
-      this.processManagerDialogVisible = true
-    },
-
-    handleReviewCommand(data: ProjectData['datagram']) {
-      this.selectedItem = data
-      this.reviewListDialogVisible = true
-    },
-
-    publish(data: ProjectData['datagram']) {
-      const id = data.id
-      let color = ''
-      if (data.environment === 1) {
-        color = 'color: #F56C6C'
-      } else if (data.environment === 3) {
-        color = 'color: #E6A23C'
-      } else {
-        color = 'color: #909399'
-      }
-      ElMessageBox.confirm('', this.$t('tips'), {
-        message: h('p', null, [
-          h('span', null, 'Deploy Project: '),
-          h(
-            'b',
-            { style: color },
-            data.name + ' - ' + this.$t(`envOption[${data.environment}]`)
-          ),
-        ]),
-        confirmButtonText: this.$t('confirm'),
-        cancelButtonText: this.$t('cancel'),
-        type: 'warning',
-      })
-        .then(() => {
-          new DeployPublish({ projectId: id, commit: '', branch: '' })
-            .request()
-            .then(() => {
-              const projectIndex = this.tableData.findIndex(
-                (element) => element.id === id
-              )
-              this.tableData[projectIndex].deployState = 1
-            })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
-    },
-
-    publishByCommit(data: CommitData['datagram']) {
-      ElMessageBox.confirm(
-        this.$t('deployPage.publishCommitTips', { commit: data.commit }),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          new DeployPublish({
-            projectId: this.selectedItem.id,
-            branch: data.branch,
-            commit: data.commit,
-          })
-            .request()
-            .then(() => {
-              const projectIndex = this.tableData.findIndex(
-                (element) => element.id === this.selectedItem.id
-              )
-              this.tableData[projectIndex].deployState = 1
-              this.commitDialogVisible = false
-              this.tagDialogVisible = false
-            })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
-    },
-
-    resetState(data: ProjectData['datagram']) {
-      ElMessageBox.confirm(
-        this.$t('deployPage.resetStateTips'),
-        this.$t('tips'),
-        {
-          confirmButtonText: this.$t('confirm'),
-          cancelButtonText: this.$t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          new DeployResetState({ projectId: data.id }).request().then(() => {
-            const projectIndex = this.tableData.findIndex(
-              (element) => element.id === data.id
-            )
-            this.tableData[projectIndex].deployState = 0
-            this.tableData[projectIndex].progressPercentage = 0
-            this.tableData[projectIndex].tagType = 'info'
-            this.tableData[projectIndex].tagText = 'Not deploy'
-          })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
-    },
-
-    greyPublish() {
-      ;(this.$refs.greyServerForm as Validator).validate((valid: boolean) => {
-        if (valid) {
-          const data = this.greyServerFormData
-          ElMessageBox.confirm(
-            this.$t('deployPage.publishCommitTips', {
-              commit: data.commit,
-            }),
-            this.$t('tips'),
-            {
-              confirmButtonText: this.$t('confirm'),
-              cancelButtonText: this.$t('cancel'),
-              type: 'warning',
-            }
-          )
-            .then(() => {
-              new DeployGreyPublish({
-                projectId: data.projectId,
-                commit: data.commit,
-                serverIds: data.serverIds,
-              })
-                .request()
-                .then(() => {
-                  const projectIndex = this.tableData.findIndex(
-                    (element) => element.id === data.projectId
-                  )
-                  this.tableData[projectIndex].deployState = 1
-                  this.commitDialogVisible = false
-                  this.tagDialogVisible = false
-                  this.greyServerDialogVisible = false
-                })
-            })
-            .catch(() => {
-              ElMessage.info('Cancel')
-            })
-        } else {
-          return false
-        }
-      })
-    },
-
-    enterToBR(detail: string) {
-      return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
-    },
-
-    getTableSort(): { prop: string; order: string } {
-      const sortJsonStr = localStorage.getItem('deploy-table-sort')
-      if (sortJsonStr) {
-        return JSON.parse(sortJsonStr) as { prop: string; order: string }
-      }
-      return { prop: 'id', order: 'descending' }
-    },
-
-    setTableSort(prop: string, order: string) {
-      localStorage.setItem('deploy-table-sort', JSON.stringify({ prop, order }))
-    },
-  },
+import { useStore } from 'vuex'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
+const store = useStore()
+const role = getRole()
+const commitDialogVisible = ref(false)
+const tagDialogVisible = ref(false)
+const greyServerDialogVisible = ref(false)
+const taskListDialogVisible = ref(false)
+const fileCompareDialogVisible = ref(false)
+const processManagerDialogVisible = ref(false)
+const reviewListDialogVisible = ref(false)
+const dialogVisible = ref(false)
+const searchProject = ref({ name: '', environment: '', autoDeploy: '' })
+const selectedItem = ref({} as ProjectData['datagram'])
+const { tableHeight } = getTableHeight()
+const tableDefaultSort = getTableSort()
+const tableloading = ref(false)
+const tableData = ref<DeployList['datagram']['list']>([])
+const pagination = ref({ page: 1, rows: 20 })
+const greyServerForm = ref<InstanceType<typeof ElForm>>()
+const greyServerFormProps = ref({
+  disabled: false,
+  serverOption: [] as ProjectServerList['datagram']['list'],
 })
+const greyServerFormData = ref({
+  projectId: 0,
+  commit: '',
+  serverIds: [],
+})
+const greyServerFormRules = {
+  serverIds: [
+    {
+      type: 'array',
+      required: true,
+      message: 'Server required',
+      trigger: 'change',
+    },
+  ],
+}
+const tablePageData = computed(() => {
+  let _tableData = tableData.value
+  if (searchProject.value.name !== '') {
+    _tableData = tableData.value.filter(
+      (item) => item.name.indexOf(searchProject.value.name) !== -1
+    )
+  }
+  if (searchProject.value.environment !== '') {
+    _tableData = tableData.value.filter(
+      (item) => item.environment === Number(searchProject.value.environment)
+    )
+  }
+  if (searchProject.value.autoDeploy !== '') {
+    _tableData = tableData.value.filter(
+      (item) => item.autoDeploy === Number(searchProject.value.autoDeploy)
+    )
+  }
+  return _tableData.slice(
+    (pagination.value.page - 1) * pagination.value.rows,
+    pagination.value.page * pagination.value.rows
+  )
+})
+watch(
+  () => store.state.websocket.message,
+  function (response) {
+    if (response.type !== 1) {
+      return
+    }
+    const data = response.message
+    const message = enterToBR(data.message)
+    const projectIndex = tableData.value.findIndex(
+      (element) => element.id === data.projectId
+    )
+    if (projectIndex !== -1) {
+      const percent = 20 * data.state
+      tableData.value[projectIndex].progressPercentage = percent
+      tableData.value[projectIndex].progressStatus = 'warning'
+      tableData.value[projectIndex].tagType = 'warning'
+      tableData.value[projectIndex].tagText = message
+      tableData.value[projectIndex].deployState = 1
+      if (percent === 0) {
+        tableData.value[projectIndex].progressStatus = 'exception'
+        tableData.value[projectIndex].tagType = 'danger'
+        tableData.value[projectIndex].tagText = 'Fail'
+        tableData.value[projectIndex].deployState = 3
+      } else if (percent === 100) {
+        tableData.value[projectIndex].progressStatus = 'success'
+        tableData.value[projectIndex].tagType = 'success'
+        tableData.value[projectIndex].deployState = 2
+      }
+
+      if (data['ext']) {
+        Object.assign(tableData.value[projectIndex], data['ext'])
+      }
+      tableData.value[projectIndex].publisherName = data.username
+      tableData.value[projectIndex].updateTime = parseTime(new Date().getTime())
+    }
+  }
+)
+
+getList()
+
+function getList() {
+  tableloading.value = true
+  new DeployList()
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list.map((element) => {
+        element.progressPercentage = 0
+        element.tagType = 'info'
+        element.tagText = 'Not deploy'
+        if (element.deployState === 2) {
+          element.progressPercentage = 100
+          element.progressStatus = 'success'
+          element.tagType = 'success'
+          element.tagText = 'Success'
+        } else if (element.deployState === 1) {
+          element.progressPercentage = 60
+          element.progressStatus = 'warning'
+          element.tagType = 'warning'
+          element.tagText = 'Deploying'
+        } else if (element.deployState === 3) {
+          element.progressPercentage = 0
+          element.progressStatus = 'exception'
+          element.tagType = 'danger'
+          element.tagText = 'Fail'
+        }
+        try {
+          Object.assign(element, JSON.parse(element.publishExt))
+        } catch (error) {
+          console.log('Project not deploy')
+        }
+        return element
+      })
+      sortChange(tableDefaultSort)
+    })
+    .finally(() => {
+      tableloading.value = false
+    })
+}
+
+function sortChange({ prop, order }: { prop: string; order: string }) {
+  setTableSort(prop, order)
+  if (!prop && !order) {
+    prop = 'id'
+    order = 'descending'
+  }
+  if (prop === 'name') {
+    prop = 'environment'
+  }
+  tableData.value = tableData.value.sort(
+    (row1: ProjectData['datagram'], row2: ProjectData['datagram']): number => {
+      let val1
+      let val2
+      if (order === 'ascending') {
+        val1 = row1[prop]
+        val2 = row2[prop]
+      } else if (order === 'descending') {
+        val1 = row2[prop]
+        val2 = row1[prop]
+      }
+      if (val1 < val2) {
+        return -1
+      } else if (val1 > val2) {
+        return 1
+      } else {
+        return 0
+      }
+    }
+  )
+}
+
+function handleSizeChange(val = 1) {
+  pagination.value.rows = val
+  handlePageChange(1)
+}
+
+function handlePageChange(page = 1) {
+  pagination.value.page = page
+}
+
+function handleDetail(data: ProjectData['datagram']) {
+  selectedItem.value = data
+  dialogVisible.value = true
+}
+
+function handleRebuilt() {
+  const projectIndex = tableData.value.findIndex(
+    (element) => element.id === selectedItem.value.id
+  )
+  tableData.value[projectIndex].deployState = 1
+}
+
+function handleGreyPublish(data: CommitData['datagram']) {
+  new ProjectServerList({ id: selectedItem.value.id })
+    .request()
+    .then((response) => {
+      greyServerFormProps.value.serverOption = response.data.list
+    })
+  // add projectID to server form
+  greyServerFormData.value.projectId = selectedItem.value.id
+  greyServerFormData.value.commit = data.commit
+  greyServerDialogVisible.value = true
+}
+
+const commandFunc: { [K: string]: (data: ProjectData['datagram']) => void } = {
+  handleCommitCommand,
+  handleTagCommand,
+  handleTaskCommand,
+  handleFileCompareCommand,
+  handleProcessManagerCommand,
+  handleReviewCommand,
+}
+
+function handleCommitCommand(data: ProjectData['datagram']) {
+  selectedItem.value = data
+  commitDialogVisible.value = true
+}
+
+function handleTagCommand(data: ProjectData['datagram']) {
+  selectedItem.value = data
+  tagDialogVisible.value = true
+}
+
+function handleTaskCommand(data: ProjectData['datagram']) {
+  selectedItem.value = data
+  taskListDialogVisible.value = true
+}
+
+function handleFileCompareCommand(data: ProjectData['datagram']) {
+  selectedItem.value = data
+  fileCompareDialogVisible.value = true
+}
+
+function handleProcessManagerCommand(data: ProjectData['datagram']) {
+  selectedItem.value = data
+  processManagerDialogVisible.value = true
+}
+
+function handleReviewCommand(data: ProjectData['datagram']) {
+  selectedItem.value = data
+  reviewListDialogVisible.value = true
+}
+
+function publish(data: ProjectData['datagram']) {
+  const id = data.id
+  let color = ''
+  if (data.environment === 1) {
+    color = 'color: #F56C6C'
+  } else if (data.environment === 3) {
+    color = 'color: #E6A23C'
+  } else {
+    color = 'color: #909399'
+  }
+  ElMessageBox.confirm('', t('tips'), {
+    message: h('p', null, [
+      h('span', null, 'Deploy Project: '),
+      h(
+        'b',
+        { style: color },
+        data.name + ' - ' + t(`envOption[${data.environment}]`)
+      ),
+    ]),
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
+    .then(() => {
+      new DeployPublish({ projectId: id, commit: '', branch: '' })
+        .request()
+        .then(() => {
+          const projectIndex = tableData.value.findIndex(
+            (element) => element.id === id
+          )
+          tableData.value[projectIndex].deployState = 1
+        })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
+}
+
+function publishByCommit(data: CommitData['datagram']) {
+  ElMessageBox.confirm(
+    t('deployPage.publishCommitTips', { commit: data.commit }),
+    t('tips'),
+    {
+      confirmButtonText: t('confirm'),
+      cancelButtonText: t('cancel'),
+      type: 'warning',
+    }
+  )
+    .then(() => {
+      new DeployPublish({
+        projectId: selectedItem.value.id,
+        branch: data.branch,
+        commit: data.commit,
+      })
+        .request()
+        .then(() => {
+          const projectIndex = tableData.value.findIndex(
+            (element) => element.id === selectedItem.value.id
+          )
+          tableData.value[projectIndex].deployState = 1
+          commitDialogVisible.value = false
+          tagDialogVisible.value = false
+        })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
+}
+
+function resetState(data: ProjectData['datagram']) {
+  ElMessageBox.confirm(t('deployPage.resetStateTips'), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
+    .then(() => {
+      new DeployResetState({ projectId: data.id }).request().then(() => {
+        const projectIndex = tableData.value.findIndex(
+          (element) => element.id === data.id
+        )
+        tableData.value[projectIndex].deployState = 0
+        tableData.value[projectIndex].progressPercentage = 0
+        tableData.value[projectIndex].tagType = 'info'
+        tableData.value[projectIndex].tagText = 'Not deploy'
+      })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
+}
+
+function greyPublish() {
+  greyServerForm.value?.validate((valid) => {
+    if (valid) {
+      const data = greyServerFormData.value
+      ElMessageBox.confirm(
+        t('deployPage.publishCommitTips', {
+          commit: data.commit,
+        }),
+        t('tips'),
+        {
+          confirmButtonText: t('confirm'),
+          cancelButtonText: t('cancel'),
+          type: 'warning',
+        }
+      )
+        .then(() => {
+          new DeployGreyPublish({
+            projectId: data.projectId,
+            commit: data.commit,
+            serverIds: data.serverIds,
+          })
+            .request()
+            .then(() => {
+              const projectIndex = tableData.value.findIndex(
+                (element) => element.id === data.projectId
+              )
+              tableData.value[projectIndex].deployState = 1
+              commitDialogVisible.value = false
+              tagDialogVisible.value = false
+              greyServerDialogVisible.value = false
+            })
+        })
+        .catch(() => {
+          ElMessage.info('Cancel')
+        })
+      return Promise.resolve(true)
+    } else {
+      return Promise.reject(false)
+    }
+  })
+}
+
+function enterToBR(detail: string) {
+  return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
+}
+
+function getTableSort(): { prop: string; order: string } {
+  const sortJsonStr = localStorage.getItem('deploy-table-sort')
+  if (sortJsonStr) {
+    return JSON.parse(sortJsonStr) as { prop: string; order: string }
+  }
+  return { prop: 'id', order: 'descending' }
+}
+
+function setTableSort(prop: string, order: string) {
+  localStorage.setItem('deploy-table-sort', JSON.stringify({ prop, order }))
+}
 </script>

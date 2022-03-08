@@ -6,9 +6,7 @@ const state: SettingState = {
   fixedHeader: false,
 }
 
-const setting: Module<SettingState, RootState> = {
+export default <Module<SettingState, RootState>>{
   namespaced: true,
   state,
 }
-
-export default setting
