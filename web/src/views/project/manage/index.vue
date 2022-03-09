@@ -197,6 +197,7 @@
                     git@host.xz[:port]/path/to/repo.git/<br />
                     http[s]://[username:password@]host.xz[:port]/path/to/repo.git/<br />
                     svn://host.xz[:port]/path --username= --password=
+                    ftp[s]://[username:password@]host.xz[:port]/path/to/repo
                   </template>
                   <i class="el-icon-question" />
                 </el-tooltip>
@@ -205,12 +206,13 @@
                 <el-select v-model="formData.repoType" style="width: 65px">
                   <el-option label="git" value="git" />
                   <el-option label="svn" value="svn" />
+                  <el-option label="ftp" value="ftp" />
                 </el-select>
                 <el-input
                   v-model.trim="formData.url"
                   style="flex: 1"
                   autocomplete="off"
-                  placeholder="repository url, allow HTTPS、HTTP、SSH"
+                  placeholder="repository url"
                   @change="formProps.branch = []"
                 />
                 <el-button
