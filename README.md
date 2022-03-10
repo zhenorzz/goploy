@@ -58,6 +58,7 @@ Use Goploy to automate your development workflow, so you can focus on work that 
 Goploy is commonly used for:
 
 - Building projects
+- Support git svn ftp sftp
 - Deployment
 - Monitor app and server
 - Second cron 

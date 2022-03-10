@@ -70,12 +70,6 @@ export const constantRoutes: RouteRecordRaw[] = [
       },
     ],
   },
-  {
-    path: '/server/record',
-    name: 'record',
-    component: () => import('@/views/server/record/index.vue'),
-    meta: { hidden: true },
-  },
 ]
 
 /**
