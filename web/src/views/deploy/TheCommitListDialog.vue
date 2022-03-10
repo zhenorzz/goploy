@@ -38,15 +38,13 @@
       </el-table-column>
       <el-table-column prop="commit" label="commit" width="290">
         <template #default="scope">
-          <el-link
-            type="primary"
+          <RepoURL
             style="font-size: 12px"
-            :underline="false"
-            :href="`${gitURL}/commit/${scope.row.commit}`"
-            target="_blank"
+            :url="projectRow.url"
+            :suffix="`/commit/${scope.row.commit}`"
+            :text="scope.row.commit"
           >
-            {{ scope.row.commit }}
-          </el-link>
+          </RepoURL>
         </template>
       </el-table-column>
       <el-table-column prop="author" label="author" />
@@ -86,9 +84,10 @@
   </el-dialog>
 </template>
 <script lang="ts" setup>
+import RepoURL from '@/components/RepoURL/index.vue'
 import { RepositoryBranchList, RepositoryCommitList } from '@/api/repository'
 import { ProjectData } from '@/api/project'
-import { parseGitURL, parseTime } from '@/utils'
+import { parseTime } from '@/utils'
 import { PropType, computed, watch, ref } from 'vue'
 const props = defineProps({
   modelValue: {
@@ -107,7 +106,6 @@ const dialogVisible = computed({
     emit('update:modelValue', val)
   },
 })
-const gitURL = ref<string>('')
 const branchLoading = ref(false)
 const branchOption = ref<RepositoryBranchList['datagram']['list']>([])
 const branch = ref('')
@@ -116,7 +114,6 @@ watch(
   () => props.modelValue,
   (val: typeof props['modelValue']) => {
     if (val === true) {
-      gitURL.value = parseGitURL(props.projectRow.url)
       branchLoading.value = true
       branchOption.value = []
       branch.value = ''

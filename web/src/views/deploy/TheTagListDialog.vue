@@ -21,28 +21,24 @@
       </el-table-column>
       <el-table-column prop="tag" label="tag">
         <template #default="scope">
-          <el-link
-            type="primary"
+          <RepoURL
             style="font-size: 12px"
-            :underline="false"
-            :href="`${gitURL}/tree/${scope.row.shortTag}`"
-            target="_blank"
+            :url="projectRow.url"
+            :suffix="'/tree/' + scope.row.shortTag"
+            :text="scope.row.shortTag"
           >
-            {{ scope.row.shortTag }}
-          </el-link>
+          </RepoURL>
         </template>
       </el-table-column>
       <el-table-column prop="commit" label="commit" width="80">
         <template #default="scope">
-          <el-link
-            type="primary"
+          <RepoURL
             style="font-size: 12px"
-            :underline="false"
-            :href="`${gitURL}/commit/${scope.row.commit}`"
-            target="_blank"
+            :url="projectRow.url"
+            :suffix="'/tree/' + scope.row.commit"
+            :text="scope.row.commit.substring(0, 6)"
           >
-            {{ scope.row.commit.substring(0, 6) }}
-          </el-link>
+          </RepoURL>
         </template>
       </el-table-column>
       <el-table-column
@@ -87,8 +83,9 @@
   </el-dialog>
 </template>
 <script lang="ts" setup>
+import RepoURL from '@/components/RepoURL/index.vue'
 import { RepositoryTagList } from '@/api/repository'
-import { parseGitURL, parseTime } from '@/utils'
+import { parseTime } from '@/utils'
 import { computed, watch, ref } from 'vue'
 const props = defineProps({
   modelValue: {
@@ -107,14 +104,12 @@ const dialogVisible = computed({
     emit('update:modelValue', val)
   },
 })
-const gitURL = ref<string>('')
 const tableLoading = ref(false)
 const tableData = ref<RepositoryTagList['datagram']['list']>([])
 watch(
   () => props.modelValue,
   (val: typeof props['modelValue']) => {
     if (val === true) {
-      gitURL.value = parseGitURL(props.projectRow.url)
       tableLoading.value = true
       new RepositoryTagList({ id: props.projectRow.id })
         .request()

@@ -40,6 +40,8 @@ func GetRepo(repoType string) (Repo, error) {
 		return SvnRepo{}, nil
 	} else if repoType == model.RepoFTP {
 		return FtpRepo{}, nil
+	} else if repoType == model.RepoSFTP {
+		return SftpRepo{}, nil
 	}
 	return nil, fmt.Errorf("wrong repo type passed")
 }

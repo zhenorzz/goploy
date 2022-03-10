@@ -1,20 +1,23 @@
 package repository
 
 import (
+	"crypto/tls"
 	"fmt"
+	"github.com/jlaffaye/ftp"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/utils"
 	"io"
+	"net/url"
 	"os"
 	"path"
+	"strings"
 	"time"
 )
 
 type FtpRepo struct{}
 
-func (FtpRepo) Ping(url string) error {
-	c, err := utils.FTPConfig{}.DialFromURL(url)
+func (ftpRepo FtpRepo) Ping(url string) error {
+	c, err := ftpRepo.dial(url)
 	if err != nil {
 		return err
 	}
@@ -41,7 +44,7 @@ func (ftpRepo FtpRepo) Follow(project model.Project, _ string) error {
 		return err
 	}
 
-	c, err := utils.FTPConfig{}.DialFromURL(project.URL)
+	c, err := ftpRepo.dial(project.URL)
 	if err != nil {
 		core.Log(core.ERROR, fmt.Sprintf("The project fail to connect ftp, projectID:%d, error:%s", projectID, err.Error()))
 		return err
@@ -117,4 +120,56 @@ func (ftpRepo FtpRepo) BranchLog(projectID int64, branch string, rows int) ([]Co
 
 func (ftpRepo FtpRepo) TagLog(projectID int64, rows int) ([]CommitInfo, error) {
 	return []CommitInfo{}, nil
+}
+
+func (FtpRepo) dial(_url string) (*ftp.ServerConn, error) {
+	var (
+		enableTLS bool
+		addr      string
+		username  = "anonymous"
+		password  = "anonymous@domain.com"
+		dir       string
+	)
+	u, err := url.Parse(_url)
+	if err != nil {
+		return nil, err
+	}
+	if u.Scheme == "ftps" {
+		enableTLS = true
+	}
+	h := strings.Split(u.Host, ":")
+	if len(h) == 1 {
+		u.Host += ":21"
+	}
+	addr = u.Host
+	dir = u.Path
+	username = u.User.Username()
+	if username != "" {
+		pwd, _ := u.User.Password()
+		password = pwd
+	}
+	opts := []ftp.DialOption{
+		ftp.DialWithTimeout(10 * time.Second),
+	}
+
+	if enableTLS == true {
+		opts = append(opts, ftp.DialWithTLS(&tls.Config{
+			InsecureSkipVerify: true,
+		}))
+	}
+
+	c, err := ftp.Dial(addr, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.Login(username, password); err != nil {
+		return nil, err
+	}
+	if dir != "" {
+		if err = c.ChangeDir(dir); err != nil {
+			return nil, err
+		}
+	}
+	return c, nil
 }

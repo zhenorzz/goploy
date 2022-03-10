@@ -104,14 +104,7 @@ func (SvnRepo) BranchLog(projectID int64, branch string, rows int) ([]CommitInfo
 }
 
 func (SvnRepo) TagLog(projectID int64, rows int) ([]CommitInfo, error) {
-	svn := utils.SVN{Dir: core.GetProjectPath(projectID)}
-
-	if err := svn.Log("-v", "--xml", "-l", strconv.Itoa(rows)); err != nil {
-		return []CommitInfo{}, errors.New(svn.Err.String())
-	}
-
-	list := parseSVNLog(svn.Output.String())
-	return list, nil
+	return []CommitInfo{}, nil
 }
 
 func parseSVNLog(rawCommitLog string) []CommitInfo {

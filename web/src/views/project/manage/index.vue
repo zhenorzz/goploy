@@ -30,15 +30,12 @@
       <el-table-column prop="name" :label="$t('name')" width="180" />
       <el-table-column prop="url" :label="$t('projectURL')" width="330">
         <template #default="scope">
-          <el-link
-            type="primary"
+          <RepoURL
             style="font-size: 12px"
-            :underline="false"
-            :href="parseGitURL(scope.row.url)"
-            target="_blank"
+            :url="scope.row.url"
+            :text="hideURLPwd(scope.row.url)"
           >
-            {{ hideURLPwd(scope.row.url) }}
-          </el-link>
+          </RepoURL>
         </template>
       </el-table-column>
       <el-table-column prop="path" :label="$t('projectPath')" min-width="200" />
@@ -196,8 +193,9 @@
                     ssh://[username:password@]host.xz[:port]/path/to/repo.git/<br />
                     git@host.xz[:port]/path/to/repo.git/<br />
                     http[s]://[username:password@]host.xz[:port]/path/to/repo.git/<br />
-                    svn://host.xz[:port]/path --username= --password=
-                    ftp[s]://[username:password@]host.xz[:port]/path/to/repo
+                    svn://host.xz[:port]/path --username= --password=<br />
+                    ftp[s]://[username:password@]host.xz[:port]/path/to/repo<br />
+                    sftp://host.xz[:port]/path/to/repo --user= --keyFile=
                   </template>
                   <i class="el-icon-question" />
                 </el-tooltip>
@@ -207,6 +205,7 @@
                   <el-option label="git" value="git" />
                   <el-option label="svn" value="svn" />
                   <el-option label="ftp" value="ftp" />
+                  <el-option label="sftp" value="sftp" />
                 </el-select>
                 <el-input
                   v-model.trim="formData.url"
@@ -699,7 +698,8 @@ import 'ace-builds/src-noconflict/mode-batchfile'
 import 'ace-builds/src-noconflict/theme-github'
 import path from 'path-browserify'
 import getTableHeight from '@/composables/tableHeight'
-import { parseGitURL, hideURLPwd } from '@/utils'
+import RepoURL from '@/components/RepoURL/index.vue'
+import { hideURLPwd } from '@/utils'
 import { NamespaceUserOption } from '@/api/namespace'
 import { ServerOption } from '@/api/server'
 import {

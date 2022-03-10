@@ -36,27 +36,24 @@
         align="center"
       >
         <template #default="scope">
-          <el-link
+          <RepoURL
             style="font-size: 12px"
-            :underline="false"
-            :href="gitURL + '/tree/' + scope.row.branch.split('/').pop()"
-            target="_blank"
+            :url="projectRow.url"
+            :suffix="'/tree/' + scope.row.branch.split('/').pop()"
+            :text="scope.row.branch"
           >
-            {{ scope.row.branch }}
-          </el-link>
+          </RepoURL>
         </template>
       </el-table-column>
       <el-table-column prop="commit" label="commit" width="290">
         <template #default="scope">
-          <el-link
-            type="primary"
+          <RepoURL
             style="font-size: 12px"
-            :underline="false"
-            :href="`${gitURL}/commit/${scope.row.commit}`"
-            target="_blank"
+            :url="projectRow.url"
+            :suffix="`/commit/${scope.row.commit}`"
+            :text="scope.row.commit"
           >
-            {{ scope.row.commit }}
-          </el-link>
+          </RepoURL>
         </template>
       </el-table-column>
       <el-table-column prop="date" :label="$t('date')" width="150" />
@@ -157,6 +154,7 @@
   </TheCommitListDialog>
 </template>
 <script lang="ts" setup>
+import RepoURL from '@/components/RepoURL/index.vue'
 import {
   ProjectData,
   ProjectTaskList,
@@ -167,7 +165,7 @@ import {
 import TheCommitListDialog from './TheCommitListDialog.vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { getRole } from '@/utils/namespace'
-import { parseGitURL, parseTime } from '@/utils'
+import { parseTime } from '@/utils'
 import { PropType, computed, watch, ref, reactive } from 'vue'
 import dayjs from 'dayjs'
 import { useStore } from 'vuex'
@@ -192,12 +190,10 @@ const dialogVisible = computed({
     emit('update:modelValue', val)
   },
 })
-const gitURL = ref('')
 watch(
   () => props.modelValue,
   (val: typeof props['modelValue']) => {
     if (val === true) {
-      gitURL.value = parseGitURL(props.projectRow.url)
       handlePageChange()
     }
   }

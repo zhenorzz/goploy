@@ -24,7 +24,7 @@ func (sf SftpFile) Write(w http.ResponseWriter) error {
 	}
 	defer sftpClient.Close()
 
-	srcFile, err := sftpClient.Open(sf.Filename) //远程
+	srcFile, err := sftpClient.Open(sf.Filename)
 	if err != nil {
 		return err
 	}

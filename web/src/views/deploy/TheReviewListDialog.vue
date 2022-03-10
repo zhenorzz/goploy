@@ -29,27 +29,24 @@
         align="center"
       >
         <template #default="scope">
-          <el-link
+          <RepoURL
             style="font-size: 12px"
-            :underline="false"
-            :href="gitURL + '/tree/' + scope.row.branch.split('/').pop()"
-            target="_blank"
+            :url="projectRow.url"
+            :suffix="'/tree/' + scope.row.branch.split('/').pop()"
+            :text="scope.row.branch"
           >
-            {{ scope.row.branch }}
-          </el-link>
+          </RepoURL>
         </template>
       </el-table-column>
       <el-table-column prop="commitId" label="commit" width="290">
         <template #default="scope">
-          <el-link
-            type="primary"
+          <RepoURL
             style="font-size: 12px"
-            :underline="false"
-            :href="`${gitURL}/commit/${scope.row.commitId}`"
-            target="_blank"
+            :url="projectRow.url"
+            :suffix="`/commit/${scope.row.commitId}`"
+            :text="scope.row.commitId"
           >
-            {{ scope.row.commitId }}
-          </el-link>
+          </RepoURL>
         </template>
       </el-table-column>
       <el-table-column prop="state" :label="$t('state')" width="50">
@@ -115,9 +112,9 @@
 </template>
 
 <script lang="ts" setup>
+import RepoURL from '@/components/RepoURL/index.vue'
 import { DeployReview } from '@/api/deploy'
 import { ProjectReviewList } from '@/api/project'
-import { parseGitURL } from '@/utils'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { computed, watch, ref, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -139,14 +136,12 @@ const dialogVisible = computed({
     emit('update:modelValue', val)
   },
 })
-const gitURL = ref<string>('')
 const pagination = reactive({ page: 1, rows: 11, total: 0 })
 const tableData = ref<ProjectReviewList['datagram']['list']>([])
 watch(
   () => props.modelValue,
   (val: typeof props['modelValue']) => {
     if (val === true) {
-      gitURL.value = parseGitURL(props.projectRow.url)
       handlePageChange()
     }
   }

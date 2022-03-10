@@ -55,9 +55,10 @@ const (
 )
 
 const (
-	RepoGit = "git"
-	RepoSVN = "svn"
-	RepoFTP = "ftp"
+	RepoGit  = "git"
+	RepoSVN  = "svn"
+	RepoFTP  = "ftp"
+	RepoSFTP = "sftp"
 )
 
 // Project notify type

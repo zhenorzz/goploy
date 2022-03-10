@@ -73,18 +73,13 @@
         align="center"
       >
         <template #default="scope">
-          <el-link
+          <RepoURL
             style="font-size: 12px"
-            :underline="false"
-            :href="
-              parseGitURL(scope.row['url']) +
-              '/tree/' +
-              scope.row['branch'].split('/').pop()
-            "
-            target="_blank"
+            :url="scope.row['url']"
+            :suffix="'/tree/' + scope.row['branch'].split('/').pop()"
+            :text="scope.row.branch"
           >
-            {{ scope.row.branch }}
-          </el-link>
+          </RepoURL>
         </template>
       </el-table-column>
       <el-table-column
@@ -99,19 +94,15 @@
             :content="scope.row['commit']"
             placement="top"
           >
-            <el-link
-              type="primary"
+            <RepoURL
               style="font-size: 12px"
-              :underline="false"
-              :href="
-                parseGitURL(scope.row['url']) + '/commit/' + scope.row['commit']
-              "
-              target="_blank"
-            >
-              {{
+              :url="scope.row['url']"
+              :suffix="'/commit/' + scope.row['commit']"
+              :text="
                 scope.row['commit'] ? scope.row['commit'].substring(0, 6) : ''
-              }}
-            </el-link>
+              "
+            >
+            </RepoURL>
           </el-tooltip>
         </template>
       </el-table-column>
@@ -354,7 +345,8 @@ import {
 } from '@/api/deploy'
 import { ProjectServerList, ProjectData } from '@/api/project'
 import { getRole } from '@/utils/namespace'
-import { parseTime, parseGitURL } from '@/utils'
+import RepoURL from '@/components/RepoURL/index.vue'
+import { parseTime } from '@/utils'
 import TheDetailDialog from './TheDetailDialog.vue'
 import TheCommitListDialog from './TheCommitListDialog.vue'
 import TheTagListDialog from './TheTagListDialog.vue'

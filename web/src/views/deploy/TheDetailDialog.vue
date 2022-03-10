@@ -181,14 +181,12 @@
               <el-row>Branch: {{ item['branch'] }}</el-row>
               <el-row>
                 Commit:
-                <el-link
-                  type="primary"
-                  :underline="false"
-                  :href="`${gitURL}/commit/${item['commit']}`"
-                  target="_blank"
+                <RepoURL
+                  :url="projectRow.url"
+                  :suffix="`/commit/${item['commit']}`"
+                  :text="item['commit']"
                 >
-                  {{ item['commit'] }}
-                </el-link>
+                </RepoURL>
               </el-row>
               <el-row>Message: {{ item['message'] }}</el-row>
               <el-row>Author: {{ item['author'] }}</el-row>
@@ -340,6 +338,7 @@
 </template>
 
 <script lang="ts" setup>
+import RepoURL from '@/components/RepoURL/index.vue'
 import {
   DeployPreviewList,
   DeployRebuild,
@@ -349,7 +348,7 @@ import {
 } from '@/api/deploy'
 import { ProjectData } from '@/api/project'
 import { NamespaceUserOption } from '@/api/namespace'
-import { empty, parseGitURL, parseTime } from '@/utils'
+import { empty, parseTime } from '@/utils'
 import { ElMessageBox, ElMessage, ElDatePicker } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
@@ -406,7 +405,6 @@ const shortcuts = [
   },
 ]
 const userOption = ref<NamespaceUserOption['datagram']['list']>([])
-const gitURL = ref<string>('')
 watch(
   () => props.modelValue,
   (val: typeof props['modelValue']) => {
@@ -416,7 +414,6 @@ watch(
       new NamespaceUserOption().request().then((response) => {
         userOption.value = response.data.list
       })
-      gitURL.value = parseGitURL(props.projectRow.url)
     }
   }
 )
