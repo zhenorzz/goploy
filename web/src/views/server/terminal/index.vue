@@ -16,6 +16,7 @@
                 <el-button
                   type="text"
                   style="color: #bfcbd9; font-size: 14px"
+                  :title="`${item.server.name}(${item.server.description})`"
                   @click="selectTerminal(item)"
                 >
                   {{ item.server.name }}({{ item.server.description }})
