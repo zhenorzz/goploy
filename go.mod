@@ -17,7 +17,6 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-version v1.3.0
 	github.com/jlaffaye/ftp v0.0.0-20220301181425-a81b090061fa // indirect
-	github.com/joho/godotenv v1.3.0
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.0-beta.4 // indirect
 	github.com/pkg/sftp v1.13.1

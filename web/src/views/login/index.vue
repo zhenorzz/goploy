@@ -20,7 +20,6 @@
           <svg-icon icon-class="user" />
         </span>
         <el-input
-          ref="account"
           v-model="loginForm.account"
           size="medium"
           placeholder="account"
@@ -37,7 +36,6 @@
         </span>
         <el-input
           :key="passwordType"
-          ref="password"
           v-model="loginForm.password"
           :type="passwordType"
           size="medium"
