@@ -12,9 +12,9 @@ type Cron Controller
 
 func (c Cron) Routes() []core.Route {
 	return []core.Route{
-		core.NewWhiteRoute("/cron/report", http.MethodPost, c.Report),
-		core.NewWhiteRoute("/cron/getList", http.MethodPost, c.GetList),
-		core.NewWhiteRoute("/cron/getLogs", http.MethodPost, c.GetLogs),
+		core.NewRoute("/cron/report", http.MethodPost, c.Report),
+		core.NewRoute("/cron/getList", http.MethodPost, c.GetList),
+		core.NewRoute("/cron/getLogs", http.MethodPost, c.GetLogs),
 		core.NewRoute("/cron/add", http.MethodPost, c.Add).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/cron/edit", http.MethodPut, c.Edit).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/cron/remove", http.MethodDelete, c.Remove).Roles(core.RoleAdmin, core.RoleManager),
@@ -72,22 +72,19 @@ func (Cron) GetList(gp *core.Goploy) core.Response {
 }
 
 func (Cron) GetLogs(gp *core.Goploy) core.Response {
-	pagination, err := model.PaginationFrom(gp.URLQuery)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
 	type ReqData struct {
-		ServerID int64 `json:"serverId" validate:"gt=0"`
-		CronID   int64 `json:"cronId" validate:"gt=0"`
+		ServerID int64  `schema:"serverId" validate:"gt=0"`
+		CronID   int64  `schema:"cronId" validate:"gt=0"`
+		Page     uint64 `schema:"page" validate:"gt=0"`
+		Rows     uint64 `schema:"rows" validate:"gt=0"`
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
+	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	crons, err := model.CronLog{ServerID: reqData.ServerID, CronID: reqData.CronID}.GetList(pagination)
+	crons, err := model.CronLog{ServerID: reqData.ServerID, CronID: reqData.CronID}.GetList(reqData.Page, reqData.Rows)
 
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}

@@ -21,7 +21,7 @@ type CronLog struct {
 type CronLogs []CronLog
 
 // GetList -
-func (cl CronLog) GetList(pagination Pagination) (CronLogs, error) {
+func (cl CronLog) GetList(page, limit uint64) (CronLogs, error) {
 	rows, err := sq.
 		Select(
 			"id",
@@ -34,8 +34,8 @@ func (cl CronLog) GetList(pagination Pagination) (CronLogs, error) {
 		From(cronLogTable).
 		Where(sq.Eq{"server_id": cl.ServerID}).
 		Where(sq.Eq{"cron_id": cl.CronID}).
-		Limit(pagination.Rows).
-		Offset((pagination.Page - 1) * pagination.Rows).
+		Limit(limit).
+		Offset((page - 1) * limit).
 		OrderBy("id DESC").
 		RunWith(DB).
 		Query()
