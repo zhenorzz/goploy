@@ -16,7 +16,7 @@
       <span>{{ $t('projectPage.projectFileTips') }}</span>
       <el-button type="primary" icon="el-icon-plus" @click="handleAppendFile" />
     </el-row>
-    <el-form ref="fileForm" :model="formData" class="file-form" @submit.prevent>
+    <el-form :model="formData" class="file-form" @submit.prevent>
       <template v-if="formProps.show === 'file-list'">
         <el-form-item
           v-for="(file, index) in formData.files"
