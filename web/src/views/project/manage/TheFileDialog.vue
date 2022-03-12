@@ -54,7 +54,6 @@
               </template>
             </el-input>
             <el-upload
-              ref="upload"
               style="margin: 0 12px"
               :action="`${formProps.action}&projectFileId=${file.id}&projectId=${file.projectId}&filename=${file.filename}`"
               :before-upload="(uploadFile) => beforeUpload(uploadFile, index)"
