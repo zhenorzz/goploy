@@ -330,3 +330,19 @@ function removeFile(index: number) {
   }
 }
 </script>
+<style lang="scss">
+@import '@/styles/mixin.scss';
+.file-dialog {
+  .el-dialog__body {
+    padding-top: 20px;
+  }
+  .el-icon-upload {
+    font-size: 14px;
+  }
+  .file-form {
+    height: 520px;
+    overflow-y: auto;
+    @include scrollBar();
+  }
+}
+</style>

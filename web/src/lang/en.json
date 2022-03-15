@@ -240,6 +240,7 @@
     "showDetail": "Show detail",
     "noDetail": "No detail",
     "taskDeploy": "Crontab deploy",
+    "fileSync": "File sync",
     "fileCompare": "File compare",
     "processManager": "Process manager",
     "execTips": "Exec command {command}?",

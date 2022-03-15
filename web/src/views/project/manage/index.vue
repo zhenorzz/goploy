@@ -77,19 +77,6 @@
         </template>
       </el-table-column>
       <el-table-column
-        prop="file"
-        width="80"
-        :label="$t('file')"
-        align="center"
-        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
-      >
-        <template #default="scope">
-          <el-button type="text" @click="handleFile(scope.row)">{{
-            $t('view')
-          }}</el-button>
-        </template>
-      </el-table-column>
-      <el-table-column
         prop="server"
         width="80"
         :label="$t('server')"
@@ -680,10 +667,6 @@
       :project-id="selectedItem.id"
     />
     <TheUserDialog v-model="dialogUserVisible" :project-id="selectedItem.id" />
-    <TheFileDialog
-      v-model="dialogFileManagerVisible"
-      :project-id="selectedItem.id"
-    />
   </el-row>
 </template>
 <script lang="ts">
@@ -716,7 +699,6 @@ import {
 import { getRole } from '@/utils/namespace'
 import TheServerDialog from './TheServerDialog.vue'
 import TheUserDialog from './TheUserDialog.vue'
-import TheFileDialog from './TheFileDialog.vue'
 import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref } from 'vue'
@@ -736,7 +718,6 @@ const dialogVisible = ref(false)
 const dialogAutoDeployVisible = ref(false)
 const dialogServerVisible = ref(false)
 const dialogUserVisible = ref(false)
-const dialogFileManagerVisible = ref(false)
 const serverOption = ref<ServerOption['datagram']['list']>([])
 const userOption = ref<NamespaceUserOption['datagram']['list']>([])
 const selectedItem = ref({} as ProjectData['datagram'])
@@ -988,11 +969,6 @@ function handleServer(data: ProjectData['datagram']) {
 function handleUser(data: ProjectData['datagram']) {
   selectedItem.value = data
   dialogUserVisible.value = true
-}
-
-function handleFile(data: ProjectData['datagram']) {
-  selectedItem.value = data
-  dialogFileManagerVisible.value = true
 }
 
 function submit() {

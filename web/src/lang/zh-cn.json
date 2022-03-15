@@ -235,6 +235,7 @@
     "showDetail": "查看详情",
     "noDetail": "暂无详情",
     "taskDeploy": "定时构建",
+    "fileSync": "文件同步",
     "fileCompare": "文件对比",
     "processManager": "进程管理",
     "execRes": "执行结果",

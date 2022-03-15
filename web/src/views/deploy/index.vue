@@ -211,6 +211,12 @@
                     {{ $t('deployPage.fileCompare') }}
                   </el-dropdown-item>
                   <el-dropdown-item
+                    v-if="role.hasGroupManagerPermission()"
+                    :command="'handleFileSyncCommand'"
+                  >
+                    {{ $t('deployPage.fileSync') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item
                     v-if="role.hasManagerPermission()"
                     :command="'handleProcessManagerCommand'"
                   >
@@ -331,6 +337,10 @@
       v-model="processManagerDialogVisible"
       :project-row="selectedItem"
     />
+    <TheFileSyncDialog
+      v-model="fileSyncDialogVisible"
+      :project-id="selectedItem.id"
+    />
   </el-row>
 </template>
 <script lang="ts">
@@ -354,6 +364,7 @@ import TheTaskListDialog from './TheTaskListDialog.vue'
 import TheReviewListDialog from './TheReviewListDialog.vue'
 import TheProcessManagerDialog from './TheProcessManagerDialog.vue'
 import TheFileCompareDialog from './TheFileCompareDialog.vue'
+import TheFileSyncDialog from './TheFileSyncDialog.vue'
 import getTableHeight from '@/composables/tableHeight'
 import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
@@ -368,6 +379,7 @@ const commitDialogVisible = ref(false)
 const tagDialogVisible = ref(false)
 const greyServerDialogVisible = ref(false)
 const taskListDialogVisible = ref(false)
+const fileSyncDialogVisible = ref(false)
 const fileCompareDialogVisible = ref(false)
 const processManagerDialogVisible = ref(false)
 const reviewListDialogVisible = ref(false)
@@ -569,6 +581,7 @@ const commandFunc: { [K: string]: (data: ProjectData['datagram']) => void } = {
   handleTagCommand,
   handleTaskCommand,
   handleFileCompareCommand,
+  handleFileSyncCommand,
   handleProcessManagerCommand,
   handleReviewCommand,
 }
@@ -591,6 +604,11 @@ function handleTaskCommand(data: ProjectData['datagram']) {
 function handleFileCompareCommand(data: ProjectData['datagram']) {
   selectedItem.value = data
   fileCompareDialogVisible.value = true
+}
+
+function handleFileSyncCommand(data: ProjectData['datagram']) {
+  selectedItem.value = data
+  fileSyncDialogVisible.value = true
 }
 
 function handleProcessManagerCommand(data: ProjectData['datagram']) {
