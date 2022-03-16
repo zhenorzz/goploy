@@ -159,7 +159,7 @@ func (s Server) GetAll() (Servers, error) {
 // GetData -
 func (s Server) GetData() (Server, error) {
 	var server Server
-	err := sq.
+	builder := sq.
 		Select(
 			"id",
 			"namespace_id",
@@ -175,8 +175,21 @@ func (s Server) GetData() (Server, error) {
 			"jump_path",
 			"jump_password",
 		).
-		From(serverTable).
-		Where(sq.Eq{"id": s.ID}).
+		From(serverTable)
+
+	if s.ID > 0 {
+		builder = builder.Where(sq.Eq{"id": s.ID})
+	}
+
+	if s.Name != "" {
+		builder = builder.Where(sq.Eq{"name": s.Name})
+	}
+
+	if s.IP != "" {
+		builder = builder.Where(sq.Eq{"ip": s.IP})
+	}
+
+	err := builder.
 		OrderBy("id DESC").
 		RunWith(DB).
 		QueryRow().

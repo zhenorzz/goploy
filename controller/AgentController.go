@@ -13,9 +13,36 @@ type Agent Controller
 func (a Agent) Routes() []core.Route {
 	return []core.Route{
 		core.NewWhiteRoute("/agent/report", http.MethodPost, a.Report).Middleware(middleware.CheckSign),
+		core.NewWhiteRoute("/agent/getServerID", http.MethodPost, a.GetServerID).Middleware(middleware.CheckSign),
 		core.NewWhiteRoute("/agent/getCronList", http.MethodPost, a.GetCronList).Middleware(middleware.CheckSign),
 		core.NewWhiteRoute("/agent/getCronLogs", http.MethodPost, a.GetCronLogs).Middleware(middleware.CheckSign),
 		core.NewWhiteRoute("/agent/cronReport", http.MethodPost, a.CronReport).Middleware(middleware.CheckSign),
+	}
+}
+
+func (Agent) GetServerID(gp *core.Goploy) core.Response {
+	type ReqData struct {
+		Name string `json:"name"`
+		IP   string `json:"ip"`
+	}
+
+	var reqData ReqData
+	if err := decodeJson(gp.Body, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	server, err := model.Server{
+		Name: reqData.Name,
+		IP:   reqData.IP,
+	}.GetData()
+
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	return response.JSON{
+		Data: struct {
+			ID int64 `json:"id"`
+		}{ID: server.ID},
 	}
 }
 
