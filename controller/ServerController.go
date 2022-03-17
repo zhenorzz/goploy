@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"encoding/csv"
+	"fmt"
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/middleware"
@@ -12,6 +14,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // Server struct
@@ -24,6 +27,7 @@ func (s Server) Routes() []core.Route {
 		core.NewRoute("/server/getOption", http.MethodGet, s.GetOption),
 		core.NewRoute("/server/getPublicKey", http.MethodGet, s.GetPublicKey),
 		core.NewRoute("/server/check", http.MethodPost, s.Check).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/server/import", http.MethodPost, s.Import).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/add", http.MethodPost, s.Add).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/edit", http.MethodPut, s.Edit).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/toggle", http.MethodPut, s.Toggle).Roles(core.RoleAdmin, core.RoleManager),
@@ -129,6 +133,109 @@ func (Server) Check(gp *core.Goploy) core.Response {
 		_ = Conn.Close()
 	}
 	return response.JSON{Message: "Connected"}
+}
+
+func (Server) Import(gp *core.Goploy) core.Response {
+	file, _, err := gp.Request.FormFile("file")
+	if err != nil {
+		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
+	}
+	defer file.Close()
+	r := csv.NewReader(file)
+	i := 0
+	headerIdx := map[string]int{
+		"name":         -1,
+		"host":         -1,
+		"port":         -1,
+		"owner":        -1,
+		"path":         -1,
+		"password":     -1,
+		"description":  -1,
+		"jumpHost":     -1,
+		"jumpPort":     -1,
+		"jumpOwner":    -1,
+		"jumpPath":     -1,
+		"jumpPassword": -1,
+	}
+	errOccur := false
+	var wg sync.WaitGroup
+	for {
+		record, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return response.JSON{Code: response.Error, Message: err.Error()}
+		}
+		fmt.Printf("%v", record)
+		i++
+		if i == 1 {
+			for index, header := range record {
+				if _, ok := headerIdx[header]; !ok {
+					return response.JSON{Code: response.Error, Message: fmt.Sprintf("%s does not match the csv field", header)}
+				} else {
+					headerIdx[header] = index
+				}
+			}
+			continue
+		}
+		wg.Add(1)
+		go func() {
+			server := model.Server{
+				NamespaceID: gp.Namespace.ID,
+			}
+			if headerIdx["name"] != -1 {
+				server.Name = record[headerIdx["name"]]
+			}
+			if headerIdx["host"] != -1 {
+				server.IP = record[headerIdx["host"]]
+			}
+			if headerIdx["port"] != -1 {
+				server.Port, _ = strconv.Atoi(record[headerIdx["port"]])
+			}
+			if headerIdx["owner"] != -1 {
+				server.Owner = record[headerIdx["owner"]]
+			}
+			if headerIdx["path"] != -1 {
+				server.Path = record[headerIdx["path"]]
+			}
+			if headerIdx["password"] != -1 {
+				server.Password = record[headerIdx["password"]]
+			}
+			if headerIdx["description"] != -1 {
+				server.Description = record[headerIdx["description"]]
+			}
+			if headerIdx["jumpHost"] != -1 {
+				server.JumpIP = record[headerIdx["jumpHost"]]
+			}
+			if headerIdx["jumpPort"] != -1 {
+				server.JumpPort, _ = strconv.Atoi(record[headerIdx["jumpPort"]])
+			}
+			if headerIdx["jumpOwner"] != -1 {
+				server.JumpOwner = record[headerIdx["jumpOwner"]]
+			}
+			if headerIdx["jumpPath"] != -1 {
+				server.JumpPath = record[headerIdx["jumpPath"]]
+			}
+			if headerIdx["jumpPassword"] != -1 {
+				server.JumpPassword = record[headerIdx["jumpPassword"]]
+			}
+
+			server.OSInfo = server.Convert2SSHConfig().GetOSInfo()
+			if _, err := server.AddRow(); err != nil {
+				errOccur = true
+				core.Log(core.ERROR, fmt.Sprintf("Record <%s> error, %s", record, err.Error()))
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	if errOccur {
+		return response.JSON{Code: response.Error, Message: "Encountered some unknown errors, please check the log details"}
+	}
+
+	return response.JSON{}
 }
 
 func (s Server) Add(gp *core.Goploy) core.Response {

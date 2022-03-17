@@ -1,7 +1,26 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
+      <el-upload
+        :action="uploadHref"
+        accept=".csv"
+        :show-file-list="false"
+        :before-upload="beforeUpload"
+        :on-success="handleUploadSuccess"
+        :on-error="handleUploadError"
+      >
+        <el-button
+          type="primary"
+          icon="el-icon-upload2"
+          :loading="uploading"
+        ></el-button>
+      </el-upload>
+      <el-button
+        type="primary"
+        style="margin-left: 10px"
+        icon="el-icon-plus"
+        @click="handleAdd"
+      />
     </el-row>
     <el-table
       :key="tableHeight"
@@ -261,7 +280,9 @@ import {
   ServerData,
 } from '@/api/server'
 import getTableHeight from '@/composables/tableHeight'
-import { ref } from 'vue'
+import { HttpResponse } from '@/api/types'
+import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
+import { ref, computed } from 'vue'
 import { copy, humanSize } from '@/utils'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
@@ -324,6 +345,13 @@ const formRules = {
   description: [{ max: 255, message: 'Max 255 characters', trigger: 'blur' }],
 }
 
+const uploading = ref(false)
+const uploadHref = computed(() => {
+  return `${
+    import.meta.env.VITE_APP_BASE_API
+  }/server/import?${NamespaceKey}=${getNamespaceId()}`
+})
+
 getList()
 getTotal()
 
@@ -362,6 +390,28 @@ function getPublicKey() {
 function handlePageChange(val = 1) {
   pagination.value.page = val
   getList()
+}
+
+function beforeUpload(file: File) {
+  uploading.value = true
+  return Promise.resolve()
+}
+
+function handleUploadSuccess(response: HttpResponse<string>) {
+  if (response.code > 0) {
+    ElMessage.error(`upload failed, detail: ${response.message}`)
+  } else {
+    ElMessage.success('Success')
+  }
+  getList()
+  uploading.value = false
+  return true
+}
+
+function handleUploadError(err: Error) {
+  ElMessage.error(err.message)
+  uploading.value = false
+  return true
 }
 
 function handleAdd() {
