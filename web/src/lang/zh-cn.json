@@ -165,6 +165,9 @@
     "removeUserTips": "此操作将永久删除该用户的绑定关系, 是否继续?"
   },
   "serverPage": {
+    "importCSV": "导入csv",
+    "installAgent": "安装agent",
+    "installAgentTips": "Agent正在安装，请密切关注日志输出",
     "sshKeyOwner": "SSH-Key 所有者",
     "sshKeyPath": "SSH-Key 路径",
     "sshKeyPassword": "SSH-Key 密码",

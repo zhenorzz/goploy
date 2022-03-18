@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/csv"
 	"fmt"
 	"github.com/pkg/sftp"
+	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/middleware"
 	"github.com/zhenorzz/goploy/model"
@@ -31,6 +33,7 @@ func (s Server) Routes() []core.Route {
 		core.NewRoute("/server/add", http.MethodPost, s.Add).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/edit", http.MethodPut, s.Edit).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/toggle", http.MethodPut, s.Toggle).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/server/installAgent", http.MethodPost, s.InstallAgent).Roles(core.RoleAdmin, core.RoleManager),
 		core.NewRoute("/server/previewFile", http.MethodGet, s.PreviewFile).Roles(core.RoleAdmin, core.RoleManager).LogFunc(middleware.AddPreviewLog),
 		core.NewRoute("/server/downloadFile", http.MethodGet, s.DownloadFile).Roles(core.RoleAdmin, core.RoleManager).LogFunc(middleware.AddDownloadLog),
 		core.NewRoute("/server/uploadFile", http.MethodPost, s.UploadFile).Roles(core.RoleAdmin, core.RoleManager).LogFunc(middleware.AddUploadLog),
@@ -167,7 +170,6 @@ func (Server) Import(gp *core.Goploy) core.Response {
 		if err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
-		fmt.Printf("%v", record)
 		i++
 		if i == 1 {
 			for index, header := range record {
@@ -177,57 +179,90 @@ func (Server) Import(gp *core.Goploy) core.Response {
 					headerIdx[header] = index
 				}
 			}
-			continue
-		}
-		wg.Add(1)
-		go func() {
-			server := model.Server{
-				NamespaceID: gp.Namespace.ID,
+			requiredFields := []string{"name", "host", "port", "owner", "path"}
+			missingFields := ""
+			for _, field := range requiredFields {
+				if headerIdx[field] == -1 {
+					missingFields += field + ","
+				}
 			}
-			if headerIdx["name"] != -1 {
-				server.Name = record[headerIdx["name"]]
-			}
-			if headerIdx["host"] != -1 {
-				server.IP = record[headerIdx["host"]]
-			}
-			if headerIdx["port"] != -1 {
-				server.Port, _ = strconv.Atoi(record[headerIdx["port"]])
-			}
-			if headerIdx["owner"] != -1 {
-				server.Owner = record[headerIdx["owner"]]
-			}
-			if headerIdx["path"] != -1 {
-				server.Path = record[headerIdx["path"]]
-			}
-			if headerIdx["password"] != -1 {
-				server.Password = record[headerIdx["password"]]
-			}
-			if headerIdx["description"] != -1 {
-				server.Description = record[headerIdx["description"]]
-			}
-			if headerIdx["jumpHost"] != -1 {
-				server.JumpIP = record[headerIdx["jumpHost"]]
-			}
-			if headerIdx["jumpPort"] != -1 {
-				server.JumpPort, _ = strconv.Atoi(record[headerIdx["jumpPort"]])
-			}
-			if headerIdx["jumpOwner"] != -1 {
-				server.JumpOwner = record[headerIdx["jumpOwner"]]
-			}
-			if headerIdx["jumpPath"] != -1 {
-				server.JumpPath = record[headerIdx["jumpPath"]]
-			}
-			if headerIdx["jumpPassword"] != -1 {
-				server.JumpPassword = record[headerIdx["jumpPassword"]]
+			missingFields = strings.TrimRight(missingFields, ",")
+			if missingFields != "" {
+				return response.JSON{Code: response.Error, Message: fmt.Sprintf("missing field %s", missingFields)}
 			}
 
-			server.OSInfo = server.Convert2SSHConfig().GetOSInfo()
-			if _, err := server.AddRow(); err != nil {
-				errOccur = true
-				core.Log(core.ERROR, fmt.Sprintf("Record <%s> error, %s", record, err.Error()))
-			}
-			wg.Done()
-		}()
+		} else {
+			wg.Add(1)
+			go func() {
+				errMsg := ""
+				server := model.Server{
+					NamespaceID: gp.Namespace.ID,
+				}
+				server.Name = record[headerIdx["name"]]
+				err = core.Validate.Var(server.Name, "required")
+				if err != nil {
+					errMsg += "name,"
+				}
+
+				server.IP = record[headerIdx["host"]]
+				err = core.Validate.Var(server.IP, "ip|hostname")
+				if err != nil {
+					errMsg += "host,"
+				}
+
+				server.Port, err = strconv.Atoi(record[headerIdx["port"]])
+				if err != nil {
+					errMsg += "port,"
+				}
+
+				server.Owner = record[headerIdx["owner"]]
+				err = core.Validate.Var(server.Owner, "required,max=255")
+				if err != nil {
+					errMsg += "owner,"
+				}
+
+				server.Path = record[headerIdx["path"]]
+				err = core.Validate.Var(record[headerIdx["path"]], "required,max=255")
+				if err != nil {
+					errMsg += "path,"
+				}
+
+				if headerIdx["password"] != -1 {
+					server.Password = record[headerIdx["password"]]
+				}
+				if headerIdx["description"] != -1 {
+					server.Description = record[headerIdx["description"]]
+				}
+				if headerIdx["jumpHost"] != -1 {
+					server.JumpIP = record[headerIdx["jumpHost"]]
+				}
+				if headerIdx["jumpPort"] != -1 {
+					server.JumpPort, _ = strconv.Atoi(record[headerIdx["jumpPort"]])
+				}
+				if headerIdx["jumpOwner"] != -1 {
+					server.JumpOwner = record[headerIdx["jumpOwner"]]
+				}
+				if headerIdx["jumpPath"] != -1 {
+					server.JumpPath = record[headerIdx["jumpPath"]]
+				}
+				if headerIdx["jumpPassword"] != -1 {
+					server.JumpPassword = record[headerIdx["jumpPassword"]]
+				}
+				errMsg = strings.TrimRight(errMsg, ",")
+				if errMsg != "" {
+					errOccur = true
+					core.Log(core.ERROR, fmt.Sprintf("Error on No.%d line %s, field validation on %s failed", i, record, errMsg))
+				} else {
+					server.OSInfo = server.Convert2SSHConfig().GetOSInfo()
+					if _, err := server.AddRow(); err != nil {
+						errOccur = true
+						core.Log(core.ERROR, fmt.Sprintf("Error on No.%d line %s, %s", i, record, err.Error()))
+					}
+				}
+
+				wg.Done()
+			}()
+		}
 	}
 	wg.Wait()
 
@@ -347,6 +382,67 @@ func (Server) Toggle(gp *core.Goploy) core.Response {
 	if err := (model.Server{ID: reqData.ID, State: reqData.State}).ToggleRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+	return response.JSON{}
+}
+
+func (Server) InstallAgent(gp *core.Goploy) core.Response {
+	type ReqData struct {
+		IDs       []int64 `json:"ids" validate:"min=1"`
+		ReportURL string  `json:"reportURL" validate:"required"`
+		WebPort   string  `json:"webPort" validate:"omitempty"`
+	}
+	var reqData ReqData
+	if err := decodeJson(gp.Body, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	for _, id := range reqData.IDs {
+		go func(id int64) {
+			server, err := (model.Server{ID: id}).GetData()
+			if err != nil {
+				core.Log(core.ERROR, fmt.Sprintf("Error on %d server, %s", id, err.Error()))
+				return
+			}
+			client, err := server.Convert2SSHConfig().Dial()
+			if err != nil {
+				core.Log(core.ERROR, fmt.Sprintf("Error on %d server, %s", id, err.Error()))
+				return
+			}
+			defer client.Close()
+
+			session, err := client.NewSession()
+			if err != nil {
+				core.Log(core.ERROR, fmt.Sprintf("Error on %d server, %s", id, err.Error()))
+				return
+			}
+			defer session.Close()
+			var sshOutbuf, sshErrbuf bytes.Buffer
+			session.Stdout = &sshOutbuf
+			session.Stderr = &sshErrbuf
+			commands := []string{
+				"cd /tmp/",
+				"wget https://github.com/goploy-devops/goploy-agent/releases/latest/download/goploy-agent",
+				"touch ./goploy-agent.toml",
+				"echo env = 'production' >> ./goploy-agent.toml",
+				"echo [goploy] >> ./goploy-agent.toml",
+				fmt.Sprintf("echo reportURL = '%s' >> ./goploy-agent.toml", reqData.ReportURL),
+				fmt.Sprintf("echo key = '%s' >> ./goploy-agent.toml", config.Toml.JWT.Key),
+				"echo uidType = 'id' >> ./goploy-agent.toml",
+				fmt.Sprintf("echo uid = '%d' >> ./goploy-agent.toml", id),
+				"echo [log] >> ./goploy-agent.toml",
+				"echo path = 'stdout' >> ./goploy-agent.toml",
+				"echo [web] >> ./goploy-agent.toml",
+				fmt.Sprintf("echo port = '%s' >> ./goploy-agent.toml", reqData.WebPort),
+				"chmod a+x ./goploy-agent",
+				"nohup ./goploy-agent",
+			}
+			if err := session.Run(strings.Join(commands, "&&")); err != nil {
+				core.Log(core.ERROR, fmt.Sprintf("Error on %d server, %s, detail: %s", id, err.Error(), sshErrbuf.String()))
+				return
+			}
+		}(id)
+	}
+
 	return response.JSON{}
 }
 

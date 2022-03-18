@@ -181,6 +181,18 @@ export class ServerToggle extends Request {
   }
 }
 
+export class ServerInstallAgent extends Request {
+  readonly url = '/server/installAgent'
+  readonly method = 'post'
+  public param: {
+    ids: number[]
+  }
+  constructor(param: ServerInstallAgent['param']) {
+    super()
+    this.param = param
+  }
+}
+
 export class ServerReport extends Request {
   readonly url = '/server/report'
   readonly method = 'get'

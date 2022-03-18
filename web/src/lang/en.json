@@ -165,6 +165,9 @@
     "removeUserTips": "This action will delete the user\"s binding relationship, continue?"
   },
   "serverPage": {
+    "importCSV": "Import CSV",
+    "installAgent": "Install agent",
+    "installAgentTips": "The agent is installing, please follow the backend log closely",
     "sshKeyOwner": "SSH-Key Owner",
     "sshKeyPath": "SSH-Key Path",
     "sshKeyPassword": "SSH-Key Pswd",

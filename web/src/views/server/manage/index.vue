@@ -1,6 +1,13 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
+      <el-button
+        type="primary"
+        style="margin-right: 10px"
+        @click="handleInstallAgent"
+      >
+        {{ $t('serverPage.installAgent') }}
+      </el-button>
       <el-upload
         :action="uploadHref"
         accept=".csv"
@@ -9,11 +16,9 @@
         :on-success="handleUploadSuccess"
         :on-error="handleUploadError"
       >
-        <el-button
-          type="primary"
-          icon="el-icon-upload2"
-          :loading="uploading"
-        ></el-button>
+        <el-button type="primary" :loading="uploading">
+          {{ $t('serverPage.importCSV') }}
+        </el-button>
       </el-upload>
       <el-button
         type="primary"
@@ -30,8 +35,9 @@
       stripe
       highlight-current-row
       :data="tableData"
-      style="width: 100%"
+      @selection-change="handleSelectionChange"
     >
+      <el-table-column type="selection" width="55" />
       <el-table-column prop="id" label="ID" width="100" />
       <el-table-column prop="name" :label="$t('name')" min-width="140" />
       <el-table-column prop="ip" label="Host" min-width="140" sortable>
@@ -278,6 +284,7 @@ import {
   ServerCheck,
   ServerToggle,
   ServerData,
+  ServerInstallAgent,
 } from '@/api/server'
 import getTableHeight from '@/composables/tableHeight'
 import { HttpResponse } from '@/api/types'
@@ -294,6 +301,7 @@ const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<ServerList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 16, total: 0 })
+const selectedItems = ref<ServerList['datagram']['list']>([])
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
@@ -386,15 +394,26 @@ function getPublicKey() {
     })
 }
 
-// 分页事件
+function handleInstallAgent() {
+  new ServerInstallAgent({ ids: selectedItems.value.map((_) => _.id) })
+    .request()
+    .then(() => {
+      ElMessage.success(t('serverPage.installAgentTips'))
+    })
+}
+
 function handlePageChange(val = 1) {
   pagination.value.page = val
   getList()
 }
 
-function beforeUpload(file: File) {
+function handleSelectionChange(value: ServerData['datagram'][]) {
+  selectedItems.value = value
+}
+
+function beforeUpload() {
   uploading.value = true
-  return Promise.resolve()
+  return true
 }
 
 function handleUploadSuccess(response: HttpResponse<string>) {
