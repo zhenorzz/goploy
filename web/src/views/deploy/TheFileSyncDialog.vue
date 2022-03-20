@@ -57,15 +57,7 @@
               style="margin: 0 12px"
               :action="`${formProps.action}&projectFileId=${file.id}&projectId=${file.projectId}&filename=${file.filename}`"
               :before-upload="(uploadFile) => beforeUpload(uploadFile, index)"
-              :on-success="
-                (response, uploadFile, uploadFileList) =>
-                  handleUploadSuccess(
-                    response,
-                    uploadFile,
-                    uploadFileList,
-                    index
-                  )
-              "
+              :on-success="(response) => handleUploadSuccess(response, index)"
               :show-file-list="false"
               :disabled="!validateFilename(file, index)"
               multiple
@@ -233,12 +225,7 @@ function beforeUpload(file: File, index: number) {
   ElMessage.info(t('uploading'))
 }
 
-function handleUploadSuccess(
-  response: HttpResponse<ID>,
-  file: File,
-  fileList: File[],
-  index: number
-) {
+function handleUploadSuccess(response: HttpResponse<ID>, index: number) {
   if (response.code !== 0) {
     formData.value.files[index].state = 'fail'
     ElMessage.error(response.message)

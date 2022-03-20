@@ -221,6 +221,7 @@ import svgIds from 'virtual:svg-icons-names'
 import path from 'path-browserify'
 import { humanSize, parseTime } from '@/utils'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
+import type { ElUpload } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { ServerOption } from '@/api/server'
 import { HttpResponse } from '@/api/types'
@@ -464,20 +465,26 @@ async function beforeUpload(file: File) {
   return Promise.resolve()
 }
 
-function handleUploadSuccess(response: HttpResponse<string>, file: File) {
-  const fileIndex = fileList.value.findIndex((_: file) => file.name === _.name)
-  if (fileIndex >= 0) {
-    if (response.code > 0) {
-      ElMessage.error(`upload failed, detail: ${response.message}`)
-      fileList.value.splice(fileIndex, 1)
-    } else {
-      fileList.value[fileIndex].uploading = false
+const handleUploadSuccess: InstanceType<typeof ElUpload>['onSuccess'] =
+  function (response: HttpResponse<unknown>, file) {
+    const fileIndex = fileList.value.findIndex(
+      (_: file) => file.name === _.name
+    )
+    if (fileIndex >= 0) {
+      if (response.code > 0) {
+        ElMessage.error(`upload failed, detail: ${response.message}`)
+        fileList.value.splice(fileIndex, 1)
+      } else {
+        fileList.value[fileIndex].uploading = false
+      }
     }
+    return true
   }
-  return true
-}
 
-function handleUploadError(err: Error, file: File) {
+const handleUploadError: InstanceType<typeof ElUpload>['onError'] = function (
+  err: Error,
+  file
+) {
   const fileIndex = fileList.value.findIndex((_: file) => file.name === _.name)
   if (fileIndex >= 0) {
     ElMessage.error(`upload failed, detail: ${err.message}`)
