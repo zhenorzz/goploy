@@ -157,7 +157,7 @@ const tableData = ref<ProjectServerList['datagram']['list']>([])
 const form = ref<InstanceType<typeof ElForm>>()
 const formProps = ref({ disabled: false })
 const formData = ref({ projectId: 0, serverIds: [] })
-const formRules = {
+const formRules = <InstanceType<typeof ElForm>['rules']>{
   serverIds: [
     {
       type: 'array',
@@ -203,7 +203,7 @@ function add() {
   })
 }
 
-function remove(data: ProjectServerData['datagram']) {
+function remove(data: ProjectServerData) {
   ElMessageBox.confirm(t('projectPage.removeServerTips'), t('tips'), {
     confirmButtonText: t('confirm'),
     cancelButtonText: t('cancel'),

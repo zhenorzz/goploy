@@ -129,7 +129,7 @@ const dialogUserVisible = ref(false)
 const tableLoading = ref(false)
 const tableData = ref<NamespaceList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 17, total: 0 })
-const selectedItem = ref<NamespaceData['datagram']>()
+const selectedItem = ref<NamespaceData>()
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = { id: 0, name: '' }
 const formData = ref(tempFormData)
@@ -168,12 +168,12 @@ function handleAdd() {
   dialogVisible.value = true
 }
 
-function handleEdit(data: NamespaceData['datagram']) {
+function handleEdit(data: NamespaceData) {
   formData.value = Object.assign({}, data)
   dialogVisible.value = true
 }
 
-function handleUser(data: NamespaceData['datagram']) {
+function handleUser(data: NamespaceData) {
   selectedItem.value = data
   dialogUserVisible.value = true
 }

@@ -9,7 +9,6 @@
     <el-dropdown
       style="float: left; line-height: 48px; cursor: pointer"
       trigger="click"
-      size="medium"
       placement="bottom-start"
       @visible-change="handleNamespaceVisible"
       @command="handleNamespaceChange"
@@ -37,11 +36,10 @@
       <div class="international">
         <el-dropdown
           trigger="click"
-          size="medium"
           placement="bottom"
           @command="handleSetLanguage"
         >
-          <div>
+          <div style="height: 100%">
             <svg-icon class-name="international-icon" icon-class="language" />
           </div>
           <template #dropdown>
@@ -61,7 +59,7 @@
       </div>
       <div class="user-menu">
         <div class="user-container">
-          <el-dropdown trigger="click" size="medium">
+          <el-dropdown trigger="click">
             <div class="user-wrapper">
               <el-row type="flex">
                 <el-row>
@@ -216,10 +214,12 @@ async function logout() {
 
   .international {
     display: inline-block;
-    line-height: 50px;
     cursor: pointer;
     &-icon {
       font-size: 18px;
+    }
+    .el-dropdown {
+      line-height: 50px;
     }
   }
   .user-menu {

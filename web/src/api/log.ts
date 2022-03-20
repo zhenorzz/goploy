@@ -1,15 +1,50 @@
 import { Request, Pagination, Total } from './types'
 
-export class LoginLogData {
-  public declare datagram: {
-    id: number
-    account: string
-    remoteAddr: string
-    userAgent: string
-    referer: string
-    reason: string
-    loginTime: string
-  }
+export interface LoginLogData {
+  id: number
+  account: string
+  remoteAddr: string
+  userAgent: string
+  referer: string
+  reason: string
+  loginTime: string
+}
+
+export interface SftpLogData {
+  id: number
+  namespaceId: number
+  userId: number
+  username: string
+  serverId: number
+  serverName: string
+  remoteAddr: string
+  userAgent: string
+  type: string
+  path: string
+  reason: string
+}
+
+export interface TerminalLogData {
+  id: number
+  namespaceId: number
+  userId: number
+  username: string
+  serverId: number
+  serverName: string
+  remoteAddr: string
+  userAgent: string
+  startTime: string
+  endTime: string
+}
+
+export interface PublishLogData {
+  token: string
+  publisherId: number
+  publisherName: string
+  projectId: number
+  projectName: string
+  state: number
+  insertTime: string
 }
 
 export class LoginLogList extends Request {
@@ -23,7 +58,7 @@ export class LoginLogList extends Request {
   }
 
   public declare datagram: {
-    list: LoginLogData['datagram'][]
+    list: LoginLogData[]
   }
   constructor(param: LoginLogList['param'], pagination: Pagination) {
     super()
@@ -48,22 +83,6 @@ export class LoginLogTotal extends Request {
   }
 }
 
-export class SftpLogData {
-  public declare datagram: {
-    id: number
-    namespaceId: number
-    userId: number
-    username: string
-    serverId: number
-    serverName: string
-    remoteAddr: string
-    userAgent: string
-    type: string
-    path: string
-    reason: string
-  }
-}
-
 export class SftpLogList extends Request {
   readonly url = '/log/getSftpLogList'
   readonly method = 'get'
@@ -76,7 +95,7 @@ export class SftpLogList extends Request {
   }
 
   public declare datagram: {
-    list: SftpLogData['datagram'][]
+    list: SftpLogData[]
   }
   constructor(param: SftpLogList['param'], pagination: Pagination) {
     super()
@@ -102,21 +121,6 @@ export class SftpLogTotal extends Request {
   }
 }
 
-export class TerminalLogData {
-  public declare datagram: {
-    id: number
-    namespaceId: number
-    userId: number
-    username: string
-    serverId: number
-    serverName: string
-    remoteAddr: string
-    userAgent: string
-    startTime: string
-    endTime: string
-  }
-}
-
 export class TerminalLogList extends Request {
   readonly url = '/log/getTerminalLogList'
   readonly method = 'get'
@@ -129,7 +133,7 @@ export class TerminalLogList extends Request {
   }
 
   public declare datagram: {
-    list: TerminalLogData['datagram'][]
+    list: TerminalLogData[]
   }
   constructor(param: TerminalLogList['param'], pagination: Pagination) {
     super()
@@ -155,18 +159,6 @@ export class TerminalLogTotal extends Request {
   }
 }
 
-export class PublishLogData {
-  public declare datagram: {
-    token: string
-    publisherId: number
-    publisherName: string
-    projectId: number
-    projectName: string
-    state: number
-    insertTime: string
-  }
-}
-
 export class PublishLogList extends Request {
   readonly url = '/log/getPublishLogList'
   readonly method = 'get'
@@ -179,7 +171,7 @@ export class PublishLogList extends Request {
   }
 
   public declare datagram: {
-    list: PublishLogData['datagram'][]
+    list: PublishLogData[]
   }
   constructor(param: PublishLogList['param'], pagination: Pagination) {
     super()

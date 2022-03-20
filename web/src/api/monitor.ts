@@ -1,22 +1,20 @@
 import { Request, Pagination, ID, Total } from './types'
 
-export class MonitorData {
-  public declare datagram: {
-    id: number
-    namespaceId: number
-    name: string
-    url: string
-    second: number
-    times: number
-    notifyType: number
-    notifyTarget: string
-    notifyTimes: number
-    description: string
-    errorContent: string
-    state: number
-    insertTime: string
-    updateTime: string
-  }
+export interface MonitorData {
+  id: number
+  namespaceId: number
+  name: string
+  url: string
+  second: number
+  times: number
+  notifyType: number
+  notifyTarget: string
+  notifyTimes: number
+  description: string
+  errorContent: string
+  state: number
+  insertTime: string
+  updateTime: string
 }
 
 export class MonitorList extends Request {
@@ -25,7 +23,7 @@ export class MonitorList extends Request {
   public pagination: Pagination
 
   public declare datagram: {
-    list: MonitorData['datagram'][]
+    list: MonitorData[]
   }
   constructor(pagination: Pagination) {
     super()

@@ -200,7 +200,7 @@ const props = defineProps({
     default: false,
   },
   projectRow: {
-    type: Object as PropType<ProjectData['datagram']>,
+    type: Object as PropType<ProjectData>,
     required: true,
   },
 })
@@ -266,10 +266,7 @@ const commandRes = ref<ManageProcess['datagram']>({
   stderr: '',
 })
 const commandLoading = ref(false)
-const handleProcessCmd = (
-  data: ProjectServerData['datagram'],
-  command: string
-) => {
+const handleProcessCmd = (data: ProjectServerData, command: string) => {
   ElMessageBox.confirm(t('deployPage.execTips', { command }), t('tips'), {
     confirmButtonText: t('confirm'),
     cancelButtonText: t('cancel'),
@@ -322,7 +319,7 @@ function handleAdd() {
   processVisible.value = true
   formData.value.id = 0
 }
-function handleEdit(data: ProjectProcessData['datagram']) {
+function handleEdit(data: ProjectProcessData) {
   processVisible.value = true
   formData.value.id = data.id
   formData.value.name = data.name

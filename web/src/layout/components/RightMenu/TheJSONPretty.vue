@@ -7,13 +7,12 @@
       align="middle"
     >
       <el-row>
-        <el-button type="text" size="medium" @click="switchJSONView">
+        <el-button type="text" @click="switchJSONView">
           <svg-icon icon-class="switch" /> JSON Pretty
         </el-button>
         <el-button
           v-show="json.view === 'pretty'"
           type="text"
-          size="medium"
           @click="expandAll"
         >
           {{ $t('JSONPage.expandAll') }}
@@ -21,7 +20,6 @@
         <el-button
           v-show="json.view === 'pretty'"
           type="text"
-          size="medium"
           @click="collapseAll"
         >
           {{ $t('JSONPage.collapseAll') }}
@@ -29,7 +27,6 @@
         <el-button
           v-show="json.view === 'pretty'"
           type="text"
-          size="medium"
           @click="unmarkAll"
         >
           {{ $t('JSONPage.unmarkAll') }}
@@ -48,14 +45,12 @@
     </el-row>
     <el-input
       v-show="json.view === 'raw'"
-      ref="jsonStringInput"
       v-model="json.input"
       style="width: 100%"
       :autosize="{ minRows: 25, maxRows: 25 }"
       type="textarea"
       class="json-string-input"
       placeholder="JSON string"
-      contenteditable="true"
       @input="handleInput"
       @paste="onPaste"
     />

@@ -187,7 +187,7 @@
               placeholder="/root/.ssh/id_rsa"
             />
             <el-button
-              :icon="'el-icon-copy-document'"
+              icon="el-icon-copy-document"
               type="success"
               :loading="formProps.copyPubLoading"
               :disabled="formData.path === ''"
@@ -326,7 +326,7 @@ const formProps = ref({
   copyPubLoading: false,
   disabled: false,
 })
-const formRules = {
+const formRules = <InstanceType<typeof ElForm>['rules']>{
   namespaceId: [
     { required: true, message: 'Namespace required', trigger: 'blur' },
   ],
@@ -407,7 +407,7 @@ function handlePageChange(val = 1) {
   getList()
 }
 
-function handleSelectionChange(value: ServerData['datagram'][]) {
+function handleSelectionChange(value: ServerData[]) {
   selectedItems.value = value
 }
 
@@ -438,18 +438,18 @@ function handleAdd() {
   dialogVisible.value = true
 }
 
-function handleEdit(data: ServerData['datagram']) {
+function handleEdit(data: ServerData) {
   formData.value = Object.assign({}, data)
   dialogVisible.value = true
 }
 
-function handleCopy(data: ServerData['datagram']) {
+function handleCopy(data: ServerData) {
   formData.value = Object.assign({}, data)
   formData.value.id = 0
   dialogVisible.value = true
 }
 
-function handleMonitor(data: ServerData['datagram']) {
+function handleMonitor(data: ServerData) {
   router.push({ path: '/server/agent', query: { serverId: data.id } })
 }
 

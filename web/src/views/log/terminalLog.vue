@@ -119,7 +119,7 @@ function handlePageChange(val = 1) {
   pagination.value.page = val
   getList()
 }
-function handleRecord(data: TerminalLogData['datagram']) {
+function handleRecord(data: TerminalLogData) {
   recordViewer.value = true
   const castUrl = `${location.origin}${
     import.meta.env.VITE_APP_BASE_API

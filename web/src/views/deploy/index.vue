@@ -74,7 +74,6 @@
       >
         <template #default="scope">
           <RepoURL
-            style="font-size: 12px"
             :url="scope.row['url']"
             :suffix="'/tree/' + scope.row['branch'].split('/').pop()"
             :text="scope.row.branch"
@@ -95,7 +94,6 @@
             placement="top"
           >
             <RepoURL
-              style="font-size: 12px"
               :url="scope.row['url']"
               :suffix="'/commit/' + scope.row['commit']"
               :text="
@@ -367,6 +365,7 @@ import TheFileCompareDialog from './TheFileCompareDialog.vue'
 import TheFileSyncDialog from './TheFileSyncDialog.vue'
 import getTableHeight from '@/composables/tableHeight'
 import type { ElForm } from 'element-plus'
+import type { Sort } from 'element-plus/es/components/table/src/table/defaults'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { computed, watch, h, ref } from 'vue'
 import { CommitData } from '@/api/repository'
@@ -385,11 +384,11 @@ const processManagerDialogVisible = ref(false)
 const reviewListDialogVisible = ref(false)
 const dialogVisible = ref(false)
 const searchProject = ref({ name: '', environment: '', autoDeploy: '' })
-const selectedItem = ref({} as ProjectData['datagram'])
+const selectedItem = ref({} as ProjectData)
 const { tableHeight } = getTableHeight()
 const tableDefaultSort = getTableSort()
 const tableloading = ref(false)
-const tableData = ref<DeployList['datagram']['list']>([])
+const tableData = ref<any[]>([])
 const pagination = ref({ page: 1, rows: 20 })
 const greyServerForm = ref<InstanceType<typeof ElForm>>()
 const greyServerFormProps = ref({
@@ -401,7 +400,7 @@ const greyServerFormData = ref({
   commit: '',
   serverIds: [],
 })
-const greyServerFormRules = {
+const greyServerFormRules = <InstanceType<typeof ElForm>['rules']>{
   serverIds: [
     {
       type: 'array',
@@ -478,7 +477,8 @@ function getList() {
   new DeployList()
     .request()
     .then((response) => {
-      tableData.value = response.data.list.map((element) => {
+      tableData.value = response.data.list.map((item) => {
+        let element: any = item
         element.progressPercentage = 0
         element.tagType = 'info'
         element.tagText = 'Not deploy'
@@ -512,7 +512,9 @@ function getList() {
     })
 }
 
-function sortChange({ prop, order }: { prop: string; order: string }) {
+function sortChange(sort: Sort) {
+  let prop = <keyof ProjectData>sort.prop
+  let order = sort.order
   setTableSort(prop, order)
   if (!prop && !order) {
     prop = 'id'
@@ -522,13 +524,10 @@ function sortChange({ prop, order }: { prop: string; order: string }) {
     prop = 'environment'
   }
   tableData.value = tableData.value.sort(
-    (row1: ProjectData['datagram'], row2: ProjectData['datagram']): number => {
-      let val1
-      let val2
-      if (order === 'ascending') {
-        val1 = row1[prop]
-        val2 = row2[prop]
-      } else if (order === 'descending') {
+    (row1: ProjectData, row2: ProjectData): number => {
+      let val1 = row1[prop]
+      let val2 = row2[prop]
+      if (order === 'descending') {
         val1 = row2[prop]
         val2 = row1[prop]
       }
@@ -552,7 +551,7 @@ function handlePageChange(page = 1) {
   pagination.value.page = page
 }
 
-function handleDetail(data: ProjectData['datagram']) {
+function handleDetail(data: ProjectData) {
   selectedItem.value = data
   dialogVisible.value = true
 }
@@ -564,7 +563,7 @@ function handleRebuilt() {
   tableData.value[projectIndex].deployState = 1
 }
 
-function handleGreyPublish(data: CommitData['datagram']) {
+function handleGreyPublish(data: CommitData) {
   new ProjectServerList({ id: selectedItem.value.id })
     .request()
     .then((response) => {
@@ -576,7 +575,7 @@ function handleGreyPublish(data: CommitData['datagram']) {
   greyServerDialogVisible.value = true
 }
 
-const commandFunc: { [K: string]: (data: ProjectData['datagram']) => void } = {
+const commandFunc: { [K: string]: (data: ProjectData) => void } = {
   handleCommitCommand,
   handleTagCommand,
   handleTaskCommand,
@@ -586,42 +585,42 @@ const commandFunc: { [K: string]: (data: ProjectData['datagram']) => void } = {
   handleReviewCommand,
 }
 
-function handleCommitCommand(data: ProjectData['datagram']) {
+function handleCommitCommand(data: ProjectData) {
   selectedItem.value = data
   commitDialogVisible.value = true
 }
 
-function handleTagCommand(data: ProjectData['datagram']) {
+function handleTagCommand(data: ProjectData) {
   selectedItem.value = data
   tagDialogVisible.value = true
 }
 
-function handleTaskCommand(data: ProjectData['datagram']) {
+function handleTaskCommand(data: ProjectData) {
   selectedItem.value = data
   taskListDialogVisible.value = true
 }
 
-function handleFileCompareCommand(data: ProjectData['datagram']) {
+function handleFileCompareCommand(data: ProjectData) {
   selectedItem.value = data
   fileCompareDialogVisible.value = true
 }
 
-function handleFileSyncCommand(data: ProjectData['datagram']) {
+function handleFileSyncCommand(data: ProjectData) {
   selectedItem.value = data
   fileSyncDialogVisible.value = true
 }
 
-function handleProcessManagerCommand(data: ProjectData['datagram']) {
+function handleProcessManagerCommand(data: ProjectData) {
   selectedItem.value = data
   processManagerDialogVisible.value = true
 }
 
-function handleReviewCommand(data: ProjectData['datagram']) {
+function handleReviewCommand(data: ProjectData) {
   selectedItem.value = data
   reviewListDialogVisible.value = true
 }
 
-function publish(data: ProjectData['datagram']) {
+function publish(data: ProjectData) {
   const id = data.id
   let color = ''
   if (data.environment === 1) {
@@ -659,7 +658,7 @@ function publish(data: ProjectData['datagram']) {
     })
 }
 
-function publishByCommit(data: CommitData['datagram']) {
+function publishByCommit(data: CommitData) {
   ElMessageBox.confirm(
     t('deployPage.publishCommitTips', { commit: data.commit }),
     t('tips'),
@@ -690,7 +689,7 @@ function publishByCommit(data: CommitData['datagram']) {
     })
 }
 
-function resetState(data: ProjectData['datagram']) {
+function resetState(data: ProjectData) {
   ElMessageBox.confirm(t('deployPage.resetStateTips'), t('tips'), {
     confirmButtonText: t('confirm'),
     cancelButtonText: t('cancel'),
@@ -758,10 +757,10 @@ function enterToBR(detail: string) {
   return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
 }
 
-function getTableSort(): { prop: string; order: string } {
+function getTableSort(): Sort {
   const sortJsonStr = localStorage.getItem('deploy-table-sort')
   if (sortJsonStr) {
-    return JSON.parse(sortJsonStr) as { prop: string; order: string }
+    return <Sort>JSON.parse(sortJsonStr)
   }
   return { prop: 'id', order: 'descending' }
 }

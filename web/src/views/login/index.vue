@@ -19,9 +19,8 @@
         <span class="svg-container">
           <svg-icon icon-class="user" />
         </span>
-        <el-input
+        <input
           v-model="loginForm.account"
-          size="medium"
           placeholder="account"
           name="account"
           type="text"
@@ -34,11 +33,10 @@
         <span class="svg-container">
           <svg-icon icon-class="password" />
         </span>
-        <el-input
+        <input
           :key="passwordType"
           v-model="loginForm.password"
           :type="passwordType"
-          size="medium"
           placeholder="password"
           name="password"
           tabindex="2"
@@ -54,7 +52,6 @@
 
       <el-button
         :loading="loading"
-        size="medium"
         type="primary"
         class="login-form-btn"
         style="width: 100%; margin-bottom: 30px"
@@ -169,32 +166,29 @@ $light_gray: #fff;
 $cursor: #2f2f2f;
 
 @supports (-webkit-mask: none) and (not (cater-color: $cursor)) {
-  .login-container .el-input input {
+  .login-container input {
     color: $cursor;
   }
 }
 
 /* reset element-ui css */
 .login-container {
-  .el-input {
-    display: inline-block;
-    height: 42px;
+  input {
     width: 85%;
+    background: $bg;
+    border: none;
+    -webkit-appearance: none;
+    padding: 12px 5px 12px 15px;
+    color: #2f2f2f;
+    height: 40px;
+    caret-color: $cursor;
 
-    input {
-      background: $bg;
-      border: 0px;
-      -webkit-appearance: none;
-      border-radius: 0px;
-      padding: 12px 5px 12px 15px;
-      color: #2f2f2f;
-      height: 40px;
-      caret-color: $cursor;
-
-      &:-webkit-autofill {
-        box-shadow: 0 0 0px 1000px $bg inset !important;
-        -webkit-text-fill-color: $cursor !important;
-      }
+    &:-webkit-autofill {
+      box-shadow: 0 0 0px 1000px $bg inset !important;
+      -webkit-text-fill-color: $cursor !important;
+    }
+    &:focus {
+      outline: none;
     }
   }
   .el-form-item__error {

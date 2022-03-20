@@ -7,43 +7,36 @@
       :text-color="variables.menuText"
       :unique-opened="false"
       :active-text-color="variables.menuActiveText"
-      :collapse-transition="false"
+      :collapse-transition="true"
       mode="vertical"
     >
       <sidebar-item
-        v-for="route in permission.routes"
-        :key="route.path"
-        :item="route"
-        :base-path="route.path"
+        v-for="item in permission.routes"
+        :key="item.path"
+        :item="item"
+        :base-path="item.path"
       />
     </el-menu>
   </el-scrollbar>
 </template>
 
-<script lang="ts">
-import { mapState } from 'vuex'
+<script lang="ts" setup>
+import { useStore } from 'vuex'
+import { useRoute } from 'vue-router'
 import SidebarItem from './SidebarItem.vue'
 import variables from '@/styles/variables.module.scss'
-import { defineComponent } from 'vue'
-export default defineComponent({
-  components: { SidebarItem },
-  computed: {
-    ...mapState(['app', 'permission']),
-    activeMenu() {
-      const route = this.$route
-      const { meta, path } = route
-      // if set path, the sidebar will highlight the path you set
-      if (meta.activeMenu) {
-        return meta.activeMenu
-      }
-      return path
-    },
-    variables() {
-      return variables
-    },
-    isCollapse() {
-      return !this.app.sidebar.opened
-    },
-  },
+import { computed } from 'vue'
+const route = useRoute()
+const store = useStore()
+const permission = computed(() => store.state['permission'])
+const app = computed(() => store.state['app'])
+const isCollapse = computed(() => !app.value.sidebar.opened)
+const activeMenu = computed(() => {
+  const { meta, path } = route
+  // if set path, the sidebar will highlight the path you set
+  if (meta.activeMenu) {
+    return <string>meta.activeMenu
+  }
+  return path
 })
 </script>

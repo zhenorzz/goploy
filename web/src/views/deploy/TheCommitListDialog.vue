@@ -95,7 +95,7 @@ const props = defineProps({
     default: false,
   },
   projectRow: {
-    type: Object as PropType<ProjectData['datagram']>,
+    type: Object as PropType<ProjectData>,
     required: true,
   },
 })

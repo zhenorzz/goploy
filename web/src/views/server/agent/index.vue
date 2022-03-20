@@ -454,7 +454,7 @@ const shortcuts = [
   },
 ]
 const datetimeRange = ref<Dayjs[]>([])
-const tableData = ref<ServerMonitorData['datagram'][]>([])
+const tableData = ref<ServerMonitorData[]>([])
 const tableLoading = ref(false)
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
@@ -507,12 +507,12 @@ function handleAdd() {
   monitorDialogVisible.value = true
 }
 
-function handleEdit(data: ServerMonitorData['datagram']) {
+function handleEdit(data: ServerMonitorData) {
   formData.value = Object.assign({}, data)
   monitorDialogVisible.value = true
 }
 
-function handleDelete(data: ServerMonitorData['datagram']) {
+function handleDelete(data: ServerMonitorData) {
   ElMessageBox.confirm(
     t('serverPage.removeMonitorTips', {
       item: data.item,

@@ -1,27 +1,23 @@
 import { Request, Pagination, ID, Total } from './types'
 
-export class NamespaceData {
-  public declare datagram: {
-    id: number
-    name: string
-    userId: number
-    role: string
-    insertTime: string
-    updateTime: string
-  }
+export interface NamespaceData {
+  id: number
+  name: string
+  userId: number
+  role: string
+  insertTime: string
+  updateTime: string
 }
 
-export class NamespaceUserData {
-  public declare datagram: {
-    id: number
-    namespaceId: number
-    namespaceName: string
-    userId: number
-    userName: string
-    role: string
-    insertTime: string
-    updateTime: string
-  }
+export interface NamespaceUserData {
+  id: number
+  namespaceId: number
+  namespaceName: string
+  userId: number
+  userName: string
+  role: string
+  insertTime: string
+  updateTime: string
 }
 
 export class NamespaceList extends Request {
@@ -31,7 +27,7 @@ export class NamespaceList extends Request {
   public pagination: Pagination
 
   public declare datagram: {
-    list: NamespaceData['datagram'][]
+    list: NamespaceData[]
   }
   constructor(pagination: Pagination) {
     super()
@@ -52,7 +48,7 @@ export class NamespaceUserOption extends Request {
   readonly method = 'get'
 
   public declare datagram: {
-    list: NamespaceUserData['datagram'][]
+    list: NamespaceUserData[]
   }
 }
 
@@ -61,7 +57,7 @@ export class NamespaceOption extends Request {
   readonly method = 'get'
 
   public declare datagram: {
-    list: NamespaceUserData['datagram'][]
+    list: NamespaceUserData[]
   }
 }
 
@@ -70,7 +66,7 @@ export class NamespaceUserList extends Request {
   readonly method = 'get'
   public param: ID
   public declare datagram: {
-    list: NamespaceUserData['datagram'][]
+    list: NamespaceUserData[]
   }
   constructor(param: NamespaceUserList['param']) {
     super()

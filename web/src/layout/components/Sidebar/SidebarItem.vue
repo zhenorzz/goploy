@@ -17,24 +17,21 @@
             :icon-class="onlyOneChild.meta.icon || item.meta.icon"
           />
           <template #title>
-            {{ $t(`route.${onlyOneChild.meta.title}`) }}
+            <span class="menu-title">
+              {{ $t(`route.${onlyOneChild.meta.title}`) }}
+            </span>
           </template>
         </el-menu-item>
       </app-link>
     </template>
 
-    <el-submenu
-      v-else
-      ref="subMenu"
-      :index="resolvePath(item.path)"
-      popper-append-to-body
-    >
+    <el-sub-menu v-else ref="subMenu" :index="resolvePath(item.path)">
       <template #title>
         <svg-icon
           v-if="item.meta && item.meta.icon"
           :icon-class="item.meta.icon"
         />
-        <span>{{ $t(`route.${item.meta.title}`) }}</span>
+        <span class="menu-title">{{ $t(`route.${item.meta.title}`) }}</span>
       </template>
       <sidebar-item
         v-for="child in item.children"
@@ -44,7 +41,7 @@
         :base-path="resolvePath(child.path)"
         class="nest-menu"
       />
-    </el-submenu>
+    </el-sub-menu>
   </div>
 </template>
 

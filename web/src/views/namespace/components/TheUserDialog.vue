@@ -233,7 +233,7 @@ function add() {
   })
 }
 
-function remove(data: NamespaceUserData['datagram']) {
+function remove(data: NamespaceUserData) {
   ElMessageBox.confirm(t('namespacePage.removeUserTips'), t('tips'), {
     confirmButtonText: t('confirm'),
     cancelButtonText: t('cancel'),

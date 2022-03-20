@@ -1,26 +1,42 @@
 import { HttpResponse, Request, Pagination, Total, ID } from './types'
 
-export class ServerData {
-  public declare datagram: {
-    id: number
-    label: string
-    name: string
-    ip: string
-    port: number
-    owner: string
-    path: string
-    password: string
-    jumpIP: string
-    jumpPort: number
-    jumpOwner: string
-    jumpPath: string
-    jumpPassword: string
-    namespaceId: number
-    description: string
-    state: number
-    insertTime: string
-    updateTime: string
-  }
+export interface ServerData {
+  id: number
+  label: string
+  name: string
+  ip: string
+  port: number
+  owner: string
+  path: string
+  password: string
+  jumpIP: string
+  jumpPort: number
+  jumpOwner: string
+  jumpPath: string
+  jumpPassword: string
+  namespaceId: number
+  description: string
+  state: number
+  insertTime: string
+  updateTime: string
+}
+
+export interface ServerMonitorData {
+  id: number
+  serverId: number
+  item: string
+  formula: string
+  operator: string
+  value: string
+  groupCycle: number
+  lastCycle: number
+  silentCycle: number
+  startTime: string
+  endTime: string
+  notifyType: number
+  notifyTarget: string
+  insertTime: string
+  updateTime: string
 }
 
 export class ServerList extends Request {
@@ -30,7 +46,7 @@ export class ServerList extends Request {
   public pagination: Pagination
 
   public declare datagram: {
-    list: ServerData['datagram'][]
+    list: ServerData[]
   }
   constructor(pagination: Pagination) {
     super()
@@ -81,7 +97,7 @@ export class ServerOption extends Request {
   readonly method = 'get'
 
   public declare datagram: {
-    list: ServerData['datagram'][]
+    list: ServerData[]
   }
   public request(): Promise<HttpResponse<this['datagram']>> {
     return super.request().then((response) => {
@@ -207,26 +223,6 @@ export class ServerReport extends Request {
   }
 }
 
-export class ServerMonitorData {
-  public declare datagram: {
-    id: number
-    serverId: number
-    item: string
-    formula: string
-    operator: string
-    value: string
-    groupCycle: number
-    lastCycle: number
-    silentCycle: number
-    startTime: string
-    endTime: string
-    notifyType: number
-    notifyTarget: string
-    insertTime: string
-    updateTime: string
-  }
-}
-
 export class ServerMonitorList extends Request {
   readonly url = '/server/getAllMonitor'
   readonly method = 'get'
@@ -236,7 +232,7 @@ export class ServerMonitorList extends Request {
   }
 
   public declare datagram: {
-    list: ServerMonitorData['datagram'][]
+    list: ServerMonitorData[]
   }
 
   constructor(param: ServerMonitorList['param']) {

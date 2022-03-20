@@ -1,11 +1,39 @@
 import { Request, Pagination, Total, ID } from './types'
 import { ProjectData } from './project'
 
+export interface PublishTraceData {
+  id: number
+  token: string
+  projectId: number
+  projectName: string
+  detail: string
+  state: number
+  publisherId: number
+  publisherName: string
+  type: number
+  ext: string
+  serverName: string
+  publishState: number
+  insertTime: string
+  updateTime: string
+}
+
+export interface PublishTraceExt {
+  branch: string
+  commit: string
+  message: string
+  author: string
+  timestamp: number
+  diff: string
+  script: string
+  command: string
+}
+
 export class DeployList extends Request {
   readonly url = '/deploy/getList'
   readonly method = 'get'
   public declare datagram: {
-    list: ProjectData['datagram'][]
+    list: ProjectData[]
   }
 }
 
@@ -20,26 +48,6 @@ export class DeployRebuild extends Request {
   constructor(param: DeployRebuild['param']) {
     super()
     this.param = param
-  }
-}
-
-export class PublishTraceData {
-  public declare datagram: {
-    id: number
-    token: string
-    projectId: number
-    projectName: string
-    detail: string
-    state: number
-    publisherId: number
-    publisherName: string
-    type: number
-    ext: string
-    commit: string
-    serverName: string
-    publishState: number
-    insertTime: string
-    updateTime: string
   }
 }
 
@@ -59,7 +67,7 @@ export class DeployPreviewList extends Request {
   public pagination: Pagination
 
   public declare datagram: {
-    list: PublishTraceData['datagram'][]
+    list: PublishTraceData[]
     pagination: Pagination & Total
   }
   constructor(param: DeployPreviewList['param'], pagination: Pagination) {
@@ -76,7 +84,7 @@ export class DeployTrace extends Request {
     lastPublishToken: string
   }
   public declare datagram: {
-    list: PublishTraceData['datagram'][]
+    list: PublishTraceData[]
   }
   constructor(param: DeployTrace['param']) {
     super()

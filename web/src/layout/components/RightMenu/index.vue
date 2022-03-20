@@ -2,82 +2,42 @@
   <div class="fab">
     <el-popover placement="left-end" trigger="click" popper-class="fab-popper">
       <div style="margin: 0 10px">
-        <el-button
-          type="text"
-          size="medium"
-          @click="showTransformDialog('time')"
-        >
+        <el-button type="text" @click="showTransformDialog('time')">
           Date Transform
         </el-button>
-        <el-button
-          type="text"
-          size="medium"
-          @click="showTransformDialog('json')"
-        >
+        <el-button type="text" @click="showTransformDialog('json')">
           JSON Pretty
         </el-button>
-        <el-button
-          type="text"
-          size="medium"
-          @click="showTransformDialog('password')"
-        >
+        <el-button type="text" @click="showTransformDialog('password')">
           Random PWD
         </el-button>
-        <el-button
-          type="text"
-          size="medium"
-          @click="showTransformDialog('unicode')"
-        >
+        <el-button type="text" @click="showTransformDialog('unicode')">
           Unicode
         </el-button>
-        <el-button
-          type="text"
-          size="medium"
-          @click="showTransformDialog('decodeURI')"
-        >
+        <el-button type="text" @click="showTransformDialog('decodeURI')">
           DecodeURI
         </el-button>
         <div>
-          <el-button
-            type="text"
-            size="medium"
-            @click="showTransformDialog('md5')"
-          >
+          <el-button type="text" @click="showTransformDialog('md5')">
             MD5
           </el-button>
         </div>
-        <el-button
-          type="text"
-          size="medium"
-          @click="showTransformDialog('cron')"
-        >
+        <el-button type="text" @click="showTransformDialog('cron')">
           Crontab
         </el-button>
-        <el-button
-          type="text"
-          size="medium"
-          @click="showTransformDialog('qrcode')"
-        >
+        <el-button type="text" @click="showTransformDialog('qrcode')">
           QRcode
         </el-button>
-        <el-button
-          type="text"
-          size="medium"
-          @click="showTransformDialog('byte')"
-        >
+        <el-button type="text" @click="showTransformDialog('byte')">
           Byte Transform
         </el-button>
-        <el-button
-          type="text"
-          size="medium"
-          @click="showTransformDialog('color')"
-        >
+        <el-button type="text" @click="showTransformDialog('color')">
           Color Transform
         </el-button>
       </div>
       <template #reference>
         <div class="fab-cell">
-          <i class="el-icon-s-cooperation fab-icon" />
+          <Suitcase class="fab-icon" />
         </div>
       </template>
     </el-popover>
@@ -92,7 +52,7 @@
         <TheJSONPretty v-model="transformType" />
         <TheRandomPWD v-model="transformType" />
         <TheUnicode v-model="transformType" />
-        <el-row v-show="transformType === 'decodeURI'">
+        <el-row v-show="transformType === 'decodeURI'" style="width: 100%">
           <el-input
             v-model="uri.escape"
             type="textarea"
@@ -147,6 +107,7 @@
 </template>
 
 <script lang="ts" setup>
+import { Suitcase } from '@element-plus/icons-vue'
 import VueQrcode from '@chenfengyuan/vue-qrcode'
 import { md5 as hashByMD5 } from '@/utils/md5'
 import TheDatetransform from './TheDatetransform.vue'
@@ -189,20 +150,17 @@ function showTransformDialog(type: string) {
   box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.18);
   text-align: center;
   &-cell {
-    display: block;
-    position: relative;
     width: 36px;
     height: 36px;
     transform: translateZ(0);
-    color: #999;
+    color: #333;
     cursor: pointer;
   }
   &-icon {
-    line-height: 36px;
-    color: #999;
+    margin-top: 8px;
     cursor: pointer;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -220,7 +178,6 @@ function showTransformDialog(type: string) {
   min-width: 120px !important;
   .el-button {
     padding: 0;
-    margin: 4px 0;
     color: #606266;
     min-height: 20px;
   }

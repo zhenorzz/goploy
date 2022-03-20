@@ -1,22 +1,20 @@
 import { Request, Pagination, ID } from './types'
 
-export class CronData {
-  public declare datagram: {
-    id: number
-    serverId: number
-    expression: string
-    command: string
-    singleMode: number
-    logLevel: number
-    description: string
-    creator: string
-    creatorId: number
-    editor: string
-    editorId: number
-    state: number
-    InsertTime: string
-    UpdateTime: string
-  }
+export interface CronData {
+  id: number
+  serverId: number
+  expression: string
+  command: string
+  singleMode: number
+  logLevel: number
+  description: string
+  creator: string
+  creatorId: number
+  editor: string
+  editorId: number
+  state: number
+  InsertTime: string
+  UpdateTime: string
 }
 
 export class CronList extends Request {
@@ -28,7 +26,7 @@ export class CronList extends Request {
   public pagination: Pagination
 
   public declare datagram: {
-    list: CronData['datagram'][]
+    list: CronData[]
   }
   constructor(param: CronList['param'], pagination: Pagination) {
     super()

@@ -15,7 +15,7 @@
         <template #append>
           <el-button
             type="primary"
-            icon="el-icon-folder-opened"
+            :icon="FolderOpened"
             @click="handleSelectPath(filePath)"
           />
         </template>
@@ -192,6 +192,7 @@
 </template>
 
 <script lang="ts" setup>
+import { FolderOpened } from '@element-plus/icons-vue'
 import { diffLines } from 'diff'
 import path from 'path-browserify'
 import { FileCompare, FileDiff } from '@/api/deploy'
@@ -205,7 +206,7 @@ const props = defineProps({
     default: false,
   },
   projectRow: {
-    type: Object as PropType<ProjectData['datagram']>,
+    type: Object as PropType<ProjectData>,
     required: true,
   },
 })

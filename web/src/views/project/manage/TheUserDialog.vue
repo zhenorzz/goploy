@@ -171,7 +171,7 @@ const tableData = ref<ProjectUserList['datagram']['list']>([])
 const form = ref<InstanceType<typeof ElForm>>()
 const formProps = ref({ disabled: false })
 const formData = ref({ projectId: 0, userIds: [] })
-const formRules = {
+const formRules = <InstanceType<typeof ElForm>['rules']>{
   userIds: [
     {
       type: 'array',
@@ -220,7 +220,7 @@ function add() {
   })
 }
 
-function remove(data: ProjectUserData['datagram']) {
+function remove(data: ProjectUserData) {
   ElMessageBox.confirm(t('namespacePage.removeUserTips'), t('tips'), {
     confirmButtonText: t('confirm'),
     cancelButtonText: t('cancel'),

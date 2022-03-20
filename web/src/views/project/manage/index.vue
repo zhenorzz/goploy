@@ -202,7 +202,7 @@
                   @change="formProps.branch = []"
                 />
                 <el-button
-                  :icon="'el-icon-view'"
+                  icon="el-icon-view"
                   type="success"
                   :loading="formProps.pinging"
                   @click="pingRepos"
@@ -720,7 +720,7 @@ const dialogServerVisible = ref(false)
 const dialogUserVisible = ref(false)
 const serverOption = ref<ServerOption['datagram']['list']>([])
 const userOption = ref<NamespaceUserOption['datagram']['list']>([])
-const selectedItem = ref({} as ProjectData['datagram'])
+const selectedItem = ref({} as ProjectData)
 const { tableHeight } = getTableHeight()
 const tableloading = ref(false)
 const tableData = ref<ProjectList['datagram']['list']>([])
@@ -876,7 +876,7 @@ function handleAdd() {
   dialogVisible.value = true
 }
 
-function handleEdit(data: ProjectData['datagram']) {
+function handleEdit(data: ProjectData) {
   formData.value = Object.assign({}, data)
   formProps.value.symlink = formData.value.symlinkPath !== ''
   formProps.value.showServers = formProps.value.showUsers = false
@@ -896,7 +896,7 @@ function handleEdit(data: ProjectData['datagram']) {
   dialogVisible.value = true
 }
 
-function handleCopy(data: ProjectData['datagram']) {
+function handleCopy(data: ProjectData) {
   handleEdit(data)
   formData.value.id = 0
   formData.value.serverIds = []
@@ -904,7 +904,7 @@ function handleCopy(data: ProjectData['datagram']) {
   formProps.value.showServers = formProps.value.showUsers = true
 }
 
-function handleRemove(data: ProjectData['datagram']) {
+function handleRemove(data: ProjectData) {
   ElMessageBox.confirm(
     t('projectPage.removeProjectTips', {
       projectName: data.name,
@@ -954,19 +954,19 @@ function handleSymlink(value: boolean) {
   }
 }
 
-function handleAutoDeploy(data: ProjectData['datagram']) {
+function handleAutoDeploy(data: ProjectData) {
   dialogAutoDeployVisible.value = true
   selectedItem.value = data
   autoDeployFormData.value.id = data.id
   autoDeployFormData.value.autoDeploy = data.autoDeploy
 }
 
-function handleServer(data: ProjectData['datagram']) {
+function handleServer(data: ProjectData) {
   selectedItem.value = data
   dialogServerVisible.value = true
 }
 
-function handleUser(data: ProjectData['datagram']) {
+function handleUser(data: ProjectData) {
   selectedItem.value = data
   dialogUserVisible.value = true
 }

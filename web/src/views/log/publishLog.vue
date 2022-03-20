@@ -239,7 +239,12 @@ export default { name: 'PublishLog' }
 </script>
 <script lang="ts" setup>
 import { PublishLogData, PublishLogList, PublishLogTotal } from '@/api/log'
-import { DeployTrace, DeployTraceDetail, PublishTraceData } from '@/api/deploy'
+import {
+  DeployTrace,
+  DeployTraceDetail,
+  PublishTraceData,
+  PublishTraceExt,
+} from '@/api/deploy'
 import { parseTime } from '@/utils'
 import getTableHeight from '@/composables/tableHeight'
 import { ref } from 'vue'
@@ -255,9 +260,9 @@ const pagination = ref({ page: 1, rows: 17, total: 0 })
 const traceLoading = ref(false)
 const traceDetail = ref({} as Record<number, string>)
 const activeRomoteTracePane = ref('')
-const publishLocalTraceList = ref<DeployTrace['datagram']['list']>([])
+const publishLocalTraceList = ref<(PublishTraceData & PublishTraceExt)[]>([])
 const publishRemoteTraceList = ref(
-  {} as Record<string, DeployTrace['datagram']['list']>
+  {} as Record<string, (PublishTraceData & PublishTraceExt)[]>
 )
 getList()
 getTotal()
@@ -288,7 +293,7 @@ function handlePageChange(val = 1) {
   pagination.value.page = val
   getList()
 }
-function handleDetail(data: PublishLogData['datagram']) {
+function handleDetail(data: PublishLogData) {
   dialogVisible.value = true
   traceLoading.value = true
   new DeployTrace({ lastPublishToken: data.token })
@@ -298,7 +303,7 @@ function handleDetail(data: PublishLogData['datagram']) {
         if (element.ext !== '') {
           Object.assign(element, JSON.parse(element.ext))
         }
-        return element
+        return <PublishTraceData & PublishTraceExt>element
       })
 
       publishLocalTraceList.value = publishTraceList.filter(
@@ -322,7 +327,7 @@ function handleDetail(data: PublishLogData['datagram']) {
     })
 }
 
-function getPublishTraceDetail(data: PublishTraceData['datagram']) {
+function getPublishTraceDetail(data: PublishTraceData) {
   traceDetail.value[data.id] = ''
   new DeployTraceDetail({ id: data.id }).request().then((response) => {
     traceDetail.value[data.id] =

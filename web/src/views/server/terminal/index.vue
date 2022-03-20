@@ -62,7 +62,6 @@
                       text-overflow: ellipsis;
                       overflow: hidden;
                     "
-                    size="medium"
                     @click="selectServer(server)"
                   >
                     <span :title="server.name + '(' + server.description + ')'">

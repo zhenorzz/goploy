@@ -345,6 +345,7 @@ import {
   DeployTrace,
   DeployTraceDetail,
   PublishTraceData,
+  PublishTraceExt,
 } from '@/api/deploy'
 import { ProjectData } from '@/api/project'
 import { NamespaceUserOption } from '@/api/namespace'
@@ -359,7 +360,7 @@ const props = defineProps({
     default: false,
   },
   projectRow: {
-    type: Object as PropType<ProjectData['datagram']>,
+    type: Object as PropType<ProjectData>,
     required: true,
   },
   onRebuilt: {
@@ -429,13 +430,13 @@ const filterParams = reactive<Record<string, any>>({
   commitDate: [],
   deployDate: [],
 })
-const gitTraceList = ref<DeployPreviewList['datagram']['list']>([])
+const gitTraceList = ref<(PublishTraceData & PublishTraceExt)[]>([])
 const pagination = reactive({ page: 1, rows: 11, total: 0 })
 const traceDetail = ref<Record<number, string>>({})
 const publishToken = ref('')
-const publishLocalTraceList = ref<DeployTrace['datagram']['list']>([])
+const publishLocalTraceList = ref<(PublishTraceData & PublishTraceExt)[]>([])
 const publishRemoteTraceList = ref<
-  Record<string, DeployTrace['datagram']['list']>
+  Record<string, (PublishTraceData & PublishTraceExt)[]>
 >({})
 const filterlength = computed(() => {
   let number = 0
@@ -485,7 +486,8 @@ const getPreviewList = (projectId: number) => {
   )
     .request()
     .then((response) => {
-      gitTraceList.value = response.data.list.map((element) => {
+      gitTraceList.value = response.data.list.map((item) => {
+        let element = <PublishTraceData & PublishTraceExt>item
         if (element.ext !== '') {
           Object.assign(element, JSON.parse(element.ext))
           element.commit = element['commit']
@@ -529,7 +531,7 @@ const getPublishTrace = (publishToken: string) => {
         if (element.ext !== '') {
           Object.assign(element, JSON.parse(element.ext))
         }
-        return element
+        return <PublishTraceData & PublishTraceExt>element
       })
 
       publishLocalTraceList.value = publishTraceList.filter(
@@ -558,7 +560,7 @@ const handleTraceChange = (lastPublishToken: string) => {
   getPublishTrace(publishToken.value)
 }
 
-const getPublishTraceDetail = (data: PublishTraceData['datagram']) => {
+const getPublishTraceDetail = (data: PublishTraceData) => {
   traceDetail.value[data.id] = ''
   new DeployTraceDetail({ id: data.id }).request().then((response) => {
     traceDetail.value[data.id] =
@@ -568,7 +570,7 @@ const getPublishTraceDetail = (data: PublishTraceData['datagram']) => {
   })
 }
 
-const rebuild = (data: PublishTraceData['datagram']) => {
+const rebuild = (data: PublishTraceData & PublishTraceExt) => {
   ElMessageBox.confirm(
     t('deployPage.publishCommitTips', { commit: data.commit }),
     t('tips'),
@@ -610,8 +612,7 @@ const rebuild = (data: PublishTraceData['datagram']) => {
   &-commit {
     margin-right: 5px;
     padding-right: 8px;
-    width: 246px;
-    line-height: 12px;
+    width: 243px;
   }
   &-commitID {
     display: inline-block;
@@ -642,7 +643,7 @@ const rebuild = (data: PublishTraceData['datagram']) => {
 
 .project-detail {
   padding-left: 5px;
-  height: 470px;
+  height: 490px;
   overflow-y: auto;
   @include scrollBar();
 }

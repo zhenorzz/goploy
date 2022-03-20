@@ -335,12 +335,12 @@ function handleAdd() {
   dialogVisible.value = true
 }
 
-function handleEdit(data: MonitorData['datagram']) {
+function handleEdit(data: MonitorData) {
   formData.value = Object.assign({}, data)
   dialogVisible.value = true
 }
 
-function handleToggle(data: MonitorData['datagram']) {
+function handleToggle(data: MonitorData) {
   if (data.state === 1) {
     ElMessageBox.confirm(
       t('monitorPage.toggleStateTips', {
@@ -370,7 +370,7 @@ function handleToggle(data: MonitorData['datagram']) {
   }
 }
 
-function handleRemove(data: MonitorData['datagram']) {
+function handleRemove(data: MonitorData) {
   ElMessageBox.confirm(
     t('monitorPage.removeMontiorTips', {
       monitorName: data.name,

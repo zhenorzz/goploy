@@ -247,13 +247,13 @@ function handleAdd() {
   dialogVisible.value = true
 }
 
-function handleEdit(data: UserData['datagram']) {
+function handleEdit(data: UserData) {
   restoreFormData()
   formData.value = Object.assign(formData.value, data)
   dialogVisible.value = true
 }
 
-function handleRemove(data: UserData['datagram']) {
+function handleRemove(data: UserData) {
   ElMessageBox.confirm(
     t('memberPage.removeUserTips', { name: data.name }),
     t('tips'),

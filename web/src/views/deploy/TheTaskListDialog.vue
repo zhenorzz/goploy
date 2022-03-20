@@ -5,11 +5,7 @@
     :fullscreen="$store.state.app.device === 'mobile'"
   >
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button
-        type="primary"
-        icon="el-icon-plus"
-        @click="handleAddProjectTask"
-      />
+      <el-button type="primary" :icon="Plus" @click="handleAddProjectTask" />
     </el-row>
     <el-table
       v-loading="tableLoading"
@@ -154,6 +150,7 @@
   </TheCommitListDialog>
 </template>
 <script lang="ts" setup>
+import { Plus } from '@element-plus/icons-vue'
 import RepoURL from '@/components/RepoURL/index.vue'
 import {
   ProjectData,
@@ -178,7 +175,7 @@ const props = defineProps({
     default: false,
   },
   projectRow: {
-    type: Object as PropType<ProjectData['datagram']>,
+    type: Object as PropType<ProjectData>,
     required: true,
   },
 })
@@ -224,7 +221,7 @@ const handleAddProjectTask = () => {
   commitDialogVisible.value = true
 }
 
-function submitTask(data: ProjectTaskData['datagram']) {
+function submitTask(data: ProjectTaskData) {
   const date = dayjs(data.date).format('YYYY-MM-DD HH:mm:ss')
   new ProjectTaskAdd({ ...data, date })
     .request()
@@ -238,7 +235,7 @@ function submitTask(data: ProjectTaskData['datagram']) {
     })
 }
 
-function removeProjectTask(data: ProjectTaskData['datagram']) {
+function removeProjectTask(data: ProjectTaskData) {
   ElMessageBox.confirm(
     t('deployPage.removeProjectTaskTips', {
       projectName: props.projectRow.name,

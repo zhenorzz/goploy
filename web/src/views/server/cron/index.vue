@@ -261,12 +261,12 @@ function handleAdd() {
   dialogVisible.value = true
 }
 
-function handleEdit(data: CronData['datagram']) {
+function handleEdit(data: CronData) {
   formData.value = data
   dialogVisible.value = true
 }
 
-function handleRemove(data: CronData['datagram']) {
+function handleRemove(data: CronData) {
   ElMessageBox.confirm(t('serverPage.removeUserTips'), t('tips'), {
     confirmButtonText: t('confirm'),
     cancelButtonText: t('cancel'),

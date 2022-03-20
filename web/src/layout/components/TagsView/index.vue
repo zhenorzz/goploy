@@ -17,7 +17,7 @@
         @contextmenu.prevent="openMenu(tag, $event)"
       >
         {{ $t('route.' + tag.title) }}
-        <span
+        <Close
           v-if="!isAffix(tag)"
           class="el-icon-close"
           @click.prevent.stop="closeSelectedTag(tag)"
@@ -42,6 +42,7 @@
 </template>
 
 <script lang="ts">
+import { Close } from '@element-plus/icons-vue'
 import ScrollPane from './ScrollPane.vue'
 import path from 'path-browserify'
 import { defineComponent } from 'vue'
@@ -50,7 +51,7 @@ import { RootState } from '@/store/types'
 import { RouteRecordRaw } from 'vue-router'
 
 export default defineComponent({
-  components: { ScrollPane },
+  components: { ScrollPane, Close },
   data() {
     return {
       visible: false,
@@ -253,6 +254,23 @@ export default defineComponent({
       &:last-of-type {
         margin-right: 15px;
       }
+      .el-icon-close {
+        width: 12px;
+        height: 12px;
+        vertical-align: -1px;
+        border-radius: 50%;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
+        transform-origin: 100% 50%;
+        &:before {
+          transform: scale(0.6);
+          display: inline-block;
+        }
+        &:hover {
+          background-color: #b4bccc;
+          color: #fff;
+        }
+      }
       &.active {
         background-color: #42b983;
         color: #fff;
@@ -288,32 +306,6 @@ export default defineComponent({
       cursor: pointer;
       &:hover {
         background: #eee;
-      }
-    }
-  }
-}
-</style>
-
-<style lang="scss">
-//reset element css of el-icon-close
-.tags-view-wrapper {
-  .tags-view-item {
-    .el-icon-close {
-      width: 16px;
-      height: 16px;
-      vertical-align: 2px;
-      border-radius: 50%;
-      text-align: center;
-      transition: all 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
-      transform-origin: 100% 50%;
-      &:before {
-        transform: scale(0.6);
-        display: inline-block;
-        vertical-align: -3px;
-      }
-      &:hover {
-        background-color: #b4bccc;
-        color: #fff;
       }
     }
   }
