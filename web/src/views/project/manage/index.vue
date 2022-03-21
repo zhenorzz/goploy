@@ -10,11 +10,11 @@
         <el-button
           :loading="tableloading"
           type="primary"
-          icon="el-icon-search"
+          :icon="Search"
           @click="searchProjectList"
         />
       </el-row>
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
+      <el-button type="primary" :icon="Plus" @click="handleAdd" />
     </el-row>
     <el-table
       :key="tableHeight"
@@ -28,23 +28,14 @@
     >
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="name" :label="$t('name')" width="180" />
-      <el-table-column prop="url" :label="$t('projectURL')" width="330">
+      <el-table-column :label="$t('projectURL')" width="330">
         <template #default="scope">
-          <RepoURL
-            style="font-size: 12px"
-            :url="scope.row.url"
-            :text="hideURLPwd(scope.row.url)"
-          >
+          <RepoURL :url="scope.row.url" :text="hideURLPwd(scope.row.url)">
           </RepoURL>
         </template>
       </el-table-column>
       <el-table-column prop="path" :label="$t('projectPath')" min-width="200" />
-      <el-table-column
-        prop="environment"
-        width="120"
-        :label="$t('environment')"
-        align="center"
-      >
+      <el-table-column width="120" :label="$t('environment')" align="center">
         <template #default="scope">
           {{ $t(`envOption[${scope.row.environment || 0}]`) }}
         </template>
@@ -62,7 +53,7 @@
         </template>
       </el-table-column>
       <el-table-column
-        width="95"
+        width="100"
         :label="$t('autoDeploy')"
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
@@ -71,7 +62,7 @@
           <span v-else>webhook</span>
           <el-button
             type="text"
-            icon="el-icon-edit"
+            :icon="Edit"
             @click="handleAutoDeploy(scope.row)"
           />
         </template>
@@ -105,14 +96,14 @@
       <el-table-column
         prop="operation"
         :label="$t('op')"
-        width="180"
+        width="190"
         align="center"
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <el-button
             type="primary"
-            icon="el-icon-edit"
+            :icon="Edit"
             @click="handleEdit(scope.row)"
           />
           <el-tooltip
@@ -123,13 +114,13 @@
           >
             <el-button
               type="info"
-              icon="el-icon-document-copy"
+              :icon="DocumentCopy"
               @click="handleCopy(scope.row)"
             />
           </el-tooltip>
           <el-button
             type="danger"
-            icon="el-icon-delete"
+            :icon="Delete"
             @click="handleRemove(scope.row)"
           />
         </template>
@@ -164,7 +155,12 @@
         "
       >
         <el-tabs v-model="formProps.tab">
-          <el-tab-pane :label="$t('baseSetting')" name="base">
+          <el-tab-pane name="base">
+            <template #label>
+              <span style="vertical-align: middle">
+                {{ $t('baseSetting') }}
+              </span>
+            </template>
             <el-form-item :label="$t('name')" prop="name">
               <el-input
                 v-model.trim="formData.name"
@@ -174,7 +170,9 @@
             </el-form-item>
             <el-form-item prop="url">
               <template #label>
-                {{ $t('projectURL') }}
+                <span style="vertical-align: middle; padding-right: 4px">
+                  {{ $t('projectURL') }}
+                </span>
                 <el-tooltip placement="top">
                   <template #content>
                     ssh://[username:password@]host.xz[:port]/path/to/repo.git/<br />
@@ -184,10 +182,12 @@
                     ftp[s]://[username:password@]host.xz[:port]/path/to/repo<br />
                     sftp://host.xz[:port]/path/to/repo --user= --keyFile=
                   </template>
-                  <i class="el-icon-question" />
+                  <el-icon style="vertical-align: middle" :size="16">
+                    <question-filled />
+                  </el-icon>
                 </el-tooltip>
               </template>
-              <el-row type="flex">
+              <el-row type="flex" style="width: 100%">
                 <el-select v-model="formData.repoType" style="width: 65px">
                   <el-option label="git" value="git" />
                   <el-option label="svn" value="svn" />
@@ -202,7 +202,7 @@
                   @change="formProps.branch = []"
                 />
                 <el-button
-                  icon="el-icon-view"
+                  :icon="View"
                   type="success"
                   :loading="formProps.pinging"
                   @click="pingRepos"
@@ -228,7 +228,7 @@
               </el-select>
             </el-form-item>
             <el-form-item :label="$t('branch')" prop="branch">
-              <el-row type="flex">
+              <el-row type="flex" style="width: 100%">
                 <el-select
                   v-model="formData.branch"
                   filterable
@@ -244,7 +244,7 @@
                   />
                 </el-select>
                 <el-button
-                  icon="el-icon-search"
+                  :icon="Search"
                   type="success"
                   :loading="formProps.lsBranchLoading"
                   @click="getRemoteBranchList"
@@ -260,7 +260,7 @@
                   :href="$t('projectPage.rsyncDoc')"
                   target="_blank"
                 >
-                  Rsync <i class="el-icon-question" /><br />
+                  Rsync<br />
                   [OPTION...]
                 </el-link>
               </template>
@@ -280,7 +280,6 @@
                   target="_blank"
                 >
                   {{ $t('projectPage.deployNotice') }}
-                  <i class="el-icon-question" />
                 </el-link>
               </template>
               <el-row type="flex">
@@ -340,7 +339,12 @@
               </el-select>
             </el-form-item>
           </el-tab-pane>
-          <el-tab-pane :label="$t('projectPage.publishReview')" name="review">
+          <el-tab-pane name="review">
+            <template #label>
+              <span style="vertical-align: middle">
+                {{ $t('projectPage.publishReview') }}
+              </span>
+            </template>
             <el-form-item label="" label-width="10px">
               <el-radio-group v-model="formData.review">
                 <el-radio :label="0">{{ $t('close') }}</el-radio>
@@ -381,7 +385,12 @@
               {{ $t('projectPage.reviewFooterTips') }}
             </el-row>
           </el-tab-pane>
-          <el-tab-pane :label="$t('projectPage.symlinkLabel')" name="symlink">
+          <el-tab-pane name="symlink">
+            <template #label>
+              <span style="vertical-align: middle">
+                {{ $t('projectPage.symlinkLabel') }}
+              </span>
+            </template>
             <el-row style="margin: 0 10px 18px; white-space: pre-line">
               {{ $t('projectPage.symlinkHeaderTips') }}
             </el-row>
@@ -429,18 +438,22 @@
           </el-tab-pane>
           <el-tab-pane name="afterPullScript">
             <template #label>
-              {{ $t('projectPage.afterPullScriptLabel') }}
+              <span style="vertical-align: middle; padding-right: 4px">
+                {{ $t('projectPage.afterPullScriptLabel') }}
+              </span>
               <el-tooltip class="item" effect="dark" placement="bottom">
                 <template #content>
                   <div style="white-space: pre-line">
                     {{ $t('projectPage.afterPullScriptTips') }}
                   </div>
                 </template>
-                <i class="el-icon-question" style="padding-left: 3px" />
+                <el-icon style="vertical-align: middle" :size="16">
+                  <question-filled />
+                </el-icon>
               </el-tooltip>
             </template>
             <el-form-item prop="afterPullScript" label-width="0px">
-              <el-row type="flex">
+              <el-row type="flex" style="width: 100%">
                 <el-select
                   v-model="formData.afterPullScriptMode"
                   :placeholder="
@@ -513,25 +526,29 @@
                 v-model:value="formData.afterPullScript"
                 :lang="getScriptLang(formData.afterPullScriptMode)"
                 theme="github"
-                style="height: 400px"
+                style="height: 400px; width: 100%"
                 placeholder="Already switched to project directory..."
               />
             </el-form-item>
           </el-tab-pane>
           <el-tab-pane name="afterDeployScript">
             <template #label>
-              {{ $t('projectPage.afterDeployScriptLabel') }}
+              <span style="vertical-align: middle; padding-right: 4px">
+                {{ $t('projectPage.afterDeployScriptLabel') }}
+              </span>
               <el-tooltip class="item" effect="dark" placement="bottom">
                 <template #content>
                   <div style="white-space: pre-line">
                     {{ $t('projectPage.afterDeployScriptTips') }}
                   </div>
                 </template>
-                <i class="el-icon-question" style="padding-left: 3px" />
+                <el-icon style="vertical-align: middle" :size="16">
+                  <question-filled />
+                </el-icon>
               </el-tooltip>
             </template>
             <el-form-item prop="afterDeployScript" label-width="0px">
-              <el-row type="flex">
+              <el-row type="flex" style="width: 100%">
                 <el-select
                   v-model="formData.afterDeployScriptMode"
                   :placeholder="
@@ -594,7 +611,7 @@
                 v-model:value="formData.afterDeployScript"
                 :lang="getScriptLang(formData.afterDeployScriptMode)"
                 theme="github"
-                style="height: 400px"
+                style="height: 400px; width: 100%"
               />
             </el-form-item>
           </el-tab-pane>
@@ -673,6 +690,15 @@
 export default { name: 'ProjectIndex' }
 </script>
 <script lang="ts" setup>
+import {
+  Search,
+  View,
+  Plus,
+  Edit,
+  QuestionFilled,
+  DocumentCopy,
+  Delete,
+} from '@element-plus/icons-vue'
 import { VAceEditor } from 'vue3-ace-editor'
 import 'ace-builds/src-noconflict/mode-sh'
 import 'ace-builds/src-noconflict/mode-python'
@@ -790,7 +816,7 @@ const tempFormData = {
   afterDeployScriptMode: '',
   afterDeployScript: '',
   environment: 1,
-  branch: 'master',
+  branch: '',
   rsyncOption: '-rtv --exclude .git',
   serverIds: [] as number[],
   userIds: [] as number[],

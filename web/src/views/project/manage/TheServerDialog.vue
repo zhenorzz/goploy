@@ -6,7 +6,7 @@
     :fullscreen="$store.state.app.device === 'mobile'"
   >
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
+      <el-button type="primary" :icon="Plus" @click="handleAdd" />
       <el-row
         v-if="showAddView"
         type="flex"
@@ -19,7 +19,12 @@
             label-width="120px"
             prop="serverIds"
           >
-            <el-select v-model="formData.serverIds" multiple>
+            <el-select
+              v-model="formData.serverIds"
+              multiple
+              clearable
+              filterable
+            >
               <el-option
                 v-for="(item, index) in serverOption"
                 :key="index"
@@ -28,7 +33,7 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item style="margin-right: 0px; margin-bottom: 5px">
+          <el-form-item style="margin-right: 0px">
             <el-button
               type="primary"
               :disabled="formProps.disabled"
@@ -82,11 +87,7 @@
         align="center"
       >
         <template #default="scope">
-          <el-button
-            type="danger"
-            icon="el-icon-delete"
-            @click="remove(scope.row)"
-          />
+          <el-button type="danger" :icon="Delete" @click="remove(scope.row)" />
         </template>
       </el-table-column>
     </el-table>
@@ -98,6 +99,7 @@
   </el-dialog>
 </template>
 <script lang="ts" setup>
+import { Plus, Delete } from '@element-plus/icons-vue'
 import {
   ProjectServerData,
   ProjectServerList,
