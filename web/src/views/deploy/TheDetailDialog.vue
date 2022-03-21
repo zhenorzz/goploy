@@ -324,7 +324,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Check, Close, Search, Refresh } from '@element-plus/icons-vue'
+import { Search, Refresh } from '@element-plus/icons-vue'
 import RepoURL from '@/components/RepoURL/index.vue'
 import {
   DeployPreviewList,
