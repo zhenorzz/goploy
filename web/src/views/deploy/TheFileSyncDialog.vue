@@ -14,7 +14,7 @@
       style="margin: 10px 0"
     >
       <span>{{ $t('projectPage.projectFileTips') }}</span>
-      <el-button type="primary" icon="el-icon-plus" @click="handleAppendFile" />
+      <el-button type="primary" :icon="Plus" @click="handleAppendFile" />
     </el-row>
     <el-form :model="formData" class="file-form" @submit.prevent>
       <template v-if="formProps.show === 'file-list'">
@@ -24,7 +24,7 @@
           label-width="0"
           prop="directory"
         >
-          <el-row type="flex" align="middle">
+          <el-row type="flex" align="middle" style="width: 100%">
             <el-input
               v-model.trim="file.filename"
               autocomplete="off"
@@ -35,22 +35,27 @@
             >
               <template #prepend>{{ formProps.projectPath }}</template>
               <template v-if="file.state === 'success'" #suffix>
-                <i
-                  class="el-input__icon el-icon-check"
-                  style="color: #67c23a; font-size: 16px; font-weight: 900"
-                />
+                <el-icon
+                  class="el-input__icon"
+                  color="#67c23a"
+                  style="font-size: 16px"
+                >
+                  <Check />
+                </el-icon>
               </template>
               <template v-else-if="file.state === 'loading'" #suffix>
-                <i
-                  class="el-input__icon el-icon-loading"
-                  style="font-size: 14px; font-weight: 900"
-                />
+                <el-icon class="el-input__icon is-loading">
+                  <Loading />
+                </el-icon>
               </template>
               <template v-else #suffix>
-                <i
-                  class="el-input__icon el-icon-close"
-                  style="color: #f56c6c; font-size: 16px; font-weight: 900"
-                />
+                <el-icon
+                  class="el-input__icon"
+                  color="#f56c6c"
+                  style="font-size: 16px"
+                >
+                  <Close />
+                </el-icon>
               </template>
             </el-input>
             <el-upload
@@ -65,20 +70,16 @@
               <el-button
                 :disabled="!validateFilename(file, index)"
                 type="text"
-                icon="el-icon-upload"
+                :icon="Upload"
               />
             </el-upload>
             <el-button
               :disabled="!validateFilename(file, index)"
               type="text"
-              icon="el-icon-edit"
+              :icon="Edit"
               @click="getProjectFileContent(file, index)"
             />
-            <el-button
-              type="text"
-              icon="el-icon-delete"
-              @click="removeFile(index)"
-            />
+            <el-button type="text" :icon="Delete" @click="removeFile(index)" />
           </el-row>
         </el-form-item>
       </template>
@@ -92,7 +93,7 @@
           v-model:value="formData.content"
           lang="sh"
           theme="github"
-          style="height: 500px"
+          style="height: 500px; width: 100%"
         />
       </el-form-item>
     </el-form>
@@ -113,6 +114,15 @@
 
 <script lang="ts" setup>
 import {
+  Upload,
+  Edit,
+  Delete,
+  Check,
+  Loading,
+  Close,
+  Plus,
+} from '@element-plus/icons-vue'
+import {
   ProjectFileList,
   ProjectFileContent,
   ProjectFileAdd,
@@ -120,6 +130,11 @@ import {
   ProjectFileRemove,
 } from '@/api/project'
 import { VAceEditor } from 'vue3-ace-editor'
+import 'ace-builds/src-noconflict/mode-sh'
+import 'ace-builds/src-noconflict/mode-python'
+import 'ace-builds/src-noconflict/mode-php'
+import 'ace-builds/src-noconflict/mode-batchfile'
+import 'ace-builds/src-noconflict/theme-github'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref, computed, watch } from 'vue'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
@@ -322,9 +337,6 @@ function removeFile(index: number) {
 .file-dialog {
   .el-dialog__body {
     padding-top: 20px;
-  }
-  .el-icon-upload {
-    font-size: 14px;
   }
   .file-form {
     height: 520px;

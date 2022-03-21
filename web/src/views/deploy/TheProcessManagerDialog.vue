@@ -25,20 +25,20 @@
               <el-button
                 style=""
                 type="text"
-                icon="el-icon-edit"
+                :icon="Edit"
                 @click.stop="handleEdit(item)"
               />
               <el-button
                 style="margin-left: 20px"
                 type="text"
-                icon="el-icon-delete"
+                :icon="Delete"
                 @click.stop="handleDelete(item.id)"
               />
             </el-row>
           </el-row>
         </el-option>
       </el-select>
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
+      <el-button type="primary" :icon="Plus" @click="handleAdd" />
     </el-row>
     <el-table
       ref="table"
@@ -179,6 +179,7 @@
   </el-dialog>
 </template>
 <script lang="ts" setup>
+import { Edit, Delete, Plus } from '@element-plus/icons-vue'
 import { ManageProcess } from '@/api/deploy'
 import {
   ProjectProcessData,

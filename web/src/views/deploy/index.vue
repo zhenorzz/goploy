@@ -192,7 +192,8 @@
               @command="(funcName) => commandFunc[funcName](scope.row)"
             >
               <el-button type="warning">
-                {{ $t('func') }}<i class="el-icon-arrow-down el-icon--right" />
+                {{ $t('func') }}
+                <el-icon class="el-icon--right"><arrow-down /></el-icon>
               </el-button>
               <template #dropdown>
                 <el-dropdown-menu style="min-width: 84px; text-align: center">
@@ -345,6 +346,7 @@
 export default { name: 'DeployIndex' }
 </script>
 <script lang="ts" setup>
+import { ArrowDown } from '@element-plus/icons-vue'
 import {
   DeployList,
   DeployPublish,

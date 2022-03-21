@@ -80,7 +80,9 @@
     >
       <el-table-column prop="name" :label="$t('name')" min-width="100">
         <template #default="scope">
-          <i v-if="scope.row.isDir" class="el-icon-folder-opened"></i>
+          <el-icon v-if="scope.row.isDir" style="vertical-align: middle">
+            <folder-opened />
+          </el-icon>
           {{ scope.row.name }}
         </template>
       </el-table-column>
@@ -93,7 +95,7 @@
       <el-table-column
         prop="modTime"
         :label="$t('modifiedTime')"
-        width="135"
+        width="160"
         align="center"
       />
       <el-table-column
@@ -105,21 +107,21 @@
       >
         <template #default="scope">
           <template v-if="scope.row.uploading">
-            <i class="el-icon-loading"></i>
+            <el-icon><loading /></el-icon>
           </template>
           <template v-else>
             <el-button
               v-if="scope.row.isDir"
               style="margin-right: 10px"
               type="text"
-              icon="el-icon-right"
+              :icon="Right"
               @click="handleSelectPath(filePath + scope.row.name + '/')"
             />
             <el-button
               v-else
               style="margin-right: 10px"
               type="text"
-              icon="el-icon-check"
+              :icon="Check"
               @click="handleSelectFile(filePath + scope.row.name)"
             />
           </template>
@@ -192,7 +194,7 @@
 </template>
 
 <script lang="ts" setup>
-import { FolderOpened } from '@element-plus/icons-vue'
+import { FolderOpened, Check, Right, Loading } from '@element-plus/icons-vue'
 import { diffLines } from 'diff'
 import path from 'path-browserify'
 import { FileCompare, FileDiff } from '@/api/deploy'
