@@ -23,7 +23,7 @@
       <el-button
         type="primary"
         style="margin-left: 10px"
-        icon="el-icon-plus"
+        :icon="Plus"
         @click="handleAdd"
       />
     </el-row>
@@ -48,7 +48,7 @@
       <el-table-column
         prop="owner"
         :label="$t('serverPage.sshKeyOwner')"
-        width="120"
+        width="140"
         show-overflow-tooltip
       />
       <el-table-column label="OS" min-width="100" show-overflow-tooltip>
@@ -95,34 +95,28 @@
       <el-table-column
         prop="insertTime"
         :label="$t('insertTime')"
-        width="135"
+        width="155"
         align="center"
       />
       <el-table-column
         prop="updateTime"
         :label="$t('updateTime')"
-        width="135"
+        width="155"
         align="center"
       />
       <el-table-column
         prop="operation"
         :label="$t('op')"
-        width="180"
+        width="190"
         align="center"
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
-          <el-button
-            icon="el-icon-data-line"
-            @click="handleMonitor(scope.row)"
-          />
-          <el-button
-            icon="el-icon-document-copy"
-            @click="handleCopy(scope.row)"
-          />
+          <el-button :icon="DataAnalysis" @click="handleMonitor(scope.row)" />
+          <el-button :icon="DocumentCopy" @click="handleCopy(scope.row)" />
           <el-button
             type="primary"
-            icon="el-icon-edit"
+            :icon="Edit"
             @click="handleEdit(scope.row)"
           />
         </template>
@@ -179,7 +173,7 @@
           />
         </el-form-item>
         <el-form-item :label="$t('serverPage.sshKeyPath')" prop="path">
-          <el-row type="flex">
+          <el-row type="flex" style="width: 100%">
             <el-input
               v-model="formData.path"
               style="flex: 1"
@@ -187,7 +181,7 @@
               placeholder="/root/.ssh/id_rsa"
             />
             <el-button
-              icon="el-icon-copy-document"
+              :icon="DocumentCopy"
               type="success"
               :loading="formProps.copyPubLoading"
               :disabled="formData.path === ''"
@@ -273,6 +267,7 @@
 export default { name: 'ServerIndex' }
 </script>
 <script lang="ts" setup>
+import { Plus, Edit, DocumentCopy, DataAnalysis } from '@element-plus/icons-vue'
 import type { ElForm } from 'element-plus'
 import { getNamespace } from '@/utils/namespace'
 import {

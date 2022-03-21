@@ -24,10 +24,16 @@
               </el-row>
               <el-button
                 type="text"
-                style="color: #bfcbd9"
-                icon="el-icon-close"
+                style="
+                  color: #bfcbd9;
+                  font-size: 14px;
+                  padding-top: 20px;
+                  padding-left: 8px;
+                "
                 @click="deleteTerminal(item, index)"
-              ></el-button>
+              >
+                x
+              </el-button>
             </el-row>
           </div>
           <div class="nav-plus">
@@ -51,32 +57,32 @@
                 }"
                 @input="filterServer"
               />
-              <el-row class="server-list" type="flex" align="middle">
-                <el-row v-for="server in serverFilteredOption" :key="server.id">
+              <div class="server-list">
+                <div v-for="server in serverFilteredOption" :key="server.id">
                   <el-button
                     type="text"
-                    style="
-                      color: #bfcbd9;
-                      width: 150px;
-                      text-align: left;
-                      text-overflow: ellipsis;
-                      overflow: hidden;
-                    "
+                    class="server-item"
                     @click="selectServer(server)"
                   >
                     <span :title="server.name + '(' + server.description + ')'">
                       {{ server.name }}({{ server.description }})
                     </span>
                   </el-button>
-                </el-row>
-              </el-row>
+                </div>
+              </div>
               <template #reference>
                 <el-button
                   type="text"
-                  style="color: #bfcbd9; height: 45px; width: 100%"
-                  icon="el-icon-plus"
+                  style="
+                    color: #bfcbd9;
+                    height: 45px;
+                    width: 100%;
+                    font-size: 24px;
+                  "
                   @click="serverOptionVisible = !serverOptionVisible"
-                ></el-button>
+                >
+                  +
+                </el-button>
               </template>
             </el-popover>
           </div>
@@ -85,13 +91,13 @@
     </el-row>
     <el-row class="terminal">
       <div
-        v-for="terminal in terminalList"
-        v-show="terminal.uuid === currentTerminalUUID"
-        :key="terminal.uuid"
+        v-for="item in terminalList"
+        v-show="item.uuid === currentTerminalUUID"
+        :key="item.uuid"
         :ref="
           (el) => {
             if (el) {
-              terminalRefs[terminal.uuid] = el
+              terminalRefs[item.uuid] = el
             }
           }
         "
@@ -117,6 +123,7 @@
 export default { name: 'ServerTerminal' }
 </script>
 <script lang="ts" setup>
+import { Plus, Close } from '@element-plus/icons-vue'
 import 'xterm/css/xterm.css'
 import { ServerOption, ServerData } from '@/api/server'
 import { xterm } from './xterm'
@@ -124,7 +131,7 @@ import { ref, nextTick, ComponentPublicInstance } from 'vue'
 interface terminal {
   uuid: number
   xterm?: xterm | void
-  server: ServerData['datagram']
+  server: ServerData
 }
 const serverOptionVisible = ref(false)
 const terminalList = ref<terminal[]>([])
@@ -147,7 +154,7 @@ function filterServer(value: string) {
     server.name.includes(value)
   )
 }
-function selectServer(server: ServerData['datagram']) {
+function selectServer(server: ServerData) {
   if (terminalList.value.length === 0) {
     currentTerminalUUID.value = 0
   } else {
@@ -257,10 +264,18 @@ function enterCommand() {
 .server-list {
   height: 216px;
   overflow-x: auto;
-  flex-wrap: nowrap;
-  flex-direction: column;
   margin-left: 10px;
   margin-top: 10px;
   @include scrollBar();
+}
+.server-item {
+  color: #bfcbd9;
+  width: 150px;
+  text-align: left;
+  overflow-x: scroll;
+  display: inline-block;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 </style>
