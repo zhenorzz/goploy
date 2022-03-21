@@ -167,9 +167,13 @@
         >
           <template v-if="item.type === 2">
             <el-row style="margin: 5px 0">
-              <span v-if="item.state === 1" class="icon-success"></span>
-              <span v-else class="icon-fail"></span>
-              -------------{{ projectRow.repoType.toUpperCase() }}-------------
+              <div class="project-title">
+                <span style="margin-right: 5px">
+                  {{ projectRow.repoType.toUpperCase() }}
+                </span>
+                <span v-if="item.state === 1" class="icon-success"></span>
+                <span v-else class="icon-fail"></span>
+              </div>
             </el-row>
             <el-row>Time: {{ item.updateTime }}</el-row>
             <template v-if="item.state !== 0">
@@ -200,11 +204,10 @@
             </el-row>
           </template>
           <div v-if="item.type === 3">
-            <hr />
-            <el-row align="middle">
-              <i v-if="item.state === 1" class="icon-success" />
-              <i v-else class="icon-fail" />
-              --------After pull--------
+            <el-row style="margin: 5px 0" class="project-title">
+              <span style="margin-right: 5px">After pull</span>
+              <span v-if="item.state === 1" class="icon-success"></span>
+              <span v-else class="icon-fail"></span>
             </el-row>
             <el-row>Time: {{ item.updateTime }}</el-row>
             <el-row style="width: 100%">
@@ -238,10 +241,10 @@
           >
             <div v-for="(trace, key) in item" :key="key">
               <template v-if="trace.type === 4">
-                <el-row style="margin: 5px 0">
-                  <i v-if="trace.state === 1" class="icon-success" />
-                  <i v-else class="icon-fail" />
-                  ---------Before deploy---------
+                <el-row style="margin: 5px 0" class="project-title">
+                  <span style="margin-right: 5px">Before deploy</span>
+                  <span v-if="trace.state === 1" class="icon-success"></span>
+                  <span v-else class="icon-fail"></span>
                 </el-row>
                 <el-row style="margin: 5px 0">
                   Time: {{ trace.updateTime }}
@@ -265,10 +268,10 @@
                 </div>
               </template>
               <template v-else-if="trace.type === 5">
-                <el-row style="margin: 5px 0">
-                  <i v-if="trace.state === 1" class="icon-success" />
-                  <i v-else class="icon-fail" />
-                  -----------Rsync------------
+                <el-row style="margin: 5px 0" class="project-title">
+                  <span style="margin-right: 5px">Rsync</span>
+                  <span v-if="trace.state === 1" class="icon-success"></span>
+                  <span v-else class="icon-fail"></span>
                 </el-row>
                 <el-row style="margin: 5px 0">
                   Time: {{ trace.updateTime }}
@@ -289,10 +292,10 @@
                 </div>
               </template>
               <template v-else-if="trace.type === 6">
-                <el-row style="margin: 5px 0">
-                  <i v-if="trace.state === 1" class="icon-success" />
-                  <i v-else class="icon-fail" />
-                  --------After deploy--------
+                <el-row style="margin: 5px 0" class="project-title">
+                  <span style="margin-right: 5px">After deploy</span>
+                  <span v-if="trace.state === 1" class="icon-success"></span>
+                  <span v-else class="icon-fail"></span>
                 </el-row>
                 <el-row style="margin: 5px 0">
                   Time: {{ trace.updateTime }}
@@ -632,12 +635,31 @@ const rebuild = (data: PublishTraceData & PublishTraceExt) => {
     content: '\2717';
   }
 }
-
-.project-detail {
-  padding-left: 5px;
-  height: 490px;
-  overflow-y: auto;
-  @include scrollBar();
+.project {
+  &-detail {
+    padding-left: 5px;
+    height: 490px;
+    overflow-y: auto;
+    @include scrollBar();
+  }
+  &-title {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    &:before,
+    &:after {
+      content: '';
+      flex: 1 1;
+      border-bottom: 1px solid;
+      margin: auto;
+    }
+    &:before {
+      margin-right: 10px;
+    }
+    &:after {
+      margin-left: 10px;
+    }
+  }
 }
 </style>
 <style lang="scss">
