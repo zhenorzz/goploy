@@ -116,16 +116,16 @@ func (sftpRepo SftpRepo) Follow(project model.Project, _ string) error {
 }
 
 func (SftpRepo) RemoteBranchList(url string) ([]string, error) {
-	return []string{"master"}, nil
+	return []string{"virtual"}, nil
 }
 
 func (SftpRepo) BranchList(projectID int64) ([]string, error) {
-	return []string{"master"}, nil
+	return []string{"virtual"}, nil
 }
 
 func (SftpRepo) CommitLog(projectID int64, rows int) ([]CommitInfo, error) {
 	commitInfo := CommitInfo{
-		Branch:    "master",
+		Branch:    "virtual",
 		Commit:    "",
 		Author:    "",
 		Timestamp: time.Now().Unix(),
@@ -137,7 +137,7 @@ func (SftpRepo) CommitLog(projectID int64, rows int) ([]CommitInfo, error) {
 }
 
 func (sftpRepo SftpRepo) BranchLog(projectID int64, branch string, rows int) ([]CommitInfo, error) {
-	return []CommitInfo{{}}, nil
+	return []CommitInfo{{Commit: "virtual"}}, nil
 }
 
 func (sftpRepo SftpRepo) TagLog(projectID int64, rows int) ([]CommitInfo, error) {

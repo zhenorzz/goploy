@@ -41,7 +41,7 @@
         sortable="custom"
         prop="id"
         label="ID"
-        width="80"
+        width="70"
         align="center"
       />
       <el-table-column
@@ -52,18 +52,18 @@
         sortable="custom"
       >
         <template #default="scope">
-          <b v-if="scope.row.environment === 1" style="color: #f56c6c">
+          <span v-if="scope.row.environment === 1" style="color: #f56c6c">
             {{ scope.row.name }} -
             {{ $t(`envOption[${scope.row.environment || 0}]`) }}
-          </b>
-          <b v-else-if="scope.row.environment === 3" style="color: #e6a23c">
+          </span>
+          <span v-else-if="scope.row.environment === 3" style="color: #e6a23c">
             {{ scope.row.name }} -
             {{ $t(`envOption[${scope.row.environment || 0}]`) }}
-          </b>
-          <b v-else style="color: #909399">
+          </span>
+          <span v-else style="color: #909399">
             {{ scope.row.name }} -
             {{ $t(`envOption[${scope.row.environment || 0}]`) }}
-          </b>
+          </span>
         </template>
       </el-table-column>
       <el-table-column
@@ -123,7 +123,7 @@
       <el-table-column
         prop="updateTime"
         :label="$t('time')"
-        width="160"
+        width="155"
         align="center"
         sortable="custom"
       />

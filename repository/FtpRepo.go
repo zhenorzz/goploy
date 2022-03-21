@@ -115,7 +115,7 @@ func (FtpRepo) CommitLog(projectID int64, rows int) ([]CommitInfo, error) {
 }
 
 func (ftpRepo FtpRepo) BranchLog(projectID int64, branch string, rows int) ([]CommitInfo, error) {
-	return []CommitInfo{{}}, nil
+	return []CommitInfo{{Commit: "virtual"}}, nil
 }
 
 func (ftpRepo FtpRepo) TagLog(projectID int64, rows int) ([]CommitInfo, error) {
