@@ -123,7 +123,6 @@
 export default { name: 'ServerTerminal' }
 </script>
 <script lang="ts" setup>
-import { Plus, Close } from '@element-plus/icons-vue'
 import 'xterm/css/xterm.css'
 import { ServerOption, ServerData } from '@/api/server'
 import { xterm } from './xterm'

@@ -6,7 +6,7 @@
           <el-button
             :disabled="backwardHistory.length === 0"
             type="text"
-            icon="el-icon-back"
+            :icon="Back"
             style="color: #303133; font-size: 14px"
             @click="backward"
           >
@@ -14,7 +14,7 @@
           <el-button
             :disabled="forwardHistory.length === 0"
             type="text"
-            icon="el-icon-right"
+            :icon="Right"
             style="color: #303133; font-size: 14px"
             @click="forward"
           >
@@ -22,7 +22,7 @@
           <el-button
             :disabled="!wsConnected"
             type="text"
-            icon="el-icon-top"
+            :icon="Top"
             style="color: #303133; font-size: 14px"
             @click="dotdot(dir)"
           >
@@ -54,7 +54,7 @@
               </el-select>
             </template>
             <template #append>
-              <el-button icon="el-icon-refresh-right" @click="refresh" />
+              <el-button :icon="RefreshRight" @click="refresh" />
             </template>
           </el-input>
         </el-row>
@@ -133,7 +133,6 @@
           <el-dropdown
             v-for="(item, index) in fileFilteredList"
             :key="index"
-            :offset="-30"
             trigger="click"
             placement="right"
           >
@@ -217,6 +216,7 @@
 export default { name: 'ServerSFTP' }
 </script>
 <script lang="ts" setup>
+import { Back, Right, Top, RefreshRight } from '@element-plus/icons-vue'
 import svgIds from 'virtual:svg-icons-names'
 import path from 'path-browserify'
 import { humanSize, parseTime } from '@/utils'
