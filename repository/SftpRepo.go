@@ -137,7 +137,7 @@ func (SftpRepo) CommitLog(projectID int64, rows int) ([]CommitInfo, error) {
 }
 
 func (sftpRepo SftpRepo) BranchLog(projectID int64, branch string, rows int) ([]CommitInfo, error) {
-	return []CommitInfo{}, nil
+	return []CommitInfo{{}}, nil
 }
 
 func (sftpRepo SftpRepo) TagLog(projectID int64, rows int) ([]CommitInfo, error) {

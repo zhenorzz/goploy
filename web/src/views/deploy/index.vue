@@ -69,7 +69,7 @@
       <el-table-column
         prop="branch"
         :label="$t('branch')"
-        width="150"
+        width="180"
         align="center"
       >
         <template #default="scope">
@@ -130,7 +130,7 @@
       <el-table-column
         prop="operation"
         :label="$t('op')"
-        width="310"
+        width="280"
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
         align="center"
       >

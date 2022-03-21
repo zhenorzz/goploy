@@ -100,7 +100,6 @@
             </el-row>
             <template #reference>
               <el-button
-                icon="el-icon-notebook-2"
                 style="width: 224px"
                 @click="filterInpurtVisible = !filterInpurtVisible"
               >
@@ -110,13 +109,13 @@
           </el-popover>
           <el-button
             type="warning"
-            icon="el-icon-refresh"
+            :icon="Refresh"
             @click="refreshFilterParams"
           />
           <el-button
             :loading="filterloading"
             type="primary"
-            icon="el-icon-search"
+            :icon="Search"
             style="margin-left: 2px"
             @click="searchPreviewList"
           />
@@ -129,16 +128,12 @@
                 <span class="publish-commitID">
                   commitID: {{ item.commit }}
                 </span>
-                <i
+                <span
                   v-if="item.publishState === 1"
-                  class="el-icon-check icon-success"
+                  class="icon-success"
                   style="float: right"
                 />
-                <i
-                  v-else
-                  class="el-icon-close icon-fail"
-                  style="float: right"
-                />
+                <span v-else class="icon-fail" style="float: right" />
               </el-radio>
               <el-button type="danger" plain @click="rebuild(item)">
                 rollback
@@ -172,9 +167,9 @@
         >
           <template v-if="item.type === 2">
             <el-row style="margin: 5px 0">
-              <i v-if="item.state === 1" class="el-icon-check icon-success" />
-              <i v-else class="el-icon-close icon-fail" />
-              -------------GIT-------------
+              <span v-if="item.state === 1" class="icon-success"></span>
+              <span v-else class="icon-fail"></span>
+              -------------{{ projectRow.repoType.toUpperCase() }}-------------
             </el-row>
             <el-row>Time: {{ item.updateTime }}</el-row>
             <template v-if="item.state !== 0">
@@ -207,8 +202,8 @@
           <div v-if="item.type === 3">
             <hr />
             <el-row align="middle">
-              <i v-if="item.state === 1" class="el-icon-check icon-success" />
-              <i v-else class="el-icon-close icon-fail" />
+              <i v-if="item.state === 1" class="icon-success" />
+              <i v-else class="icon-fail" />
               --------After pull--------
             </el-row>
             <el-row>Time: {{ item.updateTime }}</el-row>
@@ -244,11 +239,8 @@
             <div v-for="(trace, key) in item" :key="key">
               <template v-if="trace.type === 4">
                 <el-row style="margin: 5px 0">
-                  <i
-                    v-if="trace.state === 1"
-                    class="el-icon-check icon-success"
-                  />
-                  <i v-else class="el-icon-close icon-fail" />
+                  <i v-if="trace.state === 1" class="icon-success" />
+                  <i v-else class="icon-fail" />
                   ---------Before deploy---------
                 </el-row>
                 <el-row style="margin: 5px 0">
@@ -274,11 +266,8 @@
               </template>
               <template v-else-if="trace.type === 5">
                 <el-row style="margin: 5px 0">
-                  <i
-                    v-if="trace.state === 1"
-                    class="el-icon-check icon-success"
-                  />
-                  <i v-else class="el-icon-close icon-fail" />
+                  <i v-if="trace.state === 1" class="icon-success" />
+                  <i v-else class="icon-fail" />
                   -----------Rsync------------
                 </el-row>
                 <el-row style="margin: 5px 0">
@@ -301,11 +290,8 @@
               </template>
               <template v-else-if="trace.type === 6">
                 <el-row style="margin: 5px 0">
-                  <i
-                    v-if="trace.state === 1"
-                    class="el-icon-check icon-success"
-                  />
-                  <i v-else class="el-icon-close icon-fail" />
+                  <i v-if="trace.state === 1" class="icon-success" />
+                  <i v-else class="icon-fail" />
                   --------After deploy--------
                 </el-row>
                 <el-row style="margin: 5px 0">
@@ -338,6 +324,7 @@
 </template>
 
 <script lang="ts" setup>
+import { Check, Close, Search, Refresh } from '@element-plus/icons-vue'
 import RepoURL from '@/components/RepoURL/index.vue'
 import {
   DeployPreviewList,
@@ -603,7 +590,6 @@ const rebuild = (data: PublishTraceData & PublishTraceExt) => {
 @import '@/styles/mixin.scss';
 .publish {
   &-filter-label {
-    font-size: 12px;
     width: 80px;
   }
   &-preview {
@@ -631,14 +617,20 @@ const rebuild = (data: PublishTraceData & PublishTraceExt) => {
 
 .icon-success {
   color: #67c23a;
-  font-size: 14px;
-  font-weight: 900;
+  font-size: 15px;
+  font-weight: 500;
+  &::before {
+    content: '\2713';
+  }
 }
 
 .icon-fail {
   color: #f56c6c;
-  font-size: 14px;
-  font-weight: 900;
+  font-size: 15px;
+  font-weight: 500;
+  &::before {
+    content: '\2717';
+  }
 }
 
 .project-detail {
@@ -646,5 +638,12 @@ const rebuild = (data: PublishTraceData & PublishTraceExt) => {
   height: 490px;
   overflow-y: auto;
   @include scrollBar();
+}
+</style>
+<style lang="scss">
+.publish-commit {
+  .el-radio__label {
+    width: 100%;
+  }
 }
 </style>
