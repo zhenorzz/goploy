@@ -6,7 +6,7 @@
     :fullscreen="$store.state.app.device === 'mobile'"
   >
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
+      <el-button type="primary" :icon="Plus" @click="handleAdd" />
       <el-row
         v-if="showAddView"
         type="flex"
@@ -102,11 +102,7 @@
         fixed="right"
       >
         <template #default="scope">
-          <el-button
-            type="danger"
-            icon="el-icon-delete"
-            @click="remove(scope.row)"
-          />
+          <el-button type="danger" :icon="Delete" @click="remove(scope.row)" />
         </template>
       </el-table-column>
     </el-table>
@@ -119,6 +115,7 @@
 </template>
 
 <script lang="ts" setup>
+import { Plus, Delete } from '@element-plus/icons-vue'
 import {
   NamespaceUserData,
   NamespaceUserList,

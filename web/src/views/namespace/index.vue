@@ -6,7 +6,7 @@
       type="flex"
       justify="end"
     >
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
+      <el-button type="primary" :icon="Plus" @click="handleAdd" />
     </el-row>
     <el-table
       :key="tableHeight"
@@ -23,13 +23,13 @@
       <el-table-column
         prop="insertTime"
         :label="$t('insertTime')"
-        width="135"
+        width="155"
         align="center"
       />
       <el-table-column
         prop="updateTime"
         :label="$t('updateTime')"
-        width="135"
+        width="155"
         align="center"
       />
       <el-table-column
@@ -55,7 +55,7 @@
         <template #default="scope">
           <el-button
             type="primary"
-            icon="el-icon-edit"
+            :icon="Edit"
             @click="handleEdit(scope.row)"
           />
         </template>
@@ -110,6 +110,7 @@
 export default { name: 'NamespaceIndex' }
 </script>
 <script lang="ts" setup>
+import { Plus, Edit } from '@element-plus/icons-vue'
 import {
   NamespaceList,
   NamespaceTotal,
@@ -128,7 +129,7 @@ const dialogVisible = ref(false)
 const dialogUserVisible = ref(false)
 const tableLoading = ref(false)
 const tableData = ref<NamespaceList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 17, total: 0 })
+const pagination = ref({ page: 1, rows: 14, total: 0 })
 const selectedItem = ref<NamespaceData>()
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = { id: 0, name: '' }
