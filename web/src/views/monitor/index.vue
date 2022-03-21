@@ -1,7 +1,7 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
+      <el-button type="primary" :icon="Plus" @click="handleAdd" />
     </el-row>
     <el-table
       :key="tableHeight"
@@ -28,7 +28,7 @@
       <el-table-column
         prop="times"
         :label="$t('monitorPage.failTimes')"
-        width="100"
+        width="110"
       />
       <el-table-column prop="notifyType" :label="$t('notice')" width="70">
         <template #default="scope">
@@ -49,7 +49,7 @@
       <el-table-column
         prop="notifyTimes"
         :label="$t('monitorPage.notifyTimes')"
-        width="80"
+        width="85"
       />
       <el-table-column
         prop="state"
@@ -75,13 +75,13 @@
       <el-table-column
         prop="insertTime"
         :label="$t('insertTime')"
-        width="135"
+        width="155"
         align="center"
       />
       <el-table-column
         prop="updateTime"
         :label="$t('updateTime')"
-        width="135"
+        width="155"
         align="center"
       />
       <el-table-column
@@ -94,12 +94,12 @@
         <template #default="scope">
           <el-button
             type="primary"
-            icon="el-icon-edit"
+            :icon="Edit"
             @click="handleEdit(scope.row)"
           />
           <el-button
             type="danger"
-            icon="el-icon-delete"
+            :icon="Delete"
             @click="handleRemove(scope.row)"
           />
         </template>
@@ -136,10 +136,9 @@
         </el-form-item>
         <el-form-item prop="url">
           <template #label>
-            URL
             <el-tooltip placement="top">
               <template #content>scheme:opaque[?query][#fragment]</template>
-              <i class="el-icon-question" />
+              <el-button type="text">URL</el-button>
             </el-tooltip>
           </template>
           <el-input v-model="formData.url" autocomplete="off" placeholder="" />
@@ -151,7 +150,7 @@
           <el-input v-model.number="formData.times" autocomplete="off" />
         </el-form-item>
         <el-form-item :label="$t('notice')" prop="notifyTarget">
-          <el-row type="flex">
+          <el-row type="flex" style="width: 100%">
             <el-select v-model="formData.notifyType">
               <el-option :label="$t('webhookOption[1]')" :value="1" />
               <el-option :label="$t('webhookOption[2]')" :value="2" />
@@ -203,6 +202,7 @@
 export default { name: 'MonitorIndex' }
 </script>
 <script lang="ts" setup>
+import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import {
   MonitorList,
   MonitorTotal,
@@ -225,7 +225,7 @@ const { tableHeight } = getTableHeight()
 const dialogVisible = ref(false)
 const tableLoading = ref(false)
 const tableData = ref<MonitorList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 16, total: 0 })
+const pagination = ref({ page: 1, rows: 15, total: 0 })
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,

@@ -23,7 +23,7 @@
       <el-table-column
         prop="superManager"
         :label="$t('admin')"
-        width="60"
+        width="70"
         align="center"
       >
         <template #default="scope">
@@ -165,7 +165,7 @@ const dialogVisible = ref(false)
 const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<UserList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 18, total: 0 })
+const pagination = ref({ page: 1, rows: 14, total: 0 })
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
