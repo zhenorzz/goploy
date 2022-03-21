@@ -20,7 +20,7 @@
           <el-button
             :loading="tableLoading"
             type="primary"
-            icon="el-icon-search"
+            :icon="Search"
             @click="searchList"
           />
         </el-row>
@@ -36,7 +36,7 @@
         style="width: 100%"
       >
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="username" label="Username" width="80" />
+        <el-table-column prop="username" label="Username" width="100" />
         <el-table-column prop="serverName" label="Server Name" width="160" />
         <el-table-column prop="remoteAddr" label="Remote addr" width="160" />
         <el-table-column
@@ -44,8 +44,8 @@
           label="User agent"
           show-overflow-tooltip
         />
-        <el-table-column prop="startTime" label="Start time" width="135" />
-        <el-table-column prop="endTime" label="End time" width="135" />
+        <el-table-column prop="startTime" label="Start time" width="155" />
+        <el-table-column prop="endTime" label="End time" width="155" />
         <el-table-column
           prop="operation"
           :label="$t('op')"
@@ -77,6 +77,7 @@
 export default { name: 'TerminalLog' }
 </script>
 <script lang="ts" setup>
+import { Search } from '@element-plus/icons-vue'
 import 'asciinema-player/dist/bundle/asciinema-player.css'
 import * as AsciinemaPlayer from 'asciinema-player'
 import { TerminalLogData, TerminalLogList, TerminalLogTotal } from '@/api/log'
@@ -89,7 +90,7 @@ const searchParam = ref({ username: '', serverName: '' })
 const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<TerminalLogList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 19, total: 0 })
+const pagination = ref({ page: 1, rows: 17, total: 0 })
 
 getList()
 getTotal()

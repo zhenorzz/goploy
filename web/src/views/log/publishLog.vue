@@ -15,7 +15,7 @@
         <el-button
           :loading="tableLoading"
           type="primary"
-          icon="el-icon-search"
+          :icon="Search"
           @click="searchList"
         />
       </el-row>
@@ -31,7 +31,7 @@
       style="width: 100%"
     >
       <el-table-column prop="token" label="Token" width="300" />
-      <el-table-column prop="publisherName" label="Username" width="80" />
+      <el-table-column prop="publisherName" label="Username" width="100" />
       <el-table-column prop="projectName" label="Project Name" width="160" />
       <el-table-column prop="state" label="State" align="center" width="80">
         <template #default="scope">
@@ -42,7 +42,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="detail" label="Reason" show-overflow-tooltip />
-      <el-table-column prop="insertTime" label="insertTime" width="135" />
+      <el-table-column prop="insertTime" label="insertTime" width="155" />
       <el-table-column
         prop="operation"
         :label="$t('op')"
@@ -80,9 +80,11 @@
         >
           <template v-if="item.type === 2">
             <el-row style="margin: 5px 0">
-              <i v-if="item.state === 1" class="el-icon-check icon-success" />
-              <i v-else class="el-icon-close icon-fail" />
-              -------------GIT-------------
+              <div class="project-title">
+                <span style="margin-right: 5px">Repo</span>
+                <span v-if="item.state === 1" class="icon-success"></span>
+                <span v-else class="icon-fail"></span>
+              </div>
             </el-row>
             <el-row>Time: {{ item.updateTime }}</el-row>
             <template v-if="item.state !== 0">
@@ -105,11 +107,12 @@
             </el-row>
           </template>
           <div v-if="item.type === 3">
-            <hr />
-            <el-row align="middle">
-              <i v-if="item.state === 1" class="el-icon-check icon-success" />
-              <i v-else class="el-icon-close icon-fail" />
-              --------After pull--------
+            <el-row style="margin: 5px 0">
+              <div class="project-title">
+                <span style="margin-right: 5px">After pull</span>
+                <span v-if="item.state === 1" class="icon-success"></span>
+                <span v-else class="icon-fail"></span>
+              </div>
             </el-row>
             <el-row>Time: {{ item.updateTime }}</el-row>
             <el-row style="width: 100%">
@@ -141,12 +144,11 @@
             <div v-for="(trace, key) in item" :key="key">
               <template v-if="trace.type === 4">
                 <el-row style="margin: 5px 0">
-                  <i
-                    v-if="trace.state === 1"
-                    class="el-icon-check icon-success"
-                  />
-                  <i v-else class="el-icon-close icon-fail" />
-                  ---------Before deploy---------
+                  <div class="project-title">
+                    <span style="margin-right: 5px">Before deploy</span>
+                    <span v-if="trace.state === 1" class="icon-success"></span>
+                    <span v-else class="icon-fail"></span>
+                  </div>
                 </el-row>
                 <el-row style="margin: 5px 0">
                   Time: {{ trace.updateTime }}
@@ -171,12 +173,11 @@
               </template>
               <template v-else-if="trace.type === 5">
                 <el-row style="margin: 5px 0">
-                  <i
-                    v-if="trace.state === 1"
-                    class="el-icon-check icon-success"
-                  />
-                  <i v-else class="el-icon-close icon-fail" />
-                  -----------Rsync------------
+                  <div class="project-title">
+                    <span style="margin-right: 5px">Rsync</span>
+                    <span v-if="trace.state === 1" class="icon-success"></span>
+                    <span v-else class="icon-fail"></span>
+                  </div>
                 </el-row>
                 <el-row style="margin: 5px 0">
                   Time: {{ trace.updateTime }}
@@ -198,12 +199,11 @@
               </template>
               <template v-else-if="trace.type === 6">
                 <el-row style="margin: 5px 0">
-                  <i
-                    v-if="trace.state === 1"
-                    class="el-icon-check icon-success"
-                  />
-                  <i v-else class="el-icon-close icon-fail" />
-                  --------After deploy--------
+                  <div class="project-title">
+                    <span style="margin-right: 5px">After deploy</span>
+                    <span v-if="trace.state === 1" class="icon-success"></span>
+                    <span v-else class="icon-fail"></span>
+                  </div>
                 </el-row>
                 <el-row style="margin: 5px 0">
                   Time: {{ trace.updateTime }}
@@ -238,6 +238,7 @@
 export default { name: 'PublishLog' }
 </script>
 <script lang="ts" setup>
+import { Search } from '@element-plus/icons-vue'
 import { PublishLogData, PublishLogList, PublishLogTotal } from '@/api/log'
 import {
   DeployTrace,
@@ -256,7 +257,7 @@ const searchParam = ref({ username: '', projectName: '' })
 const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<PublishLogList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 17, total: 0 })
+const pagination = ref({ page: 1, rows: 14, total: 0 })
 const traceLoading = ref(false)
 const traceDetail = ref({} as Record<number, string>)
 const activeRomoteTracePane = ref('')
@@ -342,19 +343,43 @@ function getPublishTraceDetail(data: PublishTraceData) {
 @import '@/styles/mixin.scss';
 .icon-success {
   color: #67c23a;
-  font-size: 14px;
-  font-weight: 900;
+  font-size: 15px;
+  &::before {
+    content: '\2713';
+  }
 }
 
 .icon-fail {
   color: #f56c6c;
-  font-size: 14px;
-  font-weight: 900;
+  font-size: 15px;
+  &::before {
+    content: '\2717';
+  }
 }
-.project-detail {
-  padding-left: 5px;
-  height: 470px;
-  overflow-y: auto;
-  @include scrollBar();
+.project {
+  &-detail {
+    padding-left: 5px;
+    height: 470px;
+    overflow-y: auto;
+    @include scrollBar();
+  }
+  &-title {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    &:before,
+    &:after {
+      content: '';
+      flex: 1 1;
+      border-bottom: 1px solid;
+      margin: auto;
+    }
+    &:before {
+      margin-right: 10px;
+    }
+    &:after {
+      margin-left: 10px;
+    }
+  }
 }
 </style>

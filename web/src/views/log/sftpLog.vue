@@ -15,7 +15,7 @@
         <el-button
           :loading="tableLoading"
           type="primary"
-          icon="el-icon-search"
+          :icon="Search"
           @click="searchList"
         />
       </el-row>
@@ -31,7 +31,7 @@
       style="width: 100%"
     >
       <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="username" label="Username" width="80" />
+      <el-table-column prop="username" label="Username" width="100" />
       <el-table-column prop="serverName" label="Server Name" width="160" />
       <el-table-column prop="remoteAddr" label="Remote addr" width="160" />
       <el-table-column
@@ -40,7 +40,7 @@
         width="160"
         show-overflow-tooltip
       />
-      <el-table-column prop="type" label="Type" width="100" />
+      <el-table-column prop="type" label="Type" width="110" />
       <el-table-column prop="path" label="Path" show-overflow-tooltip />
       <el-table-column prop="reason" label="Reason" show-overflow-tooltip />
     </el-table>
@@ -60,6 +60,7 @@
 export default { name: 'SftpLog' }
 </script>
 <script lang="ts" setup>
+import { Search } from '@element-plus/icons-vue'
 import { SftpLogList, SftpLogTotal } from '@/api/log'
 import getTableHeight from '@/composables/tableHeight'
 import { ref } from 'vue'
@@ -67,7 +68,7 @@ const searchParam = ref({ username: '', serverName: '' })
 const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<SftpLogList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 19, total: 0 })
+const pagination = ref({ page: 1, rows: 17, total: 0 })
 
 getList()
 getTotal()

@@ -10,7 +10,7 @@
         <el-button
           :loading="tableLoading"
           type="primary"
-          icon="el-icon-search"
+          :icon="Search"
           @click="searchList"
         />
       </el-row>
@@ -26,7 +26,7 @@
       style="width: 100%"
     >
       <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="account" label="Account" width="80" />
+      <el-table-column prop="account" label="Account" width="90" />
       <el-table-column prop="remoteAddr" label="Remote addr" width="160" />
       <el-table-column prop="referer" label="Referer" width="200" />
       <el-table-column
@@ -36,7 +36,7 @@
         show-overflow-tooltip
       />
       <el-table-column prop="reason" label="Reason" show-overflow-tooltip />
-      <el-table-column prop="loginTime" label="Login time" width="135" />
+      <el-table-column prop="loginTime" label="Login time" width="155" />
     </el-table>
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
@@ -55,6 +55,7 @@
 export default { name: 'LoginLog' }
 </script>
 <script lang="ts" setup>
+import { Search } from '@element-plus/icons-vue'
 import { LoginLogList, LoginLogTotal } from '@/api/log'
 import getTableHeight from '@/composables/tableHeight'
 import { ref } from 'vue'
@@ -62,7 +63,7 @@ const account = ref('')
 const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<LoginLogList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 19, total: 0 })
+const pagination = ref({ page: 1, rows: 17, total: 0 })
 
 getList()
 getTotal()

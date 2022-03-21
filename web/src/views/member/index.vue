@@ -1,7 +1,7 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
+      <el-button type="primary" :icon="Plus" @click="handleAdd" />
     </el-row>
     <el-table
       :key="tableHeight"
@@ -33,13 +33,13 @@
       <el-table-column
         prop="insertTime"
         :label="$t('insertTime')"
-        width="135"
+        width="155"
         align="center"
       />
       <el-table-column
         prop="updateTime"
         :label="$t('updateTime')"
-        width="135"
+        width="155"
         align="center"
       />
       <el-table-column
@@ -53,13 +53,13 @@
           <el-button
             v-if="scope.row.id !== 1 && scope.row.id !== $store.getters.uid"
             type="primary"
-            icon="el-icon-edit"
+            :icon="Edit"
             @click="handleEdit(scope.row)"
           />
           <el-button
             v-if="scope.row.id !== 1 && scope.row.id !== $store.getters.uid"
             type="danger"
-            icon="el-icon-delete"
+            :icon="Delete"
             @click="handleRemove(scope.row)"
           />
         </template>
@@ -145,6 +145,7 @@
 export default { name: 'MemberIndex' }
 </script>
 <script lang="ts" setup>
+import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { validUsername, validPassword } from '@/utils/validate'
 import {
   UserData,
