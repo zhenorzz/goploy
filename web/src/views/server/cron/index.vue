@@ -18,7 +18,7 @@
         </el-select>
       </el-col>
       <el-col v-if="serverId !== ''" :span="8" style="text-align: right">
-        <el-button type="primary" icon="el-icon-plus" @click="handleAdd" />
+        <el-button type="primary" :icon="Plus" @click="handleAdd" />
       </el-col>
     </el-row>
     <el-table
@@ -42,13 +42,13 @@
         min-width="140"
         show-overflow-tooltip
       />
-      <el-table-column prop="singleMode" label="Single mode" width="100">
+      <el-table-column prop="singleMode" label="Single mode" width="110">
         <template #default="scope">
           <span v-if="scope.row.singleMode === 0">no</span>
           <span v-else>yes</span>
         </template>
       </el-table-column>
-      <el-table-column prop="logLevel" label="Log level" width="80">
+      <el-table-column prop="logLevel" label="Log level" width="90">
         <template #default="scope">
           <span v-if="scope.row.logLevel === 0">none</span>
           <span v-else-if="scope.row.logLevel === 1">stdout</span>
@@ -66,13 +66,13 @@
       <el-table-column
         prop="insertTime"
         :label="$t('insertTime')"
-        width="135"
+        width="155"
         align="center"
       />
       <el-table-column
         prop="updateTime"
         :label="$t('updateTime')"
-        width="135"
+        width="155"
         align="center"
       />
       <el-table-column
@@ -85,12 +85,12 @@
         <template #default="scope">
           <el-button
             type="primary"
-            icon="el-icon-edit"
+            :icon="Edit"
             @click="handleEdit(scope.row)"
           />
           <el-button
             type="danger"
-            icon="el-icon-delete"
+            :icon="Delete"
             @click="handleRemove(scope.row)"
           />
         </template>
@@ -173,6 +173,7 @@
 export default { name: 'ServerCron' }
 </script>
 <script lang="ts" setup>
+import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import getTableHeight from '@/composables/tableHeight'
 import cronstrue from 'cronstrue/i18n'
 import { ServerOption } from '@/api/server'
