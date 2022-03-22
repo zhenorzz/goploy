@@ -85,13 +85,13 @@
       <el-table-column
         prop="insertTime"
         :label="$t('insertTime')"
-        width="135"
+        width="155"
         align="center"
       />
       <el-table-column
         prop="updateTime"
         :label="$t('updateTime')"
-        width="135"
+        width="155"
         align="center"
       />
       <el-table-column
@@ -147,7 +147,7 @@ const formData = ref({ namespaceId: 0, userIds: [], role: '' })
 const formRules = <InstanceType<typeof ElForm>['rules']>{
   userIds: [
     {
-      type: 'string',
+      type: 'array',
       required: true,
       message: 'User required',
       trigger: 'change',

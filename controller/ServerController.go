@@ -387,15 +387,17 @@ func (Server) Toggle(gp *core.Goploy) core.Response {
 
 func (Server) InstallAgent(gp *core.Goploy) core.Response {
 	type ReqData struct {
-		IDs       []int64 `json:"ids" validate:"min=1"`
-		ReportURL string  `json:"reportURL" validate:"required"`
-		WebPort   string  `json:"webPort" validate:"omitempty"`
+		IDs         []int64 `json:"ids" validate:"min=1"`
+		InstallPath string  `json:"installPath" validate:"required"`
+		ReportURL   string  `json:"reportURL" validate:"required"`
+		WebPort     string  `json:"webPort" validate:"omitempty"`
 	}
 	var reqData ReqData
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
+	downloadURL := "https://github.com/goploy-devops/goploy-agent/releases/latest/download/goploy-agent"
 	for _, id := range reqData.IDs {
 		go func(id int64) {
 			server, err := (model.Server{ID: id}).GetData()
@@ -420,10 +422,11 @@ func (Server) InstallAgent(gp *core.Goploy) core.Response {
 			session.Stdout = &sshOutbuf
 			session.Stderr = &sshErrbuf
 			commands := []string{
-				"cd /tmp/",
-				"wget https://github.com/goploy-devops/goploy-agent/releases/latest/download/goploy-agent",
+				fmt.Sprintf("mkdir -p %s", reqData.InstallPath),
+				fmt.Sprintf("cd %s", reqData.InstallPath),
+				fmt.Sprintf("wget -N %s", downloadURL),
 				"touch ./goploy-agent.toml",
-				"echo env = 'production' >> ./goploy-agent.toml",
+				"echo env = 'production' > ./goploy-agent.toml",
 				"echo [goploy] >> ./goploy-agent.toml",
 				fmt.Sprintf("echo reportURL = '%s' >> ./goploy-agent.toml", reqData.ReportURL),
 				fmt.Sprintf("echo key = '%s' >> ./goploy-agent.toml", config.Toml.JWT.Key),
@@ -434,7 +437,7 @@ func (Server) InstallAgent(gp *core.Goploy) core.Response {
 				"echo [web] >> ./goploy-agent.toml",
 				fmt.Sprintf("echo port = '%s' >> ./goploy-agent.toml", reqData.WebPort),
 				"chmod a+x ./goploy-agent",
-				"nohup ./goploy-agent",
+				"nohup ./goploy-agent &",
 			}
 			if err := session.Run(strings.Join(commands, "&&")); err != nil {
 				core.Log(core.ERROR, fmt.Sprintf("Error on %d server, %s, detail: %s", id, err.Error(), sshErrbuf.String()))

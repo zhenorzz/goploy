@@ -202,6 +202,9 @@ export class ServerInstallAgent extends Request {
   readonly method = 'post'
   public param: {
     ids: number[]
+    installPath: string
+    reportURL: string
+    webPort: string
   }
   constructor(param: ServerInstallAgent['param']) {
     super()

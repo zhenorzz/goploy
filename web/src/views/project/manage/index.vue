@@ -859,6 +859,7 @@ const formRules = <InstanceType<typeof ElForm>['rules']>{
     },
   ],
 }
+const autoDeployForm = ref<InstanceType<typeof ElForm>>()
 const autoDeployFormProps = ref({ disabled: false })
 const autoDeployFormData = ref({ id: 0, autoDeploy: 0 })
 
@@ -1052,7 +1053,7 @@ function edit() {
 }
 
 function setAutoDeploy() {
-  form.value?.validate((valid) => {
+  autoDeployForm.value?.validate((valid) => {
     if (valid) {
       autoDeployFormProps.value.disabled = true
       new ProjectAutoDeploy(autoDeployFormData.value)

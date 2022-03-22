@@ -11,13 +11,13 @@
           :end-placeholder="$t('endDate')"
           @change="datetimeChange"
         />
-        <el-button icon="el-icon-refresh" @click="handleRefresh" />
+        <el-button :icon="Refresh" @click="handleRefresh" />
       </el-row>
       <el-row>
-        <el-button icon="el-icon-bell" @click="handleAdd">
+        <el-button :icon="Bell" @click="handleAdd">
           {{ $t('serverPage.addMonitor') }}
         </el-button>
-        <el-button icon="el-icon-tickets" @click="handleGetList">
+        <el-button :icon="Tickets" @click="handleGetList">
           {{ $t('serverPage.monitorList') }}
         </el-button>
       </el-row>
@@ -279,13 +279,13 @@
         <el-table-column
           prop="insertTime"
           :label="$t('insertTime')"
-          width="135"
+          width="155"
           align="center"
         />
         <el-table-column
           prop="updateTime"
           :label="$t('updateTime')"
-          width="135"
+          width="155"
           align="center"
         />
         <el-table-column
@@ -298,12 +298,12 @@
           <template #default="scope">
             <el-button
               type="primary"
-              icon="el-icon-edit"
+              :icon="Edit"
               @click="handleEdit(scope.row)"
             />
             <el-button
               type="danger"
-              icon="el-icon-delete"
+              :icon="Delete"
               @click="handleDelete(scope.row)"
             />
           </template>
@@ -322,6 +322,7 @@
 export default { name: 'ServerAgent' }
 </script>
 <script lang="ts" setup>
+import { Refresh, Bell, Tickets, Edit, Delete } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage, ElDatePicker } from 'element-plus'

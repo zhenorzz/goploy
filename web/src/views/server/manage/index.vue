@@ -260,6 +260,52 @@
         </el-row>
       </template>
     </el-dialog>
+    <el-dialog
+      v-model="agentDialogVisible"
+      :fullscreen="$store.state.app.device === 'mobile'"
+      :title="$t('setting')"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        ref="agentForm"
+        :rules="agentFormRules"
+        :model="agentFormData"
+        label-width="130px"
+        :label-position="
+          $store.state.app.device === 'desktop' ? 'right' : 'top'
+        "
+      >
+        <el-form-item label="Install path" prop="installPath">
+          <el-input v-model="agentFormData.installPath" autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="Report URL" prop="reportURL">
+          <el-input v-model="agentFormData.reportURL" autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="Turn on web" prop="webState">
+          <el-radio v-model="agentFormData.webState" :label="1"> Yes </el-radio>
+          <el-radio v-model="agentFormData.webState" :label="0"> No </el-radio>
+        </el-form-item>
+        <el-form-item
+          v-show="agentFormData.webState === 1"
+          label="Web port"
+          prop="webPort"
+        >
+          <el-input v-model="agentFormData.webPort" autocomplete="off" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="agentDialogVisible = false">
+          {{ $t('cancel') }}
+        </el-button>
+        <el-button
+          :disabled="agentFormProps.disabled"
+          type="primary"
+          @click="installAgent"
+        >
+          {{ $t('confirm') }}
+        </el-button>
+      </template>
+    </el-dialog>
   </el-row>
 </template>
 
@@ -292,6 +338,7 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const router = useRouter()
 const dialogVisible = ref(false)
+const agentDialogVisible = ref(false)
 const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<ServerList['datagram']['list']>([])
@@ -355,6 +402,25 @@ const uploadHref = computed(() => {
   }/server/import?${NamespaceKey}=${getNamespaceId()}`
 })
 
+const agentForm = ref<InstanceType<typeof ElForm>>()
+const agentFormData = ref({
+  installPath: '',
+  reportURL: '',
+  webState: 1,
+  webPort: '',
+})
+const agentFormProps = ref({
+  disabled: false,
+})
+const agentFormRules = <InstanceType<typeof ElForm>['rules']>{
+  installPath: [
+    { required: true, message: 'Install path required', trigger: 'blur' },
+  ],
+  reportURL: [
+    { required: true, message: 'Report url required', trigger: 'blur' },
+  ],
+}
+
 getList()
 getTotal()
 
@@ -390,11 +456,11 @@ function getPublicKey() {
 }
 
 function handleInstallAgent() {
-  new ServerInstallAgent({ ids: selectedItems.value.map((_) => _.id) })
-    .request()
-    .then(() => {
-      ElMessage.success(t('serverPage.installAgentTips'))
-    })
+  if (selectedItems.value.length === 0) {
+    ElMessage.warning('Please, select the item')
+  } else {
+    agentDialogVisible.value = true
+  }
 }
 
 function handlePageChange(val = 1) {
@@ -541,6 +607,33 @@ function edit() {
     .finally(() => {
       formProps.value.disabled = dialogVisible.value = false
     })
+}
+
+function installAgent() {
+  agentForm.value?.validate((valid) => {
+    if (valid) {
+      agentFormProps.value.disabled = true
+      if (agentFormData.value.webState === 0) {
+        agentFormData.value.webPort = ''
+      }
+
+      new ServerInstallAgent({
+        ids: selectedItems.value.map((_) => _.id),
+        ...agentFormData.value,
+      })
+        .request()
+        .then(() => {
+          ElMessage.warning(t('serverPage.installAgentTips'))
+          agentDialogVisible.value = false
+        })
+        .finally(() => {
+          agentFormProps.value.disabled = false
+        })
+      return Promise.resolve(true)
+    } else {
+      return Promise.reject(false)
+    }
+  })
 }
 
 function restoreFormData() {

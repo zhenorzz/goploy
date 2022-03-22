@@ -52,7 +52,7 @@
           </RepoURL>
         </template>
       </el-table-column>
-      <el-table-column prop="date" :label="$t('date')" width="150" />
+      <el-table-column prop="date" :label="$t('date')" width="155" />
       <el-table-column prop="isRun" :label="$t('task')" width="80">
         <template #default="scope">
           {{ $t(`runOption[${scope.row.isRun || 0}]`) }}
@@ -68,19 +68,19 @@
       <el-table-column
         prop="insertTime"
         :label="$t('insertTime')"
-        width="135"
+        width="155"
         align="center"
       />
       <el-table-column
         prop="updateTime"
         :label="$t('updateTime')"
-        width="135"
+        width="155"
         align="center"
       />
       <el-table-column
         prop="operation"
         :label="$t('op')"
-        width="100"
+        width="80"
         align="center"
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
@@ -88,9 +88,9 @@
           <el-button
             type="danger"
             :disabled="scope.row.isRun === 1 || scope.row.state === 0"
+            :icon="Delete"
             @click="removeProjectTask(scope.row)"
           >
-            {{ $t('delete') }}
           </el-button>
         </template>
       </el-table-column>
@@ -150,7 +150,7 @@
   </TheCommitListDialog>
 </template>
 <script lang="ts" setup>
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Delete } from '@element-plus/icons-vue'
 import RepoURL from '@/components/RepoURL/index.vue'
 import {
   ProjectData,
@@ -229,6 +229,7 @@ function submitTask(data: ProjectTaskData) {
       ElMessage.success('Success')
     })
     .finally(() => {
+      console.log(taskPopoverRefs.value[data.commit])
       taskPopoverRefs.value[data.commit].doDestroy(true)
       commitDialogVisible.value = false
       handlePageChange()
