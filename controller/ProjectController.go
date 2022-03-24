@@ -36,10 +36,6 @@ func (p Project) Routes() []core.Route {
 		core.NewRoute("/project/remove", http.MethodDelete, p.Remove).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
 		core.NewRoute("/project/uploadFile", http.MethodPost, p.UploadFile).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
 		core.NewRoute("/project/removeFile", http.MethodDelete, p.RemoveFile).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/addServer", http.MethodPost, p.AddServer).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/addUser", http.MethodPost, p.AddUser).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/removeServer", http.MethodDelete, p.RemoveServer).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/removeUser", http.MethodDelete, p.RemoveUser).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
 		core.NewRoute("/project/addFile", http.MethodPost, p.AddFile).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
 		core.NewRoute("/project/editFile", http.MethodPut, p.EditFile).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
 		core.NewRoute("/project/addTask", http.MethodPost, p.AddTask).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
@@ -363,24 +359,15 @@ func (Project) Add(gp *core.Goploy) core.Response {
 		}
 		projectServersModel = append(projectServersModel, projectServerModel)
 	}
-
 	if err := projectServersModel.AddMany(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	projectUsersModel := model.ProjectUsers{}
-	for _, userID := range reqData.UserIDs {
-		projectUserModel := model.ProjectUser{
-			ProjectID: projectID,
-			UserID:    userID,
-		}
-		projectUsersModel = append(projectUsersModel, projectUserModel)
 	}
 
 	namespaceUsers, err := model.NamespaceUser{NamespaceID: gp.Namespace.ID}.GetAllGteManagerByNamespaceID()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-
+	projectUsersModel := model.ProjectUsers{}
 	for _, namespaceUser := range namespaceUsers {
 		projectUserModel := model.ProjectUser{
 			ProjectID: projectID,
@@ -388,7 +375,13 @@ func (Project) Add(gp *core.Goploy) core.Response {
 		}
 		projectUsersModel = append(projectUsersModel, projectUserModel)
 	}
-
+	for _, userID := range reqData.UserIDs {
+		projectUserModel := model.ProjectUser{
+			ProjectID: projectID,
+			UserID:    userID,
+		}
+		projectUsersModel = append(projectUsersModel, projectUserModel)
+	}
 	if err := projectUsersModel.AddMany(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -397,24 +390,26 @@ func (Project) Add(gp *core.Goploy) core.Response {
 
 func (Project) Edit(gp *core.Goploy) core.Response {
 	type ReqData struct {
-		ID                    int64  `json:"id" validate:"gt=0"`
-		Name                  string `json:"name"`
-		RepoType              string `json:"repoType"`
-		URL                   string `json:"url"`
-		Path                  string `json:"path"`
-		SymlinkPath           string `json:"symlinkPath"`
-		SymlinkBackupNumber   uint8  `json:"symlinkBackupNumber"`
-		Review                uint8  `json:"review"`
-		ReviewURL             string `json:"reviewURL"`
-		Environment           uint8  `json:"environment"`
-		Branch                string `json:"branch"`
-		AfterPullScriptMode   string `json:"afterPullScriptMode"`
-		AfterPullScript       string `json:"afterPullScript"`
-		AfterDeployScriptMode string `json:"afterDeployScriptMode"`
-		AfterDeployScript     string `json:"afterDeployScript"`
-		RsyncOption           string `json:"rsyncOption"`
-		NotifyType            uint8  `json:"notifyType"`
-		NotifyTarget          string `json:"notifyTarget"`
+		ID                    int64   `json:"id" validate:"gt=0"`
+		Name                  string  `json:"name"`
+		RepoType              string  `json:"repoType"`
+		URL                   string  `json:"url"`
+		Path                  string  `json:"path"`
+		SymlinkPath           string  `json:"symlinkPath"`
+		SymlinkBackupNumber   uint8   `json:"symlinkBackupNumber"`
+		Review                uint8   `json:"review"`
+		ReviewURL             string  `json:"reviewURL"`
+		Environment           uint8   `json:"environment"`
+		Branch                string  `json:"branch"`
+		ServerIDs             []int64 `json:"serverIds"`
+		UserIDs               []int64 `json:"userIds"`
+		AfterPullScriptMode   string  `json:"afterPullScriptMode"`
+		AfterPullScript       string  `json:"afterPullScript"`
+		AfterDeployScriptMode string  `json:"afterDeployScriptMode"`
+		AfterDeployScript     string  `json:"afterDeployScript"`
+		RsyncOption           string  `json:"rsyncOption"`
+		NotifyType            uint8   `json:"notifyType"`
+		NotifyTarget          string  `json:"notifyTarget"`
 	}
 	var reqData ReqData
 	if err := decodeJson(gp.Body, &reqData); err != nil {
@@ -450,7 +445,6 @@ func (Project) Edit(gp *core.Goploy) core.Response {
 		NotifyType:            reqData.NotifyType,
 		NotifyTarget:          reqData.NotifyTarget,
 	}.EditRow()
-
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -466,6 +460,47 @@ func (Project) Edit(gp *core.Goploy) core.Response {
 				return response.JSON{Code: response.Error, Message: "Project change url fail, you can do it manually, reason: " + err.Error()}
 			}
 		}
+	}
+
+	if err := (model.ProjectServer{ProjectID: projectData.ID}).DeleteByProjectID(); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	projectServersModel := model.ProjectServers{}
+	for _, serverID := range reqData.ServerIDs {
+		projectServerModel := model.ProjectServer{
+			ProjectID: projectData.ID,
+			ServerID:  serverID,
+		}
+		projectServersModel = append(projectServersModel, projectServerModel)
+	}
+	if err := projectServersModel.AddMany(); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	if err := (model.ProjectUser{ProjectID: projectData.ID}).DeleteByProjectID(); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	namespaceUsers, err := model.NamespaceUser{NamespaceID: gp.Namespace.ID}.GetAllGteManagerByNamespaceID()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	projectUsersModel := model.ProjectUsers{}
+	for _, namespaceUser := range namespaceUsers {
+		projectUserModel := model.ProjectUser{
+			ProjectID: projectData.ID,
+			UserID:    namespaceUser.UserID,
+		}
+		projectUsersModel = append(projectUsersModel, projectUserModel)
+	}
+	for _, userID := range reqData.UserIDs {
+		projectUserModel := model.ProjectUser{
+			ProjectID: projectData.ID,
+			UserID:    userID,
+		}
+		projectUsersModel = append(projectUsersModel, projectUserModel)
+	}
+	if err := projectUsersModel.AddMany(); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	return response.JSON{}
@@ -686,89 +721,6 @@ func (Project) RemoveFile(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	return response.JSON{}
-}
-
-func (Project) AddServer(gp *core.Goploy) core.Response {
-	type ReqData struct {
-		ProjectID int64   `json:"projectId" validate:"gt=0"`
-		ServerIDs []int64 `json:"serverIds" validate:"required"`
-	}
-	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	projectID := reqData.ProjectID
-
-	projectServersModel := model.ProjectServers{}
-	for _, serverID := range reqData.ServerIDs {
-		projectServerModel := model.ProjectServer{
-			ProjectID: projectID,
-			ServerID:  serverID,
-		}
-		projectServersModel = append(projectServersModel, projectServerModel)
-	}
-
-	if err := projectServersModel.AddMany(); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-
-	}
-	return response.JSON{}
-}
-
-func (Project) RemoveServer(gp *core.Goploy) core.Response {
-	type ReqData struct {
-		ProjectServerID int64 `json:"projectServerId" validate:"gt=0"`
-	}
-	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	if err := (model.ProjectServer{ID: reqData.ProjectServerID}).DeleteRow(); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	return response.JSON{}
-}
-
-func (Project) AddUser(gp *core.Goploy) core.Response {
-	type ReqData struct {
-		ProjectID int64   `json:"projectId" validate:"gt=0"`
-		UserIDs   []int64 `json:"userIds" validate:"required"`
-	}
-	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	projectID := reqData.ProjectID
-
-	projectUsersModel := model.ProjectUsers{}
-	for _, userID := range reqData.UserIDs {
-		projectUserModel := model.ProjectUser{
-			ProjectID: projectID,
-			UserID:    userID,
-		}
-		projectUsersModel = append(projectUsersModel, projectUserModel)
-	}
-
-	if err := projectUsersModel.AddMany(); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	return response.JSON{}
-}
-
-func (Project) RemoveUser(gp *core.Goploy) core.Response {
-	type ReqData struct {
-		ProjectUserID int64 `json:"projectUserId" validate:"gt=0"`
-	}
-	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	if err := (model.ProjectUser{ID: reqData.ProjectUserID}).DeleteRow(); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
 	return response.JSON{}
 }
 

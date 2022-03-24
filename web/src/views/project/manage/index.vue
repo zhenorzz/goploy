@@ -28,7 +28,7 @@
     >
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="name" :label="$t('name')" width="180" />
-      <el-table-column :label="$t('projectURL')" width="330">
+      <el-table-column :label="$t('projectURL')" min-width="330">
         <template #default="scope">
           <RepoURL :url="scope.row.url" :text="hideURLPwd(scope.row.url)">
           </RepoURL>
@@ -54,43 +54,18 @@
       </el-table-column>
       <el-table-column
         width="100"
+        align="center"
         :label="$t('autoDeploy')"
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
           <span v-if="scope.row.autoDeploy === 0">{{ $t('close') }}</span>
-          <span v-else>webhook</span>
+          <span v-else>{{ $t('open') }}</span>
           <el-button
             type="text"
             :icon="Edit"
             @click="handleAutoDeploy(scope.row)"
           />
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="server"
-        width="80"
-        :label="$t('server')"
-        align="center"
-        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
-      >
-        <template #default="scope">
-          <el-button type="text" @click="handleServer(scope.row)">
-            {{ $t('view') }}
-          </el-button>
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="user"
-        width="80"
-        :label="$t('member')"
-        align="center"
-        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
-      >
-        <template #default="scope">
-          <el-button type="text" @click="handleUser(scope.row)">
-            {{ $t('view') }}
-          </el-button>
         </template>
       </el-table-column>
       <el-table-column
@@ -299,11 +274,7 @@
                 />
               </el-row>
             </el-form-item>
-            <el-form-item
-              v-show="formProps.showServers"
-              :label="$t('server')"
-              prop="serverIds"
-            >
+            <el-form-item :label="$t('server')" prop="serverIds">
               <el-select
                 v-model="formData.serverIds"
                 multiple
@@ -317,11 +288,7 @@
                 />
               </el-select>
             </el-form-item>
-            <el-form-item
-              v-show="formProps.showUsers"
-              :label="$t('user')"
-              prop="userIds"
-            >
+            <el-form-item :label="$t('user')" prop="userIds">
               <el-select
                 v-model="formData.userIds"
                 multiple
@@ -679,11 +646,6 @@
         </el-button>
       </template>
     </el-dialog>
-    <TheServerDialog
-      v-model="dialogServerVisible"
-      :project-id="selectedItem.id"
-    />
-    <TheUserDialog v-model="dialogUserVisible" :project-id="selectedItem.id" />
   </el-row>
 </template>
 <script lang="ts">
@@ -718,13 +680,13 @@ import {
   ProjectRemoteBranchList,
   ProjectAdd,
   ProjectEdit,
+  ProjectUserList,
+  ProjectServerList,
   ProjectRemove,
   ProjectAutoDeploy,
   ProjectData,
 } from '@/api/project'
 import { getRole } from '@/utils/namespace'
-import TheServerDialog from './TheServerDialog.vue'
-import TheUserDialog from './TheUserDialog.vue'
 import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref } from 'vue'
@@ -742,8 +704,6 @@ const scriptLangOption = [
 const projectName = ref('')
 const dialogVisible = ref(false)
 const dialogAutoDeployVisible = ref(false)
-const dialogServerVisible = ref(false)
-const dialogUserVisible = ref(false)
 const serverOption = ref<ServerOption['datagram']['list']>([])
 const userOption = ref<NamespaceUserOption['datagram']['list']>([])
 const selectedItem = ref({} as ProjectData)
@@ -799,8 +759,6 @@ const formProps = ref({
   branch: [] as string[],
   pinging: false,
   lsBranchLoading: false,
-  showServers: true,
-  showUsers: true,
   tab: 'base',
 })
 const tempFormData = {
@@ -898,7 +856,6 @@ function getTotal() {
 
 function handleAdd() {
   restoreFormData()
-  formProps.value.showServers = formProps.value.showUsers = true
   formProps.value.symlink = false
   dialogVisible.value = true
 }
@@ -906,10 +863,21 @@ function handleAdd() {
 function handleEdit(data: ProjectData) {
   formData.value = Object.assign({}, data)
   formProps.value.symlink = formData.value.symlinkPath !== ''
-  formProps.value.showServers = formProps.value.showUsers = false
   formProps.value.branch = []
   formProps.value.reviewURL = ''
   formProps.value.reviewURLParam = []
+  formProps.value.disabled = true
+  Promise.all([
+    new ProjectUserList({ id: data.id }).request(),
+    new ProjectServerList({ id: data.id }).request(),
+  ]).then((values) => {
+    const projectUserList = values[0].data.list
+    const ProjectServerList = values[1].data.list
+    formData.value.userIds = projectUserList.map((item) => item.userId)
+    formData.value.serverIds = ProjectServerList.map((item) => item.serverId)
+    formProps.value.disabled = false
+  })
+
   if (formData.value.review === 1 && formData.value.reviewURL.length > 0) {
     const url = new URL(formData.value.reviewURL)
     formProps.value.reviewURLParamOption.forEach((item) => {
@@ -926,9 +894,6 @@ function handleEdit(data: ProjectData) {
 function handleCopy(data: ProjectData) {
   handleEdit(data)
   formData.value.id = 0
-  formData.value.serverIds = []
-  formData.value.userIds = []
-  formProps.value.showServers = formProps.value.showUsers = true
 }
 
 function handleRemove(data: ProjectData) {
@@ -986,16 +951,6 @@ function handleAutoDeploy(data: ProjectData) {
   selectedItem.value = data
   autoDeployFormData.value.id = data.id
   autoDeployFormData.value.autoDeploy = data.autoDeploy
-}
-
-function handleServer(data: ProjectData) {
-  selectedItem.value = data
-  dialogServerVisible.value = true
-}
-
-function handleUser(data: ProjectData) {
-  selectedItem.value = data
-  dialogUserVisible.value = true
 }
 
 function submit() {

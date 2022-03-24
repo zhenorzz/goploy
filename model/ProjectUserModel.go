@@ -122,3 +122,12 @@ func (pu ProjectUser) DeleteByUserID() error {
 		Exec()
 	return err
 }
+
+func (pu ProjectUser) DeleteByProjectID() error {
+	_, err := sq.
+		Delete(projectUserTable).
+		Where(sq.Eq{"project_id": pu.ProjectID}).
+		RunWith(DB).
+		Exec()
+	return err
+}

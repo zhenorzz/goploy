@@ -7,7 +7,6 @@ import (
 
 const projectServerTable = "`project_server`"
 
-// ProjectServer -
 type ProjectServer struct {
 	ID                 int64  `json:"id"`
 	ProjectID          int64  `json:"projectId"`
@@ -28,10 +27,8 @@ type ProjectServer struct {
 	UpdateTime         string `json:"updateTime"`
 }
 
-// ProjectServers -
 type ProjectServers []ProjectServer
 
-// GetBindServerListByProjectID -
 func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 	rows, err := sq.
 		Select(`
@@ -90,7 +87,6 @@ func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 	return projectServers, nil
 }
 
-// AddMany -
 func (ps ProjectServers) AddMany() error {
 	if len(ps) == 0 {
 		return nil
@@ -107,11 +103,19 @@ func (ps ProjectServers) AddMany() error {
 	return err
 }
 
-// DeleteRow -
 func (ps ProjectServer) DeleteRow() error {
 	_, err := sq.
 		Delete(projectServerTable).
 		Where(sq.Eq{"id": ps.ID}).
+		RunWith(DB).
+		Exec()
+	return err
+}
+
+func (ps ProjectServer) DeleteByProjectID() error {
+	_, err := sq.
+		Delete(projectServerTable).
+		Where(sq.Eq{"project_id": ps.ProjectID}).
 		RunWith(DB).
 		Exec()
 	return err

@@ -245,31 +245,6 @@ export class ProjectServerList extends Request {
   }
 }
 
-export class ProjectServerAdd extends Request {
-  readonly url = '/project/addServer'
-  readonly method = 'post'
-  public param: {
-    projectId: number
-    serverIds: number[]
-  }
-  constructor(param: ProjectServerAdd['param']) {
-    super()
-    this.param = param
-  }
-}
-
-export class ProjectServerRemove extends Request {
-  readonly url = '/project/removeServer'
-  readonly method = 'delete'
-  public param: {
-    projectServerId: number
-  }
-  constructor(param: ProjectServerRemove['param']) {
-    super()
-    this.param = param
-  }
-}
-
 export class ProjectUserList extends Request {
   readonly url = '/project/getBindUserList'
   readonly method = 'get'
@@ -278,31 +253,6 @@ export class ProjectUserList extends Request {
     list: ProjectUserData[]
   }
   constructor(param: ProjectUserList['param']) {
-    super()
-    this.param = param
-  }
-}
-
-export class ProjectUserAdd extends Request {
-  readonly url = '/project/addUser'
-  readonly method = 'post'
-  public param: {
-    projectId: number
-    userIds: number[]
-  }
-  constructor(param: ProjectUserAdd['param']) {
-    super()
-    this.param = param
-  }
-}
-
-export class ProjectUserRemove extends Request {
-  readonly url = '/project/removeUser'
-  readonly method = 'delete'
-  public param: {
-    projectUserId: number
-  }
-  constructor(param: ProjectUserRemove['param']) {
     super()
     this.param = param
   }
