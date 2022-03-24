@@ -4,7 +4,7 @@
     :title="$t('detail')"
     :fullscreen="$store.state.app.device === 'mobile'"
   >
-    <el-row type="flex">
+    <el-row v-click-outside="(filterInpurtVisible = false)" type="flex">
       <div v-loading="filterloading" class="publish-preview">
         <div>
           <el-popover
@@ -340,7 +340,12 @@ import {
 import { ProjectData } from '@/api/project'
 import { NamespaceUserOption } from '@/api/namespace'
 import { empty, parseTime } from '@/utils'
-import { ElMessageBox, ElMessage, ElDatePicker } from 'element-plus'
+import {
+  ElMessageBox,
+  ElMessage,
+  ElDatePicker,
+  ClickOutside as vClickOutside,
+} from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
 import { computed, watch, ref, reactive, PropType } from 'vue'

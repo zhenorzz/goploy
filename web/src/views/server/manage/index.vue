@@ -278,6 +278,10 @@
         <el-form-item label="Install path" prop="installPath">
           <el-input v-model="agentFormData.installPath" autocomplete="off" />
         </el-form-item>
+        <el-form-item label="Use" prop="tool">
+          <el-radio v-model="agentFormData.tool" label="wget">wget</el-radio>
+          <el-radio v-model="agentFormData.tool" label="curl">curl</el-radio>
+        </el-form-item>
         <el-form-item label="Report URL" prop="reportURL">
           <el-input v-model="agentFormData.reportURL" autocomplete="off" />
         </el-form-item>
@@ -406,6 +410,7 @@ const agentForm = ref<InstanceType<typeof ElForm>>()
 const agentFormData = ref({
   installPath: '',
   reportURL: '',
+  tool: 'wget',
   webState: 1,
   webPort: '',
 })

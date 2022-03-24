@@ -389,6 +389,7 @@ func (Server) InstallAgent(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		IDs         []int64 `json:"ids" validate:"min=1"`
 		InstallPath string  `json:"installPath" validate:"required"`
+		Tool        string  `json:"tool" validate:"required"`
 		ReportURL   string  `json:"reportURL" validate:"required"`
 		WebPort     string  `json:"webPort" validate:"omitempty"`
 	}
@@ -398,6 +399,11 @@ func (Server) InstallAgent(gp *core.Goploy) core.Response {
 	}
 
 	downloadURL := "https://github.com/goploy-devops/goploy-agent/releases/latest/download/goploy-agent"
+	downloadCommand := fmt.Sprintf("wget -N %s", downloadURL)
+	if reqData.Tool == "curl" {
+		downloadCommand = fmt.Sprintf("curl %s -o goploy-agent", downloadURL)
+	}
+
 	for _, id := range reqData.IDs {
 		go func(id int64) {
 			server, err := (model.Server{ID: id}).GetData()
@@ -424,7 +430,8 @@ func (Server) InstallAgent(gp *core.Goploy) core.Response {
 			commands := []string{
 				fmt.Sprintf("mkdir -p %s", reqData.InstallPath),
 				fmt.Sprintf("cd %s", reqData.InstallPath),
-				fmt.Sprintf("wget -N %s", downloadURL),
+				fmt.Sprintf("[./goploy-agent -s stop || true"),
+				downloadCommand,
 				"touch ./goploy-agent.toml",
 				"echo env = 'production' > ./goploy-agent.toml",
 				"echo [goploy] >> ./goploy-agent.toml",
@@ -443,6 +450,7 @@ func (Server) InstallAgent(gp *core.Goploy) core.Response {
 				core.Log(core.ERROR, fmt.Sprintf("Error on %d server, %s, detail: %s", id, err.Error(), sshErrbuf.String()))
 				return
 			}
+			core.Log(core.INFO, sshErrbuf.String())
 		}(id)
 	}
 

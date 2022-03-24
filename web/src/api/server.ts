@@ -203,6 +203,7 @@ export class ServerInstallAgent extends Request {
   public param: {
     ids: number[]
     installPath: string
+    tool: string
     reportURL: string
     webPort: string
   }

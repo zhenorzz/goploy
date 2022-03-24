@@ -4,153 +4,206 @@
     :title="$t('manage')"
     :fullscreen="$store.state.app.device === 'mobile'"
   >
-    <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" :icon="Plus" @click="handleAddProjectTask" />
-    </el-row>
-    <el-table
-      v-loading="tableLoading"
-      border
-      stripe
-      highlight-current-row
-      max-height="447px"
-      :data="tableData"
-    >
-      <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column
-        prop="projectName"
-        :label="$t('projectName')"
-        width="150"
+    <template v-if="type === 'list'">
+      <el-row
+        v-if="!getRole().isMember()"
+        class="app-bar"
+        type="flex"
+        justify="end"
       >
-        <template #default>
-          {{ projectRow.name }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="branch"
-        :label="$t('branch')"
-        width="150"
-        align="center"
+        <el-button type="primary" :icon="Plus" @click="handleAddProjectTask" />
+      </el-row>
+      <el-table
+        v-loading="tableLoading"
+        border
+        stripe
+        highlight-current-row
+        max-height="447px"
+        :data="tableData"
       >
-        <template #default="scope">
-          <RepoURL
-            style="font-size: 12px"
-            :url="projectRow.url"
-            :suffix="'/tree/' + scope.row.branch.split('/').pop()"
-            :text="scope.row.branch"
-          >
-          </RepoURL>
-        </template>
-      </el-table-column>
-      <el-table-column prop="commit" label="commit" width="290">
-        <template #default="scope">
-          <RepoURL
-            style="font-size: 12px"
-            :url="projectRow.url"
-            :suffix="`/commit/${scope.row.commit}`"
-            :text="scope.row.commit"
-          >
-          </RepoURL>
-        </template>
-      </el-table-column>
-      <el-table-column prop="date" :label="$t('date')" width="155" />
-      <el-table-column prop="isRun" :label="$t('task')" width="80">
-        <template #default="scope">
-          {{ $t(`runOption[${scope.row.isRun || 0}]`) }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="state" :label="$t('state')" width="70">
-        <template #default="scope">
-          {{ $t(`stateOption[${scope.row.state || 0}]`) }}
-        </template>
-      </el-table-column>
-      <el-table-column prop="creator" :label="$t('creator')" align="center" />
-      <el-table-column prop="editor" :label="$t('editor')" align="center" />
-      <el-table-column
-        prop="insertTime"
-        :label="$t('insertTime')"
-        width="155"
-        align="center"
+        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column
+          prop="projectName"
+          :label="$t('projectName')"
+          width="150"
+        >
+          <template #default>
+            {{ projectRow.name }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="branch"
+          :label="$t('branch')"
+          width="150"
+          align="center"
+        >
+          <template #default="scope">
+            <RepoURL
+              style="font-size: 12px"
+              :url="projectRow.url"
+              :suffix="'/tree/' + scope.row.branch.split('/').pop()"
+              :text="scope.row.branch"
+            >
+            </RepoURL>
+          </template>
+        </el-table-column>
+        <el-table-column prop="commit" label="commit" width="290">
+          <template #default="scope">
+            <RepoURL
+              style="font-size: 12px"
+              :url="projectRow.url"
+              :suffix="`/commit/${scope.row.commit}`"
+              :text="scope.row.commit"
+            >
+            </RepoURL>
+          </template>
+        </el-table-column>
+        <el-table-column prop="date" :label="$t('date')" width="155" />
+        <el-table-column prop="isRun" :label="$t('task')" width="80">
+          <template #default="scope">
+            {{ $t(`runOption[${scope.row.isRun || 0}]`) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="state" :label="$t('state')" width="70">
+          <template #default="scope">
+            {{ $t(`stateOption[${scope.row.state || 0}]`) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="creator" :label="$t('creator')" align="center" />
+        <el-table-column prop="editor" :label="$t('editor')" align="center" />
+        <el-table-column
+          prop="insertTime"
+          :label="$t('insertTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="updateTime"
+          :label="$t('updateTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="operation"
+          :label="$t('op')"
+          width="80"
+          align="center"
+          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+        >
+          <template #default="scope">
+            <el-button
+              type="danger"
+              :disabled="scope.row.isRun === 1 || scope.row.state === 0"
+              :icon="Delete"
+              @click="removeProjectTask(scope.row)"
+            >
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination
+        v-model:current-page="pagination.page"
+        hide-on-single-page
+        :total="pagination.total"
+        :page-size="pagination.rows"
+        style="margin-top: 10px; text-align: right"
+        background
+        layout="total, prev, pager, next"
+        @current-change="handlePageChange"
       />
-      <el-table-column
-        prop="updateTime"
-        :label="$t('updateTime')"
-        width="155"
-        align="center"
-      />
-      <el-table-column
-        prop="operation"
-        :label="$t('op')"
-        width="80"
-        align="center"
-        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+    </template>
+    <template v-else>
+      <el-row class="app-bar" type="flex" justify="start">
+        <el-button type="primary" :icon="Back" @click="handleBackList" />
+      </el-row>
+      <el-form
+        ref="form"
+        :rules="formRules"
+        :model="formData"
+        label-width="80px"
+        :label-position="
+          $store.state.app.device === 'desktop' ? 'right' : 'top'
+        "
       >
-        <template #default="scope">
-          <el-button
-            type="danger"
-            :disabled="scope.row.isRun === 1 || scope.row.state === 0"
-            :icon="Delete"
-            @click="removeProjectTask(scope.row)"
+        <el-form-item :label="$t('branch')" prop="branch">
+          <el-select
+            v-model="formData.branch"
+            style="width: 100%"
+            :loading="formProps.branchLoading"
+            @change="handleBranchChange"
           >
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-    <el-pagination
-      v-model:current-page="pagination.page"
-      hide-on-single-page
-      :total="pagination.total"
-      :page-size="pagination.rows"
-      style="margin-top: 10px; text-align: right"
-      background
-      layout="total, prev, pager, next"
-      @current-change="handlePageChange"
-    />
+            <el-option
+              v-for="(item, index) in formProps.branchOption"
+              :key="index"
+              :label="index"
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Commit" prop="commit">
+          <el-select
+            v-model="formData.commit"
+            :loading="formProps.commitLoading"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="(item, index) in formProps.commitOption"
+              :key="index"
+              :label="item.commit"
+              :value="item.commit"
+            >
+              <el-row style="width: 100%">
+                <span :title="item.commit">
+                  [commit: {{ item.commit ? item.commit.substring(0, 6) : '' }}]
+                </span>
+                <span style="margin-left: 5px">
+                  [author: {{ item.author }}]
+                </span>
+                <span
+                  style="
+                    flex: 1;
+                    margin-left: 5px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                  "
+                  :title="item.message"
+                >
+                  [desc:{{ item.message }}]
+                </span>
+              </el-row>
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item :label="$t('date')" prop="date">
+          <el-date-picker
+            v-model="formData.date"
+            type="datetime"
+            :disabled-date="
+              (time) => time.getTime() < Date.now() - 3600 * 1000 * 24
+            "
+            style="width: 100%"
+          />
+        </el-form-item>
+      </el-form>
+    </template>
     <template #footer>
       <el-button @click="dialogVisible = false">
         {{ $t('cancel') }}
       </el-button>
+      <el-button
+        v-show="type === 'add'"
+        :disabled="formProps.disabled"
+        type="primary"
+        @click="submitProjectTask"
+      >
+        {{ $t('confirm') }}
+      </el-button>
     </template>
   </el-dialog>
-  <TheCommitListDialog v-model="commitDialogVisible" :project-row="projectRow">
-    <template #tableOP="scope">
-      <el-popover
-        :ref="
-          (el) => {
-            if (el) {
-              taskPopoverRefs[scope.row.commit] = el
-            }
-          }
-        "
-        placement="bottom"
-        trigger="click"
-        width="270"
-      >
-        <el-date-picker
-          v-model="scope.row.date"
-          type="datetime"
-          :disabled-date="
-            (time) => time.getTime() < Date.now() - 3600 * 1000 * 24
-          "
-          style="width: 180px"
-        />
-        <el-button
-          type="primary"
-          :disabled="!scope.row['date']"
-          @click="submitTask(scope.row)"
-        >
-          {{ $t('confirm') }}
-        </el-button>
-        <template #reference>
-          <el-button v-if="!getRole().isMember()" type="primary">
-            {{ $t('crontab') }}
-          </el-button>
-        </template>
-      </el-popover>
-    </template>
-  </TheCommitListDialog>
 </template>
 <script lang="ts" setup>
-import { Plus, Delete } from '@element-plus/icons-vue'
+import { Plus, Back, Delete } from '@element-plus/icons-vue'
 import RepoURL from '@/components/RepoURL/index.vue'
 import {
   ProjectData,
@@ -159,7 +212,8 @@ import {
   ProjectTaskRemove,
   ProjectTaskData,
 } from '@/api/project'
-import TheCommitListDialog from './TheCommitListDialog.vue'
+import type { ElForm } from 'element-plus'
+import { RepositoryBranchList, RepositoryCommitList } from '@/api/repository'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { getRole } from '@/utils/namespace'
 import { parseTime } from '@/utils'
@@ -180,24 +234,42 @@ const props = defineProps({
   },
 })
 const emit = defineEmits(['update:modelValue'])
-const taskPopoverRefs = ref<Record<string, any>>({})
+watch(
+  () => props.modelValue,
+  (val: typeof props['modelValue']) => {
+    if (val === true) {
+      type.value = 'list'
+      handlePageChange()
+    }
+  }
+)
 const dialogVisible = computed({
   get: () => props.modelValue,
   set: (val) => {
     emit('update:modelValue', val)
   },
 })
-watch(
-  () => props.modelValue,
-  (val: typeof props['modelValue']) => {
-    if (val === true) {
-      handlePageChange()
-    }
-  }
-)
+const type = ref('list')
 const tableLoading = ref(false)
 const tableData = ref<ProjectTaskList['datagram']['list']>([])
 const pagination = reactive({ page: 1, rows: 11, total: 0 })
+const form = ref<InstanceType<typeof ElForm>>()
+const formData = ref({
+  branch: '',
+  commit: '',
+  date: '',
+})
+const formProps = ref({
+  branchLoading: false,
+  branchOption: [] as RepositoryBranchList['datagram']['list'],
+  commitLoading: false,
+  commitOption: [] as RepositoryCommitList['datagram']['list'],
+  disabled: false,
+})
+const formRules = <InstanceType<typeof ElForm>['rules']>{
+  date: [{ required: true, message: 'Date required', trigger: 'blur' }],
+}
+
 const getTaskList = () => {
   tableLoading.value = true
   new ProjectTaskList({ id: props.projectRow.id }, pagination)
@@ -216,24 +288,73 @@ const handlePageChange = (page = 1) => {
   getTaskList()
 }
 
-const commitDialogVisible = ref(false)
 const handleAddProjectTask = () => {
-  commitDialogVisible.value = true
-}
-
-function submitTask(data: ProjectTaskData) {
-  const date = dayjs(data.date).format('YYYY-MM-DD HH:mm:ss')
-  new ProjectTaskAdd({ ...data, date })
+  type.value = 'add'
+  formData.value.branch = ''
+  formData.value.commit = ''
+  formProps.value.branchLoading = true
+  formProps.value.branchOption = []
+  formProps.value.commitOption = []
+  new RepositoryBranchList({ id: props.projectRow.id })
     .request()
-    .then(() => {
-      ElMessage.success('Success')
+    .then((response) => {
+      formProps.value.branchOption = response.data.list.filter((element) => {
+        return element.indexOf('HEAD') === -1
+      })
     })
     .finally(() => {
-      console.log(taskPopoverRefs.value[data.commit])
-      taskPopoverRefs.value[data.commit].doDestroy(true)
-      commitDialogVisible.value = false
-      handlePageChange()
+      formProps.value.branchLoading = false
     })
+}
+const handleBackList = () => {
+  type.value = 'list'
+}
+
+const handleBranchChange = () => {
+  formProps.value.commitLoading = true
+  new RepositoryCommitList({
+    id: props.projectRow.id,
+    branch: formData.value.branch,
+  })
+    .request()
+    .then((response) => {
+      formProps.value.commitOption = response.data.list.map((element) => {
+        return Object.assign(element, {
+          projectId: props.projectRow.id,
+          branch: formData.value.branch,
+        })
+      })
+    })
+    .finally(() => {
+      formProps.value.commitLoading = false
+    })
+}
+
+function submitProjectTask() {
+  form.value?.validate((valid) => {
+    if (valid) {
+      formProps.value.disabled = true
+      const date = dayjs(formData.value.date).format('YYYY-MM-DD HH:mm:ss')
+      new ProjectTaskAdd({
+        projectId: props.projectRow.id,
+        branch: formData.value.branch,
+        commit: formData.value.commit,
+        date,
+      })
+        .request()
+        .then(() => {
+          ElMessage.success('Success')
+          type.value = 'list'
+          handlePageChange()
+        })
+        .finally(() => {
+          formProps.value.disabled = false
+        })
+      return Promise.resolve(true)
+    } else {
+      return Promise.reject(false)
+    }
+  })
 }
 
 function removeProjectTask(data: ProjectTaskData) {

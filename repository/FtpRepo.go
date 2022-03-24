@@ -94,16 +94,16 @@ func (ftpRepo FtpRepo) Follow(project model.Project, _ string) error {
 }
 
 func (FtpRepo) RemoteBranchList(url string) ([]string, error) {
-	return []string{"master"}, nil
+	return []string{"virtual"}, nil
 }
 
 func (FtpRepo) BranchList(projectID int64) ([]string, error) {
-	return []string{"master"}, nil
+	return []string{"virtual"}, nil
 }
 
 func (FtpRepo) CommitLog(projectID int64, rows int) ([]CommitInfo, error) {
 	commitInfo := CommitInfo{
-		Branch:    "master",
+		Branch:    "virtual",
 		Commit:    "",
 		Author:    "",
 		Timestamp: time.Now().Unix(),

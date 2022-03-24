@@ -20,6 +20,7 @@
         :value="item"
       />
     </el-select>
+    <slot></slot>
     <el-table
       v-loading="tableLoading"
       border
