@@ -228,16 +228,12 @@ export function humanSize(bytes: number): string {
   return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i]
 }
 
-export function parseGitURL(url: string): string {
-  const lastDotGitIndex = url.lastIndexOf('.git')
-  if (lastDotGitIndex !== -1) {
-    url = url.substring(0, lastDotGitIndex)
-  }
-  const lastAtIndex = url.lastIndexOf('git@')
-  if (lastAtIndex === -1) {
-    return url
-  } else {
-    return '//' + url.substring(lastAtIndex + 4).replace(':', '/')
+export function isLink(url: string): boolean {
+  try {
+    new URL(url)
+    return true
+  } catch (error) {
+    return false
   }
 }
 

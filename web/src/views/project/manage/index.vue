@@ -27,7 +27,20 @@
       style="width: 100%"
     >
       <el-table-column prop="id" label="ID" width="60" />
-      <el-table-column prop="name" :label="$t('name')" width="180" />
+      <el-table-column prop="name" :label="$t('name')" width="180">
+        <template #default="scope">
+          <el-link
+            v-if="isLink(scope.row.name)"
+            :href="scope.row.name"
+            type="primary"
+            target="_blank"
+          >
+            {{ scope.row.name }}
+            <el-icon><Link /></el-icon>
+          </el-link>
+          <span v-else>{{ scope.row.name }}</span>
+        </template>
+      </el-table-column>
       <el-table-column :label="$t('projectURL')" min-width="330">
         <template #default="scope">
           <RepoURL :url="scope.row.url" :text="hideURLPwd(scope.row.url)">
@@ -655,6 +668,7 @@ export default { name: 'ProjectIndex' }
 import {
   Search,
   View,
+  Link,
   Plus,
   Edit,
   QuestionFilled,
@@ -670,7 +684,7 @@ import 'ace-builds/src-noconflict/theme-github'
 import path from 'path-browserify'
 import getTableHeight from '@/composables/tableHeight'
 import RepoURL from '@/components/RepoURL/index.vue'
-import { hideURLPwd } from '@/utils'
+import { isLink, hideURLPwd } from '@/utils'
 import { NamespaceUserOption } from '@/api/namespace'
 import { ServerOption } from '@/api/server'
 import {
