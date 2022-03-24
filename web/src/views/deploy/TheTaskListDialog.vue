@@ -120,10 +120,8 @@
         ref="form"
         :rules="formRules"
         :model="formData"
-        label-width="80px"
-        :label-position="
-          $store.state.app.device === 'desktop' ? 'right' : 'top'
-        "
+        label-width="65px"
+        :label-position="$store.state.app.device === 'desktop' ? 'left' : 'top'"
       >
         <el-form-item :label="$t('branch')" prop="branch">
           <el-select
