@@ -4,7 +4,14 @@
     :title="$t('detail')"
     :fullscreen="$store.state.app.device === 'mobile'"
   >
-    <el-row v-click-outside="(filterInpurtVisible = false)" type="flex">
+    <el-row
+      v-click-outside="
+        () => {
+          filterInpurtVisible = false
+        }
+      "
+      type="flex"
+    >
       <div v-loading="filterloading" class="publish-preview">
         <div>
           <el-popover
