@@ -508,6 +508,7 @@
                 theme="github"
                 style="height: 400px; width: 100%"
                 placeholder="Already switched to project directory..."
+                :options="{ newLineMode: 'unix' }"
               />
             </el-form-item>
           </el-tab-pane>
