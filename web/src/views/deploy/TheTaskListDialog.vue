@@ -178,7 +178,7 @@
             v-model="formData.date"
             type="datetime"
             :disabled-date="
-              (time) => time.getTime() < Date.now() - 3600 * 1000 * 24
+              (time: Date) => time.getTime() < Date.now() - 3600 * 1000 * 24
             "
             style="width: 100%"
           />
