@@ -3,15 +3,9 @@
     v-model="dialogVisible"
     :title="$t('detail')"
     :fullscreen="$store.state.app.device === 'mobile'"
+    @close="filterInpurtVisible = false"
   >
-    <el-row
-      v-click-outside="
-        () => {
-          filterInpurtVisible = false
-        }
-      "
-      type="flex"
-    >
+    <el-row type="flex">
       <div v-loading="filterloading" class="publish-preview">
         <div>
           <el-popover
@@ -20,6 +14,15 @@
             width="318"
             trigger="manual"
           >
+            <el-row type="flex" justify="space-between" align="middle">
+              <span style="font-size: 16px">Filter</span>
+              <el-button
+                type="text"
+                :icon="Close"
+                style="color: #999; font-size: 16px; margin-bottom: 10px"
+                @click="filterInpurtVisible = false"
+              />
+            </el-row>
             <el-row type="flex" align="middle">
               <label class="publish-filter-label">{{ $t('user') }}</label>
               <el-select
@@ -105,9 +108,28 @@
                 style="flex: 1"
               />
             </el-row>
+            <el-row type="flex" justify="end">
+              <el-button
+                type="danger"
+                style="margin-top: 10px"
+                @click="clearFilterParams"
+              >
+                {{ $t('clear') }}
+              </el-button>
+              <el-button
+                :loading="filterloading"
+                type="primary"
+                style="margin-top: 10px"
+                @click="searchPreviewList"
+              >
+                {{ $t('search') }}
+              </el-button>
+            </el-row>
             <template #reference>
               <el-button
-                style="width: 224px"
+                :icon="Search"
+                :loading="filterloading"
+                style="width: 270px"
                 @click="filterInpurtVisible = !filterInpurtVisible"
               >
                 Filter({{ filterlength }})
@@ -115,15 +137,8 @@
             </template>
           </el-popover>
           <el-button
-            type="warning"
-            :icon="Refresh"
-            @click="refreshFilterParams"
-          />
-          <el-button
-            :loading="filterloading"
             type="primary"
-            :icon="Search"
-            style="margin-left: 2px"
+            :icon="Refresh"
             @click="searchPreviewList"
           />
         </div>
@@ -334,7 +349,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Search, Refresh } from '@element-plus/icons-vue'
+import { Search, Refresh, Close } from '@element-plus/icons-vue'
 import RepoURL from '@/components/RepoURL/index.vue'
 import {
   DeployPreviewList,
@@ -413,7 +428,7 @@ watch(
   () => props.modelValue,
   (val: typeof props['modelValue']) => {
     if (val === true) {
-      refreshFilterParams()
+      clearFilterParams()
       getPreviewList(props.projectRow.id)
       new NamespaceUserOption().request().then((response) => {
         userOption.value = response.data.list
@@ -453,7 +468,8 @@ const filterlength = computed(() => {
   }
   return number
 })
-const refreshFilterParams = () => {
+
+const clearFilterParams = () => {
   filterParams.userId = ''
   filterParams.state = ''
   filterParams.filename = ''
