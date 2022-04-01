@@ -347,6 +347,7 @@ import {
 import { ProjectData } from '@/api/project'
 import { NamespaceUserOption } from '@/api/namespace'
 import { empty, parseTime } from '@/utils'
+import type { ElRadioGroup } from 'element-plus'
 import {
   ElMessageBox,
   ElMessage,
@@ -557,8 +558,10 @@ const getPublishTrace = (publishToken: string) => {
     })
 }
 
-const handleTraceChange = (lastPublishToken: string) => {
-  publishToken.value = lastPublishToken
+const handleTraceChange: InstanceType<typeof ElRadioGroup>['onChange'] = (
+  lastPublishToken
+) => {
+  publishToken.value = <string>lastPublishToken
   getPublishTrace(publishToken.value)
 }
 

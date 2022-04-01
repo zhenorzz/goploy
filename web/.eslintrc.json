@@ -13,7 +13,8 @@
   ],
   "rules": {
     "vue/script-setup-uses-vars": "error",
-    "vue/multi-word-component-names": 0
+    "vue/multi-word-component-names": 0,
+    "@typescript-eslint/no-explicit-any": ["off"]
   },
   "env": {
     "vue/setup-compiler-macros": true

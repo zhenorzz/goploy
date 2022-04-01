@@ -87,7 +87,7 @@
             :value="scope.row.state === 1"
             active-color="#13ce66"
             inactive-color="#ff4949"
-            @change="(value) => onSwitchState(value, scope.$index)"
+            @change="(value) => onSwitchState(value as boolean, scope.$index)"
           >
           </el-switch>
         </template>

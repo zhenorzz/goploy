@@ -129,7 +129,7 @@ import { xterm } from './xterm'
 import { ref, nextTick, ComponentPublicInstance } from 'vue'
 interface terminal {
   uuid: number
-  xterm?: xterm | void
+  xterm?: xterm
   server: ServerData
 }
 const serverOptionVisible = ref(false)

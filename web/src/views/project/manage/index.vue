@@ -702,7 +702,7 @@ import {
   ProjectData,
 } from '@/api/project'
 import { getRole } from '@/utils/namespace'
-import type { ElForm } from 'element-plus'
+import type { ElRadioGroup, ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -953,7 +953,9 @@ function getSymlinkPath(projectPath: string) {
   )
 }
 
-function handleSymlink(value: boolean) {
+const handleSymlink: InstanceType<typeof ElRadioGroup>['onChange'] = (
+  value
+) => {
   if (value) {
     formData.value.symlinkPath = getSymlinkPath(formData.value.path)
   } else {
