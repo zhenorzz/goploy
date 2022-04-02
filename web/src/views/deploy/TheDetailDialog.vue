@@ -363,12 +363,7 @@ import { ProjectData } from '@/api/project'
 import { NamespaceUserOption } from '@/api/namespace'
 import { empty, parseTime } from '@/utils'
 import type { ElRadioGroup } from 'element-plus'
-import {
-  ElMessageBox,
-  ElMessage,
-  ElDatePicker,
-  ClickOutside as vClickOutside,
-} from 'element-plus'
+import { ElMessageBox, ElMessage, ElDatePicker } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
 import { computed, watch, ref, reactive, PropType } from 'vue'

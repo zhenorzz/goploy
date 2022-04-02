@@ -14,7 +14,10 @@
       @command="handleNamespaceChange"
     >
       <span class="el-dropdown-link">
-        {{ namespace.name }}<i class="el-icon-arrow-down el-icon--right" />
+        {{ namespace.name }}
+        <el-icon class="el-icon--right" style="vertical-align: middle">
+          <arrow-down />
+        </el-icon>
       </span>
       <template #dropdown>
         <el-dropdown-menu v-loading="namespaceListLoading">
@@ -119,6 +122,7 @@
 import logo from '@/assets/images/logo.png'
 import Breadcrumb from '@/components/Breadcrumb/index.vue'
 import Hamburger from '@/components/Hamburger/index.vue'
+import { ArrowDown } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
@@ -154,7 +158,7 @@ function handleNamespaceVisible(visible: boolean) {
       })
   }
 }
-function handleNamespaceChange(namespace: NamespaceUserData['datagram']) {
+function handleNamespaceChange(namespace: NamespaceUserData) {
   setNamespace({
     id: namespace.namespaceId,
     name: namespace.namespaceName,
