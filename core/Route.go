@@ -60,21 +60,21 @@ func NewRouter() Router {
 }
 
 func NewRoute(pattern, method string, callback func(gp *Goploy) Response) Route {
-	return Route{
-		pattern:  pattern,
-		method:   method,
-		callback: callback,
-		roles:    map[string]struct{}{},
-	}
+	return newRoute(pattern, method, callback)
 }
 
 func NewWhiteRoute(pattern, method string, callback func(gp *Goploy) Response) Route {
+	route := newRoute(pattern, method, callback)
+	route.white = true
+	return route
+}
+
+func newRoute(pattern, method string, callback func(gp *Goploy) Response) Route {
 	return Route{
 		pattern:  pattern,
 		method:   method,
-		white:    true,
-		roles:    map[string]struct{}{},
 		callback: callback,
+		roles:    map[string]struct{}{},
 	}
 }
 
