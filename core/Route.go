@@ -19,10 +19,15 @@ import (
 	"strings"
 )
 
-// Goploy callback param
+type Namespace struct {
+	ID            int64
+	Role          string
+	PermissionIDs map[int64]struct{}
+}
+
 type Goploy struct {
 	UserInfo       model.User
-	Namespace      model.Namespace
+	Namespace      Namespace
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
 	URLQuery       url.Values
@@ -38,13 +43,14 @@ type Response interface {
 }
 
 type Route struct {
-	pattern     string
-	method      string                    // Method specifies the HTTP method (GET, POST, PUT, etc.).
-	roles       map[string]struct{}       // permission role
-	white       bool                      // no need to login
-	middlewares []func(gp *Goploy) error  // Middlewares run before callback, trigger error will end the request
-	callback    func(gp *Goploy) Response // Controller function
-	logFunc     func(gp *Goploy, resp Response)
+	pattern       string
+	method        string                    // Method specifies the HTTP method (GET, POST, PUT, etc.).
+	roles         map[string]struct{}       // permission role
+	permissionIDs []int64                   // permission list
+	white         bool                      // no need to login
+	middlewares   []func(gp *Goploy) error  // Middlewares run before callback, trigger error will end the request
+	callback      func(gp *Goploy) Response // Controller function
+	logFunc       func(gp *Goploy, resp Response)
 }
 
 // Router is Route slice and global middlewares
@@ -109,6 +115,13 @@ func (rt Router) Add(ra RouteApi) Router {
 func (r Route) Roles(roles ...string) Route {
 	for _, role := range roles {
 		r.roles[role] = struct{}{}
+	}
+	return r
+}
+
+func (r Route) Permissions(permissionIDs ...int64) Route {
+	for _, permissionID := range permissionIDs {
+		r.permissionIDs = append(r.permissionIDs, permissionID)
 	}
 	return r
 }
@@ -192,16 +205,40 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 			return gp, response.JSON{Code: response.Deny, Message: "Invalid namespace"}
 		}
 
-		gp.Namespace, err = model.Namespace{
-			ID:     namespaceID,
-			UserID: int64(claims["id"].(float64)),
-		}.GetDataByUserNamespace()
-
+		gp.UserInfo, err = model.User{ID: int64(claims["id"].(float64))}.GetData()
 		if err != nil {
-			if err == sql.ErrNoRows {
-				return gp, response.JSON{Code: response.NamespaceInvalid, Message: "No available namespace"}
-			} else {
+			return gp, response.JSON{Code: response.Deny, Message: "Get user information error"}
+		}
+		if gp.UserInfo.State != 1 {
+			return gp, response.JSON{Code: response.AccountDisabled, Message: "No available user"}
+		}
+
+		if gp.UserInfo.SuperManager == model.SuperManager {
+			permissionIDs, err := model.Permission{}.GetIDs()
+			if err != nil {
 				return gp, response.JSON{Code: response.Deny, Message: err.Error()}
+			}
+			gp.Namespace = Namespace{
+				ID:            namespaceID,
+				Role:          RoleAdmin,
+				PermissionIDs: permissionIDs,
+			}
+		} else {
+			namespace, err := model.NamespaceUser{
+				NamespaceID: namespaceID,
+				UserID:      int64(claims["id"].(float64)),
+			}.GetDataByUserNamespace()
+			if err != nil {
+				if err == sql.ErrNoRows {
+					return gp, response.JSON{Code: response.NamespaceInvalid, Message: "No available namespace"}
+				} else {
+					return gp, response.JSON{Code: response.Deny, Message: err.Error()}
+				}
+			}
+			gp.Namespace = Namespace{
+				ID:            namespaceID,
+				Role:          namespace.Role,
+				PermissionIDs: namespace.PermissionIDs,
 			}
 		}
 
@@ -209,9 +246,8 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 			return gp, response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 
-		gp.UserInfo, err = model.User{ID: int64(claims["id"].(float64))}.GetData()
-		if err != nil {
-			return gp, response.JSON{Code: response.Deny, Message: "Get user information error"}
+		if err = route.hasPermission(gp.Namespace.PermissionIDs); err != nil {
+			return gp, response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 
 		goployTokenStr, err := model.User{ID: int64(claims["id"].(float64)), Name: claims["name"].(string)}.CreateToken()
@@ -220,7 +256,6 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 			cookie := http.Cookie{Name: config.Toml.Cookie.Name, Value: goployTokenStr, Path: "/", MaxAge: config.Toml.Cookie.Expire, HttpOnly: true}
 			http.SetCookie(w, &cookie)
 		}
-
 	}
 
 	gp.Request = r
@@ -264,6 +299,20 @@ func (r Route) hasRole(namespaceRole string) error {
 	if _, ok := r.roles[namespaceRole]; ok {
 		return nil
 	}
+	return errors.New("no permission")
+}
+
+func (r Route) hasPermission(permissionIDs map[int64]struct{}) error {
+	if len(r.permissionIDs) == 0 {
+		return nil
+	}
+
+	for _, permissionID := range r.permissionIDs {
+		if _, ok := permissionIDs[permissionID]; ok {
+			return nil
+		}
+	}
+
 	return errors.New("no permission")
 }
 

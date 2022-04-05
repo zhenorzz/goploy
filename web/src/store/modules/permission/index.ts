@@ -54,7 +54,7 @@ const mutations: MutationTree<PermissionState> = {
 
 const actions: ActionTree<PermissionState, RootState> = {
   generateRoutes({ commit }) {
-    return new Promise((resolve) => {
+    return new Promise<RouteRecordRaw[]>((resolve) => {
       const namespace = getNamespace()
       let accessRoutes = filterAsyncRoutes(asyncRoutes, namespace.role)
       if (

@@ -8,12 +8,14 @@ const namespaceTable = "`namespace`"
 
 // Namespace -
 type Namespace struct {
-	ID         int64  `json:"id"`
-	Name       string `json:"name"`
-	UserID     int64  `json:"-"`
-	Role       string `json:"role"`
-	InsertTime string `json:"insertTime,omitempty"`
-	UpdateTime string `json:"updateTime,omitempty"`
+	ID            int64   `json:"id"`
+	Name          string  `json:"name"`
+	UserID        int64   `json:"-"`
+	Role          string  `json:"role"`
+	RoleID        int64   `json:"role_id"`
+	PermissionIDs []int64 `json:"permissionIds"`
+	InsertTime    string  `json:"insertTime,omitempty"`
+	UpdateTime    string  `json:"updateTime,omitempty"`
 }
 
 // Namespaces -

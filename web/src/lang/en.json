@@ -135,6 +135,8 @@
     "crontab": "Crontab",
     "serverCron": "Cron",
     "namespace": "Namespace",
+    "namespaceSetting": "NS setting",
+    "roleSetting": "Role setting",
     "member": "Member",
     "log": "Log",
     "loginLog": "Login log",
@@ -163,7 +165,8 @@
     "removeUserTips": "This action will delete the user({name}), continue?"
   },
   "namespacePage": {
-    "removeUserTips": "This action will delete the user\"s binding relationship, continue?"
+    "removeUserTips": "This action will delete the user\"s binding relationship, continue?",
+    "removeRoleTips": "This action will delete the role({name}), continue?"
   },
   "serverPage": {
     "importCSV": "Import CSV",

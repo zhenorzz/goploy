@@ -13,6 +13,7 @@ func Init() {
 	rt.Add(ws.GetHub())
 	rt.Add(controller.User{})
 	rt.Add(controller.Namespace{})
+	rt.Add(controller.Role{})
 	rt.Add(controller.Project{})
 	rt.Add(controller.Repository{})
 	rt.Add(controller.Monitor{})

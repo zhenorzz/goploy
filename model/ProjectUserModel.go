@@ -103,7 +103,6 @@ func (pu ProjectUser) AddNamespaceProjectInUserID(namespaceID int64, userIDs []i
 	return err
 }
 
-// DeleteRow -
 func (pu ProjectUser) DeleteRow() error {
 	_, err := sq.
 		Delete(projectUserTable).
@@ -113,7 +112,6 @@ func (pu ProjectUser) DeleteRow() error {
 	return err
 }
 
-// DeleteByUserID -
 func (pu ProjectUser) DeleteByUserID() error {
 	_, err := sq.
 		Delete(projectUserTable).

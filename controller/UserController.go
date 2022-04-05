@@ -22,7 +22,6 @@ func (u User) Routes() []core.Route {
 		core.NewRoute("/user/info", http.MethodGet, u.Info),
 		core.NewRoute("/user/getList", http.MethodGet, u.GetList),
 		core.NewRoute("/user/getTotal", http.MethodGet, u.GetTotal),
-		core.NewRoute("/user/getOption", http.MethodGet, u.GetOption),
 		core.NewRoute("/user/add", http.MethodPost, u.Add).Roles(core.RoleAdmin),
 		core.NewRoute("/user/edit", http.MethodPut, u.Edit).Roles(core.RoleAdmin),
 		core.NewRoute("/user/remove", http.MethodDelete, u.Remove).Roles(core.RoleAdmin),
@@ -164,18 +163,6 @@ func (User) GetTotal(*core.Goploy) core.Response {
 		Data: struct {
 			Total int64 `json:"total"`
 		}{Total: total},
-	}
-}
-
-func (User) GetOption(*core.Goploy) core.Response {
-	users, err := model.User{}.GetAll()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	return response.JSON{
-		Data: struct {
-			Users model.Users `json:"list"`
-		}{Users: users},
 	}
 }
 

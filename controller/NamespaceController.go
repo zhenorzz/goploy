@@ -142,7 +142,7 @@ func (Namespace) AddUser(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		NamespaceID int64   `json:"namespaceId" validate:"gt=0"`
 		UserIDs     []int64 `json:"userIds" validate:"required"`
-		Role        string  `json:"role" validate:"required"`
+		RoleID      int64   `json:"roleId" validate:"required"`
 	}
 	var reqData ReqData
 	if err := decodeJson(gp.Body, &reqData); err != nil {
@@ -154,20 +154,13 @@ func (Namespace) AddUser(gp *core.Goploy) core.Response {
 		namespaceUserModel := model.NamespaceUser{
 			NamespaceID: reqData.NamespaceID,
 			UserID:      userID,
-			Role:        reqData.Role,
+			RoleID:      reqData.RoleID,
 		}
 		namespaceUsersModel = append(namespaceUsersModel, namespaceUserModel)
 	}
 
 	if err := namespaceUsersModel.AddMany(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	if reqData.Role == core.RoleManager {
-		err := model.ProjectUser{}.AddNamespaceProjectInUserID(reqData.NamespaceID, reqData.UserIDs)
-		if err != nil {
-			return response.JSON{Code: response.Error, Message: err.Error()}
-		}
 	}
 
 	return response.JSON{}

@@ -106,7 +106,7 @@ export class NamespaceUserAdd extends Request {
   public param: {
     namespaceId: number
     userIds: number[]
-    role: string
+    roleId: number
   }
   constructor(param: NamespaceUserAdd['param']) {
     super()

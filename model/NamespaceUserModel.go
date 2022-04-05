@@ -2,6 +2,8 @@ package model
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -10,14 +12,16 @@ const namespaceUserTable = "`namespace_user`"
 
 // NamespaceUser -
 type NamespaceUser struct {
-	ID            int64  `json:"id,omitempty"`
-	NamespaceID   int64  `json:"namespaceId,omitempty"`
-	NamespaceName string `json:"namespaceName,omitempty"`
-	UserID        int64  `json:"userId,omitempty"`
-	UserName      string `json:"userName,omitempty"`
-	Role          string `json:"role,omitempty"`
-	InsertTime    string `json:"insertTime,omitempty"`
-	UpdateTime    string `json:"updateTime,omitempty"`
+	ID            int64              `json:"id,omitempty"`
+	NamespaceID   int64              `json:"namespaceId,omitempty"`
+	NamespaceName string             `json:"namespaceName,omitempty"`
+	UserID        int64              `json:"userId,omitempty"`
+	UserName      string             `json:"userName,omitempty"`
+	Role          string             `json:"role,omitempty"`
+	RoleID        int64              `json:"roleId,omitempty"`
+	PermissionIDs map[int64]struct{} `json:"permissionIds,omitempty"`
+	InsertTime    string             `json:"insertTime,omitempty"`
+	UpdateTime    string             `json:"updateTime,omitempty"`
 }
 
 // NamespaceUsers -
@@ -117,16 +121,43 @@ func (nu NamespaceUser) GetAllGteManagerByNamespaceID() (NamespaceUsers, error) 
 	return namespaceUsers, nil
 }
 
+func (nu NamespaceUser) GetDataByUserNamespace() (NamespaceUser, error) {
+	var namespaceUser NamespaceUser
+	var permissionIDs string
+	err := sq.Select("namespace_user.role_id, GROUP_CONCAT(permission_id)").
+		From(namespaceUserTable).
+		Join(fmt.Sprintf("%s ON %[1]s.role_id = %s.role_id", rolePermissionTable, namespaceUserTable)).
+		Where(sq.Eq{"user_id": nu.UserID, "namespace_id": nu.NamespaceID}).
+		GroupBy("namespace_user.role_id").
+		RunWith(DB).
+		QueryRow().
+		Scan(&namespaceUser.RoleID, &permissionIDs)
+
+	if err != nil {
+		return namespaceUser, err
+	}
+
+	namespaceUser.PermissionIDs = map[int64]struct{}{}
+	for _, permissionID := range strings.Split(permissionIDs, ",") {
+		v, err := strconv.ParseInt(permissionID, 10, 64)
+		if err != nil {
+			return namespaceUser, err
+		}
+		namespaceUser.PermissionIDs[v] = struct{}{}
+	}
+	return namespaceUser, err
+}
+
 func (nu NamespaceUsers) AddMany() error {
 	if len(nu) == 0 {
 		return nil
 	}
 	builder := sq.
 		Replace(namespaceUserTable).
-		Columns("namespace_id", "user_id", "role")
+		Columns("namespace_id", "user_id", "role_id")
 
 	for _, row := range nu {
-		builder = builder.Values(row.NamespaceID, row.UserID, row.Role)
+		builder = builder.Values(row.NamespaceID, row.UserID, row.RoleID)
 	}
 	_, err := builder.RunWith(DB).Exec()
 	return err

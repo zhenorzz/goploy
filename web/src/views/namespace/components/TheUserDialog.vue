@@ -43,16 +43,16 @@
             prop="role"
             style="margin-bottom: 5px"
           >
-            <el-select v-model="formData.role">
+            <el-select
+              v-model="formData.roleId"
+              :loading="roleLoading"
+              filterable
+            >
               <el-option
-                v-for="(_value, index) in [
-                  role.Manager,
-                  role.GroupManager,
-                  role.Member,
-                ]"
+                v-for="(item, index) in roleOption"
                 :key="index"
-                :label="_value"
-                :value="_value"
+                :label="item.name"
+                :value="item.id"
               />
             </el-select>
           </el-form-item>
@@ -76,7 +76,7 @@
       border
       stripe
       highlight-current-row
-      :data="tableData.filter((row) => row.role !== role.Admin)"
+      :data="tableData"
       style="width: 100%"
     >
       <el-table-column prop="userId" :label="$t('userId')" />
@@ -122,14 +122,13 @@ import {
   NamespaceUserAdd,
   NamespaceUserRemove,
 } from '@/api/namespace'
-import { UserOption } from '@/api/user'
-import { getRole } from '@/utils/namespace'
+import { RoleList } from '@/api/role'
+import { UserList } from '@/api/user'
 import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { computed, watch, ref, Ref } from 'vue'
+import { computed, watch, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
-const role = getRole()
 const props = defineProps({
   modelValue: {
     type: Boolean,
@@ -143,7 +142,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 const form = ref<InstanceType<typeof ElForm>>()
 const formProps = ref({ disabled: false })
-const formData = ref({ namespaceId: 0, userIds: [], role: '' })
+const formData = ref({ namespaceId: 0, userIds: [], roleId: 0 })
 const formRules = <InstanceType<typeof ElForm>['rules']>{
   userIds: [
     {
@@ -153,7 +152,7 @@ const formRules = <InstanceType<typeof ElForm>['rules']>{
       trigger: 'change',
     },
   ],
-  role: [{ required: true, message: 'Role required', trigger: 'change' }],
+  roleId: [{ required: true, message: 'Role required', trigger: 'change' }],
 }
 let tableData = ref<NamespaceUserList['datagram']['list']>([])
 const dialogVisible = computed({
@@ -190,18 +189,29 @@ watch(
 )
 
 const userLoading = ref(false)
-let userOption: Ref<UserOption['datagram']['list']> = ref([])
+const userOption = ref<UserList['datagram']['list']>([])
+const roleLoading = ref(false)
+const roleOption = ref<RoleList['datagram']['list']>([])
 let showAddView = ref(false)
 watch(showAddView, (val: boolean) => {
   if (val === true) {
     userLoading.value = true
-    new UserOption()
+    new UserList({ page: 1, rows: 9999 })
       .request()
       .then((response) => {
         userOption.value = response.data.list
       })
       .finally(() => {
         userLoading.value = false
+      })
+    roleLoading.value = true
+    new RoleList({ page: 1, rows: 9999 })
+      .request()
+      .then((response) => {
+        roleOption.value = response.data.list
+      })
+      .finally(() => {
+        roleLoading.value = false
       })
   }
 })

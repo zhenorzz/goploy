@@ -41,7 +41,12 @@ router.beforeEach(async (to) => {
         } catch (error) {
           // remove token and go to login page to re-login
           logout()
-          ElMessage.error(error || 'Has Error')
+          if (error instanceof Error || typeof error === 'string') {
+            ElMessage.error(error)
+          } else {
+            console.log(error)
+            ElMessage.error('Has Error')
+          }
           NProgress.done()
           return `/login?redirect=${to.path}`
         }
