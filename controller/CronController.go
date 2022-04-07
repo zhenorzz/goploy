@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/permission"
 	"github.com/zhenorzz/goploy/response"
 	"net/http"
 )
@@ -12,41 +13,12 @@ type Cron Controller
 
 func (c Cron) Routes() []core.Route {
 	return []core.Route{
-		core.NewRoute("/cron/report", http.MethodPost, c.Report),
-		core.NewRoute("/cron/getList", http.MethodPost, c.GetList),
-		core.NewRoute("/cron/getLogs", http.MethodPost, c.GetLogs),
-		core.NewRoute("/cron/add", http.MethodPost, c.Add).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/cron/edit", http.MethodPut, c.Edit).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/cron/remove", http.MethodDelete, c.Remove).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/cron/getList", http.MethodPost, c.GetList).Permissions(permission.ShowCronPage),
+		core.NewRoute("/cron/getLogs", http.MethodPost, c.GetLogs).Permissions(permission.ShowCronPage),
+		core.NewRoute("/cron/add", http.MethodPost, c.Add).Permissions(permission.AddCron),
+		core.NewRoute("/cron/edit", http.MethodPut, c.Edit).Permissions(permission.EditCron),
+		core.NewRoute("/cron/remove", http.MethodDelete, c.Remove).Permissions(permission.DeleteCron),
 	}
-}
-
-func (Cron) Report(gp *core.Goploy) core.Response {
-	type ReqData struct {
-		ServerId   int64  `json:"serverId" validate:"gt=0"`
-		CronId     int64  `json:"cronId" validate:"gt=0"`
-		ExecCode   int    `json:"execCode"`
-		Message    string `json:"message" validate:"required"`
-		ReportTime string `json:"reportTime" validate:"required"`
-	}
-
-	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	err := model.CronLog{
-		ServerID:   reqData.ServerId,
-		CronID:     reqData.CronId,
-		ExecCode:   reqData.ExecCode,
-		Message:    reqData.Message,
-		ReportTime: reqData.ReportTime,
-	}.AddRow()
-
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	return response.JSON{}
 }
 
 func (Cron) GetList(gp *core.Goploy) core.Response {

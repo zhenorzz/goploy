@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/permission"
 	"github.com/zhenorzz/goploy/response"
 	"net/http"
 )
@@ -12,15 +13,15 @@ type Log Controller
 
 func (l Log) Routes() []core.Route {
 	return []core.Route{
-		core.NewRoute("/log/getLoginLogList", http.MethodGet, l.GetLoginLogList).Roles(core.RoleAdmin),
-		core.NewRoute("/log/getLoginLogTotal", http.MethodGet, l.GetLoginLogTotal).Roles(core.RoleAdmin),
-		core.NewRoute("/log/getSftpLogList", http.MethodGet, l.GetSftpLogList).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/log/getSftpLogTotal", http.MethodGet, l.GetSftpLogTotal).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/log/getTerminalLogList", http.MethodGet, l.GetTerminalLogList).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/log/getTerminalLogTotal", http.MethodGet, l.GetTerminalLogTotal).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/log/getTerminalRecord", http.MethodGet, l.GetTerminalRecord).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/log/getPublishLogList", http.MethodGet, l.GetPublishLogList).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/log/getPublishLogTotal", http.MethodGet, l.GetPublishLogTotal).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/log/getLoginLogList", http.MethodGet, l.GetLoginLogList).Permissions(permission.ShowLoginLogPage),
+		core.NewRoute("/log/getLoginLogTotal", http.MethodGet, l.GetLoginLogTotal).Permissions(permission.ShowLoginLogPage),
+		core.NewRoute("/log/getSftpLogList", http.MethodGet, l.GetSftpLogList).Permissions(permission.ShowSFTPLogPage),
+		core.NewRoute("/log/getSftpLogTotal", http.MethodGet, l.GetSftpLogTotal).Permissions(permission.ShowSFTPLogPage),
+		core.NewRoute("/log/getTerminalLogList", http.MethodGet, l.GetTerminalLogList).Permissions(permission.ShowTerminalLogPage),
+		core.NewRoute("/log/getTerminalLogTotal", http.MethodGet, l.GetTerminalLogTotal).Permissions(permission.ShowTerminalLogPage),
+		core.NewRoute("/log/getTerminalRecord", http.MethodGet, l.GetTerminalRecord).Permissions(permission.ShowTerminalRecord),
+		core.NewRoute("/log/getPublishLogList", http.MethodGet, l.GetPublishLogList).Permissions(permission.ShowPublishLogPage),
+		core.NewRoute("/log/getPublishLogTotal", http.MethodGet, l.GetPublishLogTotal).Permissions(permission.ShowPublishLogPage),
 	}
 }
 

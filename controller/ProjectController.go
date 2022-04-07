@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/permission"
 	"github.com/zhenorzz/goploy/repository"
 	"github.com/zhenorzz/goploy/response"
 	"github.com/zhenorzz/goploy/utils"
@@ -21,31 +22,31 @@ type Project Controller
 
 func (p Project) Routes() []core.Route {
 	return []core.Route{
-		core.NewRoute("/project/getList", http.MethodGet, p.GetList),
-		core.NewRoute("/project/getTotal", http.MethodGet, p.GetTotal),
+		core.NewRoute("/project/getList", http.MethodGet, p.GetList).Permissions(permission.ShowProjectPage),
+		core.NewRoute("/project/getTotal", http.MethodGet, p.GetTotal).Permissions(permission.ShowProjectPage),
 		core.NewRoute("/project/pingRepos", http.MethodGet, p.PingRepos),
 		core.NewRoute("/project/getRemoteBranchList", http.MethodGet, p.GetRemoteBranchList),
 		core.NewRoute("/project/getBindServerList", http.MethodGet, p.GetBindServerList),
 		core.NewRoute("/project/getBindUserList", http.MethodGet, p.GetBindUserList),
-		core.NewRoute("/project/getProjectFileList", http.MethodGet, p.GetProjectFileList),
-		core.NewRoute("/project/getProjectFileContent", http.MethodGet, p.GetProjectFileContent),
-		core.NewRoute("/project/getReposFileList", http.MethodGet, p.GetReposFileList),
-		core.NewRoute("/project/add", http.MethodPost, p.Add).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/edit", http.MethodPut, p.Edit).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/setAutoDeploy", http.MethodPut, p.SetAutoDeploy).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/remove", http.MethodDelete, p.Remove).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/uploadFile", http.MethodPost, p.UploadFile).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/removeFile", http.MethodDelete, p.RemoveFile).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/addFile", http.MethodPost, p.AddFile).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/editFile", http.MethodPut, p.EditFile).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/addTask", http.MethodPost, p.AddTask).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/removeTask", http.MethodDelete, p.RemoveTask).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/getTaskList", http.MethodGet, p.GetTaskList).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/project/getReviewList", http.MethodGet, p.GetReviewList),
-		core.NewRoute("/project/getProcessList", http.MethodGet, p.GetProcessList).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/project/addProcess", http.MethodPost, p.AddProcess).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/project/editProcess", http.MethodPut, p.EditProcess).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/project/deleteProcess", http.MethodDelete, p.DeleteProcess).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/project/getProjectFileList", http.MethodGet, p.GetProjectFileList).Permissions(permission.FileSync),
+		core.NewRoute("/project/getProjectFileContent", http.MethodGet, p.GetProjectFileContent).Permissions(permission.FileSync),
+		core.NewRoute("/project/getReposFileList", http.MethodGet, p.GetReposFileList).Permissions(permission.FileCompare),
+		core.NewRoute("/project/add", http.MethodPost, p.Add).Permissions(permission.AddProject),
+		core.NewRoute("/project/edit", http.MethodPut, p.Edit).Permissions(permission.EditProject),
+		core.NewRoute("/project/setAutoDeploy", http.MethodPut, p.SetAutoDeploy).Permissions(permission.SwitchProjectWebhook),
+		core.NewRoute("/project/remove", http.MethodDelete, p.Remove).Permissions(permission.DeleteProject),
+		core.NewRoute("/project/uploadFile", http.MethodPost, p.UploadFile).Permissions(permission.FileSync),
+		core.NewRoute("/project/removeFile", http.MethodDelete, p.RemoveFile).Permissions(permission.FileSync),
+		core.NewRoute("/project/addFile", http.MethodPost, p.AddFile).Permissions(permission.FileSync),
+		core.NewRoute("/project/editFile", http.MethodPut, p.EditFile).Permissions(permission.FileSync),
+		core.NewRoute("/project/addTask", http.MethodPost, p.AddTask).Permissions(permission.DeployTask),
+		core.NewRoute("/project/removeTask", http.MethodDelete, p.RemoveTask).Permissions(permission.DeployTask),
+		core.NewRoute("/project/getTaskList", http.MethodGet, p.GetTaskList).Permissions(permission.DeployTask),
+		core.NewRoute("/project/getReviewList", http.MethodGet, p.GetReviewList).Permissions(permission.DeployReview),
+		core.NewRoute("/project/getProcessList", http.MethodGet, p.GetProcessList).Permissions(permission.ProcessManager),
+		core.NewRoute("/project/addProcess", http.MethodPost, p.AddProcess).Permissions(permission.ProcessManager),
+		core.NewRoute("/project/editProcess", http.MethodPut, p.EditProcess).Permissions(permission.ProcessManager),
+		core.NewRoute("/project/deleteProcess", http.MethodDelete, p.DeleteProcess).Permissions(permission.ProcessManager),
 	}
 }
 

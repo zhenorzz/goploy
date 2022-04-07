@@ -94,7 +94,6 @@ func (u User) GetList(pagination Pagination) (Users, error) {
 	return users, nil
 }
 
-// GetTotal -
 func (u User) GetTotal() (int64, error) {
 	var total int64
 	err := sq.
@@ -110,7 +109,6 @@ func (u User) GetTotal() (int64, error) {
 	return total, nil
 }
 
-// GetAll -
 func (u User) GetAll() (Users, error) {
 	rows, err := sq.
 		Select("id, account, name, contact, super_manager").
@@ -134,7 +132,6 @@ func (u User) GetAll() (Users, error) {
 	return users, nil
 }
 
-// AddRow return LastInsertId
 func (u User) AddRow() (int64, error) {
 	if u.Password == "" {
 		u.Password = u.Account + "!@#"

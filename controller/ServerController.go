@@ -9,6 +9,7 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/middleware"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/permission"
 	"github.com/zhenorzz/goploy/response"
 	"github.com/zhenorzz/goploy/utils"
 	"io"
@@ -24,24 +25,24 @@ type Server Controller
 
 func (s Server) Routes() []core.Route {
 	return []core.Route{
-		core.NewRoute("/server/getList", http.MethodGet, s.GetList),
-		core.NewRoute("/server/getTotal", http.MethodGet, s.GetTotal),
+		core.NewRoute("/server/getList", http.MethodGet, s.GetList).Permissions(permission.ShowServerPage),
+		core.NewRoute("/server/getTotal", http.MethodGet, s.GetTotal).Permissions(permission.ShowServerPage),
 		core.NewRoute("/server/getOption", http.MethodGet, s.GetOption),
-		core.NewRoute("/server/getPublicKey", http.MethodGet, s.GetPublicKey),
-		core.NewRoute("/server/check", http.MethodPost, s.Check).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/server/import", http.MethodPost, s.Import).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/server/add", http.MethodPost, s.Add).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/server/edit", http.MethodPut, s.Edit).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/server/toggle", http.MethodPut, s.Toggle).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/server/installAgent", http.MethodPost, s.InstallAgent).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/server/previewFile", http.MethodGet, s.PreviewFile).Roles(core.RoleAdmin, core.RoleManager).LogFunc(middleware.AddPreviewLog),
-		core.NewRoute("/server/downloadFile", http.MethodGet, s.DownloadFile).Roles(core.RoleAdmin, core.RoleManager).LogFunc(middleware.AddDownloadLog),
-		core.NewRoute("/server/uploadFile", http.MethodPost, s.UploadFile).Roles(core.RoleAdmin, core.RoleManager).LogFunc(middleware.AddUploadLog),
-		core.NewRoute("/server/report", http.MethodGet, s.Report).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/server/getAllMonitor", http.MethodGet, s.GetAllMonitor),
-		core.NewRoute("/server/addMonitor", http.MethodPost, s.AddMonitor).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/server/editMonitor", http.MethodPut, s.EditMonitor).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/server/deleteMonitor", http.MethodDelete, s.DeleteMonitor).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/server/getPublicKey", http.MethodGet, s.GetPublicKey).Permissions(permission.AddServer, permission.EditServer),
+		core.NewRoute("/server/check", http.MethodPost, s.Check).Permissions(permission.AddServer, permission.EditServer),
+		core.NewRoute("/server/import", http.MethodPost, s.Import).Permissions(permission.ImportCSV),
+		core.NewRoute("/server/add", http.MethodPost, s.Add).Permissions(permission.AddServer),
+		core.NewRoute("/server/edit", http.MethodPut, s.Edit).Permissions(permission.EditServer),
+		core.NewRoute("/server/toggle", http.MethodPut, s.Toggle).Permissions(permission.EditServer),
+		core.NewRoute("/server/installAgent", http.MethodPost, s.InstallAgent).Permissions(permission.InstallAgent),
+		core.NewRoute("/server/previewFile", http.MethodGet, s.PreviewFile).Permissions(permission.SFTPPreviewFile).LogFunc(middleware.AddPreviewLog),
+		core.NewRoute("/server/downloadFile", http.MethodGet, s.DownloadFile).Permissions(permission.SFTPDownloadFile).LogFunc(middleware.AddDownloadLog),
+		core.NewRoute("/server/uploadFile", http.MethodPost, s.UploadFile).Permissions(permission.SFTPUploadFile).LogFunc(middleware.AddUploadLog),
+		core.NewRoute("/server/report", http.MethodGet, s.Report).Permissions(permission.ShowServerMonitorPage),
+		core.NewRoute("/server/getAllMonitor", http.MethodGet, s.GetAllMonitor).Permissions(permission.ShowServerMonitorPage),
+		core.NewRoute("/server/addMonitor", http.MethodPost, s.AddMonitor).Permissions(permission.AddServerWarningRule),
+		core.NewRoute("/server/editMonitor", http.MethodPut, s.EditMonitor).Permissions(permission.EditServerWarningRule),
+		core.NewRoute("/server/deleteMonitor", http.MethodDelete, s.DeleteMonitor).Permissions(permission.DeleteServerWarningRule),
 	}
 }
 

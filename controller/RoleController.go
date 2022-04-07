@@ -14,6 +14,7 @@ func (r Role) Routes() []core.Route {
 	return []core.Route{
 		core.NewRoute("/role/getList", http.MethodGet, r.GetList).Permissions(permission.ShowRolePage),
 		core.NewRoute("/role/getTotal", http.MethodGet, r.GetTotal).Permissions(permission.ShowRolePage),
+		core.NewRoute("/role/getOption", http.MethodGet, r.GetOption),
 		core.NewRoute("/role/getPermissionList", http.MethodGet, r.GetPermissionList).Permissions(permission.ShowRolePage),
 		core.NewRoute("/role/getPermissionBindings", http.MethodGet, r.GetPermissionBindings).Permissions(permission.ShowRolePage),
 		core.NewRoute("/role/add", http.MethodPost, r.Add).Permissions(permission.AddRole),
@@ -50,6 +51,16 @@ func (Role) GetTotal(*core.Goploy) core.Response {
 			Total int64 `json:"total"`
 		}{Total: total},
 	}
+}
+
+func (Role) GetOption(*core.Goploy) core.Response {
+	list, err := model.Role{}.GetAll()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	return response.JSON{Data: struct {
+		List model.Roles `json:"list"`
+	}{list}}
 }
 
 func (Role) GetPermissionList(*core.Goploy) core.Response {

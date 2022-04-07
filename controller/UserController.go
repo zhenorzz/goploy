@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-ldap/ldap/v3"
 	"github.com/zhenorzz/goploy/middleware"
+	"github.com/zhenorzz/goploy/permission"
 	"github.com/zhenorzz/goploy/response"
 	"net/http"
 	"time"
@@ -20,12 +21,13 @@ func (u User) Routes() []core.Route {
 	return []core.Route{
 		core.NewWhiteRoute("/user/login", http.MethodPost, u.Login).LogFunc(middleware.AddLoginLog),
 		core.NewRoute("/user/info", http.MethodGet, u.Info),
-		core.NewRoute("/user/getList", http.MethodGet, u.GetList),
-		core.NewRoute("/user/getTotal", http.MethodGet, u.GetTotal),
-		core.NewRoute("/user/add", http.MethodPost, u.Add).Roles(core.RoleAdmin),
-		core.NewRoute("/user/edit", http.MethodPut, u.Edit).Roles(core.RoleAdmin),
-		core.NewRoute("/user/remove", http.MethodDelete, u.Remove).Roles(core.RoleAdmin),
 		core.NewRoute("/user/changePassword", http.MethodPut, u.ChangePassword),
+		core.NewRoute("/user/getList", http.MethodGet, u.GetList).Permissions(permission.ShowMemberPage),
+		core.NewRoute("/user/getTotal", http.MethodGet, u.GetTotal).Permissions(permission.ShowMemberPage),
+		core.NewRoute("/user/getOption", http.MethodGet, u.GetOption),
+		core.NewRoute("/user/add", http.MethodPost, u.Add).Permissions(permission.AddMember),
+		core.NewRoute("/user/edit", http.MethodPut, u.Edit).Permissions(permission.EditMember),
+		core.NewRoute("/user/remove", http.MethodDelete, u.Remove).Permissions(permission.DeleteMember),
 	}
 }
 
@@ -129,12 +131,25 @@ func (User) Info(gp *core.Goploy) core.Response {
 			Name         string `json:"name"`
 			SuperManager int64  `json:"superManager"`
 		} `json:"userInfo"`
+		Namespace struct {
+			ID            int64   `json:"id"`
+			PermissionIDs []int64 `json:"permissionIds"`
+		} `json:"namespace"`
 	}
 	data := RespData{}
 	data.UserInfo.ID = gp.UserInfo.ID
 	data.UserInfo.Name = gp.UserInfo.Name
 	data.UserInfo.Account = gp.UserInfo.Account
 	data.UserInfo.SuperManager = gp.UserInfo.SuperManager
+
+	data.Namespace.ID = gp.Namespace.ID
+	data.Namespace.PermissionIDs = make([]int64, len(gp.Namespace.PermissionIDs))
+	i := 0
+	for k := range gp.Namespace.PermissionIDs {
+		data.Namespace.PermissionIDs[i] = k
+		i++
+	}
+
 	return response.JSON{Data: data}
 }
 
@@ -164,6 +179,16 @@ func (User) GetTotal(*core.Goploy) core.Response {
 			Total int64 `json:"total"`
 		}{Total: total},
 	}
+}
+
+func (User) GetOption(*core.Goploy) core.Response {
+	users, err := model.User{}.GetAll()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	return response.JSON{Data: struct {
+		Users model.Users `json:"list"`
+	}{Users: users}}
 }
 
 func (User) Add(gp *core.Goploy) core.Response {

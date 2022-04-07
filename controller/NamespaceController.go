@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/permission"
 	"github.com/zhenorzz/goploy/response"
 	"net/http"
 	"strconv"
@@ -12,15 +13,15 @@ type Namespace Controller
 
 func (n Namespace) Routes() []core.Route {
 	return []core.Route{
-		core.NewRoute("/namespace/getList", http.MethodGet, n.GetList),
-		core.NewRoute("/namespace/getTotal", http.MethodGet, n.GetTotal),
+		core.NewRoute("/namespace/getList", http.MethodGet, n.GetList).Permissions(permission.ShowNamespacePage),
+		core.NewRoute("/namespace/getTotal", http.MethodGet, n.GetTotal).Permissions(permission.ShowNamespacePage),
 		core.NewRoute("/namespace/getOption", http.MethodGet, n.GetOption),
-		core.NewRoute("/namespace/getBindUserList", http.MethodGet, n.GetBindUserList),
+		core.NewRoute("/namespace/getBindUserList", http.MethodGet, n.GetBindUserList).Permissions(permission.GetNamespaceUserList),
 		core.NewRoute("/namespace/getUserOption", http.MethodGet, n.GetUserOption),
-		core.NewRoute("/namespace/add", http.MethodPost, n.Add).Roles(core.RoleAdmin),
-		core.NewRoute("/namespace/edit", http.MethodPut, n.Edit).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/namespace/addUser", http.MethodPost, n.AddUser).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/namespace/removeUser", http.MethodDelete, n.RemoveUser).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/namespace/add", http.MethodPost, n.Add).Roles(core.RoleAdmin).Permissions(permission.AddNamespace),
+		core.NewRoute("/namespace/edit", http.MethodPut, n.Edit).Roles(core.RoleAdmin, core.RoleManager).Permissions(permission.EditNamespace),
+		core.NewRoute("/namespace/addUser", http.MethodPost, n.AddUser).Roles(core.RoleAdmin, core.RoleManager).Permissions(permission.AddNamespaceUser),
+		core.NewRoute("/namespace/removeUser", http.MethodDelete, n.RemoveUser).Roles(core.RoleAdmin, core.RoleManager).Permissions(permission.DeleteNamespaceUser),
 	}
 }
 

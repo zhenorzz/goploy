@@ -13,6 +13,7 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/middleware"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/permission"
 	"github.com/zhenorzz/goploy/repository"
 	"github.com/zhenorzz/goploy/response"
 	"github.com/zhenorzz/goploy/service"
@@ -33,20 +34,20 @@ type Deploy Controller
 
 func (d Deploy) Routes() []core.Route {
 	return []core.Route{
-		core.NewRoute("/deploy/getList", http.MethodGet, d.GetList),
-		core.NewRoute("/deploy/getPublishTrace", http.MethodGet, d.GetPublishTrace),
-		core.NewRoute("/deploy/getPublishTraceDetail", http.MethodGet, d.GetPublishTraceDetail),
-		core.NewRoute("/deploy/getPreview", http.MethodGet, d.GetPreview),
-		core.NewRoute("/deploy/review", http.MethodPut, d.Review).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/deploy/resetState", http.MethodPut, d.ResetState).Roles(core.RoleAdmin, core.RoleManager),
-		core.NewRoute("/deploy/publish", http.MethodPost, d.Publish).Middleware(middleware.HasPublishAuth),
-		core.NewRoute("/deploy/rebuild", http.MethodPost, d.Rebuild).Middleware(middleware.HasPublishAuth),
-		core.NewRoute("/deploy/greyPublish", http.MethodPost, d.GreyPublish).Middleware(middleware.HasPublishAuth).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
+		core.NewRoute("/deploy/getList", http.MethodGet, d.GetList).Permissions(permission.ShowDeployPage),
+		core.NewRoute("/deploy/getPublishTrace", http.MethodGet, d.GetPublishTrace).Permissions(permission.DeployDetail),
+		core.NewRoute("/deploy/getPublishTraceDetail", http.MethodGet, d.GetPublishTraceDetail).Permissions(permission.DeployDetail),
+		core.NewRoute("/deploy/getPreview", http.MethodGet, d.GetPreview).Permissions(permission.DeployDetail),
+		core.NewRoute("/deploy/review", http.MethodPut, d.Review).Permissions(permission.DeployReview),
+		core.NewRoute("/deploy/resetState", http.MethodPut, d.ResetState).Permissions(permission.DeployResetState),
+		core.NewRoute("/deploy/publish", http.MethodPost, d.Publish).Permissions(permission.DeployProject).Middleware(middleware.HasPublishAuth),
+		core.NewRoute("/deploy/rebuild", http.MethodPost, d.Rebuild).Permissions(permission.DeployRollback).Middleware(middleware.HasPublishAuth),
+		core.NewRoute("/deploy/greyPublish", http.MethodPost, d.GreyPublish).Permissions(permission.GreyDeploy).Middleware(middleware.HasPublishAuth),
 		core.NewWhiteRoute("/deploy/webhook", http.MethodPost, d.Webhook).Middleware(middleware.FilterEvent),
 		core.NewWhiteRoute("/deploy/callback", http.MethodGet, d.Callback),
-		core.NewRoute("/deploy/fileCompare", http.MethodPost, d.FileCompare).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/deploy/fileDiff", http.MethodPost, d.FileDiff).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/deploy/manageProcess", http.MethodPost, d.ManageProcess).Roles(core.RoleAdmin, core.RoleManager),
+		core.NewRoute("/deploy/fileCompare", http.MethodPost, d.FileCompare).Permissions(permission.FileCompare),
+		core.NewRoute("/deploy/fileDiff", http.MethodPost, d.FileDiff).Permissions(permission.FileCompare),
+		core.NewRoute("/deploy/manageProcess", http.MethodPost, d.ManageProcess).Permissions(permission.ProcessManager),
 	}
 }
 

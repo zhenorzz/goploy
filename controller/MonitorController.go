@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/permission"
 	"github.com/zhenorzz/goploy/response"
 	"github.com/zhenorzz/goploy/service"
 	"net/http"
@@ -12,13 +13,13 @@ type Monitor Controller
 
 func (m Monitor) Routes() []core.Route {
 	return []core.Route{
-		core.NewRoute("/monitor/getList", http.MethodGet, m.GetList),
-		core.NewRoute("/monitor/getTotal", http.MethodGet, m.GetTotal),
-		core.NewRoute("/monitor/check", http.MethodPost, m.Check).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/monitor/add", http.MethodPost, m.Add).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/monitor/edit", http.MethodPut, m.Edit).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/monitor/toggle", http.MethodPut, m.Toggle).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
-		core.NewRoute("/monitor/remove", http.MethodDelete, m.Remove).Roles(core.RoleAdmin, core.RoleManager, core.RoleGroupManager),
+		core.NewRoute("/monitor/getList", http.MethodGet, m.GetList).Permissions(permission.ShowMonitorPage),
+		core.NewRoute("/monitor/getTotal", http.MethodGet, m.GetTotal).Permissions(permission.ShowMonitorPage),
+		core.NewRoute("/monitor/check", http.MethodPost, m.Check),
+		core.NewRoute("/monitor/add", http.MethodPost, m.Add).Permissions(permission.AddMonitor),
+		core.NewRoute("/monitor/edit", http.MethodPut, m.Edit).Permissions(permission.EditMonitor),
+		core.NewRoute("/monitor/toggle", http.MethodPut, m.Toggle).Permissions(permission.EditMonitor),
+		core.NewRoute("/monitor/remove", http.MethodDelete, m.Remove).Permissions(permission.DeleteMonitor),
 	}
 }
 

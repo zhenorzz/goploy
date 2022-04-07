@@ -90,6 +90,28 @@ func (r Role) GetTotal() (int64, error) {
 	return total, nil
 }
 
+func (r Role) GetAll() (Roles, error) {
+	rows, err := sq.
+		Select("id, name, description").
+		From(roleTable).
+		OrderBy("id DESC").
+		RunWith(DB).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	roles := Roles{}
+	for rows.Next() {
+		var role Role
+
+		if err := rows.Scan(&role.ID, &role.Name, &role.Description); err != nil {
+			return roles, err
+		}
+		roles = append(roles, role)
+	}
+	return roles, nil
+}
+
 func (r Role) GetData() (Role, error) {
 	var role Role
 	err := sq.
