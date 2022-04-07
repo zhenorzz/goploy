@@ -1,5 +1,5 @@
 import { RouteRecordRaw } from 'vue-router'
-
+import permission from '@/permission'
 /* Layout */
 import Layout from '@/layout/index.vue'
 
@@ -26,6 +26,7 @@ export default <RouteRecordRaw[]>[
           title: 'deploy',
           icon: 'deploy',
           affix: true,
+          permissions: [permission.ShowDeployPage],
         },
       },
     ],
@@ -38,7 +39,6 @@ export default <RouteRecordRaw[]>[
     meta: {
       title: 'project',
       icon: 'project',
-      roles: ['admin', 'manager', 'group-manager'],
     },
     children: [
       {
@@ -48,7 +48,7 @@ export default <RouteRecordRaw[]>[
         meta: {
           title: 'project',
           icon: 'project',
-          roles: ['admin', 'manager', 'group-manager'],
+          permissions: [permission.ShowProjectPage],
         },
       },
     ],
@@ -61,7 +61,6 @@ export default <RouteRecordRaw[]>[
     meta: {
       title: 'monitor',
       icon: 'monitor',
-      roles: ['admin', 'manager', 'group-manager'],
     },
     children: [
       {
@@ -71,7 +70,7 @@ export default <RouteRecordRaw[]>[
         meta: {
           title: 'monitor',
           icon: 'monitor',
-          roles: ['admin', 'manager', 'group-manager'],
+          permissions: [permission.ShowMonitorPage],
         },
       },
     ],
@@ -84,7 +83,6 @@ export default <RouteRecordRaw[]>[
     meta: {
       title: 'server',
       icon: 'server',
-      roles: ['admin', 'manager'],
     },
     children: [
       {
@@ -94,7 +92,7 @@ export default <RouteRecordRaw[]>[
         meta: {
           title: 'serverSetting',
           icon: 'server',
-          roles: ['admin', 'manager'],
+          permissions: [permission.ShowServerPage],
         },
       },
       {
@@ -104,7 +102,7 @@ export default <RouteRecordRaw[]>[
         meta: {
           title: 'serverTerminal',
           icon: 'terminal',
-          roles: ['admin', 'manager'],
+          permissions: [permission.ShowTerminalPage],
         },
       },
       {
@@ -114,7 +112,7 @@ export default <RouteRecordRaw[]>[
         meta: {
           title: 'serverSFTP',
           icon: 'ftp',
-          roles: ['admin', 'manager'],
+          permissions: [permission.ShowSftpFilePage],
         },
       },
       {
@@ -125,7 +123,7 @@ export default <RouteRecordRaw[]>[
           hidden: true,
           title: 'serverAgent',
           icon: 'monitor',
-          roles: ['admin', 'manager'],
+          permissions: [permission.MonitorServer],
         },
       },
       {
@@ -135,7 +133,7 @@ export default <RouteRecordRaw[]>[
         meta: {
           title: 'serverCron',
           icon: 'crontab',
-          roles: ['admin', 'manager'],
+          permissions: [permission.ShowCronPage],
         },
       },
     ],
@@ -148,7 +146,6 @@ export default <RouteRecordRaw[]>[
     meta: {
       title: 'namespace',
       icon: 'namespace',
-      roles: ['admin', 'manager'],
     },
     children: [
       {
@@ -158,7 +155,7 @@ export default <RouteRecordRaw[]>[
         meta: {
           title: 'namespaceSetting',
           icon: 'namespaceSetting',
-          roles: ['admin', 'manager'],
+          permissions: [permission.ShowNamespacePage],
         },
       },
       {
@@ -168,7 +165,7 @@ export default <RouteRecordRaw[]>[
         meta: {
           title: 'roleSetting',
           icon: 'roleSetting',
-          roles: ['admin', 'manager'],
+          permissions: [permission.ShowRolePage],
         },
       },
     ],
@@ -181,7 +178,6 @@ export default <RouteRecordRaw[]>[
     meta: {
       title: 'member',
       icon: 'user',
-      roles: ['admin'],
     },
     children: [
       {
@@ -191,7 +187,7 @@ export default <RouteRecordRaw[]>[
         meta: {
           title: 'member',
           icon: 'user',
-          roles: ['admin'],
+          permissions: [permission.ShowMemberPage],
         },
       },
     ],
@@ -204,7 +200,6 @@ export default <RouteRecordRaw[]>[
     meta: {
       title: 'log',
       icon: 'log',
-      roles: ['admin'],
     },
     children: [
       {
@@ -214,7 +209,7 @@ export default <RouteRecordRaw[]>[
         meta: {
           title: 'loginLog',
           icon: 'log',
-          roles: ['admin'],
+          permissions: [permission.ShowLoginLogPage],
         },
       },
       {
@@ -224,7 +219,7 @@ export default <RouteRecordRaw[]>[
         meta: {
           title: 'publishLog',
           icon: 'log',
-          roles: ['admin'],
+          permissions: [permission.ShowPublishLogPage],
         },
       },
       {
@@ -234,7 +229,7 @@ export default <RouteRecordRaw[]>[
         meta: {
           title: 'sftpLog',
           icon: 'log',
-          roles: ['admin'],
+          permissions: [permission.ShowSFTPLogPage],
         },
       },
       {
@@ -244,7 +239,7 @@ export default <RouteRecordRaw[]>[
         meta: {
           title: 'terminalLog',
           icon: 'log',
-          roles: ['admin'],
+          permissions: [permission.ShowTerminalLogPage],
         },
       },
     ],

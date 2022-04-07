@@ -107,7 +107,7 @@
       :close-on-click-modal="false"
       :fullscreen="$store.state.app.device === 'mobile'"
     >
-      <div v-loading="rolePermissionLoading">
+      <div v-loading="rolePermissionLoading" class="permission-dialog">
         <div v-for="item in permissionList" :key="item.id">
           <el-checkbox
             v-model="item.checked"
@@ -386,3 +386,11 @@ function restorePermissionList() {
   permissionList.value = deepClone(tempPermissionList)
 }
 </script>
+<style lang="scss">
+@import '@/styles/mixin.scss';
+.permission-dialog {
+  height: 520px;
+  overflow-y: auto;
+  @include scrollBar();
+}
+</style>

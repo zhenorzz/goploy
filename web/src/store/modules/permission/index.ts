@@ -1,18 +1,20 @@
 import { Module, MutationTree, ActionTree } from 'vuex'
 import { homeRoutes, asyncRoutes, constantRoutes } from '@/router'
 import { RouteRecordRaw } from 'vue-router'
-import { getNamespace } from '@/utils/namespace'
 import { RootState } from '../../types'
 import { PermissionState } from './types'
+import { Info } from '@/api/user'
 
 /**
  * Use meta.role to determine if the current user has permission
  * @param role
  * @param route
  */
-function hasPermission(role: string, route: RouteRecordRaw) {
-  if (route.meta && route.meta.roles) {
-    return route.meta['roles'].includes(role)
+function hasPermission(permissionIds: number[], route: RouteRecordRaw) {
+  if (route.meta && route.meta.permissions) {
+    return route.meta['permissions'].some((permission) =>
+      permissionIds.includes(permission)
+    )
   } else {
     return true
   }
@@ -25,17 +27,21 @@ function hasPermission(role: string, route: RouteRecordRaw) {
  */
 export function filterAsyncRoutes(
   routes: RouteRecordRaw[],
-  role: string
+  permissionIds: number[]
 ): RouteRecordRaw[] {
   const res: RouteRecordRaw[] = []
 
   routes.forEach((route) => {
     const tmp = { ...route }
-    if (hasPermission(role, tmp)) {
-      if (tmp.children) {
-        tmp.children = filterAsyncRoutes(tmp.children, role)
+    if (tmp.children) {
+      tmp.children = filterAsyncRoutes(tmp.children, permissionIds)
+      if (tmp.children.length > 0) {
+        res.push(tmp)
       }
-      res.push(tmp)
+    } else {
+      if (hasPermission(permissionIds, tmp)) {
+        res.push(tmp)
+      }
     }
   })
 
@@ -53,10 +59,12 @@ const mutations: MutationTree<PermissionState> = {
 }
 
 const actions: ActionTree<PermissionState, RootState> = {
-  generateRoutes({ commit }) {
+  generateRoutes({ commit }, userInfo: Info['datagram']) {
     return new Promise<RouteRecordRaw[]>((resolve) => {
-      const namespace = getNamespace()
-      let accessRoutes = filterAsyncRoutes(asyncRoutes, namespace.role)
+      let accessRoutes = filterAsyncRoutes(
+        asyncRoutes,
+        userInfo.namespace.permissionIds
+      )
       if (
         accessRoutes.length !== 0 &&
         accessRoutes[0]['children'] &&

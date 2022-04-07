@@ -15,8 +15,6 @@ import constantRoutes from './constantRoutes'
     roles: ['admin', 'manager', 'group-manager', 'member']   control the page roles (you can set multiple roles)
     title: 'title'               the name show in sidebar and breadcrumb (recommend set)
     icon: 'svg-name'             the icon show in the sidebar
-    breadcrumb: false            if set false, the item will hidden in breadcrumb(default is true)
-    activeMenu: '/example/list'  if set path, the sidebar will highlight the path you set
   }
  */
 export const homeRoutes: RouteRecordRaw[] = [

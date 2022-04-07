@@ -39,6 +39,10 @@ export class Info extends Request {
       name: string
       superManager: number
     }
+    namespace: {
+      id: number
+      permissionIds: number[]
+    }
   }
 }
 
