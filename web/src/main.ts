@@ -16,5 +16,4 @@ app.use(router)
 app.use(store)
 app.use(i18n)
 app.component('SvgIcon', SvgIcon)
-
 app.mount('#app')

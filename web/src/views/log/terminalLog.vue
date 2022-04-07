@@ -54,9 +54,13 @@
           :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
         >
           <template #default="scope">
-            <el-button type="text" @click="handleRecord(scope.row)">
+            <Button
+              :permissions="[permission.ShowTerminalRecord]"
+              type="text"
+              @click="handleRecord(scope.row)"
+            >
               Record
-            </el-button>
+            </Button>
           </template>
         </el-table-column>
       </el-table>
@@ -77,7 +81,9 @@
 export default { name: 'TerminalLog' }
 </script>
 <script lang="ts" setup>
+import permission from '@/permission'
 import { Search } from '@element-plus/icons-vue'
+import Button from '@/components/PermissionButton/index.vue'
 import 'asciinema-player/dist/bundle/asciinema-player.css'
 import * as AsciinemaPlayer from 'asciinema-player'
 import { TerminalLogData, TerminalLogList, TerminalLogTotal } from '@/api/log'
