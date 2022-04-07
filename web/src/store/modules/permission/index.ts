@@ -50,11 +50,15 @@ export function filterAsyncRoutes(
 
 const state: PermissionState = {
   routes: [],
+  permissionIds: [],
 }
 
 const mutations: MutationTree<PermissionState> = {
   SET_ROUTES: (state, routes) => {
     state.routes = constantRoutes.concat(routes)
+  },
+  SET_PERMISSION_IDS: (state, permissionIds) => {
+    state.permissionIds = permissionIds
   },
 }
 
@@ -76,6 +80,7 @@ const actions: ActionTree<PermissionState, RootState> = {
       accessRoutes = homeRoutes.concat(accessRoutes)
 
       commit('SET_ROUTES', accessRoutes)
+      commit('SET_PERMISSION_IDS', userInfo.namespace.permissionIds)
       resolve(accessRoutes)
     })
   },

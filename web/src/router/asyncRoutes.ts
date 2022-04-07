@@ -123,7 +123,7 @@ export default <RouteRecordRaw[]>[
           hidden: true,
           title: 'serverAgent',
           icon: 'monitor',
-          permissions: [permission.MonitorServer],
+          permissions: [permission.ShowServerMonitorPage],
         },
       },
       {
