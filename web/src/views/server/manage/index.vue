@@ -1,13 +1,14 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button
+      <Button
         type="primary"
         style="margin-right: 10px"
+        :permissions="[pms.InstallAgent]"
         @click="handleInstallAgent"
       >
         {{ $t('serverPage.installAgent') }}
-      </el-button>
+      </Button>
       <el-upload
         :action="uploadHref"
         accept=".csv"
@@ -16,14 +17,19 @@
         :on-success="handleUploadSuccess"
         :on-error="handleUploadError"
       >
-        <el-button type="primary" :loading="uploading">
+        <Button
+          type="primary"
+          :loading="uploading"
+          :permissions="[pms.ImportCSV]"
+        >
           {{ $t('serverPage.importCSV') }}
-        </el-button>
+        </Button>
       </el-upload>
-      <el-button
+      <Button
         type="primary"
-        style="margin-left: 10px"
         :icon="Plus"
+        style="margin-left: 10px"
+        :permissions="[pms.AddServer]"
         @click="handleAdd"
       />
     </el-row>
@@ -79,17 +85,18 @@
       <el-table-column
         prop="state"
         :label="$t('state')"
-        width="70"
+        width="110"
         align="center"
       >
         <template #default="scope">
-          <el-switch
+          {{ $t(`stateOption[${scope.row.state || 0}]`) }}
+          <Switch
             :value="scope.row.state === 1"
             active-color="#13ce66"
             inactive-color="#ff4949"
+            :permissions="[pms.SwitchServerState]"
             @change="(value) => onSwitchState(value as boolean, scope.$index)"
-          >
-          </el-switch>
+          />
         </template>
       </el-table-column>
       <el-table-column
@@ -112,11 +119,21 @@
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
-          <el-button :icon="DataAnalysis" @click="handleMonitor(scope.row)" />
-          <el-button :icon="DocumentCopy" @click="handleCopy(scope.row)" />
-          <el-button
+          <Button
+            :icon="DataAnalysis"
+            :permissions="[pms.ShowServerMonitorPage]"
+            @click="handleMonitor(scope.row)"
+          />
+          <Button
+            type="primary"
+            :icon="DocumentCopy"
+            :permissions="[pms.AddServer]"
+            @click="handleCopy(scope.row)"
+          />
+          <Button
             type="primary"
             :icon="Edit"
+            :permissions="[pms.EditServer]"
             @click="handleEdit(scope.row)"
           />
         </template>
@@ -317,6 +334,8 @@
 export default { name: 'ServerIndex' }
 </script>
 <script lang="ts" setup>
+import pms from '@/permission'
+import { Button, Switch } from '@/components/Permission'
 import { Plus, Edit, DocumentCopy, DataAnalysis } from '@element-plus/icons-vue'
 import type { ElForm } from 'element-plus'
 import { getNamespace } from '@/utils/namespace'
