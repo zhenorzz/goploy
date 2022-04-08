@@ -1,7 +1,12 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" :icon="Plus" @click="handleAdd" />
+      <Button
+        type="primary"
+        :icon="Plus"
+        :permissions="[permission.AddMember]"
+        @click="handleAdd"
+      />
     </el-row>
     <el-table
       :key="tableHeight"
@@ -50,16 +55,18 @@
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
-          <el-button
-            v-if="scope.row.id !== 1 && scope.row.id !== $store.getters.uid"
+          <Button
+            v-if="scope.row.id !== 1 && scope.row.id !== $store.state.user.id"
             type="primary"
             :icon="Edit"
+            :permissions="[permission.EditMember]"
             @click="handleEdit(scope.row)"
           />
-          <el-button
-            v-if="scope.row.id !== 1 && scope.row.id !== $store.getters.uid"
+          <Button
+            v-if="scope.row.id !== 1 && scope.row.id !== $store.state.user.id"
             type="danger"
             :icon="Delete"
+            :permissions="[permission.DeleteMember]"
             @click="handleRemove(scope.row)"
           />
         </template>
@@ -105,7 +112,11 @@
         <el-form-item :label="$t('contact')" prop="contact">
           <el-input v-model="formData.contact" autocomplete="off" />
         </el-form-item>
-        <el-form-item :label="$t('admin')" prop="superManager">
+        <el-form-item
+          v-show="$store.state.user.superManager === 1"
+          :label="$t('admin')"
+          prop="superManager"
+        >
           <el-radio-group v-model="formData.superManager">
             <el-radio :label="1">{{ $t('boolOption[1]') }}</el-radio>
             <el-radio :label="0">{{ $t('boolOption[0]') }}</el-radio>
@@ -120,8 +131,8 @@
             <template #reference>
               <el-button
                 type="text"
-                icon="el-icon-question"
-                style="color: #666"
+                :icon="QuestionFilled"
+                style="margin-left: 10px; color: #666"
               />
             </template>
           </el-popover>
@@ -145,7 +156,9 @@
 export default { name: 'MemberIndex' }
 </script>
 <script lang="ts" setup>
-import { Plus, Edit, Delete } from '@element-plus/icons-vue'
+import permission from '@/permission'
+import Button from '@/components/PermissionButton/index.vue'
+import { Plus, Edit, Delete, QuestionFilled } from '@element-plus/icons-vue'
 import { validUsername, validPassword } from '@/utils/validate'
 import {
   UserData,

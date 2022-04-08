@@ -82,8 +82,8 @@ export default { name: 'TerminalLog' }
 </script>
 <script lang="ts" setup>
 import permission from '@/permission'
-import { Search } from '@element-plus/icons-vue'
 import Button from '@/components/PermissionButton/index.vue'
+import { Search } from '@element-plus/icons-vue'
 import 'asciinema-player/dist/bundle/asciinema-player.css'
 import * as AsciinemaPlayer from 'asciinema-player'
 import { TerminalLogData, TerminalLogList, TerminalLogTotal } from '@/api/log'
