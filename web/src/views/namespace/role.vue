@@ -6,7 +6,12 @@
       type="flex"
       justify="end"
     >
-      <el-button type="primary" :icon="Plus" @click="handleAdd" />
+      <Button
+        type="primary"
+        :icon="Plus"
+        :permissions="[permission.AddRole]"
+        @click="handleAdd"
+      />
     </el-row>
     <el-table
       :key="tableHeight"
@@ -45,15 +50,21 @@
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
-          <el-button
+          <Button
             type="primary"
             :icon="Edit"
+            :permissions="[permission.EditRole]"
             @click="handleEdit(scope.row)"
           />
-          <el-button :icon="Setting" @click="handlePermission(scope.row)" />
-          <el-button
+          <Button
+            :icon="Setting"
+            :permissions="[permission.EditPermission]"
+            @click="handlePermission(scope.row)"
+          />
+          <Button
             type="danger"
             :icon="Delete"
+            :permissions="[permission.DeleteRole]"
             @click="handleRemove(scope.row)"
           />
         </template>
@@ -149,6 +160,8 @@
 export default { name: 'NamespaceRole' }
 </script>
 <script lang="ts" setup>
+import permission from '@/permission'
+import Button from '@/components/Permission/Button.vue'
 import { Setting, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import {
   RoleList,
