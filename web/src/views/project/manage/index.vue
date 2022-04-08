@@ -309,8 +309,7 @@
               >
                 <el-option
                   v-for="(item, index) in userOption.filter(
-                    (item) =>
-                      [role.Admin, role.Manager].indexOf(item.role) === -1
+                    (item) => item.roleId > 0
                   )"
                   :key="index"
                   :label="item.userName"

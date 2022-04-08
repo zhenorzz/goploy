@@ -6,7 +6,12 @@
       type="flex"
       justify="end"
     >
-      <el-button type="primary" :icon="Plus" @click="handleAdd" />
+      <Button
+        type="primary"
+        :icon="Plus"
+        :permissions="[permission.AddNamespace]"
+        @click="handleAdd"
+      />
     </el-row>
     <el-table
       :key="tableHeight"
@@ -53,9 +58,10 @@
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
-          <el-button
+          <Button
             type="primary"
             :icon="Edit"
+            :permissions="[permission.EditNamespace]"
             @click="handleEdit(scope.row)"
           />
         </template>
@@ -110,6 +116,8 @@
 export default { name: 'NamespaceIndex' }
 </script>
 <script lang="ts" setup>
+import permission from '@/permission'
+import Button from '@/components/PermissionButton/index.vue'
 import { Plus, Edit } from '@element-plus/icons-vue'
 import {
   NamespaceList,

@@ -16,7 +16,7 @@ func (n Namespace) Routes() []core.Route {
 		core.NewRoute("/namespace/getList", http.MethodGet, n.GetList).Permissions(permission.ShowNamespacePage),
 		core.NewRoute("/namespace/getTotal", http.MethodGet, n.GetTotal).Permissions(permission.ShowNamespacePage),
 		core.NewRoute("/namespace/getOption", http.MethodGet, n.GetOption),
-		core.NewRoute("/namespace/getBindUserList", http.MethodGet, n.GetBindUserList).Permissions(permission.GetNamespaceUserList),
+		core.NewRoute("/namespace/getBindUserList", http.MethodGet, n.GetBindUserList).Permissions(permission.ShowNamespacePage),
 		core.NewRoute("/namespace/getUserOption", http.MethodGet, n.GetUserOption),
 		core.NewRoute("/namespace/add", http.MethodPost, n.Add).Roles(core.RoleAdmin).Permissions(permission.AddNamespace),
 		core.NewRoute("/namespace/edit", http.MethodPut, n.Edit).Roles(core.RoleAdmin, core.RoleManager).Permissions(permission.EditNamespace),
@@ -30,7 +30,7 @@ func (Namespace) GetList(gp *core.Goploy) core.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	namespaceList, err := model.Namespace{UserID: gp.UserInfo.ID}.GetListByUserID(pagination)
+	namespaceList, err := model.Namespace{UserID: gp.UserInfo.ID}.GetList(pagination)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -43,7 +43,7 @@ func (Namespace) GetList(gp *core.Goploy) core.Response {
 }
 
 func (Namespace) GetTotal(gp *core.Goploy) core.Response {
-	total, err := model.Namespace{UserID: gp.UserInfo.ID}.GetTotalByUserID()
+	total, err := model.Namespace{UserID: gp.UserInfo.ID}.GetTotal()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}

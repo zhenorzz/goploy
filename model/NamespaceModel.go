@@ -11,7 +11,6 @@ type Namespace struct {
 	ID            int64   `json:"id"`
 	Name          string  `json:"name"`
 	UserID        int64   `json:"-"`
-	Role          string  `json:"role"`
 	RoleID        int64   `json:"role_id"`
 	PermissionIDs []int64 `json:"permissionIds"`
 	InsertTime    string  `json:"insertTime,omitempty"`
@@ -49,7 +48,7 @@ func (ns Namespace) EditRow() error {
 
 func (ns Namespace) GetAllByUserID() (Namespaces, error) {
 	rows, err := sq.
-		Select("namespace.id, namespace.name, role").
+		Select("namespace.id, namespace.name, role_id").
 		From(namespaceTable).
 		Join(namespaceUserTable + " ON namespace_user.namespace_id = namespace.id").
 		Where(sq.Eq{"user_id": ns.UserID}).
@@ -61,7 +60,7 @@ func (ns Namespace) GetAllByUserID() (Namespaces, error) {
 	namespaces := Namespaces{}
 	for rows.Next() {
 		var namespace Namespace
-		if err := rows.Scan(&namespace.ID, &namespace.Name, &namespace.Role); err != nil {
+		if err := rows.Scan(&namespace.ID, &namespace.Name, &namespace.RoleID); err != nil {
 			return nil, err
 		}
 		namespaces = append(namespaces, namespace)
@@ -69,29 +68,11 @@ func (ns Namespace) GetAllByUserID() (Namespaces, error) {
 	return namespaces, nil
 }
 
-func (ns Namespace) GetDataByUserNamespace() (Namespace, error) {
-	var namespace Namespace
-	err := sq.Select("namespace.id, namespace.name, role").
-		From(namespaceTable).
-		Join(namespaceUserTable+" ON namespace_user.namespace_id = namespace.id").
-		Where(sq.Eq{"user_id": ns.UserID, "namespace.id": ns.ID}).
-		RunWith(DB).
-		QueryRow().
-		Scan(&namespace.ID, &namespace.Name, &namespace.Role)
-	return namespace, err
-}
-
-// GetListByUserID -
-func (ns Namespace) GetListByUserID(pagination Pagination) (Namespaces, error) {
+func (ns Namespace) GetList(pagination Pagination) (Namespaces, error) {
 	rows, err := sq.
-		Select("namespace.id, namespace.name, namespace.insert_time, namespace.update_time").
+		Select("id, name, insert_time, update_time").
 		From(namespaceTable).
-		Join(namespaceUserTable + " ON namespace_user.namespace_id = namespace.id").
-		Where(sq.Eq{
-			"user_id": ns.UserID,
-			"role":    []string{"admin", "manager"},
-		}).
-		OrderBy("namespace.id DESC").
+		OrderBy("id DESC").
 		Limit(pagination.Rows).
 		Offset((pagination.Page - 1) * pagination.Rows).
 		RunWith(DB).
@@ -113,16 +94,11 @@ func (ns Namespace) GetListByUserID(pagination Pagination) (Namespaces, error) {
 	return namespaces, nil
 }
 
-// GetTotalByUserID -
-func (ns Namespace) GetTotalByUserID() (int64, error) {
+func (ns Namespace) GetTotal() (int64, error) {
 	var total int64
 	err := sq.
 		Select("COUNT(*) AS count").
-		From(namespaceUserTable).
-		Where(sq.Eq{
-			"user_id": ns.UserID,
-			"role":    []string{"admin", "manager"},
-		}).
+		From(namespaceTable).
 		RunWith(DB).
 		QueryRow().
 		Scan(&total)

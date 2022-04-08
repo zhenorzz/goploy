@@ -237,7 +237,6 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 			}
 			gp.Namespace = Namespace{
 				ID:            namespaceID,
-				Role:          namespace.Role,
 				PermissionIDs: namespace.PermissionIDs,
 			}
 		}

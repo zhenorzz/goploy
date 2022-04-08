@@ -47,6 +47,14 @@ export class RoleTotal extends Request {
   public declare datagram: Total
 }
 
+export class RoleOption extends Request {
+  readonly url = '/role/getOption'
+  readonly method = 'get'
+  public declare datagram: {
+    list: RoleData[]
+  }
+}
+
 export class RoleAdd extends Request {
   readonly url = '/role/add'
   readonly method = 'post'

@@ -17,8 +17,8 @@ type NamespaceUser struct {
 	NamespaceName string             `json:"namespaceName,omitempty"`
 	UserID        int64              `json:"userId,omitempty"`
 	UserName      string             `json:"userName,omitempty"`
-	Role          string             `json:"role,omitempty"`
 	RoleID        int64              `json:"roleId,omitempty"`
+	RoleName      string             `json:"roleName,omitempty"`
 	PermissionIDs map[int64]struct{} `json:"permissionIds,omitempty"`
 	InsertTime    string             `json:"insertTime,omitempty"`
 	UpdateTime    string             `json:"updateTime,omitempty"`
@@ -29,7 +29,7 @@ type NamespaceUsers []NamespaceUser
 
 func (nu NamespaceUser) GetUserNamespaceList() (NamespaceUsers, error) {
 	rows, err := sq.
-		Select("namespace_id, namespace.name, namespace_user.role").
+		Select("namespace_id, namespace.name").
 		From(namespaceUserTable).
 		Join(namespaceTable + " ON namespace_user.namespace_id = namespace.id").
 		Where(sq.Eq{"user_id": nu.UserID}).
@@ -42,7 +42,7 @@ func (nu NamespaceUser) GetUserNamespaceList() (NamespaceUsers, error) {
 	for rows.Next() {
 		var namespaceUser NamespaceUser
 
-		if err := rows.Scan(&namespaceUser.NamespaceID, &namespaceUser.NamespaceName, &namespaceUser.Role); err != nil {
+		if err := rows.Scan(&namespaceUser.NamespaceID, &namespaceUser.NamespaceName); err != nil {
 			return nil, err
 		}
 		namespaceUsers = append(namespaceUsers, namespaceUser)
@@ -52,9 +52,18 @@ func (nu NamespaceUser) GetUserNamespaceList() (NamespaceUsers, error) {
 
 func (nu NamespaceUser) GetBindUserListByNamespaceID() (NamespaceUsers, error) {
 	rows, err := sq.
-		Select("namespace_user.id, namespace_id, user_id, user.name, namespace_user.role, namespace_user.insert_time, namespace_user.update_time").
+		Select(
+			"namespace_user.id",
+			"namespace_user.user_id",
+			"user.name",
+			"namespace_user.role_id",
+			"IFNULL(role.name, '')",
+			"namespace_user.insert_time",
+			"namespace_user.update_time",
+		).
 		From(namespaceUserTable).
 		LeftJoin(userTable + " ON namespace_user.user_id = user.id").
+		LeftJoin(roleTable + " ON namespace_user.role_id = role.id").
 		Where(sq.Eq{"namespace_id": nu.NamespaceID}).
 		RunWith(DB).
 		Query()
@@ -65,7 +74,15 @@ func (nu NamespaceUser) GetBindUserListByNamespaceID() (NamespaceUsers, error) {
 	for rows.Next() {
 		var namespaceUser NamespaceUser
 
-		if err := rows.Scan(&namespaceUser.ID, &namespaceUser.NamespaceID, &namespaceUser.UserID, &namespaceUser.UserName, &namespaceUser.Role, &namespaceUser.InsertTime, &namespaceUser.UpdateTime); err != nil {
+		if err := rows.Scan(
+			&namespaceUser.ID,
+			&namespaceUser.UserID,
+			&namespaceUser.UserName,
+			&namespaceUser.RoleID,
+			&namespaceUser.RoleName,
+			&namespaceUser.InsertTime,
+			&namespaceUser.UpdateTime,
+		); err != nil {
 			return nil, err
 		}
 		namespaceUsers = append(namespaceUsers, namespaceUser)
@@ -75,7 +92,7 @@ func (nu NamespaceUser) GetBindUserListByNamespaceID() (NamespaceUsers, error) {
 
 func (nu NamespaceUser) GetAllUserByNamespaceID() (NamespaceUsers, error) {
 	rows, err := sq.
-		Select("user_id, user.name, namespace_user.role").
+		Select("user_id, user.name, namespace_user.role_id").
 		From(namespaceUserTable).
 		LeftJoin(userTable + " ON namespace_user.user_id = user.id").
 		Where(sq.Eq{"namespace_id": nu.NamespaceID}).
@@ -88,7 +105,7 @@ func (nu NamespaceUser) GetAllUserByNamespaceID() (NamespaceUsers, error) {
 	for rows.Next() {
 		var namespaceUser NamespaceUser
 
-		if err := rows.Scan(&namespaceUser.UserID, &namespaceUser.UserName, &namespaceUser.Role); err != nil {
+		if err := rows.Scan(&namespaceUser.UserID, &namespaceUser.UserName, &namespaceUser.RoleID); err != nil {
 			return nil, err
 		}
 		namespaceUsers = append(namespaceUsers, namespaceUser)
@@ -113,7 +130,7 @@ func (nu NamespaceUser) GetAllGteManagerByNamespaceID() (NamespaceUsers, error) 
 	for rows.Next() {
 		var namespaceUser NamespaceUser
 
-		if err := rows.Scan(&namespaceUser.UserID, &namespaceUser.Role); err != nil {
+		if err := rows.Scan(&namespaceUser.UserID, &namespaceUser.RoleID); err != nil {
 			return nil, err
 		}
 		namespaceUsers = append(namespaceUsers, namespaceUser)
@@ -167,9 +184,9 @@ func (nu NamespaceUser) AddAdminByNamespaceID() error {
 
 	builder := sq.
 		Insert(namespaceUserTable).
-		Columns("namespace_id", "user_id", "role").
+		Columns("namespace_id", "user_id", "role_id").
 		Select(sq.
-			Select(fmt.Sprintf("%d as namespace_id, id as user_id, 'admin' as role", nu.NamespaceID)).
+			Select(fmt.Sprintf("%d as namespace_id, id as user_id, 0 as role_id", nu.NamespaceID)).
 			From(userTable).
 			Where(sq.Eq{"super_manager": SuperManager}))
 	_, err := builder.RunWith(DB).Exec()
@@ -179,9 +196,9 @@ func (nu NamespaceUser) AddAdminByNamespaceID() error {
 func (nu NamespaceUser) AddAdminByUserID() error {
 	builder := sq.
 		Replace(namespaceUserTable).
-		Columns("namespace_id", "user_id", "role").
+		Columns("namespace_id", "user_id", "role_id").
 		Select(sq.
-			Select(fmt.Sprintf("id as namespace_id, %d as user_id, 'admin' as role", nu.UserID)).
+			Select(fmt.Sprintf("id as namespace_id, %d as user_id, 0 as role_id", nu.UserID)).
 			From(namespaceTable))
 	_, err := builder.RunWith(DB).Exec()
 	return err

@@ -15,7 +15,8 @@ export interface NamespaceUserData {
   namespaceName: string
   userId: number
   userName: string
-  role: string
+  roleId: number
+  roleName: string
   insertTime: string
   updateTime: string
 }

@@ -6,7 +6,12 @@
     :fullscreen="$store.state.app.device === 'mobile'"
   >
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" :icon="Plus" @click="handleAdd" />
+      <Button
+        type="primary"
+        :icon="Plus"
+        :permissions="[permission.AddNamespaceUser]"
+        @click="handleAdd"
+      />
       <el-row
         v-if="showAddView"
         type="flex"
@@ -79,9 +84,8 @@
       :data="tableData"
       style="width: 100%"
     >
-      <el-table-column prop="userId" :label="$t('userId')" />
       <el-table-column prop="userName" :label="$t('userName')" />
-      <el-table-column prop="role" :label="$t('role')" />
+      <el-table-column prop="roleName" :label="$t('role')" />
       <el-table-column
         prop="insertTime"
         :label="$t('insertTime')"
@@ -102,7 +106,12 @@
         fixed="right"
       >
         <template #default="scope">
-          <el-button type="danger" :icon="Delete" @click="remove(scope.row)" />
+          <Button
+            type="danger"
+            :icon="Delete"
+            :permissions="[permission.DeleteNamespaceUser]"
+            @click="remove(scope.row)"
+          />
         </template>
       </el-table-column>
     </el-table>
@@ -115,6 +124,8 @@
 </template>
 
 <script lang="ts" setup>
+import permission from '@/permission'
+import Button from '@/components/PermissionButton/index.vue'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import {
   NamespaceUserData,
@@ -122,8 +133,8 @@ import {
   NamespaceUserAdd,
   NamespaceUserRemove,
 } from '@/api/namespace'
-import { RoleList } from '@/api/role'
-import { UserList } from '@/api/user'
+import { RoleOption } from '@/api/role'
+import { UserOption } from '@/api/user'
 import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { computed, watch, ref } from 'vue'
@@ -142,7 +153,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 const form = ref<InstanceType<typeof ElForm>>()
 const formProps = ref({ disabled: false })
-const formData = ref({ namespaceId: 0, userIds: [], roleId: 0 })
+const formData = ref({ namespaceId: 0, userIds: [], roleId: '' })
 const formRules = <InstanceType<typeof ElForm>['rules']>{
   userIds: [
     {
@@ -167,7 +178,7 @@ const getBindUserList = (namespaceId: number) => {
   new NamespaceUserList({ id: namespaceId })
     .request()
     .then((response) => {
-      tableData.value = response.data.list
+      tableData.value = response.data.list.filter((_) => _.roleId > 0)
     })
     .finally(() => {
       tableLoading.value = false
@@ -189,14 +200,14 @@ watch(
 )
 
 const userLoading = ref(false)
-const userOption = ref<UserList['datagram']['list']>([])
+const userOption = ref<UserOption['datagram']['list']>([])
 const roleLoading = ref(false)
-const roleOption = ref<RoleList['datagram']['list']>([])
+const roleOption = ref<RoleOption['datagram']['list']>([])
 let showAddView = ref(false)
 watch(showAddView, (val: boolean) => {
   if (val === true) {
     userLoading.value = true
-    new UserList({ page: 1, rows: 9999 })
+    new UserOption()
       .request()
       .then((response) => {
         userOption.value = response.data.list
@@ -205,7 +216,7 @@ watch(showAddView, (val: boolean) => {
         userLoading.value = false
       })
     roleLoading.value = true
-    new RoleList({ page: 1, rows: 9999 })
+    new RoleOption()
       .request()
       .then((response) => {
         roleOption.value = response.data.list
