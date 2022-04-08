@@ -4,7 +4,6 @@ export interface NamespaceData {
   id: number
   name: string
   userId: number
-  role: string
   insertTime: string
   updateTime: string
 }

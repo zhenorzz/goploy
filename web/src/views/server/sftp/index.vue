@@ -71,13 +71,14 @@
             :on-error="handleUploadError"
             :show-file-list="false"
           >
-            <el-button
+            <Button
               :disabled="dir === ''"
               type="text"
               style="color: #606266"
+              :permissions="[permission.SFTPUploadFile]"
             >
               {{ $t('upload') }}
-            </el-button>
+            </Button>
           </el-upload>
         </el-row>
         <el-row class="nav-search" align="middle">
@@ -157,24 +158,24 @@
                   </el-button>
                 </el-dropdown-item>
                 <el-dropdown-item v-if="selectedFile['isDir'] === false">
-                  <el-link
+                  <Link
                     :href="previewHref"
                     target="_blank"
                     :underline="false"
-                    style="font-size: 12px"
+                    :permissions="[permission.SFTPPreviewFile]"
                   >
                     {{ $t('preview') }}
-                  </el-link>
+                  </Link>
                 </el-dropdown-item>
                 <el-dropdown-item v-if="selectedFile['isDir'] === false">
-                  <el-link
+                  <Link
                     :href="downloadHref"
                     target="_blank"
                     :underline="false"
-                    style="font-size: 12px"
+                    :permissions="[permission.SFTPDownloadFile]"
                   >
                     {{ $t('download') }}
-                  </el-link>
+                  </Link>
                 </el-dropdown-item>
                 <el-dropdown-item divided>
                   <el-button
@@ -216,6 +217,8 @@
 export default { name: 'ServerSFTP' }
 </script>
 <script lang="ts" setup>
+import permission from '@/permission'
+import { Button, Link } from '@/components/Permission'
 import { Back, Right, Top, RefreshRight } from '@element-plus/icons-vue'
 import svgIds from 'virtual:svg-icons-names'
 import path from 'path-browserify'

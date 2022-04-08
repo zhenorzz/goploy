@@ -117,7 +117,7 @@ export default { name: 'NamespaceIndex' }
 </script>
 <script lang="ts" setup>
 import permission from '@/permission'
-import Button from '@/components/PermissionButton/index.vue'
+import Button from '@/components/Permission/Button.vue'
 import { Plus, Edit } from '@element-plus/icons-vue'
 import {
   NamespaceList,

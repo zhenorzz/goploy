@@ -82,7 +82,7 @@ export default { name: 'TerminalLog' }
 </script>
 <script lang="ts" setup>
 import permission from '@/permission'
-import Button from '@/components/PermissionButton/index.vue'
+import Button from '@/components/Permission/Button.vue'
 import { Search } from '@element-plus/icons-vue'
 import 'asciinema-player/dist/bundle/asciinema-player.css'
 import * as AsciinemaPlayer from 'asciinema-player'

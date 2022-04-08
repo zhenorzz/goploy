@@ -125,7 +125,7 @@
 
 <script lang="ts" setup>
 import permission from '@/permission'
-import Button from '@/components/PermissionButton/index.vue'
+import Button from '@/components/Permission/Button.vue'
 import { Plus, Delete } from '@element-plus/icons-vue'
 import {
   NamespaceUserData,
