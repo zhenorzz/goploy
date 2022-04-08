@@ -700,13 +700,11 @@ import {
   ProjectAutoDeploy,
   ProjectData,
 } from '@/api/project'
-import { getRole } from '@/utils/namespace'
 import type { ElRadioGroup, ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
-const role = getRole()
 const scriptLangOption = [
   { label: 'sh', value: 'sh', lang: 'sh' },
   { label: 'zsh', value: 'zsh', lang: 'sh' },

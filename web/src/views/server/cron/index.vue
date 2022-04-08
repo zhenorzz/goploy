@@ -18,7 +18,12 @@
         </el-select>
       </el-col>
       <el-col v-if="serverId !== ''" :span="8" style="text-align: right">
-        <el-button type="primary" :icon="Plus" @click="handleAdd" />
+        <Button
+          type="primary"
+          :icon="Plus"
+          :permissions="[pms.AddCron]"
+          @click="handleAdd"
+        />
       </el-col>
     </el-row>
     <el-table
@@ -83,14 +88,16 @@
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
-          <el-button
+          <Button
             type="primary"
             :icon="Edit"
+            :permissions="[pms.EditCron]"
             @click="handleEdit(scope.row)"
           />
-          <el-button
+          <Button
             type="danger"
             :icon="Delete"
+            :permissions="[pms.DeleteCron]"
             @click="handleRemove(scope.row)"
           />
         </template>
@@ -173,6 +180,8 @@
 export default { name: 'ServerCron' }
 </script>
 <script lang="ts" setup>
+import pms from '@/permission'
+import Button from '@/components/Permission/Button.vue'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import getTableHeight from '@/composables/tableHeight'
 import cronstrue from 'cronstrue/i18n'

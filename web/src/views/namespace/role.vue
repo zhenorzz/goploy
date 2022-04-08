@@ -9,7 +9,7 @@
       <Button
         type="primary"
         :icon="Plus"
-        :permissions="[permission.AddRole]"
+        :permissions="[pms.AddRole]"
         @click="handleAdd"
       />
     </el-row>
@@ -53,18 +53,18 @@
           <Button
             type="primary"
             :icon="Edit"
-            :permissions="[permission.EditRole]"
+            :permissions="[pms.EditRole]"
             @click="handleEdit(scope.row)"
           />
           <Button
             :icon="Setting"
-            :permissions="[permission.EditPermission]"
+            :permissions="[pms.EditPermission]"
             @click="handlePermission(scope.row)"
           />
           <Button
             type="danger"
             :icon="Delete"
-            :permissions="[permission.DeleteRole]"
+            :permissions="[pms.DeleteRole]"
             @click="handleRemove(scope.row)"
           />
         </template>
@@ -160,7 +160,7 @@
 export default { name: 'NamespaceRole' }
 </script>
 <script lang="ts" setup>
-import permission from '@/permission'
+import pms from '@/permission'
 import Button from '@/components/Permission/Button.vue'
 import { Setting, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import {
