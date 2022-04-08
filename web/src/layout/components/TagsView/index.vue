@@ -272,9 +272,9 @@ export default defineComponent({
         }
       }
       &.active {
-        background-color: #409eff;
+        background-color: #42b983;
         color: #fff;
-        border-color: #409eff;
+        border-color: #42b983;
         &::before {
           content: '';
           background: #fff;

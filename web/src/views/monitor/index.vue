@@ -1,7 +1,12 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="end">
-      <el-button type="primary" :icon="Plus" @click="handleAdd" />
+      <Button
+        type="primary"
+        :icon="Plus"
+        :permissions="[pms.AddMonitor]"
+        @click="handleAdd"
+      />
     </el-row>
     <el-table
       :key="tableHeight"
@@ -54,14 +59,16 @@
       <el-table-column
         prop="state"
         :label="$t('state')"
-        width="65"
+        width="110"
         align="center"
       >
         <template #default="scope">
-          <el-switch
+          {{ $t(`stateOption[${scope.row.state || 0}]`) }}
+          <Switch
             :value="scope.row.state === 1"
             active-color="#13ce66"
             inactive-color="#ff4949"
+            :permissions="[pms.EditMonitor]"
             @change="handleToggle(scope.row)"
           />
         </template>
@@ -92,14 +99,16 @@
         fixed="right"
       >
         <template #default="scope">
-          <el-button
+          <Button
             type="primary"
             :icon="Edit"
+            :permissions="[pms.EditMonitor]"
             @click="handleEdit(scope.row)"
           />
-          <el-button
+          <Button
             type="danger"
             :icon="Delete"
+            :permissions="[pms.DeleteMonitor]"
             @click="handleRemove(scope.row)"
           />
         </template>
@@ -202,6 +211,8 @@
 export default { name: 'MonitorIndex' }
 </script>
 <script lang="ts" setup>
+import pms from '@/permission'
+import { Button, Switch } from '@/components/Permission'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import {
   MonitorList,

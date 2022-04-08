@@ -14,9 +14,13 @@
         <el-button :icon="Refresh" @click="handleRefresh" />
       </el-row>
       <el-row>
-        <el-button :icon="Bell" @click="handleAdd">
+        <Button
+          :icon="Bell"
+          :permissions="[pms.AddServerWarningRule]"
+          @click="handleAdd"
+        >
           {{ $t('serverPage.addMonitor') }}
-        </el-button>
+        </Button>
         <el-button :icon="Tickets" @click="handleGetList">
           {{ $t('serverPage.monitorList') }}
         </el-button>
@@ -296,14 +300,16 @@
           fixed="right"
         >
           <template #default="scope">
-            <el-button
+            <Button
               type="primary"
               :icon="Edit"
+              :permissions="[pms.EditServerWarningRule]"
               @click="handleEdit(scope.row)"
             />
-            <el-button
+            <Button
               type="danger"
               :icon="Delete"
+              :permissions="[pms.DeleteServerWarningRule]"
               @click="handleDelete(scope.row)"
             />
           </template>
@@ -322,6 +328,8 @@
 export default { name: 'ServerAgent' }
 </script>
 <script lang="ts" setup>
+import pms from '@/permission'
+import Button from '@/components/Permission/Button.vue'
 import { Refresh, Bell, Tickets, Edit, Delete } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import type { ElForm } from 'element-plus'

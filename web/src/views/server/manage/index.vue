@@ -125,7 +125,7 @@
             @click="handleMonitor(scope.row)"
           />
           <Button
-            type="primary"
+            type="info"
             :icon="DocumentCopy"
             :permissions="[pms.AddServer]"
             @click="handleCopy(scope.row)"
