@@ -18,6 +18,13 @@
         </el-select>
       </el-col>
       <el-col v-if="serverId !== ''" :span="8" style="text-align: right">
+        <el-button
+          style="margin-left: 10px"
+          :loading="tableLoading"
+          type="primary"
+          :icon="Refresh"
+          @click="refresList"
+        />
         <Button
           type="primary"
           :icon="Plus"
@@ -182,7 +189,7 @@ export default { name: 'ServerCron' }
 <script lang="ts" setup>
 import pms from '@/permission'
 import Button from '@/components/Permission/Button.vue'
-import { Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import getTableHeight from '@/composables/tableHeight'
 import cronstrue from 'cronstrue/i18n'
 import { ServerOption } from '@/api/server'
@@ -263,6 +270,11 @@ function getList() {
     .finally(() => {
       tableLoading.value = false
     })
+}
+
+function refresList() {
+  pagination.value.page = 1
+  getList()
 }
 
 function handleAdd() {

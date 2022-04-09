@@ -4,7 +4,6 @@ import sq "github.com/Masterminds/squirrel"
 
 const cronTable = "`cron`"
 
-// Cron -
 type Cron struct {
 	ID          int64  `json:"id"`
 	ServerID    int64  `json:"serverId"`
@@ -20,10 +19,8 @@ type Cron struct {
 	UpdateTime  string `json:"updateTime,omitempty"`
 }
 
-// Crons -
 type Crons []Cron
 
-// GetList -
 func (c Cron) GetList() (Crons, error) {
 	rows, err := sq.
 		Select(
@@ -72,7 +69,6 @@ func (c Cron) GetList() (Crons, error) {
 	return crons, nil
 }
 
-// AddRow -
 func (c Cron) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(cronTable).
@@ -103,7 +99,6 @@ func (c Cron) AddRow() (int64, error) {
 	return id, err
 }
 
-// EditRow -
 func (c Cron) EditRow() error {
 	_, err := sq.
 		Update(cronTable).
@@ -121,7 +116,6 @@ func (c Cron) EditRow() error {
 	return err
 }
 
-// RemoveRow -
 func (c Cron) RemoveRow() error {
 	_, err := sq.
 		Update(cronTable).
