@@ -21,7 +21,7 @@ export class Login extends Request {
     password: string
   }
   public declare datagram: {
-    namespaceList: { id: number; name: string; role_id: number }[]
+    namespaceList: { id: number; name: string; roleId: number }[]
   }
   constructor(param: Login['param']) {
     super()
