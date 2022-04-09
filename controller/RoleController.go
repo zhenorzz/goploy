@@ -13,7 +13,6 @@ type Role Controller
 func (r Role) Routes() []core.Route {
 	return []core.Route{
 		core.NewRoute("/role/getList", http.MethodGet, r.GetList).Permissions(permission.ShowRolePage),
-		core.NewRoute("/role/getTotal", http.MethodGet, r.GetTotal).Permissions(permission.ShowRolePage),
 		core.NewRoute("/role/getOption", http.MethodGet, r.GetOption),
 		core.NewRoute("/role/getPermissionList", http.MethodGet, r.GetPermissionList).Permissions(permission.ShowRolePage),
 		core.NewRoute("/role/getPermissionBindings", http.MethodGet, r.GetPermissionBindings).Permissions(permission.ShowRolePage),
@@ -24,12 +23,8 @@ func (r Role) Routes() []core.Route {
 	}
 }
 
-func (Role) GetList(gp *core.Goploy) core.Response {
-	pagination, err := model.PaginationFrom(gp.URLQuery)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	roleList, err := model.Role{}.GetList(pagination)
+func (Role) GetList(*core.Goploy) core.Response {
+	roleList, err := model.Role{}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -38,18 +33,6 @@ func (Role) GetList(gp *core.Goploy) core.Response {
 		Data: struct {
 			List model.Roles `json:"list"`
 		}{List: roleList},
-	}
-}
-
-func (Role) GetTotal(*core.Goploy) core.Response {
-	total, err := model.Role{}.GetTotal()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	return response.JSON{
-		Data: struct {
-			Total int64 `json:"total"`
-		}{Total: total},
 	}
 }
 

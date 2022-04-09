@@ -1,4 +1,4 @@
-import { Request, Pagination, ID, Total } from './types'
+import { Request, ID } from './types'
 
 export interface NamespaceData {
   id: number
@@ -24,23 +24,9 @@ export class NamespaceList extends Request {
   readonly url = '/namespace/getList'
   readonly method = 'get'
 
-  public pagination: Pagination
-
   public declare datagram: {
     list: NamespaceData[]
   }
-  constructor(pagination: Pagination) {
-    super()
-    this.pagination = pagination
-    this.param = { ...pagination }
-  }
-}
-
-export class NamespaceTotal extends Request {
-  readonly url = '/namespace/getTotal'
-  readonly method = 'get'
-
-  public declare datagram: Total
 }
 
 export class NamespaceUserOption extends Request {

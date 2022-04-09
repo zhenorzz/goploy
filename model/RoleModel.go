@@ -50,13 +50,11 @@ func (r Role) DeleteRow() error {
 	return err
 }
 
-func (r Role) GetList(pagination Pagination) (Roles, error) {
+func (r Role) GetList() (Roles, error) {
 	rows, err := sq.
 		Select("id, name, description, insert_time, update_time").
 		From(roleTable).
 		OrderBy("id DESC").
-		Limit(pagination.Rows).
-		Offset((pagination.Page - 1) * pagination.Rows).
 		RunWith(DB).
 		Query()
 	if err != nil {
@@ -74,20 +72,6 @@ func (r Role) GetList(pagination Pagination) (Roles, error) {
 	}
 
 	return roles, nil
-}
-
-func (r Role) GetTotal() (int64, error) {
-	var total int64
-	err := sq.
-		Select("COUNT(*) AS count").
-		From(roleTable).
-		RunWith(DB).
-		QueryRow().
-		Scan(&total)
-	if err != nil {
-		return 0, err
-	}
-	return total, nil
 }
 
 func (r Role) GetAll() (Roles, error) {

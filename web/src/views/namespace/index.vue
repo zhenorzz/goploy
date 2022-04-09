@@ -1,17 +1,27 @@
 <template>
   <el-row class="app-container">
-    <el-row
-      v-show="$store.state.user.superManager"
-      class="app-bar"
-      type="flex"
-      justify="end"
-    >
-      <Button
-        type="primary"
-        :icon="Plus"
-        :permissions="[permission.AddNamespace]"
-        @click="handleAdd"
-      />
+    <el-row class="app-bar" type="flex" justify="space-between">
+      <el-row>
+        <el-input
+          v-model="namespaceName"
+          style="width: 200px"
+          placeholder="Filter the name"
+        />
+      </el-row>
+      <el-row>
+        <el-button
+          :loading="tableLoading"
+          type="primary"
+          :icon="Refresh"
+          @click="refresList"
+        />
+        <Button
+          type="primary"
+          :icon="Plus"
+          :permissions="[permission.AddNamespace]"
+          @click="handleAdd"
+        />
+      </el-row>
     </el-row>
     <el-table
       :key="tableHeight"
@@ -20,7 +30,7 @@
       stripe
       highlight-current-row
       :max-height="tableHeight"
-      :data="tableData"
+      :data="tablePage.list"
       style="width: 100%"
     >
       <el-table-column prop="id" label="ID" width="80" />
@@ -70,7 +80,7 @@
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
         hide-on-single-page
-        :total="pagination.total"
+        :total="tablePage.total"
         :page-size="pagination.rows"
         background
         layout="prev, pager, next"
@@ -118,10 +128,9 @@ export default { name: 'NamespaceIndex' }
 <script lang="ts" setup>
 import permission from '@/permission'
 import Button from '@/components/Permission/Button.vue'
-import { Plus, Edit } from '@element-plus/icons-vue'
+import { Refresh, Plus, Edit } from '@element-plus/icons-vue'
 import {
   NamespaceList,
-  NamespaceTotal,
   NamespaceAdd,
   NamespaceEdit,
   NamespaceData,
@@ -130,14 +139,15 @@ import getTableHeight from '@/composables/tableHeight'
 import type { ElForm } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import TheUserDialog from './components/TheUserDialog.vue'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const { tableHeight } = getTableHeight()
 const dialogVisible = ref(false)
 const dialogUserVisible = ref(false)
+const namespaceName = ref('')
 const tableLoading = ref(false)
 const tableData = ref<NamespaceList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 14, total: 0 })
+const pagination = ref({ page: 1, rows: 14 })
 const selectedItem = ref<NamespaceData>()
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = { id: 0, name: '' }
@@ -146,12 +156,28 @@ const formProps = ref({ disabled: false })
 const formRules = {
   name: [{ required: true, message: 'Name required', trigger: 'blur' }],
 }
+
 getList()
-getTotal()
+
+const tablePage = computed(() => {
+  let _tableData = tableData.value
+  if (namespaceName.value !== '') {
+    _tableData = tableData.value.filter(
+      (item) => item.name.indexOf(namespaceName.value) !== -1
+    )
+  }
+  return {
+    list: _tableData.slice(
+      (pagination.value.page - 1) * pagination.value.rows,
+      pagination.value.page * pagination.value.rows
+    ),
+    total: _tableData.length,
+  }
+})
 
 function getList() {
   tableLoading.value = true
-  new NamespaceList(pagination.value)
+  new NamespaceList()
     .request()
     .then((response) => {
       tableData.value = response.data.list
@@ -161,15 +187,14 @@ function getList() {
     })
 }
 
-function getTotal() {
-  new NamespaceTotal().request().then((response) => {
-    pagination.value.total = response.data.total
-  })
+function refresList() {
+  namespaceName.value = ''
+  pagination.value.page = 1
+  getList()
 }
 
 function handlePageChange(val = 1) {
   pagination.value.page = val
-  getList()
 }
 
 function handleAdd() {
@@ -208,7 +233,6 @@ function add() {
     .request()
     .then(() => {
       getList()
-      getTotal()
     })
     .finally(() => {
       formProps.value.disabled = dialogVisible.value = false

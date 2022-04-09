@@ -1,17 +1,27 @@
 <template>
   <el-row class="app-container">
-    <el-row
-      v-show="$store.state.user.superManager"
-      class="app-bar"
-      type="flex"
-      justify="end"
-    >
-      <Button
-        type="primary"
-        :icon="Plus"
-        :permissions="[pms.AddRole]"
-        @click="handleAdd"
-      />
+    <el-row class="app-bar" type="flex" justify="space-between">
+      <el-row>
+        <el-input
+          v-model="roleName"
+          style="width: 200px"
+          placeholder="Filter the name"
+        />
+      </el-row>
+      <el-row>
+        <el-button
+          :loading="tableLoading"
+          type="primary"
+          :icon="Refresh"
+          @click="refresList"
+        />
+        <Button
+          type="primary"
+          :icon="Plus"
+          :permissions="[pms.AddRole]"
+          @click="handleAdd"
+        />
+      </el-row>
     </el-row>
     <el-table
       :key="tableHeight"
@@ -20,7 +30,7 @@
       stripe
       highlight-current-row
       :max-height="tableHeight"
-      :data="tableData"
+      :data="tablePage.list"
       style="width: 100%"
     >
       <el-table-column prop="id" label="ID" width="80" />
@@ -73,7 +83,7 @@
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
         hide-on-single-page
-        :total="pagination.total"
+        :total="tablePage.total"
         :page-size="pagination.rows"
         background
         layout="prev, pager, next"
@@ -162,10 +172,9 @@ export default { name: 'NamespaceRole' }
 <script lang="ts" setup>
 import pms from '@/permission'
 import Button from '@/components/Permission/Button.vue'
-import { Setting, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Refresh, Setting, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import {
   RoleList,
-  RoleTotal,
   RoleAdd,
   RoleEdit,
   RoleRemove,
@@ -178,7 +187,7 @@ import getTableHeight from '@/composables/tableHeight'
 import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { deepClone } from '@/utils'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 interface permission {
@@ -194,9 +203,10 @@ const { t } = useI18n()
 const permissionDialogVisible = ref(false)
 const { tableHeight } = getTableHeight()
 const dialogVisible = ref(false)
+const roleName = ref('')
 const tableLoading = ref(false)
 const tableData = ref<RoleList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 14, total: 0 })
+const pagination = ref({ page: 1, rows: 14 })
 let selectedItem = {} as RoleData
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = { id: 0, name: '', description: '' }
@@ -211,12 +221,27 @@ const rolePermissionLoading = ref(false)
 const changePermissionDisabled = ref(false)
 
 getList()
-getTotal()
 getPermissionList()
+
+const tablePage = computed(() => {
+  let _tableData = tableData.value
+  if (roleName.value !== '') {
+    _tableData = tableData.value.filter(
+      (item) => item.name.indexOf(roleName.value) !== -1
+    )
+  }
+  return {
+    list: _tableData.slice(
+      (pagination.value.page - 1) * pagination.value.rows,
+      pagination.value.page * pagination.value.rows
+    ),
+    total: _tableData.length,
+  }
+})
 
 function getList() {
   tableLoading.value = true
-  new RoleList(pagination.value)
+  new RoleList()
     .request()
     .then((response) => {
       tableData.value = response.data.list
@@ -226,10 +251,10 @@ function getList() {
     })
 }
 
-function getTotal() {
-  new RoleTotal().request().then((response) => {
-    pagination.value.total = response.data.total
-  })
+function refresList() {
+  roleName.value = ''
+  pagination.value.page = 1
+  getList()
 }
 
 function getPermissionList() {
@@ -256,7 +281,6 @@ function getPermissionList() {
 
 function handlePageChange(val = 1) {
   pagination.value.page = val
-  getList()
 }
 
 function handleAdd() {
@@ -317,7 +341,6 @@ function handleRemove(data: RoleData) {
       new RoleRemove(data).request().then(() => {
         ElMessage.success('Success')
         getList()
-        getTotal()
       })
     })
     .catch(() => {
@@ -346,7 +369,6 @@ function add() {
     .request()
     .then(() => {
       getList()
-      getTotal()
     })
     .finally(() => {
       formProps.value.disabled = dialogVisible.value = false

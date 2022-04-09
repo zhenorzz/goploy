@@ -1,4 +1,4 @@
-import { Request, Pagination, ID, Total } from './types'
+import { Request, ID } from './types'
 
 export interface RoleData {
   id: number
@@ -28,23 +28,9 @@ export class RoleList extends Request {
   readonly url = '/role/getList'
   readonly method = 'get'
 
-  public pagination: Pagination
-
   public declare datagram: {
     list: RoleData[]
   }
-  constructor(pagination: Pagination) {
-    super()
-    this.pagination = pagination
-    this.param = { ...pagination }
-  }
-}
-
-export class RoleTotal extends Request {
-  readonly url = '/role/getTotal'
-  readonly method = 'get'
-
-  public declare datagram: Total
 }
 
 export class RoleOption extends Request {

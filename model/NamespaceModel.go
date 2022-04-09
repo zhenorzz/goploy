@@ -6,7 +6,6 @@ import (
 
 const namespaceTable = "`namespace`"
 
-// Namespace -
 type Namespace struct {
 	ID            int64   `json:"id"`
 	Name          string  `json:"name"`
@@ -17,10 +16,8 @@ type Namespace struct {
 	UpdateTime    string  `json:"updateTime,omitempty"`
 }
 
-// Namespaces -
 type Namespaces []Namespace
 
-// AddRow return LastInsertId
 func (ns Namespace) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(namespaceTable).
@@ -35,7 +32,6 @@ func (ns Namespace) AddRow() (int64, error) {
 	return id, err
 }
 
-// EditRow -
 func (ns Namespace) EditRow() error {
 	_, err := sq.
 		Update(namespaceTable).
@@ -68,13 +64,11 @@ func (ns Namespace) GetAllByUserID() (Namespaces, error) {
 	return namespaces, nil
 }
 
-func (ns Namespace) GetList(pagination Pagination) (Namespaces, error) {
+func (ns Namespace) GetList() (Namespaces, error) {
 	rows, err := sq.
 		Select("id, name, insert_time, update_time").
 		From(namespaceTable).
 		OrderBy("id DESC").
-		Limit(pagination.Rows).
-		Offset((pagination.Page - 1) * pagination.Rows).
 		RunWith(DB).
 		Query()
 	if err != nil {
@@ -94,21 +88,6 @@ func (ns Namespace) GetList(pagination Pagination) (Namespaces, error) {
 	return namespaces, nil
 }
 
-func (ns Namespace) GetTotal() (int64, error) {
-	var total int64
-	err := sq.
-		Select("COUNT(*) AS count").
-		From(namespaceTable).
-		RunWith(DB).
-		QueryRow().
-		Scan(&total)
-	if err != nil {
-		return 0, err
-	}
-	return total, nil
-}
-
-// GetData -
 func (ns Namespace) GetData() (Namespace, error) {
 	var namespace Namespace
 	err := sq.
