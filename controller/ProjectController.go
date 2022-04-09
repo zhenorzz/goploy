@@ -54,16 +54,12 @@ func (Project) GetList(gp *core.Goploy) core.Response {
 	var err error
 	if _, ok := gp.Namespace.PermissionIDs[permission.GetAllProjectList]; ok {
 		projectList, err = model.Project{NamespaceID: gp.Namespace.ID}.GetList()
-		if err != nil {
-			return response.JSON{Code: response.Error, Message: err.Error()}
-		}
 	} else {
 		projectList, err = model.Project{NamespaceID: gp.Namespace.ID, UserID: gp.UserInfo.ID}.GetList()
-		if err != nil {
-			return response.JSON{Code: response.Error, Message: err.Error()}
-		}
 	}
-
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
 	return response.JSON{
 		Data: struct {
 			Projects model.Projects `json:"list"`
@@ -353,18 +349,7 @@ func (Project) Add(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	namespaceUsers, err := model.NamespaceUser{NamespaceID: gp.Namespace.ID}.GetAllGteManagerByNamespaceID()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
 	projectUsersModel := model.ProjectUsers{}
-	for _, namespaceUser := range namespaceUsers {
-		projectUserModel := model.ProjectUser{
-			ProjectID: projectID,
-			UserID:    namespaceUser.UserID,
-		}
-		projectUsersModel = append(projectUsersModel, projectUserModel)
-	}
 	for _, userID := range reqData.UserIDs {
 		projectUserModel := model.ProjectUser{
 			ProjectID: projectID,
@@ -470,18 +455,8 @@ func (Project) Edit(gp *core.Goploy) core.Response {
 	if err := (model.ProjectUser{ProjectID: projectData.ID}).DeleteByProjectID(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	namespaceUsers, err := model.NamespaceUser{NamespaceID: gp.Namespace.ID}.GetAllGteManagerByNamespaceID()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
+
 	projectUsersModel := model.ProjectUsers{}
-	for _, namespaceUser := range namespaceUsers {
-		projectUserModel := model.ProjectUser{
-			ProjectID: projectData.ID,
-			UserID:    namespaceUser.UserID,
-		}
-		projectUsersModel = append(projectUsersModel, projectUserModel)
-	}
 	for _, userID := range reqData.UserIDs {
 		projectUserModel := model.ProjectUser{
 			ProjectID: projectData.ID,

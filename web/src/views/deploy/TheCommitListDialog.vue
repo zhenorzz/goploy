@@ -32,7 +32,7 @@
     >
       <el-table-column type="expand">
         <template #default="scope">
-          <div style="white-space: pre-line">
+          <div style="padding-left: 50px; white-space: pre-line">
             {{ scope.row.diff }}
           </div>
         </template>
@@ -48,13 +48,8 @@
           </RepoURL>
         </template>
       </el-table-column>
-      <el-table-column prop="author" label="author" />
-      <el-table-column
-        prop="message"
-        label="message"
-        width="200"
-        show-overflow-tooltip
-      />
+      <el-table-column prop="author" width="155" label="author" />
+      <el-table-column prop="message" label="message" show-overflow-tooltip />
       <el-table-column label="time" width="155" align="center">
         <template #default="scope">
           {{ parseTime(scope.row.timestamp) }}

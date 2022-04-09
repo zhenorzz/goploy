@@ -1,9 +1,5 @@
 package ws
 
-import (
-	"github.com/zhenorzz/goploy/model"
-)
-
 type ProjectMessage struct {
 	ProjectID   int64       `json:"projectId"`
 	ProjectName string      `json:"projectName"`
@@ -21,7 +17,6 @@ const (
 	DeploySuccess   = 5
 )
 
-func (projectMessage ProjectMessage) canSendTo(client *Client) error {
-	_, err := model.Project{ID: projectMessage.ProjectID, UserID: client.UserInfo.ID}.GetUserProjectData()
-	return err
+func (projectMessage ProjectMessage) canSendTo(*Client) error {
+	return nil
 }

@@ -5,10 +5,14 @@ import (
 	"errors"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/permission"
 )
 
-// HasPublishAuth check the user has publish auth
-func HasPublishAuth(gp *core.Goploy) error {
+// HasProjectPermission check the user has publish auth
+func HasProjectPermission(gp *core.Goploy) error {
+	if _, ok := gp.Namespace.PermissionIDs[permission.GetAllDeployList]; ok {
+		return nil
+	}
 	type ReqData struct {
 		ProjectID int64 `json:"projectId"`
 	}

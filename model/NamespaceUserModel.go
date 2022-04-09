@@ -113,31 +113,6 @@ func (nu NamespaceUser) GetAllUserByNamespaceID() (NamespaceUsers, error) {
 	return namespaceUsers, nil
 }
 
-func (nu NamespaceUser) GetAllGteManagerByNamespaceID() (NamespaceUsers, error) {
-	rows, err := sq.
-		Select("user_id, role").
-		From(namespaceUserTable).
-		Where(sq.Eq{
-			"namespace_id": nu.NamespaceID,
-			"role":         []string{"admin", "manager"},
-		}).
-		RunWith(DB).
-		Query()
-	if err != nil {
-		return nil, err
-	}
-	namespaceUsers := NamespaceUsers{}
-	for rows.Next() {
-		var namespaceUser NamespaceUser
-
-		if err := rows.Scan(&namespaceUser.UserID, &namespaceUser.RoleID); err != nil {
-			return nil, err
-		}
-		namespaceUsers = append(namespaceUsers, namespaceUser)
-	}
-	return namespaceUsers, nil
-}
-
 func (nu NamespaceUser) GetDataByUserNamespace() (NamespaceUser, error) {
 	var namespaceUser NamespaceUser
 	var permissionIDs string

@@ -319,8 +319,8 @@ func (p Project) GetList() (Projects, error) {
 	return projects, nil
 }
 
-func (p Project) GetUserProjectList() (Projects, error) {
-	rows, err := sq.
+func (p Project) GetDeployList() (Projects, error) {
+	builder := sq.
 		Select(`
 			project.id, 
 			project.name,
@@ -336,17 +336,24 @@ func (p Project) GetUserProjectList() (Projects, error) {
 			project.auto_deploy,
 			project.deploy_state, 
 			project.update_time`).
-		From(projectUserTable).
-		LeftJoin(projectTable + " ON project_user.project_id = project.id").
+		From(projectTable).
 		LeftJoin(fmt.Sprintf("%[1]s ON %[1]s.token = %s.last_publish_token and type = %d", publishTraceTable, projectTable, Pull)).
 		Where(sq.Eq{
 			"project.namespace_id": p.NamespaceID,
-			"project_user.user_id": p.UserID,
 			"project.state":        Enable,
-		}).
+		})
+
+	if p.UserID > 0 {
+		builder = builder.
+			LeftJoin(projectUserTable + " ON project_user.project_id = project.id").
+			Where(sq.Eq{"project_user.user_id": p.UserID})
+	}
+
+	rows, err := builder.
 		OrderBy("project.id DESC").
 		RunWith(DB).
 		Query()
+
 	if err != nil {
 		return nil, err
 	}

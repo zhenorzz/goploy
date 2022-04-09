@@ -107,4 +107,4 @@ Goploy 用于:
 
 ## 使用许可
 
-[MIT](LICENSE) © zhenorzz
+[GPLv3](LICENSE) © zhenorzz

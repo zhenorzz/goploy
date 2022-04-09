@@ -21,7 +21,6 @@ import (
 
 type Namespace struct {
 	ID            int64
-	Role          string
 	PermissionIDs map[int64]struct{}
 }
 
@@ -220,7 +219,6 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 			}
 			gp.Namespace = Namespace{
 				ID:            namespaceID,
-				Role:          RoleAdmin,
 				PermissionIDs: permissionIDs,
 			}
 		} else {
@@ -239,10 +237,6 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 				ID:            namespaceID,
 				PermissionIDs: namespace.PermissionIDs,
 			}
-		}
-
-		if err = route.hasRole(gp.Namespace.Role); err != nil {
-			return gp, response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 
 		if err = route.hasPermission(gp.Namespace.PermissionIDs); err != nil {
@@ -288,17 +282,6 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 	}
 
 	return gp, resp
-}
-
-func (r Route) hasRole(namespaceRole string) error {
-	if len(r.roles) == 0 {
-		return nil
-	}
-
-	if _, ok := r.roles[namespaceRole]; ok {
-		return nil
-	}
-	return errors.New("no permission")
 }
 
 func (r Route) hasPermission(permissionIDs map[int64]struct{}) error {

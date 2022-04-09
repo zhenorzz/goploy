@@ -106,4 +106,4 @@ Create a pull request.
 
 ## License
 
-[MIT](LICENSE) © zhenorzz
+[GPLv3](LICENSE) © zhenorzz

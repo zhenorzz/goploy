@@ -136,37 +136,32 @@
       >
         <template #default="scope">
           <div class="operation-btn">
-            <el-button
+            <Button
               v-if="scope.row.deployState === 0"
+              :permissions="[pms.DeployProject]"
               type="primary"
               @click="publish(scope.row)"
             >
               {{ $t('initial') }}
-            </el-button>
-            <el-button
-              v-else-if="
-                role.hasManagerPermission() && scope.row.deployState === 1
-              "
+            </Button>
+            <Button
+              v-else-if="scope.row.deployState === 1"
+              :permissions="[pms.DeployResetState]"
               type="primary"
               @click="resetState(scope.row)"
             >
               {{ $t('deployPage.resetState') }}
-            </el-button>
+            </Button>
             <el-dropdown
-              v-else-if="
-                role.hasGroupManagerPermission() || scope.row.review === 0
-              "
+              v-else
+              :permissions="[pms.DeployProject]"
               split-button
               trigger="click"
               type="primary"
               @click="publish(scope.row)"
               @command="(funcName) => commandFunc[funcName](scope.row)"
             >
-              {{
-                role.isMember() && scope.row.review === 1
-                  ? $t('submit')
-                  : $t('deploy')
-              }}
+              {{ scope.row.review === 1 ? $t('submit') : $t('deploy') }}
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item :command="'handleCommitCommand'">
@@ -178,15 +173,7 @@
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-            <el-button
-              v-else
-              type="primary"
-              @click="handleCommitCommand(scope.row)"
-            >
-              {{ $t('deploy') }}
-            </el-button>
             <el-dropdown
-              v-if="role.hasGroupManagerPermission() || scope.row.review === 1"
               trigger="click"
               style="margin-left: 5px"
               @command="(funcName) => commandFunc[funcName](scope.row)"
@@ -197,46 +184,48 @@
               </el-button>
               <template #dropdown>
                 <el-dropdown-menu style="min-width: 84px; text-align: center">
-                  <el-dropdown-item
-                    v-if="role.hasGroupManagerPermission()"
+                  <DropdownItem
+                    :permissions="[pms.DeployTask]"
                     :command="'handleTaskCommand'"
                   >
                     {{ $t('deployPage.taskDeploy') }}
-                  </el-dropdown-item>
-                  <el-dropdown-item
-                    v-if="role.hasGroupManagerPermission()"
+                  </DropdownItem>
+                  <DropdownItem
+                    :permissions="[pms.FileCompare]"
                     :command="'handleFileCompareCommand'"
                   >
                     {{ $t('deployPage.fileCompare') }}
-                  </el-dropdown-item>
-                  <el-dropdown-item
-                    v-if="role.hasGroupManagerPermission()"
+                  </DropdownItem>
+                  <DropdownItem
+                    :permissions="[pms.FileSync]"
                     :command="'handleFileSyncCommand'"
                   >
                     {{ $t('deployPage.fileSync') }}
-                  </el-dropdown-item>
-                  <el-dropdown-item
-                    v-if="role.hasManagerPermission()"
+                  </DropdownItem>
+                  <DropdownItem
+                    :permissions="[pms.ProcessManager]"
                     :command="'handleProcessManagerCommand'"
                   >
                     {{ $t('deployPage.processManager') }}
-                  </el-dropdown-item>
-                  <el-dropdown-item
+                  </DropdownItem>
+                  <DropdownItem
                     v-if="scope.row.review === 1"
+                    :permissions="[pms.DeployReview]"
                     :command="'handleReviewCommand'"
                   >
                     {{ $t('deployPage.reviewDeploy') }}
-                  </el-dropdown-item>
+                  </DropdownItem>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-            <el-button
+            <Button
               type="success"
               style="margin-left: 5px"
+              :permissions="[pms.DeployDetail]"
               @click="handleDetail(scope.row)"
             >
               {{ $t('detail') }}
-            </el-button>
+            </Button>
           </div>
         </template>
       </el-table-column>
@@ -263,30 +252,38 @@
       :project-row="selectedItem"
     >
       <template #tableOP="scope">
-        <el-button type="danger" @click="publishByCommit(scope.row)">
+        <Button
+          type="primary"
+          :permissions="[pms.DeployProject]"
+          @click="publishByCommit(scope.row)"
+        >
           {{ $t('deploy') }}
-        </el-button>
-        <el-button
-          v-if="!role.isMember()"
+        </Button>
+        <Button
           type="warning"
+          :permissions="[pms.GreyDeploy]"
           @click="handleGreyPublish(scope.row)"
         >
           {{ $t('grey') }}
-        </el-button>
+        </Button>
       </template>
     </TheCommitListDialog>
     <TheTagListDialog v-model="tagDialogVisible" :project-row="selectedItem">
       <template #tableOP="scope">
-        <el-button type="danger" @click="publishByCommit(scope.row)">
+        <Button
+          type="primary"
+          :permissions="[pms.DeployProject]"
+          @click="publishByCommit(scope.row)"
+        >
           {{ $t('deploy') }}
-        </el-button>
-        <el-button
-          v-if="!role.isMember()"
+        </Button>
+        <Button
           type="warning"
+          :permissions="[pms.GreyDeploy]"
           @click="handleGreyPublish(scope.row)"
         >
           {{ $t('grey') }}
-        </el-button>
+        </Button>
       </template>
     </TheTagListDialog>
     <TheTaskListDialog
@@ -346,6 +343,8 @@
 export default { name: 'DeployIndex' }
 </script>
 <script lang="ts" setup>
+import pms from '@/permission'
+import { Button, DropdownItem } from '@/components/Permission'
 import { ArrowDown } from '@element-plus/icons-vue'
 import {
   DeployList,

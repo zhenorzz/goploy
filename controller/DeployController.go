@@ -40,9 +40,9 @@ func (d Deploy) Routes() []core.Route {
 		core.NewRoute("/deploy/getPreview", http.MethodGet, d.GetPreview).Permissions(permission.DeployDetail),
 		core.NewRoute("/deploy/review", http.MethodPut, d.Review).Permissions(permission.DeployReview),
 		core.NewRoute("/deploy/resetState", http.MethodPut, d.ResetState).Permissions(permission.DeployResetState),
-		core.NewRoute("/deploy/publish", http.MethodPost, d.Publish).Permissions(permission.DeployProject).Middleware(middleware.HasPublishAuth),
-		core.NewRoute("/deploy/rebuild", http.MethodPost, d.Rebuild).Permissions(permission.DeployRollback).Middleware(middleware.HasPublishAuth),
-		core.NewRoute("/deploy/greyPublish", http.MethodPost, d.GreyPublish).Permissions(permission.GreyDeploy).Middleware(middleware.HasPublishAuth),
+		core.NewRoute("/deploy/publish", http.MethodPost, d.Publish).Permissions(permission.DeployProject).Middleware(middleware.HasProjectPermission),
+		core.NewRoute("/deploy/rebuild", http.MethodPost, d.Rebuild).Permissions(permission.DeployRollback).Middleware(middleware.HasProjectPermission),
+		core.NewRoute("/deploy/greyPublish", http.MethodPost, d.GreyPublish).Permissions(permission.GreyDeploy).Middleware(middleware.HasProjectPermission),
 		core.NewWhiteRoute("/deploy/webhook", http.MethodPost, d.Webhook).Middleware(middleware.FilterEvent),
 		core.NewWhiteRoute("/deploy/callback", http.MethodGet, d.Callback),
 		core.NewRoute("/deploy/fileCompare", http.MethodPost, d.FileCompare).Permissions(permission.FileCompare),
@@ -52,14 +52,17 @@ func (d Deploy) Routes() []core.Route {
 }
 
 func (Deploy) GetList(gp *core.Goploy) core.Response {
-	projects, err := model.Project{
-		NamespaceID: gp.Namespace.ID,
-		UserID:      gp.UserInfo.ID,
-	}.GetUserProjectList()
-
+	var projects model.Projects
+	var err error
+	if _, ok := gp.Namespace.PermissionIDs[permission.GetAllDeployList]; ok {
+		projects, err = model.Project{NamespaceID: gp.Namespace.ID}.GetDeployList()
+	} else {
+		projects, err = model.Project{NamespaceID: gp.Namespace.ID, UserID: gp.UserInfo.ID}.GetDeployList()
+	}
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+
 	return response.JSON{
 		Data: struct {
 			Project model.Projects `json:"list"`
@@ -392,7 +395,8 @@ func (Deploy) Publish(gp *core.Goploy) core.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	if project.Review == model.Enable && gp.Namespace.Role == core.RoleMember {
+
+	if project.Review == model.Enable {
 		err = projectReview(gp, project, reqData.Commit, reqData.Branch)
 	} else {
 		err = projectDeploy(gp, project, reqData.Commit, reqData.Branch)
