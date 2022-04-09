@@ -3,41 +3,7 @@ export const NamespaceKey = 'G-N-ID'
 export interface Namespace {
   id: number
   name: string
-  role: string
-}
-
-export function getRole() {
-  return {
-    Admin: 'admin',
-    Manager: 'manager',
-    GroupManager: 'group-manager',
-    Member: 'member',
-    Namespace: getNamespace(),
-    toString(): string {
-      return this.Namespace['role']
-    },
-    isAdmin(): boolean {
-      return this.Admin === this.Namespace['role']
-    },
-    isManager(): boolean {
-      return this.Manager === this.Namespace['role']
-    },
-    isGroupManager(): boolean {
-      return this.GroupManager === this.Namespace['role']
-    },
-    isMember(): boolean {
-      return this.Member === this.Namespace['role']
-    },
-    hasAdminPermission(): boolean {
-      return this.isAdmin()
-    },
-    hasManagerPermission(): boolean {
-      return this.isAdmin() || this.isManager()
-    },
-    hasGroupManagerPermission(): boolean {
-      return this.isAdmin() || this.isManager() || this.isGroupManager()
-    },
-  }
+  roleId: number
 }
 
 export function getNamespace(): Namespace {
@@ -45,9 +11,9 @@ export function getNamespace(): Namespace {
     sessionStorage.getItem(NamespaceKey) || localStorage.getItem(NamespaceKey)
 
   try {
-    return n ? JSON.parse(n) : { id: 0, name: '', role: '' }
+    return n ? JSON.parse(n) : { id: 0, name: '', roleId: -1 }
   } catch (e) {
-    return { id: 0, name: '', role: '' }
+    return { id: 0, name: '', roleId: -1 }
   }
 }
 

@@ -5,13 +5,13 @@
     :fullscreen="$store.state.app.device === 'mobile'"
   >
     <template v-if="type === 'list'">
-      <el-row
-        v-if="!getRole().isMember()"
-        class="app-bar"
-        type="flex"
-        justify="end"
-      >
-        <el-button type="primary" :icon="Plus" @click="handleAddProjectTask" />
+      <el-row class="app-bar" type="flex" justify="end">
+        <Button
+          :permissions="[pms.DeployTask]"
+          type="primary"
+          :icon="Plus"
+          @click="handleAddProjectTask"
+        />
       </el-row>
       <el-table
         v-loading="tableLoading"
@@ -91,13 +91,13 @@
           :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
         >
           <template #default="scope">
-            <el-button
+            <Button
+              :permissions="[pms.DeployTask]"
               type="danger"
               :disabled="scope.row.isRun === 1 || scope.row.state === 0"
               :icon="Delete"
               @click="removeProjectTask(scope.row)"
-            >
-            </el-button>
+            />
           </template>
         </el-table-column>
       </el-table>
@@ -201,6 +201,8 @@
   </el-dialog>
 </template>
 <script lang="ts" setup>
+import pms from '@/permission'
+import { Button } from '@/components/Permission'
 import { Plus, Back, Delete } from '@element-plus/icons-vue'
 import RepoURL from '@/components/RepoURL/index.vue'
 import {
@@ -213,7 +215,6 @@ import {
 import type { ElForm } from 'element-plus'
 import { RepositoryBranchList, RepositoryCommitList } from '@/api/repository'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { getRole } from '@/utils/namespace'
 import { parseTime } from '@/utils'
 import { PropType, computed, watch, ref, reactive } from 'vue'
 import dayjs from 'dayjs'

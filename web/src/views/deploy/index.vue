@@ -184,10 +184,7 @@
               </el-button>
               <template #dropdown>
                 <el-dropdown-menu style="min-width: 84px; text-align: center">
-                  <DropdownItem
-                    :permissions="[pms.DeployTask]"
-                    :command="'handleTaskCommand'"
-                  >
+                  <DropdownItem :command="'handleTaskCommand'">
                     {{ $t('deployPage.taskDeploy') }}
                   </DropdownItem>
                   <DropdownItem
@@ -353,7 +350,6 @@ import {
   DeployGreyPublish,
 } from '@/api/deploy'
 import { ProjectServerList, ProjectData } from '@/api/project'
-import { getRole } from '@/utils/namespace'
 import RepoURL from '@/components/RepoURL/index.vue'
 import { parseTime } from '@/utils'
 import TheDetailDialog from './TheDetailDialog.vue'
@@ -374,7 +370,6 @@ import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const store = useStore()
-const role = getRole()
 const commitDialogVisible = ref(false)
 const tagDialogVisible = ref(false)
 const greyServerDialogVisible = ref(false)

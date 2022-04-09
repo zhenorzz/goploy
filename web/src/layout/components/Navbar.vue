@@ -65,23 +65,8 @@
           <el-dropdown trigger="click">
             <div class="user-wrapper">
               <el-row type="flex">
-                <el-row>
-                  <el-avatar
-                    v-if="$store.getters.avatar"
-                    :size="40"
-                    :src="$store.getters.avatar"
-                  />
-                  <div
-                    v-else
-                    class="avatar-box"
-                    style="background: rgb(64, 158, 255)"
-                  >
-                    <span>{{ user.name.substr(0, 1) }}</span>
-                  </div>
-                </el-row>
-                <div style="margin-left: 8px">
-                  <div class="user-name">{{ user.name }}</div>
-                  <div class="user-title">{{ namespace.role }}</div>
+                <div class="user-name">
+                  {{ user.name }}
                 </div>
               </el-row>
             </div>
@@ -162,7 +147,7 @@ function handleNamespaceChange(namespace: NamespaceUserData) {
   setNamespace({
     id: namespace.namespaceId,
     name: namespace.namespaceName,
-    role: namespace.role,
+    roleId: namespace.roleId,
   })
   ElLoading.service({ fullscreen: true })
   location.reload()
@@ -248,26 +233,12 @@ async function logout() {
         margin-top: 5px;
       }
 
-      .avatar-box {
-        height: 40px;
-        width: 40px;
-        line-height: 40px;
-        border-radius: 50%;
-        text-align: center;
-        color: #fff;
-        font-size: 16px;
-      }
-
       .user-name {
         margin-top: 4px;
         font-size: 16px;
         font-weight: 900;
         color: #9d9d9d;
-      }
-      .user-title {
-        font-size: 13px;
-        padding-top: 3px;
-        color: #9d9d9d;
+        line-height: 30px;
       }
     }
   }

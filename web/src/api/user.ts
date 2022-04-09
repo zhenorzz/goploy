@@ -1,4 +1,4 @@
-import { Request, Pagination, ID, Total } from './types'
+import { Request, ID } from './types'
 
 export interface UserData {
   account: string
@@ -21,7 +21,7 @@ export class Login extends Request {
     password: string
   }
   public declare datagram: {
-    namespaceList: { id: number; name: string; role: string }[]
+    namespaceList: { id: number; name: string; role_id: number }[]
   }
   constructor(param: Login['param']) {
     super()
