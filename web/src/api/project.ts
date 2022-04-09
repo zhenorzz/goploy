@@ -99,18 +99,9 @@ export interface ProjectProcessData {
 export class ProjectList extends Request {
   readonly url = '/project/getList'
   readonly method = 'get'
-  public param: {
-    projectName: string
-  }
-  public pagination: Pagination
 
   public declare datagram: {
     list: ProjectData[]
-  }
-  constructor(param: ProjectList['param'], pagination: Pagination) {
-    super()
-    this.pagination = pagination
-    this.param = { ...param, ...pagination }
   }
 }
 

@@ -14,7 +14,12 @@
           @click="searchProjectList"
         />
       </el-row>
-      <el-button type="primary" :icon="Plus" @click="handleAdd" />
+      <Button
+        type="primary"
+        :icon="Plus"
+        :permissions="[pms.AddProject]"
+        @click="handleAdd"
+      />
     </el-row>
     <el-table
       :key="tableHeight"
@@ -23,7 +28,7 @@
       stripe
       highlight-current-row
       :max-height="tableHeight"
-      :data="tableData"
+      :data="tablePageData"
       style="width: 100%"
     >
       <el-table-column prop="id" label="ID" width="60" />
@@ -74,9 +79,10 @@
         <template #default="scope">
           <span v-if="scope.row.autoDeploy === 0">{{ $t('close') }}</span>
           <span v-else>{{ $t('open') }}</span>
-          <el-button
+          <Button
             type="text"
             :icon="Edit"
+            :permissions="[pms.SwitchProjectWebhook]"
             @click="handleAutoDeploy(scope.row)"
           />
         </template>
@@ -89,9 +95,10 @@
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
-          <el-button
+          <Button
             type="primary"
             :icon="Edit"
+            :permissions="[pms.EditProject]"
             @click="handleEdit(scope.row)"
           />
           <el-tooltip
@@ -100,15 +107,17 @@
             content="Copy"
             placement="bottom"
           >
-            <el-button
+            <Button
               type="info"
               :icon="DocumentCopy"
+              :permissions="[pms.AddProject]"
               @click="handleCopy(scope.row)"
             />
           </el-tooltip>
-          <el-button
+          <Button
             type="danger"
             :icon="Delete"
+            :permissions="[pms.DeleteProject]"
             @click="handleRemove(scope.row)"
           />
         </template>
@@ -665,6 +674,8 @@
 export default { name: 'ProjectIndex' }
 </script>
 <script lang="ts" setup>
+import pms from '@/permission'
+import Button from '@/components/Permission/Button.vue'
 import {
   Search,
   View,
@@ -689,7 +700,6 @@ import { NamespaceUserOption } from '@/api/namespace'
 import { ServerOption } from '@/api/server'
 import {
   ProjectList,
-  ProjectTotal,
   ProjectPingRepos,
   ProjectRemoteBranchList,
   ProjectAdd,
@@ -702,7 +712,7 @@ import {
 } from '@/api/project'
 import type { ElRadioGroup, ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const scriptLangOption = [
@@ -835,7 +845,19 @@ const autoDeployFormData = ref({ id: 0, autoDeploy: 0 })
 
 getOptions()
 getList()
-getTotal()
+
+const tablePageData = computed(() => {
+  let _tableData = tableData.value
+  if (projectName.value !== '') {
+    _tableData = tableData.value.filter(
+      (item) => item.name.indexOf(projectName.value) !== -1
+    )
+  }
+  return _tableData.slice(
+    (pagination.value.page - 1) * pagination.value.rows,
+    pagination.value.page * pagination.value.rows
+  )
+})
 
 function getOptions() {
   new ServerOption().request().then((response) => {
@@ -848,21 +870,14 @@ function getOptions() {
 
 function getList() {
   tableloading.value = true
-  new ProjectList({ projectName: projectName.value }, pagination.value)
+  new ProjectList()
     .request()
     .then((response) => {
       tableData.value = response.data.list
+      pagination.value.total = response.data.list.length
     })
     .finally(() => {
       tableloading.value = false
-    })
-}
-
-function getTotal() {
-  new ProjectTotal({ projectName: projectName.value })
-    .request()
-    .then((response) => {
-      pagination.value.total = response.data.total
     })
 }
 
@@ -925,7 +940,6 @@ function handleRemove(data: ProjectData) {
       new ProjectRemove({ id: data.id }).request().then(() => {
         ElMessage.success('Success')
         getList()
-        getTotal()
       })
     })
     .catch(() => {
@@ -1000,7 +1014,6 @@ function add() {
       dialogVisible.value = false
       ElMessage.success('Success')
       getList()
-      getTotal()
     })
     .finally(() => {
       formProps.value.disabled = false
@@ -1090,12 +1103,10 @@ function getRemoteBranchList() {
 function searchProjectList() {
   pagination.value.page = 1
   getList()
-  getTotal()
 }
 
-function handlePageChange(val = 1) {
-  pagination.value.page = val
-  getList()
+function handlePageChange(page = 1) {
+  pagination.value.page = page
 }
 
 function restoreFormData() {

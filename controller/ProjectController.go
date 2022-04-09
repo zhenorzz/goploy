@@ -23,7 +23,6 @@ type Project Controller
 func (p Project) Routes() []core.Route {
 	return []core.Route{
 		core.NewRoute("/project/getList", http.MethodGet, p.GetList).Permissions(permission.ShowProjectPage),
-		core.NewRoute("/project/getTotal", http.MethodGet, p.GetTotal).Permissions(permission.ShowProjectPage),
 		core.NewRoute("/project/pingRepos", http.MethodGet, p.PingRepos),
 		core.NewRoute("/project/getRemoteBranchList", http.MethodGet, p.GetRemoteBranchList),
 		core.NewRoute("/project/getBindServerList", http.MethodGet, p.GetBindServerList),
@@ -51,34 +50,24 @@ func (p Project) Routes() []core.Route {
 }
 
 func (Project) GetList(gp *core.Goploy) core.Response {
-	pagination, err := model.PaginationFrom(gp.URLQuery)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
+	var projectList model.Projects
+	var err error
+	if _, ok := gp.Namespace.PermissionIDs[permission.GetAllProjectList]; ok {
+		projectList, err = model.Project{NamespaceID: gp.Namespace.ID}.GetList()
+		if err != nil {
+			return response.JSON{Code: response.Error, Message: err.Error()}
+		}
+	} else {
+		projectList, err = model.Project{NamespaceID: gp.Namespace.ID, UserID: gp.UserInfo.ID}.GetList()
+		if err != nil {
+			return response.JSON{Code: response.Error, Message: err.Error()}
+		}
 	}
-	projectName := gp.URLQuery.Get("projectName")
-	projectList, err := model.Project{NamespaceID: gp.Namespace.ID, UserID: gp.UserInfo.ID, Name: projectName}.GetList(pagination)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
+
 	return response.JSON{
 		Data: struct {
 			Projects model.Projects `json:"list"`
 		}{Projects: projectList},
-	}
-}
-
-func (Project) GetTotal(gp *core.Goploy) core.Response {
-	var total int64
-	var err error
-	projectName := gp.URLQuery.Get("projectName")
-	total, err = model.Project{NamespaceID: gp.Namespace.ID, UserID: gp.UserInfo.ID, Name: projectName}.GetTotal()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	return response.JSON{
-		Data: struct {
-			Total int64 `json:"total"`
-		}{Total: total},
 	}
 }
 

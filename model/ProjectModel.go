@@ -239,8 +239,7 @@ func (p Project) DeployFail() error {
 	return err
 }
 
-// GetList -
-func (p Project) GetList(pagination Pagination) (Projects, error) {
+func (p Project) GetList() (Projects, error) {
 	builder := sq.
 		Select(`
 			project.id, 
@@ -266,19 +265,18 @@ func (p Project) GetList(pagination Pagination) (Projects, error) {
 			project.update_time
 		`).
 		From(projectTable).
-		Join(projectUserTable + " ON project_user.project_id = project.id").
 		Where(sq.Eq{
 			"namespace_id": p.NamespaceID,
-			"user_id":      p.UserID,
 			"state":        Enable,
 		})
 
-	if len(p.Name) > 0 {
-		builder = builder.Where(sq.Like{"name": "%" + p.Name + "%"})
+	if p.UserID > 0 {
+		builder = builder.
+			Join(projectUserTable + " ON project_user.project_id = project.id").
+			Where(sq.Eq{"user_id": p.UserID})
 	}
 
-	rows, err := builder.Limit(pagination.Rows).
-		Offset((pagination.Page - 1) * pagination.Rows).
+	rows, err := builder.
 		OrderBy("id DESC").
 		RunWith(DB).
 		Query()
@@ -321,32 +319,6 @@ func (p Project) GetList(pagination Pagination) (Projects, error) {
 	return projects, nil
 }
 
-// GetTotal -
-func (p Project) GetTotal() (int64, error) {
-	var total int64
-	builder := sq.
-		Select("COUNT(*) AS count").
-		From(projectTable).
-		Join(projectUserTable + " ON project_user.project_id = project.id").
-		Where(sq.Eq{
-			"namespace_id": p.NamespaceID,
-			"user_id":      p.UserID,
-			"state":        Enable,
-		})
-	if len(p.Name) > 0 {
-		builder = builder.Where(sq.Like{"name": "%" + p.Name + "%"})
-	}
-
-	err := builder.RunWith(DB).
-		QueryRow().
-		Scan(&total)
-	if err != nil {
-		return 0, err
-	}
-	return total, nil
-}
-
-// GetUserProjectList -
 func (p Project) GetUserProjectList() (Projects, error) {
 	rows, err := sq.
 		Select(`
