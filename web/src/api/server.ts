@@ -43,16 +43,10 @@ export class ServerList extends Request {
   readonly url = '/server/getList'
   readonly method = 'get'
 
-  public pagination: Pagination
-
   public declare datagram: {
     list: ServerData[]
   }
-  constructor(pagination: Pagination) {
-    super()
-    this.pagination = pagination
-    this.param = { ...pagination }
-  }
+
   public request(): Promise<HttpResponse<this['datagram']>> {
     return super.request().then((response) => {
       response.data.list = response.data.list.map((element) => {

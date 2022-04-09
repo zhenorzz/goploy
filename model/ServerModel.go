@@ -9,7 +9,6 @@ import (
 
 const serverTable = "`server`"
 
-// Server -
 type Server struct {
 	ID           int64  `json:"id"`
 	Name         string `json:"name"`
@@ -31,11 +30,9 @@ type Server struct {
 	UpdateTime   string `json:"updateTime"`
 }
 
-// Servers -
 type Servers []Server
 
-// GetList -
-func (s Server) GetList(pagination Pagination) (Servers, error) {
+func (s Server) GetList() (Servers, error) {
 	rows, err := sq.
 		Select(
 			"id",
@@ -60,8 +57,6 @@ func (s Server) GetList(pagination Pagination) (Servers, error) {
 		Where(sq.Eq{
 			"namespace_id": []int64{0, s.NamespaceID},
 		}).
-		Limit(pagination.Rows).
-		Offset((pagination.Page - 1) * pagination.Rows).
 		OrderBy("id DESC").
 		RunWith(DB).
 		Query()
@@ -98,25 +93,6 @@ func (s Server) GetList(pagination Pagination) (Servers, error) {
 	return servers, nil
 }
 
-// GetTotal -
-func (s Server) GetTotal() (int64, error) {
-	var total int64
-	err := sq.
-		Select("COUNT(*) AS count").
-		From(serverTable).
-		Where(sq.Eq{
-			"namespace_id": []int64{0, s.NamespaceID},
-		}).
-		RunWith(DB).
-		QueryRow().
-		Scan(&total)
-	if err != nil {
-		return 0, err
-	}
-	return total, nil
-}
-
-// GetAll -
 func (s Server) GetAll() (Servers, error) {
 	rows, err := sq.
 		Select(

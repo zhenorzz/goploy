@@ -1,37 +1,57 @@
 <template>
   <el-row class="app-container">
-    <el-row class="app-bar" type="flex" justify="end">
-      <Button
-        type="primary"
-        style="margin-right: 10px"
-        :permissions="[pms.InstallAgent]"
-        @click="handleInstallAgent"
-      >
-        {{ $t('serverPage.installAgent') }}
-      </Button>
-      <el-upload
-        :action="uploadHref"
-        accept=".csv"
-        :show-file-list="false"
-        :before-upload="beforeUpload"
-        :on-success="handleUploadSuccess"
-        :on-error="handleUploadError"
-      >
+    <el-row class="app-bar" type="flex" justify="space-between">
+      <el-row>
+        <el-input
+          v-model="serverName"
+          style="width: 200px"
+          placeholder="Filter the name"
+        />
+        <el-input
+          v-model="serverHost"
+          style="width: 200px"
+          placeholder="Filter the host"
+        />
+      </el-row>
+      <el-row>
         <Button
           type="primary"
-          :loading="uploading"
-          :permissions="[pms.ImportCSV]"
+          style="margin-right: 10px"
+          :permissions="[pms.InstallAgent]"
+          @click="handleInstallAgent"
         >
-          {{ $t('serverPage.importCSV') }}
+          {{ $t('serverPage.installAgent') }}
         </Button>
-      </el-upload>
-      <Button
-        type="primary"
-        :icon="Plus"
-        style="margin-left: 10px"
-        :permissions="[pms.AddServer]"
-        @click="handleAdd"
-      />
+        <el-upload
+          :action="uploadHref"
+          accept=".csv"
+          :show-file-list="false"
+          :before-upload="beforeUpload"
+          :on-success="handleUploadSuccess"
+          :on-error="handleUploadError"
+        >
+          <Button
+            type="primary"
+            :loading="uploading"
+            :permissions="[pms.ImportCSV]"
+          >
+            {{ $t('serverPage.importCSV') }}
+          </Button>
+        </el-upload>
+        <el-button
+          style="margin-left: 10px"
+          :loading="tableLoading"
+          type="primary"
+          :icon="Refresh"
+          @click="refresList"
+        />
+        <Button
+          type="primary"
+          :icon="Plus"
+          :permissions="[pms.AddServer]"
+          @click="handleAdd"
+        />
+      </el-row>
     </el-row>
     <el-table
       :key="tableHeight"
@@ -40,7 +60,7 @@
       border
       stripe
       highlight-current-row
-      :data="tableData"
+      :data="tablePage.list"
       @selection-change="handleSelectionChange"
     >
       <el-table-column type="selection" width="55" />
@@ -142,7 +162,7 @@
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
         hide-on-single-page
-        :total="pagination.total"
+        :total="tablePage.total"
         :page-size="pagination.rows"
         background
         layout="prev, pager, next"
@@ -336,12 +356,17 @@ export default { name: 'ServerIndex' }
 <script lang="ts" setup>
 import pms from '@/permission'
 import { Button, Switch } from '@/components/Permission'
-import { Plus, Edit, DocumentCopy, DataAnalysis } from '@element-plus/icons-vue'
+import {
+  Refresh,
+  Plus,
+  Edit,
+  DocumentCopy,
+  DataAnalysis,
+} from '@element-plus/icons-vue'
 import type { ElForm } from 'element-plus'
 import { getNamespace } from '@/utils/namespace'
 import {
   ServerList,
-  ServerTotal,
   ServerPublicKey,
   ServerAdd,
   ServerEdit,
@@ -362,10 +387,12 @@ const { t } = useI18n()
 const router = useRouter()
 const dialogVisible = ref(false)
 const agentDialogVisible = ref(false)
+const serverName = ref('')
+const serverHost = ref('')
 const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<ServerList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 16, total: 0 })
+const pagination = ref({ page: 1, rows: 16 })
 const selectedItems = ref<ServerList['datagram']['list']>([])
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
@@ -446,11 +473,31 @@ const agentFormRules = <InstanceType<typeof ElForm>['rules']>{
 }
 
 getList()
-getTotal()
+
+const tablePage = computed(() => {
+  let _tableData = tableData.value
+  if (serverName.value !== '') {
+    _tableData = tableData.value.filter(
+      (item) => item.name.indexOf(serverName.value) !== -1
+    )
+  }
+  if (serverHost.value !== '') {
+    _tableData = tableData.value.filter(
+      (item) => item.ip.indexOf(serverHost.value) !== -1
+    )
+  }
+  return {
+    list: _tableData.slice(
+      (pagination.value.page - 1) * pagination.value.rows,
+      pagination.value.page * pagination.value.rows
+    ),
+    total: _tableData.length,
+  }
+})
 
 function getList() {
   tableLoading.value = true
-  new ServerList(pagination.value)
+  new ServerList()
     .request()
     .then((response) => {
       tableData.value = response.data.list
@@ -460,10 +507,11 @@ function getList() {
     })
 }
 
-function getTotal() {
-  new ServerTotal().request().then((response) => {
-    pagination.value.total = response.data.total
-  })
+function refresList() {
+  serverName.value = ''
+  serverHost.value = ''
+  pagination.value.page = 1
+  getList()
 }
 
 function getPublicKey() {
@@ -612,7 +660,6 @@ function add() {
     .request()
     .then(() => {
       getList()
-      getTotal()
       ElMessage.success('Success')
     })
     .finally(() => {

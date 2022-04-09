@@ -26,7 +26,6 @@ type Server Controller
 func (s Server) Routes() []core.Route {
 	return []core.Route{
 		core.NewRoute("/server/getList", http.MethodGet, s.GetList).Permissions(permission.ShowServerPage),
-		core.NewRoute("/server/getTotal", http.MethodGet, s.GetTotal).Permissions(permission.ShowServerPage),
 		core.NewRoute("/server/getOption", http.MethodGet, s.GetOption),
 		core.NewRoute("/server/getPublicKey", http.MethodGet, s.GetPublicKey).Permissions(permission.AddServer, permission.EditServer),
 		core.NewRoute("/server/check", http.MethodPost, s.Check).Permissions(permission.AddServer, permission.EditServer),
@@ -47,11 +46,7 @@ func (s Server) Routes() []core.Route {
 }
 
 func (Server) GetList(gp *core.Goploy) core.Response {
-	pagination, err := model.PaginationFrom(gp.URLQuery)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	serverList, err := model.Server{NamespaceID: gp.Namespace.ID}.GetList(pagination)
+	serverList, err := model.Server{NamespaceID: gp.Namespace.ID}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -59,18 +54,6 @@ func (Server) GetList(gp *core.Goploy) core.Response {
 		Data: struct {
 			Servers model.Servers `json:"list"`
 		}{Servers: serverList},
-	}
-}
-
-func (Server) GetTotal(gp *core.Goploy) core.Response {
-	total, err := model.Server{NamespaceID: gp.Namespace.ID}.GetTotal()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	return response.JSON{
-		Data: struct {
-			Total int64 `json:"total"`
-		}{Total: total},
 	}
 }
 
