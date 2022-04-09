@@ -10,7 +10,7 @@
       </el-row>
       <el-row>
         <el-button
-          :loading="tableloading"
+          :loading="tableLoading"
           type="primary"
           :icon="Refresh"
           @click="refresList"
@@ -25,7 +25,7 @@
     </el-row>
     <el-table
       :key="tableHeight"
-      v-loading="tableloading"
+      v-loading="tableLoading"
       border
       stripe
       highlight-current-row
@@ -733,7 +733,7 @@ const serverOption = ref<ServerOption['datagram']['list']>([])
 const userOption = ref<NamespaceUserOption['datagram']['list']>([])
 const selectedItem = ref({} as ProjectData)
 const { tableHeight } = getTableHeight()
-const tableloading = ref(false)
+const tableLoading = ref(false)
 const tableData = ref<ProjectList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 16 })
 const form = ref<InstanceType<typeof ElForm>>()
@@ -875,14 +875,14 @@ function getOptions() {
 }
 
 function getList() {
-  tableloading.value = true
+  tableLoading.value = true
   new ProjectList()
     .request()
     .then((response) => {
       tableData.value = response.data.list
     })
     .finally(() => {
-      tableloading.value = false
+      tableLoading.value = false
     })
 }
 
@@ -941,7 +941,7 @@ function handleRemove(data: ProjectData) {
     }
   )
     .then(() => {
-      tableloading.value = true
+      tableLoading.value = true
       new ProjectRemove({ id: data.id }).request().then(() => {
         ElMessage.success('Success')
         getList()

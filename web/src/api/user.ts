@@ -49,21 +49,9 @@ export class Info extends Request {
 export class UserList extends Request {
   readonly url = '/user/getList'
   readonly method = 'get'
-  public pagination: Pagination
   public declare datagram: {
     list: UserData[]
   }
-  constructor(pagination: Pagination) {
-    super()
-    this.pagination = pagination
-    this.param = { ...pagination }
-  }
-}
-
-export class UserTotal extends Request {
-  readonly url = '/user/getTotal'
-  readonly method = 'get'
-  public declare datagram: Total
 }
 
 export class UserOption extends Request {

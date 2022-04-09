@@ -68,14 +68,12 @@ func (u User) GetDataByAccount() (User, error) {
 }
 
 // GetList -
-func (u User) GetList(pagination Pagination) (Users, error) {
+func (u User) GetList() (Users, error) {
 	rows, err := sq.
 		Select("id, account, name, contact, super_manager, insert_time, update_time").
 		From(userTable).
 		Where(sq.Eq{"state": Enable}).
 		OrderBy("id DESC").
-		Limit(pagination.Rows).
-		Offset((pagination.Page - 1) * pagination.Rows).
 		RunWith(DB).
 		Query()
 	if err != nil {

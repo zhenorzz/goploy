@@ -1,12 +1,27 @@
 <template>
   <el-row class="app-container">
-    <el-row class="app-bar" type="flex" justify="end">
-      <Button
-        type="primary"
-        :icon="Plus"
-        :permissions="[permission.AddMember]"
-        @click="handleAdd"
-      />
+    <el-row class="app-bar" type="flex" justify="space-between">
+      <el-row>
+        <el-input
+          v-model="userName"
+          style="width: 200px"
+          placeholder="Filter the name"
+        />
+      </el-row>
+      <el-row>
+        <el-button
+          :loading="tableLoading"
+          type="primary"
+          :icon="Refresh"
+          @click="refresList"
+        />
+        <Button
+          type="primary"
+          :icon="Plus"
+          :permissions="[permission.AddMember]"
+          @click="handleAdd"
+        />
+      </el-row>
     </el-row>
     <el-table
       :key="tableHeight"
@@ -15,7 +30,7 @@
       border
       stripe
       highlight-current-row
-      :data="tableData"
+      :data="tablePage.list"
       style="width: 100%"
     >
       <el-table-column prop="account" width="130" :label="$t('account')" />
@@ -75,11 +90,11 @@
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
         hide-on-single-page
-        :total="pagination.total"
+        :total="tablePage.total"
         :page-size="pagination.rows"
         background
         layout="prev, pager, next"
-        @current-change="handleCurrentChange"
+        @current-change="handlePageChange"
       />
     </el-row>
     <el-dialog
@@ -158,27 +173,27 @@ export default { name: 'MemberIndex' }
 <script lang="ts" setup>
 import permission from '@/permission'
 import Button from '@/components/Permission/Button.vue'
-import { Plus, Edit, Delete, QuestionFilled } from '@element-plus/icons-vue'
-import { validUsername, validPassword } from '@/utils/validate'
 import {
-  UserData,
-  UserList,
-  UserTotal,
-  UserAdd,
-  UserEdit,
-  UserRemove,
-} from '@/api/user'
+  Refresh,
+  Plus,
+  Edit,
+  Delete,
+  QuestionFilled,
+} from '@element-plus/icons-vue'
+import { validUsername, validPassword } from '@/utils/validate'
+import { UserData, UserList, UserAdd, UserEdit, UserRemove } from '@/api/user'
 import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import getTableHeight from '@/composables/tableHeight'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const dialogVisible = ref(false)
+const userName = ref('')
 const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<UserList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 14, total: 0 })
+const pagination = ref({ page: 1, rows: 14 })
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
@@ -232,28 +247,42 @@ const formRules = <InstanceType<typeof ElForm>['rules']>{
 
 getList()
 
+const tablePage = computed(() => {
+  let _tableData = tableData.value
+  if (userName.value !== '') {
+    _tableData = tableData.value.filter(
+      (item) => item.name.indexOf(userName.value) !== -1
+    )
+  }
+  return {
+    list: _tableData.slice(
+      (pagination.value.page - 1) * pagination.value.rows,
+      pagination.value.page * pagination.value.rows
+    ),
+    total: _tableData.length,
+  }
+})
+
 function getList() {
   tableLoading.value = true
-  new UserList(pagination.value)
+  new UserList()
     .request()
     .then((response) => {
       tableData.value = response.data.list
-       pagination.value.total = response.data.total
     })
     .finally(() => {
       tableLoading.value = false
     })
 }
 
-function getTotal() {
-  new UserTotal().request().then((response) => {
-    pagination.value.total = response.data.total
-  })
+function refresList() {
+  userName.value = ''
+  pagination.value.page = 1
+  getList()
 }
 
-function handleCurrentChange(val: number) {
+function handlePageChange(val = 1) {
   pagination.value.page = val
-  getList()
 }
 
 function handleAdd() {
@@ -281,7 +310,6 @@ function handleRemove(data: UserData) {
       new UserRemove(data).request().then(() => {
         ElMessage.success('Success')
         getList()
-        getTotal()
       })
     })
     .catch(() => {
@@ -311,7 +339,6 @@ function add() {
     .then(() => {
       ElMessage.success('Success')
       getList()
-      getTotal()
       dialogVisible.value = false
     })
     .finally(() => {

@@ -105,21 +105,6 @@ export class ProjectList extends Request {
   }
 }
 
-export class ProjectTotal extends Request {
-  readonly url = '/project/getTotal'
-  readonly method = 'get'
-
-  public param: {
-    projectName: string
-  }
-
-  public declare datagram: Total
-  constructor(param: ProjectTotal['param']) {
-    super()
-    this.param = { ...param }
-  }
-}
-
 export class ProjectPingRepos extends Request {
   readonly url = '/project/pingRepos'
   readonly method = 'get'

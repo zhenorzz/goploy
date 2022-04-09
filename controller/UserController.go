@@ -23,7 +23,6 @@ func (u User) Routes() []core.Route {
 		core.NewRoute("/user/info", http.MethodGet, u.Info),
 		core.NewRoute("/user/changePassword", http.MethodPut, u.ChangePassword),
 		core.NewRoute("/user/getList", http.MethodGet, u.GetList).Permissions(permission.ShowMemberPage),
-		core.NewRoute("/user/getTotal", http.MethodGet, u.GetTotal).Permissions(permission.ShowMemberPage),
 		core.NewRoute("/user/getOption", http.MethodGet, u.GetOption),
 		core.NewRoute("/user/add", http.MethodPost, u.Add).Permissions(permission.AddMember),
 		core.NewRoute("/user/edit", http.MethodPut, u.Edit).Permissions(permission.EditMember),
@@ -154,11 +153,7 @@ func (User) Info(gp *core.Goploy) core.Response {
 }
 
 func (User) GetList(gp *core.Goploy) core.Response {
-	pagination, err := model.PaginationFrom(gp.URLQuery)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	users, err := model.User{}.GetList(pagination)
+	users, err := model.User{}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -166,18 +161,6 @@ func (User) GetList(gp *core.Goploy) core.Response {
 		Data: struct {
 			Users model.Users `json:"list"`
 		}{Users: users},
-	}
-}
-
-func (User) GetTotal(*core.Goploy) core.Response {
-	total, err := model.User{}.GetTotal()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	return response.JSON{
-		Data: struct {
-			Total int64 `json:"total"`
-		}{Total: total},
 	}
 }
 
