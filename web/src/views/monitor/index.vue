@@ -1,12 +1,27 @@
 <template>
   <el-row class="app-container">
-    <el-row class="app-bar" type="flex" justify="end">
-      <Button
-        type="primary"
-        :icon="Plus"
-        :permissions="[pms.AddMonitor]"
-        @click="handleAdd"
-      />
+    <el-row class="app-bar" type="flex" justify="space-between">
+      <el-row>
+        <el-input
+          v-model="monitorName"
+          style="width: 200px"
+          placeholder="Filter the name"
+        />
+      </el-row>
+      <el-row>
+        <el-button
+          :loading="tableLoading"
+          type="primary"
+          :icon="Refresh"
+          @click="refresList"
+        />
+        <Button
+          type="primary"
+          :icon="Plus"
+          :permissions="[pms.AddMonitor]"
+          @click="handleAdd"
+        />
+      </el-row>
     </el-row>
     <el-table
       :key="tableHeight"
@@ -15,7 +30,7 @@
       border
       stripe
       highlight-current-row
-      :data="tableData"
+      :data="tablePage.list"
       style="width: 100%"
     >
       <el-table-column prop="id" label="ID" width="100" />
@@ -117,7 +132,7 @@
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
         hide-on-single-page
-        :total="pagination.total"
+        :total="tablePage.total"
         :page-size="pagination.rows"
         background
         layout="prev, pager, next"
@@ -213,10 +228,9 @@ export default { name: 'MonitorIndex' }
 <script lang="ts" setup>
 import pms from '@/permission'
 import { Button, Switch } from '@/components/Permission'
-import { Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import {
   MonitorList,
-  MonitorTotal,
   MonitorAdd,
   MonitorEdit,
   MonitorCheck,
@@ -227,16 +241,17 @@ import {
 import getTableHeight from '@/composables/tableHeight'
 import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const store = useStore()
 const { tableHeight } = getTableHeight()
 const dialogVisible = ref(false)
+const monitorName = ref('')
 const tableLoading = ref(false)
 const tableData = ref<MonitorList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 15, total: 0 })
+const pagination = ref({ page: 1, rows: 15 })
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
@@ -316,11 +331,29 @@ watch(
     }
   }
 )
+
 getList()
-getTotal()
+
+const tablePage = computed(() => {
+  let _tableData = tableData.value
+  if (monitorName.value !== '') {
+    _tableData = tableData.value.filter(
+      (item) => item.name.indexOf(monitorName.value) !== -1
+    )
+  }
+
+  return {
+    list: _tableData.slice(
+      (pagination.value.page - 1) * pagination.value.rows,
+      pagination.value.page * pagination.value.rows
+    ),
+    total: _tableData.length,
+  }
+})
+
 function getList() {
   tableLoading.value = true
-  new MonitorList(pagination.value)
+  new MonitorList()
     .request()
     .then((response) => {
       tableData.value = response.data.list
@@ -330,15 +363,14 @@ function getList() {
     })
 }
 
-function getTotal() {
-  new MonitorTotal().request().then((response) => {
-    pagination.value.total = response.data.total
-  })
+function refresList() {
+  monitorName.value = ''
+  pagination.value.page = 1
+  getList()
 }
 
 function handlePageChange(val = 1) {
   pagination.value.page = val
-  getList()
 }
 
 function handleAdd() {
@@ -397,7 +429,6 @@ function handleRemove(data: MonitorData) {
       new MonitorRemove({ id: data.id }).request().then(() => {
         ElMessage.success('Success')
         getList()
-        getTotal()
       })
     })
     .catch(() => {
@@ -447,7 +478,6 @@ function add() {
     .request()
     .then(() => {
       getList()
-      getTotal()
       ElMessage.success('Success')
     })
     .finally(() => {

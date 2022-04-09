@@ -14,7 +14,6 @@ type Monitor Controller
 func (m Monitor) Routes() []core.Route {
 	return []core.Route{
 		core.NewRoute("/monitor/getList", http.MethodGet, m.GetList).Permissions(permission.ShowMonitorPage),
-		core.NewRoute("/monitor/getTotal", http.MethodGet, m.GetTotal).Permissions(permission.ShowMonitorPage),
 		core.NewRoute("/monitor/check", http.MethodPost, m.Check),
 		core.NewRoute("/monitor/add", http.MethodPost, m.Add).Permissions(permission.AddMonitor),
 		core.NewRoute("/monitor/edit", http.MethodPut, m.Edit).Permissions(permission.EditMonitor),
@@ -24,11 +23,7 @@ func (m Monitor) Routes() []core.Route {
 }
 
 func (Monitor) GetList(gp *core.Goploy) core.Response {
-	pagination, err := model.PaginationFrom(gp.URLQuery)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	monitorList, err := model.Monitor{NamespaceID: gp.Namespace.ID}.GetList(pagination)
+	monitorList, err := model.Monitor{NamespaceID: gp.Namespace.ID}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -36,18 +31,6 @@ func (Monitor) GetList(gp *core.Goploy) core.Response {
 		Data: struct {
 			Monitors model.Monitors `json:"list"`
 		}{Monitors: monitorList},
-	}
-}
-
-func (Monitor) GetTotal(gp *core.Goploy) core.Response {
-	total, err := model.Monitor{NamespaceID: gp.Namespace.ID}.GetTotal()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	return response.JSON{
-		Data: struct {
-			Total int64 `json:"total"`
-		}{Total: total},
 	}
 }
 

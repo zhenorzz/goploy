@@ -1,4 +1,4 @@
-import { Request, Pagination, ID, Total } from './types'
+import { Request, ID } from './types'
 
 export interface MonitorData {
   id: number
@@ -20,23 +20,10 @@ export interface MonitorData {
 export class MonitorList extends Request {
   readonly url = '/monitor/getList'
   readonly method = 'get'
-  public pagination: Pagination
 
   public declare datagram: {
     list: MonitorData[]
   }
-  constructor(pagination: Pagination) {
-    super()
-    this.pagination = pagination
-    this.param = { ...pagination }
-  }
-}
-
-export class MonitorTotal extends Request {
-  readonly url = '/monitor/getTotal'
-  readonly method = 'get'
-
-  public declare datagram: Total
 }
 
 export class MonitorAdd extends Request {

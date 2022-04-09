@@ -1,4 +1,4 @@
-import { HttpResponse, Request, Pagination, Total, ID } from './types'
+import { HttpResponse, Request, Total, ID } from './types'
 
 export interface ServerData {
   id: number

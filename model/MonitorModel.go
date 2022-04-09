@@ -12,7 +12,6 @@ import (
 
 const monitorTable = "`monitor`"
 
-// Monitor -
 type Monitor struct {
 	ID           int64  `json:"id"`
 	NamespaceID  int64  `json:"namespaceId"`
@@ -30,19 +29,15 @@ type Monitor struct {
 	UpdateTime   string `json:"updateTime"`
 }
 
-// Monitors -
 type Monitors []Monitor
 
-// GetList -
-func (m Monitor) GetList(pagination Pagination) (Monitors, error) {
+func (m Monitor) GetList() (Monitors, error) {
 	rows, err := sq.
 		Select("id, name, url, second, times, notify_type, notify_target, notify_times, description, error_content, state, insert_time, update_time").
 		From(monitorTable).
 		Where(sq.Eq{
 			"namespace_id": m.NamespaceID,
 		}).
-		Limit(pagination.Rows).
-		Offset((pagination.Page - 1) * pagination.Rows).
 		OrderBy("id DESC").
 		RunWith(DB).
 		Query()
@@ -75,25 +70,6 @@ func (m Monitor) GetList(pagination Pagination) (Monitors, error) {
 	return monitors, nil
 }
 
-// GetTotal -
-func (m Monitor) GetTotal() (int64, error) {
-	var total int64
-	err := sq.
-		Select("COUNT(*) AS count").
-		From(monitorTable).
-		Where(sq.Eq{
-			"namespace_id": m.NamespaceID,
-		}).
-		RunWith(DB).
-		QueryRow().
-		Scan(&total)
-	if err != nil {
-		return 0, err
-	}
-	return total, nil
-}
-
-// GetData -
 func (m Monitor) GetData() (Monitor, error) {
 	var monitor Monitor
 	err := sq.
@@ -110,7 +86,6 @@ func (m Monitor) GetData() (Monitor, error) {
 	return monitor, nil
 }
 
-// GetAllByState -
 func (m Monitor) GetAllByState() (Monitors, error) {
 	rows, err := sq.
 		Select("id, name, url, second, times, notify_type, notify_target, notify_times, description").
@@ -145,7 +120,6 @@ func (m Monitor) GetAllByState() (Monitors, error) {
 	return monitors, nil
 }
 
-// AddRow return LastInsertId
 func (m Monitor) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(monitorTable).
@@ -160,7 +134,6 @@ func (m Monitor) AddRow() (int64, error) {
 	return id, err
 }
 
-// EditRow -
 func (m Monitor) EditRow() error {
 	_, err := sq.
 		Update(monitorTable).
@@ -180,7 +153,6 @@ func (m Monitor) EditRow() error {
 	return err
 }
 
-// ToggleState -
 func (m Monitor) ToggleState() error {
 	_, err := sq.
 		Update(monitorTable).
@@ -193,7 +165,6 @@ func (m Monitor) ToggleState() error {
 	return err
 }
 
-// DeleteRow -
 func (m Monitor) DeleteRow() error {
 	_, err := sq.
 		Delete(monitorTable).
@@ -203,7 +174,6 @@ func (m Monitor) DeleteRow() error {
 	return err
 }
 
-// TurnOff -
 func (m Monitor) TurnOff(errorContent string) error {
 	_, err := sq.
 		Update(monitorTable).
