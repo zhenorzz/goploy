@@ -231,7 +231,6 @@ const formRules = <InstanceType<typeof ElForm>['rules']>{
 }
 
 getList()
-getTotal()
 
 function getList() {
   tableLoading.value = true
@@ -239,6 +238,7 @@ function getList() {
     .request()
     .then((response) => {
       tableData.value = response.data.list
+       pagination.value.total = response.data.total
     })
     .finally(() => {
       tableLoading.value = false

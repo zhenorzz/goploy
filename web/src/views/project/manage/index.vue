@@ -7,19 +7,21 @@
           style="width: 200px"
           placeholder="Filter the project name"
         />
+      </el-row>
+      <el-row>
         <el-button
           :loading="tableloading"
           type="primary"
-          :icon="Search"
-          @click="searchProjectList"
+          :icon="Refresh"
+          @click="refresList"
+        />
+        <Button
+          type="primary"
+          :icon="Plus"
+          :permissions="[pms.AddProject]"
+          @click="handleAdd"
         />
       </el-row>
-      <Button
-        type="primary"
-        :icon="Plus"
-        :permissions="[pms.AddProject]"
-        @click="handleAdd"
-      />
     </el-row>
     <el-table
       :key="tableHeight"
@@ -28,7 +30,7 @@
       stripe
       highlight-current-row
       :max-height="tableHeight"
-      :data="tablePageData"
+      :data="tablePage.list"
       style="width: 100%"
     >
       <el-table-column prop="id" label="ID" width="60" />
@@ -126,7 +128,7 @@
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
         hide-on-single-page
-        :total="pagination.total"
+        :total="tablePage.total"
         :page-size="pagination.rows"
         background
         layout="prev, pager, next"
@@ -678,6 +680,7 @@ import pms from '@/permission'
 import Button from '@/components/Permission/Button.vue'
 import {
   Search,
+  Refresh,
   View,
   Link,
   Plus,
@@ -732,7 +735,7 @@ const selectedItem = ref({} as ProjectData)
 const { tableHeight } = getTableHeight()
 const tableloading = ref(false)
 const tableData = ref<ProjectList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 16, total: 0 })
+const pagination = ref({ page: 1, rows: 16 })
 const form = ref<InstanceType<typeof ElForm>>()
 const formProps = ref({
   reviewURLParamOption: [
@@ -846,17 +849,20 @@ const autoDeployFormData = ref({ id: 0, autoDeploy: 0 })
 getOptions()
 getList()
 
-const tablePageData = computed(() => {
+const tablePage = computed(() => {
   let _tableData = tableData.value
   if (projectName.value !== '') {
     _tableData = tableData.value.filter(
       (item) => item.name.indexOf(projectName.value) !== -1
     )
   }
-  return _tableData.slice(
-    (pagination.value.page - 1) * pagination.value.rows,
-    pagination.value.page * pagination.value.rows
-  )
+  return {
+    list: _tableData.slice(
+      (pagination.value.page - 1) * pagination.value.rows,
+      pagination.value.page * pagination.value.rows
+    ),
+    total: _tableData.length,
+  }
 })
 
 function getOptions() {
@@ -874,7 +880,6 @@ function getList() {
     .request()
     .then((response) => {
       tableData.value = response.data.list
-      pagination.value.total = response.data.list.length
     })
     .finally(() => {
       tableloading.value = false
@@ -1100,9 +1105,11 @@ function getRemoteBranchList() {
     })
 }
 
-function searchProjectList() {
+function refresList() {
+  projectName.value = ''
   pagination.value.page = 1
   getList()
+  getOptions()
 }
 
 function handlePageChange(page = 1) {

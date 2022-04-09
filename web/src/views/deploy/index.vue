@@ -32,7 +32,7 @@
       stripe
       highlight-current-row
       :max-height="tableHeight - 34"
-      :data="tablePageData"
+      :data="tablePage.list"
       :default-sort="tableDefaultSort"
       style="width: 100%; margin-top: 5px"
       @sort-change="sortChange"
@@ -244,7 +244,7 @@
     <el-row type="flex" justify="end" style="width: 100%; margin-top: 5px">
       <el-pagination
         v-model:current-page="pagination.page"
-        :total="tablePageData.length"
+        :total="tablePage.total"
         :page-size="pagination.rows"
         background
         :page-sizes="[20, 50, 100]"
@@ -412,7 +412,7 @@ const greyServerFormRules = <InstanceType<typeof ElForm>['rules']>{
     },
   ],
 }
-const tablePageData = computed(() => {
+const tablePage = computed(() => {
   let _tableData = tableData.value
   if (searchProject.value.name !== '') {
     _tableData = tableData.value.filter(
@@ -429,10 +429,13 @@ const tablePageData = computed(() => {
       (item) => item.autoDeploy === Number(searchProject.value.autoDeploy)
     )
   }
-  return _tableData.slice(
-    (pagination.value.page - 1) * pagination.value.rows,
-    pagination.value.page * pagination.value.rows
-  )
+  return {
+    list: _tableData.slice(
+      (pagination.value.page - 1) * pagination.value.rows,
+      pagination.value.page * pagination.value.rows
+    ),
+    total: _tableData.length,
+  }
 })
 watch(
   () => store.state.websocket.message,
