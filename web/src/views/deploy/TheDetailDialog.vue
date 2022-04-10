@@ -254,7 +254,7 @@
             </el-row>
           </div>
         </div>
-        <el-tabs v-model="activeRomoteTracePane">
+        <el-tabs v-model="activeRomoteTracePane" style="width: 100%">
           <el-tab-pane
             v-for="(item, serverName) in publishRemoteTraceList"
             :key="serverName"

@@ -120,9 +120,9 @@ func (nu NamespaceUser) GetAllUserByNamespaceID() (NamespaceUsers, error) {
 func (nu NamespaceUser) GetDataByUserNamespace() (NamespaceUser, error) {
 	var namespaceUser NamespaceUser
 	var permissionIDs string
-	err := sq.Select("namespace_user.role_id, GROUP_CONCAT(permission_id)").
+	err := sq.Select("namespace_user.role_id, IFNULL(GROUP_CONCAT(permission_id), '')").
 		From(namespaceUserTable).
-		Join(fmt.Sprintf("%s ON %[1]s.role_id = %s.role_id", rolePermissionTable, namespaceUserTable)).
+		LeftJoin(fmt.Sprintf("%s ON %[1]s.role_id = %s.role_id", rolePermissionTable, namespaceUserTable)).
 		Where(sq.Eq{"user_id": nu.UserID, "namespace_id": nu.NamespaceID}).
 		GroupBy("namespace_user.role_id").
 		RunWith(DB).
@@ -132,8 +132,10 @@ func (nu NamespaceUser) GetDataByUserNamespace() (NamespaceUser, error) {
 	if err != nil {
 		return namespaceUser, err
 	}
-
 	namespaceUser.PermissionIDs = map[int64]struct{}{}
+	if permissionIDs == "" {
+		return namespaceUser, err
+	}
 	for _, permissionID := range strings.Split(permissionIDs, ",") {
 		v, err := strconv.ParseInt(permissionID, 10, 64)
 		if err != nil {

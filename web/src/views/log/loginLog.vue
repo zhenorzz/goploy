@@ -26,7 +26,7 @@
       style="width: 100%"
     >
       <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="account" label="Account" width="90" />
+      <el-table-column prop="account" label="Account" width="110" />
       <el-table-column prop="remoteAddr" label="Remote addr" width="160" />
       <el-table-column prop="referer" label="Referer" width="200" />
       <el-table-column

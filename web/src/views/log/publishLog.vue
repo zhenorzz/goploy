@@ -51,9 +51,13 @@
         :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
       >
         <template #default="scope">
-          <el-button type="text" @click="handleDetail(scope.row)">
+          <Button
+            type="text"
+            :permissions="[pms.DeployDetail]"
+            @click="handleDetail(scope.row)"
+          >
             {{ $t('detail') }}
-          </el-button>
+          </Button>
         </template>
       </el-table-column>
     </el-table>
@@ -238,6 +242,8 @@
 export default { name: 'PublishLog' }
 </script>
 <script lang="ts" setup>
+import pms from '@/permission'
+import Button from '@/components/Permission/Button.vue'
 import { Search } from '@element-plus/icons-vue'
 import { PublishLogData, PublishLogList, PublishLogTotal } from '@/api/log'
 import {

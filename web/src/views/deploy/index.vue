@@ -152,14 +152,14 @@
             >
               {{ $t('deployPage.resetState') }}
             </Button>
-            <el-dropdown
+            <Dropdown
               v-else
               :permissions="[pms.DeployProject]"
               split-button
               trigger="click"
               type="primary"
               @click="publish(scope.row)"
-              @command="(funcName) => commandFunc[funcName](scope.row)"
+              @command="(funcName: string) => commandFunc[funcName](scope.row)"
             >
               {{ scope.row.review === 1 ? $t('submit') : $t('deploy') }}
               <template #dropdown>
@@ -172,7 +172,7 @@
                   </el-dropdown-item>
                 </el-dropdown-menu>
               </template>
-            </el-dropdown>
+            </Dropdown>
             <el-dropdown
               trigger="click"
               style="margin-left: 5px"
@@ -184,7 +184,10 @@
               </el-button>
               <template #dropdown>
                 <el-dropdown-menu style="min-width: 84px; text-align: center">
-                  <DropdownItem :command="'handleTaskCommand'">
+                  <DropdownItem
+                    :permissions="[pms.DeployTask]"
+                    :command="'handleTaskCommand'"
+                  >
                     {{ $t('deployPage.taskDeploy') }}
                   </DropdownItem>
                   <DropdownItem
@@ -341,7 +344,7 @@ export default { name: 'DeployIndex' }
 </script>
 <script lang="ts" setup>
 import pms from '@/permission'
-import { Button, DropdownItem } from '@/components/Permission'
+import { Button, Dropdown, DropdownItem } from '@/components/Permission'
 import { ArrowDown } from '@element-plus/icons-vue'
 import {
   DeployList,
