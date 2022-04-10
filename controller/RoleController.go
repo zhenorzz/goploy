@@ -134,8 +134,15 @@ func (Role) Remove(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	err := model.Role{ID: reqData.ID}.DeleteRow()
+	namespaceUser, err := (model.NamespaceUser{RoleID: reqData.ID}).GetDataByRoleID()
 	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	if namespaceUser.ID > 0 {
+		return response.JSON{Code: response.Error, Message: "The role has binding user"}
+	}
+
+	if err := (model.Role{ID: reqData.ID}).DeleteRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

@@ -5,7 +5,6 @@
 package model
 
 import (
-	"errors"
 	"github.com/zhenorzz/goploy/utils"
 
 	sq "github.com/Masterminds/squirrel"
@@ -266,7 +265,7 @@ func (s Server) EditRow() error {
 func (s Server) ToggleRow() error {
 	tx, err := DB.Begin()
 	if err != nil {
-		return errors.New("开启事务失败")
+		return err
 	}
 	_, err = sq.
 		Update(serverTable).
@@ -292,7 +291,7 @@ func (s Server) ToggleRow() error {
 		}
 	}
 	if err = tx.Commit(); err != nil {
-		return errors.New("事务提交失败")
+		return err
 	}
 	return nil
 }

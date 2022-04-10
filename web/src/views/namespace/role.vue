@@ -133,7 +133,7 @@
           <el-checkbox
             v-model="item.checked"
             :indeterminate="item.indeterminate"
-            :label="item.name"
+            :label="$t(`rolePermission.${item.name}`)"
             @change="(val) => handleCheckAllChange(val, item.id)"
           />
           <el-checkbox-group
@@ -146,7 +146,7 @@
               :key="child.id"
               :label="child.id"
             >
-              {{ child.name }}
+              {{ $t(`rolePermission.${child.name}`) }}
             </el-checkbox>
           </el-checkbox-group>
         </div>

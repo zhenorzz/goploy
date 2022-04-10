@@ -146,6 +146,21 @@ func (nu NamespaceUser) GetDataByUserNamespace() (NamespaceUser, error) {
 	return namespaceUser, err
 }
 
+func (nu NamespaceUser) GetDataByRoleID() (NamespaceUser, error) {
+	var namespaceUser NamespaceUser
+	err := sq.Select("id, namespace_id, role_id").
+		From(namespaceUserTable).
+		Where(sq.Eq{"role_id": nu.RoleID}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&namespaceUser.ID, &namespaceUser.NamespaceID, &namespaceUser.RoleID)
+	if err != nil {
+		return namespaceUser, err
+	}
+
+	return namespaceUser, err
+}
+
 func (nu NamespaceUsers) AddMany() error {
 	if len(nu) == 0 {
 		return nil
