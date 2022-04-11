@@ -42,7 +42,7 @@ var (
 	s    string
 )
 
-const appVersion = "1.5.0"
+const appVersion = "1.6.0"
 
 func init() {
 	flag.StringVar(&core.AssetDir, "asset-dir", "", "default: ./")
@@ -226,6 +226,12 @@ func install() {
 		panic(err)
 	}
 	defer db.Close()
+	if err := model.CreateDB(db, cfg.DB.Database); err != nil {
+		panic(err)
+	}
+	if err := model.UserDB(db, cfg.DB.Database); err != nil {
+		panic(err)
+	}
 	if err := model.ImportSQL(db, "sql/goploy.sql"); err != nil {
 		panic(err)
 	}

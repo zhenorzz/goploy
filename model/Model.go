@@ -83,7 +83,24 @@ func PaginationFrom(param url.Values) (Pagination, error) {
 	return pagination, nil
 }
 
-// ImportSQL -
+func CreateDB(db *sql.DB, name string) error {
+	query := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`", name)
+	_, err := db.Exec(query)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UserDB(db *sql.DB, name string) error {
+	query := fmt.Sprintf("USE `%s`", name)
+	_, err := db.Exec(query)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func ImportSQL(db *sql.DB, sqlPath string) error {
 	sqlContent, err := sqlFile.ReadFile(sqlPath)
 	if err != nil {

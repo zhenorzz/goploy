@@ -1,7 +1,3 @@
-CREATE DATABASE IF NOT EXISTS `goploy`;
-
-use `goploy`;
-
 CREATE TABLE IF NOT EXISTS `project`  (
   `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `namespace_id` int(10) UNSIGNED NOT NULL DEFAULT 0,
@@ -349,8 +345,8 @@ CREATE TABLE IF NOT EXISTS `terminal_log` (
 
 INSERT IGNORE INTO `user`(`id`, `account`, `password`, `name`, `contact`, `state`, `super_manager`) VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '', 1, 1);
 INSERT IGNORE INTO `namespace`(`id`, `name`) VALUES (1, 'goploy');
-INSERT IGNORE INTO `namespace_user`(`id`, `namespace_id`, `user_id`, `role`) VALUES (1, 1, 1, 0);
-INSERT IGNORE INTO `system_config` (`id`, `key`, `value`) VALUES (1, 'version', '1.5.0');
+INSERT IGNORE INTO `namespace_user`(`id`, `namespace_id`, `user_id`, `role_id`) VALUES (1, 1, 1, 0);
+INSERT IGNORE INTO `system_config` (`id`, `key`, `value`) VALUES (1, 'version', '1.6.0');
 INSERT IGNORE INTO `role`(`id`, `name`, `description`) VALUES (1, 'manager', '');
 INSERT IGNORE INTO `role`(`id`, `name`, `description`) VALUES (2, 'member', '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (1, 0, 'Log', 0, '');
