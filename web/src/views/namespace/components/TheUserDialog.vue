@@ -262,7 +262,7 @@ function remove(data: NamespaceUserData) {
         .request()
         .then(() => {
           ElMessage.success('Success')
-          getBindUserList(data.namespaceId)
+          getBindUserList(props.namespaceId)
         })
     })
     .catch(() => {
