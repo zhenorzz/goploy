@@ -1,4 +1,4 @@
-import { Request, Pagination, ID } from './types'
+import { Request, ID } from './types'
 
 export interface CronData {
   id: number

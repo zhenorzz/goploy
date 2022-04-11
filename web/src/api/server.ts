@@ -1,4 +1,4 @@
-import { HttpResponse, Request, Total, ID } from './types'
+import { HttpResponse, Request, ID } from './types'
 
 export interface ServerData {
   id: number
@@ -60,12 +60,6 @@ export class ServerList extends Request {
       return response
     })
   }
-}
-
-export class ServerTotal extends Request {
-  readonly url = '/server/getTotal'
-  readonly method = 'get'
-  public declare datagram: Total
 }
 
 export class ServerPublicKey extends Request {
