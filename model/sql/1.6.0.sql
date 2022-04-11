@@ -37,6 +37,8 @@ UPDATE `namespace_user` SET `role_id` = 1 WHERE `role` = 'manager';
 UPDATE `namespace_user` SET `role_id` = 2 WHERE `role` = 'group-manager';
 UPDATE `namespace_user` SET `role_id` = 3 WHERE `role` = 'member';
 
+ALTER TABLE `namespace_user` DROP COLUMN `role`;
+
 INSERT INTO `role`(`id`, `name`, `description`) VALUES (1, 'manager', '');
 INSERT INTO `role`(`id`, `name`, `description`) VALUES (2, 'group-manager', '');
 INSERT INTO `role`(`id`, `name`, `description`) VALUES (3, 'member', '');
