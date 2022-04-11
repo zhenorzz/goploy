@@ -14,17 +14,6 @@ import (
 	"strings"
 )
 
-//role
-const (
-	RoleAdmin        = "admin"
-	RoleManager      = "manager"
-	RoleGroupManager = "group-manager"
-	RoleMember       = "member"
-)
-
-//Roles all role
-var Roles = [...]string{RoleAdmin, RoleManager, RoleGroupManager, RoleMember}
-
 // NamespaceHeaderName namespace cookie name
 const NamespaceHeaderName = "G-N-ID"
 

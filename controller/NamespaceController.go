@@ -21,10 +21,10 @@ func (n Namespace) Routes() []core.Route {
 		core.NewRoute("/namespace/getOption", http.MethodGet, n.GetOption),
 		core.NewRoute("/namespace/getBindUserList", http.MethodGet, n.GetBindUserList).Permissions(permission.ShowNamespacePage),
 		core.NewRoute("/namespace/getUserOption", http.MethodGet, n.GetUserOption),
-		core.NewRoute("/namespace/add", http.MethodPost, n.Add).Roles(core.RoleAdmin).Permissions(permission.AddNamespace),
-		core.NewRoute("/namespace/edit", http.MethodPut, n.Edit).Roles(core.RoleAdmin, core.RoleManager).Permissions(permission.EditNamespace),
-		core.NewRoute("/namespace/addUser", http.MethodPost, n.AddUser).Roles(core.RoleAdmin, core.RoleManager).Permissions(permission.AddNamespaceUser),
-		core.NewRoute("/namespace/removeUser", http.MethodDelete, n.RemoveUser).Roles(core.RoleAdmin, core.RoleManager).Permissions(permission.DeleteNamespaceUser),
+		core.NewRoute("/namespace/add", http.MethodPost, n.Add).Permissions(permission.AddNamespace),
+		core.NewRoute("/namespace/edit", http.MethodPut, n.Edit).Permissions(permission.EditNamespace),
+		core.NewRoute("/namespace/addUser", http.MethodPost, n.AddUser).Permissions(permission.AddNamespaceUser),
+		core.NewRoute("/namespace/removeUser", http.MethodDelete, n.RemoveUser).Permissions(permission.DeleteNamespaceUser),
 	}
 }
 

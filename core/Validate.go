@@ -30,7 +30,6 @@ func CreateValidator() {
 	en_translations.RegisterDefaultTranslations(Validate, Trans)
 	registerTagName()
 	registerPassword()
-	registerRole()
 }
 
 func registerTagName() {
@@ -82,27 +81,6 @@ func registerPassword() {
 		return ut.Add("password", "{0} policy is min:8, max:16 and at least one alpha and at least one special char!", true) // see universal-translator for details
 	}, func(ut ut.Translator, fe validator.FieldError) string {
 		t, _ := ut.T("password", fe.Field())
-
-		return t
-	})
-}
-
-func registerRole() {
-	Validate.RegisterValidation("role", func(fl validator.FieldLevel) bool {
-		// 8到16个字符，至少包含字母、数字、特殊符号中的两种
-		role := fl.Field().String()
-		for _, v := range Roles {
-			if role == v {
-				return true
-			}
-		}
-		return false
-	})
-
-	Validate.RegisterTranslation("role", Trans, func(ut ut.Translator) error {
-		return ut.Add("role", "{0} is invalid", true) // see universal-translator for details
-	}, func(ut ut.Translator, fe validator.FieldError) string {
-		t, _ := ut.T("role", fe.Field())
 
 		return t
 	})

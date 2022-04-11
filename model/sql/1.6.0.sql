@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `role_permission` (
        UNIQUE KEY `uk_role_permission` (`role_id`,`permission_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-ALTER TABLE `namespace_user` ADD COLUMN `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 AFTER `role`;
+ALTER TABLE `namespace_user` ADD COLUMN `role_id` int(10) UNSIGNED NOT NULL DEFAULT 0 AFTER `user_id`;
 
 UPDATE `namespace_user` SET `role_id` = 1 WHERE `role` = 'manager';
 UPDATE `namespace_user` SET `role_id` = 2 WHERE `role` = 'group-manager';

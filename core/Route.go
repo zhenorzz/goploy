@@ -48,7 +48,6 @@ type Response interface {
 type Route struct {
 	pattern       string
 	method        string                    // Method specifies the HTTP method (GET, POST, PUT, etc.).
-	roles         map[string]struct{}       // permission role
 	permissionIDs []int64                   // permission list
 	white         bool                      // no need to login
 	middlewares   []func(gp *Goploy) error  // Middlewares run before callback, trigger error will end the request
@@ -83,7 +82,6 @@ func newRoute(pattern, method string, callback func(gp *Goploy) Response) Route 
 		pattern:  pattern,
 		method:   method,
 		callback: callback,
-		roles:    map[string]struct{}{},
 	}
 }
 
@@ -112,14 +110,6 @@ func (rt Router) Add(ra RouteApi) Router {
 		rt.routes[r.pattern] = r
 	}
 	return rt
-}
-
-// Roles Add much permission to the Route
-func (r Route) Roles(roles ...string) Route {
-	for _, role := range roles {
-		r.roles[role] = struct{}{}
-	}
-	return r
 }
 
 func (r Route) Permissions(permissionIDs ...int64) Route {

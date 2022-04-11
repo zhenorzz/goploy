@@ -13,7 +13,6 @@ import (
 
 const projectUserTable = "`project_user`"
 
-// ProjectUser -
 type ProjectUser struct {
 	ID          int64  `json:"id"`
 	NamespaceID int64  `json:"namespaceId,omitempty"`
@@ -21,26 +20,18 @@ type ProjectUser struct {
 	ProjectName string `json:"projectName"`
 	UserID      int64  `json:"userId"`
 	UserName    string `json:"userName"`
-	Role        string `json:"role,omitempty"`
 	InsertTime  string `json:"insertTime"`
 	UpdateTime  string `json:"updateTime"`
 }
 
-// ProjectUsers -
 type ProjectUsers []ProjectUser
 
-// GetBindUserListByProjectID -
 func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
 	rows, err := sq.
-		Select("project_user.id, project_id, project_user.user_id, user.name, namespace_user.role, project_user.insert_time, project_user.update_time").
+		Select("project_user.id, project_id, project_user.user_id, user.name, project_user.insert_time, project_user.update_time").
 		From(projectUserTable).
 		LeftJoin(userTable + " ON project_user.user_id = user.id").
-		LeftJoin(namespaceUserTable + " ON namespace_user.user_id = user.id").
-		Where(sq.Eq{
-			"project_id":   pu.ProjectID,
-			"namespace_id": pu.NamespaceID,
-			"role":         []string{"group-manager", "member"},
-		}).
+		Where(sq.Eq{"project_id": pu.ProjectID}).
 		RunWith(DB).
 		Query()
 	if err != nil {
@@ -50,7 +41,14 @@ func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
 	for rows.Next() {
 		var projectUser ProjectUser
 
-		if err := rows.Scan(&projectUser.ID, &projectUser.ProjectID, &projectUser.UserID, &projectUser.UserName, &projectUser.Role, &projectUser.InsertTime, &projectUser.UpdateTime); err != nil {
+		if err := rows.Scan(
+			&projectUser.ID,
+			&projectUser.ProjectID,
+			&projectUser.UserID,
+			&projectUser.UserName,
+			&projectUser.InsertTime,
+			&projectUser.UpdateTime,
+		); err != nil {
 			return nil, err
 		}
 		projectUsers = append(projectUsers, projectUser)
@@ -58,7 +56,6 @@ func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
 	return projectUsers, nil
 }
 
-// AddMany -
 func (pu ProjectUsers) AddMany() error {
 	if len(pu) == 0 {
 		return nil
