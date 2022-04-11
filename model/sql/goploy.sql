@@ -273,7 +273,7 @@ CREATE TABLE IF NOT EXISTS `role` (
     `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`) USING BTREE,
     UNIQUE KEY `uk_name` (`name`)
-    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `permission` (
     `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -286,7 +286,7 @@ CREATE TABLE IF NOT EXISTS `permission` (
     PRIMARY KEY (`id`) USING BTREE,
     UNIQUE KEY `uk_name` (`name`),
     KEY `idx_pid` (`pid`) USING BTREE
-    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `role_permission` (
     `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -296,7 +296,7 @@ CREATE TABLE IF NOT EXISTS `role_permission` (
     `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`) USING BTREE,
     UNIQUE KEY `uk_role_permission` (`role_id`,`permission_id`) USING BTREE
-    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `system_config` (
     `id`    int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -307,14 +307,14 @@ CREATE TABLE IF NOT EXISTS `system_config` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `login_log` (
- `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
- `account` varchar(30) NOT NULL DEFAULT '',
- `remote_addr` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
- `user_agent` varchar(255) NOT NULL DEFAULT '',
- `referer` varchar(255) NOT NULL DEFAULT '',
- `reason` varchar(2555) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
- `login_time` datetime NOT NULL,
- `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `account` varchar(30) NOT NULL DEFAULT '',
+    `remote_addr` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+    `user_agent` varchar(255) NOT NULL DEFAULT '',
+    `referer` varchar(255) NOT NULL DEFAULT '',
+    `reason` varchar(2555) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+    `login_time` datetime NOT NULL,
+    `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

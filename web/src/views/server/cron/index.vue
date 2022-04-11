@@ -39,7 +39,7 @@
       border
       stripe
       highlight-current-row
-      :data="tableData"
+      :data="tablePage.list"
       style="width: 100%"
     >
       <el-table-column
@@ -113,7 +113,7 @@
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
         hide-on-single-page
-        :total="pagination.total"
+        :total="tablePage.total"
         :page-size="pagination.rows"
         background
         layout="prev, pager, next"
@@ -196,7 +196,7 @@ import { ServerOption } from '@/api/server'
 import { CronList, CronAdd, CronEdit, CronRemove, CronData } from '@/api/cron'
 import type { ElForm } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { locale, t } = useI18n({ useScope: 'global' })
 const { tableHeight } = getTableHeight()
@@ -205,7 +205,7 @@ const dialogVisible = ref(false)
 const serverOption = ref<ServerOption['datagram']['list']>([])
 const tableLoading = ref(false)
 const tableData = ref<CronList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 17, total: 0 })
+const pagination = ref({ page: 1, rows: 20 })
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
@@ -262,7 +262,7 @@ function getServerOption() {
 function getList() {
   tableLoading.value = true
   tableData.value = []
-  new CronList({ serverId: Number(serverId.value) }, pagination.value)
+  new CronList({ serverId: Number(serverId.value) })
     .request()
     .then((response) => {
       tableData.value = response.data.list
@@ -271,6 +271,17 @@ function getList() {
       tableLoading.value = false
     })
 }
+
+const tablePage = computed(() => {
+  let _tableData = tableData.value
+  return {
+    list: _tableData.slice(
+      (pagination.value.page - 1) * pagination.value.rows,
+      pagination.value.page * pagination.value.rows
+    ),
+    total: _tableData.length,
+  }
+})
 
 function refresList() {
   pagination.value.page = 1

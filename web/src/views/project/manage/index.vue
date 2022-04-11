@@ -735,7 +735,7 @@ const selectedItem = ref({} as ProjectData)
 const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<ProjectList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 16 })
+const pagination = ref({ page: 1, rows: 20 })
 const form = ref<InstanceType<typeof ElForm>>()
 const formProps = ref({
   reviewURLParamOption: [

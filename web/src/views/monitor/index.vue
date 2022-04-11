@@ -251,7 +251,7 @@ const dialogVisible = ref(false)
 const monitorName = ref('')
 const tableLoading = ref(false)
 const tableData = ref<MonitorList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 15 })
+const pagination = ref({ page: 1, rows: 20 })
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,

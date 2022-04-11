@@ -23,15 +23,13 @@ export class CronList extends Request {
   public param: {
     serverId: number
   }
-  public pagination: Pagination
 
   public declare datagram: {
     list: CronData[]
   }
-  constructor(param: CronList['param'], pagination: Pagination) {
+  constructor(param: CronList['param']) {
     super()
-    this.pagination = pagination
-    this.param = { ...param, ...pagination }
+    this.param = param
   }
 }
 

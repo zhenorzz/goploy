@@ -66,7 +66,7 @@
       <el-table-column type="selection" width="55" />
       <el-table-column prop="id" label="ID" width="100" />
       <el-table-column prop="name" :label="$t('name')" min-width="140" />
-      <el-table-column prop="ip" label="Host" min-width="140" sortable>
+      <el-table-column prop="ip" label="Host" min-width="150" sortable>
         <template #default="scope">
           {{ scope.row.ip }}:{{ scope.row.port }}
         </template>
@@ -83,17 +83,7 @@
             v-if="scope.row.osInfo !== ''"
             :icon-class="getOSIcon(scope.row.osInfo)"
           />
-          {{ getOS(scope.row.osInfo) }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="osInfo"
-        label="CPU/MEMORY"
-        min-width="100"
-        show-overflow-tooltip
-      >
-        <template #default="scope">
-          {{ getOSDetail(scope.row.osInfo) }}
+          {{ getOS(scope.row.osInfo) }} {{ getOSDetail(scope.row.osInfo) }}
         </template>
       </el-table-column>
       <el-table-column
@@ -392,7 +382,7 @@ const serverHost = ref('')
 const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<ServerList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 16 })
+const pagination = ref({ page: 1, rows: 20 })
 const selectedItems = ref<ServerList['datagram']['list']>([])
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {

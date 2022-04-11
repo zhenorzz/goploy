@@ -33,7 +33,7 @@
       :data="tablePage.list"
       style="width: 100%"
     >
-      <el-table-column prop="account" width="130" :label="$t('account')" />
+      <el-table-column prop="account" width="150" :label="$t('account')" />
       <el-table-column prop="name" :label="$t('name')" />
       <el-table-column
         prop="contact"
@@ -193,7 +193,7 @@ const userName = ref('')
 const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<UserList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 14 })
+const pagination = ref({ page: 1, rows: 20 })
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,

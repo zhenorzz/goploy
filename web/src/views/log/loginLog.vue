@@ -63,7 +63,7 @@ const account = ref('')
 const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<LoginLogList['datagram']['list']>([])
-const pagination = ref({ page: 1, rows: 17, total: 0 })
+const pagination = ref({ page: 1, rows: 20, total: 0 })
 
 getList()
 getTotal()
