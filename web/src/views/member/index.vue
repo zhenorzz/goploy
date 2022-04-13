@@ -23,77 +23,77 @@
         />
       </el-row>
     </el-row>
-    <el-table
-      :key="tableHeight"
-      v-loading="tableLoading"
-      :max-height="tableHeight"
-      border
-      stripe
-      highlight-current-row
-      :data="tablePage.list"
-      style="width: 100%"
-    >
-      <el-table-column prop="account" width="150" :label="$t('account')" />
-      <el-table-column prop="name" :label="$t('name')" />
-      <el-table-column
-        prop="contact"
-        :label="$t('contact')"
-        show-overflow-tooltip
-      />
-      <el-table-column
-        prop="superManager"
-        :label="$t('admin')"
-        width="70"
-        align="center"
+    <el-row class="app-table">
+      <el-table
+        v-loading="tableLoading"
+        height="100%"
+        border
+        stripe
+        highlight-current-row
+        :data="tablePage.list"
+        style="width: 100%"
       >
-        <template #default="scope">
-          {{ $t(`boolOption[${scope.row['superManager'] || 0}]`) }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="insertTime"
-        :label="$t('insertTime')"
-        width="155"
-        align="center"
-      />
-      <el-table-column
-        prop="updateTime"
-        :label="$t('updateTime')"
-        width="155"
-        align="center"
-      />
-      <el-table-column
-        prop="operation"
-        :label="$t('op')"
-        width="130"
-        align="center"
-        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
-      >
-        <template #default="scope">
-          <Button
-            v-if="scope.row.id !== 1 && scope.row.id !== $store.state.user.id"
-            type="primary"
-            :icon="Edit"
-            :permissions="[permission.EditMember]"
-            @click="handleEdit(scope.row)"
-          />
-          <Button
-            v-if="scope.row.id !== 1 && scope.row.id !== $store.state.user.id"
-            type="danger"
-            :icon="Delete"
-            :permissions="[permission.DeleteMember]"
-            @click="handleRemove(scope.row)"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+        <el-table-column prop="account" width="150" :label="$t('account')" />
+        <el-table-column prop="name" :label="$t('name')" />
+        <el-table-column
+          prop="contact"
+          :label="$t('contact')"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="superManager"
+          :label="$t('admin')"
+          width="70"
+          align="center"
+        >
+          <template #default="scope">
+            {{ $t(`boolOption[${scope.row['superManager'] || 0}]`) }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="insertTime"
+          :label="$t('insertTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="updateTime"
+          :label="$t('updateTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="operation"
+          :label="$t('op')"
+          width="130"
+          align="center"
+          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+        >
+          <template #default="scope">
+            <Button
+              v-if="scope.row.id !== 1 && scope.row.id !== $store.state.user.id"
+              type="primary"
+              :icon="Edit"
+              :permissions="[permission.EditMember]"
+              @click="handleEdit(scope.row)"
+            />
+            <Button
+              v-if="scope.row.id !== 1 && scope.row.id !== $store.state.user.id"
+              type="danger"
+              :icon="Delete"
+              :permissions="[permission.DeleteMember]"
+              @click="handleRemove(scope.row)"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-row>
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
-        hide-on-single-page
         :total="tablePage.total"
         :page-size="pagination.rows"
         background
-        layout="prev, pager, next"
+        layout="total, prev, pager, next"
         @current-change="handlePageChange"
       />
     </el-row>
@@ -184,13 +184,11 @@ import { validUsername, validPassword } from '@/utils/validate'
 import { UserData, UserList, UserAdd, UserEdit, UserRemove } from '@/api/user'
 import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import getTableHeight from '@/composables/tableHeight'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const dialogVisible = ref(false)
 const userName = ref('')
-const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<UserList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 20 })

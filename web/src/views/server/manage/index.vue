@@ -53,109 +53,109 @@
         />
       </el-row>
     </el-row>
-    <el-table
-      :key="tableHeight"
-      v-loading="tableLoading"
-      :max-height="tableHeight"
-      border
-      stripe
-      highlight-current-row
-      :data="tablePage.list"
-      @selection-change="handleSelectionChange"
-    >
-      <el-table-column type="selection" width="55" />
-      <el-table-column prop="id" label="ID" width="100" />
-      <el-table-column prop="name" :label="$t('name')" min-width="140" />
-      <el-table-column prop="ip" label="Host" min-width="150" sortable>
-        <template #default="scope">
-          {{ scope.row.ip }}:{{ scope.row.port }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="owner"
-        :label="$t('serverPage.sshKeyOwner')"
-        width="140"
-        show-overflow-tooltip
-      />
-      <el-table-column label="OS" min-width="100" show-overflow-tooltip>
-        <template #default="scope">
-          <svg-icon
-            v-if="scope.row.osInfo !== ''"
-            :icon-class="getOSIcon(scope.row.osInfo)"
-          />
-          {{ getOS(scope.row.osInfo) }} {{ getOSDetail(scope.row.osInfo) }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="description"
-        :label="$t('description')"
-        min-width="140"
-        show-overflow-tooltip
-      />
-      <el-table-column
-        prop="state"
-        :label="$t('state')"
-        width="110"
-        align="center"
+    <el-row class="app-table">
+      <el-table
+        v-loading="tableLoading"
+        height="100%"
+        border
+        stripe
+        highlight-current-row
+        :data="tablePage.list"
+        @selection-change="handleSelectionChange"
       >
-        <template #default="scope">
-          {{ $t(`stateOption[${scope.row.state || 0}]`) }}
-          <Switch
-            :value="scope.row.state === 1"
-            active-color="#13ce66"
-            inactive-color="#ff4949"
-            :permissions="[pms.SwitchServerState]"
-            @change="(value) => onSwitchState(value as boolean, scope.$index)"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="insertTime"
-        :label="$t('insertTime')"
-        width="155"
-        align="center"
-      />
-      <el-table-column
-        prop="updateTime"
-        :label="$t('updateTime')"
-        width="155"
-        align="center"
-      />
-      <el-table-column
-        prop="operation"
-        :label="$t('op')"
-        width="190"
-        align="center"
-        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
-      >
-        <template #default="scope">
-          <Button
-            :icon="DataAnalysis"
-            :permissions="[pms.ShowServerMonitorPage]"
-            @click="handleMonitor(scope.row)"
-          />
-          <Button
-            type="info"
-            :icon="DocumentCopy"
-            :permissions="[pms.AddServer]"
-            @click="handleCopy(scope.row)"
-          />
-          <Button
-            type="primary"
-            :icon="Edit"
-            :permissions="[pms.EditServer]"
-            @click="handleEdit(scope.row)"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+        <el-table-column type="selection" width="55" />
+        <el-table-column prop="id" label="ID" width="100" />
+        <el-table-column prop="name" :label="$t('name')" min-width="140" />
+        <el-table-column prop="ip" label="Host" min-width="150" sortable>
+          <template #default="scope">
+            {{ scope.row.ip }}:{{ scope.row.port }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="owner"
+          :label="$t('serverPage.sshKeyOwner')"
+          width="140"
+          show-overflow-tooltip
+        />
+        <el-table-column label="OS" min-width="100" show-overflow-tooltip>
+          <template #default="scope">
+            <svg-icon
+              v-if="scope.row.osInfo !== ''"
+              :icon-class="getOSIcon(scope.row.osInfo)"
+            />
+            {{ getOS(scope.row.osInfo) }} {{ getOSDetail(scope.row.osInfo) }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="description"
+          :label="$t('description')"
+          min-width="140"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="state"
+          :label="$t('state')"
+          width="110"
+          align="center"
+        >
+          <template #default="scope">
+            {{ $t(`stateOption[${scope.row.state || 0}]`) }}
+            <Switch
+              :value="scope.row.state === 1"
+              active-color="#13ce66"
+              inactive-color="#ff4949"
+              :permissions="[pms.SwitchServerState]"
+              @change="(value) => onSwitchState(value as boolean, scope.$index)"
+            />
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="insertTime"
+          :label="$t('insertTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="updateTime"
+          :label="$t('updateTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="operation"
+          :label="$t('op')"
+          width="190"
+          align="center"
+          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+        >
+          <template #default="scope">
+            <Button
+              :icon="DataAnalysis"
+              :permissions="[pms.ShowServerMonitorPage]"
+              @click="handleMonitor(scope.row)"
+            />
+            <Button
+              type="info"
+              :icon="DocumentCopy"
+              :permissions="[pms.AddServer]"
+              @click="handleCopy(scope.row)"
+            />
+            <Button
+              type="primary"
+              :icon="Edit"
+              :permissions="[pms.EditServer]"
+              @click="handleEdit(scope.row)"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-row>
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
-        hide-on-single-page
         :total="tablePage.total"
         :page-size="pagination.rows"
         background
-        layout="prev, pager, next"
+        layout="total, prev, pager, next"
         @current-change="handlePageChange"
       />
     </el-row>
@@ -365,7 +365,6 @@ import {
   ServerData,
   ServerInstallAgent,
 } from '@/api/server'
-import getTableHeight from '@/composables/tableHeight'
 import { HttpResponse } from '@/api/types'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import { ref, computed } from 'vue'
@@ -379,7 +378,6 @@ const dialogVisible = ref(false)
 const agentDialogVisible = ref(false)
 const serverName = ref('')
 const serverHost = ref('')
-const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<ServerList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 20 })

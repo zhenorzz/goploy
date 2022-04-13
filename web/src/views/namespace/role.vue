@@ -23,70 +23,70 @@
         />
       </el-row>
     </el-row>
-    <el-table
-      :key="tableHeight"
-      v-loading="tableLoading"
-      border
-      stripe
-      highlight-current-row
-      :max-height="tableHeight"
-      :data="tablePage.list"
-      style="width: 100%"
-    >
-      <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="name" :label="$t('name')" />
-      <el-table-column
-        prop="description"
-        :label="$t('description')"
-        show-overflow-tooltip
-      />
-      <el-table-column
-        prop="insertTime"
-        :label="$t('insertTime')"
-        width="155"
-        align="center"
-      />
-      <el-table-column
-        prop="updateTime"
-        :label="$t('updateTime')"
-        width="155"
-        align="center"
-      />
-      <el-table-column
-        prop="operation"
-        :label="$t('op')"
-        width="190"
-        align="center"
-        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+    <el-row class="app-table">
+      <el-table
+        v-loading="tableLoading"
+        border
+        stripe
+        highlight-current-row
+        height="100%"
+        :data="tablePage.list"
+        style="width: 100%"
       >
-        <template #default="scope">
-          <Button
-            type="primary"
-            :icon="Edit"
-            :permissions="[pms.EditRole]"
-            @click="handleEdit(scope.row)"
-          />
-          <Button
-            :icon="Setting"
-            :permissions="[pms.EditPermission]"
-            @click="handlePermission(scope.row)"
-          />
-          <Button
-            type="danger"
-            :icon="Delete"
-            :permissions="[pms.DeleteRole]"
-            @click="handleRemove(scope.row)"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="name" :label="$t('name')" />
+        <el-table-column
+          prop="description"
+          :label="$t('description')"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="insertTime"
+          :label="$t('insertTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="updateTime"
+          :label="$t('updateTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="operation"
+          :label="$t('op')"
+          width="190"
+          align="center"
+          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+        >
+          <template #default="scope">
+            <Button
+              type="primary"
+              :icon="Edit"
+              :permissions="[pms.EditRole]"
+              @click="handleEdit(scope.row)"
+            />
+            <Button
+              :icon="Setting"
+              :permissions="[pms.EditPermission]"
+              @click="handlePermission(scope.row)"
+            />
+            <Button
+              type="danger"
+              :icon="Delete"
+              :permissions="[pms.DeleteRole]"
+              @click="handleRemove(scope.row)"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-row>
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
-        hide-on-single-page
         :total="tablePage.total"
         :page-size="pagination.rows"
         background
-        layout="prev, pager, next"
+        layout="total, prev, pager, next"
         @current-change="handlePageChange"
       />
     </el-row>
@@ -183,7 +183,6 @@ import {
   RolePermissionBindings,
   RolePermissionChange,
 } from '@/api/role'
-import getTableHeight from '@/composables/tableHeight'
 import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { deepClone } from '@/utils'
@@ -201,7 +200,6 @@ interface permission {
 
 const { t } = useI18n()
 const permissionDialogVisible = ref(false)
-const { tableHeight } = getTableHeight()
 const dialogVisible = ref(false)
 const roleName = ref('')
 const tableLoading = ref(false)

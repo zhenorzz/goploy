@@ -20,54 +20,54 @@
         />
       </el-row>
     </el-row>
-    <el-table
-      :key="tableHeight"
-      v-loading="tableLoading"
-      border
-      stripe
-      highlight-current-row
-      :max-height="tableHeight"
-      :data="tableData"
-      style="width: 100%"
-    >
-      <el-table-column prop="token" label="Token" width="300" />
-      <el-table-column prop="publisherName" label="Username" width="100" />
-      <el-table-column prop="projectName" label="Project Name" width="160" />
-      <el-table-column prop="state" label="State" align="center" width="80">
-        <template #default="scope">
-          <span v-if="scope.row.state === 1" style="color: #67c23a">
-            {{ $t('success') }}
-          </span>
-          <span v-else style="color: #f56c6c">{{ $t('fail') }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="detail" label="Reason" show-overflow-tooltip />
-      <el-table-column prop="insertTime" label="insertTime" width="155" />
-      <el-table-column
-        prop="operation"
-        :label="$t('op')"
-        width="100"
-        align="center"
-        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+    <el-row class="app-table">
+      <el-table
+        v-loading="tableLoading"
+        border
+        stripe
+        highlight-current-row
+        height="100%"
+        :data="tableData"
+        style="width: 100%"
       >
-        <template #default="scope">
-          <Button
-            type="text"
-            :permissions="[pms.DeployDetail]"
-            @click="handleDetail(scope.row)"
-          >
-            {{ $t('detail') }}
-          </Button>
-        </template>
-      </el-table-column>
-    </el-table>
+        <el-table-column prop="token" label="Token" width="300" />
+        <el-table-column prop="publisherName" label="Username" width="100" />
+        <el-table-column prop="projectName" label="Project Name" width="160" />
+        <el-table-column prop="state" label="State" align="center" width="80">
+          <template #default="scope">
+            <span v-if="scope.row.state === 1" style="color: #67c23a">
+              {{ $t('success') }}
+            </span>
+            <span v-else style="color: #f56c6c">{{ $t('fail') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="detail" label="Reason" show-overflow-tooltip />
+        <el-table-column prop="insertTime" label="insertTime" width="155" />
+        <el-table-column
+          prop="operation"
+          :label="$t('op')"
+          width="100"
+          align="center"
+          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+        >
+          <template #default="scope">
+            <Button
+              type="text"
+              :permissions="[pms.DeployDetail]"
+              @click="handleDetail(scope.row)"
+            >
+              {{ $t('detail') }}
+            </Button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-row>
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
-        style=""
         :total="pagination.total"
         :page-size="pagination.rows"
         background
-        layout="prev, pager, next"
+        layout="total, prev, pager, next"
         @current-change="handlePageChange"
       />
     </el-row>
@@ -253,14 +253,12 @@ import {
   PublishTraceExt,
 } from '@/api/deploy'
 import { parseTime } from '@/utils'
-import getTableHeight from '@/composables/tableHeight'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 
 const dialogVisible = ref(false)
 const searchParam = ref({ username: '', projectName: '' })
-const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<PublishLogList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 20, total: 0 })

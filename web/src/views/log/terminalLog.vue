@@ -25,52 +25,52 @@
           />
         </el-row>
       </el-row>
-      <el-table
-        :key="tableHeight"
-        v-loading="tableLoading"
-        border
-        stripe
-        highlight-current-row
-        :max-height="tableHeight"
-        :data="tableData"
-        style="width: 100%"
-      >
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="username" label="Username" width="100" />
-        <el-table-column prop="serverName" label="Server Name" width="160" />
-        <el-table-column prop="remoteAddr" label="Remote addr" width="160" />
-        <el-table-column
-          prop="userAgent"
-          label="User agent"
-          show-overflow-tooltip
-        />
-        <el-table-column prop="startTime" label="Start time" width="155" />
-        <el-table-column prop="endTime" label="End time" width="155" />
-        <el-table-column
-          prop="operation"
-          :label="$t('op')"
-          width="100"
-          align="center"
-          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+      <el-row class="app-table">
+        <el-table
+          v-loading="tableLoading"
+          border
+          stripe
+          highlight-current-row
+          height="100%"
+          :data="tableData"
+          style="width: 100%"
         >
-          <template #default="scope">
-            <Button
-              :permissions="[permission.ShowTerminalRecord]"
-              type="text"
-              @click="handleRecord(scope.row)"
-            >
-              Record
-            </Button>
-          </template>
-        </el-table-column>
-      </el-table>
+          <el-table-column prop="id" label="ID" width="80" />
+          <el-table-column prop="username" label="Username" width="100" />
+          <el-table-column prop="serverName" label="Server Name" width="160" />
+          <el-table-column prop="remoteAddr" label="Remote addr" width="160" />
+          <el-table-column
+            prop="userAgent"
+            label="User agent"
+            show-overflow-tooltip
+          />
+          <el-table-column prop="startTime" label="Start time" width="155" />
+          <el-table-column prop="endTime" label="End time" width="155" />
+          <el-table-column
+            prop="operation"
+            :label="$t('op')"
+            width="100"
+            align="center"
+            :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+          >
+            <template #default="scope">
+              <Button
+                :permissions="[permission.ShowTerminalRecord]"
+                type="text"
+                @click="handleRecord(scope.row)"
+              >
+                Record
+              </Button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-row>
       <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
         <el-pagination
-          style=""
           :total="pagination.total"
           :page-size="pagination.rows"
           background
-          layout="prev, pager, next"
+          layout="total, prev, pager, next"
           @current-change="handlePageChange"
         />
       </el-row>
@@ -88,12 +88,10 @@ import 'asciinema-player/dist/bundle/asciinema-player.css'
 import * as AsciinemaPlayer from 'asciinema-player'
 import { TerminalLogData, TerminalLogList, TerminalLogTotal } from '@/api/log'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
-import getTableHeight from '@/composables/tableHeight'
 import { ref, nextTick } from 'vue'
 const recordViewer = ref(false)
 const record = ref()
 const searchParam = ref({ username: '', serverName: '' })
-const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<TerminalLogList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 20, total: 0 })

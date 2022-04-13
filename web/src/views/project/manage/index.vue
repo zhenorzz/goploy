@@ -23,115 +23,119 @@
         />
       </el-row>
     </el-row>
-    <el-table
-      :key="tableHeight"
-      v-loading="tableLoading"
-      border
-      stripe
-      highlight-current-row
-      :max-height="tableHeight"
-      :data="tablePage.list"
-      style="width: 100%"
-    >
-      <el-table-column prop="id" label="ID" width="60" />
-      <el-table-column prop="name" :label="$t('name')" width="180">
-        <template #default="scope">
-          <el-link
-            v-if="isLink(scope.row.name)"
-            :href="scope.row.name"
-            type="primary"
-            target="_blank"
-          >
-            {{ scope.row.name }}
-            <el-icon><Link /></el-icon>
-          </el-link>
-          <span v-else>{{ scope.row.name }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column :label="$t('projectURL')" min-width="330">
-        <template #default="scope">
-          <RepoURL :url="scope.row.url" :text="hideURLPwd(scope.row.url)">
-          </RepoURL>
-        </template>
-      </el-table-column>
-      <el-table-column prop="path" :label="$t('projectPath')" min-width="200" />
-      <el-table-column width="120" :label="$t('environment')" align="center">
-        <template #default="scope">
-          {{ $t(`envOption[${scope.row.environment || 0}]`) }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="branch"
-        width="160"
-        :label="$t('branch')"
-        align="center"
-      />
-      <el-table-column width="80" :label="$t('review')" align="center">
-        <template #default="scope">
-          <span v-if="scope.row.review === 0">{{ $t('close') }}</span>
-          <span v-else>{{ $t('open') }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column
-        width="100"
-        align="center"
-        :label="$t('autoDeploy')"
-        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+    <el-row class="app-table">
+      <el-table
+        v-loading="tableLoading"
+        border
+        stripe
+        highlight-current-row
+        height="100%"
+        :data="tablePage.list"
+        style="width: 100%"
       >
-        <template #default="scope">
-          <span v-if="scope.row.autoDeploy === 0">{{ $t('close') }}</span>
-          <span v-else>{{ $t('open') }}</span>
-          <Button
-            type="text"
-            :icon="Edit"
-            :permissions="[pms.SwitchProjectWebhook]"
-            @click="handleAutoDeploy(scope.row)"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="operation"
-        :label="$t('op')"
-        width="190"
-        align="center"
-        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
-      >
-        <template #default="scope">
-          <Button
-            type="primary"
-            :icon="Edit"
-            :permissions="[pms.EditProject]"
-            @click="handleEdit(scope.row)"
-          />
-          <el-tooltip
-            class="item"
-            effect="dark"
-            content="Copy"
-            placement="bottom"
-          >
+        <el-table-column prop="id" label="ID" width="60" />
+        <el-table-column prop="name" :label="$t('name')" width="180">
+          <template #default="scope">
+            <el-link
+              v-if="isLink(scope.row.name)"
+              :href="scope.row.name"
+              type="primary"
+              target="_blank"
+            >
+              {{ scope.row.name }}
+              <el-icon><Link /></el-icon>
+            </el-link>
+            <span v-else>{{ scope.row.name }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('projectURL')" min-width="330">
+          <template #default="scope">
+            <RepoURL :url="scope.row.url" :text="hideURLPwd(scope.row.url)">
+            </RepoURL>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="path"
+          :label="$t('projectPath')"
+          min-width="200"
+        />
+        <el-table-column width="120" :label="$t('environment')" align="center">
+          <template #default="scope">
+            {{ $t(`envOption[${scope.row.environment || 0}]`) }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="branch"
+          width="160"
+          :label="$t('branch')"
+          align="center"
+        />
+        <el-table-column width="80" :label="$t('review')" align="center">
+          <template #default="scope">
+            <span v-if="scope.row.review === 0">{{ $t('close') }}</span>
+            <span v-else>{{ $t('open') }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          width="100"
+          align="center"
+          :label="$t('autoDeploy')"
+          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+        >
+          <template #default="scope">
+            <span v-if="scope.row.autoDeploy === 0">{{ $t('close') }}</span>
+            <span v-else>{{ $t('open') }}</span>
             <Button
-              type="info"
-              :icon="DocumentCopy"
-              :permissions="[pms.AddProject]"
-              @click="handleCopy(scope.row)"
+              type="text"
+              :icon="Edit"
+              :permissions="[pms.SwitchProjectWebhook]"
+              @click="handleAutoDeploy(scope.row)"
             />
-          </el-tooltip>
-          <Button
-            type="danger"
-            :icon="Delete"
-            :permissions="[pms.DeleteProject]"
-            @click="handleRemove(scope.row)"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="operation"
+          :label="$t('op')"
+          width="190"
+          align="center"
+          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+        >
+          <template #default="scope">
+            <Button
+              type="primary"
+              :icon="Edit"
+              :permissions="[pms.EditProject]"
+              @click="handleEdit(scope.row)"
+            />
+            <el-tooltip
+              class="item"
+              effect="dark"
+              content="Copy"
+              placement="bottom"
+            >
+              <Button
+                type="info"
+                :icon="DocumentCopy"
+                :permissions="[pms.AddProject]"
+                @click="handleCopy(scope.row)"
+              />
+            </el-tooltip>
+            <Button
+              type="danger"
+              :icon="Delete"
+              :permissions="[pms.DeleteProject]"
+              @click="handleRemove(scope.row)"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-row>
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
-        hide-on-single-page
         :total="tablePage.total"
         :page-size="pagination.rows"
         background
-        layout="prev, pager, next"
+        layout="total, prev, pager, next"
         @current-change="handlePageChange"
       />
     </el-row>
@@ -696,7 +700,6 @@ import 'ace-builds/src-noconflict/mode-php'
 import 'ace-builds/src-noconflict/mode-batchfile'
 import 'ace-builds/src-noconflict/theme-github'
 import path from 'path-browserify'
-import getTableHeight from '@/composables/tableHeight'
 import RepoURL from '@/components/RepoURL/index.vue'
 import { isLink, hideURLPwd } from '@/utils'
 import { NamespaceUserOption } from '@/api/namespace'
@@ -732,7 +735,6 @@ const dialogAutoDeployVisible = ref(false)
 const serverOption = ref<ServerOption['datagram']['list']>([])
 const userOption = ref<NamespaceUserOption['datagram']['list']>([])
 const selectedItem = ref({} as ProjectData)
-const { tableHeight } = getTableHeight()
 const tableLoading = ref(false)
 const tableData = ref<ProjectList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 20 })

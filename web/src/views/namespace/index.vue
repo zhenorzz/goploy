@@ -23,60 +23,62 @@
         />
       </el-row>
     </el-row>
-    <el-table
-      :key="tableHeight"
-      v-loading="tableLoading"
-      border
-      stripe
-      highlight-current-row
-      :max-height="tableHeight"
-      :data="tablePage.list"
-      style="width: 100%"
-    >
-      <el-table-column prop="id" label="ID" width="80" />
-      <el-table-column prop="name" :label="$t('name')" />
-      <el-table-column
-        prop="insertTime"
-        :label="$t('insertTime')"
-        width="155"
-        align="center"
-      />
-      <el-table-column
-        prop="updateTime"
-        :label="$t('updateTime')"
-        width="155"
-        align="center"
-      />
-      <el-table-column
-        prop="user"
-        :label="$t('member')"
-        width="80"
-        align="center"
-        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+    <el-row class="app-table">
+      <el-table
+        :key="tableHeight"
+        v-loading="tableLoading"
+        border
+        stripe
+        highlight-current-row
+        height="100%"
+        :data="tablePage.list"
+        style="width: 100%"
       >
-        <template #default="scope">
-          <el-button type="text" @click="handleUser(scope.row)">
-            {{ $t('view') }}
-          </el-button>
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="operation"
-        :label="$t('op')"
-        width="80"
-        align="center"
-        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
-      >
-        <template #default="scope">
-          <Button
-            type="primary"
-            :icon="Edit"
-            :permissions="[permission.EditNamespace]"
-            @click="handleEdit(scope.row)"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="name" :label="$t('name')" />
+        <el-table-column
+          prop="insertTime"
+          :label="$t('insertTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="updateTime"
+          :label="$t('updateTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="user"
+          :label="$t('member')"
+          width="80"
+          align="center"
+          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+        >
+          <template #default="scope">
+            <el-button type="text" @click="handleUser(scope.row)">
+              {{ $t('view') }}
+            </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="operation"
+          :label="$t('op')"
+          width="80"
+          align="center"
+          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+        >
+          <template #default="scope">
+            <Button
+              type="primary"
+              :icon="Edit"
+              :permissions="[permission.EditNamespace]"
+              @click="handleEdit(scope.row)"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-row>
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
         hide-on-single-page

@@ -23,119 +23,119 @@
         />
       </el-row>
     </el-row>
-    <el-table
-      :key="tableHeight"
-      v-loading="tableLoading"
-      :max-height="tableHeight"
-      border
-      stripe
-      highlight-current-row
-      :data="tablePage.list"
-      style="width: 100%"
-    >
-      <el-table-column prop="id" label="ID" width="100" />
-      <el-table-column prop="name" :label="$t('name')" min-width="140" />
-      <el-table-column prop="domain" label="Domain" min-width="100">
-        <template #default="scope">
-          {{ scope.row.domain }}:{{ scope.row.port }}
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="second"
-        :label="$t('interval') + '(s)'"
-        width="80"
-      />
-      <el-table-column
-        prop="times"
-        :label="$t('monitorPage.failTimes')"
-        width="110"
-      />
-      <el-table-column prop="notifyType" :label="$t('notice')" width="70">
-        <template #default="scope">
-          <span v-if="scope.row.notifyType === 1">
-            {{ $t('webhookOption[1]') }}
-          </span>
-          <span v-else-if="scope.row.notifyType === 2">
-            {{ $t('webhookOption[2]') }}
-          </span>
-          <span v-else-if="scope.row.notifyType === 3">
-            {{ $t('webhookOption[3]') }}
-          </span>
-          <span v-else-if="scope.row.notifyType === 255">
-            {{ $t('webhookOption[255]') }}
-          </span>
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="notifyTimes"
-        :label="$t('monitorPage.notifyTimes')"
-        width="85"
-      />
-      <el-table-column
-        prop="state"
-        :label="$t('state')"
-        width="110"
-        align="center"
+    <el-row class="app-table">
+      <el-table
+        v-loading="tableLoading"
+        height="100%"
+        border
+        stripe
+        highlight-current-row
+        :data="tablePage.list"
+        style="width: 100%"
       >
-        <template #default="scope">
-          {{ $t(`stateOption[${scope.row.state || 0}]`) }}
-          <Switch
-            :value="scope.row.state === 1"
-            active-color="#13ce66"
-            inactive-color="#ff4949"
-            :permissions="[pms.EditMonitor]"
-            @change="handleToggle(scope.row)"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="errorContent"
-        :label="$t('monitorPage.errorContent')"
-        min-width="140"
-        show-overflow-tooltip
-      />
-      <el-table-column
-        prop="insertTime"
-        :label="$t('insertTime')"
-        width="155"
-        align="center"
-      />
-      <el-table-column
-        prop="updateTime"
-        :label="$t('updateTime')"
-        width="155"
-        align="center"
-      />
-      <el-table-column
-        prop="operation"
-        :label="$t('op')"
-        width="130"
-        align="center"
-        fixed="right"
-      >
-        <template #default="scope">
-          <Button
-            type="primary"
-            :icon="Edit"
-            :permissions="[pms.EditMonitor]"
-            @click="handleEdit(scope.row)"
-          />
-          <Button
-            type="danger"
-            :icon="Delete"
-            :permissions="[pms.DeleteMonitor]"
-            @click="handleRemove(scope.row)"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+        <el-table-column prop="id" label="ID" width="100" />
+        <el-table-column prop="name" :label="$t('name')" min-width="140" />
+        <el-table-column prop="domain" label="Domain" min-width="100">
+          <template #default="scope">
+            {{ scope.row.domain }}:{{ scope.row.port }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="second"
+          :label="$t('interval') + '(s)'"
+          width="80"
+        />
+        <el-table-column
+          prop="times"
+          :label="$t('monitorPage.failTimes')"
+          width="110"
+        />
+        <el-table-column prop="notifyType" :label="$t('notice')" width="70">
+          <template #default="scope">
+            <span v-if="scope.row.notifyType === 1">
+              {{ $t('webhookOption[1]') }}
+            </span>
+            <span v-else-if="scope.row.notifyType === 2">
+              {{ $t('webhookOption[2]') }}
+            </span>
+            <span v-else-if="scope.row.notifyType === 3">
+              {{ $t('webhookOption[3]') }}
+            </span>
+            <span v-else-if="scope.row.notifyType === 255">
+              {{ $t('webhookOption[255]') }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="notifyTimes"
+          :label="$t('monitorPage.notifyTimes')"
+          width="85"
+        />
+        <el-table-column
+          prop="state"
+          :label="$t('state')"
+          width="110"
+          align="center"
+        >
+          <template #default="scope">
+            {{ $t(`stateOption[${scope.row.state || 0}]`) }}
+            <Switch
+              :value="scope.row.state === 1"
+              active-color="#13ce66"
+              inactive-color="#ff4949"
+              :permissions="[pms.EditMonitor]"
+              @change="handleToggle(scope.row)"
+            />
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="errorContent"
+          :label="$t('monitorPage.errorContent')"
+          min-width="140"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="insertTime"
+          :label="$t('insertTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="updateTime"
+          :label="$t('updateTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="operation"
+          :label="$t('op')"
+          width="130"
+          align="center"
+          fixed="right"
+        >
+          <template #default="scope">
+            <Button
+              type="primary"
+              :icon="Edit"
+              :permissions="[pms.EditMonitor]"
+              @click="handleEdit(scope.row)"
+            />
+            <Button
+              type="danger"
+              :icon="Delete"
+              :permissions="[pms.DeleteMonitor]"
+              @click="handleRemove(scope.row)"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-row>
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
-        hide-on-single-page
         :total="tablePage.total"
         :page-size="pagination.rows"
         background
-        layout="prev, pager, next"
+        layout="total, prev, pager, next"
         @current-change="handlePageChange"
       />
     </el-row>
@@ -238,7 +238,6 @@ import {
   MonitorRemove,
   MonitorData,
 } from '@/api/monitor'
-import getTableHeight from '@/composables/tableHeight'
 import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref, watch, computed } from 'vue'
@@ -246,7 +245,6 @@ import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const store = useStore()
-const { tableHeight } = getTableHeight()
 const dialogVisible = ref(false)
 const monitorName = ref('')
 const tableLoading = ref(false)

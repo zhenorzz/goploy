@@ -33,90 +33,91 @@
         />
       </el-col>
     </el-row>
-    <el-table
-      v-loading="tableLoading"
-      :max-height="tableHeight"
-      border
-      stripe
-      highlight-current-row
-      :data="tablePage.list"
-      style="width: 100%"
-    >
-      <el-table-column
-        prop="expression"
-        :label="$t('expression')"
-        min-width="120"
-        show-overflow-tooltip
-      />
-      <el-table-column
-        prop="command"
-        :label="$t('command')"
-        min-width="140"
-        show-overflow-tooltip
-      />
-      <el-table-column prop="singleMode" label="Single mode" width="110">
-        <template #default="scope">
-          <span v-if="scope.row.singleMode === 0">no</span>
-          <span v-else>yes</span>
-        </template>
-      </el-table-column>
-      <el-table-column prop="logLevel" label="Log level" width="90">
-        <template #default="scope">
-          <span v-if="scope.row.logLevel === 0">none</span>
-          <span v-else-if="scope.row.logLevel === 1">stdout</span>
-          <span v-else-if="scope.row.logLevel === 2">stdout+stderr</span>
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="description"
-        :label="$t('description')"
-        min-width="240"
-        show-overflow-tooltip
-      />
-      <el-table-column prop="creator" :label="$t('creator')" min-width="80" />
-      <el-table-column prop="editor" :label="$t('editor')" min-width="80" />
-      <el-table-column
-        prop="insertTime"
-        :label="$t('insertTime')"
-        width="155"
-        align="center"
-      />
-      <el-table-column
-        prop="updateTime"
-        :label="$t('updateTime')"
-        width="155"
-        align="center"
-      />
-      <el-table-column
-        prop="operation"
-        :label="$t('op')"
-        width="130"
-        align="center"
-        :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+    <el-row class="app-table">
+      <el-table
+        v-loading="tableLoading"
+        height="100%"
+        border
+        stripe
+        highlight-current-row
+        :data="tablePage.list"
+        style="width: 100%"
       >
-        <template #default="scope">
-          <Button
-            type="primary"
-            :icon="Edit"
-            :permissions="[pms.EditCron]"
-            @click="handleEdit(scope.row)"
-          />
-          <Button
-            type="danger"
-            :icon="Delete"
-            :permissions="[pms.DeleteCron]"
-            @click="handleRemove(scope.row)"
-          />
-        </template>
-      </el-table-column>
-    </el-table>
+        <el-table-column
+          prop="expression"
+          :label="$t('expression')"
+          min-width="120"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="command"
+          :label="$t('command')"
+          min-width="140"
+          show-overflow-tooltip
+        />
+        <el-table-column prop="singleMode" label="Single mode" width="110">
+          <template #default="scope">
+            <span v-if="scope.row.singleMode === 0">no</span>
+            <span v-else>yes</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="logLevel" label="Log level" width="90">
+          <template #default="scope">
+            <span v-if="scope.row.logLevel === 0">none</span>
+            <span v-else-if="scope.row.logLevel === 1">stdout</span>
+            <span v-else-if="scope.row.logLevel === 2">stdout+stderr</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="description"
+          :label="$t('description')"
+          min-width="240"
+          show-overflow-tooltip
+        />
+        <el-table-column prop="creator" :label="$t('creator')" min-width="80" />
+        <el-table-column prop="editor" :label="$t('editor')" min-width="80" />
+        <el-table-column
+          prop="insertTime"
+          :label="$t('insertTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="updateTime"
+          :label="$t('updateTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="operation"
+          :label="$t('op')"
+          width="130"
+          align="center"
+          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+        >
+          <template #default="scope">
+            <Button
+              type="primary"
+              :icon="Edit"
+              :permissions="[pms.EditCron]"
+              @click="handleEdit(scope.row)"
+            />
+            <Button
+              type="danger"
+              :icon="Delete"
+              :permissions="[pms.DeleteCron]"
+              @click="handleRemove(scope.row)"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-row>
     <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
       <el-pagination
-        hide-on-single-page
         :total="tablePage.total"
         :page-size="pagination.rows"
         background
-        layout="prev, pager, next"
+        layout="total, prev, pager, next"
         @current-change="handlePageChange"
       />
     </el-row>
@@ -190,7 +191,6 @@ export default { name: 'ServerCron' }
 import pms from '@/permission'
 import Button from '@/components/Permission/Button.vue'
 import { Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
-import getTableHeight from '@/composables/tableHeight'
 import cronstrue from 'cronstrue/i18n'
 import { ServerOption } from '@/api/server'
 import { CronList, CronAdd, CronEdit, CronRemove, CronData } from '@/api/cron'
@@ -199,7 +199,6 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { locale, t } = useI18n({ useScope: 'global' })
-const { tableHeight } = getTableHeight()
 const serverId = ref('')
 const dialogVisible = ref(false)
 const serverOption = ref<ServerOption['datagram']['list']>([])

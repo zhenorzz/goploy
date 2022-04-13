@@ -62,6 +62,14 @@ div:focus {
 // main-container global css
 .app-container {
   padding: 20px;
+  height: calc(100vh - 84px);
+  .app-table {
+    flex: 1;
+    width: 100%;
+    .el-table {
+      height: 100% !important;
+    }
+  }
 }
 
 .app-bar {
