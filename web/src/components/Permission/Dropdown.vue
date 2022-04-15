@@ -1,5 +1,10 @@
 <template>
-  <el-dropdown v-if="show"><slot /></el-dropdown>
+  <el-dropdown v-if="show">
+    <slot />
+    <template #dropdown>
+      <slot name="dropdown" />
+    </template>
+  </el-dropdown>
 </template>
 <script lang="ts" setup>
 import { useStore } from 'vuex'
