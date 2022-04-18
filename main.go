@@ -277,6 +277,13 @@ func handleClientSignal() {
 }
 
 func checkUpdate() {
+	defer func(){
+		if err:=recover();err!=nil{
+			println("Check failed")
+			fmt.Printf("Check error: %+v\n",err)
+			return
+		}
+	}()
 	resp, err := http.Get("https://api.github.com/repos/zhenorzz/goploy/releases/latest")
 	if err != nil {
 		println("Check failed")
