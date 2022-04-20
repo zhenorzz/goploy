@@ -92,7 +92,7 @@ func (Server) Check(gp *core.Goploy) core.Response {
 		IP           string `json:"ip" validate:"required,ip|hostname"`
 		Port         int    `json:"port" validate:"min=0,max=65535"`
 		Owner        string `json:"owner" validate:"required,max=255"`
-		Path         string `json:"path" validate:"required,max=255"`
+		Path         string `json:"path" validate:"max=255"`
 		Password     string `json:"password" validate:"max=255"`
 		JumpIP       string `json:"jumpIP" validate:"omitempty,ip|hostname"`
 		JumpPort     int    `json:"jumpPort" validate:"min=0,max=65535"`
@@ -167,7 +167,7 @@ func (Server) Import(gp *core.Goploy) core.Response {
 					headerIdx[header] = index
 				}
 			}
-			requiredFields := []string{"name", "host", "port", "owner", "path"}
+			requiredFields := []string{"name", "host", "port", "owner"}
 			missingFields := ""
 			for _, field := range requiredFields {
 				if headerIdx[field] == -1 {
@@ -210,7 +210,7 @@ func (Server) Import(gp *core.Goploy) core.Response {
 				}
 
 				server.Path = record[headerIdx["path"]]
-				err = core.Validate.Var(record[headerIdx["path"]], "required,max=255")
+				err = core.Validate.Var(record[headerIdx["path"]], "max=255")
 				if err != nil {
 					errMsg += "path,"
 				}
@@ -268,7 +268,7 @@ func (s Server) Add(gp *core.Goploy) core.Response {
 		IP           string `json:"ip" validate:"ip|hostname"`
 		Port         int    `json:"port" validate:"min=0,max=65535"`
 		Owner        string `json:"owner" validate:"required,max=255"`
-		Path         string `json:"path" validate:"required,max=255"`
+		Path         string `json:"path" validate:"max=255"`
 		Password     string `json:"password"`
 		Description  string `json:"description" validate:"max=255"`
 		JumpIP       string `json:"jumpIP" validate:"omitempty,ip|hostname"`
@@ -320,7 +320,7 @@ func (s Server) Edit(gp *core.Goploy) core.Response {
 		IP           string `json:"ip" validate:"required,ip|hostname"`
 		Port         int    `json:"port" validate:"min=0,max=65535"`
 		Owner        string `json:"owner" validate:"required,max=255"`
-		Path         string `json:"path" validate:"required,max=255"`
+		Path         string `json:"path" validate:"max=255"`
 		Password     string `json:"password" validate:"max=255"`
 		Description  string `json:"description" validate:"max=255"`
 		JumpIP       string `json:"jumpIP" validate:"omitempty,ip|hostname"`

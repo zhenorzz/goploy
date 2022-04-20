@@ -20,6 +20,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -272,12 +273,22 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			}
 			destPath := remoteMachine + ":" + destDir
 			rsyncOption = append(rsyncOption, "--rsync-path=mkdir -p "+destDir+" && rsync", srcPath, destPath)
+			logRsyncCmd := regexp.MustCompile(`sshpass -p .*\s`).
+				ReplaceAllString("rsync "+strings.Join(rsyncOption, " "), "sshpass -p ***** ")
+			// example
+			// rsync -rtv -e "ssh -o StrictHostKeyChecking=no -p 22 -i C:\Users\Administrator\.ssh\id_rsa" --rsync-path="mkdir -p /data/www/test && rsync" ./main.go root@127.0.0.1:/tmp/test/
+			core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+logRsyncCmd)
+			ext, _ = json.Marshal(struct {
+				ServerID   int64  `json:"serverId"`
+				ServerName string `json:"serverName"`
+				Command    string `json:"command"`
+			}{projectServer.ServerID, projectServer.ServerName, logRsyncCmd})
+			publishTraceModel.Ext = string(ext)
+
 			cmd := exec.Command("rsync", rsyncOption...)
 			var outbuf, errbuf bytes.Buffer
 			cmd.Stdout = &outbuf
 			cmd.Stderr = &errbuf
-			core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" rsync "+strings.Join(rsyncOption, " "))
-
 			if err := cmd.Run(); err != nil {
 				core.Log(core.ERROR, "err: "+err.Error()+", detail: "+errbuf.String())
 				publishTraceModel.Detail = "err: " + err.Error() + ", detail: " + errbuf.String()
@@ -292,12 +303,6 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 				return
 			}
 
-			ext, _ = json.Marshal(struct {
-				ServerID   int64  `json:"serverId"`
-				ServerName string `json:"serverName"`
-				Command    string `json:"command"`
-			}{projectServer.ServerID, projectServer.ServerName, "rsync " + strings.Join(rsyncOption, " ")})
-			publishTraceModel.Ext = string(ext)
 			publishTraceModel.Detail = outbuf.String()
 			publishTraceModel.State = model.Success
 			publishTraceModel.AddRow()

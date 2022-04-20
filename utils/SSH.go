@@ -6,6 +6,7 @@ package utils
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
@@ -61,10 +62,26 @@ func (sshConfig SSHConfig) Dial() (*ssh.Client, error) {
 }
 
 func (sshConfig SSHConfig) ToRsyncOption() string {
-	if sshConfig.JumpHost == "" {
-		return fmt.Sprintf("ssh -o StrictHostKeyChecking=no -p %d -i %s", sshConfig.Port, sshConfig.Path)
+	proxyCommand := ""
+	if sshConfig.JumpHost != "" {
+		if sshConfig.JumpPath != "" {
+			if sshConfig.JumpPassword != "" {
+				proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", sshConfig.Password, sshConfig.JumpPath, sshConfig.JumpPort, sshConfig.JumpUser, sshConfig.JumpHost)
+			} else {
+				proxyCommand = fmt.Sprintf("-o ProxyCommand='ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", sshConfig.JumpPath, sshConfig.JumpPort, sshConfig.JumpUser, sshConfig.JumpHost)
+			}
+		} else {
+			proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s ssh -o StrictHostKeyChecking=no -W %%h:%%p -p %d %s@%s' ", sshConfig.Password, sshConfig.JumpPort, sshConfig.JumpUser, sshConfig.JumpHost)
+		}
+	}
+	if sshConfig.Path != "" {
+		if sshConfig.Password != "" {
+			return fmt.Sprintf("sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no %s -p %d -i %s", sshConfig.Password, proxyCommand, sshConfig.Port, sshConfig.Path)
+		} else {
+			return fmt.Sprintf("ssh -o StrictHostKeyChecking=no %s -p %d -i %s", proxyCommand, sshConfig.Port, sshConfig.Path)
+		}
 	} else {
-		return fmt.Sprintf("ssh -o StrictHostKeyChecking=no -o ProxyCommand='ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' -p %d -i %s", sshConfig.JumpPath, sshConfig.JumpPort, sshConfig.JumpUser, sshConfig.JumpHost, sshConfig.Port, sshConfig.Path)
+		return fmt.Sprintf("sshpass -p %s ssh -o StrictHostKeyChecking=no %s -p %d", sshConfig.Password, proxyCommand, sshConfig.Port)
 	}
 }
 
@@ -96,23 +113,32 @@ func (sshConfig SSHConfig) GetOSInfo() string {
 }
 
 func (sshConfig SSHConfig) getConfig(user, password, path string) (*ssh.ClientConfig, error) {
-	pemBytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	var signer ssh.Signer
-	if password == "" {
-		signer, err = ssh.ParsePrivateKey(pemBytes)
-	} else {
-		signer, err = ssh.ParsePrivateKeyWithPassphrase(pemBytes, []byte(password))
-	}
-	if err != nil {
-		return nil, err
+	if user == "" {
+		return nil, errors.New("no user detect")
 	}
 
 	auth := make([]ssh.AuthMethod, 0)
-	auth = append(auth, ssh.PublicKeys(signer))
+
+	if path != "" {
+		pemBytes, err := ioutil.ReadFile(path)
+		if err != nil {
+			return nil, err
+		}
+		var signer ssh.Signer
+		if password == "" {
+			signer, err = ssh.ParsePrivateKey(pemBytes)
+		} else {
+			signer, err = ssh.ParsePrivateKeyWithPassphrase(pemBytes, []byte(password))
+		}
+		if err != nil {
+			return nil, err
+		}
+		auth = append(auth, ssh.PublicKeys(signer))
+	} else if password != "" {
+		auth = append(auth, ssh.Password(password))
+	} else {
+		return nil, errors.New("no password or private key available")
+	}
 
 	config := ssh.Config{
 		Ciphers: []string{"aes128-ctr", "aes192-ctr", "aes256-ctr", "aes128-gcm@openssh.com", "arcfour256", "arcfour128", "aes128-cbc", "3des-cbc", "aes192-cbc", "aes256-cbc"},
