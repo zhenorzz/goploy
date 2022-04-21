@@ -73,7 +73,7 @@
         </el-table-column>
         <el-table-column
           prop="owner"
-          :label="$t('serverPage.sshKeyOwner')"
+          :label="$t('owner')"
           width="140"
           show-overflow-tooltip
         />
@@ -192,14 +192,27 @@
         <el-form-item label="Port" prop="port">
           <el-input v-model.number="formData.port" autocomplete="off" />
         </el-form-item>
-        <el-form-item :label="$t('serverPage.sshKeyOwner')" prop="owner">
+        <el-form-item :label="$t('serverPage.loginType')">
+          <el-radio-group
+            v-model="formProps.loginType"
+            @change="formData.path = ''"
+          >
+            <el-radio label="key">key</el-radio>
+            <el-radio label="user">user</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item :label="$t('owner')" prop="owner">
           <el-input
             v-model="formData.owner"
             autocomplete="off"
             placeholder="root"
           />
         </el-form-item>
-        <el-form-item :label="$t('serverPage.sshKeyPath')" prop="path">
+        <el-form-item
+          v-if="formProps.loginType === 'key'"
+          :label="$t('serverPage.sshKeyPath')"
+          prop="path"
+        >
           <el-row type="flex" style="width: 100%">
             <el-input
               v-model="formData.path"
@@ -218,13 +231,13 @@
             </el-button>
           </el-row>
         </el-form-item>
-        <!-- <el-form-item :label="$t('serverPage.sshKeyPassword')" prop="password">
+        <el-form-item :label="$t('password')" prop="password">
           <el-input
             v-model="formData.password"
             autocomplete="off"
             placeholder=""
           />
-        </el-form-item> -->
+        </el-form-item>
         <el-form-item :label="$t('description')" prop="description">
           <el-input
             v-model="formData.description"
@@ -405,6 +418,7 @@ const formProps = ref({
   showAdvance: false,
   copyPubLoading: false,
   disabled: false,
+  loginType: 'key',
 })
 const formRules = <InstanceType<typeof ElForm>['rules']>{
   namespaceId: [
@@ -561,6 +575,7 @@ function handleAdd() {
 
 function handleEdit(data: ServerData) {
   formData.value = Object.assign({}, data)
+  formProps.value.loginType = data.path === '' ? 'user' : 'key'
   dialogVisible.value = true
 }
 

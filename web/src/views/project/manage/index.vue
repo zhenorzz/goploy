@@ -607,6 +607,7 @@
                 :lang="getScriptLang(formData.afterDeployScriptMode)"
                 theme="github"
                 style="height: 400px; width: 100%"
+                :options="{ newLineMode: 'unix' }"
               />
             </el-form-item>
           </el-tab-pane>

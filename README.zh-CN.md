@@ -100,7 +100,7 @@ Goploy 用于:
 
 ## 如何贡献
 
-非常欢迎你的加入! （QQ群903750786）
+非常欢迎你的加入! QQ群903750786，群里有基础安装视频。
 
 [提一个Issue](https://github.com/zhenorzz/goploy/issues/new) 
 
