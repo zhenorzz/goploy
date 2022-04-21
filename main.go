@@ -277,13 +277,6 @@ func handleClientSignal() {
 }
 
 func checkUpdate() {
-	defer func(){
-		if err:=recover();err!=nil{
-			println("Check failed")
-			fmt.Printf("Check error: %+v\n",err)
-			return
-		}
-	}()
 	resp, err := http.Get("https://api.github.com/repos/zhenorzz/goploy/releases/latest")
 	if err != nil {
 		println("Check failed")
@@ -303,7 +296,11 @@ func checkUpdate() {
 		println(err.Error())
 		return
 	}
-	tagName := result["tag_name"].(string)
+	tagName, ok := result["tag_name"].(string)
+	if !ok {
+		println("Check failed")
+		return
+	}
 	tagVer, err := version.NewVersion(tagName)
 	if err != nil {
 		println("Check version error")
