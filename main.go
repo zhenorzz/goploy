@@ -296,7 +296,11 @@ func checkUpdate() {
 		println(err.Error())
 		return
 	}
-	tagName := result["tag_name"].(string)
+	tagName, ok := result["tag_name"].(string)
+	if !ok {
+		println("Check failed")
+		return
+	}
 	tagVer, err := version.NewVersion(tagName)
 	if err != nil {
 		println("Check version error")
