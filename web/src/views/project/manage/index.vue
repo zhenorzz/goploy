@@ -285,7 +285,7 @@
                   {{ $t('projectPage.deployNotice') }}
                 </el-link>
               </template>
-              <el-row type="flex">
+              <el-row type="flex" style="width: 100%">
                 <el-select v-model="formData.notifyType" clearable>
                   <el-option :label="$t('webhookOption[0]')" :value="0" />
                   <el-option :label="$t('webhookOption[1]')" :value="1" />
