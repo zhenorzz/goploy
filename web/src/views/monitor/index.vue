@@ -158,6 +158,38 @@
         <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
+        <el-form-item :label="$t('type')">
+          <el-select v-model="formData.type" style="width: 100%">
+            <el-option :label="$t('monitorPage.typeOption[1]')" :value="1" />
+            <el-option :label="$t('monitorPage.typeOption[2]')" :value="2" />
+            <el-option :label="$t('monitorPage.typeOption[3]')" :value="3" />
+            <el-option :label="$t('monitorPage.typeOption[4]')" :value="4" />
+            <el-option :label="$t('monitorPage.typeOption[5]')" :value="5" />
+          </el-select>
+        </el-form-item>
+        <el-form-item
+          v-if="formData.type > 1"
+          :label="$t('target')"
+          prop="target"
+        >
+          <el-row
+            v-for="index in 2"
+            :key="index"
+            style="width: 100%; margin-bottom: 2px"
+          >
+            <el-input
+              v-model="formData.url"
+              autocomplete="off"
+              placeholder=""
+              style="flex: 1"
+            />
+            <el-button v-if="index === 1" type="primary" :icon="Plus" />
+            <el-button v-else type="warning" :icon="Minus" />
+          </el-row>
+        </el-form-item>
+        <el-form-item :label="$t('timeout') + '(s)'" prop="timeout">
+          <el-input v-model="formData.url" autocomplete="off" placeholder="" />
+        </el-form-item>
         <el-form-item prop="url">
           <template #label>
             <el-tooltip placement="top">
@@ -228,7 +260,7 @@ export default { name: 'MonitorIndex' }
 <script lang="ts" setup>
 import pms from '@/permission'
 import { Button, Switch } from '@/components/Permission'
-import { Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Refresh, Plus, Minus, Edit, Delete } from '@element-plus/icons-vue'
 import {
   MonitorList,
   MonitorAdd,
@@ -254,6 +286,7 @@ const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
   name: '',
+  type: '',
   url: '',
   second: 3,
   times: 1,

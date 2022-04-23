@@ -13,6 +13,7 @@
   "password": "密码",
   "mobile": "手机号码",
   "contact": "联系方式",
+  "target": "目标",
   "project": "项目",
   "projectName": "项目名称",
   "projectURL": "仓库地址",
@@ -57,6 +58,7 @@
   "baseSetting": "基本配置",
   "notice": "通知",
   "task": "任务",
+  "timeout": "超时",
   "date": "日期",
   "now": "当前",
   "today": "今天",
@@ -125,7 +127,7 @@
     "deploy": "构建发布",
     "toolbox": "工具箱",
     "json": "JSON格式化",
-    "monitor": "应用监控",
+    "monitor": "监控中心",
     "project": "项目设置",
     "server": "服务器管理",
     "serverSetting": "服务器设置",
@@ -272,6 +274,7 @@
     "advance": "高级选项"
   },
   "monitorPage": {
+    "typeOption": ["未知", "站点检测", "端口检测", "Ping检测", "进程检测", "自定义脚本检测"],
     "testAppState": "测试应用状态",
     "failTimes": "连续失败次数",
     "notifyTimes": "通知次数",
