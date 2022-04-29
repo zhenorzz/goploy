@@ -11,6 +11,7 @@ import (
 	"github.com/zhenorzz/goploy/response"
 	"github.com/zhenorzz/goploy/service"
 	"net/http"
+	"time"
 )
 
 type Monitor Controller
@@ -40,13 +41,23 @@ func (Monitor) GetList(gp *core.Goploy) core.Response {
 
 func (Monitor) Check(gp *core.Goploy) core.Response {
 	type ReqData struct {
-		URL string `json:"url" validate:"required"`
+		Type    int           `json:"type" validate:"oneof=1 2 3 4 5"`
+		Items   []string      `json:"items" validate:"required"`
+		Timeout time.Duration `json:"timeout"`
+		Process string        `json:"process"`
+		Script  string        `json:"script"`
 	}
 	var reqData ReqData
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	if err := (service.Gnet{URL: reqData.URL}.Ping()); err != nil {
+	if err := (service.Monitor{
+		Type:    reqData.Type,
+		Items:   reqData.Items,
+		Timeout: reqData.Timeout,
+		Process: reqData.Process,
+		Script:  reqData.Script,
+	}.Check()); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{Message: "Connected"}
@@ -55,12 +66,13 @@ func (Monitor) Check(gp *core.Goploy) core.Response {
 func (Monitor) Add(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		Name         string `json:"name" validate:"required"`
-		URL          string `json:"url" validate:"required"`
+		Type         int    `json:"type" validate:"oneof=1 2 3 4 5"`
+		Target       string `json:"target" validate:"required"`
 		Second       int    `json:"second" validate:"gt=0"`
 		Times        uint16 `json:"times" validate:"gt=0"`
+		SilentCycle  int    `json:"silentCycle" validate:"required"`
 		NotifyType   uint8  `json:"notifyType" validate:"gt=0"`
 		NotifyTarget string `json:"notifyTarget" validate:"required"`
-		NotifyTimes  uint16 `json:"notifyTimes" validate:"gt=0"`
 		Description  string `json:"description" validate:"max=255"`
 	}
 	var reqData ReqData
@@ -71,12 +83,13 @@ func (Monitor) Add(gp *core.Goploy) core.Response {
 	id, err := model.Monitor{
 		NamespaceID:  gp.Namespace.ID,
 		Name:         reqData.Name,
-		URL:          reqData.URL,
+		Type:         reqData.Type,
+		Target:       reqData.Target,
 		Second:       reqData.Second,
 		Times:        reqData.Times,
+		SilentCycle:  reqData.SilentCycle,
 		NotifyType:   reqData.NotifyType,
 		NotifyTarget: reqData.NotifyTarget,
-		NotifyTimes:  reqData.NotifyTimes,
 		Description:  reqData.Description,
 	}.AddRow()
 
@@ -94,13 +107,13 @@ func (Monitor) Edit(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"gt=0"`
 		Name         string `json:"name" validate:"required"`
-		URL          string `json:"url" validate:"required"`
-		Port         int    `json:"port" validate:"min=0,max=65535"`
+		Type         int    `json:"type" validate:"oneof=1 2 3 4 5"`
+		Target       string `json:"target" validate:"required"`
 		Second       int    `json:"second" validate:"gt=0"`
 		Times        uint16 `json:"times" validate:"gt=0"`
+		SilentCycle  int    `json:"silentCycle" validate:"required"`
 		NotifyType   uint8  `json:"notifyType" validate:"gt=0"`
 		NotifyTarget string `json:"notifyTarget" validate:"required"`
-		NotifyTimes  uint16 `json:"notifyTimes" validate:"gt=0"`
 		Description  string `json:"description" validate:"max=255"`
 	}
 	var reqData ReqData
@@ -110,12 +123,13 @@ func (Monitor) Edit(gp *core.Goploy) core.Response {
 	err := model.Monitor{
 		ID:           reqData.ID,
 		Name:         reqData.Name,
-		URL:          reqData.URL,
+		Type:         reqData.Type,
+		Target:       reqData.Target,
 		Second:       reqData.Second,
 		Times:        reqData.Times,
+		SilentCycle:  reqData.SilentCycle,
 		NotifyType:   reqData.NotifyType,
 		NotifyTarget: reqData.NotifyTarget,
-		NotifyTimes:  reqData.NotifyTimes,
 		Description:  reqData.Description,
 	}.EditRow()
 

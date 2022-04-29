@@ -48,7 +48,7 @@ func (hub *Hub) Sftp(gp *core.Goploy) core.Response {
 		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
 		return response.Empty{}
 	}
-	client, err := server.Convert2SSHConfig().Dial()
+	client, err := server.ToSSHConfig().Dial()
 	if err != nil {
 		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
 		return response.Empty{}

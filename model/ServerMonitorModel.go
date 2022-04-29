@@ -304,6 +304,9 @@ func (sm ServerMonitor) Notify(server Server, cycleValue string) (string, error)
 		b, _ := json.Marshal(msg)
 		resp, err = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	}
+	if err != nil {
+		return "", err
+	}
 	defer resp.Body.Close()
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

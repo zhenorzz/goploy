@@ -7,7 +7,6 @@ package model
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"net/http"
 
@@ -20,12 +19,13 @@ type Monitor struct {
 	ID           int64  `json:"id"`
 	NamespaceID  int64  `json:"namespaceId"`
 	Name         string `json:"name"`
-	URL          string `json:"url"`
+	Type         int    `json:"type"`
+	Target       string `json:"target"`
 	Second       int    `json:"second"`
 	Times        uint16 `json:"times"`
+	SilentCycle  int    `json:"silentCycle"`
 	NotifyType   uint8  `json:"notifyType"`
 	NotifyTarget string `json:"notifyTarget"`
-	NotifyTimes  uint16 `json:"notifyTimes"`
 	Description  string `json:"description"`
 	ErrorContent string `json:"errorContent"`
 	State        uint8  `json:"state"`
@@ -37,7 +37,7 @@ type Monitors []Monitor
 
 func (m Monitor) GetList() (Monitors, error) {
 	rows, err := sq.
-		Select("id, name, url, second, times, notify_type, notify_target, notify_times, description, error_content, state, insert_time, update_time").
+		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target, description, error_content, state, insert_time, update_time").
 		From(monitorTable).
 		Where(sq.Eq{
 			"namespace_id": m.NamespaceID,
@@ -55,12 +55,13 @@ func (m Monitor) GetList() (Monitors, error) {
 		if err := rows.Scan(
 			&monitor.ID,
 			&monitor.Name,
-			&monitor.URL,
+			&monitor.Type,
+			&monitor.Target,
 			&monitor.Second,
 			&monitor.Times,
+			&monitor.SilentCycle,
 			&monitor.NotifyType,
 			&monitor.NotifyTarget,
-			&monitor.NotifyTimes,
 			&monitor.Description,
 			&monitor.ErrorContent,
 			&monitor.State,
@@ -77,22 +78,22 @@ func (m Monitor) GetList() (Monitors, error) {
 func (m Monitor) GetData() (Monitor, error) {
 	var monitor Monitor
 	err := sq.
-		Select("id, name, url, second, times, notify_type, notify_target, notify_times, state").
+		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target, state").
 		From(monitorTable).
 		Where(sq.Eq{"id": m.ID}).
 		OrderBy("id DESC").
 		RunWith(DB).
 		QueryRow().
-		Scan(&monitor.ID, &monitor.Name, &monitor.URL, &monitor.Second, &monitor.Times, &monitor.NotifyType, &monitor.NotifyTarget, &monitor.NotifyTimes, &monitor.State)
+		Scan(&monitor.ID, &monitor.Name, &monitor.Type, &monitor.Target, &monitor.Second, &monitor.Times, &monitor.SilentCycle, &monitor.NotifyType, &monitor.NotifyTarget, &monitor.State)
 	if err != nil {
-		return monitor, errors.New("数据查询失败")
+		return monitor, err
 	}
 	return monitor, nil
 }
 
 func (m Monitor) GetAllByState() (Monitors, error) {
 	rows, err := sq.
-		Select("id, name, url, second, times, notify_type, notify_target, notify_times, description").
+		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target, description").
 		From(monitorTable).
 		Where(sq.Eq{
 			"state": m.State,
@@ -109,12 +110,13 @@ func (m Monitor) GetAllByState() (Monitors, error) {
 		if err := rows.Scan(
 			&monitor.ID,
 			&monitor.Name,
-			&monitor.URL,
+			&monitor.Type,
+			&monitor.Target,
 			&monitor.Second,
 			&monitor.Times,
+			&monitor.SilentCycle,
 			&monitor.NotifyType,
 			&monitor.NotifyTarget,
-			&monitor.NotifyTimes,
 			&monitor.Description); err != nil {
 			return nil, err
 		}
@@ -127,8 +129,8 @@ func (m Monitor) GetAllByState() (Monitors, error) {
 func (m Monitor) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(monitorTable).
-		Columns("namespace_id", "name", "url", "second", "times", "notify_type", "notify_target", "notify_times", "description", "error_content").
-		Values(m.NamespaceID, m.Name, m.URL, m.Second, m.Times, m.NotifyType, m.NotifyTarget, m.NotifyTimes, m.Description, "").
+		Columns("namespace_id", "name", "type", "target", "second", "times", "silent_cycle", "notify_type", "notify_target", "description", "error_content").
+		Values(m.NamespaceID, m.Name, m.Type, m.Target, m.Second, m.Times, m.SilentCycle, m.NotifyType, m.NotifyTarget, m.Description, "").
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -143,12 +145,13 @@ func (m Monitor) EditRow() error {
 		Update(monitorTable).
 		SetMap(sq.Eq{
 			"name":          m.Name,
-			"url":           m.URL,
+			"type":          m.Type,
+			"target":        m.Target,
 			"second":        m.Second,
 			"times":         m.Times,
+			"silent_cycle":  m.SilentCycle,
 			"notify_type":   m.NotifyType,
 			"notify_target": m.NotifyTarget,
-			"notify_times":  m.NotifyTimes,
 			"description":   m.Description,
 		}).
 		Where(sq.Eq{"id": m.ID}).
@@ -260,8 +263,8 @@ func (m Monitor) Notify(errMsg string) (string, error) {
 			Message string `json:"message"`
 			Data    struct {
 				MonitorName string `json:"monitorName"`
-				URL         string `json:"url"`
-				Port        int    `json:"port"`
+				Type        int    `json:"type"`
+				Target      string `json:"target"`
 				Second      int    `json:"second"`
 				Times       uint16 `json:"times"`
 			} `json:"data"`
@@ -272,11 +275,15 @@ func (m Monitor) Notify(errMsg string) (string, error) {
 			Message: "Monitor:" + m.Name + "can not access",
 		}
 		msg.Data.MonitorName = m.Name
-		msg.Data.URL = m.URL
+		msg.Data.Type = m.Type
+		msg.Data.Target = m.Target
 		msg.Data.Second = m.Second
 		msg.Data.Times = m.Times
 		b, _ := json.Marshal(msg)
 		resp, err = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
+	}
+	if err != nil {
+		return "", err
 	}
 
 	defer resp.Body.Close()

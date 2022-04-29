@@ -241,7 +241,7 @@ func (Server) Import(gp *core.Goploy) core.Response {
 					errOccur = true
 					core.Log(core.ERROR, fmt.Sprintf("Error on No.%d line %s, field validation on %s failed", i, record, errMsg))
 				} else {
-					server.OSInfo = server.Convert2SSHConfig().GetOSInfo()
+					server.OSInfo = server.ToSSHConfig().GetOSInfo()
 					if _, err := server.AddRow(); err != nil {
 						errOccur = true
 						core.Log(core.ERROR, fmt.Sprintf("Error on No.%d line %s, %s", i, record, err.Error()))
@@ -298,7 +298,7 @@ func (s Server) Add(gp *core.Goploy) core.Response {
 		JumpPassword: reqData.JumpPassword,
 		Description:  reqData.Description,
 	}
-	server.OSInfo = server.Convert2SSHConfig().GetOSInfo()
+	server.OSInfo = server.ToSSHConfig().GetOSInfo()
 
 	id, err := server.AddRow()
 	if err != nil {
@@ -349,7 +349,7 @@ func (s Server) Edit(gp *core.Goploy) core.Response {
 		JumpPassword: reqData.JumpPassword,
 		Description:  reqData.Description,
 	}
-	server.OSInfo = server.Convert2SSHConfig().GetOSInfo()
+	server.OSInfo = server.ToSSHConfig().GetOSInfo()
 
 	if err := server.EditRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
@@ -399,7 +399,7 @@ func (Server) InstallAgent(gp *core.Goploy) core.Response {
 				core.Log(core.ERROR, fmt.Sprintf("Error on %d server, %s", id, err.Error()))
 				return
 			}
-			client, err := server.Convert2SSHConfig().Dial()
+			client, err := server.ToSSHConfig().Dial()
 			if err != nil {
 				core.Log(core.ERROR, fmt.Sprintf("Error on %d server, %s", id, err.Error()))
 				return
@@ -454,7 +454,7 @@ func (Server) PreviewFile(gp *core.Goploy) core.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	client, err := server.Convert2SSHConfig().Dial()
+	client, err := server.ToSSHConfig().Dial()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -471,7 +471,7 @@ func (Server) DownloadFile(gp *core.Goploy) core.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	client, err := server.Convert2SSHConfig().Dial()
+	client, err := server.ToSSHConfig().Dial()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -500,7 +500,7 @@ func (Server) UploadFile(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	client, err := server.Convert2SSHConfig().Dial()
+	client, err := server.ToSSHConfig().Dial()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}

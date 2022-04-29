@@ -288,7 +288,7 @@ func (Deploy) FileDiff(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	client, err := server.Convert2SSHConfig().Dial()
+	client, err := server.ToSSHConfig().Dial()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -359,7 +359,7 @@ func (Deploy) ManageProcess(gp *core.Goploy) core.Response {
 
 	script = service.ReplaceProjectVars(script, project)
 
-	client, err := server.Convert2SSHConfig().Dial()
+	client, err := server.ToSSHConfig().Dial()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}

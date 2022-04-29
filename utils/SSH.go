@@ -27,6 +27,7 @@ type SSHConfig struct {
 	JumpPath     string
 	JumpHost     string
 	JumpPort     int
+	Timeout      time.Duration
 }
 
 func (sshConfig SSHConfig) Dial() (*ssh.Client, error) {
@@ -144,15 +145,25 @@ func (sshConfig SSHConfig) getConfig(user, password, path string) (*ssh.ClientCo
 		Ciphers: []string{"aes128-ctr", "aes192-ctr", "aes256-ctr", "aes128-gcm@openssh.com", "arcfour256", "arcfour128", "aes128-cbc", "3des-cbc", "aes192-cbc", "aes256-cbc"},
 	}
 
+	timeout := 30 * time.Second
+	if sshConfig.Timeout > 0 {
+		timeout = sshConfig.Timeout
+	}
+
 	return &ssh.ClientConfig{
 		User:    user,
 		Auth:    auth,
-		Timeout: 30 * time.Second,
+		Timeout: timeout,
 		Config:  config,
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
 	}, nil
+}
+
+func (sshConfig SSHConfig) SetTimeout(duration time.Duration) SSHConfig {
+	sshConfig.Timeout = duration
+	return sshConfig
 }
 
 func (sshConfig SSHConfig) jumpAddr() string {

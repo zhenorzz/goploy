@@ -73,7 +73,7 @@ func (hub *Hub) Xterm(gp *core.Goploy) core.Response {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
 		return response.Empty{}
 	}
-	client, err := server.Convert2SSHConfig().Dial()
+	client, err := server.ToSSHConfig().Dial()
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
 		return response.Empty{}

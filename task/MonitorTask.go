@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-var monitorTick = time.Tick(time.Second)
+var monitorTick = time.Tick(time.Minute)
 
 func startMonitorTask() {
 	atomic.AddInt32(&counter, 1)
@@ -33,8 +33,8 @@ func startMonitorTask() {
 
 type MonitorCache struct {
 	errorTimes  int
-	notifyTimes int
 	time        int64
+	silentCycle int
 }
 
 var monitorCaches = map[int64]MonitorCache{}
@@ -53,25 +53,40 @@ func monitorTask() {
 			monitorCache = monitorCaches[monitor.ID]
 		}
 
-		now := time.Now().Unix()
+		if monitorCache.silentCycle > 0 {
+			monitorCache.silentCycle++
+			if monitorCache.silentCycle >= monitor.SilentCycle {
+				monitorCache.silentCycle = 0
+			}
+			monitorCaches[monitor.ID] = monitorCache
+			continue
+		}
 
-		if int(now-monitorCache.time) > monitor.Second {
+		now := time.Now().Unix()
+		println(monitor.Name, "detect", time.Now().String())
+		if int(now-monitorCache.time) >= monitor.Second {
+			println(monitor.Name, "in", time.Now().String())
 			monitorCache.time = now
-			if err := (service.Gnet{URL: monitor.URL}.Ping()); err != nil {
-				monitorCache.errorTimes++
+			ms, err := service.NewMonitorFromTarget(monitor.Type, monitor.Target)
+			if err != nil {
+				_ = monitor.TurnOff(err.Error())
 				core.Log(core.ERROR, "monitor "+monitor.Name+" encounter error, "+err.Error())
-				if monitor.Times == uint16(monitorCache.errorTimes) {
-					monitorCache.errorTimes = 0
-					monitorCache.notifyTimes++
-					body, err := monitor.Notify(err.Error())
-					if err != nil {
+				ws.GetHub().Data <- &ws.Data{
+					Type:    ws.TypeMonitor,
+					Message: ws.MonitorMessage{MonitorID: monitor.ID, State: ws.MonitorTurnOff, ErrorContent: err.Error()},
+				}
+			} else if err := ms.Check(); err != nil {
+				monitorErrorContent := err.Error()
+				monitorCache.errorTimes++
+				core.Log(core.ERROR, "monitor "+monitor.Name+" encounter error, "+monitorErrorContent)
+				if monitor.Times <= uint16(monitorCache.errorTimes) {
+					if body, err := monitor.Notify(monitorErrorContent); err != nil {
 						core.Log(core.ERROR, "monitor "+monitor.Name+" notify error, "+err.Error())
 					} else {
+						monitorCache.errorTimes = 0
+						monitorCache.silentCycle = 1
 						core.Log(core.TRACE, "monitor "+monitor.Name+" notify return "+body)
-					}
-					if monitor.NotifyTimes == uint16(monitorCache.notifyTimes) {
-						monitorCache.notifyTimes = 0
-						_ = monitor.TurnOff(err.Error())
+						_ = monitor.TurnOff(monitorErrorContent)
 						ws.GetHub().Data <- &ws.Data{
 							Type:    ws.TypeMonitor,
 							Message: ws.MonitorMessage{MonitorID: monitor.ID, State: ws.MonitorTurnOff, ErrorContent: err.Error()},

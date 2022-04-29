@@ -135,7 +135,6 @@ func (s Server) GetAll() (Servers, error) {
 	return servers, nil
 }
 
-// GetData -
 func (s Server) GetData() (Server, error) {
 	var server Server
 	builder := sq.
@@ -153,6 +152,7 @@ func (s Server) GetData() (Server, error) {
 			"jump_owner",
 			"jump_path",
 			"jump_password",
+			"state",
 		).
 		From(serverTable)
 
@@ -185,6 +185,7 @@ func (s Server) GetData() (Server, error) {
 			&server.JumpOwner,
 			&server.JumpPath,
 			&server.JumpPassword,
+			&server.State,
 		)
 	if err != nil {
 		return server, err
@@ -296,7 +297,7 @@ func (s Server) ToggleRow() error {
 	return nil
 }
 
-func (s Server) Convert2SSHConfig() utils.SSHConfig {
+func (s Server) ToSSHConfig() utils.SSHConfig {
 	return utils.SSHConfig{
 		User:         s.Owner,
 		Password:     s.Password,
