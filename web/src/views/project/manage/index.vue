@@ -77,7 +77,7 @@
           </template>
         </el-table-column>
         <el-table-column
-          width="100"
+          width="110"
           align="center"
           :label="$t('autoDeploy')"
           :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
@@ -306,6 +306,7 @@
               <el-select
                 v-model="formData.serverIds"
                 multiple
+                filterable
                 style="width: 100%"
               >
                 <el-option
@@ -320,6 +321,7 @@
               <el-select
                 v-model="formData.userIds"
                 multiple
+                filterable
                 style="width: 100%"
               >
                 <el-option

@@ -24,6 +24,7 @@
   "serverId": "Server ID",
   "serverName": "Server name",
   "serverDescription": "Server description",
+  "process": "Process",
   "template": "Template",
   "package": "Package",
   "crontab": "Crontab",
@@ -107,16 +108,18 @@
   "close": "Close",
   "stop": "Stop",
   "fail": "Fail",
+  "pass": "Pass",
   "state": "State",
   "current": "Current",
   "unlimited": "Unlimited",
   "stateOption": ["Disable", "Enable"],
+  "switchOption": ["Close", "Open"],
   "boolOption": ["No", "Yes"],
   "runOption": ["Not run", "Run"],
   "envOption": ["Unknown", "Production", "Pre-release", "Test", "Development"],
   "webhookOption": {
     "0": "Nothing",
-    "1": "Weixin",
+    "1": "WeCom",
     "2": "Dingding",
     "3": "Feishu",
     "255": "Custom"
@@ -276,8 +279,9 @@
   },
   "monitorPage": {
     "typeOption": ["Unknown", "Site check", "Port check", "Ping check", "Process check", "Custom script check"],
-    "testAppState": "Test APP state",
+    "testState": "Test state",
     "failTimes": "Failure times",
+    "silentCycle": "Silent cycle",
     "notifyTimes": "Notice times",
     "errorContent": "Error content",
     "toggleStateTips":

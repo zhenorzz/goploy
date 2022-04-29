@@ -143,8 +143,12 @@
           />
         </div>
         <el-radio-group v-model="publishToken" @change="handleTraceChange">
-          <el-row v-for="(item, index) in gitTraceList" :key="index">
-            <el-row style="margin: 5px 0">
+          <el-row
+            v-for="(item, index) in gitTraceList"
+            :key="index"
+            style="width: 100%"
+          >
+            <el-row style="margin: 5px 0; width: 100%">
               <el-radio class="publish-commit" :label="item.token" border>
                 <span class="publish-name">{{ item.publisherName }}</span>
                 <span class="publish-commitID">
@@ -627,7 +631,7 @@ const rebuild = (data: PublishTraceData & PublishTraceExt) => {
   &-commit {
     margin-right: 5px;
     padding-right: 8px;
-    width: 243px;
+    flex: 1;
   }
   &-commitID {
     display: inline-block;

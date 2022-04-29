@@ -4,12 +4,13 @@ export interface MonitorData {
   id: number
   namespaceId: number
   name: string
-  url: string
+  type: number
+  target: string
   second: number
   times: number
+  silentCycle: number
   notifyType: number
   notifyTarget: string
-  notifyTimes: number
   description: string
   errorContent: string
   state: number
@@ -31,12 +32,13 @@ export class MonitorAdd extends Request {
   readonly method = 'post'
   public param: {
     name: string
-    url: string
+    type: number
+    target: string
     second: number
     times: number
+    silentCycle: number
     notifyType: number
     notifyTarget: string
-    notifyTimes: number
     description: string
   }
   constructor(param: MonitorAdd['param']) {
@@ -51,12 +53,13 @@ export class MonitorEdit extends Request {
   public param: {
     id: number
     name: string
-    url: string
+    type: number
+    target: string
     second: number
     times: number
+    silentCycle: number
     notifyType: number
     notifyTarget: string
-    notifyTimes: number
     description: string
   }
   constructor(param: MonitorEdit['param']) {
@@ -80,7 +83,11 @@ export class MonitorCheck extends Request {
   readonly method = 'post'
   readonly timeout = 100000
   public param: {
-    url: string
+    type: number
+    items: string[]
+    timeout: number
+    process: string
+    script: string
   }
   constructor(param: MonitorCheck['param']) {
     super()

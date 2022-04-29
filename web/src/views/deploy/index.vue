@@ -132,7 +132,7 @@
         <el-table-column
           prop="operation"
           :label="$t('op')"
-          width="280"
+          width="300"
           :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
           align="center"
         >

@@ -34,23 +34,25 @@
         style="width: 100%"
       >
         <el-table-column prop="id" label="ID" width="100" />
-        <el-table-column prop="name" :label="$t('name')" min-width="140" />
-        <el-table-column prop="domain" label="Domain" min-width="100">
-          <template #default="scope">
-            {{ scope.row.domain }}:{{ scope.row.port }}
-          </template>
+        <el-table-column prop="name" :label="$t('name')" min-width="120" />
+        <el-table-column
+          prop="target"
+          label="Domain"
+          min-width="140"
+          show-overflow-tooltip
+        >
         </el-table-column>
         <el-table-column
           prop="second"
           :label="$t('interval') + '(s)'"
-          width="80"
+          width="95"
         />
         <el-table-column
           prop="times"
           :label="$t('monitorPage.failTimes')"
-          width="110"
+          width="115"
         />
-        <el-table-column prop="notifyType" :label="$t('notice')" width="70">
+        <el-table-column prop="notifyType" :label="$t('notice')" width="90">
           <template #default="scope">
             <span v-if="scope.row.notifyType === 1">
               {{ $t('webhookOption[1]') }}
@@ -67,18 +69,13 @@
           </template>
         </el-table-column>
         <el-table-column
-          prop="notifyTimes"
-          :label="$t('monitorPage.notifyTimes')"
-          width="85"
-        />
-        <el-table-column
           prop="state"
           :label="$t('state')"
-          width="110"
+          width="120"
           align="center"
         >
           <template #default="scope">
-            {{ $t(`stateOption[${scope.row.state || 0}]`) }}
+            {{ $t(`switchOption[${scope.row.state || 0}]`) }}
             <Switch
               :value="scope.row.state === 1"
               active-color="#13ce66"
@@ -148,6 +145,7 @@
       <el-form
         ref="form"
         v-loading="formProps.loading"
+        :class="$store.state.app.device === 'desktop' ? 'monitor-dialog' : ''"
         :rules="formRules"
         :model="formData"
         label-width="120px"
@@ -158,8 +156,12 @@
         <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
-        <el-form-item :label="$t('type')">
-          <el-select v-model="formData.type" style="width: 100%">
+        <el-form-item :label="$t('type')" prop="type">
+          <el-select
+            v-model="formData.type"
+            style="width: 100%"
+            @change="handleTypeChange"
+          >
             <el-option :label="$t('monitorPage.typeOption[1]')" :value="1" />
             <el-option :label="$t('monitorPage.typeOption[2]')" :value="2" />
             <el-option :label="$t('monitorPage.typeOption[3]')" :value="3" />
@@ -167,43 +169,111 @@
             <el-option :label="$t('monitorPage.typeOption[5]')" :value="5" />
           </el-select>
         </el-form-item>
-        <el-form-item
-          v-if="formData.type > 1"
-          :label="$t('target')"
-          prop="target"
-        >
-          <el-row
-            v-for="index in 2"
-            :key="index"
-            style="width: 100%; margin-bottom: 2px"
-          >
+        <template v-if="4 > formData.type && formData.type > 0">
+          <el-form-item :label="$t('target')">
+            <el-select
+              v-model="formProps.items"
+              style="width: 100%"
+              allow-create
+              filterable
+              multiple
+              default-first-option
+              clearable
+            >
+            </el-select>
+          </el-form-item>
+        </template>
+        <template v-else-if="formData.type === 4">
+          <el-form-item :label="$t('target')">
+            <el-select
+              v-model="formProps.items"
+              multiple
+              filterable
+              style="width: 100%"
+            >
+              <el-option
+                v-for="(item, index) in formProps.serverOption"
+                :key="index"
+                :label="item.label"
+                :value="item.id.toString()"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item :label="$t('process')">
             <el-input
-              v-model="formData.url"
+              v-model="formProps.process"
               autocomplete="off"
-              placeholder=""
-              style="flex: 1"
+              placeholder="The name within ps -ef"
             />
-            <el-button v-if="index === 1" type="primary" :icon="Plus" />
-            <el-button v-else type="warning" :icon="Minus" />
-          </el-row>
-        </el-form-item>
-        <el-form-item :label="$t('timeout') + '(s)'" prop="timeout">
-          <el-input v-model="formData.url" autocomplete="off" placeholder="" />
-        </el-form-item>
-        <el-form-item prop="url">
-          <template #label>
-            <el-tooltip placement="top">
-              <template #content>scheme:opaque[?query][#fragment]</template>
-              <el-button type="text">URL</el-button>
-            </el-tooltip>
-          </template>
-          <el-input v-model="formData.url" autocomplete="off" placeholder="" />
+          </el-form-item>
+        </template>
+        <template v-else-if="formData.type === 5">
+          <el-form-item :label="$t('target')">
+            <el-select
+              v-model="formProps.items"
+              multiple
+              filterable
+              style="width: 100%"
+            >
+              <el-option
+                v-for="(item, index) in formProps.serverOption"
+                :key="index"
+                :label="item.label"
+                :value="item.id.toString()"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item :label="$t('script')">
+            <v-ace-editor
+              v-model:value="formProps.script"
+              lang="sh"
+              theme="github"
+              style="height: 360px; width: 100%"
+              :options="{ newLineMode: 'unix' }"
+            />
+          </el-form-item>
+        </template>
+        <el-form-item :label="$t('timeout') + '(s)'">
+          <el-input
+            v-model="formProps.timeout"
+            autocomplete="off"
+            placeholder=""
+          />
         </el-form-item>
         <el-form-item :label="$t('interval') + '(s)'" prop="second">
-          <el-input v-model.number="formData.second" autocomplete="off" />
+          <el-radio-group v-model="formData.second">
+            <el-radio :label="60">1 min</el-radio>
+            <el-radio :label="300">5 min</el-radio>
+            <el-radio :label="900">15 min</el-radio>
+            <el-radio :label="1800">30 min</el-radio>
+            <el-radio :label="3600">60 min</el-radio>
+          </el-radio-group>
         </el-form-item>
         <el-form-item :label="$t('monitorPage.failTimes')" prop="times">
-          <el-input v-model.number="formData.times" autocomplete="off" />
+          <el-radio-group v-model="formData.times">
+            <el-radio :label="1">1</el-radio>
+            <el-radio :label="2">2</el-radio>
+            <el-radio :label="3">3</el-radio>
+            <el-radio :label="4">4</el-radio>
+            <el-radio :label="5">5</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item :label="$t('monitorPage.silentCycle')">
+          <el-select
+            v-model="formData.silentCycle"
+            style="width: 100%"
+            filterable
+          >
+            <el-option label="5 min" :value="5" />
+            <el-option label="10 min" :value="10" />
+            <el-option label="15 min" :value="15" />
+            <el-option label="30 min" :value="30" />
+            <el-option label="60 min" :value="60" />
+            <el-option label="3 hour" :value="180" />
+            <el-option label="6 hour" :value="360" />
+            <el-option label="12 hour" :value="720" />
+            <el-option label="24 hour" :value="1440" />
+          </el-select>
         </el-form-item>
         <el-form-item :label="$t('notice')" prop="notifyTarget">
           <el-row type="flex" style="width: 100%">
@@ -221,9 +291,6 @@
             />
           </el-row>
         </el-form-item>
-        <el-form-item :label="$t('monitorPage.notifyTimes')" prop="notifyTimes">
-          <el-input v-model.number="formData.notifyTimes" />
-        </el-form-item>
         <el-form-item :label="$t('description')" prop="description">
           <el-input
             v-model="formData.description"
@@ -235,7 +302,7 @@
       <template #footer>
         <el-row type="flex" justify="space-between">
           <el-button :loading="formProps.loading" type="success" @click="check">
-            {{ $t('monitorPage.testAppState') }}
+            {{ $t('monitorPage.testState') }}
           </el-button>
           <el-row>
             <el-button @click="dialogVisible = false">
@@ -260,7 +327,11 @@ export default { name: 'MonitorIndex' }
 <script lang="ts" setup>
 import pms from '@/permission'
 import { Button, Switch } from '@/components/Permission'
-import { Refresh, Plus, Minus, Edit, Delete } from '@element-plus/icons-vue'
+import { Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { VAceEditor } from 'vue3-ace-editor'
+import 'ace-builds/src-noconflict/mode-sh'
+import 'ace-builds/src-noconflict/theme-github'
+import { ServerOption } from '@/api/server'
 import {
   MonitorList,
   MonitorAdd,
@@ -286,23 +357,29 @@ const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
   name: '',
-  type: '',
-  url: '',
-  second: 3,
+  type: '' as number,
+  target: '',
+  second: 60,
   times: 1,
+  silentCycle: 1440,
   notifyType: 1,
   notifyTarget: '',
-  notifyTimes: 1,
   description: '',
 }
 const formData = ref(tempFormData)
 const formProps = ref({
   loading: false,
   disabled: false,
+  serverLoading: false,
+  serverOption: [] as ServerOption['datagram']['list'],
+  items: [],
+  timeout: 10,
+  process: '',
+  script: '',
 })
 const formRules = <InstanceType<typeof ElForm>['rules']>{
   name: [{ required: true, message: 'Name required', trigger: 'blur' }],
-  url: [{ required: true, message: 'URL required', trigger: 'blur' }],
+  type: [{ required: true, message: 'Type required', trigger: 'blur' }],
   port: [
     {
       type: 'number',
@@ -404,13 +481,29 @@ function handlePageChange(val = 1) {
   pagination.value.page = val
 }
 
+function handleTypeChange(type: number) {
+  if (type > 3) {
+    formProps.value.serverLoading = true
+    new ServerOption()
+      .request()
+      .then((response) => {
+        formProps.value.serverOption = response.data.list
+      })
+      .finally(() => {
+        formProps.value.serverLoading = false
+      })
+  }
+}
+
 function handleAdd() {
   restoreFormData()
+  formProps.value.items = []
   dialogVisible.value = true
 }
 
 function handleEdit(data: MonitorData) {
   formData.value = Object.assign({}, data)
+  formProps.value = Object.assign(formProps.value, JSON.parse(data.target))
   dialogVisible.value = true
 }
 
@@ -429,7 +522,7 @@ function handleToggle(data: MonitorData) {
     )
       .then(() => {
         new MonitorToggle({ id: data.id }).request().then(() => {
-          ElMessage.success('Stop success')
+          ElMessage.success(t('close'))
           getList()
         })
       })
@@ -438,7 +531,7 @@ function handleToggle(data: MonitorData) {
       })
   } else {
     new MonitorToggle({ id: data.id }).request().then(() => {
-      ElMessage.success('Open success')
+      ElMessage.success(t('open'))
       getList()
     })
   }
@@ -472,10 +565,16 @@ function check() {
     if (valid) {
       formProps.value.loading = true
       formProps.value.disabled = true
-      new MonitorCheck(formData.value)
+      new MonitorCheck({
+        type: formData.value.type,
+        items: formProps.value.items,
+        timeout: formProps.value.timeout,
+        process: formProps.value.process,
+        script: formProps.value.script,
+      })
         .request()
         .then(() => {
-          ElMessage.success('Connected success')
+          ElMessage.success(t('pass'))
         })
         .finally(() => {
           formProps.value.loading = false
@@ -490,6 +589,37 @@ function check() {
 
 function submit() {
   form.value?.validate((valid) => {
+    if (formProps.value.items.length === 0) {
+      ElMessage.error('Target at least one item')
+      return
+    }
+    if (4 > formData.value.type && formData.value.type > 0) {
+      formData.value.target = JSON.stringify({
+        items: formProps.value.items,
+        timeout: formProps.value.timeout || 0,
+      })
+    } else if (formData.value.type === 4) {
+      if (formProps.value.process.length === 0) {
+        ElMessage.error('Process empty')
+        return
+      }
+      formData.value.target = JSON.stringify({
+        items: formProps.value.items,
+        timeout: formProps.value.timeout || 0,
+        process: formProps.value.process,
+      })
+    } else if (formData.value.type === 5) {
+      if (formProps.value.script.length === 0) {
+        ElMessage.error('Script empty')
+        return
+      }
+      formData.value.target = JSON.stringify({
+        items: formProps.value.items,
+        timeout: formProps.value.timeout || 0,
+        script: formProps.value.script,
+      })
+    }
+
     if (valid) {
       if (formData.value.id === 0) {
         add()
@@ -535,9 +665,9 @@ function restoreFormData() {
 </script>
 <style lang="scss" scoped>
 @import '@/styles/mixin.scss';
-.template-dialog {
+.monitor-dialog {
   padding-right: 10px;
-  height: 400px;
+  max-height: 50vh;
   overflow-y: auto;
   @include scrollBar();
 }
