@@ -61,7 +61,7 @@ Goploy is commonly used for:
 - Support git svn ftp sftp
 - Deployment
 - RBAC
-- Monitor app and server
+- Monitor http tcp ping process script server
 - Second cron 
 - Xterm
 - Sftp

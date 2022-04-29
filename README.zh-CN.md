@@ -59,7 +59,7 @@ Goploy 用于:
 - 发布项目
 - 支持git、svn、ftp、sftp
 - 基于角色的访问控制RBAC
-- 监控应用
+- 监控http、tcp、process
 - 服务器性能
 - 秒级定时任务
 - Xterm
