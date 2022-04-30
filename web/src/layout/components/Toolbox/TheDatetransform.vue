@@ -1,48 +1,48 @@
 <template>
   <el-row v-show="modelValue === 'time'">
-    <el-button
-      style="margin-left: 80px"
-      type="primary"
-      @click="timestamp('now')"
-    >
-      {{ $t('now') }}
-    </el-button>
-    <el-button type="primary" @click="timestamp('today')">
-      {{ $t('today') }}
-    </el-button>
-    <el-button type="primary" @click="timestamp('m1d')">
-      {{ $t('m1d') }}
-    </el-button>
-    <el-button type="primary" @click="timestamp('p1d')">
-      {{ $t('p1d') }}
-    </el-button>
-    <el-row style="margin-top: 10px" type="flex" align="middle">
-      <span style="width: 70px; font-size: 14px; margin-right: 10px">
-        Timestamp
-      </span>
+    <el-button-group>
+      <el-button type="primary" @click="timestamp('now')">
+        {{ $t('now') }}
+      </el-button>
+      <el-button type="primary" @click="timestamp('today')">
+        {{ $t('today') }}
+      </el-button>
+      <el-button type="primary" @click="timestamp('m1d')">
+        {{ $t('m1d') }}
+      </el-button>
+      <el-button type="primary" @click="timestamp('p1d')">
+        {{ $t('p1d') }}
+      </el-button>
+    </el-button-group>
+    <el-row style="margin-top: 10px; width: 100%" type="flex" align="middle">
       <el-input
         v-model="timeExchange.timestamp"
-        style="width: 200px"
+        style="flex: 1"
         :placeholder="timeExchange.placeholder"
         clearable
         @keyup.enter="timestampToDate"
-      />
+      >
+        <template #prepend>Timestamp</template>
+      </el-input>
       <el-button type="primary" @click="timestampToDate">>></el-button>
-      <el-input v-model="timeExchange.date" style="width: 200px" />
+      <el-input v-model="timeExchange.date" style="flex: 1" readonly>
+        <template #prepend>Date</template>
+      </el-input>
     </el-row>
-    <el-row style="margin-top: 10px" type="flex" align="middle">
-      <span style="width: 70px; font-size: 14px; margin-right: 10px">
-        Date
-      </span>
+    <el-row style="margin-top: 10px; width: 100%" type="flex" align="middle">
       <el-input
         v-model="dateExchange.date"
-        style="width: 200px"
+        style="flex: 1"
         :placeholder="dateExchange.placeholder"
         clearable
         @keyup.enter="dateToTimestamp"
-      />
+      >
+        <template #prepend>Date</template>
+      </el-input>
       <el-button type="primary" @click="dateToTimestamp">>></el-button>
-      <el-input v-model="dateExchange.timestamp" style="width: 200px" />
+      <el-input v-model="dateExchange.timestamp" style="flex: 1" readonly>
+        <template #prepend>Timestamp</template>
+      </el-input>
     </el-row>
   </el-row>
 </template>

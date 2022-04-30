@@ -13,14 +13,13 @@
       <TagsView />
       <AppMain />
     </div>
-    <RightMenu />
   </div>
 </template>
 <script lang="ts">
 export default { name: 'Layout' }
 </script>
 <script lang="ts" setup>
-import { Navbar, Sidebar, AppMain, RightMenu, TagsView } from './components'
+import { Navbar, Sidebar, AppMain, TagsView } from './components'
 import ResizeHandler from './mixin/ResizeHandler'
 import { computed } from 'vue'
 import { useStore } from 'vuex'

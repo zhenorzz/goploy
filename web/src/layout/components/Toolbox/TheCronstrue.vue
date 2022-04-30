@@ -1,12 +1,14 @@
 <template>
   <el-row v-show="modelValue === 'cron'">
-    <el-input
-      v-model="cron.expression"
-      placeholder="* * * * ?"
-      style="width: 450px"
-    />
-    <el-button type="primary" @click="crontabTranslate">>></el-button>
-    <el-row style="margin-left: 5px">{{ cron.chinese }}</el-row>
+    <el-row type="flex" style="width: 100%">
+      <el-input
+        v-model="cron.expression"
+        placeholder="* * * * ?"
+        style="flex: 1"
+      />
+      <el-button type="primary" @click="crontabTranslate">>></el-button>
+      <el-row style="margin-left: 5px">{{ cron.chinese }}</el-row>
+    </el-row>
     <pre>
   *    *    *    *    *
   -    -    -    -    -

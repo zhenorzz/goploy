@@ -1,6 +1,27 @@
 <template>
   <div class="navbar">
-    <img :src="logo" class="navbar-logo" />
+    <el-dropdown
+      trigger="click"
+      placement="bottom"
+      style="float: left"
+      @command="showTransformDialog"
+    >
+      <img :src="logo" class="navbar-logo" />
+      <template #dropdown>
+        <el-dropdown-menu>
+          <el-dropdown-item command="time">Date Transform</el-dropdown-item>
+          <el-dropdown-item command="json">JSON Pretty</el-dropdown-item>
+          <el-dropdown-item command="password">Random PWD</el-dropdown-item>
+          <el-dropdown-item command="unicode">Unicode</el-dropdown-item>
+          <el-dropdown-item command="decodeURI">DecodeURI</el-dropdown-item>
+          <el-dropdown-item command="md5">MD5 </el-dropdown-item>
+          <el-dropdown-item command="cron">Crontab</el-dropdown-item>
+          <el-dropdown-item command="qrcode">QRcode</el-dropdown-item>
+          <el-dropdown-item command="byte">Byte Transform</el-dropdown-item>
+          <el-dropdown-item command="color">Color Transform</el-dropdown-item>
+        </el-dropdown-menu>
+      </template>
+    </el-dropdown>
     <hamburger
       :is-active="app.sidebar.opened"
       class="hamburger-container"
@@ -42,7 +63,7 @@
           placement="bottom"
           @command="handleSetLanguage"
         >
-          <div style="height: 100%">
+          <div style="height: 100%; padding-top: 2px">
             <svg-icon class-name="international-icon" icon-class="language" />
           </div>
           <template #dropdown>
@@ -100,6 +121,70 @@
         </div>
       </div>
     </div>
+    <el-dialog
+      v-model="transformVisible"
+      width="600px"
+      append-to-body
+      :close-on-click-modal="false"
+      :fullscreen="$store.state.app.device === 'mobile'"
+    >
+      <el-row class="transform-content">
+        <TheDatetransform v-model="transformType" />
+        <TheJSONPretty v-model="transformType" />
+        <TheRandomPWD v-model="transformType" />
+        <TheUnicode v-model="transformType" />
+        <el-row v-show="transformType === 'decodeURI'" style="width: 100%">
+          <el-input
+            v-model="uri.escape"
+            type="textarea"
+            :autosize="{ minRows: 2 }"
+            placeholder="Please enter unescaped URI"
+          />
+          <el-input
+            :value="uri.escape ? decodeURI(uri.escape) : ''"
+            style="margin-top: 10px"
+            type="textarea"
+            :autosize="{ minRows: 2 }"
+            readonly
+          />
+        </el-row>
+        <el-row v-show="transformType === 'md5'" style="width: 100%">
+          <el-input
+            v-model="md5.text"
+            type="textarea"
+            style="width: 100%"
+            :autosize="{ minRows: 3 }"
+          />
+          <el-input
+            :value="hashByMD5(md5.text)"
+            style="width: 100%; margin-top: 10px"
+            readonly
+          />
+        </el-row>
+
+        <el-row v-show="transformType === 'qrcode'">
+          <el-input
+            v-model="qrcode.text"
+            type="textarea"
+            :autosize="{ minRows: 2 }"
+          />
+          <el-row style="margin-top: 10px" type="flex" align="middle">
+            <span style="width: 30px; font-size: 14px; margin-right: 10px">
+              Size
+            </span>
+            <el-input-number v-model="qrcode.width" />
+          </el-row>
+          <VueQrcode
+            class="text-align:center"
+            :value="qrcode.text"
+            :options="{ width: qrcode.width }"
+          />
+        </el-row>
+        <TheCronstrue v-model="transformType" />
+        <TheByteTransform v-model="transformType" />
+        <TheRGBTransform v-model="transformType" />
+      </el-row>
+    </el-dialog>
   </div>
 </template>
 
@@ -107,6 +192,15 @@
 import logo from '@/assets/images/logo.png'
 import Breadcrumb from '@/components/Breadcrumb/index.vue'
 import Hamburger from '@/components/Hamburger/index.vue'
+import VueQrcode from '@chenfengyuan/vue-qrcode'
+import { md5 as hashByMD5 } from '@/utils/md5'
+import TheDatetransform from './Toolbox/TheDatetransform.vue'
+import TheJSONPretty from './Toolbox/TheJSONPretty.vue'
+import TheRandomPWD from './Toolbox/TheRandomPWD.vue'
+import TheUnicode from './Toolbox/TheUnicode.vue'
+import TheCronstrue from './Toolbox/TheCronstrue.vue'
+import TheByteTransform from './Toolbox/TheByteTransform.vue'
+import TheRGBTransform from './Toolbox/TheRGBTransform.vue'
 import { ArrowDown } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import { useStore } from 'vuex'
@@ -114,8 +208,19 @@ import { useRouter } from 'vue-router'
 import { NamespaceUserData, NamespaceOption } from '@/api/namespace'
 import { getNamespace, setNamespace, removeNamespace } from '@/utils/namespace'
 import { ElLoading, ElMessage } from 'element-plus'
-import { ref, computed } from 'vue'
-
+import { ref, reactive, computed } from 'vue'
+const transformVisible = ref(false)
+const transformType = ref('')
+const qrcode = reactive({
+  text: 'https://github.com/zhenorzz/goploy',
+  width: 200,
+})
+const uri = reactive({
+  escape: '',
+})
+const md5 = reactive({
+  text: '',
+})
 const namespaceListLoading = ref(false)
 const namespaceList = ref<NamespaceOption['datagram']['list']>()
 const namespace = ref(getNamespace())
@@ -130,6 +235,12 @@ document.title = `Goploy-${namespace.value.name}`
 function toggleSideBar() {
   store.dispatch('app/toggleSideBar')
 }
+
+function showTransformDialog(type: string) {
+  transformVisible.value = true
+  transformType.value = type
+}
+
 function handleNamespaceVisible(visible: boolean) {
   if (visible === true) {
     namespaceListLoading.value = true
@@ -143,6 +254,7 @@ function handleNamespaceVisible(visible: boolean) {
       })
   }
 }
+
 function handleNamespaceChange(namespace: NamespaceUserData) {
   setNamespace({
     id: namespace.namespaceId,
@@ -152,6 +264,7 @@ function handleNamespaceChange(namespace: NamespaceUserData) {
   ElLoading.service({ fullscreen: true })
   location.reload()
 }
+
 function handleSetLanguage(lang: string) {
   locale.value = lang
   store.dispatch('app/setLanguage', lang)
@@ -175,7 +288,7 @@ async function logout() {
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
   &-logo {
     width: 25px;
-    float: left;
+    cursor: pointer;
     margin-left: 15px;
     margin-top: 11px;
   }
@@ -204,8 +317,9 @@ async function logout() {
   .international {
     display: inline-block;
     cursor: pointer;
+    margin-left: 20px;
     &-icon {
-      font-size: 18px;
+      font-size: 22px;
     }
     .el-dropdown {
       line-height: 50px;

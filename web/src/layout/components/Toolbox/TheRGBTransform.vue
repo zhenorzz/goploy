@@ -1,32 +1,34 @@
 <template>
   <el-row v-show="modelValue === 'color'">
-    <el-row type="flex" align="middle">
-      <span style="width: 40px; font-size: 14px; margin-right: 10px">
-        HEX
-      </span>
+    <el-row type="flex" align="middle" style="width: 100%">
       <el-input
         v-model="cHexExchange.hex"
-        style="width: 200px"
+        style="flex: 1"
         placeholder="#FFFFFF"
         clearable
         @keyup.enter="hexToRGB"
-      />
+      >
+        <template #prepend>HEX</template>
+      </el-input>
       <el-button type="primary" @click="hexToRGB">>></el-button>
-      <el-input v-model="cHexExchange.rgb" style="width: 200px" />
+      <el-input v-model="cHexExchange.rgb" style="flex: 1" readonly>
+        <template #prepend>RGB</template>
+      </el-input>
     </el-row>
-    <el-row style="margin-top: 10px" type="flex" align="middle">
-      <span style="width: 40px; font-size: 14px; margin-right: 10px">
-        RGB
-      </span>
+    <el-row style="width: 100%; margin-top: 10px" type="flex" align="middle">
       <el-input
         v-model="rgbExchange.rgb"
-        style="width: 200px"
+        style="flex: 1"
         placeholder="(255,255,255)"
         clearable
         @keyup.enter="rgbToHex"
-      />
+      >
+        <template #prepend>RGB</template>
+      </el-input>
       <el-button type="primary" @click="rgbToHex">>></el-button>
-      <el-input v-model="rgbExchange.hex" style="width: 200px" />
+      <el-input v-model="rgbExchange.hex" style="flex: 1" readonly>
+        <template #prepend>HEX</template>
+      </el-input>
     </el-row>
   </el-row>
 </template>
