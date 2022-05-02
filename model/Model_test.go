@@ -1,11 +1,9 @@
-package test
+package model
 
 import (
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/model"
 	"testing"
 )
 
@@ -20,14 +18,13 @@ func TestInitDB(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer db.Close()
-	if err := model.CreateDB(db, config.Toml.DB.Database); err != nil {
+	if err := CreateDB(db, config.Toml.DB.Database); err != nil {
 		t.Fatal(err)
 	}
-	if err := model.UserDB(db, config.Toml.DB.Database); err != nil {
+	if err := UserDB(db, config.Toml.DB.Database); err != nil {
 		t.Fatal(err)
 	}
-	if err := model.ImportSQL(db, "sql/goploy.sql"); err != nil {
+	if err := ImportSQL(db, "sql/goploy.sql"); err != nil {
 		t.Fatal(err)
 	}
 }
