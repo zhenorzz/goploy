@@ -62,30 +62,6 @@ func (sshConfig SSHConfig) Dial() (*ssh.Client, error) {
 	return sshClient, err
 }
 
-func (sshConfig SSHConfig) ToRsyncOption() string {
-	proxyCommand := ""
-	if sshConfig.JumpHost != "" {
-		if sshConfig.JumpPath != "" {
-			if sshConfig.JumpPassword != "" {
-				proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", sshConfig.Password, sshConfig.JumpPath, sshConfig.JumpPort, sshConfig.JumpUser, sshConfig.JumpHost)
-			} else {
-				proxyCommand = fmt.Sprintf("-o ProxyCommand='ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", sshConfig.JumpPath, sshConfig.JumpPort, sshConfig.JumpUser, sshConfig.JumpHost)
-			}
-		} else {
-			proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s ssh -o StrictHostKeyChecking=no -W %%h:%%p -p %d %s@%s' ", sshConfig.Password, sshConfig.JumpPort, sshConfig.JumpUser, sshConfig.JumpHost)
-		}
-	}
-	if sshConfig.Path != "" {
-		if sshConfig.Password != "" {
-			return fmt.Sprintf("sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no %s -p %d -i %s", sshConfig.Password, proxyCommand, sshConfig.Port, sshConfig.Path)
-		} else {
-			return fmt.Sprintf("ssh -o StrictHostKeyChecking=no %s -p %d -i %s", proxyCommand, sshConfig.Port, sshConfig.Path)
-		}
-	} else {
-		return fmt.Sprintf("sshpass -p %s ssh -o StrictHostKeyChecking=no %s -p %d", sshConfig.Password, proxyCommand, sshConfig.Port)
-	}
-}
-
 // version|cpu cores|mem
 
 func (sshConfig SSHConfig) GetOSInfo() string {

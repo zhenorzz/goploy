@@ -219,7 +219,7 @@ func (Deploy) FileCompare(gp *core.Goploy) core.Response {
 	for _, server := range projectServers {
 		go func(server model.ProjectServer) {
 			fileCompare := FileCompareData{server.ServerName, server.ServerIP, server.ServerID, "no change", false}
-			client, err := server.Convert2SSHConfig().Dial()
+			client, err := server.ToSSHConfig().Dial()
 			if err != nil {
 				fileCompare.Status = "client error"
 				ch <- fileCompare
@@ -472,7 +472,7 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 		ch := make(chan bool, len(projectServers))
 		for _, projectServer := range projectServers {
 			go func(projectServer model.ProjectServer) {
-				client, err := projectServer.Convert2SSHConfig().Dial()
+				client, err := projectServer.ToSSHConfig().Dial()
 				if err != nil {
 					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" dial err: "+err.Error())
 					ch <- false

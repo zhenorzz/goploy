@@ -5,6 +5,7 @@
 package model
 
 import (
+	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/zhenorzz/goploy/utils"
 )
@@ -125,7 +126,7 @@ func (ps ProjectServer) DeleteByProjectID() error {
 	return err
 }
 
-func (ps ProjectServer) Convert2SSHConfig() utils.SSHConfig {
+func (ps ProjectServer) ToSSHConfig() utils.SSHConfig {
 	return utils.SSHConfig{
 		User:         ps.ServerOwner,
 		Password:     ps.ServerPassword,
@@ -137,5 +138,29 @@ func (ps ProjectServer) Convert2SSHConfig() utils.SSHConfig {
 		JumpPath:     ps.ServerJumpPath,
 		JumpHost:     ps.ServerJumpIP,
 		JumpPort:     ps.ServerJumpPort,
+	}
+}
+
+func (ps ProjectServer) ToSSHOption() string {
+	proxyCommand := ""
+	if ps.ServerJumpIP != "" {
+		if ps.ServerJumpPath != "" {
+			if ps.ServerJumpPassword != "" {
+				proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", ps.ServerPassword, ps.ServerJumpPath, ps.ServerJumpPort, ps.ServerJumpOwner, ps.ServerJumpIP)
+			} else {
+				proxyCommand = fmt.Sprintf("-o ProxyCommand='ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", ps.ServerJumpPath, ps.ServerJumpPort, ps.ServerJumpOwner, ps.ServerJumpIP)
+			}
+		} else {
+			proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s ssh -o StrictHostKeyChecking=no -W %%h:%%p -p %d %s@%s' ", ps.ServerPassword, ps.ServerJumpPort, ps.ServerJumpOwner, ps.ServerJumpIP)
+		}
+	}
+	if ps.ServerPath != "" {
+		if ps.ServerPassword != "" {
+			return fmt.Sprintf("sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no %s -p %d -i %s", ps.ServerPassword, proxyCommand, ps.ServerPort, ps.ServerPath)
+		} else {
+			return fmt.Sprintf("ssh -o StrictHostKeyChecking=no %s -p %d -i %s", proxyCommand, ps.ServerPort, ps.ServerPath)
+		}
+	} else {
+		return fmt.Sprintf("sshpass -p %s ssh -o StrictHostKeyChecking=no %s -p %d", ps.ServerPassword, proxyCommand, ps.ServerPort)
 	}
 }

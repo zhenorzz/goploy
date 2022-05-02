@@ -261,7 +261,7 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			}
 			rsyncOption, _ := utils.ParseCommandLine(project.RsyncOption)
 			rsyncOption = append([]string{"--exclude", "goploy-after-pull.sh", "--include", "goploy-after-deploy.sh"}, rsyncOption...)
-			rsyncOption = append(rsyncOption, "-e", projectServer.Convert2SSHConfig().ToRsyncOption())
+			rsyncOption = append(rsyncOption, "-e", projectServer.ToSSHOption())
 			if len(project.SymlinkPath) != 0 {
 				destDir = path.Join(project.SymlinkPath, project.LastPublishToken)
 			}
@@ -344,7 +344,7 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			}{projectServer.ServerID, projectServer.ServerName, strings.Join(afterDeployCommands, ";")})
 			publishTraceModel.Ext = string(ext)
 
-			client, err := projectServer.Convert2SSHConfig().Dial()
+			client, err := projectServer.ToSSHConfig().Dial()
 			if err != nil {
 				core.Log(core.ERROR, err.Error())
 				publishTraceModel.Detail = err.Error()
@@ -577,7 +577,7 @@ func (gsync Gsync) removeExpiredBackup() {
 		wg.Add(1)
 		go func(projectServer model.ProjectServer) {
 			defer wg.Done()
-			client, err := projectServer.Convert2SSHConfig().Dial()
+			client, err := projectServer.ToSSHConfig().Dial()
 			if err != nil {
 				core.Log(core.ERROR, err.Error())
 				return
