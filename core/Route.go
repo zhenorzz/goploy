@@ -23,14 +23,12 @@ import (
 	"strings"
 )
 
-type Namespace struct {
-	ID            int64
-	PermissionIDs map[int64]struct{}
-}
-
 type Goploy struct {
-	UserInfo       model.User
-	Namespace      Namespace
+	UserInfo  model.User
+	Namespace struct {
+		ID            int64
+		PermissionIDs map[int64]struct{}
+	}
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
 	URLQuery       url.Values
@@ -211,10 +209,8 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 			if err != nil {
 				return gp, response.JSON{Code: response.Deny, Message: err.Error()}
 			}
-			gp.Namespace = Namespace{
-				ID:            namespaceID,
-				PermissionIDs: permissionIDs,
-			}
+			gp.Namespace.ID = namespaceID
+			gp.Namespace.PermissionIDs = permissionIDs
 		} else {
 			namespace, err := model.NamespaceUser{
 				NamespaceID: namespaceID,
@@ -227,10 +223,8 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 					return gp, response.JSON{Code: response.Deny, Message: err.Error()}
 				}
 			}
-			gp.Namespace = Namespace{
-				ID:            namespaceID,
-				PermissionIDs: namespace.PermissionIDs,
-			}
+			gp.Namespace.ID = namespaceID
+			gp.Namespace.PermissionIDs = namespace.PermissionIDs
 		}
 
 		if err = route.hasPermission(gp.Namespace.PermissionIDs); err != nil {
