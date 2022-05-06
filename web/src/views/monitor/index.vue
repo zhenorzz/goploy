@@ -224,7 +224,7 @@
             </el-select>
           </el-form-item>
           <el-form-item :label="$t('script')">
-            <v-ace-editor
+            <VAceEditor
               v-model:value="formProps.script"
               lang="sh"
               theme="github"
@@ -330,6 +330,9 @@ import { Button, Switch } from '@/components/Permission'
 import { Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { VAceEditor } from 'vue3-ace-editor'
 import 'ace-builds/src-noconflict/mode-sh'
+import 'ace-builds/src-noconflict/mode-python'
+import 'ace-builds/src-noconflict/mode-php'
+import 'ace-builds/src-noconflict/mode-batchfile'
 import 'ace-builds/src-noconflict/theme-github'
 import { ServerOption } from '@/api/server'
 import {

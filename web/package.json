@@ -27,7 +27,7 @@
     "vue": "^3.2.31",
     "vue-i18n": "^9.1.6",
     "vue-router": "^4.0.6",
-    "vue3-ace-editor": "^2.0.2",
+    "vue3-ace-editor": "^2.2.2",
     "vuex": "^4.0.0",
     "xterm": "^4.12.0",
     "xterm-addon-attach": "^0.6.0",
