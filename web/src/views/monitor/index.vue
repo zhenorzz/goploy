@@ -329,11 +329,7 @@ import pms from '@/permission'
 import { Button, Switch } from '@/components/Permission'
 import { Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { VAceEditor } from 'vue3-ace-editor'
-import 'ace-builds/src-noconflict/mode-sh'
-import 'ace-builds/src-noconflict/mode-python'
-import 'ace-builds/src-noconflict/mode-php'
-import 'ace-builds/src-noconflict/mode-batchfile'
-import 'ace-builds/src-noconflict/theme-github'
+import * as ace from 'ace-builds/src-noconflict/ace'
 import { ServerOption } from '@/api/server'
 import {
   MonitorList,
@@ -351,6 +347,14 @@ import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const store = useStore()
+ace.config.set(
+  'basePath',
+  'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
+)
+ace.config.set(
+  'themePath',
+  'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
+)
 const dialogVisible = ref(false)
 const monitorName = ref('')
 const tableLoading = ref(false)

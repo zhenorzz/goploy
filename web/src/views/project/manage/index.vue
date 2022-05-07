@@ -697,11 +697,7 @@ import {
   Delete,
 } from '@element-plus/icons-vue'
 import { VAceEditor } from 'vue3-ace-editor'
-import 'ace-builds/src-noconflict/mode-sh'
-import 'ace-builds/src-noconflict/mode-python'
-import 'ace-builds/src-noconflict/mode-php'
-import 'ace-builds/src-noconflict/mode-batchfile'
-import 'ace-builds/src-noconflict/theme-github'
+import * as ace from 'ace-builds/src-noconflict/ace'
 import path from 'path-browserify'
 import RepoURL from '@/components/RepoURL/index.vue'
 import { isLink, hideURLPwd } from '@/utils'
@@ -724,6 +720,14 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
+ace.config.set(
+  'basePath',
+  'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
+)
+ace.config.set(
+  'themePath',
+  'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
+)
 const scriptLangOption = [
   { label: 'sh', value: 'sh', lang: 'sh' },
   { label: 'zsh', value: 'zsh', lang: 'sh' },
