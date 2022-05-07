@@ -89,7 +89,7 @@ func monitorTask() {
 						_ = monitor.TurnOff(monitorErrorContent)
 						ws.GetHub().Data <- &ws.Data{
 							Type:    ws.TypeMonitor,
-							Message: ws.MonitorMessage{MonitorID: monitor.ID, State: ws.MonitorTurnOff, ErrorContent: err.Error()},
+							Message: ws.MonitorMessage{MonitorID: monitor.ID, State: ws.MonitorTurnOff, ErrorContent: monitorErrorContent},
 						}
 					}
 				}
