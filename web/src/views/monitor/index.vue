@@ -511,6 +511,7 @@ function handleAdd() {
 function handleEdit(data: MonitorData) {
   formData.value = Object.assign({}, data)
   formProps.value = Object.assign(formProps.value, JSON.parse(data.target))
+  handleTypeChange(formData.value.type)
   dialogVisible.value = true
 }
 
