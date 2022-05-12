@@ -55,7 +55,6 @@ func (hub *Hub) Sftp(gp *core.Goploy) core.Response {
 	}
 	defer client.Close()
 
-	//此时获取了sshClient，下面使用sshClient构建sftpClient
 	sftpClient, err := sftp.NewClient(client)
 	if err != nil {
 		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))

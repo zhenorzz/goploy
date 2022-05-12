@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS `project`  (
   `after_pull_script` text NOT NULL COMMENT '',
   `after_deploy_script_mode` varchar(20) NOT NULL DEFAULT '' COMMENT 'sh|php|py|...',
   `after_deploy_script` text NOT NULL COMMENT '',
-  `rsync_option` varchar(2000) NOT NULL DEFAULT '' COMMENT 'rsync options',
+  `transfer_type` varchar(255) NOT NULL DEFAULT '',
+  `transfer_option` varchar(255) NOT NULL DEFAULT '',
   `auto_deploy` tinyint(4) UNSIGNED NOT NULL DEFAULT 1 COMMENT '0.disable 1.webhook',
   `state` tinyint(4) UNSIGNED NOT NULL DEFAULT 1 COMMENT '0.disable 1.enable',
   `deploy_state` tinyint(4) UNSIGNED NOT NULL DEFAULT 0 COMMENT '0.not deploy 1.deploying 2.success 3.fail',
@@ -347,7 +348,7 @@ CREATE TABLE IF NOT EXISTS `terminal_log` (
 INSERT IGNORE INTO `user`(`id`, `account`, `password`, `name`, `contact`, `state`, `super_manager`) VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '', 1, 1);
 INSERT IGNORE INTO `namespace`(`id`, `name`) VALUES (1, 'goploy');
 INSERT IGNORE INTO `namespace_user`(`id`, `namespace_id`, `user_id`, `role_id`) VALUES (1, 1, 1, 0);
-INSERT IGNORE INTO `system_config` (`id`, `key`, `value`) VALUES (1, 'version', '1.7.1');
+INSERT IGNORE INTO `system_config` (`id`, `key`, `value`) VALUES (1, 'version', '1.8.0');
 INSERT IGNORE INTO `role`(`id`, `name`, `description`) VALUES (1, 'manager', '');
 INSERT IGNORE INTO `role`(`id`, `name`, `description`) VALUES (2, 'member', '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (1, 0, 'Log', 0, '');

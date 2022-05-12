@@ -56,7 +56,7 @@ Use Goploy to automate your development workflow, so you can focus on work that 
 Goploy 用于:
 
 - 构建项目
-- 发布项目
+- 发布项目到unix、windows
 - 支持git、svn、ftp、sftp
 - 基于角色的访问控制RBAC
 - 监控http、tcp、process

@@ -20,13 +20,11 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 )
 
-// Gsync -
 type Gsync struct {
 	UserInfo       model.User
 	Project        model.Project
@@ -238,9 +236,6 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 	for _, projectServer := range gsync.ProjectServers {
 		go func(projectServer model.ProjectServer) {
 			project := gsync.Project
-			userInfo := gsync.UserInfo
-			remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
-			destDir := project.Path
 			ext, _ := json.Marshal(struct {
 				ServerID   int64  `json:"serverId"`
 				ServerName string `json:"serverName"`
@@ -249,8 +244,8 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 				Token:         project.LastPublishToken,
 				ProjectID:     project.ID,
 				ProjectName:   project.Name,
-				PublisherID:   userInfo.ID,
-				PublisherName: userInfo.Name,
+				PublisherID:   gsync.UserInfo.ID,
+				PublisherName: gsync.UserInfo.Name,
 				Type:          model.Deploy,
 				Ext:           string(ext),
 			}
@@ -259,56 +254,40 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 				scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
 				_ = ioutil.WriteFile(scriptName, []byte(ReplaceProjectVars(project.AfterDeployScript, project)), 0755)
 			}
-			rsyncOption, _ := utils.ParseCommandLine(project.RsyncOption)
-			rsyncOption = append([]string{"--exclude", "goploy-after-pull.sh", "--include", "goploy-after-deploy.sh"}, rsyncOption...)
-			rsyncOption = append(rsyncOption, "-e", projectServer.ToSSHOption())
-			if len(project.SymlinkPath) != 0 {
-				destDir = path.Join(project.SymlinkPath, project.LastPublishToken)
-			}
-			srcPath := core.GetProjectPath(project.ID) + "/"
-			// rsync path can not contain colon
-			// windows like C:\
-			if strings.Contains(srcPath, ":\\") {
-				srcPath = "/cygdrive/" + strings.Replace(srcPath, ":\\", "/", 1)
-			}
-			destPath := remoteMachine + ":" + destDir
-			rsyncOption = append(rsyncOption, "--rsync-path=mkdir -p "+destDir+" && rsync", srcPath, destPath)
-			logRsyncCmd := regexp.MustCompile(`sshpass -p .*\s`).
-				ReplaceAllString("rsync "+strings.Join(rsyncOption, " "), "sshpass -p ***** ")
+			transmitter := GetTransmitter(project, projectServer)
+
+			logCmd := transmitter.String()
 			// example
 			// rsync -rtv -e "ssh -o StrictHostKeyChecking=no -p 22 -i C:\Users\Administrator\.ssh\id_rsa" --rsync-path="mkdir -p /data/www/test && rsync" ./main.go root@127.0.0.1:/tmp/test/
-			core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+logRsyncCmd)
+			core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+logCmd)
 			ext, _ = json.Marshal(struct {
 				ServerID   int64  `json:"serverId"`
 				ServerName string `json:"serverName"`
 				Command    string `json:"command"`
-			}{projectServer.ServerID, projectServer.ServerName, logRsyncCmd})
+			}{projectServer.ServerID, projectServer.ServerName, logCmd})
 			publishTraceModel.Ext = string(ext)
 
-			cmd := exec.Command("rsync", rsyncOption...)
-			var outbuf, errbuf bytes.Buffer
-			cmd.Stdout = &outbuf
-			cmd.Stderr = &errbuf
-			if err := cmd.Run(); err != nil {
-				core.Log(core.ERROR, "err: "+err.Error()+", detail: "+errbuf.String())
-				publishTraceModel.Detail = "err: " + err.Error() + ", detail: " + errbuf.String()
+			if transmitterOutput, err := transmitter.Exec(); err != nil {
+				core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
+				publishTraceModel.Detail = err.Error()
 				publishTraceModel.State = model.Fail
 				publishTraceModel.AddRow()
 				msgChIn <- syncMessage{
 					serverName: projectServer.ServerName,
 					projectID:  project.ID,
-					detail:     "err: " + err.Error() + ", detail: " + errbuf.String(),
+					detail:     err.Error(),
 					state:      model.ProjectFail,
 				}
 				return
+			} else {
+				publishTraceModel.Detail = transmitterOutput
+				publishTraceModel.State = model.Success
+				publishTraceModel.AddRow()
 			}
-
-			publishTraceModel.Detail = outbuf.String()
-			publishTraceModel.State = model.Success
-			publishTraceModel.AddRow()
 
 			var afterDeployCommands []string
 			if len(project.SymlinkPath) != 0 {
+				destDir := project.Path
 				// use relative path to fix docker symlink
 				relativeDestDir := strings.Replace(destDir, path.Dir(project.Path), ".", 1)
 				afterDeployCommands = append(afterDeployCommands, "ln -sfn "+relativeDestDir+" "+project.Path)
@@ -318,12 +297,18 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 
 			if len(project.AfterDeployScript) != 0 {
 				scriptMode := "bash"
+				rmCmd := "rm -f "
 				if len(project.AfterDeployScriptMode) != 0 {
 					scriptMode = project.AfterDeployScriptMode
 				}
 				afterDeployScriptPath := path.Join(project.Path, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
+				if scriptMode == "cmd" {
+					scriptMode = ""
+					rmCmd = "del "
+					afterDeployScriptPath = strings.ReplaceAll(afterDeployScriptPath, "/", "\\")
+				}
 				afterDeployCommands = append(afterDeployCommands, scriptMode+" "+afterDeployScriptPath)
-				afterDeployCommands = append(afterDeployCommands, "rm -f "+afterDeployScriptPath)
+				afterDeployCommands = append(afterDeployCommands, rmCmd+afterDeployScriptPath)
 			}
 
 			// no symlink and deploy script
@@ -335,13 +320,13 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 				}
 				return
 			}
-
+			completeAfterDeployCmd := strings.Join(afterDeployCommands, "&&")
 			publishTraceModel.Type = model.AfterDeploy
 			ext, _ = json.Marshal(struct {
 				ServerID   int64  `json:"serverId"`
 				ServerName string `json:"serverName"`
 				Script     string `json:"script"`
-			}{projectServer.ServerID, projectServer.ServerName, strings.Join(afterDeployCommands, ";")})
+			}{projectServer.ServerID, projectServer.ServerName, completeAfterDeployCmd})
 			publishTraceModel.Ext = string(ext)
 
 			client, err := projectServer.ToSSHConfig().Dial()
@@ -375,27 +360,28 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 				return
 			}
 			defer session.Close()
-
-			var sshOutbuf, sshErrbuf bytes.Buffer
-			session.Stdout = &sshOutbuf
-			session.Stderr = &sshErrbuf
-			if err := session.Run(strings.Join(afterDeployCommands, "&&")); err != nil {
-				core.Log(core.ERROR, "ssh exec err: "+err.Error())
-				publishTraceModel.Detail = "err: " + err.Error() + ", detail: " + sshErrbuf.String()
+			core.Log(core.TRACE, fmt.Sprintf("projectID: %d ssh exec: %s", project.ID, completeAfterDeployCmd))
+			if output, err := session.CombinedOutput(completeAfterDeployCmd); err != nil {
+				core.Log(core.ERROR, fmt.Sprintf("projectID: %d ssh exec err: %s, output: %s", project.ID, err.Error(), output))
+				publishTraceModel.Detail = fmt.Sprintf("%s\noutput: %s", err.Error(), output)
 				publishTraceModel.State = model.Fail
-				publishTraceModel.AddRow()
+				if _, err := publishTraceModel.AddRow(); err != nil {
+					core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
+				}
 				msgChIn <- syncMessage{
 					serverName: projectServer.ServerName,
 					projectID:  project.ID,
-					detail:     err.Error(),
+					detail:     fmt.Sprintf("%s\noutput: %s", err.Error(), output),
 					state:      model.ProjectFail,
 				}
 				return
+			} else {
+				publishTraceModel.Detail = string(output)
+				publishTraceModel.State = model.Success
+				if _, err := publishTraceModel.AddRow(); err != nil {
+					core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
+				}
 			}
-
-			publishTraceModel.Detail = sshOutbuf.String()
-			publishTraceModel.State = model.Success
-			publishTraceModel.AddRow()
 
 			msgChIn <- syncMessage{
 				serverName: projectServer.ServerName,

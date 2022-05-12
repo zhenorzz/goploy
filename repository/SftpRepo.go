@@ -95,12 +95,12 @@ func (sftpRepo SftpRepo) Follow(project model.Project, _ string) error {
 					return err
 				}
 				_, err = io.Copy(localFile, remoteFile)
+				localFile.Close()
+				remoteFile.Close()
 				if err != nil {
 					println(nextLocalDir, nextRemoteDir)
 					return err
 				}
-				localFile.Close()
-				remoteFile.Close()
 			}
 		}
 		return nil

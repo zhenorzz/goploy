@@ -302,7 +302,8 @@ func (Project) Add(gp *core.Goploy) core.Response {
 		AfterPullScript       string  `json:"afterPullScript"`
 		AfterDeployScriptMode string  `json:"afterDeployScriptMode"`
 		AfterDeployScript     string  `json:"afterDeployScript"`
-		RsyncOption           string  `json:"rsyncOption"`
+		TransferType          string  `json:"transferType"`
+		TransferOption        string  `json:"transferOption"`
 		ServerIDs             []int64 `json:"serverIds"`
 		UserIDs               []int64 `json:"userIds"`
 		NotifyType            uint8   `json:"notifyType"`
@@ -313,8 +314,8 @@ func (Project) Add(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if _, err := utils.ParseCommandLine(reqData.RsyncOption); err != nil {
-		return response.JSON{Code: response.Error, Message: "Invalid rsync option format"}
+	if _, err := utils.ParseCommandLine(reqData.TransferOption); err != nil {
+		return response.JSON{Code: response.Error, Message: "Invalid transfer option format"}
 	}
 
 	projectID, err := model.Project{
@@ -333,7 +334,8 @@ func (Project) Add(gp *core.Goploy) core.Response {
 		AfterPullScript:       reqData.AfterPullScript,
 		AfterDeployScriptMode: reqData.AfterDeployScriptMode,
 		AfterDeployScript:     reqData.AfterDeployScript,
-		RsyncOption:           reqData.RsyncOption,
+		TransferType:          reqData.TransferType,
+		TransferOption:        reqData.TransferOption,
 		NotifyType:            reqData.NotifyType,
 		NotifyTarget:          reqData.NotifyTarget,
 	}.AddRow()
@@ -386,7 +388,8 @@ func (Project) Edit(gp *core.Goploy) core.Response {
 		AfterPullScript       string  `json:"afterPullScript"`
 		AfterDeployScriptMode string  `json:"afterDeployScriptMode"`
 		AfterDeployScript     string  `json:"afterDeployScript"`
-		RsyncOption           string  `json:"rsyncOption"`
+		TransferType          string  `json:"transferType"`
+		TransferOption        string  `json:"transferOption"`
 		NotifyType            uint8   `json:"notifyType"`
 		NotifyTarget          string  `json:"notifyTarget"`
 	}
@@ -395,8 +398,8 @@ func (Project) Edit(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if _, err := utils.ParseCommandLine(reqData.RsyncOption); err != nil {
-		return response.JSON{Code: response.Error, Message: "Invalid rsync option format"}
+	if _, err := utils.ParseCommandLine(reqData.TransferOption); err != nil {
+		return response.JSON{Code: response.Error, Message: "Invalid option format"}
 	}
 
 	projectData, err := model.Project{ID: reqData.ID}.GetData()
@@ -420,7 +423,8 @@ func (Project) Edit(gp *core.Goploy) core.Response {
 		AfterPullScript:       reqData.AfterPullScript,
 		AfterDeployScriptMode: reqData.AfterDeployScriptMode,
 		AfterDeployScript:     reqData.AfterDeployScript,
-		RsyncOption:           reqData.RsyncOption,
+		TransferType:          reqData.TransferType,
+		TransferOption:        reqData.TransferOption,
 		NotifyType:            reqData.NotifyType,
 		NotifyTarget:          reqData.NotifyTarget,
 	}.EditRow()

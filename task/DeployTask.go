@@ -27,14 +27,13 @@ func startDeployTask() {
 			case <-deployTick:
 				if atomic.LoadInt32(&deployingNumber) < config.Toml.APP.DeployLimit {
 					atomic.AddInt32(&deployingNumber, 1)
-					deployElem := deployList.Front()
-					if deployElem != nil {
+					if deployElem := deployList.Front(); deployElem != nil {
 						wg.Add(1)
-						go func() {
-							deployList.Remove(deployElem).(service.Gsync).Exec()
+						go func(gsync service.Gsync) {
+							gsync.Exec()
 							atomic.AddInt32(&deployingNumber, -1)
 							wg.Done()
-						}()
+						}(deployList.Remove(deployElem).(service.Gsync))
 					} else {
 						atomic.AddInt32(&deployingNumber, -1)
 					}
@@ -48,10 +47,10 @@ func startDeployTask() {
 	}()
 }
 
-func AddDeployTask(gSync service.Gsync) {
+func AddDeployTask(gsync service.Gsync) {
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
-		Message: ws.ProjectMessage{ProjectID: gSync.Project.ID, ProjectName: gSync.Project.Name, State: ws.TaskWaiting, Message: "Task waiting"},
+		Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.TaskWaiting, Message: "Task waiting"},
 	}
-	deployList.PushBack(gSync)
+	deployList.PushBack(gsync)
 }

@@ -11,7 +11,6 @@ import (
 
 const projectTable = "`project`"
 
-// Project -
 type Project struct {
 	ID                    int64  `json:"id"`
 	NamespaceID           int64  `json:"namespaceId"`
@@ -30,7 +29,8 @@ type Project struct {
 	AfterPullScript       string `json:"afterPullScript"`
 	AfterDeployScriptMode string `json:"afterDeployScriptMode"`
 	AfterDeployScript     string `json:"afterDeployScript"`
-	RsyncOption           string `json:"rsyncOption"`
+	TransferType          string `json:"transferType"`
+	TransferOption        string `json:"transferOption"`
 	AutoDeploy            uint8  `json:"autoDeploy"`
 	PublisherID           int64  `json:"publisherId"`
 	PublisherName         string `json:"publisherName"`
@@ -73,10 +73,8 @@ const (
 	NotifyCustom   = 255
 )
 
-// Projects -
 type Projects []Project
 
-// AddRow return LastInsertId
 func (p Project) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(projectTable).
@@ -96,7 +94,8 @@ func (p Project) AddRow() (int64, error) {
 			"after_pull_script",
 			"after_deploy_script_mode",
 			"after_deploy_script",
-			"rsync_option",
+			"transfer_type",
+			"transfer_option",
 			"notify_type",
 			"notify_target",
 		).
@@ -116,7 +115,8 @@ func (p Project) AddRow() (int64, error) {
 			p.AfterPullScript,
 			p.AfterDeployScriptMode,
 			p.AfterDeployScript,
-			p.RsyncOption,
+			p.TransferType,
+			p.TransferOption,
 			p.NotifyType,
 			p.NotifyTarget,
 		).
@@ -129,7 +129,6 @@ func (p Project) AddRow() (int64, error) {
 	return id, err
 }
 
-// EditRow -
 func (p Project) EditRow() error {
 	_, err := sq.
 		Update(projectTable).
@@ -148,7 +147,8 @@ func (p Project) EditRow() error {
 			"after_pull_script":        p.AfterPullScript,
 			"after_deploy_script_mode": p.AfterDeployScriptMode,
 			"after_deploy_script":      p.AfterDeployScript,
-			"rsync_option":             p.RsyncOption,
+			"transfer_type":            p.TransferType,
+			"transfer_option":          p.TransferOption,
 			"notify_type":              p.NotifyType,
 			"notify_target":            p.NotifyTarget,
 		}).
@@ -158,7 +158,6 @@ func (p Project) EditRow() error {
 	return err
 }
 
-// SetAutoDeploy set auto_deploy
 func (p Project) SetAutoDeploy() error {
 	_, err := sq.
 		Update(projectTable).
@@ -172,7 +171,6 @@ func (p Project) SetAutoDeploy() error {
 	return err
 }
 
-// RemoveRow -
 func (p Project) RemoveRow() error {
 	_, err := sq.
 		Update(projectTable).
@@ -185,7 +183,6 @@ func (p Project) RemoveRow() error {
 	return err
 }
 
-// Publish project
 func (p Project) Publish() error {
 	_, err := sq.
 		Update(projectTable).
@@ -261,7 +258,8 @@ func (p Project) GetList() (Projects, error) {
 			after_pull_script,
 			after_deploy_script_mode,
 			after_deploy_script,
-			rsync_option,
+			transfer_type,
+			transfer_option,
 			auto_deploy,
 			notify_type, 
 			notify_target,
@@ -308,7 +306,8 @@ func (p Project) GetList() (Projects, error) {
 			&project.AfterPullScript,
 			&project.AfterDeployScriptMode,
 			&project.AfterDeployScript,
-			&project.RsyncOption,
+			&project.TransferType,
+			&project.TransferOption,
 			&project.AutoDeploy,
 			&project.NotifyType,
 			&project.NotifyTarget,
@@ -329,6 +328,7 @@ func (p Project) GetDeployList() (Projects, error) {
 			project.id, 
 			project.name,
 			project.repo_type,
+			project.transfer_type,
 			project.url,
 			project.publisher_id,
 			project.publisher_name,
@@ -369,6 +369,7 @@ func (p Project) GetDeployList() (Projects, error) {
 			&project.ID,
 			&project.Name,
 			&project.RepoType,
+			&project.TransferType,
 			&project.URL,
 			&project.PublisherID,
 			&project.PublisherName,
@@ -389,7 +390,6 @@ func (p Project) GetDeployList() (Projects, error) {
 
 }
 
-// GetData -
 func (p Project) GetData() (Project, error) {
 	var project Project
 	err := sq.
@@ -410,7 +410,8 @@ func (p Project) GetData() (Project, error) {
 			after_pull_script, 
 			after_deploy_script_mode, 
 			after_deploy_script, 
-			rsync_option, 
+			transfer_type, 
+			transfer_option, 
 			auto_deploy, 
 			deploy_state, 
 			notify_type, 
@@ -440,7 +441,8 @@ func (p Project) GetData() (Project, error) {
 			&project.AfterPullScript,
 			&project.AfterDeployScriptMode,
 			&project.AfterDeployScript,
-			&project.RsyncOption,
+			&project.TransferType,
+			&project.TransferOption,
 			&project.AutoDeploy,
 			&project.DeployState,
 			&project.NotifyType,
@@ -454,7 +456,6 @@ func (p Project) GetData() (Project, error) {
 	return project, nil
 }
 
-// GetUserProjectData -
 func (p Project) GetUserProjectData() (Project, error) {
 	var project Project
 	err := sq.
