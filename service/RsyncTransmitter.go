@@ -5,7 +5,6 @@
 package service
 
 import (
-	"bytes"
 	"errors"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
@@ -52,7 +51,7 @@ func (rt rsyncTransmitter) Args() []string {
 
 func (rt rsyncTransmitter) String() string {
 	logRsyncCmd := regexp.MustCompile(`sshpass -p .*\s`).
-		ReplaceAllString("rsync "+strings.Join(rt.Args(), " "), "sshpass -p ***** ")
+		ReplaceAllString(exec.Command("rsync", rt.Args()...).String(), "sshpass -p ***** ")
 	return logRsyncCmd
 }
 
@@ -60,11 +59,9 @@ func (rt rsyncTransmitter) Exec() (string, error) {
 	// example
 	// rsync -rtv -e "ssh -o StrictHostKeyChecking=no -p 22 -i C:\Users\Administrator\.ssh\id_rsa" --rsync-path="mkdir -p /data/www/test && rsync" ./main.go root@127.0.0.1:/tmp/test/
 	cmd := exec.Command("rsync", rt.Args()...)
-	var outbuf, errbuf bytes.Buffer
-	cmd.Stdout = &outbuf
-	cmd.Stderr = &errbuf
-	if err := cmd.Run(); err != nil {
-		return outbuf.String(), errors.New("err: " + err.Error() + ", detail: " + errbuf.String())
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return "", errors.New("err: " + err.Error() + "\noutput: " + string(output))
+	} else {
+		return string(output), nil
 	}
-	return outbuf.String(), nil
 }

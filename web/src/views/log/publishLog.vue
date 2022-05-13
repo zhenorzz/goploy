@@ -178,7 +178,7 @@
               <template v-else-if="trace.type === 5">
                 <el-row style="margin: 5px 0">
                   <div class="project-title">
-                    <span style="margin-right: 5px">Rsync</span>
+                    <span style="margin-right: 5px">Sync</span>
                     <span v-if="trace.state === 1" class="icon-success"></span>
                     <span v-else class="icon-fail"></span>
                   </div>

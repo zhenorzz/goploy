@@ -295,8 +295,11 @@
   "projectPage": {
     "testConnection": "测试连接",
     "lishBranch": "列出分支",
+    "transferType": "传输方式",
+    "transferOption": "传输选项",
     "scriptMode": "脚本类型",
     "rsyncDoc": "https://docs.goploy.icu/#/dependency/rsync",
+    "sftpDoc": "https://docs.goploy.icu/#/dependency/sftp",
     "deployNotice": "构建通知",
     "publishReview": "发布审核",
     "reviewFooterTips": "只有成员构建项目才会触发审核\n审核方式：\n1. 前往构建发布页面进行审核\n2. 推送到URL:http(s)://domain?custom-param=1&callback=***\n3. http get callback的值即可完成审核\n重复访问callback只会发布一次，并且发布过不会再次发布",

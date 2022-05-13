@@ -18,7 +18,8 @@ export interface ProjectData {
   afterPullScript: string
   afterDeployScriptMode: string
   afterDeployScript: string
-  rsyncOption: string
+  transferType: string
+  transferOption: string
   autoDeploy: number
   publisherId: number
   publisherName: string
@@ -158,7 +159,8 @@ export class ProjectAdd extends Request {
     afterPullScript: string
     afterDeployScriptMode: string
     afterDeployScript: string
-    rsyncOption: string
+    transferType: string
+    transferOption: string
     serverIds: number[]
     userIds: number[]
     notifyType: number
@@ -188,7 +190,8 @@ export class ProjectEdit extends Request {
     afterPullScript: string
     afterDeployScriptMode: string
     afterDeployScript: string
-    rsyncOption: string
+    transferType: string
+    transferOption: string
     notifyType: number
     notifyTarget: string
   }

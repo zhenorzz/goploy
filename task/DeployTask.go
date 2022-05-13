@@ -7,6 +7,7 @@ package task
 import (
 	"container/list"
 	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/service"
 	"github.com/zhenorzz/goploy/ws"
 	"sync"
@@ -49,8 +50,25 @@ func startDeployTask() {
 
 func AddDeployTask(gsync service.Gsync) {
 	ws.GetHub().Data <- &ws.Data{
-		Type:    ws.TypeProject,
-		Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.TaskWaiting, Message: "Task waiting"},
+		Type: ws.TypeProject,
+		Message: ws.ProjectMessage{
+			ProjectID:   gsync.Project.ID,
+			ProjectName: gsync.Project.Name,
+			State:       ws.TaskWaiting,
+			Message:     "Task waiting",
+			Ext: struct {
+				LastPublishToken string `json:"lastPublishToken"`
+			}{gsync.Project.LastPublishToken},
+		},
 	}
+	model.PublishTrace{
+		Token:         gsync.Project.LastPublishToken,
+		ProjectID:     gsync.Project.ID,
+		ProjectName:   gsync.Project.Name,
+		PublisherID:   gsync.UserInfo.ID,
+		PublisherName: gsync.UserInfo.Name,
+		Type:          model.QUEUE,
+		State:         model.Success,
+	}.AddRow()
 	deployList.PushBack(gsync)
 }

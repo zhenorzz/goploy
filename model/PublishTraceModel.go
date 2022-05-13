@@ -34,6 +34,8 @@ type PublishTraces []PublishTrace
 
 // publish trace state
 const (
+	QUEUE = 0
+
 	BeforePull = 1
 
 	Pull = 2
@@ -182,10 +184,14 @@ func (pt PublishTrace) GetPreview(
 	pagination Pagination,
 ) (PublishTraces, Pagination, error) {
 	builder := sq.
-		Select("id, token, project_id, project_name, state, publisher_id, publisher_name, type, ext, insert_time, update_time").
-		Column("!EXISTS (SELECT id FROM " + publishTraceTable + " AS pt where pt.state = 0 AND pt.token = publish_trace.token) as publish_state").
-		From(publishTraceTable).
-		Where(sq.Eq{"type": Pull})
+		Select(
+			"token",
+			"MIN(publisher_name) publisher_name",
+			"MIN(state) publish_state",
+			"GROUP_CONCAT(IF(type = 2 and ext != '', JSON_EXTRACT(ext, '$.commit') , '') SEPARATOR '') as ext",
+			"MIN(update_time) update_time",
+		).
+		From(publishTraceTable)
 	if pt.ProjectID != 0 {
 		builder = builder.Where(sq.Eq{"project_id": pt.ProjectID})
 	}
@@ -211,6 +217,7 @@ func (pt PublishTrace) GetPreview(
 		builder = builder.Having(sq.Eq{"publish_state": pt.PublishState})
 	}
 	rows, err := builder.RunWith(DB).
+		GroupBy("token").
 		OrderBy("update_time DESC").
 		Limit(pagination.Rows).
 		Offset((pagination.Page - 1) * pagination.Rows).
@@ -223,18 +230,11 @@ func (pt PublishTrace) GetPreview(
 		var publishTrace PublishTrace
 
 		if err := rows.Scan(
-			&publishTrace.ID,
 			&publishTrace.Token,
-			&publishTrace.ProjectID,
-			&publishTrace.ProjectName,
-			&publishTrace.State,
-			&publishTrace.PublisherID,
 			&publishTrace.PublisherName,
-			&publishTrace.Type,
+			&publishTrace.PublishState,
 			&publishTrace.Ext,
-			&publishTrace.InsertTime,
-			&publishTrace.UpdateTime,
-			&publishTrace.PublishState); err != nil {
+			&publishTrace.UpdateTime); err != nil {
 			return nil, pagination, err
 		}
 		publishTraces = append(publishTraces, publishTrace)

@@ -3,7 +3,8 @@
     v-model="dialogVisible"
     :title="$t('detail')"
     :fullscreen="$store.state.app.device === 'mobile'"
-    @close="filterInpurtVisible = false"
+    width="75%"
+    @close="onClose"
   >
     <el-row type="flex">
       <div v-loading="filterloading" class="publish-preview">
@@ -152,14 +153,27 @@
               <el-radio class="publish-commit" :label="item.token" border>
                 <span class="publish-name">{{ item.publisherName }}</span>
                 <span class="publish-commitID">
-                  commitID: {{ item.commit }}
+                  <span v-if="projectRow.repoType === 'svn'">
+                    revision: {{ item['commit'] }}
+                  </span>
+                  <span v-else-if="projectRow.repoType === 'sftp'">
+                    uuid: {{ item['token'].substring(0, 6) }}
+                  </span>
+                  <span v-else-if="projectRow.repoType === 'ftp'">
+                    uuid: {{ item['token'].substring(0, 6) }}
+                  </span>
+                  <span v-else>commitID: {{ item['commit'] }}</span>
                 </span>
-                <span
+                <SvgIcon
                   v-if="item.publishState === 1"
-                  class="icon-success"
-                  style="float: right"
-                />
-                <span v-else class="icon-fail" style="float: right" />
+                  style="color: #67c23a; font-size: 15px; float: right"
+                  icon-class="check"
+                ></SvgIcon>
+                <SvgIcon
+                  v-else
+                  style="color: #f56c6c; font-size: 15px; float: right"
+                  icon-class="close"
+                ></SvgIcon>
               </el-radio>
               <el-button type="danger" plain @click="rebuild(item)">
                 rollback
@@ -240,11 +254,8 @@
               <div>Script:</div>
               <pre style="white-space: pre-line">{{ item.script }}</pre>
             </el-row>
-            <el-row
-              v-loading="traceDetail[item.id] === ''"
-              style="margin: 5px 0"
-            >
-              <span style="padding: 5px 0">[goploy ~]#</span>
+            <div v-loading="traceDetail[item.id] === ''" style="margin: 5px 0">
+              <span>[goploy ~]#</span>
               <el-button
                 v-if="item.state === 1 && !(item.id in traceDetail)"
                 type="text"
@@ -255,7 +266,7 @@
               <span v-else style="white-space: pre-line; padding: 5px 0">
                 {{ traceDetail[item.id] }}
               </span>
-            </el-row>
+            </div>
           </div>
         </div>
         <el-tabs v-model="activeRomoteTracePane" style="width: 100%">
@@ -295,7 +306,9 @@
               </template>
               <template v-else-if="trace.type === 5">
                 <el-row style="margin: 5px 0" class="project-title">
-                  <span style="margin-right: 5px">Rsync</span>
+                  <span style="margin-right: 5px">
+                    {{ projectRow.transferType.toUpperCase() }}
+                  </span>
                   <span v-if="trace.state === 1" class="icon-success"></span>
                   <span v-else class="icon-fail"></span>
                 </el-row>
@@ -353,7 +366,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Search, Refresh, Close } from '@element-plus/icons-vue'
+import { Search, Refresh, Check, Close, Loading } from '@element-plus/icons-vue'
 import RepoURL from '@/components/RepoURL/index.vue'
 import {
   DeployPreviewList,
@@ -506,11 +519,8 @@ const getPreviewList = (projectId: number) => {
     .then((response) => {
       gitTraceList.value = response.data.list.map((item) => {
         let element = <PublishTraceData & PublishTraceExt>item
-        if (element.ext !== '') {
-          Object.assign(element, JSON.parse(element.ext))
-          element.commit = element['commit']
-            ? element['commit'].substring(0, 6)
-            : ''
+        if (element.ext) {
+          element.commit = element.ext.replaceAll('"', '').substring(0, 6)
         }
         return element
       })
@@ -540,8 +550,9 @@ const handlePageChange = (page: number) => {
 
 const traceLoading = ref(false)
 const activeRomoteTracePane = ref('')
-const getPublishTrace = (publishToken: string) => {
-  traceLoading.value = true
+let timeout: ReturnType<typeof setInterval>
+function getPublishTrace(publishToken: string) {
+  traceLoading.value = true && !timeout
   new DeployTrace({ lastPublishToken: publishToken })
     .request()
     .then((response) => {
@@ -567,10 +578,26 @@ const getPublishTrace = (publishToken: string) => {
         publishRemoteTraceList.value[trace.serverName].push(trace)
       }
       activeRomoteTracePane.value = Object.keys(publishRemoteTraceList.value)[0]
+      if (props.projectRow.lastPublishToken === publishToken) {
+        if (props.projectRow.deployState === 1 && !timeout) {
+          timeout = setInterval(() => {
+            getPublishTrace(publishToken)
+          }, 1000)
+        } else if (props.projectRow.deployState !== 1) {
+          clearInterval(timeout)
+        }
+      } else {
+        clearInterval(timeout)
+      }
     })
     .finally(() => {
       traceLoading.value = false
     })
+}
+
+const onClose = () => {
+  filterInpurtVisible.value = false
+  clearInterval(timeout)
 }
 
 const handleTraceChange: InstanceType<typeof ElRadioGroup>['onChange'] = (

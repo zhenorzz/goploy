@@ -256,19 +256,39 @@
                 </el-button>
               </el-row>
             </el-form-item>
-            <el-form-item prop="rsyncOption">
-              <template #label>
-                <el-link
-                  type="primary"
-                  :href="$t('projectPage.rsyncDoc')"
-                  target="_blank"
-                >
-                  Rsync<br />
-                  [OPTION...]
-                </el-link>
-              </template>
+            <el-form-item
+              :label="$t('projectPage.transferType')"
+              prop="transferType"
+            >
+              <el-radio-group v-model="formData.transferType">
+                <el-radio :label="'rsync'">
+                  rsync
+                  <el-link
+                    :underline="false"
+                    :href="$t('projectPage.rsyncDoc')"
+                    target="_blank"
+                    :icon="QuestionFilled"
+                    style="color: #666"
+                  />
+                </el-radio>
+                <el-radio :label="'sftp'">
+                  sftp
+                  <el-link
+                    :underline="false"
+                    :href="$t('projectPage.sftpDoc')"
+                    target="_blank"
+                    :icon="QuestionFilled"
+                    style="color: #666"
+                  />
+                </el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item
+              :label="$t('projectPage.transferOption')"
+              prop="transferOption"
+            >
               <el-input
-                v-model="formData.rsyncOption"
+                v-model="formData.transferOption"
                 type="textarea"
                 :rows="3"
                 autocomplete="off"
@@ -809,7 +829,8 @@ const tempFormData = {
   afterDeployScript: '',
   environment: 1,
   branch: '',
-  rsyncOption: '-rtv --exclude .git',
+  transferType: 'rsync',
+  transferOption: '-rtv --exclude .git',
   serverIds: [] as number[],
   userIds: [] as number[],
   review: 0,
