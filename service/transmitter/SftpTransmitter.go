@@ -2,7 +2,7 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package service
+package transmitter
 
 import (
 	"github.com/pkg/sftp"
@@ -88,7 +88,6 @@ func (st sftpTransmitter) Exec() (string, error) {
 		}
 		nextItem = ""
 	}
-	excludes = append(excludes, "goploy-after-pull."+utils.GetScriptExt(project.AfterPullScriptMode))
 	includes = append(includes, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
 
 	srcPath := core.GetProjectPath(project.ID) + "/"

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package service
+package transmitter
 
 import (
 	"errors"
@@ -37,8 +37,6 @@ func (rt rsyncTransmitter) Args() []string {
 
 	rsyncOption, _ := utils.ParseCommandLine(project.TransferOption)
 	rsyncOption = append([]string{
-		"--exclude",
-		"goploy-after-pull." + utils.GetScriptExt(project.AfterPullScriptMode),
 		"--include",
 		"goploy-after-deploy." + utils.GetScriptExt(project.AfterDeployScriptMode),
 	}, rsyncOption...)

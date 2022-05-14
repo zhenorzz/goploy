@@ -12,6 +12,7 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/repository"
+	"github.com/zhenorzz/goploy/service/transmitter"
 	"github.com/zhenorzz/goploy/utils"
 	"github.com/zhenorzz/goploy/ws"
 	"io/ioutil"
@@ -220,16 +221,15 @@ func (gsync Gsync) runAfterPullScript() (string, error) {
 
 	handler := exec.Command(scriptMode, commandOptions...)
 	handler.Dir = srcPath
-	var outbuf, errbuf bytes.Buffer
-	handler.Stdout = &outbuf
-	handler.Stderr = &errbuf
+
 	core.Log(core.TRACE, fmt.Sprintf("projectID:%d %s", project.ID, project.AfterPullScript))
-	if err := handler.Run(); err != nil {
-		core.Log(core.ERROR, errbuf.String())
-		return "", errors.New(errbuf.String())
+	if output, err := handler.CombinedOutput(); err != nil {
+		core.Log(core.ERROR, fmt.Sprintf("err: %s, output: %s", err, output))
+		return "", errors.New(fmt.Sprintf("err: %s\noutput: %s", err, output))
+	} else {
+		_ = os.Remove(scriptName)
+		return string(output), nil
 	}
-	_ = os.Remove(scriptName)
-	return outbuf.String(), nil
 }
 
 func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
@@ -254,11 +254,10 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 				scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
 				_ = ioutil.WriteFile(scriptName, []byte(ReplaceProjectVars(project.AfterDeployScript, project)), 0755)
 			}
-			transmitter := GetTransmitter(project, projectServer)
+			transmitterEntity := transmitter.New(project, projectServer)
 
-			logCmd := transmitter.String()
-			// example
-			// rsync -rtv -e "ssh -o StrictHostKeyChecking=no -p 22 -i C:\Users\Administrator\.ssh\id_rsa" --rsync-path="mkdir -p /data/www/test && rsync" ./main.go root@127.0.0.1:/tmp/test/
+			logCmd := transmitterEntity.String()
+
 			core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+logCmd)
 			ext, _ = json.Marshal(struct {
 				ServerID   int64  `json:"serverId"`
@@ -267,7 +266,7 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			}{projectServer.ServerID, projectServer.ServerName, logCmd})
 			publishTraceModel.Ext = string(ext)
 
-			if transmitterOutput, err := transmitter.Exec(); err != nil {
+			if transmitterOutput, err := transmitterEntity.Exec(); err != nil {
 				core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
 				publishTraceModel.Detail = err.Error()
 				publishTraceModel.State = model.Fail
