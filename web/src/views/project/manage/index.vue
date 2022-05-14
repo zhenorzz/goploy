@@ -754,7 +754,7 @@ const scriptLangOption = [
   { label: 'bash', value: 'bash', lang: 'sh' },
   { label: 'python', value: 'python', lang: 'python' },
   { label: 'php', value: 'php', lang: 'php' },
-  { label: 'bat', value: 'cmd /C', lang: 'batchfile' },
+  { label: 'bat', value: 'cmd', lang: 'batchfile' },
 ]
 const projectName = ref('')
 const dialogVisible = ref(false)

@@ -11,6 +11,13 @@ import (
 
 type WindowsCmd struct{}
 
+func (w WindowsCmd) Script(mode, file string) string {
+	if mode == "" || mode == "cmd" {
+		mode = "cmd /C"
+	}
+	return fmt.Sprintf("%s %s", mode, w.Path(file))
+}
+
 func (w WindowsCmd) ChangeDirTime(dir string) string {
 	tmpFile := w.Path(dir + "/goploy.tmp")
 	return fmt.Sprintf("type nul > %s && del %[1]s", tmpFile)

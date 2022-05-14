@@ -12,6 +12,13 @@ import (
 
 type LinuxCmd struct{}
 
+func (c LinuxCmd) Script(mode, file string) string {
+	if mode == "" {
+		mode = "bash"
+	}
+	return fmt.Sprintf("%s %s", mode, file)
+}
+
 func (c LinuxCmd) ChangeDirTime(dir string) string {
 	return fmt.Sprintf("touch -m %s", dir)
 }

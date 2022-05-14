@@ -9,6 +9,7 @@ type Cmd interface {
 	Remove(file string) string
 	Path(file string) string
 	ChangeDirTime(dir string) string
+	Script(mode, file string) string
 }
 
 func New(os string) Cmd {

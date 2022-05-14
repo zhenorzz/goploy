@@ -292,12 +292,8 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			}
 
 			if len(project.AfterDeployScript) != 0 {
-				scriptMode := "bash"
-				if len(project.AfterDeployScriptMode) != 0 {
-					scriptMode = project.AfterDeployScriptMode
-				}
 				afterDeployScriptPath := path.Join(project.Path, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
-				afterDeployCommands = append(afterDeployCommands, scriptMode+" "+cmdEntity.Path(afterDeployScriptPath))
+				afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.AfterDeployScriptMode, afterDeployScriptPath))
 				afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
 			}
 
