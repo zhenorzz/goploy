@@ -22,6 +22,10 @@ import (
 
 type SftpRepo struct{}
 
+func (SftpRepo) CanRollback() bool {
+	return false
+}
+
 func (sftpRepo SftpRepo) Ping(url string) error {
 	sshClient, err := sftpRepo.dial(url)
 	if err != nil {

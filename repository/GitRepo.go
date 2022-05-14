@@ -17,6 +17,10 @@ import (
 
 type GitRepo struct{}
 
+func (GitRepo) CanRollback() bool {
+	return true
+}
+
 // Ping -
 func (GitRepo) Ping(url string) error {
 	git := utils.GIT{}

@@ -20,6 +20,10 @@ import (
 
 type FtpRepo struct{}
 
+func (FtpRepo) CanRollback() bool {
+	return false
+}
+
 func (ftpRepo FtpRepo) Ping(url string) error {
 	c, err := ftpRepo.dial(url)
 	if err != nil {

@@ -25,6 +25,8 @@ type Repo interface {
 	BranchLog(projectID int64, branch string, rows int) ([]CommitInfo, error)
 	// TagLog list the local commit log from all tag
 	TagLog(projectID int64, rows int) ([]CommitInfo, error)
+	// CanRollback detect repo can rollback or not
+	CanRollback() bool
 }
 
 type CommitInfo struct {

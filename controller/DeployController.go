@@ -21,6 +21,7 @@ import (
 	"github.com/zhenorzz/goploy/repository"
 	"github.com/zhenorzz/goploy/response"
 	"github.com/zhenorzz/goploy/service"
+	"github.com/zhenorzz/goploy/service/cmd"
 	"github.com/zhenorzz/goploy/task"
 	"github.com/zhenorzz/goploy/utils"
 	"io"
@@ -478,6 +479,7 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 					ch <- false
 					return
 				}
+				defer client.Close()
 				session, err := client.NewSession()
 				if err != nil {
 					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" new session err: "+err.Error())
@@ -485,44 +487,38 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 					return
 				}
 
-				var sshOutbuf, sshErrbuf bytes.Buffer
-				session.Stdout = &sshOutbuf
-				session.Stderr = &sshErrbuf
 				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
-
 				// check if the path is existed or not
-				if err := session.Run("cd " + destDir); err != nil {
-					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" check symlink path err: "+err.Error()+", detail: "+sshErrbuf.String())
+				if output, err := session.CombinedOutput("cd " + destDir); err != nil {
+					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" check symlink path err: "+err.Error()+", detail: "+string(output))
 					ch <- false
 					return
 				}
-				session.Close()
 				session, err = client.NewSession()
 				if err != nil {
 					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" new session err: "+err.Error())
 					ch <- false
 					return
 				}
-				relativeDestDir := strings.Replace(destDir, path.Dir(project.Path), ".", 1)
 				var afterDeployCommands []string
-				afterDeployCommands = append(afterDeployCommands, "ln -sfn "+relativeDestDir+" "+project.Path)
-				afterDeployCommands = append(afterDeployCommands, "touch -m "+destDir)
+				cmdEntity := cmd.New("linux")
+				afterDeployCommands = append(afterDeployCommands, cmdEntity.Symlink(destDir, project.Path))
+				afterDeployCommands = append(afterDeployCommands, cmdEntity.ChangeDirTime(destDir))
 				if len(project.AfterDeployScript) != 0 {
 					scriptMode := "bash"
 					if len(project.AfterDeployScriptMode) != 0 {
 						scriptMode = project.AfterDeployScriptMode
 					}
 					afterDeployScriptPath := path.Join(project.Path, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
-					afterDeployCommands = append(afterDeployCommands, scriptMode+" "+afterDeployScriptPath)
-					afterDeployCommands = append(afterDeployCommands, "rm -f "+afterDeployScriptPath)
+					afterDeployCommands = append(afterDeployCommands, scriptMode+" "+cmdEntity.Path(afterDeployScriptPath))
+					afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
 				}
 				// redirect to project path
-				if err := session.Run(strings.Join(afterDeployCommands, ";")); err != nil {
-					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" ln -sfn err: "+err.Error()+", detail: "+sshErrbuf.String())
+				if output, err := session.CombinedOutput(strings.Join(afterDeployCommands, "&&")); err != nil {
+					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" symlink err: "+err.Error()+", detail: "+string(output))
 					ch <- false
 					return
 				}
-				session.Close()
 				ch <- true
 			}(projectServer)
 		}
@@ -548,6 +544,11 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 	}
 
 	if needToPublish == true {
+		repoEntity, _ := repository.GetRepo(project.RepoType)
+		if !repoEntity.CanRollback() {
+			return response.JSON{Code: response.Error, Message: fmt.Sprintf("plesae enable symlink to rollback the %s repo", project.RepoType)}
+		}
+
 		project.PublisherID = gp.UserInfo.ID
 		project.PublisherName = gp.UserInfo.Name
 		project.DeployState = model.ProjectDeploying

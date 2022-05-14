@@ -12,6 +12,7 @@ import (
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/repository"
+	"github.com/zhenorzz/goploy/service/cmd"
 	"github.com/zhenorzz/goploy/service/transmitter"
 	"github.com/zhenorzz/goploy/utils"
 	"github.com/zhenorzz/goploy/ws"
@@ -212,7 +213,6 @@ func (gsync Gsync) runAfterPullScript() (string, error) {
 	scriptText := ReplaceProjectVars(ReplaceCommitVars(project.AfterPullScript, commitInfo), project)
 	_ = ioutil.WriteFile(scriptFullName, []byte(scriptText), 0755)
 	var commandOptions []string
-
 	if project.AfterPullScriptMode == "cmd" {
 		commandOptions = append(commandOptions, "/C")
 		scriptFullName, _ = filepath.Abs(scriptFullName)
@@ -285,29 +285,20 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			}
 
 			var afterDeployCommands []string
+			cmdEntity := cmd.New("linux")
 			if len(project.SymlinkPath) != 0 {
-				destDir := project.Path
-				// use relative path to fix docker symlink
-				relativeDestDir := strings.Replace(destDir, path.Dir(project.Path), ".", 1)
-				afterDeployCommands = append(afterDeployCommands, "ln -sfn "+relativeDestDir+" "+project.Path)
-				// change the destination folder time, make sure it can not be clean
-				afterDeployCommands = append(afterDeployCommands, "touch -m "+destDir)
+				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
+				afterDeployCommands = append(afterDeployCommands, cmdEntity.Symlink(destDir, project.Path))
 			}
 
 			if len(project.AfterDeployScript) != 0 {
 				scriptMode := "bash"
-				rmCmd := "rm -f "
 				if len(project.AfterDeployScriptMode) != 0 {
 					scriptMode = project.AfterDeployScriptMode
 				}
 				afterDeployScriptPath := path.Join(project.Path, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
-				if scriptMode == "cmd" {
-					scriptMode = ""
-					rmCmd = "del "
-					afterDeployScriptPath = strings.ReplaceAll(afterDeployScriptPath, "/", "\\")
-				}
-				afterDeployCommands = append(afterDeployCommands, scriptMode+" "+afterDeployScriptPath)
-				afterDeployCommands = append(afterDeployCommands, rmCmd+afterDeployScriptPath)
+				afterDeployCommands = append(afterDeployCommands, scriptMode+" "+cmdEntity.Path(afterDeployScriptPath))
+				afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
 			}
 
 			// no symlink and deploy script

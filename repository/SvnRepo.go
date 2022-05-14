@@ -19,6 +19,10 @@ import (
 
 type SvnRepo struct{}
 
+func (SvnRepo) CanRollback() bool {
+	return true
+}
+
 // Ping -
 func (SvnRepo) Ping(url string) error {
 	svn := utils.SVN{}
