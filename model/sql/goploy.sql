@@ -158,6 +158,7 @@ CREATE TABLE IF NOT EXISTS `server`  (
   `jump_owner` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `jump_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `jump_password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `os` varchar(255) NOT NULL DEFAULT '' COMMENT 'linux|windows',
   `os_info` varchar(255) NOT NULL DEFAULT '' COMMENT 'os|cpu cores|mem',
   `description` varchar(255) NOT NULL DEFAULT '',
   `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,

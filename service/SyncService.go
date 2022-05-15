@@ -259,7 +259,7 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			}
 
 			var afterDeployCommands []string
-			cmdEntity := cmd.New("linux")
+			cmdEntity := cmd.New(projectServer.ServerOS)
 			if len(project.SymlinkPath) != 0 {
 				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
 				afterDeployCommands = append(afterDeployCommands, cmdEntity.Symlink(destDir, project.Path))

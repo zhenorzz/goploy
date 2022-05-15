@@ -136,6 +136,7 @@ func (Server) Import(gp *core.Goploy) core.Response {
 	i := 0
 	headerIdx := map[string]int{
 		"name":         -1,
+		"os":           -1,
 		"host":         -1,
 		"port":         -1,
 		"owner":        -1,
@@ -190,6 +191,12 @@ func (Server) Import(gp *core.Goploy) core.Response {
 				err = core.Validate.Var(server.Name, "required")
 				if err != nil {
 					errMsg += "name,"
+				}
+
+				server.OS = record[headerIdx["os"]]
+				err = core.Validate.Var(server.OS, "oneof=linux windows")
+				if err != nil {
+					errMsg += "os,"
 				}
 
 				server.IP = record[headerIdx["host"]]
@@ -265,6 +272,7 @@ func (s Server) Add(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		Name         string `json:"name" validate:"required"`
 		NamespaceID  int64  `json:"namespaceId" validate:"gte=0"`
+		OS           string `json:"os" validate:"oneof=linux windows"`
 		IP           string `json:"ip" validate:"ip|hostname"`
 		Port         int    `json:"port" validate:"min=0,max=65535"`
 		Owner        string `json:"owner" validate:"required,max=255"`
@@ -286,6 +294,7 @@ func (s Server) Add(gp *core.Goploy) core.Response {
 	server := model.Server{
 		NamespaceID:  reqData.NamespaceID,
 		Name:         reqData.Name,
+		OS:           reqData.OS,
 		IP:           reqData.IP,
 		Port:         reqData.Port,
 		Owner:        reqData.Owner,
@@ -317,6 +326,7 @@ func (s Server) Edit(gp *core.Goploy) core.Response {
 		ID           int64  `json:"id" validate:"gt=0"`
 		NamespaceID  int64  `json:"namespaceId" validate:"gte=0"`
 		Name         string `json:"name" validate:"required"`
+		OS           string `json:"os" validate:"oneof=linux windows"`
 		IP           string `json:"ip" validate:"required,ip|hostname"`
 		Port         int    `json:"port" validate:"min=0,max=65535"`
 		Owner        string `json:"owner" validate:"required,max=255"`
@@ -337,6 +347,7 @@ func (s Server) Edit(gp *core.Goploy) core.Response {
 		ID:           reqData.ID,
 		NamespaceID:  reqData.NamespaceID,
 		Name:         reqData.Name,
+		OS:           reqData.OS,
 		IP:           reqData.IP,
 		Port:         reqData.Port,
 		Owner:        reqData.Owner,

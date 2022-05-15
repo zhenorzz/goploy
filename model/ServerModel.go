@@ -27,6 +27,7 @@ type Server struct {
 	JumpPassword string `json:"jumpPassword"`
 	NamespaceID  int64  `json:"namespaceId"`
 	Description  string `json:"description"`
+	OS           string `json:"os"`
 	OSInfo       string `json:"osInfo"`
 	State        int8   `json:"state"`
 	InsertTime   string `json:"insertTime"`
@@ -52,6 +53,7 @@ func (s Server) GetList() (Servers, error) {
 			"jump_path",
 			"jump_password",
 			"description",
+			"os",
 			"os_info",
 			"state",
 			"insert_time",
@@ -84,6 +86,7 @@ func (s Server) GetList() (Servers, error) {
 			&server.JumpPath,
 			&server.JumpPassword,
 			&server.Description,
+			&server.OS,
 			&server.OSInfo,
 			&server.State,
 			&server.InsertTime,
@@ -142,6 +145,7 @@ func (s Server) GetData() (Server, error) {
 			"id",
 			"namespace_id",
 			"name",
+			"os",
 			"ip",
 			"port",
 			"owner",
@@ -175,6 +179,7 @@ func (s Server) GetData() (Server, error) {
 		Scan(&server.ID,
 			&server.NamespaceID,
 			&server.Name,
+			&server.OS,
 			&server.IP,
 			&server.Port,
 			&server.Owner,
@@ -200,6 +205,7 @@ func (s Server) AddRow() (int64, error) {
 		Columns(
 			"namespace_id",
 			"name",
+			"os",
 			"ip",
 			"port",
 			"owner",
@@ -215,6 +221,7 @@ func (s Server) AddRow() (int64, error) {
 		Values(
 			s.NamespaceID,
 			s.Name,
+			s.OS,
 			s.IP,
 			s.Port,
 			s.Owner,
@@ -243,6 +250,7 @@ func (s Server) EditRow() error {
 		SetMap(sq.Eq{
 			"namespace_id":  s.NamespaceID,
 			"name":          s.Name,
+			"os":            s.OS,
 			"ip":            s.IP,
 			"port":          s.Port,
 			"owner":         s.Owner,

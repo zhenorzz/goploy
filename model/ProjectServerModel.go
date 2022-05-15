@@ -17,6 +17,7 @@ type ProjectServer struct {
 	ProjectID          int64  `json:"projectId"`
 	ServerID           int64  `json:"serverId"`
 	ServerName         string `json:"serverName"`
+	ServerOS           string `json:"serverOS"`
 	ServerIP           string `json:"serverIP"`
 	ServerPort         int    `json:"serverPort"`
 	ServerOwner        string `json:"serverOwner"`
@@ -42,6 +43,7 @@ func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 			server_id, 
 			server.name, 
 			server.ip, 
+			server.os, 
 			server.port, 
 			server.owner, 
 			server.password, 
@@ -72,6 +74,7 @@ func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 			&projectServer.ProjectID,
 			&projectServer.ServerID,
 			&projectServer.ServerName,
+			&projectServer.ServerOS,
 			&projectServer.ServerIP,
 			&projectServer.ServerPort,
 			&projectServer.ServerOwner,

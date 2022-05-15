@@ -183,6 +183,12 @@
             <el-radio :label="0">{{ $t('unlimited') }}</el-radio>
           </el-radio-group>
         </el-form-item>
+        <el-form-item label="OS">
+          <el-radio-group v-model="formData.os">
+            <el-radio label="linux">linux</el-radio>
+            <el-radio label="windows">windows</el-radio>
+          </el-radio-group>
+        </el-form-item>
         <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
@@ -400,6 +406,7 @@ const tempFormData = {
   id: 0,
   namespaceId: getNamespace()['id'],
   name: '',
+  os: 'linux',
   ip: '',
   port: 22,
   owner: '',

@@ -4,6 +4,7 @@ export interface ServerData {
   id: number
   label: string
   name: string
+  os: string
   ip: string
   port: number
   owner: string
@@ -108,6 +109,7 @@ export class ServerAdd extends Request {
   public param: {
     namespaceId: number
     name: string
+    os: string
     ip: string
     port: number
     owner: string
@@ -133,6 +135,7 @@ export class ServerEdit extends Request {
     id: number
     namespaceId: number
     name: string
+    os: string
     ip: string
     port: number
     owner: string

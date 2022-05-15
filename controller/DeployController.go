@@ -501,7 +501,7 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 					return
 				}
 				var afterDeployCommands []string
-				cmdEntity := cmd.New("linux")
+				cmdEntity := cmd.New(projectServer.ServerOS)
 				afterDeployCommands = append(afterDeployCommands, cmdEntity.Symlink(destDir, project.Path))
 				afterDeployCommands = append(afterDeployCommands, cmdEntity.ChangeDirTime(destDir))
 				if len(project.AfterDeployScript) != 0 {
