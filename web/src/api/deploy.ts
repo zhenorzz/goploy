@@ -13,7 +13,6 @@ export interface PublishTraceData {
   type: number
   ext: string
   serverName: string
-  publishState: number
   insertTime: string
   updateTime: string
 }

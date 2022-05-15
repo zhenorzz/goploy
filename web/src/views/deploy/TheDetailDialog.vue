@@ -147,38 +147,74 @@
           <el-row
             v-for="(item, index) in gitTraceList"
             :key="index"
-            style="width: 100%"
+            style="margin: 5px 0; width: 100%"
           >
-            <el-row style="margin: 5px 0; width: 100%">
-              <el-radio class="publish-commit" :label="item.token" border>
-                <span class="publish-name">{{ item.publisherName }}</span>
-                <span class="publish-commitID">
-                  <span v-if="projectRow.repoType === 'svn'">
-                    revision: {{ item['commit'] }}
-                  </span>
-                  <span v-else-if="projectRow.repoType === 'sftp'">
-                    uuid: {{ item['token'].substring(0, 6) }}
-                  </span>
-                  <span v-else-if="projectRow.repoType === 'ftp'">
-                    uuid: {{ item['token'].substring(0, 6) }}
-                  </span>
-                  <span v-else>commitID: {{ item['commit'] }}</span>
-                </span>
-                <SvgIcon
-                  v-if="item.publishState === 1"
-                  style="color: #67c23a; font-size: 15px; float: right"
-                  icon-class="check"
-                ></SvgIcon>
-                <SvgIcon
-                  v-else
-                  style="color: #f56c6c; font-size: 15px; float: right"
-                  icon-class="close"
-                ></SvgIcon>
-              </el-radio>
-              <el-button type="danger" plain @click="rebuild(item)">
-                rollback
-              </el-button>
-            </el-row>
+            <el-radio class="publish-commit" :label="item.token" border>
+              <span class="publish-name">{{ item.publisherName }}</span>
+              <span
+                v-if="projectRow.repoType === 'svn'"
+                class="publish-commitID"
+                :title="item['commit']"
+              >
+                revision: {{ item['commit'].substring(0, 6) }}
+              </span>
+              <span
+                v-else-if="projectRow.repoType === 'sftp'"
+                class="publish-commitID"
+                :title="item['token']"
+              >
+                uuid: {{ item['token'].substring(0, 6) }}
+              </span>
+              <span
+                v-else-if="projectRow.repoType === 'ftp'"
+                class="publish-commitID"
+                :title="item['token']"
+              >
+                uuid: {{ item['token'].substring(0, 6) }}
+              </span>
+              <span v-else class="publish-commitID" :title="item['commit']">
+                commitID: {{ item['commit'].substring(0, 6) }}
+              </span>
+              <el-icon
+                v-if="
+                  item.token === projectRow.lastPublishToken &&
+                  projectRow.deployState === 1
+                "
+                class="is-loading"
+                style="font-size: 15px; float: right"
+              >
+                <Loading />
+              </el-icon>
+              <SvgIcon
+                v-else-if="
+                  item.token === projectRow.lastPublishToken &&
+                  projectRow.deployState === 3
+                "
+                style="color: #f56c6c; font-size: 15px; float: right"
+                icon-class="close"
+              ></SvgIcon>
+              <SvgIcon
+                v-else-if="item.state === 1"
+                style="color: #67c23a; font-size: 15px; float: right"
+                icon-class="check"
+              ></SvgIcon>
+              <SvgIcon
+                v-else
+                style="color: #f56c6c; font-size: 15px; float: right"
+                icon-class="close"
+              ></SvgIcon>
+            </el-radio>
+            <el-button
+              v-if="
+                ['git', 'svn'].includes(projectRow.repoType) ||
+                projectRow.symlinkPath != ''
+              "
+              type="danger"
+              plain
+              @click="rebuild(item)"
+            >
+              rollback
+            </el-button>
           </el-row>
         </el-radio-group>
         <el-pagination
@@ -366,7 +402,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Search, Refresh, Check, Close, Loading } from '@element-plus/icons-vue'
+import { Search, Refresh, Close, Loading } from '@element-plus/icons-vue'
 import RepoURL from '@/components/RepoURL/index.vue'
 import {
   DeployPreviewList,
@@ -520,7 +556,7 @@ const getPreviewList = (projectId: number) => {
       gitTraceList.value = response.data.list.map((item) => {
         let element = <PublishTraceData & PublishTraceExt>item
         if (element.ext) {
-          element.commit = element.ext.replaceAll('"', '').substring(0, 6)
+          element.commit = element.ext.replaceAll('"', '')
         }
         return element
       })

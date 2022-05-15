@@ -24,7 +24,6 @@ type PublishTrace struct {
 	PublisherName string `json:"publisherName"`
 	Type          int    `json:"type"`
 	Ext           string `json:"ext"`
-	PublishState  int    `json:"publishState"`
 	InsertTime    string `json:"insertTime"`
 	UpdateTime    string `json:"updateTime"`
 }
@@ -187,7 +186,7 @@ func (pt PublishTrace) GetPreview(
 		Select(
 			"token",
 			"MIN(publisher_name) publisher_name",
-			"MIN(state) publish_state",
+			"MIN(state) state",
 			"GROUP_CONCAT(IF(type = 2 and ext != '', JSON_EXTRACT(ext, '$.commit') , '') SEPARATOR '') as ext",
 			"MIN(update_time) update_time",
 		).
@@ -213,8 +212,8 @@ func (pt PublishTrace) GetPreview(
 	if len(deployDate) > 1 {
 		builder = builder.Where("insert_time between ? and ?", deployDate[0], deployDate[1])
 	}
-	if pt.PublishState != -1 {
-		builder = builder.Having(sq.Eq{"publish_state": pt.PublishState})
+	if pt.State != -1 {
+		builder = builder.Having(sq.Eq{"state": pt.State})
 	}
 	rows, err := builder.RunWith(DB).
 		GroupBy("token").
@@ -232,7 +231,7 @@ func (pt PublishTrace) GetPreview(
 		if err := rows.Scan(
 			&publishTrace.Token,
 			&publishTrace.PublisherName,
-			&publishTrace.PublishState,
+			&publishTrace.State,
 			&publishTrace.Ext,
 			&publishTrace.UpdateTime); err != nil {
 			return nil, pagination, err
@@ -265,9 +264,9 @@ func (pt PublishTrace) GetPreview(
 	if len(deployDate) > 1 {
 		builder = builder.Where("insert_time between ? and ?", deployDate[0], deployDate[1])
 	}
-	if pt.PublishState == 0 {
+	if pt.State == 0 {
 		builder = builder.Where("EXISTS (SELECT id FROM " + publishTraceTable + " AS pt where pt.state = 0 AND pt.token = publish_trace.token)")
-	} else if pt.PublishState == 1 {
+	} else if pt.State == 1 {
 		builder = builder.Where("! EXISTS (SELECT id FROM " + publishTraceTable + " AS pt where pt.state = 0 AND pt.token = publish_trace.token)")
 	}
 
@@ -280,7 +279,6 @@ func (pt PublishTrace) GetPreview(
 	return publishTraces, pagination, nil
 }
 
-// GetDetail return detail value by id
 func (pt PublishTrace) GetDetail() (string, error) {
 	var detail string
 	err := sq.

@@ -102,9 +102,9 @@ func (Deploy) GetPreview(gp *core.Goploy) core.Response {
 		commitDate[i] = strconv.FormatInt(tm2.Unix(), 10)
 	}
 	gitTraceList, pagination, err := model.PublishTrace{
-		ProjectID:    reqData.ProjectID,
-		PublisherID:  reqData.UserID,
-		PublishState: reqData.State,
+		ProjectID:   reqData.ProjectID,
+		PublisherID: reqData.UserID,
+		State:       reqData.State,
 	}.GetPreview(
 		reqData.Branch,
 		reqData.Commit,

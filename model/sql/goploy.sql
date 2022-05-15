@@ -111,7 +111,6 @@ CREATE TABLE IF NOT EXISTS `publish_trace` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `token` char(36) CHARACTER SET utf8mb4 NOT NULL DEFAULT '',
   `project_id` int(10) unsigned NOT NULL DEFAULT '0',
-  `project_group_id` int(10) unsigned NOT NULL DEFAULT '0',
   `project_name` varchar(255) NOT NULL DEFAULT '',
   `detail` longtext NOT NULL,
   `state` tinyint(4) unsigned NOT NULL DEFAULT '1',
