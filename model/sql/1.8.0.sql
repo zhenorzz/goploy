@@ -5,4 +5,4 @@ UPDATE `project` SET `transfer_type` = 'rsync';
 
 ALTER TABLE `server`
     ADD COLUMN `os` varchar(255) NOT NULL DEFAULT '' COMMENT 'linux|windows' AFTER `description`;
-UPDATE `server` SET `os` = 'linux'
+UPDATE `server` SET `os` = 'linux';
