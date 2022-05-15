@@ -58,3 +58,7 @@ func Log(lv LogLevel, content string) {
 	logger := log.New(logFile, string(lv), log.LstdFlags|log.Lshortfile)
 	logger.Output(2, content)
 }
+
+func Logf(lv LogLevel, format string, a ...interface{}) {
+	Log(lv, fmt.Sprintf(format, a))
+}

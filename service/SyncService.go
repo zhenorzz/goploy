@@ -7,7 +7,6 @@ package service
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
@@ -43,8 +42,10 @@ type syncMessage struct {
 	state      int
 }
 
+var projectLogFormat = "projectID: %d %s"
+
 func (gsync Gsync) Exec() {
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(gsync.Project.ID, 10)+" deploy start")
+	core.Logf(core.TRACE, "projectID: %d deploy start", gsync.Project.ID)
 	publishTraceModel := model.PublishTrace{
 		Token:         gsync.Project.LastPublishToken,
 		ProjectID:     gsync.Project.ID,
@@ -55,41 +56,27 @@ func (gsync Gsync) Exec() {
 	}
 	var err error
 
-	repo, err := repository.GetRepo(gsync.Project.RepoType)
-	if err != nil {
-		_ = gsync.Project.DeployFail()
-		publishTraceModel.Detail = err.Error()
-		publishTraceModel.State = model.Fail
-		ws.GetHub().Data <- &ws.Data{
-			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeployFail, Message: err.Error()},
-		}
-		if _, err := publishTraceModel.AddRow(); err != nil {
-			core.Log(core.ERROR, err.Error())
-		}
-		return
-	}
-
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
 		Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.RepoFollow, Message: "Repo follow"},
 	}
-
+	repo, _ := repository.GetRepo(gsync.Project.RepoType)
 	if len(gsync.CommitID) == 0 {
 		err = repo.Follow(gsync.Project, "origin/"+gsync.Project.Branch)
 	} else {
 		err = repo.Follow(gsync.Project, gsync.CommitID)
 	}
 	if err != nil {
-		_ = gsync.Project.DeployFail()
-		publishTraceModel.Detail = err.Error()
-		publishTraceModel.State = model.Fail
+		core.Logf(core.ERROR, projectLogFormat, gsync.Project.ID, err)
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
 			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeployFail, Message: err.Error()},
 		}
+		_ = gsync.Project.DeployFail()
+		publishTraceModel.Detail = err.Error()
+		publishTraceModel.State = model.Fail
 		if _, err := publishTraceModel.AddRow(); err != nil {
-			core.Log(core.ERROR, err.Error())
+			core.Logf(core.ERROR, projectLogFormat, gsync.Project.ID, err)
 		}
 		gsync.notify(model.ProjectFail, err.Error())
 		return
@@ -97,7 +84,6 @@ func (gsync Gsync) Exec() {
 
 	commitList, _ := repo.CommitLog(gsync.Project.ID, 1)
 	gsync.CommitInfo = commitList[0]
-
 	if gsync.Branch != "" {
 		gsync.CommitInfo.Branch = gsync.Branch
 	} else {
@@ -108,16 +94,16 @@ func (gsync Gsync) Exec() {
 	publishTraceModel.Ext = string(ext)
 	publishTraceModel.State = model.Success
 	if _, err := publishTraceModel.AddRow(); err != nil {
-		core.Log(core.ERROR, err.Error())
+		core.Logf(core.ERROR, projectLogFormat, gsync.Project.ID, err)
 		return
 	}
 
 	if totalFileNumber, err := (model.ProjectFile{ProjectID: gsync.Project.ID}).GetTotalByProjectID(); err != nil {
-		core.Log(core.ERROR, err.Error())
+		core.Logf(core.ERROR, projectLogFormat, gsync.Project.ID, err)
 		return
 	} else if totalFileNumber > 0 {
 		if err := utils.CopyDir(core.GetProjectFilePath(gsync.Project.ID), core.GetProjectPath(gsync.Project.ID)); err != nil {
-			core.Log(core.ERROR, err.Error())
+			core.Logf(core.ERROR, projectLogFormat, gsync.Project.ID, err)
 			return
 		}
 	}
@@ -127,30 +113,33 @@ func (gsync Gsync) Exec() {
 			Type:    ws.TypeProject,
 			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.AfterPullScript, Message: "Run pull script"},
 		}
-		outputString, err := gsync.runAfterPullScript()
+
 		publishTraceModel.Type = model.AfterPull
-		ext, _ := json.Marshal(struct {
+		ext, _ = json.Marshal(struct {
 			Script string `json:"script"`
 		}{gsync.Project.AfterPullScript})
 		publishTraceModel.Ext = string(ext)
-		if err != nil {
-			_ = gsync.Project.DeployFail()
-			publishTraceModel.Detail = err.Error()
-			publishTraceModel.State = model.Fail
+		core.Logf(core.TRACE, projectLogFormat, gsync.Project.ID, gsync.Project.AfterPullScript)
+		if outputString, err := gsync.runAfterPullScript(); err != nil {
+			core.Logf(core.ERROR, projectLogFormat, gsync.Project.ID, fmt.Sprintf("err: %s, output: %s", err, outputString))
 			ws.GetHub().Data <- &ws.Data{
 				Type:    ws.TypeProject,
 				Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeployFail, Message: err.Error()},
 			}
+			_ = gsync.Project.DeployFail()
+			publishTraceModel.Detail = fmt.Sprintf("err: %s\noutput: %s", err, outputString)
+			publishTraceModel.State = model.Fail
 			if _, err := publishTraceModel.AddRow(); err != nil {
-				core.Log(core.ERROR, err.Error())
+				core.Logf(core.ERROR, projectLogFormat, gsync.Project.ID, err)
 			}
 			gsync.notify(model.ProjectFail, err.Error())
 			return
-		}
-		publishTraceModel.Detail = outputString
-		publishTraceModel.State = model.Success
-		if _, err := publishTraceModel.AddRow(); err != nil {
-			core.Log(core.ERROR, err.Error())
+		} else {
+			publishTraceModel.Detail = outputString
+			publishTraceModel.State = model.Success
+			if _, err := publishTraceModel.AddRow(); err != nil {
+				core.Logf(core.ERROR, projectLogFormat, gsync.Project.ID, err)
+			}
 		}
 	}
 
@@ -171,22 +160,15 @@ func (gsync Gsync) Exec() {
 	close(ch)
 	if message == "" {
 		_ = gsync.Project.DeploySuccess()
-		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(gsync.Project.ID, 10)+" deploy success")
+		core.Logf(core.TRACE, projectLogFormat, gsync.Project.ID, "deploy success")
 		ws.GetHub().Data <- &ws.Data{
-			Type: ws.TypeProject,
-			Message: ws.ProjectMessage{
-				ProjectID:   gsync.Project.ID,
-				ProjectName: gsync.Project.Name,
-				State:       ws.DeploySuccess,
-				Message:     "Success",
-				Ext:         gsync.CommitInfo,
-			},
+			Type:    ws.TypeProject,
+			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeploySuccess, Message: "Success", Ext: gsync.CommitInfo},
 		}
 		gsync.notify(model.ProjectSuccess, message)
-
 	} else {
 		_ = gsync.Project.DeployFail()
-		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(gsync.Project.ID, 10)+" deploy fail")
+		core.Logf(core.TRACE, projectLogFormat, gsync.Project.ID, "deploy fail")
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
 			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeployFail, Message: message},
@@ -222,10 +204,8 @@ func (gsync Gsync) runAfterPullScript() (string, error) {
 	handler := exec.Command(scriptMode, commandOptions...)
 	handler.Dir = srcPath
 
-	core.Log(core.TRACE, fmt.Sprintf("projectID:%d %s", project.ID, project.AfterPullScript))
 	if output, err := handler.CombinedOutput(); err != nil {
-		core.Log(core.ERROR, fmt.Sprintf("err: %s, output: %s", err, output))
-		return "", errors.New(fmt.Sprintf("err: %s\noutput: %s", err, output))
+		return "", err
 	} else {
 		_ = os.Remove(scriptName)
 		return string(output), nil
@@ -236,10 +216,6 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 	for _, projectServer := range gsync.ProjectServers {
 		go func(projectServer model.ProjectServer) {
 			project := gsync.Project
-			ext, _ := json.Marshal(struct {
-				ServerID   int64  `json:"serverId"`
-				ServerName string `json:"serverName"`
-			}{projectServer.ServerID, projectServer.ServerName})
 			publishTraceModel := model.PublishTrace{
 				Token:         project.LastPublishToken,
 				ProjectID:     project.ID,
@@ -247,19 +223,17 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 				PublisherID:   gsync.UserInfo.ID,
 				PublisherName: gsync.UserInfo.Name,
 				Type:          model.Deploy,
-				Ext:           string(ext),
 			}
 			// write after deploy script for rsync
 			if len(project.AfterDeployScript) != 0 {
 				scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
 				_ = ioutil.WriteFile(scriptName, []byte(ReplaceProjectVars(project.AfterDeployScript, project)), 0755)
 			}
+
 			transmitterEntity := transmitter.New(project, projectServer)
-
 			logCmd := transmitterEntity.String()
-
-			core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+logCmd)
-			ext, _ = json.Marshal(struct {
+			core.Log(core.TRACE, "projectID: "+strconv.FormatInt(project.ID, 10)+" "+logCmd)
+			ext, _ := json.Marshal(struct {
 				ServerID   int64  `json:"serverId"`
 				ServerName string `json:"serverName"`
 				Command    string `json:"command"`
@@ -267,8 +241,8 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			publishTraceModel.Ext = string(ext)
 
 			if transmitterOutput, err := transmitterEntity.Exec(); err != nil {
-				core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
-				publishTraceModel.Detail = err.Error()
+				core.Log(core.ERROR, fmt.Sprintf("projectID: %d rsync exec err: %s, output: %s", project.ID, err, transmitterOutput))
+				publishTraceModel.Detail = fmt.Sprintf("err: %s\noutput: %s", err, transmitterOutput)
 				publishTraceModel.State = model.Fail
 				publishTraceModel.AddRow()
 				msgChIn <- syncMessage{
@@ -348,11 +322,11 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			defer session.Close()
 			core.Log(core.TRACE, fmt.Sprintf("projectID: %d ssh exec: %s", project.ID, completeAfterDeployCmd))
 			if output, err := session.CombinedOutput(completeAfterDeployCmd); err != nil {
-				core.Log(core.ERROR, fmt.Sprintf("projectID: %d ssh exec err: %s, output: %s", project.ID, err.Error(), output))
-				publishTraceModel.Detail = fmt.Sprintf("%s\noutput: %s", err.Error(), output)
+				core.Log(core.ERROR, fmt.Sprintf("projectID: %d ssh exec err: %s, output: %s", project.ID, err, output))
+				publishTraceModel.Detail = fmt.Sprintf("err: %s\noutput: %s", err, output)
 				publishTraceModel.State = model.Fail
 				if _, err := publishTraceModel.AddRow(); err != nil {
-					core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
+					core.Log(core.ERROR, "projectID: "+strconv.FormatInt(project.ID, 10)+" "+err.Error())
 				}
 				msgChIn <- syncMessage{
 					serverName: projectServer.ServerName,
@@ -365,7 +339,7 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 				publishTraceModel.Detail = string(output)
 				publishTraceModel.State = model.Success
 				if _, err := publishTraceModel.AddRow(); err != nil {
-					core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" "+err.Error())
+					core.Log(core.ERROR, "projectID: "+strconv.FormatInt(project.ID, 10)+" "+err.Error())
 				}
 			}
 
@@ -530,14 +504,14 @@ func (gsync Gsync) notify(deployState int, detail string) {
 	}
 
 	if err != nil {
-		core.Log(core.ERROR, fmt.Sprintf("notify projectID:%d %s", project.ID, err.Error()))
+		core.Log(core.ERROR, fmt.Sprintf("projectID: %d notify exec err: %s", project.ID, err))
 	} else {
 		defer resp.Body.Close()
 		responseData, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			core.Log(core.ERROR, fmt.Sprintf("notify projectID:%d read body error", project.ID))
+			core.Log(core.ERROR, fmt.Sprintf("projectID: %d notify read body err: %s", project.ID, err))
 		} else {
-			core.Log(core.TRACE, fmt.Sprintf("notify projectID:%d return %s", project.ID, string(responseData)))
+			core.Log(core.TRACE, fmt.Sprintf("projectID: %d notify success: %s", project.ID, string(responseData)))
 		}
 	}
 }

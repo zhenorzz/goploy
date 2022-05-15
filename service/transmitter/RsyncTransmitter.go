@@ -5,7 +5,6 @@
 package transmitter
 
 import (
-	"errors"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/utils"
@@ -58,7 +57,7 @@ func (rt rsyncTransmitter) Exec() (string, error) {
 	// rsync -rtv -e "ssh -o StrictHostKeyChecking=no -p 22 -i C:\Users\Administrator\.ssh\id_rsa" --rsync-path="mkdir -p /data/www/test && rsync" ./main.go root@127.0.0.1:/tmp/test/
 	cmd := exec.Command("rsync", rt.Args()...)
 	if output, err := cmd.CombinedOutput(); err != nil {
-		return "", errors.New("err: " + err.Error() + "\noutput: " + string(output))
+		return string(output), err
 	} else {
 		return string(output), nil
 	}
