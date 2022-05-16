@@ -60,5 +60,5 @@ func Log(lv LogLevel, content string) {
 }
 
 func Logf(lv LogLevel, format string, a ...interface{}) {
-	Log(lv, fmt.Sprintf(format, a))
+	Log(lv, fmt.Sprintf(format, a...))
 }

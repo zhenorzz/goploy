@@ -151,10 +151,9 @@ func (FtpRepo) dial(_url string) (*ftp.ServerConn, error) {
 	}
 	addr = u.Host
 	dir = u.Path
-	username = u.User.Username()
-	if username != "" {
-		pwd, _ := u.User.Password()
-		password = pwd
+	if u.User.Username() != "" {
+		username = u.User.Username()
+		password, _ = u.User.Password()
 	}
 	opts := []ftp.DialOption{
 		ftp.DialWithTimeout(10 * time.Second),

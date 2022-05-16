@@ -192,17 +192,17 @@
                 "
                 style="color: #f56c6c; font-size: 15px; float: right"
                 icon-class="close"
-              ></SvgIcon>
+              />
               <SvgIcon
                 v-else-if="item.state === 1"
                 style="color: #67c23a; font-size: 15px; float: right"
                 icon-class="check"
-              ></SvgIcon>
+              />
               <SvgIcon
                 v-else
                 style="color: #f56c6c; font-size: 15px; float: right"
                 icon-class="close"
-              ></SvgIcon>
+              />
             </el-radio>
             <el-button
               v-if="
@@ -555,9 +555,7 @@ const getPreviewList = (projectId: number) => {
     .then((response) => {
       gitTraceList.value = response.data.list.map((item) => {
         let element = <PublishTraceData & PublishTraceExt>item
-        if (element.ext) {
-          element.commit = element.ext.replaceAll('"', '')
-        }
+        element.commit = element.ext.replaceAll('"', '')
         return element
       })
       if (gitTraceList.value.length > 0) {

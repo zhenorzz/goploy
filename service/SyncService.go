@@ -145,7 +145,7 @@ func (gsync Gsync) Exec() {
 
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
-		Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.Rsync, Message: "Rsync"},
+		Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.Rsync, Message: "Sync"},
 	}
 	ch := make(chan syncMessage, len(gsync.ProjectServers))
 
