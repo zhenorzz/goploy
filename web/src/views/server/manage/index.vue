@@ -259,32 +259,47 @@
             {{ $t('serverPage.advance') }}
           </el-button>
         </el-form-item>
-        <el-form-item v-show="formProps.showAdvance" label="Jump host">
-          <el-input v-model="formData.jumpIP" autocomplete="off" />
-        </el-form-item>
-        <el-form-item v-show="formProps.showAdvance" label="Jump port">
-          <el-input v-model.number="formData.jumpPort" autocomplete="off" />
-        </el-form-item>
-        <el-form-item
-          v-show="formProps.showAdvance"
-          :label="$t('serverPage.sshKeyOwner')"
-        >
-          <el-input
-            v-model="formData.jumpOwner"
-            autocomplete="off"
-            placeholder="root"
-          />
-        </el-form-item>
-        <el-form-item
-          v-show="formProps.showAdvance"
-          :label="$t('serverPage.sshKeyPath')"
-        >
-          <el-input
-            v-model="formData.jumpPath"
-            autocomplete="off"
-            placeholder="/root/.ssh/id_rsa"
-          />
-        </el-form-item>
+        <template v-if="formProps.showAdvance">
+          <el-form-item label="Jump host">
+            <el-input v-model="formData.jumpIP" autocomplete="off" />
+          </el-form-item>
+          <el-form-item label="Jump port">
+            <el-input v-model.number="formData.jumpPort" autocomplete="off" />
+          </el-form-item>
+          <el-form-item :label="$t('serverPage.loginType')">
+            <el-radio-group
+              v-model="formProps.jumpLoginType"
+              @change="formData.jumpPath = ''"
+            >
+              <el-radio label="key">key</el-radio>
+              <el-radio label="user">user</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item :label="$t('owner')">
+            <el-input
+              v-model="formData.jumpOwner"
+              autocomplete="off"
+              placeholder="root"
+            />
+          </el-form-item>
+          <el-form-item
+            v-if="formProps.jumpLoginType === 'key'"
+            :label="$t('serverPage.sshKeyPath')"
+          >
+            <el-input
+              v-model="formData.jumpPath"
+              autocomplete="off"
+              placeholder="/root/.ssh/id_rsa"
+            />
+          </el-form-item>
+          <el-form-item :label="$t('password')">
+            <el-input
+              v-model="formData.jumpPassword"
+              autocomplete="off"
+              placeholder=""
+            />
+          </el-form-item>
+        </template>
       </el-form>
       <template #footer>
         <el-row type="flex" justify="space-between">
@@ -426,6 +441,7 @@ const formProps = ref({
   copyPubLoading: false,
   disabled: false,
   loginType: 'key',
+  jumpLoginType: 'key',
 })
 const formRules = <InstanceType<typeof ElForm>['rules']>{
   namespaceId: [
@@ -583,6 +599,7 @@ function handleAdd() {
 function handleEdit(data: ServerData) {
   formData.value = Object.assign({}, data)
   formProps.value.loginType = data.path === '' ? 'user' : 'key'
+  formProps.value.jumpLoginType = data.jumpPath === '' ? 'user' : 'key'
   dialogVisible.value = true
 }
 
