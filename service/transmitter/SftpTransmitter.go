@@ -78,6 +78,12 @@ func (st sftpTransmitter) Exec() (string, error) {
 			}
 			excludeRegexps = append(excludeRegexps, r)
 		} else if nextItem == "--include" {
+			tempItem := ""
+			for _, s := range strings.Split(item, "/") {
+				tempItem = tempItem + s
+				includes = append(includes, tempItem)
+				tempItem = tempItem + "/"
+			}
 			includes = append(includes, item)
 		} else if nextItem == "--include-regexp" {
 			r, err := regexp.Compile(item)

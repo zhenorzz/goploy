@@ -225,10 +225,12 @@ import path from 'path-browserify'
 import { humanSize, parseTime } from '@/utils'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import type { ElUpload } from 'element-plus'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { ServerOption } from '@/api/server'
 import { HttpResponse } from '@/api/types'
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 interface file {
   uuid: number
   isDir: boolean
@@ -452,8 +454,19 @@ function selectFile(file: file) {
 async function beforeUpload(file: File) {
   const fileIndex = fileList.value.findIndex((_: file) => file.name === _.name)
   if (fileIndex >= 0) {
-    ElMessage.warning(`${file.name} is already exist`)
-    return Promise.reject()
+    const result = await ElMessageBox.confirm(
+      `${file.name} is already exist, overwrite?`,
+      t('tips'),
+      {
+        confirmButtonText: t('confirm'),
+        cancelButtonText: t('cancel'),
+        type: 'warning',
+      }
+    )
+    if (result !== 'confirm') {
+      return Promise.reject()
+    }
+    fileList.value.splice(fileIndex, 1)
   }
   fileList.value.push({
     uuid: fileUUID++,
