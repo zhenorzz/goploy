@@ -98,6 +98,15 @@ Goploy 用于:
 - [gin](https://github.com/codegangsta/gin) - GO hot reload。
 - [element-ui](https://github.com/ElemeFE/element) - 前端UI样式。
 
+## 捐赠
+
+如果你觉得这个项目帮助到了你，你可以请作者喝一杯奶茶表示鼓励 🥛
+
+<p>
+  <img src="https://www.goploy.icu/weixin.png" width="200" alt="weixin">
+  <img src="https://www.goploy.icu/alipay.png" width="209" alt="alipay">
+</p>
+
 ## 如何贡献
 
 非常欢迎你的加入! QQ群903750786，群里有基础安装视频。
