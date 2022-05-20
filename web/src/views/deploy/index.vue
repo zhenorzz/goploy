@@ -157,13 +157,17 @@
               <Dropdown
                 v-else
                 :permissions="[pms.DeployProject]"
-                split-button
+                :split-button="scope.row.review === 1 ? false : true"
                 trigger="click"
                 type="primary"
                 @click="publish(scope.row)"
                 @command="(funcName: string) => commandFunc[funcName](scope.row)"
               >
-                {{ scope.row.review === 1 ? $t('submit') : $t('deploy') }}
+                <el-button v-if="scope.row.review === 1" type="primary">
+                  {{ $t('submit') }}
+                  <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                </el-button>
+                <span v-else>{{ $t('deploy') }}</span>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item :command="'handleCommitCommand'">
