@@ -331,7 +331,15 @@ export default { name: 'ServerAgent' }
 import pms from '@/permission'
 import Button from '@/components/Permission/Button.vue'
 import { Refresh, Bell, Tickets, Edit, Delete } from '@element-plus/icons-vue'
-import * as echarts from 'echarts'
+import * as echarts from 'echarts/core'
+import { LineChart } from 'echarts/charts'
+import { CanvasRenderer } from 'echarts/renderers'
+import {
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+} from 'echarts/components'
 import type { ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage, ElDatePicker } from 'element-plus'
 import {
@@ -356,6 +364,14 @@ const router = useRouter()
 let serverId = Number(route.query.serverId)
 const monitorDialogVisible = ref(false)
 const monitorListDialogVisible = ref(false)
+echarts.use([
+  LineChart,
+  CanvasRenderer,
+  TitleComponent,
+  TooltipComponent,
+  GridComponent,
+  LegendComponent,
+])
 const chartRefs = ref<Record<string, Element | ComponentPublicInstance>>({})
 const chartNameMap = <
   Record<string, { type: number; title: string; subtitle: string }>

@@ -20,6 +20,7 @@ require (
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.0-beta.4 // indirect
 	github.com/pkg/sftp v1.13.1
+	github.com/vearutop/statigz v1.1.8 // indirect
 	golang.org/x/crypto v0.0.0-20211209193657-4570a0811e8b
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect

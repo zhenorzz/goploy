@@ -3,6 +3,7 @@ import path from 'path'
 import vue from '@vitejs/plugin-vue'
 import vueI18n from '@intlify/vite-plugin-vue-i18n'
 import viteSvgIcons from 'vite-plugin-svg-icons'
+import viteCompression from 'vite-plugin-compression'
 // https://vitejs.dev/config/
 export default ({ mode }: ConfigEnv): UserConfigExport => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) }
@@ -21,7 +22,18 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
         // Specify symbolId format
         symbolId: 'icon-[dir]-[name]',
       }),
+      viteCompression({ deleteOriginFile: true }),
     ],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            elementUI: ['element-plus'],
+            echarts: ['echarts'],
+          },
+        },
+      },
+    },
     server: {
       host: '0.0.0.0',
       port: 8000,

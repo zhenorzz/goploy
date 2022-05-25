@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt"
+	"github.com/vearutop/statigz"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/response"
@@ -90,8 +91,8 @@ func (rt Router) Start() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		http.Handle("/assets/", http.FileServer(http.FS(subFS)))
-		http.Handle("/favicon.ico", http.FileServer(http.FS(subFS)))
+		http.Handle("/assets/", statigz.FileServer(subFS.(fs.ReadDirFS)))
+		http.Handle("/favicon.ico", statigz.FileServer(subFS.(fs.ReadDirFS)))
 	}
 	http.Handle("/", rt)
 }
