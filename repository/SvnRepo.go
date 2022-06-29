@@ -91,7 +91,11 @@ func (SvnRepo) BranchList(projectID int64) ([]string, error) {
 
 func (SvnRepo) CommitLog(projectID int64, rows int) ([]CommitInfo, error) {
 	svn := utils.SVN{Dir: core.GetProjectPath(projectID)}
-
+        
+	if err := svn.Pull(); err != nil {
+		return []CommitInfo{}, errors.New(svn.Err.String())
+	}
+	
 	if err := svn.Log("-v", "--xml", "-l", strconv.Itoa(rows)); err != nil {
 		return []CommitInfo{}, errors.New(svn.Err.String())
 	}
@@ -103,6 +107,10 @@ func (SvnRepo) CommitLog(projectID int64, rows int) ([]CommitInfo, error) {
 func (SvnRepo) BranchLog(projectID int64, branch string, rows int) ([]CommitInfo, error) {
 	svn := utils.SVN{Dir: core.GetProjectPath(projectID)}
 
+	if err := svn.Pull(); err != nil {
+		return []CommitInfo{}, errors.New(svn.Err.String())
+	}
+	
 	if err := svn.Log("-v", "--xml", "-l", strconv.Itoa(rows)); err != nil {
 		return []CommitInfo{}, errors.New(svn.Err.String())
 	}
