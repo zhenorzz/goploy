@@ -86,6 +86,10 @@ func (SvnRepo) RemoteBranchList(url string) ([]string, error) {
 }
 
 func (SvnRepo) BranchList(projectID int64) ([]string, error) {
+	svn := utils.SVN{Dir: core.GetProjectPath(projectID)}
+	if err := svn.Pull(); err != nil {
+		return []string{}, errors.New(err.Error() + " detail: " + svn.Err.String())
+	}
 	return []string{"master"}, nil
 }
 

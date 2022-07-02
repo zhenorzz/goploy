@@ -49,7 +49,7 @@
           </RepoURL>
         </template>
       </el-table-column>
-      <el-table-column prop="state" :label="$t('state')" width="50">
+      <el-table-column prop="state" :label="$t('state')" width="70">
         <template #default="scope">
           {{ $t(`deployPage.reviewStateOption[${scope.row.state || 0}]`) }}
         </template>

@@ -227,7 +227,7 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			// write after deploy script for rsync
 			if len(project.AfterDeployScript) != 0 {
 				scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
-				_ = ioutil.WriteFile(scriptName, []byte(ReplaceProjectVars(project.AfterDeployScript, project)), 0755)
+				_ = ioutil.WriteFile(scriptName, []byte(ReplaceProjectVars(ReplaceCommitVars(project.AfterDeployScript, gsync.CommitInfo), project)), 0755)
 			}
 
 			transmitterEntity := transmitter.New(project, projectServer)
