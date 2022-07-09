@@ -101,7 +101,7 @@
           <template #default="scope">
             {{ $t(`stateOption[${scope.row.state || 0}]`) }}
             <Switch
-              :value="scope.row.state === 1"
+              :model-value="scope.row.state === 1"
               active-color="#13ce66"
               inactive-color="#ff4949"
               :permissions="[pms.SwitchServerState]"
@@ -403,7 +403,7 @@ import { HttpResponse } from '@/api/types'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import { ref, computed } from 'vue'
 import { copy, humanSize } from '@/utils'
-import { ElMessageBox, ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
@@ -551,7 +551,6 @@ function getPublicKey() {
       formProps.value.copyPubLoading = false
     })
 }
-
 function handleInstallAgent() {
   if (selectedItems.value.length === 0) {
     ElMessage.warning('Please, select the item')

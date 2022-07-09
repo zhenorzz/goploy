@@ -51,12 +51,12 @@
         <el-table-column
           prop="user"
           :label="$t('member')"
-          width="80"
+          width="90"
           align="center"
           :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
         >
           <template #default="scope">
-            <el-button type="text" @click="handleUser(scope.row)">
+            <el-button type="primary" link @click="handleUser(scope.row)">
               {{ $t('view') }}
             </el-button>
           </template>

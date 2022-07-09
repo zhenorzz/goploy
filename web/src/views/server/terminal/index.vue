@@ -60,7 +60,7 @@
               <div class="server-list">
                 <div v-for="server in serverFilteredOption" :key="server.id">
                   <el-button
-                    type="text"
+                    link
                     class="server-item"
                     @click="selectServer(server)"
                   >
@@ -72,7 +72,7 @@
               </div>
               <template #reference>
                 <el-button
-                  type="text"
+                  link
                   style="
                     color: #bfcbd9;
                     height: 45px;
@@ -263,7 +263,6 @@ function enterCommand() {
 .server-list {
   height: 216px;
   overflow-x: auto;
-  margin-left: 10px;
   margin-top: 10px;
   @include scrollBar();
 }

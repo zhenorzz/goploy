@@ -58,6 +58,19 @@
     />
     <div class="right">
       <div class="international">
+        <el-switch
+          v-model="switchDark"
+          style="
+            --el-switch-on-color: var(--el-border-color);
+            --el-switch-off-color: var(--el-border-color);
+            margin-right: 18px;
+            height: 48px;
+          "
+          inline-prompt
+          :active-icon="Moon"
+          :inactive-icon="Sunny"
+          @change="toggleDark"
+        />
         <el-dropdown
           trigger="click"
           placement="bottom"
@@ -209,6 +222,11 @@ import { NamespaceUserData, NamespaceOption } from '@/api/namespace'
 import { getNamespace, setNamespace, removeNamespace } from '@/utils/namespace'
 import { ElLoading, ElMessage } from 'element-plus'
 import { ref, reactive, computed } from 'vue'
+import { useDark, useToggle } from '@vueuse/core'
+import { Sunny, Moon } from '@element-plus/icons-vue'
+const isDark = useDark()
+const switchDark = ref(isDark.value)
+const toggleDark = useToggle(isDark)
 const transformVisible = ref(false)
 const transformType = ref('')
 const qrcode = reactive({
@@ -284,7 +302,6 @@ async function logout() {
   height: 50px;
   overflow: hidden;
   position: relative;
-  background: #fff;
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
   &-logo {
     width: 25px;

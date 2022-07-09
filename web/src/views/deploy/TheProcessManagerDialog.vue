@@ -117,7 +117,7 @@
     v-model="processVisible"
     :fullscreen="$store.state.app.device === 'mobile'"
   >
-    <template #title>
+    <template #header>
       {{ $t('deployPage.processManager') }}
       <el-popover
         placement="bottom-start"
@@ -140,7 +140,7 @@
           </el-row>
         </div>
         <template #reference>
-          <el-button type="text">
+          <el-button type="primary" :text="true">
             {{ $t('projectPage.predefinedVar') }}
           </el-button>
         </template>

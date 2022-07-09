@@ -26,27 +26,29 @@
         </el-button>
       </el-row>
     </el-row>
-    <el-row class="chart-container" :gutter="10">
-      <el-col
-        v-for="(_, name) in chartNameMap"
-        :key="name"
-        :xs="24"
-        :sm="24"
-        :lg="12"
-        style="margin-bottom: 10px"
-      >
-        <div
-          :ref="
-            (el) => {
-              if (el) {
-                chartRefs[name] = el
+    <el-scrollbar class="chart-container">
+      <el-row style="width: 100%" :gutter="10">
+        <el-col
+          v-for="(_, name) in chartNameMap"
+          :key="name"
+          :xs="24"
+          :sm="24"
+          :lg="12"
+          style="margin-bottom: 10px"
+        >
+          <div
+            :ref="
+              (el) => {
+                if (el) {
+                  chartRefs[name] = el
+                }
               }
-            }
-          "
-          style="height: 288px; border: solid 1px #e6e6e6; padding: 10px 0"
-        ></div>
-      </el-col>
-    </el-row>
+            "
+            style="height: 288px; border: 1px solid var(--el-border-color)"
+          ></div>
+        </el-col>
+      </el-row>
+    </el-scrollbar>
     <el-dialog
       v-model="monitorDialogVisible"
       :fullscreen="$store.state.app.device === 'mobile'"
@@ -333,6 +335,7 @@ import Button from '@/components/Permission/Button.vue'
 import { Refresh, Bell, Tickets, Edit, Delete } from '@element-plus/icons-vue'
 import * as echarts from 'echarts/core'
 import { LineChart } from 'echarts/charts'
+import 'echarts/theme/dark-mushroom.js'
 import { CanvasRenderer } from 'echarts/renderers'
 import {
   TitleComponent,
@@ -354,9 +357,10 @@ import dayjs, { Dayjs } from 'dayjs'
 import { ref, onActivated, ComponentPublicInstance } from 'vue'
 import { deepClone, parseTime } from '@/utils'
 import { useI18n } from 'vue-i18n'
+import { useDark } from '@vueuse/core'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-
+const isDark = useDark()
 const { t } = useI18n()
 const store = useStore()
 const route = useRoute()
@@ -629,7 +633,16 @@ function report(chartName: string, values: Date[]) {
     .request()
     .then((response) => {
       echarts.dispose(<HTMLDivElement>chartRefs.value[chartName])
-      let chart = echarts.init(<HTMLDivElement>chartRefs.value[chartName])
+      let chart
+      if (isDark.value) {
+        chart = echarts.init(
+          <HTMLDivElement>chartRefs.value[chartName],
+          'dark-mushroom'
+        )
+      } else {
+        chart = echarts.init(<HTMLDivElement>chartRefs.value[chartName])
+      }
+
       let chartOption = deepClone(chartBaseOption)
       chartOption.title.text = chartNameMap[chartName].title
       chartOption.title.subtext = chartNameMap[chartName].subtitle
@@ -668,7 +681,5 @@ function restoreFormData() {
 .chart-container {
   width: 100%;
   max-height: calc(100vh - 180px);
-  overflow-y: auto;
-  @include scrollBar();
 }
 </style>

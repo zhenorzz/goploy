@@ -52,7 +52,8 @@
         >
           <template #default="scope">
             <Button
-              type="text"
+              type="primary"
+              link
               :permissions="[pms.DeployDetail]"
               @click="handleDetail(scope.row)"
             >
@@ -127,7 +128,8 @@
               <span style="padding: 5px 0">[goploy ~]#</span>
               <el-button
                 v-if="item.state === 1 && !(item.id in traceDetail)"
-                type="text"
+                type="primary"
+                link
                 @click="getPublishTraceDetail(item)"
               >
                 {{ $t('deployPage.showDetail') }}
@@ -165,7 +167,8 @@
                   <span style="padding: 5px 0">[goploy ~]#</span>
                   <el-button
                     v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                    type="text"
+                    type="primary"
+                    link
                     @click="getPublishTraceDetail(trace)"
                   >
                     {{ $t('deployPage.showDetail') }}
@@ -191,7 +194,8 @@
                   <span style="padding: 5px 0">[goploy ~]#</span>
                   <el-button
                     v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                    type="text"
+                    type="primary"
+                    link
                     @click="getPublishTraceDetail(trace)"
                   >
                     {{ $t('deployPage.showDetail') }}
@@ -220,7 +224,8 @@
                   <span>[goploy ~]#</span>
                   <el-button
                     v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                    type="text"
+                    type="primary"
+                    link
                     @click="getPublishTraceDetail(trace)"
                   >
                     {{ $t('deployPage.showDetail') }}

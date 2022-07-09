@@ -69,17 +69,24 @@
             >
               <el-button
                 :disabled="!validateFilename(file, index)"
-                type="text"
+                type="primary"
+                link
                 :icon="Upload"
               />
             </el-upload>
             <el-button
               :disabled="!validateFilename(file, index)"
-              type="text"
+              type="primary"
+              link
               :icon="Edit"
               @click="getProjectFileContent(file, index)"
             />
-            <el-button type="text" :icon="Delete" @click="removeFile(index)" />
+            <el-button
+              type="primary"
+              link
+              :icon="Delete"
+              @click="removeFile(index)"
+            />
           </el-row>
         </el-form-item>
       </template>
@@ -92,7 +99,7 @@
         <v-ace-editor
           v-model:value="formData.content"
           lang="sh"
-          theme="github"
+          :theme="isDark ? 'one_dark' : 'github'"
           style="height: 500px; width: 100%"
         />
       </el-form-item>
@@ -118,9 +125,9 @@ import {
   Edit,
   Delete,
   Check,
-  Loading,
-  Close,
   Plus,
+  Close,
+  Loading,
 } from '@element-plus/icons-vue'
 import {
   ProjectFileList,
@@ -130,16 +137,21 @@ import {
   ProjectFileRemove,
 } from '@/api/project'
 import { VAceEditor } from 'vue3-ace-editor'
-import 'ace-builds/src-noconflict/mode-sh'
-import 'ace-builds/src-noconflict/mode-python'
-import 'ace-builds/src-noconflict/mode-php'
-import 'ace-builds/src-noconflict/mode-batchfile'
-import 'ace-builds/src-noconflict/theme-github'
+import * as ace from 'ace-builds/src-noconflict/ace'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref, computed, watch } from 'vue'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import { HttpResponse, ID } from '@/api/types'
+import { useDark } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
+ace.config.set(
+  'basePath',
+  'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
+)
+ace.config.set(
+  'themePath',
+  'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
+)
 interface FormFileInfo {
   id: number
   projectId: number
@@ -147,6 +159,7 @@ interface FormFileInfo {
   content: string
   state: string
 }
+const isDark = useDark()
 const { t } = useI18n()
 const props = defineProps({
   modelValue: {
@@ -165,6 +178,7 @@ const dialogVisible = computed({
     emit('update:modelValue', val)
   },
 })
+
 const formData = ref({
   files: [] as FormFileInfo[],
   content: '',

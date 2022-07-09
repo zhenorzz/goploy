@@ -5,7 +5,7 @@
         <el-row style="margin-right: 10px">
           <el-button
             :disabled="backwardHistory.length === 0"
-            type="text"
+            link
             :icon="Back"
             style="color: #303133; font-size: 14px"
             @click="backward"
@@ -13,7 +13,7 @@
           </el-button>
           <el-button
             :disabled="forwardHistory.length === 0"
-            type="text"
+            link
             :icon="Right"
             style="color: #303133; font-size: 14px"
             @click="forward"
@@ -21,7 +21,7 @@
           </el-button>
           <el-button
             :disabled="!wsConnected"
-            type="text"
+            link
             :icon="Top"
             style="color: #303133; font-size: 14px"
             @click="dotdot(dir)"
@@ -73,8 +73,8 @@
           >
             <Button
               :disabled="dir === ''"
-              type="text"
-              style="color: #606266"
+              link
+              style="color: var(--el-text-color-regular)"
               :permissions="[permission.SFTPUploadFile]"
             >
               {{ $t('upload') }}
@@ -151,7 +151,7 @@
               <el-dropdown-menu>
                 <el-dropdown-item v-if="selectedFile['isDir'] === true">
                   <el-button
-                    type="text"
+                    link
                     @click="dirOpen(`${dir}/${selectedFile['name']}`)"
                   >
                     {{ $t('open') }}
@@ -179,7 +179,8 @@
                 </el-dropdown-item>
                 <el-dropdown-item divided>
                   <el-button
-                    type="text"
+                    link
+                    type="primary"
                     @click="fileDetailDialogVisible = true"
                   >
                     {{ $t('detail') }}
@@ -527,15 +528,15 @@ function getIcon(filename: string) {
 }
 .sftp-container {
   flex-direction: column;
-  border: 1px solid #d8dce5;
+  border: 1px solid var(--el-border-color);
   height: 100%;
   .nav {
     padding: 10px;
-    border-bottom: 1px solid #d8dce5;
+    border-bottom: 1px solid var(--el-border-color);
   }
   .operator {
     padding: 5px 10px;
-    border-bottom: 1px solid #d8dce5;
+    border-bottom: 1px solid var(--el-border-color);
   }
   .files {
     flex: 1;
@@ -549,7 +550,7 @@ function getIcon(filename: string) {
       width: 100px;
       cursor: pointer;
       &-selected {
-        outline: 1px solid #d8dce5;
+        outline: 1px solid var(--el-border-color);
         border-radius: 4px;
       }
     }
@@ -580,6 +581,6 @@ function getIcon(filename: string) {
 </style>
 <style>
 .input-with-select .el-input-group__prepend {
-  background-color: #fff;
+  background-color: var(--el-bg-color);
 }
 </style>

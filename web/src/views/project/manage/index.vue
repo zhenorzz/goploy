@@ -86,7 +86,8 @@
             <span v-if="scope.row.autoDeploy === 0">{{ $t('close') }}</span>
             <span v-else>{{ $t('open') }}</span>
             <Button
-              type="text"
+              type="primary"
+              link
               :icon="Edit"
               :permissions="[pms.SwitchProjectWebhook]"
               @click="handleAutoDeploy(scope.row)"
@@ -185,7 +186,7 @@
                     ftp[s]://[username:password@]host.xz[:port]/path/to/repo<br />
                     sftp://host.xz[:port]/path/to/repo --user= --keyFile=
                   </template>
-                  <el-icon style="vertical-align: middle" :size="16">
+                  <el-icon>
                     <question-filled />
                   </el-icon>
                 </el-tooltip>
@@ -541,7 +542,7 @@
               <v-ace-editor
                 v-model:value="formData.afterPullScript"
                 :lang="getScriptLang(formData.afterPullScriptMode)"
-                theme="github"
+                :theme="isDark ? 'one_dark' : 'github'"
                 style="height: 400px; width: 100%"
                 placeholder="Already switched to project directory..."
                 :options="{ newLineMode: 'unix' }"
@@ -627,7 +628,7 @@
               <v-ace-editor
                 v-model:value="formData.afterDeployScript"
                 :lang="getScriptLang(formData.afterDeployScriptMode)"
-                theme="github"
+                :theme="isDark ? 'one_dark' : 'github'"
                 style="height: 400px; width: 100%"
                 :options="{ newLineMode: 'unix' }"
               />
@@ -738,8 +739,10 @@ import {
 import type { ElRadioGroup, ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref, computed } from 'vue'
+import { useDark } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
+const isDark = useDark()
 ace.config.set(
   'basePath',
   'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'

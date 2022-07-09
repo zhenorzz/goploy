@@ -231,8 +231,7 @@ export default defineComponent({
 .tags-view-container {
   height: 34px;
   width: 100%;
-  background: #fff;
-  border-bottom: 1px solid #d8dce5;
+  border-bottom: 1px solid var(--el-border-color-light);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 0 3px 0 rgba(0, 0, 0, 0.04);
   .tags-view-wrapper {
     .tags-view-item {
@@ -241,9 +240,8 @@ export default defineComponent({
       cursor: pointer;
       height: 26px;
       line-height: 26px;
-      border: 1px solid #d8dce5;
-      color: #495060;
-      background: #fff;
+      border: 1px solid var(--el-border-color);
+      color: var(--el-text-color-regular);
       padding: 0 8px;
       font-size: 12px;
       margin-left: 5px;
@@ -272,9 +270,9 @@ export default defineComponent({
         }
       }
       &.active {
-        background-color: #42b983;
+        background-color: var(--el-color-success);
         color: #fff;
-        border-color: #42b983;
+        border-color: var(--el-color-success);
         &::before {
           content: '';
           background: #fff;

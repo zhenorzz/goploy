@@ -74,9 +74,8 @@ div:focus {
 
 .app-bar {
   width: 100%;
-  border: 1px solid #EBEEF5;
-  margin-bottom: 5px;
-  padding: 10px;
-  background-color: #f2f6fc;
+  // border: 1px solid var(--el-border-color);
+  margin-bottom: 15px;
+  // background-color: var(--el-bg-color);
   &-operation {margin-bottom:10px;};
 }
