@@ -350,10 +350,6 @@ async function logout() {
       outline: none;
     }
 
-    &:hover {
-      background-color: #f5f7fa;
-    }
-
     .user-container {
       padding: 0 20px;
       height: 50px;
@@ -368,8 +364,11 @@ async function logout() {
         margin-top: 4px;
         font-size: 16px;
         font-weight: 900;
-        color: #9d9d9d;
         line-height: 30px;
+        color: var(--el-text-color-regular);
+        &:hover {
+          color: var(--el-color-primary);
+        }
       }
     }
   }

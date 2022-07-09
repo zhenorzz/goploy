@@ -4,6 +4,8 @@
     transition: margin-left .28s;
     margin-left: $sideBarWidth;
     position: relative;
+    background-color: var(--el-bg-color-page);
+    padding-top: 10px;
   }
 
   .sidebar-container {
