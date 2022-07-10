@@ -1,5 +1,5 @@
 <template>
-  <el-row class="app-container main">
+  <el-row class="app-container">
     <el-row class="sftp-container">
       <el-row class="nav" align="middle">
         <el-row style="margin-right: 10px">
@@ -522,10 +522,6 @@ function getIcon(filename: string) {
 </script>
 <style lang="scss" scoped>
 @import '@/styles/mixin.scss';
-.main {
-  flex-direction: column;
-  height: calc(100vh - 84px);
-}
 .sftp-container {
   flex-direction: column;
   border: 1px solid var(--el-border-color);

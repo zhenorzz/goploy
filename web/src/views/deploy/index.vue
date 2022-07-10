@@ -1,9 +1,23 @@
 <template>
   <el-row class="app-container">
-    <el-row class="app-bar" type="flex">
+    <el-row class="app-bar" type="flex" align="middle">
+      <el-select
+        v-model="searchProject.sort"
+        style="width: 130px"
+        placeholder="Sort"
+        clearable
+        @change="sortChange"
+      >
+        <el-option :label="'ID Asc'" value="idAsc" />
+        <el-option :label="'ID Desc'" value="idDesc" />
+        <el-option :label="'Name Asc'" value="nameAsc" />
+        <el-option :label="'Name Desc'" value="nameDesc" />
+        <el-option :label="'Env Asc'" value="envAsc" />
+        <el-option :label="'Env Desc'" value="envDesc" />
+      </el-select>
       <el-select
         v-model="searchProject.environment"
-        placeholder="environment"
+        placeholder="Environment"
         clearable
       >
         <el-option :label="$t('envOption[1]')" :value="1" />
@@ -13,7 +27,7 @@
       </el-select>
       <el-select
         v-model="searchProject.autoDeploy"
-        placeholder="auto deploy"
+        placeholder="Auto deploy"
         clearable
       >
         <el-option :label="$t('close')" :value="0" />
@@ -26,7 +40,201 @@
       />
     </el-row>
     <el-row class="app-table">
-      <el-table
+      <el-scrollbar style="width: 100%">
+        <el-row style="width: 100%" :gutter="10">
+          <el-col
+            v-for="(row, index) in tablePage.list"
+            :key="index"
+            style="margin-bottom: 10px"
+            :sm="12"
+            :md="8"
+            :lg="8"
+            :xl="6"
+          >
+            <el-card shadow="hover" :body-style="{ padding: '0px' }">
+              <el-row
+                align="middle"
+                justify="space-between"
+                style="position: relative; padding: 15px"
+              >
+                <el-row
+                  style="flex: 1; flex-direction: column; flex-wrap: nowrap"
+                >
+                  <el-row>
+                    <span
+                      style="font-weight: 600; white-space: nowrap"
+                      :title="'illuminati Owls VIP'"
+                    >
+                      <span v-if="row.environment === 1" style="color: #f56c6c">
+                        {{ row.name }} -
+                        {{ $t(`envOption[${row.environment || 0}]`) }}
+                      </span>
+                      <span
+                        v-else-if="row.environment === 3"
+                        style="color: #e6a23c"
+                      >
+                        {{ row.name }} -
+                        {{ $t(`envOption[${row.environment || 0}]`) }}
+                      </span>
+                      <span v-else style="color: #909399">
+                        {{ row.name }} -
+                        {{ $t(`envOption[${row.environment || 0}]`) }}
+                      </span>
+                    </span>
+                  </el-row>
+                  <el-row style="margin-top: 8px" align="middle">
+                    <svg-icon style="margin-right: 8px" icon-class="branch" />
+                    <RepoURL
+                      :url="row['url']"
+                      :suffix="'/tree/' + row['branch'].split('/').pop()"
+                      :text="row.branch"
+                    >
+                    </RepoURL>
+                    <svg-icon style="margin: 0 8px" icon-class="gitCommit" />
+                    <RepoURL
+                      :url="row['url']"
+                      :suffix="'/commit/' + row['commit']"
+                      :text="row['commit'] ? row['commit'].substring(0, 6) : ''"
+                    >
+                    </RepoURL>
+                  </el-row>
+                  <el-row style="margin-top: 8px" align="middle">
+                    <svg-icon icon-class="publishTime" />
+                    <span style="margin: 0 8px; font-size: 14px">
+                      {{ row.updateTime }}
+                    </span>
+                    <el-tag :type="row.tagType" size="small" effect="plain">
+                      {{ row.tagText }}
+                    </el-tag>
+                  </el-row>
+                </el-row>
+                <el-progress
+                  style="margin: 5px 0; width: 100%"
+                  :percentage="row.progressPercentage"
+                  :status="row.progressStatus"
+                />
+                <el-row justify="end">
+                  <Button
+                    v-if="row.deployState === 0"
+                    :permissions="[pms.DeployProject]"
+                    type="primary"
+                    size="small"
+                    @click="publish(row)"
+                  >
+                    {{ $t('initial') }}
+                  </Button>
+                  <Button
+                    v-else-if="row.deployState === 1"
+                    :permissions="[pms.DeployResetState]"
+                    type="primary"
+                    size="small"
+                    @click="resetState(row)"
+                  >
+                    {{ $t('deployPage.resetState') }}
+                  </Button>
+                  <Dropdown
+                    v-else
+                    :permissions="[pms.DeployProject]"
+                    :split-button="row.review === 1 ? false : true"
+                    trigger="click"
+                    type="primary"
+                    size="small"
+                    @click="publish(row)"
+                    @command="(funcName: string) => commandFunc[funcName](row)"
+                  >
+                    <el-button
+                      v-if="row.review === 1"
+                      size="small"
+                      type="primary"
+                    >
+                      {{ $t('submit') }}
+                      <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                    </el-button>
+                    <span v-else>{{ $t('deploy') }}</span>
+                    <template #dropdown>
+                      <el-dropdown-menu>
+                        <el-dropdown-item :command="'handleCommitCommand'">
+                          Commit list
+                        </el-dropdown-item>
+                        <el-dropdown-item :command="'handleTagCommand'">
+                          Tag list
+                        </el-dropdown-item>
+                      </el-dropdown-menu>
+                    </template>
+                  </Dropdown>
+                  <el-dropdown
+                    trigger="click"
+                    style="margin-left: 5px"
+                    @command="(funcName) => commandFunc[funcName](row)"
+                  >
+                    <el-button size="small" type="warning">
+                      {{ $t('func') }}
+                      <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                    </el-button>
+                    <template #dropdown>
+                      <el-dropdown-menu
+                        style="min-width: 84px; text-align: center"
+                      >
+                        <DropdownItem
+                          :permissions="[pms.DeployTask]"
+                          :command="'handleTaskCommand'"
+                        >
+                          {{ $t('deployPage.taskDeploy') }}
+                        </DropdownItem>
+                        <DropdownItem
+                          :permissions="[pms.FileCompare]"
+                          :command="'handleFileCompareCommand'"
+                        >
+                          {{ $t('deployPage.fileCompare') }}
+                        </DropdownItem>
+                        <DropdownItem
+                          :permissions="[pms.FileSync]"
+                          :command="'handleFileSyncCommand'"
+                        >
+                          {{ $t('deployPage.fileSync') }}
+                        </DropdownItem>
+                        <DropdownItem
+                          :permissions="[pms.ProcessManager]"
+                          :command="'handleProcessManagerCommand'"
+                        >
+                          {{ $t('deployPage.processManager') }}
+                        </DropdownItem>
+                        <DropdownItem
+                          v-if="row.review === 1"
+                          :permissions="[pms.DeployReview]"
+                          :command="'handleReviewCommand'"
+                        >
+                          {{ $t('deployPage.reviewDeploy') }}
+                        </DropdownItem>
+                      </el-dropdown-menu>
+                    </template>
+                  </el-dropdown>
+                  <Button
+                    type="success"
+                    size="small"
+                    style="margin-left: 5px"
+                    :permissions="[pms.DeployDetail]"
+                    @click="handleDetail(row)"
+                  >
+                    {{ $t('detail') }}
+                  </Button>
+                </el-row>
+                <el-row
+                  style="
+                    top: 15px;
+                    right: 15px;
+                    position: absolute;
+                    color: var(--el-text-color-secondary);
+                  "
+                >
+                  # {{ row.id }}
+                </el-row>
+              </el-row>
+            </el-card>
+          </el-col>
+        </el-row>
+      </el-scrollbar>
+      <!-- <el-table
         v-loading="tableloading"
         border
         stripe
@@ -235,7 +443,7 @@
             </div>
           </template>
         </el-table-column>
-      </el-table>
+      </el-table> -->
     </el-row>
     <el-row type="flex" justify="end" style="width: 100%; margin-top: 5px">
       <el-pagination
@@ -388,7 +596,12 @@ const fileCompareDialogVisible = ref(false)
 const processManagerDialogVisible = ref(false)
 const reviewListDialogVisible = ref(false)
 const dialogVisible = ref(false)
-const searchProject = ref({ name: '', environment: '', autoDeploy: '' })
+const searchProject = ref({
+  sort: 'idDesc',
+  name: '',
+  environment: '',
+  autoDeploy: '',
+})
 const selectedItem = ref({} as ProjectData)
 const tableDefaultSort = getTableSort()
 const tableloading = ref(false)
@@ -519,22 +732,46 @@ function getList() {
     })
 }
 
-function sortChange(sort: Sort) {
-  let prop = <keyof ProjectData>sort.prop
-  let order = sort.order
-  setTableSort(prop, order)
-  if (!prop && !order) {
-    prop = 'id'
-    order = 'descending'
-  }
-  if (prop === 'name') {
-    prop = 'environment'
+function sortChange(sort: string) {
+  setTableSort(sort)
+  let prop: string
+  let order: string
+
+  switch (sort) {
+    case 'idAsc':
+      prop = 'id'
+      order = 'asc'
+      break
+    case 'idDesc':
+      prop = 'id'
+      order = 'desc'
+      break
+    case 'nameAsc':
+      prop = 'name'
+      order = 'asc'
+      break
+    case 'nameDesc':
+      prop = 'name'
+      order = 'desc'
+      break
+    case 'envAsc':
+      prop = 'environment'
+      order = 'asc'
+      break
+    case 'envDesc':
+      prop = 'environment'
+      order = 'desc'
+      break
+    default:
+      prop = 'id'
+      order = 'desc'
+      break
   }
   tableData.value = tableData.value.sort(
     (row1: ProjectData, row2: ProjectData): number => {
       let val1 = row1[prop]
       let val2 = row2[prop]
-      if (order === 'descending') {
+      if (order === 'desc') {
         val1 = row2[prop]
         val2 = row1[prop]
       }
@@ -764,15 +1001,15 @@ function enterToBR(detail: string) {
   return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
 }
 
-function getTableSort(): Sort {
-  const sortJsonStr = localStorage.getItem('deploy-table-sort')
-  if (sortJsonStr) {
-    return <Sort>JSON.parse(sortJsonStr)
+function getTableSort(): string {
+  const sortStr = localStorage.getItem('deploy-sort')
+  if (sortStr) {
+    return sortStr
   }
-  return { prop: 'id', order: 'descending' }
+  return 'idDesc'
 }
 
-function setTableSort(prop: string, order: string) {
-  localStorage.setItem('deploy-table-sort', JSON.stringify({ prop, order }))
+function setTableSort(value: string) {
+  localStorage.setItem('deploy-sort', value)
 }
 </script>

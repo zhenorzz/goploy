@@ -302,7 +302,8 @@ async function logout() {
   height: 50px;
   overflow: hidden;
   position: relative;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  // box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  border-bottom: 1px solid var(--el-border-color-light);
   &-logo {
     width: 25px;
     cursor: pointer;

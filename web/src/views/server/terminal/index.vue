@@ -1,5 +1,5 @@
 <template>
-  <el-row class="app-container main">
+  <el-row class="app-container">
     <el-row class="header">
       <el-scrollbar>
         <el-row class="nav" justify="start" align="middle">
@@ -193,11 +193,6 @@ function enterCommand() {
 </script>
 
 <style lang="scss" scoped>
-.main {
-  flex-direction: column;
-  height: calc(100vh - 84px);
-}
-
 .header {
   width: 100%;
   background: #0e0f12;

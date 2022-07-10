@@ -12,6 +12,7 @@
     transition: width 0.28s;
     width: $sideBarWidth !important;
     background-color: var(--el-bg-color);
+    border-right: 1px solid var(--el-border-color-light);
     height: calc(100vh - 50px);
     position: fixed;
     font-size: 0px;
@@ -20,7 +21,7 @@
     left: 0;
     z-index: 1001;
     overflow: hidden;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 12%), 0 0 3px 0 rgb(0 0 0 / 4%);
+    // box-shadow: 0 1px 3px 0 rgb(0 0 0 / 12%), 0 0 3px 0 rgb(0 0 0 / 4%);
     // reset element-ui css
     .horizontal-collapse-transition {
       transition: 0s width ease-in-out, 0s padding-left ease-in-out, 0s padding-right ease-in-out;

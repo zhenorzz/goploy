@@ -241,7 +241,7 @@ export default defineComponent({
       position: relative;
       cursor: pointer;
       height: 26px;
-      line-height: 26px;
+      line-height: 24px;
       border: 1px solid var(--el-border-color);
       color: var(--el-text-color-regular);
       padding: 0 8px;

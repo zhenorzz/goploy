@@ -1,79 +1,77 @@
 <template>
-  <el-row class="app-container">
-    <el-row v-if="recordViewer" class="terminal">
-      <div class="close" @click="closeRecordViewer">×</div>
-      <div ref="record" style="width: 100%; height: 100%"></div>
-    </el-row>
-    <el-row v-show="!recordViewer">
-      <el-row class="app-bar" type="flex" justify="space-between">
-        <el-row>
-          <el-input
-            v-model="searchParam.username"
-            style="width: 200px"
-            placeholder="Filter the username"
-          />
-          <el-input
-            v-model="searchParam.serverName"
-            style="width: 200px"
-            placeholder="Filter the server name"
-          />
-          <el-button
-            :loading="tableLoading"
-            type="primary"
-            :icon="Search"
-            @click="searchList"
-          />
-        </el-row>
-      </el-row>
-      <el-row class="app-table">
-        <el-table
-          v-loading="tableLoading"
-          border
-          stripe
-          highlight-current-row
-          height="100%"
-          :data="tableData"
-          style="width: 100%"
-        >
-          <el-table-column prop="id" label="ID" width="80" />
-          <el-table-column prop="username" label="Username" width="100" />
-          <el-table-column prop="serverName" label="Server Name" width="160" />
-          <el-table-column prop="remoteAddr" label="Remote addr" width="160" />
-          <el-table-column
-            prop="userAgent"
-            label="User agent"
-            show-overflow-tooltip
-          />
-          <el-table-column prop="startTime" label="Start time" width="155" />
-          <el-table-column prop="endTime" label="End time" width="155" />
-          <el-table-column
-            prop="operation"
-            :label="$t('op')"
-            width="100"
-            align="center"
-            :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
-          >
-            <template #default="scope">
-              <Button
-                :permissions="[permission.ShowTerminalRecord]"
-                type="text"
-                @click="handleRecord(scope.row)"
-              >
-                Record
-              </Button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-row>
-      <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
-        <el-pagination
-          :total="pagination.total"
-          :page-size="pagination.rows"
-          background
-          layout="total, prev, pager, next"
-          @current-change="handlePageChange"
+  <el-row v-if="recordViewer" class="terminal">
+    <div class="close" @click="closeRecordViewer">×</div>
+    <div ref="record" style="width: 100%; height: 100%"></div>
+  </el-row>
+  <el-row v-else class="app-container">
+    <el-row class="app-bar" type="flex" justify="space-between">
+      <el-row>
+        <el-input
+          v-model="searchParam.username"
+          style="width: 200px"
+          placeholder="Filter the username"
+        />
+        <el-input
+          v-model="searchParam.serverName"
+          style="width: 200px"
+          placeholder="Filter the server name"
+        />
+        <el-button
+          :loading="tableLoading"
+          type="primary"
+          :icon="Search"
+          @click="searchList"
         />
       </el-row>
+    </el-row>
+    <el-row class="app-table">
+      <el-table
+        v-loading="tableLoading"
+        border
+        stripe
+        highlight-current-row
+        height="100%"
+        :data="tableData"
+        style="width: 100%"
+      >
+        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="username" label="Username" width="100" />
+        <el-table-column prop="serverName" label="Server Name" width="160" />
+        <el-table-column prop="remoteAddr" label="Remote addr" width="160" />
+        <el-table-column
+          prop="userAgent"
+          label="User agent"
+          show-overflow-tooltip
+        />
+        <el-table-column prop="startTime" label="Start time" width="155" />
+        <el-table-column prop="endTime" label="End time" width="155" />
+        <el-table-column
+          prop="operation"
+          :label="$t('op')"
+          width="100"
+          align="center"
+          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+        >
+          <template #default="scope">
+            <Button
+              :permissions="[permission.ShowTerminalRecord]"
+              type="text"
+              @click="handleRecord(scope.row)"
+            >
+              Record
+            </Button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-row>
+    <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
+      <el-pagination
+        :total="pagination.total"
+        :page-size="pagination.rows"
+        background
+        layout="total, prev, pager, next"
+        @current-change="handlePageChange"
+      />
     </el-row>
   </el-row>
 </template>
