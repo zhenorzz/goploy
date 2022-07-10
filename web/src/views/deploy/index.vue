@@ -83,14 +83,14 @@
                     </span>
                   </el-row>
                   <el-row style="margin-top: 8px" align="middle">
-                    <svg-icon style="margin-right: 8px" icon-class="branch" />
+                    <svg-icon style="margin-right: 5px" icon-class="branch" />
                     <RepoURL
                       :url="row['url']"
                       :suffix="'/tree/' + row['branch'].split('/').pop()"
                       :text="row.branch"
                     >
                     </RepoURL>
-                    <svg-icon style="margin: 0 8px" icon-class="gitCommit" />
+                    <svg-icon style="margin: 0 5px" icon-class="gitCommit" />
                     <RepoURL
                       :url="row['url']"
                       :suffix="'/commit/' + row['commit']"
@@ -100,7 +100,7 @@
                   </el-row>
                   <el-row style="margin-top: 8px" align="middle">
                     <svg-icon icon-class="publishTime" />
-                    <span style="margin: 0 8px; font-size: 14px">
+                    <span style="margin: 0 5px; font-size: 14px">
                       {{ row.updateTime }}
                     </span>
                     <el-tag :type="row.tagType" size="small" effect="plain">
