@@ -243,6 +243,7 @@ export default defineComponent({
       height: 26px;
       line-height: 24px;
       border: 1px solid var(--el-border-color);
+      border-radius: 2px;
       color: var(--el-text-color-regular);
       padding: 0 8px;
       font-size: 12px;
