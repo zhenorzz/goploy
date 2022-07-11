@@ -77,7 +77,8 @@ Goploy is commonly used for:
 3. web http://ip:port  (Account:Password admin:admin!@#)
 
 ## Preview
-![Preview](./preview.png)
+![PreviewLight](./preview_light.png)
+![PreviewDark](./preview_dark.png)
 
 ## Diagram
 ![Diagram](./goploy.png)
