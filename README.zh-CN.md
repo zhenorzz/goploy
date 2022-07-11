@@ -96,8 +96,7 @@ Goploy 用于:
 
 ## 相关仓库
 
-- [gin](https://github.com/codegangsta/gin) - GO hot reload。
-- [element-ui](https://github.com/ElemeFE/element) - 前端UI样式。
+- [element-plus](https://element-plus.gitee.io/) - UI。
 
 ## 捐赠
 

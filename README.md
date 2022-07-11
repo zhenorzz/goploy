@@ -97,8 +97,7 @@ Goploy is commonly used for:
 
 ## Repository
 
-- [gin](https://github.com/codegangsta/gin) - GO hot reload。
-- [element-ui](https://github.com/ElemeFE/element) - UI。
+- [element-plus](https://element-plus.gitee.io/) - UI。
 
 ## Contribute
 
