@@ -603,13 +603,12 @@ const processManagerDialogVisible = ref(false)
 const reviewListDialogVisible = ref(false)
 const dialogVisible = ref(false)
 const searchProject = ref({
-  sort: 'idDesc',
+  sort: getTableSort(),
   name: '',
   environment: '',
   autoDeploy: '',
 })
 const selectedItem = ref({} as ProjectData)
-const tableDefaultSort = getTableSort()
 const tableloading = ref(false)
 const tableData = ref<any[]>([])
 const pagination = ref({ page: 1, rows: 20 })
@@ -731,7 +730,7 @@ function getList() {
         }
         return element
       })
-      sortChange(tableDefaultSort)
+      sortChange(searchProject.value.sort)
     })
     .finally(() => {
       tableloading.value = false
