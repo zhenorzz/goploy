@@ -76,7 +76,8 @@ Goploy 用于:
 3. web http://ip:port  (账号:密码 admin:admin!@#)
 
 ## 预览
-![预览](./preview_zh.png)
+![预览light](./preview_light.png)
+![预览dark](./preview_dark.png)
 
 ## 原理图
 ![原理图](./goploy.png)
