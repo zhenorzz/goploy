@@ -62,21 +62,27 @@
                 >
                   <el-row>
                     <span
-                      style="font-weight: 600; white-space: nowrap"
-                      :title="'illuminati Owls VIP'"
+                      style="
+                        font-size: 15px;
+                        font-weight: 600;
+                        white-space: nowrap;
+                      "
                     >
-                      <span v-if="row.environment === 1" style="color: #f56c6c">
+                      <span
+                        v-if="row.environment === 1"
+                        style="color: var(--el-color-danger)"
+                      >
                         {{ row.name }} -
                         {{ $t(`envOption[${row.environment || 0}]`) }}
                       </span>
                       <span
                         v-else-if="row.environment === 3"
-                        style="color: #e6a23c"
+                        style="color: var(--el-color-warning)"
                       >
                         {{ row.name }} -
                         {{ $t(`envOption[${row.environment || 0}]`) }}
                       </span>
-                      <span v-else style="color: #909399">
+                      <span v-else style="color: var(--el-color-info)">
                         {{ row.name }} -
                         {{ $t(`envOption[${row.environment || 0}]`) }}
                       </span>
