@@ -14,7 +14,7 @@
             <el-row>
               <el-row class="nav-item-name">
                 <el-button
-                  type="text"
+                  link
                   style="color: #bfcbd9; font-size: 14px"
                   :title="`${item.server.name}(${item.server.description})`"
                   @click="selectTerminal(item)"
@@ -23,13 +23,8 @@
                 </el-button>
               </el-row>
               <el-button
-                type="text"
-                style="
-                  color: #bfcbd9;
-                  font-size: 14px;
-                  padding-top: 20px;
-                  padding-left: 8px;
-                "
+                link
+                style="color: #bfcbd9; font-size: 14px; padding-left: 8px"
                 @click="deleteTerminal(item, index)"
               >
                 x
@@ -50,15 +45,15 @@
               <el-input
                 v-model="serverFilterInput"
                 placeholder="Filter server name"
-                :input-style="{
-                  background: '#0e0f12',
-                  borderColor: '#304156',
-                  color: '#bfcbd9',
-                }"
+                class="server-filter"
                 @input="filterServer"
               />
-              <div class="server-list">
-                <div v-for="server in serverFilteredOption" :key="server.id">
+              <el-scrollbar class="server-list">
+                <div
+                  v-for="server in serverFilteredOption"
+                  :key="server.id"
+                  style="padding: 4px 0"
+                >
                   <el-button
                     link
                     class="server-item"
@@ -69,7 +64,7 @@
                     </span>
                   </el-button>
                 </div>
-              </div>
+              </el-scrollbar>
               <template #reference>
                 <el-button
                   link
@@ -109,11 +104,7 @@
         v-model="command"
         :disabled="terminalList.length === 0"
         placeholder="Click here send to all windows"
-        :input-style="{
-          background: '#0e0f12',
-          borderColor: '#304156',
-          color: '#bfcbd9',
-        }"
+        class="terminal-cmd"
         @keyup.enter="enterCommand"
       />
     </el-row>
@@ -255,20 +246,42 @@ function enterCommand() {
   background: #0e0f12;
   border-color: #0e0f12;
 }
+.terminal-cmd {
+  .el-input {
+    &__wrapper {
+      background-color: #0e0f12 !important;
+      border-color: #304156 !important;
+      box-shadow: none !important;
+    }
+    &__inner {
+      color: #f0f2f5 !important;
+    }
+  }
+}
+
 .server-list {
   height: 216px;
-  overflow-x: auto;
   margin-top: 10px;
-  @include scrollBar();
 }
+
+.server-filter {
+  .el-input {
+    &__wrapper {
+      background-color: #0e0f12 !important;
+    }
+    &__inner {
+      color: #f0f2f5 !important;
+    }
+  }
+}
+
 .server-item {
-  color: #bfcbd9;
-  width: 150px;
+  width: 100%;
   text-align: left;
-  overflow-x: scroll;
   display: inline-block;
-  &::-webkit-scrollbar {
-    display: none;
+  color: #cfd3dc !important;
+  &:hover {
+    color: var(--el-button-hover-text-color) !important;
   }
 }
 </style>
