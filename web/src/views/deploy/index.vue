@@ -52,74 +52,92 @@
             :xl="6"
           >
             <el-card shadow="hover" :body-style="{ padding: '0px' }">
-              <el-row
-                align="middle"
-                justify="space-between"
-                style="position: relative; padding: 15px"
-              >
-                <el-row
-                  style="flex: 1; flex-direction: column; flex-wrap: nowrap"
+              <div style="position: relative; padding: 15px">
+                <div
+                  style="
+                    overflow: hidden;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    margin-right: 30px;
+                  "
                 >
-                  <el-row>
-                    <span
-                      style="
-                        font-size: 15px;
-                        font-weight: 600;
-                        white-space: nowrap;
-                      "
-                    >
-                      <span
-                        v-if="row.environment === 1"
-                        style="color: var(--el-color-danger)"
-                      >
-                        {{ row.name }} -
-                        {{ $t(`envOption[${row.environment || 0}]`) }}
-                      </span>
-                      <span
-                        v-else-if="row.environment === 3"
-                        style="color: var(--el-color-warning)"
-                      >
-                        {{ row.name }} -
-                        {{ $t(`envOption[${row.environment || 0}]`) }}
-                      </span>
-                      <span v-else style="color: var(--el-color-info)">
-                        {{ row.name }} -
-                        {{ $t(`envOption[${row.environment || 0}]`) }}
-                      </span>
-                    </span>
-                  </el-row>
-                  <el-row style="margin-top: 8px" align="middle">
-                    <svg-icon style="margin-right: 5px" icon-class="branch" />
-                    <RepoURL
-                      :url="row['url']"
-                      :suffix="'/tree/' + row['branch'].split('/').pop()"
-                      :text="row.branch"
-                    >
-                    </RepoURL>
-                    <svg-icon style="margin: 0 5px" icon-class="gitCommit" />
-                    <RepoURL
-                      :url="row['url']"
-                      :suffix="'/commit/' + row['commit']"
-                      :text="row['commit'] ? row['commit'].substring(0, 6) : ''"
-                    >
-                    </RepoURL>
-                  </el-row>
-                  <el-row style="margin-top: 8px" align="middle">
-                    <svg-icon icon-class="publishTime" />
-                    <span style="margin: 0 5px; font-size: 14px">
-                      {{ row.updateTime }}
-                    </span>
-                    <el-tag :type="row.tagType" size="small" effect="plain">
-                      {{ row.tagText }}
-                    </el-tag>
-                  </el-row>
+                  <el-button
+                    link
+                    :icon="Upload"
+                    @click="stickIt(row)"
+                  ></el-button>
+
+                  <span
+                    v-if="row.environment === 1"
+                    style="
+                      margin-left: 5px;
+                      font-size: 15px;
+                      font-weight: 600;
+                      white-space: nowrap;
+                      color: var(--el-color-danger);
+                    "
+                  >
+                    {{ row.name }} -
+                    {{ $t(`envOption[${row.environment || 0}]`) }}
+                  </span>
+                  <span
+                    v-else-if="row.environment === 3"
+                    style="
+                      margin-left: 5px;
+                      font-size: 15px;
+                      font-weight: 600;
+                      white-space: nowrap;
+                      color: var(--el-color-warning);
+                    "
+                  >
+                    {{ row.name }} -
+                    {{ $t(`envOption[${row.environment || 0}]`) }}
+                  </span>
+                  <span
+                    v-else
+                    style="
+                      margin-left: 5px;
+                      font-size: 15px;
+                      font-weight: 600;
+                      white-space: nowrap;
+                      color: var(--el-color-info);
+                    "
+                  >
+                    {{ row.name }} -
+                    {{ $t(`envOption[${row.environment || 0}]`) }}
+                  </span>
+                </div>
+                <el-row style="margin-top: 6px" align="middle">
+                  <svg-icon style="margin-right: 5px" icon-class="branch" />
+                  <RepoURL
+                    :url="row['url']"
+                    :suffix="'/tree/' + row['branch'].split('/').pop()"
+                    :text="row.branch"
+                  >
+                  </RepoURL>
+                  <svg-icon style="margin: 0 5px" icon-class="gitCommit" />
+                  <RepoURL
+                    :url="row['url']"
+                    :suffix="'/commit/' + row['commit']"
+                    :text="row['commit'] ? row['commit'].substring(0, 6) : ''"
+                  >
+                  </RepoURL>
+                </el-row>
+                <el-row style="margin-top: 8px" align="middle">
+                  <svg-icon icon-class="publishTime" />
+                  <span style="margin: 0 5px; font-size: 14px">
+                    {{ row.updateTime }}
+                  </span>
+                  <el-tag :type="row.tagType" size="small" effect="plain">
+                    {{ row.tagText }}
+                  </el-tag>
                 </el-row>
                 <el-progress
                   style="margin: 5px 0; width: 100%"
                   :percentage="row.progressPercentage"
                   :status="row.progressStatus"
                 />
-                <el-row justify="end">
+                <div>
                   <Button
                     v-if="row.deployState === 0"
                     :permissions="[pms.DeployProject]"
@@ -224,7 +242,7 @@
                   >
                     {{ $t('detail') }}
                   </Button>
-                </el-row>
+                </div>
                 <el-row
                   style="
                     top: 15px;
@@ -235,7 +253,7 @@
                 >
                   # {{ row.id }}
                 </el-row>
-              </el-row>
+              </div>
             </el-card>
           </el-col>
         </el-row>
@@ -566,7 +584,7 @@ export default { name: 'DeployIndex' }
 <script lang="ts" setup>
 import pms from '@/permission'
 import { Button, Dropdown, DropdownItem } from '@/components/Permission'
-import { ArrowDown } from '@element-plus/icons-vue'
+import { Upload, ArrowDown } from '@element-plus/icons-vue'
 import {
   DeployList,
   DeployPublish,
@@ -601,8 +619,9 @@ const fileCompareDialogVisible = ref(false)
 const processManagerDialogVisible = ref(false)
 const reviewListDialogVisible = ref(false)
 const dialogVisible = ref(false)
+const stickList = ref(getStick())
 const searchProject = ref({
-  sort: getTableSort(),
+  sort: getSort(),
   name: '',
   environment: '',
   autoDeploy: '',
@@ -634,17 +653,17 @@ const greyServerFormRules = <InstanceType<typeof ElForm>['rules']>{
 const tablePage = computed(() => {
   let _tableData = tableData.value
   if (searchProject.value.name !== '') {
-    _tableData = tableData.value.filter(
+    _tableData = _tableData.filter(
       (item) => item.name.indexOf(searchProject.value.name) !== -1
     )
   }
   if (searchProject.value.environment !== '') {
-    _tableData = tableData.value.filter(
+    _tableData = _tableData.filter(
       (item) => item.environment === Number(searchProject.value.environment)
     )
   }
   if (searchProject.value.autoDeploy !== '') {
-    _tableData = tableData.value.filter(
+    _tableData = _tableData.filter(
       (item) => item.autoDeploy === Number(searchProject.value.autoDeploy)
     )
   }
@@ -736,8 +755,28 @@ function getList() {
     })
 }
 
+function stickIt(data: ProjectData) {
+  const moveIndex = stickList.value.findIndex((id) => id == data.id)
+  if (moveIndex > -1) {
+    const moveItem = stickList.value.splice(moveIndex, 1)
+  }
+  stickList.value.unshift(data.id)
+  setStick(JSON.stringify(stickList.value))
+  stickChange()
+}
+
+function stickChange() {
+  for (const stickId of stickList.value.reverse()) {
+    const moveIndex = tableData.value.findIndex((_) => _.id == stickId)
+    if (moveIndex > -1) {
+      const moveItem = tableData.value.splice(moveIndex, 1)
+      tableData.value = moveItem.concat(tableData.value)
+    }
+  }
+}
+
 function sortChange(sort: string) {
-  setTableSort(sort)
+  setSort(sort)
   let prop: string
   let order: string
 
@@ -788,6 +827,8 @@ function sortChange(sort: string) {
       }
     }
   )
+  // custom stick
+  stickChange()
 }
 
 function handleSizeChange(val = 1) {
@@ -1005,7 +1046,7 @@ function enterToBR(detail: string) {
   return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
 }
 
-function getTableSort(): string {
+function getSort(): string {
   const sortStr = localStorage.getItem('deploy-sort')
   if (sortStr) {
     return sortStr
@@ -1013,7 +1054,19 @@ function getTableSort(): string {
   return 'idDesc'
 }
 
-function setTableSort(value: string) {
+function setSort(value: string) {
   localStorage.setItem('deploy-sort', value)
+}
+
+function getStick(): number[] {
+  const stickStr = localStorage.getItem('deploy-stick')
+  if (stickStr) {
+    return JSON.parse(stickStr)
+  }
+  return []
+}
+
+function setStick(value: string) {
+  localStorage.setItem('deploy-stick', value)
 }
 </script>
