@@ -754,19 +754,17 @@ function getList() {
       tableloading.value = false
     })
 }
-
 function stickIt(data: ProjectData) {
-  const moveIndex = stickList.value.findIndex((id) => id == data.id)
-  if (moveIndex > -1) {
-    const moveItem = stickList.value.splice(moveIndex, 1)
-  }
-  stickList.value.unshift(data.id)
+  let tmp = stickList.value
+  tmp = tmp.filter((id) => id != data.id)
+  tmp.unshift(data.id)
+  stickList.value = tmp
   setStick(JSON.stringify(stickList.value))
   stickChange()
 }
 
 function stickChange() {
-  for (const stickId of stickList.value.reverse()) {
+  for (const stickId of [...stickList.value].reverse()) {
     const moveIndex = tableData.value.findIndex((_) => _.id == stickId)
     if (moveIndex > -1) {
       const moveItem = tableData.value.splice(moveIndex, 1)
