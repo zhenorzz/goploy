@@ -32,6 +32,4 @@ VOLUME ["/opt/goploy/repository/"]
 
 WORKDIR /opt/goploy/
 
-ENTRYPOINT ["bash", "-c"]
-
-CMD ["./goploy --asset-dir=./repository"]
+ENTRYPOINT /opt/goploy/goploy --asset-dir=/opt/goploy/repository
