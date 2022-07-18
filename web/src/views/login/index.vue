@@ -229,12 +229,12 @@ $light_gray: #eee;
     overflow: hidden;
     &-input {
       border: 1px solid rgba(229, 230, 231, 1);
-      border-radius: 35px;
+      border-radius: 4px;
     }
     &-btn {
       margin-top: 15px;
       height: 40px;
-      border-radius: 39px;
+      border-radius: 4px;
       font-size: 16px;
       background-color: #2580fa;
     }
