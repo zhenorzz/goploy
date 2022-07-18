@@ -116,7 +116,7 @@
                     </template>
                   </el-dropdown>
                 </el-row>
-                <el-row style="margin-top: 8px" align="middle">
+                <el-row style="margin-top: 6px" align="middle">
                   <svg-icon style="margin-right: 5px" icon-class="branch" />
                   <RepoURL
                     style="font-size: 14px"
