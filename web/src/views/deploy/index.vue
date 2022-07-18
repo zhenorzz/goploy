@@ -585,7 +585,7 @@ export default { name: 'DeployIndex' }
 <script lang="ts" setup>
 import pms from '@/permission'
 import { Button, Dropdown, DropdownItem } from '@/components/Permission'
-import { More, Upload, ArrowDown } from '@element-plus/icons-vue'
+import { More, ArrowDown } from '@element-plus/icons-vue'
 import {
   DeployList,
   DeployPublish,
