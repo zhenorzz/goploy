@@ -52,26 +52,15 @@
             :xl="6"
           >
             <el-card shadow="hover" :body-style="{ padding: '0px' }">
-              <div style="position: relative; padding: 15px">
-                <div
-                  style="
-                    overflow: hidden;
-                    white-space: nowrap;
-                    text-overflow: ellipsis;
-                    margin-right: 30px;
-                  "
-                >
-                  <el-button
-                    link
-                    :icon="Upload"
-                    @click="stickIt(row)"
-                  ></el-button>
-
+              <div style="padding: 15px">
+                <el-row justify="space-between">
                   <span
                     v-if="row.environment === 1"
                     style="
-                      margin-left: 5px;
-                      font-size: 15px;
+                      flex: 1;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      font-size: 14px;
                       font-weight: 600;
                       white-space: nowrap;
                       color: var(--el-color-danger);
@@ -83,8 +72,10 @@
                   <span
                     v-else-if="row.environment === 3"
                     style="
-                      margin-left: 5px;
-                      font-size: 15px;
+                      flex: 1;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      font-size: 14px;
                       font-weight: 600;
                       white-space: nowrap;
                       color: var(--el-color-warning);
@@ -96,8 +87,10 @@
                   <span
                     v-else
                     style="
-                      margin-left: 5px;
-                      font-size: 15px;
+                      flex: 1;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      font-size: 14px;
                       font-weight: 600;
                       white-space: nowrap;
                       color: var(--el-color-info);
@@ -106,10 +99,27 @@
                     {{ row.name }} -
                     {{ $t(`envOption[${row.environment || 0}]`) }}
                   </span>
-                </div>
-                <el-row style="margin-top: 6px" align="middle">
+                  <el-dropdown
+                    trigger="click"
+                    @command="(funcName: string) => cardMoreFunc[funcName](row)"
+                  >
+                    <el-button link :icon="More" />
+                    <template #dropdown>
+                      <el-dropdown-menu>
+                        <el-dropdown-item :command="'handlePinCard'">
+                          Pin
+                        </el-dropdown-item>
+                        <el-dropdown-item :command="'handleUnpinCard'">
+                          Unpin
+                        </el-dropdown-item>
+                      </el-dropdown-menu>
+                    </template>
+                  </el-dropdown>
+                </el-row>
+                <el-row style="margin-top: 8px" align="middle">
                   <svg-icon style="margin-right: 5px" icon-class="branch" />
                   <RepoURL
+                    style="font-size: 14px"
                     :url="row['url']"
                     :suffix="'/tree/' + row['branch'].split('/').pop()"
                     :text="row.branch"
@@ -117,6 +127,7 @@
                   </RepoURL>
                   <svg-icon style="margin: 0 5px" icon-class="gitCommit" />
                   <RepoURL
+                    style="font-size: 14px"
                     :url="row['url']"
                     :suffix="'/commit/' + row['commit']"
                     :text="row['commit'] ? row['commit'].substring(0, 6) : ''"
@@ -243,16 +254,6 @@
                     {{ $t('detail') }}
                   </Button>
                 </div>
-                <el-row
-                  style="
-                    top: 15px;
-                    right: 15px;
-                    position: absolute;
-                    color: var(--el-text-color-secondary);
-                  "
-                >
-                  # {{ row.id }}
-                </el-row>
               </div>
             </el-card>
           </el-col>
@@ -584,7 +585,7 @@ export default { name: 'DeployIndex' }
 <script lang="ts" setup>
 import pms from '@/permission'
 import { Button, Dropdown, DropdownItem } from '@/components/Permission'
-import { Upload, ArrowDown } from '@element-plus/icons-vue'
+import { More, Upload, ArrowDown } from '@element-plus/icons-vue'
 import {
   DeployList,
   DeployPublish,
@@ -860,6 +861,26 @@ function handleGreyPublish(data: CommitData) {
   greyServerFormData.value.projectId = selectedItem.value.id
   greyServerFormData.value.commit = data.commit
   greyServerDialogVisible.value = true
+}
+
+const cardMoreFunc: { [K: string]: (data: ProjectData) => void } = {
+  handlePinCard,
+  handleUnpinCard,
+}
+
+function handlePinCard(data: ProjectData) {
+  let tmp = stickList.value
+  tmp = tmp.filter((id) => id != data.id)
+  tmp.unshift(data.id)
+  stickList.value = tmp
+  setStick(JSON.stringify(stickList.value))
+  stickChange()
+}
+
+function handleUnpinCard(data: ProjectData) {
+  stickList.value = stickList.value.filter((id) => id != data.id)
+  setStick(JSON.stringify(stickList.value))
+  stickChange()
 }
 
 const commandFunc: { [K: string]: (data: ProjectData) => void } = {
