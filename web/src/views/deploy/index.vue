@@ -724,7 +724,6 @@ function getList() {
     .then((response) => {
       tableData.value = response.data.list.map((item) => {
         let element: any = item
-        element.pin = false
         element.progressPercentage = 0
         element.tagType = 'info'
         element.tagText = 'Not deploy'
@@ -759,6 +758,10 @@ function getList() {
 }
 
 function stickChange() {
+  tableData.value = tableData.value.map((_) => {
+    _.pin = false
+    return _
+  })
   for (const stickId of [...stickList.value].reverse()) {
     const moveIndex = tableData.value.findIndex((_) => _.id == stickId)
     if (moveIndex > -1) {
