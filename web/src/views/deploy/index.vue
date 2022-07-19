@@ -15,6 +15,10 @@
         <el-option :label="'Env Asc'" value="envAsc" />
         <el-option :label="'Env Desc'" value="envDesc" />
       </el-select>
+      <el-select v-model="searchProject.pin" placeholder="Show pin" clearable>
+        <el-option label="Pin" :value="true" />
+        <el-option label="Unpin" :value="false" />
+      </el-select>
       <el-select
         v-model="searchProject.environment"
         placeholder="Environment"
@@ -24,14 +28,6 @@
         <el-option :label="$t('envOption[2]')" :value="2" />
         <el-option :label="$t('envOption[3]')" :value="3" />
         <el-option :label="$t('envOption[4]')" :value="4" />
-      </el-select>
-      <el-select
-        v-model="searchProject.autoDeploy"
-        placeholder="Auto deploy"
-        clearable
-      >
-        <el-option :label="$t('close')" :value="0" />
-        <el-option label="webhook" :value="1" />
       </el-select>
       <el-input
         v-model="searchProject.name"
@@ -54,6 +50,11 @@
             <el-card shadow="hover" :body-style="{ padding: '0px' }">
               <div style="padding: 15px">
                 <el-row justify="space-between">
+                  <svg-icon
+                    v-if="row['pin'] === true"
+                    style="margin-right: 5px; color: var(--el-color-warning)"
+                    icon-class="pin"
+                  />
                   <span
                     v-if="row.environment === 1"
                     style="
@@ -625,7 +626,7 @@ const searchProject = ref({
   sort: getSort(),
   name: '',
   environment: '',
-  autoDeploy: '',
+  pin: '',
 })
 const selectedItem = ref({} as ProjectData)
 const tableloading = ref(false)
@@ -663,9 +664,9 @@ const tablePage = computed(() => {
       (item) => item.environment === Number(searchProject.value.environment)
     )
   }
-  if (searchProject.value.autoDeploy !== '') {
+  if (searchProject.value.pin !== '') {
     _tableData = _tableData.filter(
-      (item) => item.autoDeploy === Number(searchProject.value.autoDeploy)
+      (item) => item.pin === searchProject.value.pin
     )
   }
   return {
@@ -723,6 +724,7 @@ function getList() {
     .then((response) => {
       tableData.value = response.data.list.map((item) => {
         let element: any = item
+        element.pin = false
         element.progressPercentage = 0
         element.tagType = 'info'
         element.tagText = 'Not deploy'
@@ -755,20 +757,13 @@ function getList() {
       tableloading.value = false
     })
 }
-function stickIt(data: ProjectData) {
-  let tmp = stickList.value
-  tmp = tmp.filter((id) => id != data.id)
-  tmp.unshift(data.id)
-  stickList.value = tmp
-  setStick(JSON.stringify(stickList.value))
-  stickChange()
-}
 
 function stickChange() {
   for (const stickId of [...stickList.value].reverse()) {
     const moveIndex = tableData.value.findIndex((_) => _.id == stickId)
     if (moveIndex > -1) {
       const moveItem = tableData.value.splice(moveIndex, 1)
+      moveItem[0].pin = true
       tableData.value = moveItem.concat(tableData.value)
     }
   }
