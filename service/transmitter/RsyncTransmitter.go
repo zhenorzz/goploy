@@ -39,6 +39,10 @@ func (rt rsyncTransmitter) Args() []string {
 		"--include",
 		"goploy-after-deploy." + utils.GetScriptExt(project.AfterDeployScriptMode),
 	}, rsyncOption...)
+	rsyncOption = append([]string{
+		"--exclude",
+		"goploy-after-pull." + utils.GetScriptExt(project.AfterPullScriptMode),
+	}, rsyncOption...)
 	rsyncOption = append(rsyncOption, "-e", projectServer.ToSSHOption())
 
 	destPath := remoteMachine + ":" + destDir

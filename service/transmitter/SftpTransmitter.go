@@ -95,6 +95,7 @@ func (st sftpTransmitter) Exec() (string, error) {
 		nextItem = ""
 	}
 	includes = append(includes, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
+	excludes = append(excludes, "goploy-after-pull."+utils.GetScriptExt(project.AfterPullScriptModev))
 
 	srcPath := core.GetProjectPath(project.ID) + "/"
 	destPath := project.Path
