@@ -6,8 +6,8 @@ ENV GOPLOY_VER=${GOPLOY_VER}
 
 ENV MYSQL_PORT=3306
 
-RUN echo "http://mirrors.aliyun.com/alpine/latest-stable/main/" > /etc/apk/repositories
-RUN echo "http://mirrors.aliyun.com/alpine/latest-stable/community/" >> /etc/apk/repositories
+RUN echo "https://mirrors.aliyun.com/alpine/latest-stable/main/" > /etc/apk/repositories
+RUN echo "https://mirrors.aliyun.com/alpine/latest-stable/community/" >> /etc/apk/repositories
 
 #install
 RUN apk update && \
