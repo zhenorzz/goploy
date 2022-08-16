@@ -195,11 +195,13 @@
         </div>
       </el-row>
     </el-row>
-    <el-dialog v-model="fileDetailDialogVisible" title="" width="250px">
+    <el-dialog
+      v-model="fileDetailDialogVisible"
+      :title="selectedFile['name']"
+      custom-class="file-detail"
+      width="250px"
+    >
       <el-descriptions title="" direction="horizontal" :column="1">
-        <el-descriptions-item :label="$t('name')">
-          {{ selectedFile['name'] }}
-        </el-descriptions-item>
         <el-descriptions-item :label="$t('type')">
           {{ selectedFile['isDir'] === true ? 'dir' : 'file' }}
         </el-descriptions-item>
@@ -581,5 +583,8 @@ function getIcon(filename: string) {
 <style>
 .input-with-select .el-input-group__prepend {
   background-color: var(--el-bg-color);
+}
+.file-detail .el-dialog__body {
+  padding: 5px 20px;
 }
 </style>
