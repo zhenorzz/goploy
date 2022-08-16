@@ -477,6 +477,7 @@
                     $t('projectPage.scriptMode') + '(Default: bash)'
                   "
                   style="flex: 1"
+                  @change="handleAfterPullScriptModeChange"
                 >
                   <el-option
                     v-for="(item, index) in scriptLangOption"
@@ -545,7 +546,10 @@
                 :theme="isDark ? 'one_dark' : 'github'"
                 style="height: 400px; width: 100%"
                 placeholder="Already switched to project directory..."
-                :options="{ newLineMode: 'unix' }"
+                :options="{
+                  newLineMode:
+                    formData.afterPullScriptMode === 'cmd' ? 'windows' : 'unix',
+                }"
               />
             </el-form-item>
           </el-tab-pane>
@@ -573,6 +577,7 @@
                     $t('projectPage.scriptMode') + '(Default: bash)'
                   "
                   style="flex: 1"
+                  @change="handleAfterDeployScriptModeChange"
                 >
                   <el-option
                     v-for="(item, index) in scriptLangOption"
@@ -630,7 +635,12 @@
                 :lang="getScriptLang(formData.afterDeployScriptMode)"
                 :theme="isDark ? 'one_dark' : 'github'"
                 style="height: 400px; width: 100%"
-                :options="{ newLineMode: 'unix' }"
+                :options="{
+                  newLineMode:
+                    formData.afterDeployScriptMode === 'cmd'
+                      ? 'windows'
+                      : 'unix',
+                }"
               />
             </el-form-item>
           </el-tab-pane>
@@ -1019,6 +1029,36 @@ function handleAutoDeploy(data: ProjectData) {
   autoDeployFormData.value.autoDeploy = data.autoDeploy
 }
 
+function handleAfterPullScriptModeChange(mode) {
+  if (mode === 'cmd') {
+    if (
+      !formData.value.afterPullScript.includes('\r\n') &&
+      formData.value.afterPullScript.includes('\n')
+    ) {
+      formData.value.afterPullScript = ''
+    }
+  } else {
+    if (formData.value.afterPullScript.includes('\r\n')) {
+      formData.value.afterPullScript = ''
+    }
+  }
+}
+
+function handleAfterDeployScriptModeChange(mode) {
+  if (mode === 'cmd') {
+    if (
+      !formData.value.afterDeployScript.includes('\r\n') &&
+      formData.value.afterDeployScript.includes('\n')
+    ) {
+      formData.value.afterDeployScript = ''
+    }
+  } else {
+    if (formData.value.afterDeployScript.includes('\r\n')) {
+      formData.value.afterDeployScript = ''
+    }
+  }
+}
+
 function submit() {
   form.value?.validate((valid) => {
     if (valid) {
@@ -1032,6 +1072,7 @@ function submit() {
       } else {
         formData.value.reviewURL = ''
       }
+
       if (formData.value.id === 0) {
         add()
       } else {
