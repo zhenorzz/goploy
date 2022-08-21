@@ -45,7 +45,6 @@ service.interceptors.response.use(
       if ([10000, 10001, 10086].includes(res.code)) {
         ElMessageBox.confirm(res.message, 'Confirm logout', {
           confirmButtonText: 'Re-login',
-          cancelButtonText: 'Cancel',
           type: 'warning',
         }).then(() => {
           logout()

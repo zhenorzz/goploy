@@ -15,6 +15,10 @@
         <el-option :label="'Env Asc'" value="envAsc" />
         <el-option :label="'Env Desc'" value="envDesc" />
       </el-select>
+      <el-select v-model="searchProject.pin" placeholder="Show pin" clearable>
+        <el-option label="Pin" :value="true" />
+        <el-option label="Unpin" :value="false" />
+      </el-select>
       <el-select
         v-model="searchProject.environment"
         placeholder="Environment"
@@ -24,14 +28,6 @@
         <el-option :label="$t('envOption[2]')" :value="2" />
         <el-option :label="$t('envOption[3]')" :value="3" />
         <el-option :label="$t('envOption[4]')" :value="4" />
-      </el-select>
-      <el-select
-        v-model="searchProject.autoDeploy"
-        placeholder="Auto deploy"
-        clearable
-      >
-        <el-option :label="$t('close')" :value="0" />
-        <el-option label="webhook" :value="1" />
       </el-select>
       <el-input
         v-model="searchProject.name"
@@ -52,68 +48,108 @@
             :xl="6"
           >
             <el-card shadow="hover" :body-style="{ padding: '0px' }">
-              <el-row
-                align="middle"
-                justify="space-between"
-                style="position: relative; padding: 15px"
-              >
-                <el-row
-                  style="flex: 1; flex-direction: column; flex-wrap: nowrap"
-                >
-                  <el-row>
-                    <span
-                      style="font-weight: 600; white-space: nowrap"
-                      :title="'illuminati Owls VIP'"
-                    >
-                      <span v-if="row.environment === 1" style="color: #f56c6c">
-                        {{ row.name }} -
-                        {{ $t(`envOption[${row.environment || 0}]`) }}
-                      </span>
-                      <span
-                        v-else-if="row.environment === 3"
-                        style="color: #e6a23c"
-                      >
-                        {{ row.name }} -
-                        {{ $t(`envOption[${row.environment || 0}]`) }}
-                      </span>
-                      <span v-else style="color: #909399">
-                        {{ row.name }} -
-                        {{ $t(`envOption[${row.environment || 0}]`) }}
-                      </span>
-                    </span>
-                  </el-row>
-                  <el-row style="margin-top: 8px" align="middle">
-                    <svg-icon style="margin-right: 5px" icon-class="branch" />
-                    <RepoURL
-                      :url="row['url']"
-                      :suffix="'/tree/' + row['branch'].split('/').pop()"
-                      :text="row.branch"
-                    >
-                    </RepoURL>
-                    <svg-icon style="margin: 0 5px" icon-class="gitCommit" />
-                    <RepoURL
-                      :url="row['url']"
-                      :suffix="'/commit/' + row['commit']"
-                      :text="row['commit'] ? row['commit'].substring(0, 6) : ''"
-                    >
-                    </RepoURL>
-                  </el-row>
-                  <el-row style="margin-top: 8px" align="middle">
-                    <svg-icon icon-class="publishTime" />
-                    <span style="margin: 0 5px; font-size: 14px">
-                      {{ row.updateTime }}
-                    </span>
-                    <el-tag :type="row.tagType" size="small" effect="plain">
-                      {{ row.tagText }}
-                    </el-tag>
-                  </el-row>
+              <div style="padding: 15px">
+                <el-row justify="space-between">
+                  <svg-icon
+                    v-if="row['pin'] === true"
+                    style="margin-right: 5px; color: var(--el-color-warning)"
+                    icon-class="pin"
+                  />
+                  <span
+                    v-if="row.environment === 1"
+                    style="
+                      flex: 1;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      font-size: 14px;
+                      font-weight: 600;
+                      white-space: nowrap;
+                      color: var(--el-color-danger);
+                    "
+                  >
+                    {{ row.name }} -
+                    {{ $t(`envOption[${row.environment || 0}]`) }}
+                  </span>
+                  <span
+                    v-else-if="row.environment === 3"
+                    style="
+                      flex: 1;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      font-size: 14px;
+                      font-weight: 600;
+                      white-space: nowrap;
+                      color: var(--el-color-warning);
+                    "
+                  >
+                    {{ row.name }} -
+                    {{ $t(`envOption[${row.environment || 0}]`) }}
+                  </span>
+                  <span
+                    v-else
+                    style="
+                      flex: 1;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      font-size: 14px;
+                      font-weight: 600;
+                      white-space: nowrap;
+                      color: var(--el-color-info);
+                    "
+                  >
+                    {{ row.name }} -
+                    {{ $t(`envOption[${row.environment || 0}]`) }}
+                  </span>
+                  <el-dropdown
+                    trigger="click"
+                    @command="(funcName: string) => cardMoreFunc[funcName](row)"
+                  >
+                    <el-button link :icon="More" />
+                    <template #dropdown>
+                      <el-dropdown-menu>
+                        <el-dropdown-item :command="'handlePinCard'">
+                          Pin
+                        </el-dropdown-item>
+                        <el-dropdown-item :command="'handleUnpinCard'">
+                          Unpin
+                        </el-dropdown-item>
+                      </el-dropdown-menu>
+                    </template>
+                  </el-dropdown>
+                </el-row>
+                <el-row style="margin-top: 6px" align="middle">
+                  <svg-icon style="margin-right: 5px" icon-class="branch" />
+                  <RepoURL
+                    style="font-size: 14px"
+                    :url="row['url']"
+                    :suffix="'/tree/' + row['branch'].split('/').pop()"
+                    :text="row.branch"
+                  >
+                  </RepoURL>
+                  <svg-icon style="margin: 0 5px" icon-class="gitCommit" />
+                  <RepoURL
+                    style="font-size: 14px"
+                    :url="row['url']"
+                    :suffix="'/commit/' + row['commit']"
+                    :text="row['commit'] ? row['commit'].substring(0, 6) : ''"
+                  >
+                  </RepoURL>
+                </el-row>
+                <el-row style="margin-top: 8px" align="middle">
+                  <svg-icon icon-class="publishTime" />
+                  <span style="margin: 0 5px; font-size: 14px">
+                    {{ row.updateTime }}
+                  </span>
+                  <el-tag :type="row.tagType" size="small" effect="plain">
+                    {{ row.tagText }}
+                  </el-tag>
                 </el-row>
                 <el-progress
                   style="margin: 5px 0; width: 100%"
                   :percentage="row.progressPercentage"
                   :status="row.progressStatus"
                 />
-                <el-row justify="end">
+                <div>
                   <Button
                     v-if="row.deployState === 0"
                     :permissions="[pms.DeployProject]"
@@ -218,18 +254,8 @@
                   >
                     {{ $t('detail') }}
                   </Button>
-                </el-row>
-                <el-row
-                  style="
-                    top: 15px;
-                    right: 15px;
-                    position: absolute;
-                    color: var(--el-text-color-secondary);
-                  "
-                >
-                  # {{ row.id }}
-                </el-row>
-              </el-row>
+                </div>
+              </div>
             </el-card>
           </el-col>
         </el-row>
@@ -560,7 +586,7 @@ export default { name: 'DeployIndex' }
 <script lang="ts" setup>
 import pms from '@/permission'
 import { Button, Dropdown, DropdownItem } from '@/components/Permission'
-import { ArrowDown } from '@element-plus/icons-vue'
+import { More, ArrowDown } from '@element-plus/icons-vue'
 import {
   DeployList,
   DeployPublish,
@@ -579,7 +605,6 @@ import TheProcessManagerDialog from './TheProcessManagerDialog.vue'
 import TheFileCompareDialog from './TheFileCompareDialog.vue'
 import TheFileSyncDialog from './TheFileSyncDialog.vue'
 import type { ElForm } from 'element-plus'
-import type { Sort } from 'element-plus/es/components/table/src/table/defaults'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { computed, watch, h, ref } from 'vue'
 import { CommitData } from '@/api/repository'
@@ -596,14 +621,14 @@ const fileCompareDialogVisible = ref(false)
 const processManagerDialogVisible = ref(false)
 const reviewListDialogVisible = ref(false)
 const dialogVisible = ref(false)
+const stickList = ref(getStick())
 const searchProject = ref({
-  sort: 'idDesc',
+  sort: getSort(),
   name: '',
   environment: '',
-  autoDeploy: '',
+  pin: '',
 })
 const selectedItem = ref({} as ProjectData)
-const tableDefaultSort = getTableSort()
 const tableloading = ref(false)
 const tableData = ref<any[]>([])
 const pagination = ref({ page: 1, rows: 20 })
@@ -630,18 +655,18 @@ const greyServerFormRules = <InstanceType<typeof ElForm>['rules']>{
 const tablePage = computed(() => {
   let _tableData = tableData.value
   if (searchProject.value.name !== '') {
-    _tableData = tableData.value.filter(
+    _tableData = _tableData.filter(
       (item) => item.name.indexOf(searchProject.value.name) !== -1
     )
   }
   if (searchProject.value.environment !== '') {
-    _tableData = tableData.value.filter(
+    _tableData = _tableData.filter(
       (item) => item.environment === Number(searchProject.value.environment)
     )
   }
-  if (searchProject.value.autoDeploy !== '') {
-    _tableData = tableData.value.filter(
-      (item) => item.autoDeploy === Number(searchProject.value.autoDeploy)
+  if (searchProject.value.pin !== '') {
+    _tableData = _tableData.filter(
+      (item) => item.pin === searchProject.value.pin
     )
   }
   return {
@@ -725,15 +750,30 @@ function getList() {
         }
         return element
       })
-      sortChange(tableDefaultSort)
+      sortChange(searchProject.value.sort)
     })
     .finally(() => {
       tableloading.value = false
     })
 }
 
+function stickChange() {
+  tableData.value = tableData.value.map((_) => {
+    _.pin = false
+    return _
+  })
+  for (const stickId of [...stickList.value].reverse()) {
+    const moveIndex = tableData.value.findIndex((_) => _.id == stickId)
+    if (moveIndex > -1) {
+      const moveItem = tableData.value.splice(moveIndex, 1)
+      moveItem[0].pin = true
+      tableData.value = moveItem.concat(tableData.value)
+    }
+  }
+}
+
 function sortChange(sort: string) {
-  setTableSort(sort)
+  setSort(sort)
   let prop: string
   let order: string
 
@@ -784,6 +824,8 @@ function sortChange(sort: string) {
       }
     }
   )
+  // custom stick
+  stickChange()
 }
 
 function handleSizeChange(val = 1) {
@@ -817,6 +859,26 @@ function handleGreyPublish(data: CommitData) {
   greyServerFormData.value.projectId = selectedItem.value.id
   greyServerFormData.value.commit = data.commit
   greyServerDialogVisible.value = true
+}
+
+const cardMoreFunc: { [K: string]: (data: ProjectData) => void } = {
+  handlePinCard,
+  handleUnpinCard,
+}
+
+function handlePinCard(data: ProjectData) {
+  let tmp = stickList.value
+  tmp = tmp.filter((id) => id != data.id)
+  tmp.unshift(data.id)
+  stickList.value = tmp
+  setStick(JSON.stringify(stickList.value))
+  stickChange()
+}
+
+function handleUnpinCard(data: ProjectData) {
+  stickList.value = stickList.value.filter((id) => id != data.id)
+  setStick(JSON.stringify(stickList.value))
+  stickChange()
 }
 
 const commandFunc: { [K: string]: (data: ProjectData) => void } = {
@@ -1001,7 +1063,7 @@ function enterToBR(detail: string) {
   return detail ? detail.replace(/\n|(\r\n)/g, '<br>') : ''
 }
 
-function getTableSort(): string {
+function getSort(): string {
   const sortStr = localStorage.getItem('deploy-sort')
   if (sortStr) {
     return sortStr
@@ -1009,7 +1071,19 @@ function getTableSort(): string {
   return 'idDesc'
 }
 
-function setTableSort(value: string) {
+function setSort(value: string) {
   localStorage.setItem('deploy-sort', value)
+}
+
+function getStick(): number[] {
+  const stickStr = localStorage.getItem('deploy-stick')
+  if (stickStr) {
+    return JSON.parse(stickStr)
+  }
+  return []
+}
+
+function setStick(value: string) {
+  localStorage.setItem('deploy-stick', value)
 }
 </script>

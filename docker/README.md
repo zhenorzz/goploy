@@ -28,6 +28,8 @@ Complete installation instructions, no difficulty in getting started!
 
 Import sql file: [goploy.sql](https://github.com/zhenorzz/goploy/blob/master/model/sql/goploy.sql)
 
+Setup configuration file: cp [goploy.example.toml](https://github.com/zhenorzz/goploy/blob/master/goploy.example.toml) /path/to/repository/goploy.toml
+
 Run it with all needed parameter:
 
 ```console
@@ -43,14 +45,11 @@ That's it.
 
 ## Mount
 
-The rsync and ssh need id_rsa to conncet server, so you have to mount your ssh path to container using `-v /path/to/.ssh:/root/.ssh`.
+The rsync and ssh need id_rsa to connect server, so you have to mount your ssh path to container using `-v /path/to/.ssh:/root/.ssh`.
 
 If you want to access your own domain in container, you should mount your hosts file to container using `-v /path/to/hosts:/etc/hosts`.
 
-If you would like to keep the repositories you can use `-v /path/to/repository:/opt/goploy/repository`.
-
 *Notice that the filename is case-sensitive. If your readme is called `readme.md` you have to mount the file directly, not the directory*
-
 
 # Additional Information
 [Windows id_rsa permission denied, click this for help.](https://stackoverflow.com/questions/9270734/ssh-permissions-are-too-open-error)
@@ -63,14 +62,13 @@ To update your setup simply pull the newest image version from docker hub and ru
 
 View [license information](https://github.com/zhenorzz/goploy/blob/master/LICENSE) for the software contained in this image.
 
-Everything in [this repository](https://github.com/zhenorzz/goploy) is published under [MIT](https://spdx.org/licenses/MIT).
+Everything in [this repository](https://github.com/zhenorzz/goploy) is published under GPLv3.
 
 # User Feedback
 
 ## Issues
 
 If you have any problems with or questions about this image, please contact us through a [GitHub issue](https://github.com/zhenorzz/goploy/issues).
-
 
 ## Contributing
 

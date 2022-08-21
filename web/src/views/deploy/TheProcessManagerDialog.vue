@@ -24,13 +24,14 @@
             <el-row>
               <el-button
                 style=""
-                type="text"
+                type="primary"
+                text
                 :icon="Edit"
                 @click.stop="handleEdit(item)"
               />
               <el-button
-                style="margin-left: 20px"
-                type="text"
+                type="primary"
+                text
                 :icon="Delete"
                 @click.stop="handleDelete(item.id)"
               />

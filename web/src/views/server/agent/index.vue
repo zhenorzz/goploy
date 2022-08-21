@@ -1,5 +1,5 @@
 <template>
-  <el-row class="app-container">
+  <el-row class="app-container" style="flex-wrap: nowrap">
     <el-row class="app-bar" type="flex" justify="space-between">
       <el-row>
         <el-date-picker
@@ -44,7 +44,11 @@
                 }
               }
             "
-            style="height: 288px; border: 1px solid var(--el-border-color)"
+            style="
+              height: 288px;
+              padding-top: 10px;
+              border: 1px solid var(--el-border-color);
+            "
           ></div>
         </el-col>
       </el-row>

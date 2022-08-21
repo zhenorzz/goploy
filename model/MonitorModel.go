@@ -246,7 +246,7 @@ func (m Monitor) Notify(errMsg string) (string, error) {
 			Content content `json:"content"`
 		}
 
-		text := "can not access\n "
+		text := m.Name + " can not access\n "
 		text += "detail:  " + errMsg
 
 		msg := message{
@@ -267,18 +267,20 @@ func (m Monitor) Notify(errMsg string) (string, error) {
 				Target      string `json:"target"`
 				Second      int    `json:"second"`
 				Times       uint16 `json:"times"`
+				Error       string `json:"error"`
 			} `json:"data"`
 		}
 		code := 0
 		msg := message{
 			Code:    code,
-			Message: "Monitor:" + m.Name + "can not access",
+			Message: m.Name + " can not access",
 		}
 		msg.Data.MonitorName = m.Name
 		msg.Data.Type = m.Type
 		msg.Data.Target = m.Target
 		msg.Data.Second = m.Second
 		msg.Data.Times = m.Times
+		msg.Data.Error = errMsg
 		b, _ := json.Marshal(msg)
 		resp, err = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
 	}

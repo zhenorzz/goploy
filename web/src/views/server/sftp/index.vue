@@ -149,16 +149,18 @@
             </el-row>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item v-if="selectedFile['isDir'] === true">
-                  <el-button
-                    link
-                    @click="dirOpen(`${dir}/${selectedFile['name']}`)"
-                  >
-                    {{ $t('open') }}
-                  </el-button>
+                <el-dropdown-item
+                  v-if="selectedFile['isDir'] === true"
+                  @click="dirOpen(`${dir}/${selectedFile['name']}`)"
+                >
+                  {{ $t('open') }}
                 </el-dropdown-item>
-                <el-dropdown-item v-if="selectedFile['isDir'] === false">
+                <el-dropdown-item
+                  v-if="selectedFile['isDir'] === false"
+                  style="padding: 0"
+                >
                   <Link
+                    style="padding: 5px 16px"
                     :href="previewHref"
                     target="_blank"
                     :underline="false"
@@ -167,8 +169,12 @@
                     {{ $t('preview') }}
                   </Link>
                 </el-dropdown-item>
-                <el-dropdown-item v-if="selectedFile['isDir'] === false">
+                <el-dropdown-item
+                  v-if="selectedFile['isDir'] === false"
+                  style="padding: 0"
+                >
                   <Link
+                    style="padding: 5px 16px"
                     :href="downloadHref"
                     target="_blank"
                     :underline="false"
@@ -177,14 +183,11 @@
                     {{ $t('download') }}
                   </Link>
                 </el-dropdown-item>
-                <el-dropdown-item divided>
-                  <el-button
-                    link
-                    type="primary"
-                    @click="fileDetailDialogVisible = true"
-                  >
-                    {{ $t('detail') }}
-                  </el-button>
+                <el-dropdown-item
+                  divided
+                  @click="fileDetailDialogVisible = true"
+                >
+                  {{ $t('detail') }}
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -192,11 +195,13 @@
         </div>
       </el-row>
     </el-row>
-    <el-dialog v-model="fileDetailDialogVisible" title="" width="250px">
+    <el-dialog
+      v-model="fileDetailDialogVisible"
+      :title="selectedFile['name']"
+      custom-class="file-detail"
+      width="250px"
+    >
       <el-descriptions title="" direction="horizontal" :column="1">
-        <el-descriptions-item :label="$t('name')">
-          {{ selectedFile['name'] }}
-        </el-descriptions-item>
         <el-descriptions-item :label="$t('type')">
           {{ selectedFile['isDir'] === true ? 'dir' : 'file' }}
         </el-descriptions-item>
@@ -578,5 +583,8 @@ function getIcon(filename: string) {
 <style>
 .input-with-select .el-input-group__prepend {
   background-color: var(--el-bg-color);
+}
+.file-detail .el-dialog__body {
+  padding: 5px 20px;
 }
 </style>

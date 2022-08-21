@@ -77,7 +77,8 @@ Goploy is commonly used for:
 3. web http://ip:port  (Account:Password admin:admin!@#)
 
 ## Preview
-![Preview](./preview.png)
+![PreviewLight](./preview_light.png)
+![PreviewDark](./preview_dark.png)
 
 ## Diagram
 ![Diagram](./goploy.png)
@@ -96,8 +97,7 @@ Goploy is commonly used for:
 
 ## Repository
 
-- [gin](https://github.com/codegangsta/gin) - GO hot reload。
-- [element-ui](https://github.com/ElemeFE/element) - UI。
+- [element-plus](https://element-plus.gitee.io/) - UI。
 
 ## Contribute
 
