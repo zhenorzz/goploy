@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "server": "cd ../ && go run main.go --asset-dir=./"
   },
   "dependencies": {
     "@chenfengyuan/vue-qrcode": "^2.0.0-beta",

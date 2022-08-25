@@ -47,7 +47,11 @@
             :lg="8"
             :xl="6"
           >
-            <el-card shadow="hover" :body-style="{ padding: '0px' }">
+            <el-card
+              shadow="hover"
+              style="border: none"
+              :body-style="{ padding: '0px' }"
+            >
               <div style="padding: 15px">
                 <el-row justify="space-between">
                   <svg-icon

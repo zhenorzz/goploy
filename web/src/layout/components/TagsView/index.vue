@@ -234,7 +234,6 @@ export default defineComponent({
   border-radius: 4px;
   background-color: var(--el-bg-color);
   border: 1px solid var(--el-border-color-light);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 0 3px 0 rgba(0, 0, 0, 0.04);
   .tags-view-wrapper {
     .tags-view-item {
       display: inline-block;
@@ -242,7 +241,7 @@ export default defineComponent({
       cursor: pointer;
       height: 26px;
       line-height: 24px;
-      border: 1px solid var(--el-border-color);
+      border: 1px solid var(--el-border-color-light);
       border-radius: 2px;
       color: var(--el-text-color-regular);
       padding: 0 8px;

@@ -52,10 +52,10 @@
         </el-dropdown-menu>
       </template>
     </el-dropdown>
-    <breadcrumb
+    <!-- <breadcrumb
       v-show="$store.state.app.device === 'desktop'"
       class="breadcrumb-container"
-    />
+    /> -->
     <div class="right">
       <div class="international">
         <el-switch
@@ -63,7 +63,7 @@
           style="
             --el-switch-on-color: var(--el-border-color);
             --el-switch-off-color: var(--el-border-color);
-            margin-right: 18px;
+            margin-right: 20px;
             height: 48px;
           "
           inline-prompt
@@ -77,7 +77,7 @@
           @command="handleSetLanguage"
         >
           <div style="height: 100%; padding-top: 2px">
-            <svg-icon class-name="international-icon" icon-class="language" />
+            <svg-icon class-name="international-icon" :icon-class="'global'" />
           </div>
           <template #dropdown>
             <el-dropdown-menu>
@@ -303,7 +303,6 @@ async function logout() {
   overflow: hidden;
   position: relative;
   // box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
-  border-bottom: 1px solid var(--el-border-color-light);
   &-logo {
     width: 25px;
     cursor: pointer;
@@ -337,10 +336,10 @@ async function logout() {
     cursor: pointer;
     margin-left: 20px;
     &-icon {
-      font-size: 22px;
+      font-size: 20px;
     }
     .el-dropdown {
-      line-height: 50px;
+      line-height: 46px;
     }
   }
   .user-menu {
