@@ -203,7 +203,6 @@
 
 <script lang="ts" setup>
 import logo from '@/assets/images/logo.png'
-import Breadcrumb from '@/components/Breadcrumb/index.vue'
 import Hamburger from '@/components/Hamburger/index.vue'
 import VueQrcode from '@chenfengyuan/vue-qrcode'
 import { md5 as hashByMD5 } from '@/utils/md5'
@@ -336,7 +335,7 @@ async function logout() {
     cursor: pointer;
     margin-left: 20px;
     &-icon {
-      font-size: 20px;
+      font-size: 17px;
     }
     .el-dropdown {
       line-height: 46px;
@@ -362,7 +361,7 @@ async function logout() {
 
       .user-name {
         margin-top: 4px;
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 900;
         line-height: 30px;
         color: var(--el-text-color-regular);
