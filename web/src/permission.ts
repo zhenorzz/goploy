@@ -68,4 +68,8 @@ export default Object.freeze({
   FileCompare: 67,
   FileSync: 68,
   ProcessManager: 69,
+  ShowServerProcessPage: 70,
+  AddServerProcess: 71,
+  EditServerProcess: 72,
+  DeleteServerProcess: 73,
 })

@@ -28,64 +28,95 @@
         <Button
           type="primary"
           :icon="Plus"
-          :permissions="[pms.AddCron]"
+          :permissions="[pms.AddServerProcess]"
           @click="handleAdd"
         />
       </el-col>
     </el-row>
     <el-row class="app-table">
       <el-table
+        ref="table"
         v-loading="tableLoading"
         height="100%"
         highlight-current-row
         :data="tablePage.list"
         style="width: 100%"
       >
+        <el-table-column type="expand">
+          <template #default="{}">
+            <div style="padding: 0 20px">
+              <el-row style="margin-left: 4px">
+                {{ $t('deployPage.execRes') }}:
+                <span
+                  :class="commandRes.execRes ? 'exec-success' : 'exec-fail'"
+                  style="padding-left: 5px"
+                >
+                  {{ commandRes.execRes }}
+                </span>
+              </el-row>
+              <el-row style="white-space: pre-wrap">
+                stdout: {{ commandRes.stdout }}
+              </el-row>
+              <el-row style="white-space: pre-wrap">
+                stderr:{{ commandRes.stderr }}
+              </el-row>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column
-          prop="expression"
-          :label="$t('expression')"
+          prop="name"
+          :label="$t('name')"
           min-width="120"
           show-overflow-tooltip
         />
-        <el-table-column
-          prop="command"
-          :label="$t('command')"
-          min-width="140"
-          show-overflow-tooltip
-        />
-        <el-table-column prop="singleMode" label="Single mode" width="110">
+        <el-table-column prop="status" label="Status" align="center">
           <template #default="scope">
-            <span v-if="scope.row.singleMode === 0">no</span>
-            <span v-else>yes</span>
+            <el-button
+              :loading="selectedItem['id'] === scope.row.id"
+              type="primary"
+              text
+              @click="handleProcessCmd(scope.row, 'status')"
+            >
+              status
+            </el-button>
           </template>
         </el-table-column>
-        <el-table-column prop="logLevel" label="Log level" width="90">
+        <el-table-column prop="start" label="Start" align="center">
           <template #default="scope">
-            <span v-if="scope.row.logLevel === 0">none</span>
-            <span v-else-if="scope.row.logLevel === 1">stdout</span>
-            <span v-else-if="scope.row.logLevel === 2">stdout+stderr</span>
+            <el-button
+              :loading="selectedItem['id'] === scope.row.id"
+              type="success"
+              text
+              @click="handleProcessCmd(scope.row, 'start')"
+            >
+              start
+            </el-button>
           </template>
         </el-table-column>
-        <el-table-column
-          prop="description"
-          :label="$t('description')"
-          min-width="240"
-          show-overflow-tooltip
-        />
-        <el-table-column prop="creator" :label="$t('creator')" min-width="80" />
-        <el-table-column prop="editor" :label="$t('editor')" min-width="80" />
-        <el-table-column
-          prop="insertTime"
-          :label="$t('insertTime')"
-          width="155"
-          align="center"
-        />
-        <el-table-column
-          prop="updateTime"
-          :label="$t('updateTime')"
-          width="155"
-          align="center"
-        />
+        <el-table-column prop="restart" label="restart" align="center">
+          <template #default="scope">
+            <el-button
+              :loading="selectedItem['id'] === scope.row.id"
+              type="warning"
+              text
+              @click="handleProcessCmd(scope.row, 'restart')"
+            >
+              restart
+            </el-button>
+          </template>
+        </el-table-column>
+        <el-table-column prop="stop" label="stop" align="center">
+          <template #default="scope">
+            <el-button
+              :loading="selectedItem['id'] === scope.row.id"
+              type="danger"
+              text
+              @click="handleProcessCmd(scope.row, 'stop')"
+            >
+              stop
+            </el-button>
+          </template>
+        </el-table-column>
         <el-table-column
           prop="operation"
           :label="$t('op')"
@@ -129,42 +160,25 @@
         v-loading="formProps.loading"
         :rules="formRules"
         :model="formData"
-        label-width="120px"
+        label-width="80px"
         :label-position="
           $store.state.app.device === 'desktop' ? 'right' : 'top'
         "
       >
-        <el-form-item :label="$t('expression')" prop="expression">
-          <el-input
-            v-model="formData.expression"
-            autocomplete="off"
-            placeholder="* * * * * ? with second"
-            @change="onExpressionChange"
-          />
-          <span>{{ formProps.dateLocale }}</span>
+        <el-form-item :label="$t('name')" prop="name">
+          <el-input v-model="formData.name" />
         </el-form-item>
-        <el-form-item :label="$t('command')" prop="command">
-          <el-input v-model="formData.command" autocomplete="off" />
+        <el-form-item label="Status">
+          <el-input v-model="formData.status" />
         </el-form-item>
-        <el-form-item label="Single mode">
-          <el-radio-group v-model="formData.singleMode">
-            <el-radio :label="0">no</el-radio>
-            <el-radio :label="1">yes</el-radio>
-          </el-radio-group>
+        <el-form-item label="Start">
+          <el-input v-model="formData.start" />
         </el-form-item>
-        <el-form-item label="Log level">
-          <el-radio-group v-model="formData.logLevel">
-            <el-radio :label="0">none</el-radio>
-            <el-radio :label="1">stdout</el-radio>
-            <el-radio :label="2">stdout+stderr</el-radio>
-          </el-radio-group>
+        <el-form-item label="Stop">
+          <el-input v-model="formData.stop" />
         </el-form-item>
-        <el-form-item :label="$t('description')" prop="description">
-          <el-input
-            v-model="formData.description"
-            type="textarea"
-            :autosize="{ minRows: 2 }"
-          />
+        <el-form-item label="Restart">
+          <el-input v-model="formData.restart" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -183,65 +197,51 @@
   </el-row>
 </template>
 <script lang="ts">
-export default { name: 'ServerCron' }
+export default { name: 'ServerProcess' }
 </script>
 <script lang="ts" setup>
 import pms from '@/permission'
 import Button from '@/components/Permission/Button.vue'
 import { Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
-import cronstrue from 'cronstrue/i18n'
-import { ServerOption } from '@/api/server'
-import { CronList, CronAdd, CronEdit, CronRemove, CronData } from '@/api/cron'
+import {
+  ServerOption,
+  ServerProcessList,
+  ServerProcessAdd,
+  ServerProcessEdit,
+  ServerProcessDelete,
+  ServerProcessData,
+  ServerExecProcess,
+} from '@/api/server'
 import type { ElForm } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-const { locale, t } = useI18n({ useScope: 'global' })
+const { t } = useI18n({ useScope: 'global' })
 const serverId = ref('')
 const dialogVisible = ref(false)
 const serverOption = ref<ServerOption['datagram']['list']>([])
+const table = ref()
 const tableLoading = ref(false)
-const tableData = ref<CronList['datagram']['list']>([])
+const tableData = ref<ServerProcessList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 20 })
+const selectedItem = ref<ServerProcessData>({})
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
   serverId: 0,
-  expression: '',
-  command: '',
-  singleMode: 0,
-  logLevel: 0,
-  description: '',
+  name: '',
+  status: '',
+  start: '',
+  stop: '',
+  restart: '',
 }
 const formData = ref(tempFormData)
 const formProps = ref({
   loading: false,
   disabled: false,
-  dateLocale: '',
 })
 const formRules = <InstanceType<typeof ElForm>['rules']>{
-  expression: [
-    {
-      required: true,
-      validator: (_, value) => {
-        if (value.trim().split(/\s+/).length != 6) {
-          return new Error('6 parts are required.')
-        }
-        try {
-          cronstrue.toString(value)
-          return true
-        } catch (error) {
-          if (typeof error === 'string') {
-            return new Error(error)
-          } else if (error instanceof Error) {
-            return error
-          }
-        }
-      },
-      trigger: 'blur',
-    },
-  ],
-  command: [{ required: true, message: 'Command required', trigger: 'blur' }],
+  name: [{ required: true, message: 'Name required', trigger: 'blur' }],
 }
 
 getServerOption()
@@ -259,7 +259,7 @@ function getServerOption() {
 function getList() {
   tableLoading.value = true
   tableData.value = []
-  new CronList({ serverId: Number(serverId.value) })
+  new ServerProcessList({ serverId: Number(serverId.value) })
     .request()
     .then((response) => {
       tableData.value = response.data.list
@@ -291,14 +291,14 @@ function handleAdd() {
   dialogVisible.value = true
 }
 
-function handleEdit(data: CronData) {
+function handleEdit(data: ServerProcessData) {
   formData.value = data
   dialogVisible.value = true
 }
 
-function handleRemove(data: CronData) {
+function handleRemove(data: ServerProcessData) {
   ElMessageBox.confirm(
-    t('serverPage.deleteTips', { name: data.command }),
+    t('serverPage.deleteTips', { name: data.name }),
     t('tips'),
     {
       confirmButtonText: t('confirm'),
@@ -307,7 +307,7 @@ function handleRemove(data: CronData) {
     }
   )
     .then(() => {
-      new CronRemove({ id: data.id }).request().then(() => {
+      new ServerProcessDelete({ id: data.id }).request().then(() => {
         getList()
         ElMessage.success('Success')
       })
@@ -316,14 +316,37 @@ function handleRemove(data: CronData) {
       ElMessage.info('Cancel')
     })
 }
+const commandRes = ref<ServerExecProcess['datagram']>({
+  execRes: true,
+  stdout: '',
+  stderr: '',
+})
 
-function onExpressionChange() {
-  if (formData.value.expression.trim().split(/\s+/).length != 6) {
-    return
-  }
-  formProps.value.dateLocale = cronstrue.toString(formData.value.expression, {
-    locale: getLocale(),
+const handleProcessCmd = (data: ServerProcessData, command: string) => {
+  ElMessageBox.confirm(t('deployPage.execTips', { command }), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
   })
+    .then(() => {
+      selectedItem.value = data
+      new ServerExecProcess({
+        id: data.id,
+        serverId: data.serverId,
+        command,
+      })
+        .request()
+        .then((response) => {
+          commandRes.value = response.data
+          table.value.toggleRowExpansion(data, true)
+        })
+        .finally(() => {
+          selectedItem.value = {}
+        })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
 }
 
 function handlePageChange(val = 1) {
@@ -332,7 +355,6 @@ function handlePageChange(val = 1) {
 
 function submit() {
   form.value?.validate((valid) => {
-    formData.value.expression = formData.value.expression.trim()
     if (valid) {
       if (formData.value.id === 0) {
         add()
@@ -348,7 +370,7 @@ function submit() {
 
 function add() {
   formProps.value.disabled = true
-  new CronAdd(formData.value)
+  new ServerProcessAdd(formData.value)
     .request()
     .then(() => {
       getList()
@@ -361,7 +383,7 @@ function add() {
 
 function edit() {
   formProps.value.disabled = true
-  new CronEdit(formData.value)
+  new ServerProcessEdit(formData.value)
     .request()
     .then(() => {
       getList()
@@ -370,13 +392,6 @@ function edit() {
     .finally(() => {
       formProps.value.disabled = dialogVisible.value = false
     })
-}
-
-function getLocale() {
-  if (locale.value === 'zh-cn') {
-    return 'zh_CN'
-  }
-  return locale.value
 }
 
 function restoreFormData() {
@@ -391,5 +406,13 @@ function restoreFormData() {
   height: 400px;
   overflow-y: auto;
   @include scrollBar();
+}
+
+.exec-success {
+  color: #67c23a;
+}
+
+.exec-fail {
+  color: #f56c6c;
 }
 </style>

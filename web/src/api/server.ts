@@ -292,3 +292,98 @@ export class ServerMonitorDelete extends Request {
     this.param = param
   }
 }
+
+export interface ServerProcessData {
+  [key: string]: any
+  id: number
+  serverId: number
+  name: string
+  start: string
+  stop: string
+  status: string
+  restart: string
+  InsertTime: string
+  UpdateTime: string
+}
+
+export class ServerProcessList extends Request {
+  readonly url = '/server/getProcessList'
+  readonly method = 'get'
+  public param: {
+    serverId: number
+  }
+
+  public declare datagram: {
+    list: ServerProcessData[]
+  }
+  constructor(param: ServerProcessList['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ServerProcessAdd extends Request {
+  readonly url = '/server/addProcess'
+  readonly method = 'post'
+  public param: {
+    name: string
+    start: string
+    stop: string
+    status: string
+    restart: string
+  }
+  public declare datagram: ID
+  constructor(param: ServerProcessAdd['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ServerProcessEdit extends Request {
+  readonly url = '/server/editProcess'
+  readonly method = 'put'
+  public param: {
+    id: number
+    name: string
+    start: string
+    stop: string
+    status: string
+    restart: string
+  }
+  constructor(param: ServerProcessEdit['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ServerProcessDelete extends Request {
+  readonly url = '/server/deleteProcess'
+  readonly method = 'delete'
+  public param: {
+    id: number
+  }
+  constructor(param: ServerProcessDelete['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ServerExecProcess extends Request {
+  readonly url = '/server/execProcess'
+  readonly method = 'post'
+  readonly timeout = 0
+  public param: {
+    id: number
+    serverId: number
+    command: string
+  }
+  public declare datagram: {
+    execRes: boolean
+    stdout: string
+    stderr: string
+  }
+  constructor(param: ServerExecProcess['param']) {
+    super()
+    this.param = param
+  }
+}
