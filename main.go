@@ -154,7 +154,7 @@ func install() {
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
 		println(err.Error() + ", detail: " + stderr.String())
-		panic("Please check if rsync is installed correctly, see https://rsync.samba.org/download.html")
+		println("Please check if rsync is installed correctly, see https://rsync.samba.org/download.html")
 	}
 	git := utils.GIT{}
 	if err := git.Run("--version"); err != nil {
