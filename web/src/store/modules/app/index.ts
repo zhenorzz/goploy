@@ -6,9 +6,7 @@ import { AppState } from './types'
 
 const state: AppState = {
   sidebar: {
-    opened: Cookies.get('sidebarStatus')
-      ? !!Cookies.get('sidebarStatus')
-      : true,
+    opened: Cookies.get('sidebarStatus') === '1' ? true : false,
     withoutAnimation: false,
   },
   device: 'desktop',
@@ -40,8 +38,8 @@ const mutations: MutationTree<AppState> = {
 }
 
 const actions: ActionTree<AppState, RootState> = {
-  toggleSideBar(context) {
-    context.commit('TOGGLE_SIDEBAR')
+  toggleSideBar({ commit }) {
+    commit('TOGGLE_SIDEBAR')
   },
   closeSideBar({ commit }, { withoutAnimation }) {
     commit('CLOSE_SIDEBAR', withoutAnimation)

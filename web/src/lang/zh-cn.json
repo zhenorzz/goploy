@@ -137,8 +137,8 @@
     "serverTerminal": "Terminal",
     "serverSFTP": "SFTP",
     "serverAgent": "服务器监控",
+    "serverProcess": "进程管理",
     "serverCron": "定时任务",
-    "template": "模板设置",
     "crontab": "Crontab管理",
     "namespace": "空间管理",
     "namespaceSetting": "空间设置",
@@ -219,7 +219,11 @@
     "DeployTask": "定时构建",
     "FileCompare": "文件对比",
     "FileSync": "文件同步",
-    "ProcessManager": "进程管理"
+    "ProcessManager": "进程管理",
+    "ShowServerProcessPage": "查看服务器进程管理",
+    "AddServerProcess": "新增服务器进程",
+    "EditServerProcess": "编辑服务器进程",
+    "DeleteServerProcess": "删除服务器进程"
   },
   "tagsView": {
     "refresh": "刷新",
@@ -257,6 +261,7 @@
     "copyPubTips": "复制成功，请粘贴到目标服务器~/.ssh/authorized_keys里面",
     "testConnection": "测试连接",
     "removeServerTips": "此操作将删除服务器({serverName}), 是否继续?",
+    "deleteTips": "此操作将永久删除({name}), 是否继续?",
     "cpuUsage": "CPU使用率",
     "ramUsage": "RAM使用率",
     "loadavg": "系统负载",

@@ -127,6 +127,16 @@ export default <RouteRecordRaw[]>[
         },
       },
       {
+        path: 'process',
+        name: 'ServerProcess',
+        component: () => import('@/views/server/process/index.vue'),
+        meta: {
+          title: 'serverProcess',
+          icon: 'processManage',
+          permissions: [permission.ShowServerProcessPage],
+        },
+      },
+      {
         path: 'cron',
         name: 'ServerCron',
         component: () => import('@/views/server/cron/index.vue'),

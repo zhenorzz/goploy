@@ -4,8 +4,8 @@
   "license": "GPLv3",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "serve": "vite preview"
+    "server": "cd ../ && go run main.go --asset-dir=./",
+    "build": "vite build"
   },
   "dependencies": {
     "@chenfengyuan/vue-qrcode": "^2.0.0-beta",

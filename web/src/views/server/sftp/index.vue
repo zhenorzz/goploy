@@ -529,8 +529,9 @@ function getIcon(filename: string) {
 @import '@/styles/mixin.scss';
 .sftp-container {
   flex-direction: column;
-  border: 1px solid var(--el-border-color);
   height: 100%;
+  border: 1px solid var(--el-border-color);
+  background-color: var(--el-bg-color);
   .nav {
     padding: 10px;
     border-bottom: 1px solid var(--el-border-color);

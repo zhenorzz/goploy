@@ -52,10 +52,10 @@
         </el-dropdown-menu>
       </template>
     </el-dropdown>
-    <breadcrumb
+    <!-- <breadcrumb
       v-show="$store.state.app.device === 'desktop'"
       class="breadcrumb-container"
-    />
+    /> -->
     <div class="right">
       <div class="international">
         <el-switch
@@ -63,7 +63,7 @@
           style="
             --el-switch-on-color: var(--el-border-color);
             --el-switch-off-color: var(--el-border-color);
-            margin-right: 18px;
+            margin-right: 20px;
             height: 48px;
           "
           inline-prompt
@@ -77,7 +77,7 @@
           @command="handleSetLanguage"
         >
           <div style="height: 100%; padding-top: 2px">
-            <svg-icon class-name="international-icon" icon-class="language" />
+            <svg-icon class-name="international-icon" :icon-class="'global'" />
           </div>
           <template #dropdown>
             <el-dropdown-menu>
@@ -203,7 +203,6 @@
 
 <script lang="ts" setup>
 import logo from '@/assets/images/logo.png'
-import Breadcrumb from '@/components/Breadcrumb/index.vue'
 import Hamburger from '@/components/Hamburger/index.vue'
 import VueQrcode from '@chenfengyuan/vue-qrcode'
 import { md5 as hashByMD5 } from '@/utils/md5'
@@ -303,7 +302,6 @@ async function logout() {
   overflow: hidden;
   position: relative;
   // box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
-  border-bottom: 1px solid var(--el-border-color-light);
   &-logo {
     width: 25px;
     cursor: pointer;
@@ -337,10 +335,10 @@ async function logout() {
     cursor: pointer;
     margin-left: 20px;
     &-icon {
-      font-size: 22px;
+      font-size: 17px;
     }
     .el-dropdown {
-      line-height: 50px;
+      line-height: 46px;
     }
   }
   .user-menu {
@@ -363,7 +361,7 @@ async function logout() {
 
       .user-name {
         margin-top: 4px;
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 900;
         line-height: 30px;
         color: var(--el-text-color-regular);

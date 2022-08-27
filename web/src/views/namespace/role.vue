@@ -26,8 +26,6 @@
     <el-row class="app-table">
       <el-table
         v-loading="tableLoading"
-        border
-        stripe
         highlight-current-row
         height="100%"
         :data="tablePage.list"
@@ -81,7 +79,7 @@
         </el-table-column>
       </el-table>
     </el-row>
-    <el-row type="flex" justify="end" style="margin-top: 10px; width: 100%">
+    <el-row type="flex" justify="end">
       <el-pagination
         :total="tablePage.total"
         :page-size="pagination.rows"

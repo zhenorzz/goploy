@@ -61,12 +61,8 @@ div:focus {
 
 // main-container global css
 .app-container {
-  padding: 15px;
   height: calc(100vh - 116px);
   margin: 10px;
-  background-color: var(--el-bg-color);
-  border-radius: 4px;
-  border: 1px solid var(--el-border-color-light);
   flex-direction: column;
   .app-table {
     flex: 1;
@@ -76,12 +72,14 @@ div:focus {
       height: 100% !important;
     }
   }
+  .app-page {
+    background-color: var(--el-bg-color);
+    padding: 5px 0;
+  }
 }
 
 .app-bar {
   width: 100%;
-  // border: 1px solid var(--el-border-color);
-  margin-bottom: 15px;
-  // background-color: var(--el-bg-color);
+  margin-bottom: 10px;
   &-operation {margin-bottom:10px;};
 }

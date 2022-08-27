@@ -137,6 +137,7 @@
     "serverTerminal": "Terminal",
     "serverSFTP": "SFTP",
     "serverAgent": "Monitor",
+    "serverProcess": "Process",
     "template": "Template",
     "crontab": "Crontab",
     "serverCron": "Cron",
@@ -219,7 +220,11 @@
     "DeployTask": "Can deploy task",
     "FileCompare": "File compare",
     "FileSync": "File sync",
-    "ProcessManager": "Manage process"
+    "ProcessManager": "Manage process",
+    "ShowServerProcessPage": "See the server process page",
+    "AddServerProcess": "Add a server process",
+    "EditServerProcess": "Edit the server process",
+    "DeleteServerProcess": "Delete the server process"
   },
   "tagsView": {
     "refresh": "Refresh",
@@ -268,6 +273,7 @@
     "diskIO": "Disk IO",
     "addMonitor": "Create monitor",
     "monitorList": "Monitor list",
+    "deleteTips": "This action will delete the {name}, continue?",
     "removeCronTips": "This action will delete the crontab, continue?",
     "removeMonitorTips": "This action will delete the monitor({item}), continue?",
     "item": "Item",
