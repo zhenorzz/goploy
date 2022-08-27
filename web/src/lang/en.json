@@ -310,6 +310,7 @@
     "scriptMode": "Script mode",
     "rsyncDoc": "https://linux.die.net/man/1/rsync",
     "sftpDoc": "https://docs.goploy.icu/#/en/dependency/sftp",
+    "customDoc": "https://docs.goploy.icu/#/dependency/custom",
     "deployNotice": "Deploy notice",
     "publishReview": "Review",
     "reviewFooterTips": "Only members deploy projects will trigger review\n1. Go to the Deploy page for review\n2. Push to URL:http(s)://domain?custom-param=1&callback=***\n3. Access the callback value\nRepeated access callback will only be published once",
