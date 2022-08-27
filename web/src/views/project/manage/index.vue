@@ -280,6 +280,16 @@
                     style="color: #666"
                   />
                 </el-radio>
+                <el-radio :label="'custom'">
+                  custom
+                  <el-link
+                    :underline="false"
+                    :href="$t('projectPage.customDoc')"
+                    target="_blank"
+                    :icon="QuestionFilled"
+                    style="color: #666"
+                  />
+                </el-radio>
               </el-radio-group>
             </el-form-item>
             <el-form-item
@@ -1027,7 +1037,7 @@ function handleAutoDeploy(data: ProjectData) {
   autoDeployFormData.value.autoDeploy = data.autoDeploy
 }
 
-function handleAfterPullScriptModeChange(mode) {
+function handleAfterPullScriptModeChange(mode: string) {
   if (mode === 'cmd') {
     if (
       !formData.value.afterPullScript.includes('\r\n') &&
@@ -1042,7 +1052,7 @@ function handleAfterPullScriptModeChange(mode) {
   }
 }
 
-function handleAfterDeployScriptModeChange(mode) {
+function handleAfterDeployScriptModeChange(mode: string) {
   if (mode === 'cmd') {
     if (
       !formData.value.afterDeployScript.includes('\r\n') &&

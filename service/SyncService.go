@@ -241,7 +241,7 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			publishTraceModel.Ext = string(ext)
 
 			if transmitterOutput, err := transmitterEntity.Exec(); err != nil {
-				core.Log(core.ERROR, fmt.Sprintf("projectID: %d rsync exec err: %s, output: %s", project.ID, err, transmitterOutput))
+				core.Log(core.ERROR, fmt.Sprintf("projectID: %d transmit exec err: %s, output: %s", project.ID, err, transmitterOutput))
 				publishTraceModel.Detail = fmt.Sprintf("err: %s\noutput: %s", err, transmitterOutput)
 				publishTraceModel.State = model.Fail
 				publishTraceModel.AddRow()

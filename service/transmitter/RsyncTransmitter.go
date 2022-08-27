@@ -19,7 +19,7 @@ type rsyncTransmitter struct {
 	ProjectServer model.ProjectServer
 }
 
-func (rt rsyncTransmitter) Args() []string {
+func (rt rsyncTransmitter) args() []string {
 	project := rt.Project
 	projectServer := rt.ProjectServer
 	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
@@ -48,14 +48,14 @@ func (rt rsyncTransmitter) Args() []string {
 
 func (rt rsyncTransmitter) String() string {
 	logRsyncCmd := regexp.MustCompile(`sshpass -p .*\s`).
-		ReplaceAllString(exec.Command("rsync", rt.Args()...).String(), "sshpass -p ***** ")
+		ReplaceAllString(exec.Command("rsync", rt.args()...).String(), "sshpass -p ***** ")
 	return logRsyncCmd
 }
 
 func (rt rsyncTransmitter) Exec() (string, error) {
 	// example
 	// rsync -rtv -e "ssh -o StrictHostKeyChecking=no -p 22 -i C:\Users\Administrator\.ssh\id_rsa" --rsync-path="mkdir -p /data/www/test && rsync" ./main.go root@127.0.0.1:/tmp/test/
-	cmd := exec.Command("rsync", rt.Args()...)
+	cmd := exec.Command("rsync", rt.args()...)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return string(output), err
 	} else {

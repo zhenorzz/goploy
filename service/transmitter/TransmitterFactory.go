@@ -16,6 +16,8 @@ type Transmitter interface {
 func New(project model.Project, server model.ProjectServer) Transmitter {
 	if project.TransferType == "sftp" {
 		return sftpTransmitter{project, server}
+	} else if project.TransferType == "custom" {
+		return customTransmitter{project, server}
 	} else {
 		return rsyncTransmitter{project, server}
 	}
