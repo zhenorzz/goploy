@@ -229,7 +229,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .tags-view-container {
-  height: 36px;
+  height: 31px;
   margin: 0 10px;
   border-radius: 4px;
   background-color: var(--el-bg-color);
@@ -239,21 +239,12 @@ export default defineComponent({
       display: inline-block;
       position: relative;
       cursor: pointer;
-      height: 26px;
-      line-height: 24px;
-      border: 1px solid var(--el-border-color-light);
-      border-radius: 2px;
+      height: 30px;
+      line-height: 30px;
+      border-right: 1px solid var(--el-border-color-light);
       color: var(--el-text-color-regular);
-      padding: 0 8px;
+      padding: 0 12px;
       font-size: 12px;
-      margin-left: 5px;
-      margin-top: 4px;
-      &:first-of-type {
-        margin-left: 15px;
-      }
-      &:last-of-type {
-        margin-right: 15px;
-      }
       .el-icon-close {
         width: 12px;
         height: 12px;
@@ -275,6 +266,7 @@ export default defineComponent({
         background-color: var(--el-color-success);
         color: #fff;
         border-color: var(--el-color-success);
+        border-radius: 2px;
         &::before {
           content: '';
           background: #fff;

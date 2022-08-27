@@ -1,7 +1,7 @@
 {
   "name": "goploy",
   "version": "0.0.0",
-  "license": "GPLv3",
+  "license": "GPL-3.0-or-later",
   "scripts": {
     "dev": "vite",
     "server": "cd ../ && go run main.go --asset-dir=./",
