@@ -23,7 +23,6 @@ import (
 	"github.com/zhenorzz/goploy/service"
 	"github.com/zhenorzz/goploy/service/cmd"
 	"github.com/zhenorzz/goploy/task"
-	"github.com/zhenorzz/goploy/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -466,13 +465,15 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 		needToPublish = true
 	}
 	if needToPublish == false {
-		if len(project.AfterDeployScript) != 0 {
-			scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
-			ioutil.WriteFile(scriptName, []byte(service.ReplaceProjectVars(project.AfterDeployScript, project)), 0755)
-		}
 		ch := make(chan bool, len(projectServers))
 		for _, projectServer := range projectServers {
 			go func(projectServer model.ProjectServer) {
+				scriptName := fmt.Sprintf("GAD%d", projectServer.ServerID)
+				if len(project.AfterDeployScript) != 0 {
+					scriptContent := service.ReplaceProjectVars(project.AfterDeployScript, project)
+					scriptContent = service.ReplaceProjectServerVars(scriptContent, projectServer)
+					ioutil.WriteFile(path.Join(core.GetProjectPath(project.ID), scriptName), []byte(service.ReplaceProjectVars(project.AfterDeployScript, project)), 0755)
+				}
 				client, err := projectServer.ToSSHConfig().Dial()
 				if err != nil {
 					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" dial err: "+err.Error())
@@ -505,7 +506,7 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 				afterDeployCommands = append(afterDeployCommands, cmdEntity.Symlink(destDir, project.Path))
 				afterDeployCommands = append(afterDeployCommands, cmdEntity.ChangeDirTime(destDir))
 				if len(project.AfterDeployScript) != 0 {
-					afterDeployScriptPath := path.Join(project.Path, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
+					afterDeployScriptPath := path.Join(project.Path, scriptName)
 					afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.AfterDeployScriptMode, afterDeployScriptPath))
 					afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
 				}

@@ -225,9 +225,11 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 				Type:          model.Deploy,
 			}
 			// write after deploy script for rsync
+			scriptName := fmt.Sprintf("GAD%d", projectServer.ServerID)
 			if len(project.AfterDeployScript) != 0 {
-				scriptName := path.Join(core.GetProjectPath(project.ID), "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
-				_ = ioutil.WriteFile(scriptName, []byte(ReplaceProjectVars(ReplaceCommitVars(project.AfterDeployScript, gsync.CommitInfo), project)), 0755)
+				scriptContent := ReplaceProjectVars(project.AfterDeployScript, project)
+				scriptContent = ReplaceProjectServerVars(scriptContent, projectServer)
+				_ = ioutil.WriteFile(path.Join(core.GetProjectPath(project.ID), scriptName), []byte(scriptContent), 0755)
 			}
 
 			transmitterEntity := transmitter.New(project, projectServer)
@@ -266,7 +268,7 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 			}
 
 			if len(project.AfterDeployScript) != 0 {
-				afterDeployScriptPath := path.Join(project.Path, "goploy-after-deploy."+utils.GetScriptExt(project.AfterDeployScriptMode))
+				afterDeployScriptPath := path.Join(project.Path, scriptName)
 				afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.AfterDeployScriptMode, afterDeployScriptPath))
 				afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
 			}
@@ -569,10 +571,36 @@ func ReplaceCommitVars(script string, commitInfo repository.CommitInfo) string {
 
 func ReplaceProjectVars(script string, project model.Project) string {
 	scriptVars := map[string]string{
+		"${PROJECT_ID}":           strconv.FormatInt(project.ID, 10),
 		"${PROJECT_PATH}":         project.Path,
 		"${PROJECT_SYMLINK_PATH}": path.Join(project.SymlinkPath, project.LastPublishToken),
 		"${PROJECT_NAME}":         project.Name,
+		"${PROJECT_BRANCH}":       project.Branch,
+		"${REPOSITORY_TYPE}":      project.RepoType,
+		"${REPOSITORY_URL}":       project.URL,
 		"${REPOSITORY_PATH}":      core.GetProjectPath(project.ID),
+		"${PUBLISH_TOKEN}":        project.LastPublishToken,
+	}
+	for key, value := range scriptVars {
+		script = strings.Replace(script, key, value, -1)
+	}
+	return script
+}
+
+func ReplaceProjectServerVars(script string, server model.ProjectServer) string {
+	scriptVars := map[string]string{
+		"${SERVER_ID}":            strconv.FormatInt(server.ServerID, 10),
+		"${SERVER_NAME}":          server.ServerName,
+		"${SERVER_IP}":            server.ServerIP,
+		"${SERVER_PORT}":          strconv.Itoa(server.ServerPort),
+		"${SERVER_OWNER}":         server.ServerOwner,
+		"${SERVER_PASSWORD}":      server.ServerPassword,
+		"${SERVER_PATH}":          server.ServerPath,
+		"${SERVER_JUMP_IP}":       server.ServerJumpIP,
+		"${SERVER_JUMP_PORT}":     strconv.Itoa(server.ServerJumpPort),
+		"${SERVER_JUMP_OWNER}":    server.ServerJumpOwner,
+		"${SERVER_JUMP_PASSWORD}": server.ServerJumpPassword,
+		"${SERVER_JUMP_PATH}":     server.ServerJumpPath,
 	}
 	for key, value := range scriptVars {
 		script = strings.Replace(script, key, value, -1)

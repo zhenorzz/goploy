@@ -5,6 +5,7 @@
 package transmitter
 
 import (
+	"fmt"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/utils"
@@ -37,7 +38,7 @@ func (rt rsyncTransmitter) args() []string {
 	rsyncOption, _ := utils.ParseCommandLine(project.TransferOption)
 	rsyncOption = append([]string{
 		"--include",
-		"goploy-after-deploy." + utils.GetScriptExt(project.AfterDeployScriptMode),
+		fmt.Sprintf("GAD%d", projectServer.ServerID),
 	}, rsyncOption...)
 	rsyncOption = append(rsyncOption, "-e", projectServer.ToSSHOption())
 
