@@ -265,7 +265,7 @@ const formProps = ref({
   commitOption: [] as RepositoryCommitList['datagram']['list'],
   disabled: false,
 })
-const formRules = <InstanceType<typeof ElForm>['rules']>{
+const formRules: InstanceType<typeof ElForm>['rules'] = {
   date: [{ required: true, message: 'Date required', trigger: 'blur' }],
 }
 

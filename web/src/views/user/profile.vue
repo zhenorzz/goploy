@@ -82,7 +82,7 @@ const formProps = ref({
   },
 })
 
-const formRules = <InstanceType<typeof ElForm>['rules']>{
+const formRules: InstanceType<typeof ElForm>['rules'] = {
   old: [
     {
       required: true,

@@ -1,6 +1,7 @@
 import { Request, Pagination, ID, Total } from './types'
 
 export interface ProjectData {
+  [key: string]: any
   id: number
   namespaceId: number
   userId: number

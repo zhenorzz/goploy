@@ -154,7 +154,7 @@ const emit = defineEmits(['update:modelValue'])
 const form = ref<InstanceType<typeof ElForm>>()
 const formProps = ref({ disabled: false })
 const formData = ref({ namespaceId: 0, userIds: [], roleId: '' })
-const formRules = <InstanceType<typeof ElForm>['rules']>{
+const formRules: InstanceType<typeof ElForm>['rules'] = {
   userIds: [
     {
       type: 'array',

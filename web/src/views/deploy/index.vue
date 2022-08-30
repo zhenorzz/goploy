@@ -646,7 +646,7 @@ const greyServerFormData = ref({
   commit: '',
   serverIds: [],
 })
-const greyServerFormRules = <InstanceType<typeof ElForm>['rules']>{
+const greyServerFormRules: InstanceType<typeof ElForm>['rules'] = {
   serverIds: [
     {
       type: 'array',

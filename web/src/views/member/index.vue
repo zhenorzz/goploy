@@ -203,7 +203,7 @@ const formData = ref(tempFormData)
 const formProps = ref({
   disabled: false,
 })
-const formRules = <InstanceType<typeof ElForm>['rules']>{
+const formRules: InstanceType<typeof ElForm>['rules'] = {
   account: [
     {
       trigger: 'blur',

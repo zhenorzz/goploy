@@ -40,7 +40,6 @@
         height="100%"
         highlight-current-row
         :data="tablePage.list"
-        style="width: 100%"
       >
         <el-table-column type="expand">
           <template #default="{}">
@@ -69,7 +68,12 @@
           min-width="120"
           show-overflow-tooltip
         />
-        <el-table-column prop="status" label="Status" align="center">
+        <el-table-column
+          prop="status"
+          label="Status"
+          align="center"
+          min-width="110px"
+        >
           <template #default="scope">
             <el-button
               :loading="selectedItem['id'] === scope.row.id"
@@ -81,7 +85,12 @@
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column prop="start" label="Start" align="center">
+        <el-table-column
+          prop="start"
+          label="Start"
+          align="center"
+          min-width="90px"
+        >
           <template #default="scope">
             <el-button
               :loading="selectedItem['id'] === scope.row.id"
@@ -93,7 +102,12 @@
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column prop="restart" label="restart" align="center">
+        <el-table-column
+          prop="restart"
+          label="restart"
+          align="center"
+          min-width="110px"
+        >
           <template #default="scope">
             <el-button
               :loading="selectedItem['id'] === scope.row.id"
@@ -105,7 +119,12 @@
             </el-button>
           </template>
         </el-table-column>
-        <el-table-column prop="stop" label="stop" align="center">
+        <el-table-column
+          prop="stop"
+          label="stop"
+          align="center"
+          min-width="90px"
+        >
           <template #default="scope">
             <el-button
               :loading="selectedItem['id'] === scope.row.id"
@@ -120,21 +139,27 @@
         <el-table-column
           prop="operation"
           :label="$t('op')"
-          width="130"
+          width="195"
           align="center"
           :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
         >
           <template #default="scope">
             <Button
+              type="info"
+              :icon="DocumentCopy"
+              :permissions="[pms.AddServerProcess]"
+              @click="handleCopy(scope.row)"
+            />
+            <Button
               type="primary"
               :icon="Edit"
-              :permissions="[pms.EditCron]"
+              :permissions="[pms.EditServerProcess]"
               @click="handleEdit(scope.row)"
             />
             <Button
               type="danger"
               :icon="Delete"
-              :permissions="[pms.DeleteCron]"
+              :permissions="[pms.DeleteServerProcess]"
               @click="handleRemove(scope.row)"
             />
           </template>
@@ -202,7 +227,13 @@ export default { name: 'ServerProcess' }
 <script lang="ts" setup>
 import pms from '@/permission'
 import Button from '@/components/Permission/Button.vue'
-import { Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import {
+  Refresh,
+  Plus,
+  Edit,
+  DocumentCopy,
+  Delete,
+} from '@element-plus/icons-vue'
 import {
   ServerOption,
   ServerProcessList,
@@ -224,7 +255,7 @@ const table = ref()
 const tableLoading = ref(false)
 const tableData = ref<ServerProcessList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 20 })
-const selectedItem = ref<ServerProcessData>({})
+const selectedItem = ref<ServerProcessData>({} as ServerProcessData)
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
@@ -240,7 +271,7 @@ const formProps = ref({
   loading: false,
   disabled: false,
 })
-const formRules = <InstanceType<typeof ElForm>['rules']>{
+const formRules: InstanceType<typeof ElForm>['rules'] = {
   name: [{ required: true, message: 'Name required', trigger: 'blur' }],
 }
 
@@ -296,6 +327,12 @@ function handleEdit(data: ServerProcessData) {
   dialogVisible.value = true
 }
 
+function handleCopy(data: ServerProcessData) {
+  formData.value = Object.assign({}, data)
+  formData.value.id = 0
+  dialogVisible.value = true
+}
+
 function handleRemove(data: ServerProcessData) {
   ElMessageBox.confirm(
     t('serverPage.deleteTips', { name: data.name }),
@@ -341,7 +378,7 @@ const handleProcessCmd = (data: ServerProcessData, command: string) => {
           table.value.toggleRowExpansion(data, true)
         })
         .finally(() => {
-          selectedItem.value = {}
+          selectedItem.value = {} as ServerProcessData
         })
     })
     .catch(() => {

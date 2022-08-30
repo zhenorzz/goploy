@@ -80,7 +80,7 @@ const loginForm = ref({
   password: import.meta.env.PROD === true ? '' : 'admin!@#',
   phrase: '',
 })
-const loginRules = <InstanceType<typeof ElForm>['rules']>{
+const loginRules: InstanceType<typeof ElForm>['rules'] = {
   account: [
     {
       required: true,

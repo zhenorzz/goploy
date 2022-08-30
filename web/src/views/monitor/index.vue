@@ -382,7 +382,7 @@ const formProps = ref({
   process: '',
   script: '',
 })
-const formRules = <InstanceType<typeof ElForm>['rules']>{
+const formRules: InstanceType<typeof ElForm>['rules'] = {
   name: [{ required: true, message: 'Name required', trigger: 'blur' }],
   type: [{ required: true, message: 'Type required', trigger: 'blur' }],
   port: [

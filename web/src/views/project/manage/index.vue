@@ -502,7 +502,13 @@
                 >
                   <div>
                     <el-row>
-                      <span>${PROJECT_NAME}：</span>
+                      <span>${PROJECT_ID}: </span>
+                      <span>{{
+                        formData.id > 0 ? formData.id : 'project.id'
+                      }}</span>
+                    </el-row>
+                    <el-row>
+                      <span>${PROJECT_NAME}: </span>
                       <span>
                         {{
                           formData.name !== '' ? formData.name : 'project.name'
@@ -510,31 +516,73 @@
                       </span>
                     </el-row>
                     <el-row>
-                      <span>${REPOSITORY_PATH}：</span>
-                      <span>./repository/project_*</span>
+                      <span>${PROJECT_PATH}: </span>
+                      <span>
+                        {{
+                          formData.path !== '' ? formData.path : 'project.path'
+                        }}
+                      </span>
                     </el-row>
                     <el-row>
-                      <span>${COMMIT_ID}：</span>
+                      <span>${PROJECT_SYMLINK_PATH}: </span>
+                      <span>
+                        {{
+                          formProps.symlink === true
+                            ? formData.symlinkPath
+                            : 'project.symlink_path'
+                        }}
+                      </span>
+                    </el-row>
+                    <el-row>
+                      <span>${PROJECT_BRANCH}: </span>
+                      <span>{{
+                        formData.branch !== ''
+                          ? formData.branch
+                          : 'project.branch'
+                      }}</span>
+                    </el-row>
+                    <el-row>
+                      <span>${REPOSITORY_TYPE}: </span>
+                      <span>{{
+                        formData.repoType !== ''
+                          ? formData.repoType
+                          : 'project.repoType'
+                      }}</span>
+                    </el-row>
+                    <el-row>
+                      <span>${REPOSITORY_URL}: </span>
+                      <span>project.url</span>
+                    </el-row>
+                    <el-row>
+                      <span>${REPOSITORY_PATH}: </span>
+                      <span>project.repo_path</span>
+                    </el-row>
+                    <el-row>
+                      <span>${PUBLISH_TOKEN}: </span>
+                      <span>project.branch</span>
+                    </el-row>
+                    <el-row>
+                      <span>${COMMIT_ID}: </span>
                       <span>Commit ID</span>
                     </el-row>
                     <el-row>
-                      <span>${COMMIT_SHORT_ID}：</span>
+                      <span>${COMMIT_SHORT_ID}: </span>
                       <span>Commit ID (6 char)</span>
                     </el-row>
                     <el-row>
-                      <span>${COMMIT_BRANCH}：</span>
+                      <span>${COMMIT_BRANCH}: </span>
                       <span>Commit branch</span>
                     </el-row>
                     <el-row>
-                      <span>${COMMIT_TAG}：</span>
+                      <span>${COMMIT_TAG}: </span>
                       <span>Commit tag</span>
                     </el-row>
                     <el-row>
-                      <span>${COMMIT_AUTHOR}：</span>
+                      <span>${COMMIT_AUTHOR}: </span>
                       <span>Commit author</span>
                     </el-row>
                     <el-row>
-                      <span>${COMMIT_TIMESTAMP}：</span>
+                      <span>${COMMIT_TIMESTAMP}: </span>
                       <span>Commit timestamp(second)</span>
                     </el-row>
                   </div>
@@ -602,7 +650,13 @@
                 >
                   <div>
                     <el-row>
-                      <span>${PROJECT_NAME}：</span>
+                      <span>${PROJECT_ID}: </span>
+                      <span>{{
+                        formData.id > 0 ? formData.id : 'project.id'
+                      }}</span>
+                    </el-row>
+                    <el-row>
+                      <span>${PROJECT_NAME}: </span>
                       <span>
                         {{
                           formData.name !== '' ? formData.name : 'project.name'
@@ -610,7 +664,7 @@
                       </span>
                     </el-row>
                     <el-row>
-                      <span>${PROJECT_PATH}：</span>
+                      <span>${PROJECT_PATH}: </span>
                       <span>
                         {{
                           formData.path !== '' ? formData.path : 'project.path'
@@ -618,7 +672,7 @@
                       </span>
                     </el-row>
                     <el-row>
-                      <span>${PROJECT_SYMLINK_PATH}：</span>
+                      <span>${PROJECT_SYMLINK_PATH}: </span>
                       <span>
                         {{
                           formProps.symlink === true
@@ -626,6 +680,82 @@
                             : 'project.symlink_path'
                         }}
                       </span>
+                    </el-row>
+                    <el-row>
+                      <span>${PROJECT_BRANCH}: </span>
+                      <span>{{
+                        formData.branch !== ''
+                          ? formData.branch
+                          : 'project.branch'
+                      }}</span>
+                    </el-row>
+                    <el-row>
+                      <span>${REPOSITORY_TYPE}: </span>
+                      <span>{{
+                        formData.repoType !== ''
+                          ? formData.repoType
+                          : 'project.repoType'
+                      }}</span>
+                    </el-row>
+                    <el-row>
+                      <span>${REPOSITORY_URL}: </span>
+                      <span>project.url</span>
+                    </el-row>
+                    <el-row>
+                      <span>${REPOSITORY_PATH}: </span>
+                      <span>project.repo_path</span>
+                    </el-row>
+                    <el-row>
+                      <span>${PUBLISH_TOKEN}: </span>
+                      <span>project.branch</span>
+                    </el-row>
+                    <el-row>
+                      <span>${SERVER_ID}: </span>
+                      <span>server.id</span>
+                    </el-row>
+                    <el-row>
+                      <span>${SERVER_NAME}: </span>
+                      <span>server.name</span>
+                    </el-row>
+                    <el-row>
+                      <span>${SERVER_IP}: </span>
+                      <span>server.ip</span>
+                    </el-row>
+                    <el-row>
+                      <span>${SERVER_PORT}: </span>
+                      <span>server.port</span>
+                    </el-row>
+                    <el-row>
+                      <span>${SERVER_OWNER}: </span>
+                      <span>server.owner</span>
+                    </el-row>
+                    <el-row>
+                      <span>${SERVER_PASSWORD}: </span>
+                      <span>server.password</span>
+                    </el-row>
+                    <el-row>
+                      <span>${SERVER_PATH}: </span>
+                      <span>server.path</span>
+                    </el-row>
+                    <el-row>
+                      <span>${SERVER_JUMP_IP}: </span>
+                      <span>server.jump_ip</span>
+                    </el-row>
+                    <el-row>
+                      <span>${SERVER_JUMP_PORT}: </span>
+                      <span>server.jump_port</span>
+                    </el-row>
+                    <el-row>
+                      <span>${SERVER_JUMP_OWNER}: </span>
+                      <span>server.jump_owner</span>
+                    </el-row>
+                    <el-row>
+                      <span>${SERVER_JUMP_PASSWORD}: </span>
+                      <span>server.jump_password</span>
+                    </el-row>
+                    <el-row>
+                      <span>${SERVER_JUMP_PATH}: </span>
+                      <span>server.jump_path</span>
                     </el-row>
                   </div>
                   <template #reference>
@@ -860,7 +990,7 @@ const tempFormData = {
   notifyTarget: '',
 }
 const formData = ref(tempFormData)
-const formRules = <InstanceType<typeof ElForm>['rules']>{
+const formRules: InstanceType<typeof ElForm>['rules'] = {
   name: [{ required: true, message: 'Name required', trigger: ['blur'] }],
   url: [
     {

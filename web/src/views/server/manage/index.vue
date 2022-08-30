@@ -441,7 +441,7 @@ const formProps = ref({
   loginType: 'key',
   jumpLoginType: 'key',
 })
-const formRules = <InstanceType<typeof ElForm>['rules']>{
+const formRules: InstanceType<typeof ElForm>['rules'] = {
   namespaceId: [
     { required: true, message: 'Namespace required', trigger: 'blur' },
   ],
@@ -486,7 +486,7 @@ const agentFormData = ref({
 const agentFormProps = ref({
   disabled: false,
 })
-const agentFormRules = <InstanceType<typeof ElForm>['rules']>{
+const agentFormRules: InstanceType<typeof ElForm>['rules'] = {
   installPath: [
     { required: true, message: 'Install path required', trigger: 'blur' },
   ],

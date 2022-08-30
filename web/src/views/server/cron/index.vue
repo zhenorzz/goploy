@@ -219,7 +219,7 @@ const formProps = ref({
   disabled: false,
   dateLocale: '',
 })
-const formRules = <InstanceType<typeof ElForm>['rules']>{
+const formRules: InstanceType<typeof ElForm>['rules'] = {
   expression: [
     {
       required: true,
