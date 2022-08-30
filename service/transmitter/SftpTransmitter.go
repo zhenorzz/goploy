@@ -95,7 +95,7 @@ func (st sftpTransmitter) Exec() (string, error) {
 		}
 		nextItem = ""
 	}
-	includes = append(includes, fmt.Sprintf("GAD%d", st.ProjectServer.ServerID))
+	includes = append(includes, fmt.Sprintf("goploy-after-deploy-%d.%s", st.ProjectServer.ServerID, utils.GetScriptExt(project.AfterPullScriptMode)))
 
 	srcPath := core.GetProjectPath(project.ID) + "/"
 	destPath := project.Path

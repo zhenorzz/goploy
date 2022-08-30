@@ -23,6 +23,7 @@ import (
 	"github.com/zhenorzz/goploy/service"
 	"github.com/zhenorzz/goploy/service/cmd"
 	"github.com/zhenorzz/goploy/task"
+	"github.com/zhenorzz/goploy/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -468,11 +469,17 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 		ch := make(chan bool, len(projectServers))
 		for _, projectServer := range projectServers {
 			go func(projectServer model.ProjectServer) {
-				scriptName := fmt.Sprintf("GAD%d", projectServer.ServerID)
+				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
+				cmdEntity := cmd.New(projectServer.ServerOS)
+				afterDeployCommands := []string{cmdEntity.Symlink(destDir, project.Path), cmdEntity.ChangeDirTime(destDir)}
 				if len(project.AfterDeployScript) != 0 {
+					scriptName := fmt.Sprintf("goploy-after-deploy-%d.%s", projectServer.ServerID, utils.GetScriptExt(project.AfterPullScriptMode))
 					scriptContent := service.ReplaceProjectVars(project.AfterDeployScript, project)
 					scriptContent = service.ReplaceProjectServerVars(scriptContent, projectServer)
 					ioutil.WriteFile(path.Join(core.GetProjectPath(project.ID), scriptName), []byte(service.ReplaceProjectVars(project.AfterDeployScript, project)), 0755)
+					afterDeployScriptPath := path.Join(project.Path, scriptName)
+					afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.AfterDeployScriptMode, afterDeployScriptPath))
+					afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
 				}
 				client, err := projectServer.ToSSHConfig().Dial()
 				if err != nil {
@@ -488,7 +495,6 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 					return
 				}
 
-				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
 				// check if the path is existed or not
 				if output, err := session.CombinedOutput("cd " + destDir); err != nil {
 					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" check symlink path err: "+err.Error()+", detail: "+string(output))
@@ -501,15 +507,7 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 					ch <- false
 					return
 				}
-				var afterDeployCommands []string
-				cmdEntity := cmd.New(projectServer.ServerOS)
-				afterDeployCommands = append(afterDeployCommands, cmdEntity.Symlink(destDir, project.Path))
-				afterDeployCommands = append(afterDeployCommands, cmdEntity.ChangeDirTime(destDir))
-				if len(project.AfterDeployScript) != 0 {
-					afterDeployScriptPath := path.Join(project.Path, scriptName)
-					afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.AfterDeployScriptMode, afterDeployScriptPath))
-					afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
-				}
+
 				// redirect to project path
 				if output, err := session.CombinedOutput(strings.Join(afterDeployCommands, "&&")); err != nil {
 					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" symlink err: "+err.Error()+", detail: "+string(output))

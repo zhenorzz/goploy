@@ -18,7 +18,8 @@
             <el-row type="flex" justify="space-between" align="middle">
               <span style="font-size: 16px">Filter</span>
               <el-button
-                type="text"
+                type="primary"
+                link
                 :icon="Close"
                 style="color: #999; font-size: 16px; margin-bottom: 10px"
                 @click="filterInpurtVisible = false"
@@ -294,7 +295,8 @@
               <span>[goploy ~]#</span>
               <el-button
                 v-if="item.state === 1 && !(item.id in traceDetail)"
-                type="text"
+                type="primary"
+                link
                 @click="getPublishTraceDetail(item)"
               >
                 {{ $t('deployPage.showDetail') }}
@@ -330,7 +332,8 @@
                   <span style="padding: 5px 0">[goploy ~]#</span>
                   <el-button
                     v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                    type="text"
+                    type="primary"
+                    link
                     @click="getPublishTraceDetail(trace)"
                   >
                     {{ $t('deployPage.showDetail') }}
@@ -356,7 +359,8 @@
                   <span style="padding: 5px 0">[goploy ~]#</span>
                   <el-button
                     v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                    type="text"
+                    type="primary"
+                    link
                     @click="getPublishTraceDetail(trace)"
                   >
                     {{ $t('deployPage.showDetail') }}
@@ -383,7 +387,8 @@
                   <span>[goploy ~]#</span>
                   <el-button
                     v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                    type="text"
+                    type="primary"
+                    link
                     @click="getPublishTraceDetail(trace)"
                   >
                     {{ $t('deployPage.showDetail') }}
