@@ -22,7 +22,6 @@
         highlight-current-row
         height="100%"
         :data="tableData"
-        style="width: 100%"
       >
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="account" label="Account" width="110" />

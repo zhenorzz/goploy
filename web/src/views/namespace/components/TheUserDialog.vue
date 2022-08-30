@@ -82,7 +82,6 @@
       stripe
       highlight-current-row
       :data="tableData"
-      style="width: 100%"
     >
       <el-table-column prop="userName" :label="$t('userName')" />
       <el-table-column prop="roleName" :label="$t('role')" />

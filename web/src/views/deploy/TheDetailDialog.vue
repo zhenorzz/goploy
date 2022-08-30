@@ -554,7 +554,7 @@ const getPreviewList = (projectId: number) => {
     .request()
     .then((response) => {
       gitTraceList.value = response.data.list.map((item) => {
-        let element = <PublishTraceData & PublishTraceExt>item
+        let element = item as PublishTraceData & PublishTraceExt
         element.commit = element.ext.replaceAll('"', '')
         return element
       })
@@ -594,7 +594,7 @@ function getPublishTrace(publishToken: string) {
         if (element.ext !== '') {
           Object.assign(element, JSON.parse(element.ext))
         }
-        return <PublishTraceData & PublishTraceExt>element
+        return element as PublishTraceData & PublishTraceExt
       })
 
       publishLocalTraceList.value = publishTraceList.filter(
@@ -637,7 +637,7 @@ const onClose = () => {
 const handleTraceChange: InstanceType<typeof ElRadioGroup>['onChange'] = (
   lastPublishToken
 ) => {
-  publishToken.value = <string>lastPublishToken
+  publishToken.value = lastPublishToken as string
   getPublishTrace(publishToken.value)
 }
 

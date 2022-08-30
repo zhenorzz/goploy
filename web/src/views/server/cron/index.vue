@@ -39,7 +39,6 @@
         height="100%"
         highlight-current-row
         :data="tablePage.list"
-        style="width: 100%"
       >
         <el-table-column
           prop="expression"

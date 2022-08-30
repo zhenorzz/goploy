@@ -29,7 +29,6 @@
         height="100%"
         highlight-current-row
         :data="tablePage.list"
-        style="width: 100%"
       >
         <el-table-column prop="id" label="ID" width="100" />
         <el-table-column prop="name" :label="$t('name')" min-width="120" />

@@ -26,7 +26,6 @@
         highlight-current-row
         height="100%"
         :data="tableData"
-        style="width: 100%"
       >
         <el-table-column prop="token" label="Token" width="300" />
         <el-table-column prop="publisherName" label="Username" width="100" />
@@ -311,7 +310,7 @@ function handleDetail(data: PublishLogData) {
         if (element.ext !== '') {
           Object.assign(element, JSON.parse(element.ext))
         }
-        return <PublishTraceData & PublishTraceExt>element
+        return element as PublishTraceData & PublishTraceExt
       })
 
       publishLocalTraceList.value = publishTraceList.filter(

@@ -28,7 +28,6 @@
       highlight-current-row
       max-height="447px"
       :data="tableData"
-      style="width: 100%"
     >
       <el-table-column type="expand">
         <template #default="scope">

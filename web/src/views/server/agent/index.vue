@@ -240,7 +240,6 @@
         stripe
         highlight-current-row
         :data="tableData"
-        style="width: 100%"
       >
         <el-table-column prop="id" label="ID" width="60" />
         <el-table-column
@@ -381,9 +380,10 @@ echarts.use([
   LegendComponent,
 ])
 const chartRefs = ref<Record<string, Element | ComponentPublicInstance>>({})
-const chartNameMap = <
-  Record<string, { type: number; title: string; subtitle: string }>
->{
+const chartNameMap: Record<
+  string,
+  { type: number; title: string; subtitle: string }
+> = {
   cpuChart: {
     type: 1,
     title: t('serverPage.cpuUsage'),
@@ -636,15 +636,15 @@ function report(chartName: string, values: Date[]) {
   })
     .request()
     .then((response) => {
-      echarts.dispose(<HTMLDivElement>chartRefs.value[chartName])
+      echarts.dispose(chartRefs.value[chartName] as HTMLDivElement)
       let chart
       if (isDark.value) {
         chart = echarts.init(
-          <HTMLDivElement>chartRefs.value[chartName],
+          chartRefs.value[chartName] as HTMLDivElement,
           'dark-mushroom'
         )
       } else {
-        chart = echarts.init(<HTMLDivElement>chartRefs.value[chartName])
+        chart = echarts.init(chartRefs.value[chartName] as HTMLDivElement)
       }
 
       let chartOption = deepClone(chartBaseOption)
