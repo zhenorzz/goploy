@@ -6,7 +6,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -25,7 +24,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/signal"
 	"path"
 	"runtime"
@@ -147,20 +145,6 @@ func install() {
 		Web:    config.WebConfig{Port: "80"},
 	}
 	println("Installation guide ↓")
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	cmd := exec.Command("rsync", "--version")
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		println(err.Error() + ", detail: " + stderr.String())
-		println("Please check if rsync is installed correctly, see https://rsync.samba.org/download.html")
-	}
-	git := utils.GIT{}
-	if err := git.Run("--version"); err != nil {
-		println(err.Error() + ", detail: " + git.Err.String())
-		panic("Please check if git is installed correctly, see https://git-scm.com/downloads")
-	}
 	inputReader := bufio.NewReader(os.Stdin)
 	println("Installation guidelines (Enter to confirm input)")
 	println("Please enter the mysql user:")
