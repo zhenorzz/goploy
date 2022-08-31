@@ -225,7 +225,7 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 				Type:          model.Deploy,
 			}
 			// write after deploy script for rsync
-			scriptName := fmt.Sprintf("goploy-after-deploy-%d.%s", projectServer.ServerID, utils.GetScriptExt(project.AfterPullScriptMode))
+			scriptName := fmt.Sprintf("goploy-after-deploy-%d.%s", projectServer.ServerID, utils.GetScriptExt(project.AfterDeployScriptMode))
 			if len(project.AfterDeployScript) != 0 {
 				scriptContent := ReplaceProjectVars(project.AfterDeployScript, project)
 				scriptContent = ReplaceProjectServerVars(scriptContent, projectServer)
