@@ -38,7 +38,7 @@ func (rt rsyncTransmitter) args() []string {
 	rsyncOption, _ := utils.ParseCommandLine(project.TransferOption)
 	rsyncOption = append([]string{
 		"--include",
-		fmt.Sprintf("goploy-after-deploy-%d.%s", projectServer.ServerID, utils.GetScriptExt(project.AfterDeployScriptMode)),
+		fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, utils.GetScriptExt(project.AfterDeployScriptMode)),
 	}, rsyncOption...)
 	rsyncOption = append(rsyncOption, "-e", projectServer.ToSSHOption())
 
