@@ -401,7 +401,9 @@ func (Deploy) Publish(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if project.Review == model.Enable {
+	if project.DeployState != model.ProjectNotDeploy {
+		err = projectDeploy(gp, project, "", "")
+	} else if project.Review == model.Enable {
 		err = projectReview(gp, project, reqData.Commit, reqData.Branch)
 	} else {
 		err = projectDeploy(gp, project, reqData.Commit, reqData.Branch)
