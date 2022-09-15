@@ -21,6 +21,7 @@ database = 'goploy'
 
 [log]
 path = 'stdout'
+split = false
 
 [web]
 port = '80'

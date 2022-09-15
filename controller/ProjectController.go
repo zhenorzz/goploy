@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/middleware"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/permission"
 	"github.com/zhenorzz/goploy/repository"
@@ -34,22 +35,22 @@ func (p Project) Routes() []core.Route {
 		core.NewRoute("/project/getProjectFileList", http.MethodGet, p.GetProjectFileList).Permissions(permission.FileSync),
 		core.NewRoute("/project/getProjectFileContent", http.MethodGet, p.GetProjectFileContent).Permissions(permission.FileSync),
 		core.NewRoute("/project/getReposFileList", http.MethodGet, p.GetReposFileList).Permissions(permission.FileCompare),
-		core.NewRoute("/project/add", http.MethodPost, p.Add).Permissions(permission.AddProject),
-		core.NewRoute("/project/edit", http.MethodPut, p.Edit).Permissions(permission.EditProject),
-		core.NewRoute("/project/setAutoDeploy", http.MethodPut, p.SetAutoDeploy).Permissions(permission.SwitchProjectWebhook),
-		core.NewRoute("/project/remove", http.MethodDelete, p.Remove).Permissions(permission.DeleteProject),
-		core.NewRoute("/project/uploadFile", http.MethodPost, p.UploadFile).Permissions(permission.FileSync),
-		core.NewRoute("/project/removeFile", http.MethodDelete, p.RemoveFile).Permissions(permission.FileSync),
-		core.NewRoute("/project/addFile", http.MethodPost, p.AddFile).Permissions(permission.FileSync),
-		core.NewRoute("/project/editFile", http.MethodPut, p.EditFile).Permissions(permission.FileSync),
-		core.NewRoute("/project/addTask", http.MethodPost, p.AddTask).Permissions(permission.DeployTask),
-		core.NewRoute("/project/removeTask", http.MethodDelete, p.RemoveTask).Permissions(permission.DeployTask),
+		core.NewRoute("/project/add", http.MethodPost, p.Add).Permissions(permission.AddProject).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/project/edit", http.MethodPut, p.Edit).Permissions(permission.EditProject).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/project/setAutoDeploy", http.MethodPut, p.SetAutoDeploy).Permissions(permission.SwitchProjectWebhook).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/project/remove", http.MethodDelete, p.Remove).Permissions(permission.DeleteProject).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/project/uploadFile", http.MethodPost, p.UploadFile).Permissions(permission.FileSync).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/project/removeFile", http.MethodDelete, p.RemoveFile).Permissions(permission.FileSync).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/project/addFile", http.MethodPost, p.AddFile).Permissions(permission.FileSync).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/project/editFile", http.MethodPut, p.EditFile).Permissions(permission.FileSync).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/project/addTask", http.MethodPost, p.AddTask).Permissions(permission.DeployTask).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/project/removeTask", http.MethodDelete, p.RemoveTask).Permissions(permission.DeployTask).LogFunc(middleware.AddOPLog),
 		core.NewRoute("/project/getTaskList", http.MethodGet, p.GetTaskList).Permissions(permission.DeployTask),
 		core.NewRoute("/project/getReviewList", http.MethodGet, p.GetReviewList).Permissions(permission.DeployReview),
 		core.NewRoute("/project/getProcessList", http.MethodGet, p.GetProcessList).Permissions(permission.ProcessManager),
-		core.NewRoute("/project/addProcess", http.MethodPost, p.AddProcess).Permissions(permission.ProcessManager),
-		core.NewRoute("/project/editProcess", http.MethodPut, p.EditProcess).Permissions(permission.ProcessManager),
-		core.NewRoute("/project/deleteProcess", http.MethodDelete, p.DeleteProcess).Permissions(permission.ProcessManager),
+		core.NewRoute("/project/addProcess", http.MethodPost, p.AddProcess).Permissions(permission.ProcessManager).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/project/editProcess", http.MethodPut, p.EditProcess).Permissions(permission.ProcessManager).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/project/deleteProcess", http.MethodDelete, p.DeleteProcess).Permissions(permission.ProcessManager).LogFunc(middleware.AddOPLog),
 	}
 }
 

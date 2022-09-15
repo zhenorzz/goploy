@@ -22,6 +22,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Goploy struct {
@@ -239,7 +240,7 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 			http.SetCookie(w, &cookie)
 		}
 	}
-
+	r.Header.Add("_time", time.Now().Format("20060102150405"))
 	gp.Request = r
 	gp.ResponseWriter = w
 	gp.URLQuery = r.URL.Query()

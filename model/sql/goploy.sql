@@ -330,6 +330,23 @@ CREATE TABLE IF NOT EXISTS `login_log` (
  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE IF NOT EXISTS `operation_log` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `user_id` int(10) unsigned NOT NULL COMMENT '',
+    `namespace_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `router` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'request router',
+    `api` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'api',
+    `request_time` datetime COMMENT 'request time',
+    `request_data` json COMMENT 'request data',
+    `response_time` datetime COMMENT 'response time',
+    `response_data` json COMMENT 'response data',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_namespace` (`user_id`, `namespace_id`),
+    KEY `idx_router` (`router`),
+    KEY `idx_api` (`api`),
+    KEY `idx_request_time` (`request_time`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 CREATE TABLE IF NOT EXISTS `sftp_log` (
     `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
     `namespace_id` int(10) unsigned NOT NULL DEFAULT '0',
@@ -438,6 +455,7 @@ INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALU
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (71, 23, 'AddServerProcess', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (72, 23, 'EditServerProcess', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (73, 23, 'DeleteServerProcess', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (74, 1, 'ShowOperationLogPage', 0, '');
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 13);
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 14);
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 15);

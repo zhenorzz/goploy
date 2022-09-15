@@ -389,6 +389,9 @@ func (gsync Gsync) notify(deployState int, detail string) {
 		content := "Deploy: <font color=\"warning\">" + project.Name + "</font>\n"
 		content += "Publisher: <font color=\"comment\">" + project.PublisherName + "</font>\n"
 		content += "Author: <font color=\"comment\">" + commitInfo.Author + "</font>\n"
+		if commitInfo.Tag != "" {
+			content += "Tag: <font color=\"comment\">" + commitInfo.Tag + "</font>\n"
+		}
 		content += "Branch: <font color=\"comment\">" + commitInfo.Branch + "</font>\n"
 		content += "CommitSHA: <font color=\"comment\">" + commitInfo.Commit + "</font>\n"
 		content += "CommitMessage: <font color=\"comment\">" + commitInfo.Message + "</font>\n"
@@ -420,6 +423,9 @@ func (gsync Gsync) notify(deployState int, detail string) {
 		text := "#### Deploy：" + project.Name + "  \n  "
 		text += "#### Publisher：" + project.PublisherName + "  \n  "
 		text += "#### Author：" + commitInfo.Author + "  \n  "
+		if commitInfo.Tag != "" {
+			text += "#### Tag：" + commitInfo.Tag + "  \n  "
+		}
 		text += "#### Branch：" + commitInfo.Branch + "  \n  "
 		text += "#### CommitSHA：" + commitInfo.Commit + "  \n  "
 		text += "#### CommitMessage：" + commitInfo.Message + "  \n  "
@@ -451,6 +457,9 @@ func (gsync Gsync) notify(deployState int, detail string) {
 		text := ""
 		text += "Publisher: " + project.PublisherName + "\n"
 		text += "Author: " + commitInfo.Author + "\n"
+		if commitInfo.Tag != "" {
+			text += "Tag: " + commitInfo.Tag + "\n"
+		}
 		text += "Branch: " + commitInfo.Branch + "\n"
 		text += "CommitSHA: " + commitInfo.Commit + "\n"
 		text += "CommitMessage: " + commitInfo.Message + "\n"
@@ -480,6 +489,7 @@ func (gsync Gsync) notify(deployState int, detail string) {
 				Publisher     string `json:"publisher"`
 				Author        string `json:"author"`
 				Branch        string `json:"branch"`
+				Tag           string `json:"tag"`
 				CommitSHA     string `json:"commitSHA"`
 				CommitMessage string `json:"commitMessage"`
 				ServerList    string `json:"serverList"`
@@ -498,6 +508,7 @@ func (gsync Gsync) notify(deployState int, detail string) {
 		msg.Data.Publisher = project.PublisherName
 		msg.Data.Author = commitInfo.Author
 		msg.Data.Branch = commitInfo.Branch
+		msg.Data.Tag = commitInfo.Tag
 		msg.Data.CommitSHA = commitInfo.Commit
 		msg.Data.CommitMessage = commitInfo.Message
 		msg.Data.ServerList = serverList

@@ -43,16 +43,16 @@ func (d Deploy) Routes() []core.Route {
 		core.NewRoute("/deploy/getPublishTrace", http.MethodGet, d.GetPublishTrace).Permissions(permission.DeployDetail),
 		core.NewRoute("/deploy/getPublishTraceDetail", http.MethodGet, d.GetPublishTraceDetail).Permissions(permission.DeployDetail),
 		core.NewRoute("/deploy/getPreview", http.MethodGet, d.GetPreview).Permissions(permission.DeployDetail),
-		core.NewRoute("/deploy/review", http.MethodPut, d.Review).Permissions(permission.DeployReview),
-		core.NewRoute("/deploy/resetState", http.MethodPut, d.ResetState).Permissions(permission.DeployResetState),
-		core.NewRoute("/deploy/publish", http.MethodPost, d.Publish).Permissions(permission.DeployProject).Middleware(middleware.HasProjectPermission),
-		core.NewRoute("/deploy/rebuild", http.MethodPost, d.Rebuild).Permissions(permission.DeployRollback).Middleware(middleware.HasProjectPermission),
-		core.NewRoute("/deploy/greyPublish", http.MethodPost, d.GreyPublish).Permissions(permission.GreyDeploy).Middleware(middleware.HasProjectPermission),
+		core.NewRoute("/deploy/review", http.MethodPut, d.Review).Permissions(permission.DeployReview).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/deploy/resetState", http.MethodPut, d.ResetState).Permissions(permission.DeployResetState).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/deploy/publish", http.MethodPost, d.Publish).Permissions(permission.DeployProject).Middleware(middleware.HasProjectPermission).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/deploy/rebuild", http.MethodPost, d.Rebuild).Permissions(permission.DeployRollback).Middleware(middleware.HasProjectPermission).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/deploy/greyPublish", http.MethodPost, d.GreyPublish).Permissions(permission.GreyDeploy).Middleware(middleware.HasProjectPermission).LogFunc(middleware.AddOPLog),
 		core.NewWhiteRoute("/deploy/webhook", http.MethodPost, d.Webhook).Middleware(middleware.FilterEvent),
 		core.NewWhiteRoute("/deploy/callback", http.MethodGet, d.Callback),
 		core.NewRoute("/deploy/fileCompare", http.MethodPost, d.FileCompare).Permissions(permission.FileCompare),
 		core.NewRoute("/deploy/fileDiff", http.MethodPost, d.FileDiff).Permissions(permission.FileCompare),
-		core.NewRoute("/deploy/manageProcess", http.MethodPost, d.ManageProcess).Permissions(permission.ProcessManager),
+		core.NewRoute("/deploy/manageProcess", http.MethodPost, d.ManageProcess).Permissions(permission.ProcessManager).LogFunc(middleware.AddOPLog),
 	}
 }
 

@@ -6,6 +6,7 @@ package controller
 
 import (
 	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/middleware"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/permission"
 	"github.com/zhenorzz/goploy/response"
@@ -19,11 +20,11 @@ type Monitor Controller
 func (m Monitor) Routes() []core.Route {
 	return []core.Route{
 		core.NewRoute("/monitor/getList", http.MethodGet, m.GetList).Permissions(permission.ShowMonitorPage),
-		core.NewRoute("/monitor/check", http.MethodPost, m.Check),
-		core.NewRoute("/monitor/add", http.MethodPost, m.Add).Permissions(permission.AddMonitor),
-		core.NewRoute("/monitor/edit", http.MethodPut, m.Edit).Permissions(permission.EditMonitor),
-		core.NewRoute("/monitor/toggle", http.MethodPut, m.Toggle).Permissions(permission.EditMonitor),
-		core.NewRoute("/monitor/remove", http.MethodDelete, m.Remove).Permissions(permission.DeleteMonitor),
+		core.NewRoute("/monitor/check", http.MethodPost, m.Check).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/monitor/add", http.MethodPost, m.Add).Permissions(permission.AddMonitor).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/monitor/edit", http.MethodPut, m.Edit).Permissions(permission.EditMonitor).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/monitor/toggle", http.MethodPut, m.Toggle).Permissions(permission.EditMonitor).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/monitor/remove", http.MethodDelete, m.Remove).Permissions(permission.DeleteMonitor).LogFunc(middleware.AddOPLog),
 	}
 }
 
@@ -141,14 +142,15 @@ func (Monitor) Edit(gp *core.Goploy) core.Response {
 
 func (Monitor) Toggle(gp *core.Goploy) core.Response {
 	type ReqData struct {
-		ID int64 `json:"id" validate:"gt=0"`
+		ID    int64 `json:"id" validate:"gt=0"`
+		State uint8 `json:"state" validate:"oneof=0 1"`
 	}
 	var reqData ReqData
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := (model.Monitor{ID: reqData.ID}).ToggleState(); err != nil {
+	if err := (model.Monitor{ID: reqData.ID, State: reqData.State}).ToggleState(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{}

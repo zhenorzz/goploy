@@ -28,9 +28,9 @@ func (u User) Routes() []core.Route {
 		core.NewRoute("/user/changePassword", http.MethodPut, u.ChangePassword),
 		core.NewRoute("/user/getList", http.MethodGet, u.GetList).Permissions(permission.ShowMemberPage),
 		core.NewRoute("/user/getOption", http.MethodGet, u.GetOption),
-		core.NewRoute("/user/add", http.MethodPost, u.Add).Permissions(permission.AddMember),
-		core.NewRoute("/user/edit", http.MethodPut, u.Edit).Permissions(permission.EditMember),
-		core.NewRoute("/user/remove", http.MethodDelete, u.Remove).Permissions(permission.DeleteMember),
+		core.NewRoute("/user/add", http.MethodPost, u.Add).Permissions(permission.AddMember).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/user/edit", http.MethodPut, u.Edit).Permissions(permission.EditMember).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/user/remove", http.MethodDelete, u.Remove).Permissions(permission.DeleteMember).LogFunc(middleware.AddOPLog),
 	}
 }
 

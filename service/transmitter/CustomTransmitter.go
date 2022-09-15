@@ -5,8 +5,10 @@
 package transmitter
 
 import (
+	"fmt"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/utils"
 	"os/exec"
 	"path"
 	"strconv"
@@ -23,27 +25,28 @@ func (ct customTransmitter) String() string {
 	server := ct.ProjectServer
 	script := project.TransferOption
 	scriptVars := map[string]string{
-		"${PROJECT_ID}":           strconv.FormatInt(project.ID, 10),
-		"${PROJECT_PATH}":         project.Path,
-		"${PROJECT_SYMLINK_PATH}": path.Join(project.SymlinkPath, project.LastPublishToken),
-		"${PROJECT_NAME}":         project.Name,
-		"${PROJECT_BRANCH}":       project.Branch,
-		"${REPOSITORY_TYPE}":      project.RepoType,
-		"${REPOSITORY_URL}":       project.URL,
-		"${REPOSITORY_PATH}":      core.GetProjectPath(project.ID),
-		"${PUBLISH_TOKEN}":        project.LastPublishToken,
-		"${SERVER_ID}":            strconv.FormatInt(server.ServerID, 10),
-		"${SERVER_NAME}":          server.ServerName,
-		"${SERVER_IP}":            server.ServerIP,
-		"${SERVER_PORT}":          strconv.Itoa(server.ServerPort),
-		"${SERVER_OWNER}":         server.ServerOwner,
-		"${SERVER_PASSWORD}":      server.ServerPassword,
-		"${SERVER_PATH}":          server.ServerPath,
-		"${SERVER_JUMP_IP}":       server.ServerJumpIP,
-		"${SERVER_JUMP_PORT}":     strconv.Itoa(server.ServerJumpPort),
-		"${SERVER_JUMP_OWNER}":    server.ServerJumpOwner,
-		"${SERVER_JUMP_PASSWORD}": server.ServerJumpPassword,
-		"${SERVER_JUMP_PATH}":     server.ServerJumpPath,
+		"${PROJECT_ID}":            strconv.FormatInt(project.ID, 10),
+		"${PROJECT_PATH}":          project.Path,
+		"${PROJECT_SYMLINK_PATH}":  path.Join(project.SymlinkPath, project.LastPublishToken),
+		"${PROJECT_NAME}":          project.Name,
+		"${PROJECT_BRANCH}":        project.Branch,
+		"${REPOSITORY_TYPE}":       project.RepoType,
+		"${REPOSITORY_URL}":        project.URL,
+		"${REPOSITORY_PATH}":       core.GetProjectPath(project.ID),
+		"${AFTER_DEPLOY_FILENAME}": fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, server.ServerID, utils.GetScriptExt(project.AfterDeployScriptMode)),
+		"${PUBLISH_TOKEN}":         project.LastPublishToken,
+		"${SERVER_ID}":             strconv.FormatInt(server.ServerID, 10),
+		"${SERVER_NAME}":           server.ServerName,
+		"${SERVER_IP}":             server.ServerIP,
+		"${SERVER_PORT}":           strconv.Itoa(server.ServerPort),
+		"${SERVER_OWNER}":          server.ServerOwner,
+		"${SERVER_PASSWORD}":       server.ServerPassword,
+		"${SERVER_PATH}":           server.ServerPath,
+		"${SERVER_JUMP_IP}":        server.ServerJumpIP,
+		"${SERVER_JUMP_PORT}":      strconv.Itoa(server.ServerJumpPort),
+		"${SERVER_JUMP_OWNER}":     server.ServerJumpOwner,
+		"${SERVER_JUMP_PASSWORD}":  server.ServerJumpPassword,
+		"${SERVER_JUMP_PATH}":      server.ServerJumpPath,
 	}
 	for key, value := range scriptVars {
 		script = strings.Replace(script, key, value, -1)

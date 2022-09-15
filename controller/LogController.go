@@ -19,6 +19,8 @@ func (l Log) Routes() []core.Route {
 	return []core.Route{
 		core.NewRoute("/log/getLoginLogList", http.MethodGet, l.GetLoginLogList).Permissions(permission.ShowLoginLogPage),
 		core.NewRoute("/log/getLoginLogTotal", http.MethodGet, l.GetLoginLogTotal).Permissions(permission.ShowLoginLogPage),
+		core.NewRoute("/log/getOperationLogList", http.MethodGet, l.GetOperationLogList).Permissions(permission.ShowOperationLogPage),
+		core.NewRoute("/log/getOperationLogTotal", http.MethodGet, l.GetOperationLogTotal).Permissions(permission.ShowOperationLogPage),
 		core.NewRoute("/log/getSftpLogList", http.MethodGet, l.GetSftpLogList).Permissions(permission.ShowSFTPLogPage),
 		core.NewRoute("/log/getSftpLogTotal", http.MethodGet, l.GetSftpLogTotal).Permissions(permission.ShowSFTPLogPage),
 		core.NewRoute("/log/getTerminalLogList", http.MethodGet, l.GetTerminalLogList).Permissions(permission.ShowTerminalLogPage),
@@ -60,6 +62,64 @@ func (Log) GetLoginLogTotal(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 	total, err := model.LoginLog{Account: reqData.Account}.GetTotal()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	return response.JSON{
+		Data: struct {
+			Total int64 `json:"total"`
+		}{Total: total},
+	}
+}
+
+func (Log) GetOperationLogList(gp *core.Goploy) core.Response {
+	type ReqData struct {
+		Username string `schema:"username"`
+		Router   string `schema:"router"`
+		API      string `schema:"api"`
+		Page     uint64 `schema:"page" validate:"gt=0"`
+		Rows     uint64 `schema:"rows" validate:"gt=0"`
+	}
+	var reqData ReqData
+	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
+	}
+
+	opLog := model.OperationLog{Username: reqData.Username, Router: reqData.Router, API: reqData.API}
+
+	if gp.UserInfo.SuperManager != model.SuperManager {
+		opLog.NamespaceID = gp.Namespace.ID
+	}
+
+	list, err := opLog.GetList(reqData.Page, reqData.Rows)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	return response.JSON{
+		Data: struct {
+			List model.OperationLogs `json:"list"`
+		}{List: list},
+	}
+}
+
+func (Log) GetOperationLogTotal(gp *core.Goploy) core.Response {
+	type ReqData struct {
+		Username string `schema:"username"`
+		Router   string `schema:"router"`
+		API      string `schema:"api"`
+	}
+	var reqData ReqData
+	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
+	}
+
+	opLog := model.OperationLog{Username: reqData.Username, Router: reqData.Router, API: reqData.API}
+
+	if gp.UserInfo.SuperManager != model.SuperManager {
+		opLog.NamespaceID = gp.Namespace.ID
+	}
+
+	total, err := opLog.GetTotal()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}

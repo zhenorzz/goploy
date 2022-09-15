@@ -6,6 +6,7 @@ package controller
 
 import (
 	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/middleware"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/permission"
 	"github.com/zhenorzz/goploy/response"
@@ -20,10 +21,10 @@ func (r Role) Routes() []core.Route {
 		core.NewRoute("/role/getOption", http.MethodGet, r.GetOption),
 		core.NewRoute("/role/getPermissionList", http.MethodGet, r.GetPermissionList).Permissions(permission.ShowRolePage),
 		core.NewRoute("/role/getPermissionBindings", http.MethodGet, r.GetPermissionBindings).Permissions(permission.ShowRolePage),
-		core.NewRoute("/role/add", http.MethodPost, r.Add).Permissions(permission.AddRole),
-		core.NewRoute("/role/edit", http.MethodPut, r.Edit).Permissions(permission.EditRole),
-		core.NewRoute("/role/remove", http.MethodDelete, r.Remove).Permissions(permission.DeleteRole),
-		core.NewRoute("/role/changePermission", http.MethodPut, r.ChangePermission).Permissions(permission.EditPermission),
+		core.NewRoute("/role/add", http.MethodPost, r.Add).Permissions(permission.AddRole).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/role/edit", http.MethodPut, r.Edit).Permissions(permission.EditRole).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/role/remove", http.MethodDelete, r.Remove).Permissions(permission.DeleteRole).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/role/changePermission", http.MethodPut, r.ChangePermission).Permissions(permission.EditPermission).LogFunc(middleware.AddOPLog),
 	}
 }
 

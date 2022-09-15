@@ -6,6 +6,7 @@ package controller
 
 import (
 	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/middleware"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/permission"
 	"github.com/zhenorzz/goploy/response"
@@ -19,9 +20,9 @@ func (c Cron) Routes() []core.Route {
 	return []core.Route{
 		core.NewRoute("/cron/getList", http.MethodPost, c.GetList).Permissions(permission.ShowCronPage),
 		core.NewRoute("/cron/getLogs", http.MethodPost, c.GetLogs).Permissions(permission.ShowCronPage),
-		core.NewRoute("/cron/add", http.MethodPost, c.Add).Permissions(permission.AddCron),
-		core.NewRoute("/cron/edit", http.MethodPut, c.Edit).Permissions(permission.EditCron),
-		core.NewRoute("/cron/remove", http.MethodDelete, c.Remove).Permissions(permission.DeleteCron),
+		core.NewRoute("/cron/add", http.MethodPost, c.Add).Permissions(permission.AddCron).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/cron/edit", http.MethodPut, c.Edit).Permissions(permission.EditCron).LogFunc(middleware.AddOPLog),
+		core.NewRoute("/cron/remove", http.MethodDelete, c.Remove).Permissions(permission.DeleteCron).LogFunc(middleware.AddOPLog),
 	}
 }
 

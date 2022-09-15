@@ -164,7 +164,7 @@ func (m Monitor) ToggleState() error {
 	_, err := sq.
 		Update(monitorTable).
 		SetMap(sq.Eq{
-			"state": sq.Expr("!state"),
+			"state": m.State,
 		}).
 		Where(sq.Eq{"id": m.ID}).
 		RunWith(DB).
