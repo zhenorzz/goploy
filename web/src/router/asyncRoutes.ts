@@ -223,6 +223,16 @@ export default <RouteRecordRaw[]>[
         },
       },
       {
+        path: 'operationLog',
+        name: 'OperationLog',
+        component: () => import('@/views/log/operationLog.vue'),
+        meta: {
+          title: 'operationLog',
+          icon: 'log',
+          permissions: [permission.ShowOperationLogPage],
+        },
+      },
+      {
         path: 'publishLog',
         name: 'PublishLog',
         component: () => import('@/views/log/publishLog.vue'),

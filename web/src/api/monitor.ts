@@ -98,8 +98,11 @@ export class MonitorCheck extends Request {
 export class MonitorToggle extends Request {
   readonly url = '/monitor/toggle'
   readonly method = 'put'
-  public param: ID
-  constructor(param: ID) {
+  public param: {
+    id: number
+    state: number
+  }
+  constructor(param: MonitorToggle['param']) {
     super()
     this.param = param
   }

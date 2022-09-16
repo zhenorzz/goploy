@@ -21,6 +21,7 @@ export interface ProjectData {
   afterDeployScript: string
   transferType: string
   transferOption: string
+  deployServerMode: string
   autoDeploy: number
   publisherId: number
   publisherName: string
@@ -162,6 +163,7 @@ export class ProjectAdd extends Request {
     afterDeployScript: string
     transferType: string
     transferOption: string
+    deployServerMode: string
     serverIds: number[]
     userIds: number[]
     notifyType: number
@@ -193,6 +195,7 @@ export class ProjectEdit extends Request {
     afterDeployScript: string
     transferType: string
     transferOption: string
+    deployServerMode: string
     notifyType: number
     notifyTarget: string
   }

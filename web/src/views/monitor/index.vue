@@ -526,7 +526,7 @@ function handleToggle(data: MonitorData) {
       }
     )
       .then(() => {
-        new MonitorToggle({ id: data.id }).request().then(() => {
+        new MonitorToggle({ id: data.id, state: 0 }).request().then(() => {
           ElMessage.success(t('close'))
           getList()
         })
@@ -535,7 +535,7 @@ function handleToggle(data: MonitorData) {
         ElMessage.info('Cancel')
       })
   } else {
-    new MonitorToggle({ id: data.id }).request().then(() => {
+    new MonitorToggle({ id: data.id, state: 1 }).request().then(() => {
       ElMessage.success(t('open'))
       getList()
     })

@@ -10,6 +10,19 @@ export interface LoginLogData {
   loginTime: string
 }
 
+export interface OperationLogData {
+  [key: string]: any
+  id: number
+  namespaceId: number
+  userId: number
+  router: string
+  api: string
+  requestTime: string
+  requestData: string
+  responseTime: string
+  responseData: string
+}
+
 export interface SftpLogData {
   id: number
   namespaceId: number
@@ -78,6 +91,46 @@ export class LoginLogTotal extends Request {
   public declare datagram: Total
 
   constructor(param: LoginLogTotal['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class OperationLogList extends Request {
+  readonly url = '/log/getOperationLogList'
+  readonly method = 'get'
+
+  public pagination: Pagination
+
+  public param: {
+    username: string
+    router: string
+    api: string
+  }
+
+  public declare datagram: {
+    list: OperationLogData[]
+  }
+  constructor(param: OperationLogList['param'], pagination: Pagination) {
+    super()
+    this.pagination = pagination
+    this.param = { ...param, ...pagination }
+  }
+}
+
+export class OperationLogTotal extends Request {
+  readonly url = '/log/getOperationLogTotal'
+  readonly method = 'get'
+
+  public param: {
+    username: string
+    router: string
+    api: string
+  }
+
+  public declare datagram: Total
+
+  constructor(param: OperationLogTotal['param']) {
     super()
     this.param = param
   }

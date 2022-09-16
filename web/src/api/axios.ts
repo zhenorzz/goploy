@@ -19,6 +19,11 @@ service.interceptors.request.use(
   (config: AxiosRequestConfig) => {
     // do something before request is sent
     config.headers[NamespaceKey] = getNamespaceId()
+    let href = window.location.hash.slice(1)
+    if (href.indexOf('?') > -1) {
+      href = href.substring(0, href.indexOf('?'))
+    }
+    config.headers['Router'] = href
     return config
   },
   (error: AxiosError) => {

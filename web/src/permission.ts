@@ -72,4 +72,5 @@ export default Object.freeze({
   AddServerProcess: 71,
   EditServerProcess: 72,
   DeleteServerProcess: 73,
+  ShowOperationLogPage: 74,
 })

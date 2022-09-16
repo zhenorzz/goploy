@@ -305,6 +305,7 @@ func (Project) Add(gp *core.Goploy) core.Response {
 		AfterDeployScript     string  `json:"afterDeployScript"`
 		TransferType          string  `json:"transferType"`
 		TransferOption        string  `json:"transferOption"`
+		DeployServerMode      string  `json:"deployServerMode"`
 		ServerIDs             []int64 `json:"serverIds"`
 		UserIDs               []int64 `json:"userIds"`
 		NotifyType            uint8   `json:"notifyType"`
@@ -337,6 +338,7 @@ func (Project) Add(gp *core.Goploy) core.Response {
 		AfterDeployScript:     reqData.AfterDeployScript,
 		TransferType:          reqData.TransferType,
 		TransferOption:        reqData.TransferOption,
+		DeployServerMode:      reqData.DeployServerMode,
 		NotifyType:            reqData.NotifyType,
 		NotifyTarget:          reqData.NotifyTarget,
 	}.AddRow()
@@ -391,6 +393,7 @@ func (Project) Edit(gp *core.Goploy) core.Response {
 		AfterDeployScript     string  `json:"afterDeployScript"`
 		TransferType          string  `json:"transferType"`
 		TransferOption        string  `json:"transferOption"`
+		DeployServerMode      string  `json:"deployServerMode"`
 		NotifyType            uint8   `json:"notifyType"`
 		NotifyTarget          string  `json:"notifyTarget"`
 	}
@@ -426,6 +429,7 @@ func (Project) Edit(gp *core.Goploy) core.Response {
 		AfterDeployScript:     reqData.AfterDeployScript,
 		TransferType:          reqData.TransferType,
 		TransferOption:        reqData.TransferOption,
+		DeployServerMode:      reqData.DeployServerMode,
 		NotifyType:            reqData.NotifyType,
 		NotifyTarget:          reqData.NotifyTarget,
 	}.EditRow()

@@ -189,7 +189,7 @@
                 </el-tooltip>
               </template>
               <el-row type="flex" style="width: 100%">
-                <el-select v-model="formData.repoType" style="width: 65px">
+                <el-select v-model="formData.repoType" style="width: 70px">
                   <el-option label="git" value="git" />
                   <el-option label="svn" value="svn" />
                   <el-option label="ftp" value="ftp" />
@@ -331,6 +331,13 @@
               </el-row>
             </el-form-item>
             <el-form-item :label="$t('server')" prop="serverIds">
+              <el-radio-group
+                v-model="formData.deployServerMode"
+                style="margin-bottom: 5px"
+              >
+                <el-radio label="parallel">{{ $t('parallel') }}</el-radio>
+                <el-radio label="serial">{{ $t('serial') }}</el-radio>
+              </el-radio-group>
               <el-select
                 v-model="formData.serverIds"
                 multiple
@@ -981,6 +988,7 @@ const tempFormData = {
   branch: '',
   transferType: 'rsync',
   transferOption: '-rtv --exclude .git',
+  deployServerMode: 'parallel',
   serverIds: [] as number[],
   userIds: [] as number[],
   review: 0,
@@ -1331,20 +1339,3 @@ function restoreFormData() {
   formData.value = { ...tempFormData }
 }
 </script>
-
-<style lang="scss">
-@import '@/styles/mixin.scss';
-.file-dialog {
-  .el-dialog__body {
-    padding-top: 20px;
-  }
-  .el-icon-upload {
-    font-size: 14px;
-  }
-  .file-form {
-    height: 520px;
-    overflow-y: auto;
-    @include scrollBar();
-  }
-}
-</style>

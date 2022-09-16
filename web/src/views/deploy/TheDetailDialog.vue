@@ -668,7 +668,7 @@ const rebuild = (data: PublishTraceData & PublishTraceExt) => {
   )
     .then(() => {
       filterloading.value = true
-      new DeployRebuild({ projectId: data.projectId, token: data.token })
+      new DeployRebuild({ projectId: props.projectRow.id, token: data.token })
         .request()
         .then((response) => {
           if (response.data === 'symlink') {

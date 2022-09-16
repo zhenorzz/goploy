@@ -16,3 +16,7 @@ CREATE TABLE IF NOT EXISTS `operation_log` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `permission` (`id`, `pid`, `name`, `sort`, `description`) VALUES (74, 1, 'ShowOperationLogPage', 0, '');
+
+ALTER TABLE `project` ADD COLUMN `deploy_server_mode` varchar(255) NOT NULL DEFAULT '' COMMENT 'serial | parallel' AFTER `transfer_option`;
+
+UPDATE `project` SET `deploy_server_mode` = 'parallel';

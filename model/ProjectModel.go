@@ -31,6 +31,7 @@ type Project struct {
 	AfterDeployScript     string `json:"afterDeployScript"`
 	TransferType          string `json:"transferType"`
 	TransferOption        string `json:"transferOption"`
+	DeployServerMode      string `json:"deployServerMode"`
 	AutoDeploy            uint8  `json:"autoDeploy"`
 	PublisherID           int64  `json:"publisherId"`
 	PublisherName         string `json:"publisherName"`
@@ -96,6 +97,7 @@ func (p Project) AddRow() (int64, error) {
 			"after_deploy_script",
 			"transfer_type",
 			"transfer_option",
+			"deploy_server_mode",
 			"notify_type",
 			"notify_target",
 		).
@@ -117,6 +119,7 @@ func (p Project) AddRow() (int64, error) {
 			p.AfterDeployScript,
 			p.TransferType,
 			p.TransferOption,
+			p.DeployServerMode,
 			p.NotifyType,
 			p.NotifyTarget,
 		).
@@ -149,6 +152,7 @@ func (p Project) EditRow() error {
 			"after_deploy_script":      p.AfterDeployScript,
 			"transfer_type":            p.TransferType,
 			"transfer_option":          p.TransferOption,
+			"deploy_server_mode":       p.DeployServerMode,
 			"notify_type":              p.NotifyType,
 			"notify_target":            p.NotifyTarget,
 		}).
@@ -260,6 +264,7 @@ func (p Project) GetList() (Projects, error) {
 			after_deploy_script,
 			transfer_type,
 			transfer_option,
+			deploy_server_mode,
 			auto_deploy,
 			notify_type, 
 			notify_target,
@@ -308,6 +313,7 @@ func (p Project) GetList() (Projects, error) {
 			&project.AfterDeployScript,
 			&project.TransferType,
 			&project.TransferOption,
+			&project.DeployServerMode,
 			&project.AutoDeploy,
 			&project.NotifyType,
 			&project.NotifyTarget,
@@ -414,6 +420,7 @@ func (p Project) GetData() (Project, error) {
 			after_deploy_script, 
 			transfer_type, 
 			transfer_option, 
+			deploy_server_mode, 
 			auto_deploy, 
 			deploy_state, 
 			notify_type, 
@@ -445,6 +452,7 @@ func (p Project) GetData() (Project, error) {
 			&project.AfterDeployScript,
 			&project.TransferType,
 			&project.TransferOption,
+			&project.DeployServerMode,
 			&project.AutoDeploy,
 			&project.DeployState,
 			&project.NotifyType,

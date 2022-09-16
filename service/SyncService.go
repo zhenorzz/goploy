@@ -207,151 +207,156 @@ func (gsync Gsync) runAfterPullScript() (string, error) {
 	if output, err := handler.CombinedOutput(); err != nil {
 		return "", err
 	} else {
-		_ = os.Remove(scriptName)
+		_ = os.Remove(scriptFullName)
 		return string(output), nil
 	}
 }
 
 func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
-	for _, projectServer := range gsync.ProjectServers {
-		go func(projectServer model.ProjectServer) {
-			project := gsync.Project
-			publishTraceModel := model.PublishTrace{
-				Token:         project.LastPublishToken,
-				ProjectID:     project.ID,
-				ProjectName:   project.Name,
-				PublisherID:   gsync.UserInfo.ID,
-				PublisherName: gsync.UserInfo.Name,
-				Type:          model.Deploy,
-			}
-			// write after deploy script for rsync
-			scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, utils.GetScriptExt(project.AfterDeployScriptMode))
-			if len(project.AfterDeployScript) != 0 {
-				scriptContent := ReplaceProjectVars(project.AfterDeployScript, project)
-				scriptContent = ReplaceProjectServerVars(scriptContent, projectServer)
-				_ = ioutil.WriteFile(path.Join(core.GetProjectPath(project.ID), scriptName), []byte(scriptContent), 0755)
-			}
+	var serverSync = func(projectServer model.ProjectServer) {
+		project := gsync.Project
+		publishTraceModel := model.PublishTrace{
+			Token:         project.LastPublishToken,
+			ProjectID:     project.ID,
+			ProjectName:   project.Name,
+			PublisherID:   gsync.UserInfo.ID,
+			PublisherName: gsync.UserInfo.Name,
+			Type:          model.Deploy,
+		}
+		// write after deploy script for rsync
+		scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, utils.GetScriptExt(project.AfterDeployScriptMode))
+		if len(project.AfterDeployScript) != 0 {
+			scriptContent := ReplaceProjectVars(project.AfterDeployScript, project)
+			scriptContent = ReplaceProjectServerVars(scriptContent, projectServer)
+			_ = ioutil.WriteFile(path.Join(core.GetProjectPath(project.ID), scriptName), []byte(scriptContent), 0755)
+		}
 
-			transmitterEntity := transmitter.New(project, projectServer)
-			logCmd := transmitterEntity.String()
-			core.Log(core.TRACE, "projectID: "+strconv.FormatInt(project.ID, 10)+" "+logCmd)
-			ext, _ := json.Marshal(struct {
-				ServerID   int64  `json:"serverId"`
-				ServerName string `json:"serverName"`
-				Command    string `json:"command"`
-			}{projectServer.ServerID, projectServer.ServerName, logCmd})
-			publishTraceModel.Ext = string(ext)
+		transmitterEntity := transmitter.New(project, projectServer)
+		logCmd := transmitterEntity.String()
+		core.Log(core.TRACE, "projectID: "+strconv.FormatInt(project.ID, 10)+" "+logCmd)
+		ext, _ := json.Marshal(struct {
+			ServerID   int64  `json:"serverId"`
+			ServerName string `json:"serverName"`
+			Command    string `json:"command"`
+		}{projectServer.ServerID, projectServer.ServerName, logCmd})
+		publishTraceModel.Ext = string(ext)
 
-			if transmitterOutput, err := transmitterEntity.Exec(); err != nil {
-				core.Log(core.ERROR, fmt.Sprintf("projectID: %d transmit exec err: %s, output: %s", project.ID, err, transmitterOutput))
-				publishTraceModel.Detail = fmt.Sprintf("err: %s\noutput: %s", err, transmitterOutput)
-				publishTraceModel.State = model.Fail
-				publishTraceModel.AddRow()
-				msgChIn <- syncMessage{
-					serverName: projectServer.ServerName,
-					projectID:  project.ID,
-					detail:     err.Error(),
-					state:      model.ProjectFail,
-				}
-				return
-			} else {
-				publishTraceModel.Detail = transmitterOutput
-				publishTraceModel.State = model.Success
-				publishTraceModel.AddRow()
+		if transmitterOutput, err := transmitterEntity.Exec(); err != nil {
+			core.Log(core.ERROR, fmt.Sprintf("projectID: %d transmit exec err: %s, output: %s", project.ID, err, transmitterOutput))
+			publishTraceModel.Detail = fmt.Sprintf("err: %s\noutput: %s", err, transmitterOutput)
+			publishTraceModel.State = model.Fail
+			publishTraceModel.AddRow()
+			msgChIn <- syncMessage{
+				serverName: projectServer.ServerName,
+				projectID:  project.ID,
+				detail:     err.Error(),
+				state:      model.ProjectFail,
 			}
+			return
+		} else {
+			publishTraceModel.Detail = transmitterOutput
+			publishTraceModel.State = model.Success
+			publishTraceModel.AddRow()
+		}
 
-			var afterDeployCommands []string
-			cmdEntity := cmd.New(projectServer.ServerOS)
-			if len(project.SymlinkPath) != 0 {
-				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
-				afterDeployCommands = append(afterDeployCommands, cmdEntity.Symlink(destDir, project.Path))
-			}
+		var afterDeployCommands []string
+		cmdEntity := cmd.New(projectServer.ServerOS)
+		if len(project.SymlinkPath) != 0 {
+			destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
+			afterDeployCommands = append(afterDeployCommands, cmdEntity.Symlink(destDir, project.Path))
+		}
 
-			if len(project.AfterDeployScript) != 0 {
-				afterDeployScriptPath := path.Join(project.Path, scriptName)
-				afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.AfterDeployScriptMode, afterDeployScriptPath))
-				afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
-			}
+		if len(project.AfterDeployScript) != 0 {
+			afterDeployScriptPath := path.Join(project.Path, scriptName)
+			afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.AfterDeployScriptMode, afterDeployScriptPath))
+			afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
+		}
 
-			// no symlink and deploy script
-			if len(afterDeployCommands) == 0 {
-				msgChIn <- syncMessage{
-					serverName: projectServer.ServerName,
-					projectID:  project.ID,
-					state:      model.ProjectSuccess,
-				}
-				return
-			}
-			completeAfterDeployCmd := strings.Join(afterDeployCommands, "&&")
-			publishTraceModel.Type = model.AfterDeploy
-			ext, _ = json.Marshal(struct {
-				ServerID   int64  `json:"serverId"`
-				ServerName string `json:"serverName"`
-				Script     string `json:"script"`
-			}{projectServer.ServerID, projectServer.ServerName, completeAfterDeployCmd})
-			publishTraceModel.Ext = string(ext)
-
-			client, err := projectServer.ToSSHConfig().Dial()
-			if err != nil {
-				core.Log(core.ERROR, err.Error())
-				publishTraceModel.Detail = err.Error()
-				publishTraceModel.State = model.Fail
-				publishTraceModel.AddRow()
-				msgChIn <- syncMessage{
-					serverName: projectServer.ServerName,
-					projectID:  project.ID,
-					detail:     err.Error(),
-					state:      model.ProjectFail,
-				}
-				return
-			}
-			defer client.Close()
-
-			session, sessionErr := client.NewSession()
-			if sessionErr != nil {
-				core.Log(core.ERROR, sessionErr.Error())
-				publishTraceModel.Detail = sessionErr.Error()
-				publishTraceModel.State = model.Fail
-				publishTraceModel.AddRow()
-				msgChIn <- syncMessage{
-					serverName: projectServer.ServerName,
-					projectID:  project.ID,
-					detail:     sessionErr.Error(),
-					state:      model.ProjectFail,
-				}
-				return
-			}
-			defer session.Close()
-			core.Log(core.TRACE, fmt.Sprintf("projectID: %d ssh exec: %s", project.ID, completeAfterDeployCmd))
-			if output, err := session.CombinedOutput(completeAfterDeployCmd); err != nil {
-				core.Log(core.ERROR, fmt.Sprintf("projectID: %d ssh exec err: %s, output: %s", project.ID, err, output))
-				publishTraceModel.Detail = fmt.Sprintf("err: %s\noutput: %s", err, output)
-				publishTraceModel.State = model.Fail
-				if _, err := publishTraceModel.AddRow(); err != nil {
-					core.Log(core.ERROR, "projectID: "+strconv.FormatInt(project.ID, 10)+" "+err.Error())
-				}
-				msgChIn <- syncMessage{
-					serverName: projectServer.ServerName,
-					projectID:  project.ID,
-					detail:     fmt.Sprintf("%s\noutput: %s", err.Error(), output),
-					state:      model.ProjectFail,
-				}
-				return
-			} else {
-				publishTraceModel.Detail = string(output)
-				publishTraceModel.State = model.Success
-				if _, err := publishTraceModel.AddRow(); err != nil {
-					core.Log(core.ERROR, "projectID: "+strconv.FormatInt(project.ID, 10)+" "+err.Error())
-				}
-			}
-
+		// no symlink and deploy script
+		if len(afterDeployCommands) == 0 {
 			msgChIn <- syncMessage{
 				serverName: projectServer.ServerName,
 				projectID:  project.ID,
 				state:      model.ProjectSuccess,
 			}
 			return
-		}(projectServer)
+		}
+		completeAfterDeployCmd := strings.Join(afterDeployCommands, "&&")
+		publishTraceModel.Type = model.AfterDeploy
+		ext, _ = json.Marshal(struct {
+			ServerID   int64  `json:"serverId"`
+			ServerName string `json:"serverName"`
+			Script     string `json:"script"`
+		}{projectServer.ServerID, projectServer.ServerName, completeAfterDeployCmd})
+		publishTraceModel.Ext = string(ext)
+
+		client, err := projectServer.ToSSHConfig().Dial()
+		if err != nil {
+			core.Log(core.ERROR, err.Error())
+			publishTraceModel.Detail = err.Error()
+			publishTraceModel.State = model.Fail
+			publishTraceModel.AddRow()
+			msgChIn <- syncMessage{
+				serverName: projectServer.ServerName,
+				projectID:  project.ID,
+				detail:     err.Error(),
+				state:      model.ProjectFail,
+			}
+			return
+		}
+		defer client.Close()
+
+		session, sessionErr := client.NewSession()
+		if sessionErr != nil {
+			core.Log(core.ERROR, sessionErr.Error())
+			publishTraceModel.Detail = sessionErr.Error()
+			publishTraceModel.State = model.Fail
+			publishTraceModel.AddRow()
+			msgChIn <- syncMessage{
+				serverName: projectServer.ServerName,
+				projectID:  project.ID,
+				detail:     sessionErr.Error(),
+				state:      model.ProjectFail,
+			}
+			return
+		}
+		defer session.Close()
+		core.Log(core.TRACE, fmt.Sprintf("projectID: %d ssh exec: %s", project.ID, completeAfterDeployCmd))
+		if output, err := session.CombinedOutput(completeAfterDeployCmd); err != nil {
+			core.Log(core.ERROR, fmt.Sprintf("projectID: %d ssh exec err: %s, output: %s", project.ID, err, output))
+			publishTraceModel.Detail = fmt.Sprintf("err: %s\noutput: %s", err, output)
+			publishTraceModel.State = model.Fail
+			if _, err := publishTraceModel.AddRow(); err != nil {
+				core.Log(core.ERROR, "projectID: "+strconv.FormatInt(project.ID, 10)+" "+err.Error())
+			}
+			msgChIn <- syncMessage{
+				serverName: projectServer.ServerName,
+				projectID:  project.ID,
+				detail:     fmt.Sprintf("%s\noutput: %s", err.Error(), output),
+				state:      model.ProjectFail,
+			}
+			return
+		} else {
+			publishTraceModel.Detail = string(output)
+			publishTraceModel.State = model.Success
+			if _, err := publishTraceModel.AddRow(); err != nil {
+				core.Log(core.ERROR, "projectID: "+strconv.FormatInt(project.ID, 10)+" "+err.Error())
+			}
+		}
+
+		msgChIn <- syncMessage{
+			serverName: projectServer.ServerName,
+			projectID:  project.ID,
+			state:      model.ProjectSuccess,
+		}
+		return
+	}
+	for _, projectServer := range gsync.ProjectServers {
+		if gsync.Project.DeployServerMode == "serial" {
+			serverSync(projectServer)
+		} else {
+			go serverSync(projectServer)
+		}
 	}
 }
 

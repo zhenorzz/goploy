@@ -201,9 +201,23 @@ func parseGITLog(rawCommitLog string) []CommitInfo {
 			Author:    commitRowSplit[1],
 			Timestamp: timestamp,
 			Message:   commitRowSplit[3],
-			Tag:       commitRowSplit[4],
+			Tag:       extractTag(commitRowSplit[4]),
 			Diff:      strings.Trim(commitRowSplit[5], "\n"),
 		})
 	}
 	return commitList
+}
+
+func extractTag(raw string) string {
+	if len(raw) < 3 {
+		return ""
+	}
+	raw = raw[2 : len(raw)-1]
+	for _, row := range strings.Split(raw, ",") {
+		if strings.Contains(row, "tag: ") {
+			raw = row[5:]
+			break
+		}
+	}
+	return raw
 }

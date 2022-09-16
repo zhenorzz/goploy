@@ -24,6 +24,8 @@
   "serverId": "Server ID",
   "serverName": "Server name",
   "serverDescription": "Server description",
+  "serial": "Serial",
+  "parallel": "Parallel",
   "process": "Process",
   "template": "Template",
   "package": "Package",
@@ -299,6 +301,7 @@
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",
     "unmarkAll": "Unmark all",
+    "copyAll": "Copy all",
     "tips":
       "1.Hold down ALT and click label to achieve highlighting<br>2.Hold down SHIFT and click label to view the JSON path"
   },

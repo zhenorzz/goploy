@@ -45,7 +45,7 @@
           <el-form-item
             :label="$t('role')"
             label-width="60px"
-            prop="role"
+            prop="roleId"
             style="margin-bottom: 5px"
           >
             <el-select

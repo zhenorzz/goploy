@@ -24,6 +24,8 @@
   "serverId": "服务器ID",
   "serverName": "服务器名称",
   "serverDescription": "服务器描述",
+  "serial": "串行",
+  "parallel": "并行",
   "process": "进程",
   "template": "模板",
   "package": "安装包",
@@ -146,6 +148,7 @@
     "member": "成员设置",
     "log": "日志记录",
     "loginLog": "登录日志",
+    "operationLog": "操作日志",
     "publishLog": "构建日志",
     "sftpLog": "SFTP日志",
     "terminalLog": "终端日志"
@@ -223,7 +226,8 @@
     "ShowServerProcessPage": "查看服务器进程管理",
     "AddServerProcess": "新增服务器进程",
     "EditServerProcess": "编辑服务器进程",
-    "DeleteServerProcess": "删除服务器进程"
+    "DeleteServerProcess": "删除服务器进程",
+    "ShowOperationLogPage": "查看操作日志"
   },
   "tagsView": {
     "refresh": "刷新",
@@ -295,6 +299,7 @@
     "expandAll": "展开所有",
     "collapseAll": "收起所有",
     "unmarkAll": "取消高亮",
+    "copyAll": "复制所有",
     "tips": "1.按住ALT点击label可以实现高亮\n2.按住SHIFT可以查看JSON路径"
   },
   "projectPage": {

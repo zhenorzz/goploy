@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS `project`  (
   `after_deploy_script` text NOT NULL COMMENT '',
   `transfer_type` varchar(255) NOT NULL DEFAULT '',
   `transfer_option` varchar(255) NOT NULL DEFAULT '',
+  `deploy_server_mode` varchar(255) NOT NULL DEFAULT '' COMMENT 'serial | parallel',
   `auto_deploy` tinyint(4) UNSIGNED NOT NULL DEFAULT 1 COMMENT '0.disable 1.webhook',
   `state` tinyint(4) UNSIGNED NOT NULL DEFAULT 1 COMMENT '0.disable 1.enable',
   `deploy_state` tinyint(4) UNSIGNED NOT NULL DEFAULT 0 COMMENT '0.not deploy 1.deploying 2.success 3.fail',

@@ -24,8 +24,8 @@
           <RepoURL
             style="font-size: 12px"
             :url="projectRow.url"
-            :suffix="'/tree/' + scope.row.shortTag"
-            :text="scope.row.shortTag"
+            :suffix="'/tree/' + scope.row.tag"
+            :text="scope.row.tag"
           >
           </RepoURL>
         </template>
@@ -114,19 +114,7 @@ watch(
       new RepositoryTagList({ id: props.projectRow.id })
         .request()
         .then((response) => {
-          tableData.value = response.data.list.map((element) => {
-            let shortTag = element.tag.replace(/[()]/g, '')
-            for (const tag of shortTag.split(',')) {
-              if (tag.indexOf('tag: ') !== -1) {
-                shortTag = tag.replace('tag: ', '').trim()
-                break
-              }
-            }
-            return Object.assign(element, {
-              projectId: props.projectRow.id,
-              shortTag: shortTag,
-            })
-          })
+          tableData.value = response.data.list
         })
         .finally(() => {
           tableLoading.value = false

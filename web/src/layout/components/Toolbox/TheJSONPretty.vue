@@ -7,26 +7,29 @@
       align="middle"
     >
       <el-row>
-        <el-button type="text" @click="switchJSONView">
+        <el-button type="primary" text @click="switchJSONView">
           <svg-icon icon-class="switch" /> JSON Pretty
         </el-button>
         <el-button
           v-show="json.view === 'pretty'"
-          type="text"
+          type="primary"
+          text
           @click="expandAll"
         >
           {{ $t('JSONPage.expandAll') }}
         </el-button>
         <el-button
           v-show="json.view === 'pretty'"
-          type="text"
+          type="primary"
+          text
           @click="collapseAll"
         >
           {{ $t('JSONPage.collapseAll') }}
         </el-button>
         <el-button
           v-show="json.view === 'pretty'"
-          type="text"
+          type="primary"
+          text
           @click="unmarkAll"
         >
           {{ $t('JSONPage.unmarkAll') }}
@@ -34,7 +37,7 @@
       </el-row>
       <el-row>
         <el-tooltip class="item" effect="dark" placement="bottom-end">
-          <el-button type="text" icon="el-icon-question" />
+          <el-button type="primary" text :icon="QuestionFilled" />
           <template #content>
             <span style="white-space: pre-line">
               {{ $t('JSONPage.tips') }}
@@ -63,8 +66,9 @@
 </template>
 
 <script lang="ts" setup>
-import './jsonTree.css'
-import { jsonTree } from './jsonTree'
+import '@/components/JSONTree/index.css'
+import { jsonTree } from '@/components/JSONTree'
+import { QuestionFilled } from '@element-plus/icons-vue'
 import { ref, reactive } from 'vue'
 defineProps({
   modelValue: {
@@ -75,7 +79,7 @@ defineProps({
 const json = reactive({
   view: 'raw',
   input: '',
-  tree: {},
+  tree: {} as any,
 })
 const jsonPrettyString = ref()
 const handleInput = () => {
