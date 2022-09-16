@@ -58,7 +58,7 @@ func (ct customTransmitter) Exec() (string, error) {
 	if ct.Project.TransferOption == "" {
 		return "", nil
 	}
-	parts := strings.Fields(ct.String())
+	parts, _ := utils.ParseCommandLine(ct.String())
 	cmd := exec.Command(parts[0], parts[1:]...)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return string(output), err
