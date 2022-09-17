@@ -86,7 +86,7 @@ Goploy 用于:
 1. 安装go，必须是1.16以上
 2. 项目使用 go mod 管理
 3. 修改 goploy.toml `cp goploy.example.toml goploy.toml`
-4. 运行 `go run main.go --asset-dir=./` (需要编译一次前端，国内建议使用代理)
+4. 运行 `go run main.go --asset-dir=./` (需要编译一次前端 [前端开发说明](#前端开发说明))
 5. 或者使用 gin（可以热更新代码，改变就生效）
 
 ## 前端开发说明
@@ -94,6 +94,7 @@ Goploy 用于:
 2. `npm install` 或者 `yarn install`
 3. 修改 .env.development
 4. `npm run dev` 或者 `yarn dev`
+5. 编译 `npm run build` 或者 `yarn build`
 
 ## 相关仓库
 

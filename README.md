@@ -87,7 +87,7 @@ Goploy is commonly used for:
 1. Install go >= 1.16
 2. go mod required
 3. edit goploy.toml `cp goploy.example.toml goploy.toml`
-4. run `go run main.go --asset-dir=./` (need build frontend)
+4. run `go run main.go --asset-dir=./` (need build [Frontend](#Frontend))
 5. use gin (hot reload)
 
 ## Frontend
@@ -95,6 +95,7 @@ Goploy is commonly used for:
 2. `npm install` or `yarn install`
 3. edit .env.development
 4. `npm run dev` or `yarn dev`
+5. build `npm run build` or `yarn build`
 
 ## Repository
 
