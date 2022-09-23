@@ -66,13 +66,13 @@
         <el-table-column
           prop="requestTime"
           label="Request time"
-          width="155"
+          width="160"
           align="center"
         />
         <el-table-column
           prop="responseTime"
           label="Response time"
-          width="155"
+          width="160"
           align="center"
         />
       </el-table>
