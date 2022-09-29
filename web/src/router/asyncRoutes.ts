@@ -88,7 +88,7 @@ export default <RouteRecordRaw[]>[
       {
         path: 'index',
         name: 'ServerIndex',
-        component: () => import('@/views/server/manage/index.vue'),
+        component: () => import('@/views/server/index.vue'),
         meta: {
           title: 'serverSetting',
           icon: 'server',
@@ -108,7 +108,7 @@ export default <RouteRecordRaw[]>[
       {
         path: 'sftp',
         name: 'ServerSFTP',
-        component: () => import('@/views/server/sftp/index.vue'),
+        component: () => import('@/views/server/sftp.vue'),
         meta: {
           title: 'serverSFTP',
           icon: 'ftp',
@@ -118,7 +118,7 @@ export default <RouteRecordRaw[]>[
       {
         path: 'agent',
         name: 'ServerAgent',
-        component: () => import('@/views/server/agent/index.vue'),
+        component: () => import('@/views/server/agent.vue'),
         meta: {
           hidden: true,
           title: 'serverAgent',
@@ -129,7 +129,7 @@ export default <RouteRecordRaw[]>[
       {
         path: 'process',
         name: 'ServerProcess',
-        component: () => import('@/views/server/process/index.vue'),
+        component: () => import('@/views/server/process.vue'),
         meta: {
           title: 'serverProcess',
           icon: 'processManage',
@@ -139,7 +139,7 @@ export default <RouteRecordRaw[]>[
       {
         path: 'cron',
         name: 'ServerCron',
-        component: () => import('@/views/server/cron/index.vue'),
+        component: () => import('@/views/server/cron.vue'),
         meta: {
           title: 'serverCron',
           icon: 'crontab',
