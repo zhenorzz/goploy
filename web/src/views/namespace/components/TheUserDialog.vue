@@ -233,7 +233,10 @@ function add() {
   form.value?.validate((valid) => {
     if (valid) {
       formProps.value.disabled = true
-      new NamespaceUserAdd(formData.value)
+      new NamespaceUserAdd({
+        ...formData.value,
+        roleId: Number(formData.value.roleId),
+      })
         .request()
         .then(() => {
           showAddView.value = false
