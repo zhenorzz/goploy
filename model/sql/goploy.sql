@@ -219,12 +219,9 @@ CREATE TABLE IF NOT EXISTS `cron` (
 
 CREATE TABLE IF NOT EXISTS `server_process` (
     `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-    `server_id` int(10) unsigned NOT NULL DEFAULT '0',
+    `namespace_id` int(10) unsigned NOT NULL,
     `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-    `start` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-    `stop` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-    `status` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-    `restart` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+    `items` json DEFAULT NULL COMMENT '{name: string, command: string}[]',
     `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`) USING BTREE,

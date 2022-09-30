@@ -11,46 +11,46 @@ import (
 const serverProcessTable = "`server_process`"
 
 type ServerProcess struct {
-	ID         int64  `json:"id"`
-	ServerID   int64  `json:"serverId"`
-	Name       string `json:"name"`
-	Start      string `json:"start"`
-	Stop       string `json:"stop"`
-	Status     string `json:"status"`
-	Restart    string `json:"restart"`
-	InsertTime string `json:"insertTime,omitempty"`
-	UpdateTime string `json:"updateTime,omitempty"`
+	ID          int64  `json:"id"`
+	NamespaceID int64  `json:"namespaceId"`
+	Name        string `json:"name"`
+	Items       string `json:"items"`
+	InsertTime  string `json:"insertTime,omitempty"`
+	UpdateTime  string `json:"updateTime,omitempty"`
 }
 
 type ServerProcesses []ServerProcess
 
+type ServerProcessItem struct {
+	Name    string
+	Command string
+}
+
+type ServerProcessItems []ServerProcessItem
+
 func (sp ServerProcess) GetData() (ServerProcess, error) {
 	var serverProcess ServerProcess
 	err := sq.
-		Select("id, server_id, name, start, stop, status, restart").
+		Select("id, name, items").
 		From(serverProcessTable).
 		Where(sq.Eq{"id": sp.ID}).
 		OrderBy("id DESC").
 		RunWith(DB).
 		QueryRow().
 		Scan(&serverProcess.ID,
-			&serverProcess.ServerID,
 			&serverProcess.Name,
-			&serverProcess.Start,
-			&serverProcess.Stop,
-			&serverProcess.Status,
-			&serverProcess.Restart)
+			&serverProcess.Items)
 	if err != nil {
 		return serverProcess, err
 	}
 	return serverProcess, nil
 }
 
-func (sp ServerProcess) GetListByServerID() (ServerProcesses, error) {
+func (sp ServerProcess) GetList() (ServerProcesses, error) {
 	rows, err := sq.
-		Select("id, server_id, name, start, stop, status, restart, insert_time, update_time").
+		Select("id, name, items, insert_time, update_time").
 		From(serverProcessTable).
-		Where(sq.Eq{"server_id": sp.ServerID}).
+		Where(sq.Eq{"namespace_id": sp.NamespaceID}).
 		OrderBy("id DESC").
 		RunWith(DB).
 		Query()
@@ -64,12 +64,8 @@ func (sp ServerProcess) GetListByServerID() (ServerProcesses, error) {
 
 		if err := rows.Scan(
 			&serverProcess.ID,
-			&serverProcess.ServerID,
 			&serverProcess.Name,
-			&serverProcess.Start,
-			&serverProcess.Stop,
-			&serverProcess.Status,
-			&serverProcess.Restart,
+			&serverProcess.Items,
 			&serverProcess.InsertTime,
 			&serverProcess.UpdateTime,
 		); err != nil {
@@ -83,8 +79,8 @@ func (sp ServerProcess) GetListByServerID() (ServerProcesses, error) {
 func (sp ServerProcess) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(serverProcessTable).
-		Columns("server_id", "name", "start", "stop", "status", "restart").
-		Values(sp.ServerID, sp.Name, sp.Start, sp.Stop, sp.Status, sp.Restart).
+		Columns("namespace_id", "name", "items").
+		Values(sp.NamespaceID, sp.Name, sp.Items).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -98,11 +94,8 @@ func (sp ServerProcess) EditRow() error {
 	_, err := sq.
 		Update(serverProcessTable).
 		SetMap(sq.Eq{
-			"name":    sp.Name,
-			"start":   sp.Start,
-			"stop":    sp.Stop,
-			"status":  sp.Status,
-			"restart": sp.Restart,
+			"name":  sp.Name,
+			"items": sp.Items,
 		}).
 		Where(sq.Eq{"id": sp.ID}).
 		RunWith(DB).

@@ -7,6 +7,7 @@ package controller
 import (
 	"bytes"
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/config"
@@ -722,16 +723,7 @@ func (s Server) DeleteMonitor(gp *core.Goploy) core.Response {
 }
 
 func (Server) GetProcessList(gp *core.Goploy) core.Response {
-	type ReqData struct {
-		ServerID int64 `json:"serverId" validate:"gt=0"`
-	}
-
-	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	list, err := model.ServerProcess{ServerID: reqData.ServerID}.GetListByServerID()
+	list, err := model.ServerProcess{NamespaceID: gp.Namespace.ID}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -744,12 +736,8 @@ func (Server) GetProcessList(gp *core.Goploy) core.Response {
 
 func (Server) AddProcess(gp *core.Goploy) core.Response {
 	type ReqData struct {
-		ServerID int64  `json:"serverId" validate:"gt=0"`
-		Name     string `json:"name" validate:"required"`
-		Status   string `json:"status"`
-		Start    string `json:"start"`
-		Stop     string `json:"stop"`
-		Restart  string `json:"restart"`
+		Name  string `json:"name" validate:"required"`
+		Items string `json:"items"`
 	}
 
 	var reqData ReqData
@@ -758,12 +746,9 @@ func (Server) AddProcess(gp *core.Goploy) core.Response {
 	}
 
 	id, err := model.ServerProcess{
-		ServerID: reqData.ServerID,
-		Name:     reqData.Name,
-		Status:   reqData.Status,
-		Start:    reqData.Start,
-		Stop:     reqData.Stop,
-		Restart:  reqData.Restart,
+		NamespaceID: gp.Namespace.ID,
+		Name:        reqData.Name,
+		Items:       reqData.Items,
 	}.AddRow()
 
 	if err != nil {
@@ -779,24 +764,18 @@ func (Server) AddProcess(gp *core.Goploy) core.Response {
 
 func (Server) EditProcess(gp *core.Goploy) core.Response {
 	type ReqData struct {
-		ID      int64  `json:"id" validate:"gt=0"`
-		Name    string `json:"name" validate:"required"`
-		Status  string `json:"status"`
-		Start   string `json:"start"`
-		Stop    string `json:"stop"`
-		Restart string `json:"restart"`
+		ID    int64  `json:"id" validate:"gt=0"`
+		Name  string `json:"name" validate:"required"`
+		Items string `json:"items"`
 	}
 	var reqData ReqData
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	err := model.ServerProcess{
-		ID:      reqData.ID,
-		Name:    reqData.Name,
-		Status:  reqData.Status,
-		Start:   reqData.Start,
-		Stop:    reqData.Stop,
-		Restart: reqData.Restart,
+		ID:    reqData.ID,
+		Name:  reqData.Name,
+		Items: reqData.Items,
 	}.EditRow()
 
 	if err != nil {
@@ -823,49 +802,69 @@ func (Server) DeleteProcess(gp *core.Goploy) core.Response {
 
 func (Server) ExecProcess(gp *core.Goploy) core.Response {
 	type ReqData struct {
-		ID      int64  `json:"id" validate:"gt=0"`
-		Command string `json:"command" validate:"required"`
+		ID       int64  `json:"id" validate:"gt=0"`
+		ServerID int64  `json:"serverId" validate:"gt=0"`
+		Name     string `json:"name" validate:"required"`
 	}
+
+	type RespData struct {
+		ServerID int64  `json:"serverId"`
+		ExecRes  bool   `json:"execRes"`
+		Stdout   string `json:"stdout"`
+		Stderr   string `json:"stderr"`
+	}
+
 	var reqData ReqData
+
+	var respData RespData
+	respData.ExecRes = false
+	respData.ServerID = reqData.ServerID
+
 	if err := decodeJson(gp.Body, &reqData); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
+		respData.Stderr = err.Error()
+		return response.JSON{Data: respData}
 	}
 
 	serverProcess, err := model.ServerProcess{ID: reqData.ID}.GetData()
 	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
+		respData.Stderr = err.Error()
+		return response.JSON{Data: respData}
 	}
-	server, err := (model.Server{ID: serverProcess.ServerID}).GetData()
+	server, err := (model.Server{ID: reqData.ServerID}).GetData()
 	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
+		respData.Stderr = err.Error()
+		return response.JSON{Data: respData}
+	}
+
+	var processItems model.ServerProcessItems
+	if err := json.Unmarshal([]byte(serverProcess.Items), &processItems); err != nil {
+		respData.Stderr = err.Error()
+		return response.JSON{Data: respData}
 	}
 
 	script := ""
-	switch reqData.Command {
-	case "status":
-		script = serverProcess.Status
-	case "start":
-		script = serverProcess.Start
-	case "stop":
-		script = serverProcess.Stop
-	case "restart":
-		script = serverProcess.Restart
-	default:
-		return response.JSON{Code: response.Error, Message: "Command error"}
+	for _, processItem := range processItems {
+		if processItem.Name == reqData.Name {
+			script = processItem.Command
+			break
+		}
 	}
+
 	if script == "" {
 		return response.JSON{Code: response.Error, Message: "Command empty"}
 	}
 
 	client, err := server.ToSSHConfig().Dial()
 	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
+		respData.Stderr = err.Error()
+		return response.JSON{Data: respData}
 	}
 	defer client.Close()
 
 	session, err := client.NewSession()
 	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
+		respData.Stderr = err.Error()
+		return response.JSON{Data: respData}
 	}
 	defer session.Close()
 
@@ -873,12 +872,8 @@ func (Server) ExecProcess(gp *core.Goploy) core.Response {
 	session.Stdout = &sshOutbuf
 	session.Stderr = &sshErrbuf
 	err = session.Run(script)
-	core.Log(core.TRACE, fmt.Sprintf("%s exec cmd %s, result %t, stdout: %s, stderr: %s", gp.UserInfo.Name, script, err == nil, sshOutbuf.String(), sshErrbuf.String()))
-	return response.JSON{
-		Data: struct {
-			ExecRes bool   `json:"execRes"`
-			Stdout  string `json:"stdout"`
-			Stderr  string `json:"stderr"`
-		}{ExecRes: err == nil, Stdout: sshOutbuf.String(), Stderr: sshErrbuf.String()},
-	}
+	respData.ExecRes = err == nil
+	respData.Stdout = sshOutbuf.String()
+	respData.Stderr = sshErrbuf.String()
+	return response.JSON{Data: respData}
 }
