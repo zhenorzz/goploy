@@ -296,12 +296,8 @@ export class ServerMonitorDelete extends Request {
 export interface ServerProcessData {
   [key: string]: any
   id: number
-  serverId: number
   name: string
-  start: string
-  stop: string
-  status: string
-  restart: string
+  items: { name: string; command: string }[]
   InsertTime: string
   UpdateTime: string
 }
@@ -309,16 +305,19 @@ export interface ServerProcessData {
 export class ServerProcessList extends Request {
   readonly url = '/server/getProcessList'
   readonly method = 'get'
-  public param: {
-    serverId: number
-  }
 
   public declare datagram: {
     list: ServerProcessData[]
   }
-  constructor(param: ServerProcessList['param']) {
-    super()
-    this.param = param
+
+  public request(): Promise<HttpResponse<this['datagram']>> {
+    return super.request().then((response) => {
+      response.data.list = response.data.list.map((element) => {
+        element.items = JSON.parse(element.items as any)
+        return element
+      })
+      return response
+    })
   }
 }
 
@@ -327,10 +326,7 @@ export class ServerProcessAdd extends Request {
   readonly method = 'post'
   public param: {
     name: string
-    start: string
-    stop: string
-    status: string
-    restart: string
+    items: string
   }
   public declare datagram: ID
   constructor(param: ServerProcessAdd['param']) {
@@ -345,10 +341,7 @@ export class ServerProcessEdit extends Request {
   public param: {
     id: number
     name: string
-    start: string
-    stop: string
-    status: string
-    restart: string
+    items: string
   }
   constructor(param: ServerProcessEdit['param']) {
     super()
@@ -375,9 +368,10 @@ export class ServerExecProcess extends Request {
   public param: {
     id: number
     serverId: number
-    command: string
+    name: string
   }
   public declare datagram: {
+    serverId: number
     execRes: boolean
     stdout: string
     stderr: string

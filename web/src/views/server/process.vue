@@ -1,25 +1,13 @@
 <template>
   <el-row class="app-container">
     <el-row class="app-bar" type="flex" justify="space-between">
-      <el-col :span="16">
-        <el-select
-          v-model="serverId"
-          placeholder="Select server"
-          style="width: 160px"
-          filterable
-          @change="selectServer"
-        >
-          <el-option
-            v-for="server in serverOption"
-            :key="server.id"
-            :label="server.name"
-            :value="server.id"
-          />
-        </el-select>
-      </el-col>
-      <el-col v-if="serverId !== ''" :span="8" style="text-align: right">
+      <el-input
+        v-model="name"
+        style="width: 180px"
+        placeholder="Filter the name"
+      />
+      <el-row>
         <el-button
-          style="margin-left: 10px"
           :loading="tableLoading"
           type="primary"
           :icon="Refresh"
@@ -31,140 +19,67 @@
           :permissions="[pms.AddServerProcess]"
           @click="handleAdd"
         />
-      </el-col>
+      </el-row>
     </el-row>
     <el-row class="app-table">
-      <el-table
-        ref="table"
-        v-loading="tableLoading"
-        height="100%"
-        highlight-current-row
-        :data="tablePage.list"
-      >
-        <el-table-column type="expand">
-          <template #default="{}">
-            <div style="padding: 0 20px">
-              <el-row style="margin-left: 4px">
-                {{ $t('deployPage.execRes') }}:
-                <span
-                  :class="commandRes.execRes ? 'exec-success' : 'exec-fail'"
-                  style="padding-left: 5px"
-                >
-                  {{ commandRes.execRes }}
-                </span>
-              </el-row>
-              <el-row style="white-space: pre-wrap">
-                stdout: {{ commandRes.stdout }}
-              </el-row>
-              <el-row style="white-space: pre-wrap">
-                stderr:{{ commandRes.stderr }}
-              </el-row>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="name"
-          :label="$t('name')"
-          min-width="120"
-          show-overflow-tooltip
-        />
-        <el-table-column
-          prop="status"
-          label="Status"
-          align="center"
-          min-width="110px"
-        >
-          <template #default="scope">
-            <el-button
-              :loading="selectedItem['id'] === scope.row.id"
-              type="primary"
-              text
-              @click="handleProcessCmd(scope.row, 'status')"
+      <el-scrollbar style="width: 100%">
+        <el-row style="width: 100%" :gutter="10">
+          <el-col
+            v-for="(row, index) in tablePage.list"
+            :key="index"
+            style="margin-bottom: 10px"
+            :sm="12"
+            :md="8"
+            :lg="6"
+            :xl="4"
+          >
+            <el-card
+              shadow="hover"
+              style="border: none"
+              :body-style="{ padding: '0px' }"
             >
-              status
-            </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="start"
-          label="Start"
-          align="center"
-          min-width="90px"
-        >
-          <template #default="scope">
-            <el-button
-              :loading="selectedItem['id'] === scope.row.id"
-              type="success"
-              text
-              @click="handleProcessCmd(scope.row, 'start')"
-            >
-              start
-            </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="restart"
-          label="restart"
-          align="center"
-          min-width="110px"
-        >
-          <template #default="scope">
-            <el-button
-              :loading="selectedItem['id'] === scope.row.id"
-              type="warning"
-              text
-              @click="handleProcessCmd(scope.row, 'restart')"
-            >
-              restart
-            </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="stop"
-          label="stop"
-          align="center"
-          min-width="90px"
-        >
-          <template #default="scope">
-            <el-button
-              :loading="selectedItem['id'] === scope.row.id"
-              type="danger"
-              text
-              @click="handleProcessCmd(scope.row, 'stop')"
-            >
-              stop
-            </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column
-          prop="operation"
-          :label="$t('op')"
-          width="195"
-          align="center"
-          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
-        >
-          <template #default="scope">
-            <Button
-              type="info"
-              :icon="DocumentCopy"
-              :permissions="[pms.AddServerProcess]"
-              @click="handleCopy(scope.row)"
-            />
-            <Button
-              type="primary"
-              :icon="Edit"
-              :permissions="[pms.EditServerProcess]"
-              @click="handleEdit(scope.row)"
-            />
-            <Button
-              type="danger"
-              :icon="Delete"
-              :permissions="[pms.DeleteServerProcess]"
-              @click="handleRemove(scope.row)"
-            />
-          </template>
-        </el-table-column>
-      </el-table>
+              <div style="padding: 15px">
+                <el-row justify="space-between" align="middle">
+                  <span
+                    style="
+                      flex: 1;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      font-size: 16px;
+                      font-weight: 600;
+                      white-space: nowrap;
+                    "
+                    :title="row.name"
+                  >
+                    {{ row.name }}
+                  </span>
+                  <el-row>
+                    <el-button :icon="CaretRight" @click="handleProcess(row)" />
+                    <Button
+                      type="primary"
+                      :icon="Edit"
+                      :permissions="[pms.EditServerProcess]"
+                      @click="handleEdit(row)"
+                    />
+                    <Button
+                      type="info"
+                      :icon="DocumentCopy"
+                      :permissions="[pms.AddServerProcess]"
+                      @click="handleCopy(row)"
+                    />
+                    <Button
+                      type="danger"
+                      :icon="Delete"
+                      :permissions="[pms.DeleteServerProcess]"
+                      @click="handleRemove(row)"
+                    />
+                  </el-row>
+                </el-row>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+      </el-scrollbar>
     </el-row>
     <el-row type="flex" justify="end" class="app-page">
       <el-pagination
@@ -193,17 +108,29 @@
         <el-form-item :label="$t('name')" prop="name">
           <el-input v-model="formData.name" />
         </el-form-item>
-        <el-form-item label="Status">
-          <el-input v-model="formData.status" />
+        <el-form-item :label="$t('command')" prop="">
+          <el-button
+            type="primary"
+            :icon="Plus"
+            plain
+            @click="handleCommandAdd"
+          />
         </el-form-item>
-        <el-form-item label="Start">
-          <el-input v-model="formData.start" />
-        </el-form-item>
-        <el-form-item label="Stop">
-          <el-input v-model="formData.stop" />
-        </el-form-item>
-        <el-form-item label="Restart">
-          <el-input v-model="formData.restart" />
+        <el-form-item v-for="(item, index) in formData.items" :key="index">
+          <el-row style="width: 100%">
+            <el-row style="flex: 1">
+              <el-input v-model="item.name">
+                <template #prepend>{{ $t('name') }}</template>
+              </el-input>
+              <el-input v-model="item.command" type="textarea" />
+            </el-row>
+            <el-button
+              type="warning"
+              :icon="Minus"
+              plain
+              @click="handleCommandDel(index)"
+            />
+          </el-row>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -219,6 +146,67 @@
         </el-button>
       </template>
     </el-dialog>
+    <el-dialog
+      v-model="processDialogVisible"
+      :fullscreen="$store.state.app.device === 'mobile'"
+      :title="$t('process')"
+    >
+      <el-select
+        v-model="serverIds"
+        placeholder="Select server"
+        style="width: 100%"
+        filterable
+        multiple
+      >
+        <el-option
+          v-for="server in serverOption"
+          :key="server.id"
+          :label="server.name"
+          :value="server.id"
+        />
+      </el-select>
+      <el-button
+        v-for="(item, index) in selectedItem.items"
+        :key="index"
+        :loading="processExecLoading"
+        type="primary"
+        plain
+        style="margin: 10px 10px 10px 0"
+        @click="handleProcessCmd(item)"
+      >
+        {{ item.name }}<el-icon><CaretRight /></el-icon>
+      </el-button>
+      <el-tabs type="border-card" tab-position="left" style="height: 350px">
+        <el-tab-pane v-for="serverId in serverIds" :key="serverId">
+          <template #label>
+            <el-row align="middle">
+              <el-row v-if="processExecRes[serverId]">
+                <el-icon
+                  v-if="processExecRes[serverId]['execRes']"
+                  style="color: var(--el-color-success)"
+                >
+                  <SuccessFilled />
+                </el-icon>
+                <el-icon v-else style="color: var(--el-color-danger)">
+                  <CircleCloseFilled />
+                </el-icon>
+              </el-row>
+              <span style="margin-left: 5px">
+                {{ id2server(serverId)['name'] }}
+              </span>
+            </el-row>
+          </template>
+          <p>
+            stdout:
+            {{ processExecRes[serverId] && processExecRes[serverId]['stdout'] }}
+          </p>
+          <p>
+            stderr:
+            {{ processExecRes[serverId] && processExecRes[serverId]['stderr'] }}
+          </p>
+        </el-tab-pane>
+      </el-tabs>
+    </el-dialog>
   </el-row>
 </template>
 <script lang="ts">
@@ -230,8 +218,12 @@ import Button from '@/components/Permission/Button.vue'
 import {
   Refresh,
   Plus,
+  Minus,
   Edit,
   DocumentCopy,
+  CaretRight,
+  SuccessFilled,
+  CircleCloseFilled,
   Delete,
 } from '@element-plus/icons-vue'
 import {
@@ -242,16 +234,19 @@ import {
   ServerProcessDelete,
   ServerProcessData,
   ServerExecProcess,
+  ServerData,
 } from '@/api/server'
 import type { ElForm } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n({ useScope: 'global' })
-const serverId = ref('')
+const name = ref('')
+const serverIds = ref([])
 const dialogVisible = ref(false)
+const processDialogVisible = ref(false)
+const processExecLoading = ref(false)
 const serverOption = ref<ServerOption['datagram']['list']>([])
-const table = ref()
 const tableLoading = ref(false)
 const tableData = ref<ServerProcessList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 20 })
@@ -259,12 +254,8 @@ const selectedItem = ref<ServerProcessData>({} as ServerProcessData)
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
-  serverId: 0,
   name: '',
-  status: '',
-  start: '',
-  stop: '',
-  restart: '',
+  items: [] as { name: string; command: string }[],
 }
 const formData = ref(tempFormData)
 const formProps = ref({
@@ -276,10 +267,7 @@ const formRules: InstanceType<typeof ElForm>['rules'] = {
 }
 
 getServerOption()
-
-function selectServer() {
-  getList()
-}
+getList()
 
 function getServerOption() {
   new ServerOption().request().then((response) => {
@@ -290,7 +278,7 @@ function getServerOption() {
 function getList() {
   tableLoading.value = true
   tableData.value = []
-  new ServerProcessList({ serverId: Number(serverId.value) })
+  new ServerProcessList()
     .request()
     .then((response) => {
       tableData.value = response.data.list
@@ -302,6 +290,11 @@ function getList() {
 
 const tablePage = computed(() => {
   let _tableData = tableData.value
+  if (name.value !== '') {
+    _tableData = _tableData.filter(
+      (item) => item.name.indexOf(name.value) !== -1
+    )
+  }
   return {
     list: _tableData.slice(
       (pagination.value.page - 1) * pagination.value.rows,
@@ -318,19 +311,31 @@ function refresList() {
 
 function handleAdd() {
   restoreFormData()
-  formData.value.serverId = Number(serverId.value)
   dialogVisible.value = true
 }
 
 function handleEdit(data: ServerProcessData) {
-  formData.value = data
+  formData.value = { ...data, items: [...data.items] }
   dialogVisible.value = true
+}
+
+function handleCommandAdd() {
+  formData.value.items.push({ name: '', command: '' })
+}
+
+function handleCommandDel(index: number) {
+  formData.value.items.splice(index, 1)
 }
 
 function handleCopy(data: ServerProcessData) {
   formData.value = Object.assign({}, data)
   formData.value.id = 0
   dialogVisible.value = true
+}
+
+function handleProcess(data: ServerProcessData) {
+  selectedItem.value = data
+  processDialogVisible.value = true
 }
 
 function handleRemove(data: ServerProcessData) {
@@ -353,37 +358,47 @@ function handleRemove(data: ServerProcessData) {
       ElMessage.info('Cancel')
     })
 }
-const commandRes = ref<ServerExecProcess['datagram']>({
-  execRes: true,
-  stdout: '',
-  stderr: '',
-})
+const processExecRes = ref<Record<number, ServerExecProcess['datagram']>>({})
 
-const handleProcessCmd = (data: ServerProcessData, command: string) => {
-  ElMessageBox.confirm(t('deployPage.execTips', { command }), t('tips'), {
-    confirmButtonText: t('confirm'),
-    cancelButtonText: t('cancel'),
-    type: 'warning',
-  })
-    .then(() => {
-      selectedItem.value = data
-      new ServerExecProcess({
-        id: data.id,
-        serverId: data.serverId,
-        command,
+const handleProcessCmd = async (item: { name: string; command: string }) => {
+  if (serverIds.value.length === 0) {
+    ElMessage.error('Select server')
+    return
+  }
+  let result: string
+  try {
+    result = await ElMessageBox.confirm(
+      t('deployPage.execTips', { command: item.command }),
+      t('tips'),
+      {
+        confirmButtonText: t('confirm'),
+        cancelButtonText: t('cancel'),
+        type: 'warning',
+      }
+    )
+  } catch (error) {
+    result = error
+  }
+  if (result !== 'confirm') {
+    return
+  }
+  processExecLoading.value = true
+  Promise.all(
+    serverIds.value.map(async (serverId) => {
+      return await new ServerExecProcess({
+        id: selectedItem.value.id,
+        serverId: serverId,
+        name: item.name,
       })
         .request()
         .then((response) => {
-          commandRes.value = response.data
-          table.value.toggleRowExpansion(data, true)
-        })
-        .finally(() => {
-          selectedItem.value = {} as ServerProcessData
+          processExecRes.value[serverId] = response.data
+          return response
         })
     })
-    .catch(() => {
-      ElMessage.info('Cancel')
-    })
+  ).then(() => {
+    processExecLoading.value = false
+  })
 }
 
 function handlePageChange(val = 1) {
@@ -407,7 +422,10 @@ function submit() {
 
 function add() {
   formProps.value.disabled = true
-  new ServerProcessAdd(formData.value)
+  new ServerProcessAdd({
+    ...formData.value,
+    items: JSON.stringify(formData.value.items),
+  })
     .request()
     .then(() => {
       getList()
@@ -420,7 +438,10 @@ function add() {
 
 function edit() {
   formProps.value.disabled = true
-  new ServerProcessEdit(formData.value)
+  new ServerProcessEdit({
+    ...formData.value,
+    items: JSON.stringify(formData.value.items),
+  })
     .request()
     .then(() => {
       getList()
@@ -429,6 +450,10 @@ function edit() {
     .finally(() => {
       formProps.value.disabled = dialogVisible.value = false
     })
+}
+
+function id2server(serverId: number): ServerData {
+  return serverOption.value.find((_) => _.id === serverId) || ({} as ServerData)
 }
 
 function restoreFormData() {
