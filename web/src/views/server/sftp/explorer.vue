@@ -552,7 +552,6 @@ function getIcon(filename: string) {
       margin-bottom: 5px;
     }
     .filename {
-      color: #303133;
       font-size: 12px;
       text-overflow: ellipsis;
       overflow: hidden;
