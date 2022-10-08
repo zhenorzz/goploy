@@ -1,199 +1,178 @@
 <template>
-  <el-row class="app-container">
-    <el-row class="sftp-container">
-      <el-row class="nav" align="middle">
-        <el-row style="margin-right: 10px">
-          <el-button
-            :disabled="backwardHistory.length === 0"
-            link
-            :icon="Back"
-            style="color: #303133; font-size: 14px"
-            @click="backward"
-          >
-          </el-button>
-          <el-button
-            :disabled="forwardHistory.length === 0"
-            link
-            :icon="Right"
-            style="color: #303133; font-size: 14px"
-            @click="forward"
-          >
-          </el-button>
-          <el-button
-            :disabled="!wsConnected"
-            link
-            :icon="Top"
-            style="color: #303133; font-size: 14px"
-            @click="dotdot(dir)"
-          >
-          </el-button>
-        </el-row>
-        <el-row class="nav-path" style="flex: 1">
-          <el-input
-            v-model="dir"
-            :disabled="!wsConnected"
-            :readonly="!wsConnected"
-            placeholder="Please input absolute path"
-            class="input-with-select"
-            @keyup.enter="dirOpen(dir)"
-          >
-            <template #prepend>
-              <el-select
-                v-model="serverId"
-                placeholder="Select server"
-                style="width: 140px"
-                filterable
-                @change="selectServer"
-              >
-                <el-option
-                  v-for="server in serverOption"
-                  :key="server.id"
-                  :label="server.name"
-                  :value="server.id"
-                />
-              </el-select>
-            </template>
-            <template #append>
-              <el-button :icon="RefreshRight" @click="refresh" />
-            </template>
-          </el-input>
-        </el-row>
+  <el-row class="sftp-container">
+    <el-row class="nav" align="middle">
+      <el-row style="margin-right: 10px">
+        <el-button
+          :disabled="backwardHistory.length === 0"
+          link
+          :icon="Back"
+          style="font-size: 14px"
+          @click="backward"
+        >
+        </el-button>
+        <el-button
+          :disabled="forwardHistory.length === 0"
+          link
+          :icon="Right"
+          style="font-size: 14px"
+          @click="forward"
+        >
+        </el-button>
+        <el-button
+          :disabled="!wsConnected"
+          link
+          :icon="Top"
+          style="font-size: 14px"
+          @click="dotdot(dir)"
+        >
+        </el-button>
       </el-row>
-      <el-row class="operator" justify="space-between">
-        <el-row class="operator-btn" align="middle">
-          <el-upload
+      <el-row class="nav-path" style="flex: 1">
+        <el-input
+          v-model="dir"
+          :disabled="!wsConnected"
+          :readonly="!wsConnected"
+          placeholder="Please input absolute path"
+          class="input-with-select"
+          @keyup.enter="dirOpen(dir)"
+        >
+          <template #append>
+            <el-button :icon="RefreshRight" @click="refresh" />
+          </template>
+        </el-input>
+      </el-row>
+    </el-row>
+    <el-row class="operator" justify="space-between">
+      <el-row class="operator-btn" align="middle">
+        <el-upload
+          :disabled="dir === ''"
+          style="display: inline-block; width: 40px"
+          :action="uploadHref"
+          :before-upload="beforeUpload"
+          multiple
+          :on-success="handleUploadSuccess"
+          :on-error="handleUploadError"
+          :show-file-list="false"
+        >
+          <Button
             :disabled="dir === ''"
-            style="display: inline-block; width: 40px"
-            :action="uploadHref"
-            :before-upload="beforeUpload"
-            multiple
-            :on-success="handleUploadSuccess"
-            :on-error="handleUploadError"
-            :show-file-list="false"
+            link
+            style="color: var(--el-text-color-regular)"
+            :permissions="[permission.SFTPUploadFile]"
           >
-            <Button
-              :disabled="dir === ''"
-              link
-              style="color: var(--el-text-color-regular)"
-              :permissions="[permission.SFTPUploadFile]"
-            >
-              {{ $t('upload') }}
-            </Button>
-          </el-upload>
-        </el-row>
-        <el-row class="nav-search" align="middle">
-          <el-dropdown
-            :disabled="fileFilteredList.length === 0"
-            @command="handleSort"
-          >
-            <span style="font-size: 12px; margin-right: 10px">
-              {{ $t('sort') }}
-            </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="default">
-                  {{ $t('default') }}
-                </el-dropdown-item>
-                <el-dropdown-item command="nameAsc">
-                  {{ $t('name') }} {{ $t('asc') }}
-                </el-dropdown-item>
-                <el-dropdown-item command="nameDesc">
-                  {{ $t('name') }} {{ $t('desc') }}
-                </el-dropdown-item>
-                <el-dropdown-item command="sizeAsc">
-                  {{ $t('size') }} {{ $t('asc') }}
-                </el-dropdown-item>
-                <el-dropdown-item command="sizeDesc">
-                  {{ $t('size') }} {{ $t('desc') }}
-                </el-dropdown-item>
-                <el-dropdown-item command="modTimeAsc">
-                  {{ $t('modifiedTime') }} {{ $t('asc') }}
-                </el-dropdown-item>
-                <el-dropdown-item command="modTimeDesc">
-                  {{ $t('modifiedTime') }} {{ $t('desc') }}
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-          <el-input
-            v-model="input"
-            :disabled="!wsConnected"
-            :readonly="!wsConnected"
-            placeholder="Filter file"
-            style="flex: 1"
-            @input="filterFile"
-          />
-        </el-row>
+            {{ $t('upload') }}
+          </Button>
+        </el-upload>
       </el-row>
-      <el-row v-loading="fileListLoading" class="files">
-        <div style="width: 100%">
-          <el-empty
-            v-show="fileFilteredList.length === 0"
-            description="No result"
-          ></el-empty>
-          <el-dropdown
-            v-for="(item, index) in fileFilteredList"
-            :key="index"
-            trigger="click"
-            placement="right"
-          >
-            <el-row
-              v-loading="item['uploading']"
-              tabindex="1"
-              class="file"
-              :class="item.uuid === selectedFile['uuid'] ? 'file-selected' : ''"
-              @click="selectFile(item)"
-            >
-              <svg-icon class="file-type" :icon-class="item.icon" />
-              <div class="filename" :title="item.name">{{ item.name }}</div>
-            </el-row>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item
-                  v-if="selectedFile['isDir'] === true"
-                  @click="dirOpen(`${dir}/${selectedFile['name']}`)"
-                >
-                  {{ $t('open') }}
-                </el-dropdown-item>
-                <el-dropdown-item
-                  v-if="selectedFile['isDir'] === false"
-                  style="padding: 0"
-                >
-                  <Link
-                    style="padding: 5px 16px"
-                    :href="previewHref"
-                    target="_blank"
-                    :underline="false"
-                    :permissions="[permission.SFTPPreviewFile]"
-                  >
-                    {{ $t('preview') }}
-                  </Link>
-                </el-dropdown-item>
-                <el-dropdown-item
-                  v-if="selectedFile['isDir'] === false"
-                  style="padding: 0"
-                >
-                  <Link
-                    style="padding: 5px 16px"
-                    :href="downloadHref"
-                    target="_blank"
-                    :underline="false"
-                    :permissions="[permission.SFTPDownloadFile]"
-                  >
-                    {{ $t('download') }}
-                  </Link>
-                </el-dropdown-item>
-                <el-dropdown-item
-                  divided
-                  @click="fileDetailDialogVisible = true"
-                >
-                  {{ $t('detail') }}
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </div>
+      <el-row class="nav-search" align="middle">
+        <el-dropdown
+          :disabled="fileFilteredList.length === 0"
+          @command="handleSort"
+        >
+          <span style="font-size: 12px; margin-right: 10px">
+            {{ $t('sort') }}
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="default">
+                {{ $t('default') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="nameAsc">
+                {{ $t('name') }} {{ $t('asc') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="nameDesc">
+                {{ $t('name') }} {{ $t('desc') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="sizeAsc">
+                {{ $t('size') }} {{ $t('asc') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="sizeDesc">
+                {{ $t('size') }} {{ $t('desc') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="modTimeAsc">
+                {{ $t('modifiedTime') }} {{ $t('asc') }}
+              </el-dropdown-item>
+              <el-dropdown-item command="modTimeDesc">
+                {{ $t('modifiedTime') }} {{ $t('desc') }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+        <el-input
+          v-model="input"
+          :disabled="!wsConnected"
+          :readonly="!wsConnected"
+          placeholder="Filter file"
+          style="flex: 1"
+          @input="filterFile"
+        />
       </el-row>
+    </el-row>
+    <el-row v-loading="fileListLoading" class="files">
+      <div style="width: 100%">
+        <el-empty
+          v-show="fileFilteredList.length === 0"
+          description="No result"
+        ></el-empty>
+        <el-dropdown
+          v-for="(item, index) in fileFilteredList"
+          :key="index"
+          trigger="click"
+          placement="right"
+        >
+          <el-row
+            v-loading="item['uploading']"
+            tabindex="1"
+            class="file"
+            :class="item.uuid === selectedFile['uuid'] ? 'file-selected' : ''"
+            @click="selectFile(item)"
+          >
+            <svg-icon class="file-type" :icon-class="item.icon" />
+            <div class="filename" :title="item.name">{{ item.name }}</div>
+          </el-row>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item
+                v-if="selectedFile['isDir'] === true"
+                @click="dirOpen(`${dir}/${selectedFile['name']}`)"
+              >
+                {{ $t('open') }}
+              </el-dropdown-item>
+              <el-dropdown-item
+                v-if="selectedFile['isDir'] === false"
+                style="padding: 0"
+              >
+                <Link
+                  style="padding: 5px 16px"
+                  :href="previewHref"
+                  target="_blank"
+                  :underline="false"
+                  :permissions="[permission.SFTPPreviewFile]"
+                >
+                  {{ $t('preview') }}
+                </Link>
+              </el-dropdown-item>
+              <el-dropdown-item
+                v-if="selectedFile['isDir'] === false"
+                style="padding: 0"
+              >
+                <Link
+                  style="padding: 5px 16px"
+                  :href="downloadHref"
+                  target="_blank"
+                  :underline="false"
+                  :permissions="[permission.SFTPDownloadFile]"
+                >
+                  {{ $t('download') }}
+                </Link>
+              </el-dropdown-item>
+              <el-dropdown-item divided @click="fileDetailDialogVisible = true">
+                {{ $t('detail') }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
     </el-row>
     <el-dialog
       v-model="fileDetailDialogVisible"
@@ -220,7 +199,7 @@
 </template>
 
 <script lang="ts">
-export default { name: 'ServerSFTP' }
+export default { name: 'SFTPExplorer' }
 </script>
 <script lang="ts" setup>
 import permission from '@/permission'
@@ -231,10 +210,10 @@ import path from 'path-browserify'
 import { humanSize, parseTime } from '@/utils'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import type { ElUpload } from 'element-plus'
+import { ServerData } from '@/api/server'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ServerOption } from '@/api/server'
 import { HttpResponse } from '@/api/types'
-import { ref, computed } from 'vue'
+import { ref, PropType, computed, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 interface file {
@@ -247,10 +226,21 @@ interface file {
   icon: string
   uploading: boolean
 }
+const emit = defineEmits(['dir-change'])
+const props = defineProps({
+  uuid: {
+    type: Number,
+    default: 0,
+  },
+  server: {
+    type: Object as PropType<ServerData>,
+    required: true,
+  },
+})
+
 let ws: WebSocket
 const fileDetailDialogVisible = ref(false)
-const serverOption = ref<ServerOption['datagram']['list']>([])
-const serverId = ref('')
+const serverId = ref(props.server.id)
 const wsConnected = ref(false)
 const dir = ref('')
 const lastDir = ref('')
@@ -261,6 +251,11 @@ const fileList = ref<file[]>([])
 const fileFilteredList = ref<file[]>([])
 const selectedFile = ref<file>({} as file)
 const input = ref('')
+connectServer()
+onBeforeUnmount(() => {
+  ws?.close()
+})
+
 let fileUUID = 0
 const uploadHref = computed(() => {
   return `${
@@ -269,6 +264,7 @@ const uploadHref = computed(() => {
     serverId.value
   }&filePath=${dir.value}`
 })
+
 const previewHref = computed(() => {
   if (selectedFile.value == undefined) {
     return ''
@@ -280,6 +276,7 @@ const previewHref = computed(() => {
     serverId.value
   }&file=${file}`
 })
+
 const downloadHref = computed(() => {
   if (selectedFile.value == undefined) {
     return ''
@@ -292,14 +289,7 @@ const downloadHref = computed(() => {
   }&file=${file}`
 })
 
-getServerOption()
-
-function getServerOption() {
-  new ServerOption().request().then((response) => {
-    serverOption.value = response.data.list
-  })
-}
-function selectServer() {
+function connectServer() {
   if (ws) {
     ws.close()
     fileList.value = backwardHistory.value = forwardHistory.value = []
@@ -404,6 +394,7 @@ function goto(target: string) {
   selectedFile.value = {} as file
   dir.value = path.normalize(target)
   ws?.send(dir.value)
+  emit('dir-change', target)
 }
 
 function dirOpen(dir: string) {
@@ -529,9 +520,8 @@ function getIcon(filename: string) {
 @import '@/styles/mixin.scss';
 .sftp-container {
   flex-direction: column;
-  height: 100%;
-  border: 1px solid var(--el-border-color);
-  background-color: var(--el-bg-color);
+  width: 100%;
+  flex: 1;
   .nav {
     padding: 10px;
     border-bottom: 1px solid var(--el-border-color);
@@ -581,7 +571,7 @@ function getIcon(filename: string) {
   }
 }
 </style>
-<style>
+<style lang="scss">
 .input-with-select .el-input-group__prepend {
   background-color: var(--el-bg-color);
 }

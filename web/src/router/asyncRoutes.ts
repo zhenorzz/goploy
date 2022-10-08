@@ -108,7 +108,7 @@ export default <RouteRecordRaw[]>[
       {
         path: 'sftp',
         name: 'ServerSFTP',
-        component: () => import('@/views/server/sftp.vue'),
+        component: () => import('@/views/server/sftp/index.vue'),
         meta: {
           title: 'serverSFTP',
           icon: 'ftp',

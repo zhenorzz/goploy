@@ -16,10 +16,10 @@
                 <el-button
                   link
                   style="color: #bfcbd9; font-size: 14px"
-                  :title="`${item.server.name}(${item.server.description})`"
+                  :title="`${item.server.label}`"
                   @click="selectTerminal(item)"
                 >
-                  {{ item.server.name }}({{ item.server.description }})
+                  {{ item.server.label }}
                 </el-button>
               </el-row>
               <el-button
@@ -59,8 +59,8 @@
                     class="server-item"
                     @click="selectServer(server)"
                   >
-                    <span :title="server.name + '(' + server.description + ')'">
-                      {{ server.name }}({{ server.description }})
+                    <span :title="server.label">
+                      {{ server.label }}
                     </span>
                   </el-button>
                 </div>
