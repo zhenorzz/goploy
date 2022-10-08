@@ -210,6 +210,9 @@ function handleDirChange(dir: string) {
 }
 </style>
 <style lang="scss">
+.input-with-select .el-input-group__prepend {
+  background-color: var(--el-bg-color);
+}
 .server-list {
   height: 216px;
   margin-top: 10px;

@@ -571,9 +571,6 @@ function getIcon(filename: string) {
 }
 </style>
 <style lang="scss">
-.input-with-select .el-input-group__prepend {
-  background-color: var(--el-bg-color);
-}
 .file-detail .el-dialog__body {
   padding: 5px 20px;
 }
