@@ -78,7 +78,69 @@
       :key="item.uuid"
       :server="item.server"
       @dir-change="handleDirChange"
+      @transfer-file="handleTransferFile"
     ></explorer>
+    <el-dialog
+      v-model="transferFileDialogVisible"
+      :fullscreen="$store.state.app.device === 'mobile'"
+      :title="$t('serverPage.transferFile')"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        ref="form"
+        :rules="formRules"
+        :model="formData"
+        label-width="105px"
+        :label-position="
+          $store.state.app.device === 'desktop' ? 'right' : 'top'
+        "
+      >
+        <el-form-item label="Source server">
+          {{ selectedSFTP.server['name'] }}
+        </el-form-item>
+        <el-form-item
+          :label="selectedFile['isDir'] ? 'Source dir' : 'Source file'"
+        >
+          {{ formData.sourceFile }}
+        </el-form-item>
+        <el-form-item label="Dest server" prop="destServerIds">
+          <el-select
+            v-model="formData.destServerIds"
+            style="width: 100%"
+            filterable
+            multiple
+          >
+            <el-option
+              v-for="item in serverOption"
+              :key="item.id"
+              :label="item.label"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="Dest Dir" prop="destDir">
+          <el-input v-model="formData.destDir" autocomplete="off" />
+        </el-form-item>
+      </el-form>
+      <span style="color: var(--el-color-danger); padding: 0 10px">
+        {{ formProps.errorLog }}
+      </span>
+      <template #footer>
+        <el-button
+          :disabled="formProps.disabled"
+          @click="transferFileDialogVisible = false"
+        >
+          {{ $t('cancel') }}
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="formProps.disabled"
+          @click="transferFile"
+        >
+          {{ $t('confirm') }}
+        </el-button>
+      </template>
+    </el-dialog>
   </el-row>
 </template>
 
@@ -87,7 +149,15 @@ export default { name: 'ServerSFTP' }
 </script>
 <script lang="ts" setup>
 import explorer from './explorer.vue'
-import { ServerOption, ServerData } from '@/api/server'
+import path from 'path-browserify'
+import type { ElForm } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import {
+  ServerOption,
+  ServerData,
+  ServerSFTPFile,
+  ServerTransferFile,
+} from '@/api/server'
 import { ref } from 'vue'
 interface sftp {
   uuid: number
@@ -96,10 +166,29 @@ interface sftp {
 }
 const currentUUID = ref(0)
 const serverOptionVisible = ref(false)
+const transferFileDialogVisible = ref(false)
 const serverOption = ref<ServerOption['datagram']['list']>([])
 const serverFilteredOption = ref<ServerOption['datagram']['list']>([])
 const serverFilterInput = ref('')
 const serverList = ref<sftp[]>([])
+const selectedFile = ref<ServerSFTPFile>({} as ServerSFTPFile)
+const selectedSFTP = ref<sftp>({} as sftp)
+const form = ref<InstanceType<typeof ElForm>>()
+const formData = ref({
+  sourceFile: '',
+  destServerIds: [],
+  destDir: '',
+})
+const formProps = ref({
+  disabled: false,
+  errorLog: '',
+})
+const formRules: InstanceType<typeof ElForm>['rules'] = {
+  destServerIds: [
+    { required: true, message: 'Server required', trigger: 'blur' },
+  ],
+  destDir: [{ required: true, message: 'Dest dir required', trigger: 'blur' }],
+}
 
 getServerOption()
 
@@ -117,6 +206,7 @@ function filterServer(value: string) {
 
 function selectTab(sftp: sftp) {
   currentUUID.value = sftp.uuid
+  selectedSFTP.value = sftp
 }
 
 function deleteTab(sftp: sftp, index: number) {
@@ -135,17 +225,52 @@ function selectServer(server: ServerData) {
   } else {
     currentUUID.value = serverList.value[serverList.value.length - 1].uuid + 1
   }
-  serverList.value.push({ uuid: currentUUID.value, server, dir: '' })
+  const serverTab = { uuid: currentUUID.value, server, dir: '' }
+  serverList.value.push(serverTab)
+  selectTab(serverTab)
   serverOptionVisible.value = false
 }
 
 function handleDirChange(dir: string) {
-  const index = serverList.value.findIndex(
-    (server) => server.uuid === currentUUID.value
+  selectedSFTP.value.dir = dir
+}
+
+function handleTransferFile(file: ServerSFTPFile) {
+  formData.value.destDir = selectedSFTP.value.dir
+  formData.value.sourceFile = path.normalize(
+    `${selectedSFTP.value.dir}/${file['name']}`
   )
-  if (index > -1) {
-    serverList.value[index].dir = dir
-  }
+  formProps.value.errorLog = ''
+  selectedFile.value = file
+  transferFileDialogVisible.value = true
+}
+
+function transferFile() {
+  form.value?.validate((valid) => {
+    if (valid) {
+      formProps.value.disabled = true
+      new ServerTransferFile({
+        sourceServerId: selectedSFTP.value.server.id,
+        sourceIsDir: selectedFile.value.isDir,
+        ...formData.value,
+      })
+        .request()
+        .then(() => {
+          ElMessage.success('Success')
+        })
+        .catch((err) => {
+          console.log(err.data)
+          const data = err.data
+          formProps.value.errorLog = data.data.serverName + ': ' + data.message
+        })
+        .finally(() => {
+          formProps.value.disabled = false
+        })
+      return Promise.resolve(true)
+    } else {
+      return Promise.reject(false)
+    }
+  })
 }
 </script>
 <style lang="scss" scoped>

@@ -40,6 +40,18 @@ export interface ServerMonitorData {
   updateTime: string
 }
 
+export interface ServerSFTPFile {
+  [key: string]: any
+  uuid: number
+  isDir: boolean
+  modTime: string
+  mode: string
+  name: string
+  size: number
+  icon: string
+  uploading: boolean
+}
+
 export class ServerList extends Request {
   readonly url = '/server/getList'
   readonly method = 'get'
@@ -377,6 +389,23 @@ export class ServerExecProcess extends Request {
     stderr: string
   }
   constructor(param: ServerExecProcess['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ServerTransferFile extends Request {
+  readonly url = '/server/transferFile'
+  readonly method = 'post'
+  readonly timeout = 0
+  public param: {
+    sourceServerId: number
+    sourceFile: string
+    sourceIsDir: boolean
+    destServerIds: number[]
+    destDir: string
+  }
+  constructor(param: ServerTransferFile['param']) {
     super()
     this.param = param
   }

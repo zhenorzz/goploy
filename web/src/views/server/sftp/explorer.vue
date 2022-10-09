@@ -167,6 +167,12 @@
                   {{ $t('download') }}
                 </Link>
               </el-dropdown-item>
+              <DropdownItem
+                :permissions="[permission.SFTPDownloadFile]"
+                @click="transferFile"
+              >
+                传输
+              </DropdownItem>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -192,7 +198,7 @@ export default { name: 'SFTPExplorer' }
 </script>
 <script lang="ts" setup>
 import permission from '@/permission'
-import { Button, Link } from '@/components/Permission'
+import { DropdownItem, Button, Link } from '@/components/Permission'
 import {
   Back,
   Right,
@@ -206,23 +212,14 @@ import path from 'path-browserify'
 import { humanSize, parseTime } from '@/utils'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import type { ElUpload } from 'element-plus'
-import { ServerData } from '@/api/server'
+import { ServerData, ServerSFTPFile } from '@/api/server'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { HttpResponse } from '@/api/types'
 import { ref, PropType, computed, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
-interface file {
-  uuid: number
-  isDir: boolean
-  modTime: string
-  mode: string
-  name: string
-  size: number
-  icon: string
-  uploading: boolean
-}
-const emit = defineEmits(['dir-change'])
+
+const emit = defineEmits(['dir-change', 'transfer-file'])
 const props = defineProps({
   uuid: {
     type: Number,
@@ -242,9 +239,9 @@ const lastDir = ref('')
 const backwardHistory = ref<string[]>([])
 const forwardHistory = ref<string[]>([])
 const fileListLoading = ref(false)
-const fileList = ref<file[]>([])
-const fileFilteredList = ref<file[]>([])
-const selectedFile = ref<file>({} as file)
+const fileList = ref<ServerSFTPFile[]>([])
+const fileFilteredList = ref<ServerSFTPFile[]>([])
+const selectedFile = ref<ServerSFTPFile>({} as ServerSFTPFile)
 const input = ref('')
 connectServer()
 onBeforeUnmount(() => {
@@ -316,15 +313,17 @@ function connectServer() {
       } else {
         fileList.value = []
         const data = responseData['data'] ? responseData['data'] : []
-        fileFilteredList.value = fileList.value = data.map((file: file) => {
-          file.uuid = fileUUID++
-          if (file.isDir) {
-            file.icon = 'file-dir'
-          } else {
-            file.icon = getIcon(file.name)
+        fileFilteredList.value = fileList.value = data.map(
+          (file: ServerSFTPFile) => {
+            file.uuid = fileUUID++
+            if (file.isDir) {
+              file.icon = 'file-dir'
+            } else {
+              file.icon = getIcon(file.name)
+            }
+            return file
           }
-          return file
-        })
+        )
         handleSort('default')
       }
     }
@@ -334,7 +333,7 @@ function connectServer() {
 }
 
 function handleSort(command: string) {
-  let compareFunc = (fileA: file, fileB: file): number => {
+  let compareFunc = (fileA: ServerSFTPFile, fileB: ServerSFTPFile): number => {
     if (fileA.isDir > fileB.isDir) {
       // 按某种排序标准进行比较, a 小于 b
       return -1
@@ -347,34 +346,34 @@ function handleSort(command: string) {
   }
   switch (command) {
     case 'nameAsc':
-      compareFunc = (fileA: file, fileB: file): number => {
+      compareFunc = (fileA: ServerSFTPFile, fileB: ServerSFTPFile): number => {
         return fileA.name.localeCompare(fileB.name)
       }
       break
     case 'nameDesc':
-      compareFunc = (fileA: file, fileB: file): number => {
+      compareFunc = (fileA: ServerSFTPFile, fileB: ServerSFTPFile): number => {
         return fileB.name.localeCompare(fileA.name)
       }
       break
     case 'sizeAsc':
-      compareFunc = (fileA: file, fileB: file): number => {
+      compareFunc = (fileA: ServerSFTPFile, fileB: ServerSFTPFile): number => {
         return fileA.size - fileB.size
       }
       break
     case 'sizeDesc':
-      compareFunc = (fileA: file, fileB: file): number => {
+      compareFunc = (fileA: ServerSFTPFile, fileB: ServerSFTPFile): number => {
         return fileB.size - fileA.size
       }
       break
     case 'modTimeAsc':
-      compareFunc = (fileA: file, fileB: file): number => {
+      compareFunc = (fileA: ServerSFTPFile, fileB: ServerSFTPFile): number => {
         return (
           new Date(fileA.modTime).getTime() - new Date(fileB.modTime).getTime()
         )
       }
       break
     case 'modTimeDesc':
-      compareFunc = (fileA: file, fileB: file): number => {
+      compareFunc = (fileA: ServerSFTPFile, fileB: ServerSFTPFile): number => {
         return (
           new Date(fileB.modTime).getTime() - new Date(fileA.modTime).getTime()
         )
@@ -386,7 +385,7 @@ function handleSort(command: string) {
 
 function goto(target: string) {
   fileListLoading.value = true
-  selectedFile.value = {} as file
+  selectedFile.value = {} as ServerSFTPFile
   dir.value = path.normalize(target)
   ws?.send(dir.value)
   emit('dir-change', dir.value)
@@ -404,6 +403,10 @@ function dirOpen(dir: string) {
   forwardHistory.value = []
   lastDir.value = dir
   goto(dir)
+}
+
+function transferFile() {
+  emit('transfer-file', selectedFile.value)
 }
 
 function dotdot(target: string) {
@@ -439,12 +442,14 @@ function filterFile(value: string) {
   )
 }
 
-function selectFile(file: file) {
+function selectFile(file: ServerSFTPFile) {
   selectedFile.value = file
 }
 
 async function beforeUpload(file: File) {
-  const fileIndex = fileList.value.findIndex((_: file) => file.name === _.name)
+  const fileIndex = fileList.value.findIndex(
+    (_: ServerSFTPFile) => file.name === _.name
+  )
   if (fileIndex >= 0) {
     const result = await ElMessageBox.confirm(
       `${file.name} is already exist, overwrite?`,
@@ -476,7 +481,7 @@ async function beforeUpload(file: File) {
 const handleUploadSuccess: InstanceType<typeof ElUpload>['onSuccess'] =
   function (response: HttpResponse<unknown>, file) {
     const fileIndex = fileList.value.findIndex(
-      (_: file) => file.name === _.name
+      (_: ServerSFTPFile) => file.name === _.name
     )
     if (fileIndex >= 0) {
       if (response.code > 0) {
@@ -493,7 +498,9 @@ const handleUploadError: InstanceType<typeof ElUpload>['onError'] = function (
   err: Error,
   file
 ) {
-  const fileIndex = fileList.value.findIndex((_: file) => file.name === _.name)
+  const fileIndex = fileList.value.findIndex(
+    (_: ServerSFTPFile) => file.name === _.name
+  )
   if (fileIndex >= 0) {
     ElMessage.error(`upload failed, detail: ${err.message}`)
     fileList.value.splice(fileIndex, 1)

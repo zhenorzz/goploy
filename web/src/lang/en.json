@@ -285,6 +285,7 @@
     "vaildPeriod": "Vaild period",
     "silentCycle": "Silent cycle",
     "advance": "Advanced setting",
+    "transferFile": "Transfer file",
     "sftpFileCount": "items"
   },
   "monitorPage": {

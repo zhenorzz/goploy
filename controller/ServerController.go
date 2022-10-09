@@ -20,6 +20,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"path"
 	"strconv"
 	"strings"
 	"sync"
@@ -42,6 +43,7 @@ func (s Server) Routes() []core.Route {
 		core.NewRoute("/server/previewFile", http.MethodGet, s.PreviewFile).Permissions(permission.SFTPPreviewFile).LogFunc(middleware.AddPreviewLog),
 		core.NewRoute("/server/downloadFile", http.MethodGet, s.DownloadFile).Permissions(permission.SFTPDownloadFile).LogFunc(middleware.AddDownloadLog),
 		core.NewRoute("/server/uploadFile", http.MethodPost, s.UploadFile).Permissions(permission.SFTPUploadFile).LogFunc(middleware.AddUploadLog),
+		core.NewRoute("/server/transferFile", http.MethodPost, s.TransferFile).Permissions(permission.SFTPUploadFile),
 		core.NewRoute("/server/report", http.MethodGet, s.Report).Permissions(permission.ShowServerMonitorPage),
 		core.NewRoute("/server/getAllMonitor", http.MethodGet, s.GetAllMonitor).Permissions(permission.ShowServerMonitorPage),
 		core.NewRoute("/server/addMonitor", http.MethodPost, s.AddMonitor).Permissions(permission.AddServerWarningRule).LogFunc(middleware.AddOPLog),
@@ -538,6 +540,132 @@ func (Server) UploadFile(gp *core.Goploy) core.Response {
 	_, err = io.Copy(remoteFile, file)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	return response.JSON{}
+}
+func (Server) TransferFile(gp *core.Goploy) core.Response {
+	type ReqData struct {
+		SourceServerID int64   `json:"sourceServerId" validate:"required"`
+		SourceFile     string  `json:"sourceFile" validate:"required"`
+		SourceIsDir    bool    `json:"sourceIsDir"`
+		DestServerIDs  []int64 `json:"destServerIds" validate:"min=1"`
+		DestDir        string  `json:"destDir" validate:"required"`
+	}
+	var reqData ReqData
+	if err := decodeJson(gp.Body, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	sourceServer, err := (model.Server{ID: reqData.SourceServerID}).GetData()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	client, err := sourceServer.ToSSHConfig().Dial()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer client.Close()
+
+	sftpClient, err := sftp.NewClient(client)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer sftpClient.Close()
+
+	for _, destServerID := range reqData.DestServerIDs {
+		destServer, err := (model.Server{ID: destServerID}).GetData()
+		if err != nil {
+			return response.JSON{Code: response.Error, Message: err.Error()}
+		}
+		err = func() error {
+			destSSHClient, err := destServer.ToSSHConfig().Dial()
+			if err != nil {
+				return err
+			}
+			defer destSSHClient.Close()
+
+			destSFTPClient, err := sftp.NewClient(destSSHClient)
+			if err != nil {
+				return err
+			}
+			defer destSFTPClient.Close()
+
+			if reqData.SourceIsDir == false {
+				srcFile, err := sftpClient.Open(reqData.SourceFile)
+				if err != nil {
+					return err
+				}
+				defer srcFile.Close()
+				//if err := destSFTPClient.MkdirAll(reqData.DestDir); err != nil {
+				//	return err
+				//}
+				destFile, err := destSFTPClient.Create(reqData.DestDir + "/" + path.Base(reqData.SourceFile))
+				if err != nil {
+					return err
+				}
+				defer destFile.Close()
+
+				if _, err = io.Copy(destFile, srcFile); err != nil {
+					return err
+				}
+			} else {
+				w := sftpClient.Walk(reqData.SourceFile)
+				// skip root dir
+				if w.Step(); w.Err() != nil {
+					return w.Err()
+				}
+				for w.Step() {
+					if w.Err() != nil {
+						continue
+					}
+					fileInfo := w.Stat()
+					filePath := w.Path()
+					destTarget := path.Join(reqData.DestDir, filePath[len(reqData.SourceFile):])
+					if fileInfo.IsDir() {
+						if err := destSFTPClient.MkdirAll(destTarget); err != nil {
+							return err
+						}
+					} else {
+						err := func() error {
+							srcFile, err := sftpClient.Open(filePath)
+							if err != nil {
+								return err
+							}
+							defer srcFile.Close()
+
+							destFile, err := destSFTPClient.Create(destTarget)
+							if err != nil {
+								return err
+							}
+							defer destFile.Close()
+
+							if _, err := io.Copy(destFile, srcFile); err != nil {
+								return err
+							}
+							return nil
+						}()
+						if err != nil {
+							return err
+						}
+					}
+				}
+			}
+			return nil
+		}()
+
+		if err != nil {
+			return response.JSON{
+				Code:    response.Error,
+				Message: err.Error(),
+				Data: struct {
+					ServerID   int64  `json:"serverId"`
+					ServerName string `json:"serverName"`
+				}{destServerID, destServer.Name},
+			}
+		}
+
 	}
 
 	return response.JSON{}
