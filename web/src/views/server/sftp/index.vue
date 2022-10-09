@@ -10,6 +10,9 @@
             :class="item.uuid === currentUUID ? 'tabs-item-selected' : ''"
           >
             <el-row>
+              <div class="tabs-item-serial" @click="selectTab(item)">
+                {{ index + 1 }}
+              </div>
               <div
                 class="tabs-item-name"
                 :title="`${item.server.name} : ${item.dir}`"
@@ -160,7 +163,7 @@ function handleDirChange(dir: string) {
     &-item {
       font-size: 14px;
       flex-shrink: 0;
-      width: 170px;
+      width: 195px;
       height: 46px;
       line-height: 46px;
       padding: 0 10px;
@@ -169,12 +172,19 @@ function handleDirChange(dir: string) {
       &:not(:last-child) {
         border-right: 1px solid var(--el-border-color);
       }
+      &-serial {
+        cursor: pointer;
+        color: var(--el-text-color-secondary);
+        text-align: center;
+        font-weight: 600;
+        width: 20px;
+      }
       &-name {
         cursor: pointer;
-        text-align: center;
         text-overflow: ellipsis;
         overflow: hidden;
         width: 130px;
+        padding-left: 5px;
         white-space: nowrap;
         display: inline-block;
       }
