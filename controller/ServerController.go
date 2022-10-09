@@ -598,9 +598,9 @@ func (Server) TransferFile(gp *core.Goploy) core.Response {
 					return err
 				}
 				defer srcFile.Close()
-				//if err := destSFTPClient.MkdirAll(reqData.DestDir); err != nil {
-				//	return err
-				//}
+				if err := destSFTPClient.MkdirAll(reqData.DestDir); err != nil {
+					return err
+				}
 				destFile, err := destSFTPClient.Create(reqData.DestDir + "/" + path.Base(reqData.SourceFile))
 				if err != nil {
 					return err
