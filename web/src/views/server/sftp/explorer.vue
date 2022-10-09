@@ -167,38 +167,23 @@
                   {{ $t('download') }}
                 </Link>
               </el-dropdown-item>
-              <el-dropdown-item divided @click="fileDetailDialogVisible = true">
-                {{ $t('detail') }}
-              </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
       </div>
     </el-row>
-    <el-row class="footer">
-      {{ fileFilteredList.length }} {{ $t('serverPage.sftpFileCount') }}
+    <el-row class="footer" justify="space-between">
+      <div>
+        {{ fileFilteredList.length }} {{ $t('serverPage.sftpFileCount') }}
+      </div>
+      <div v-show="selectedFile['mode']">
+        <span style="padding: 0 2px">{{ selectedFile['mode'] }}</span>
+        <span style="padding: 0 2px">{{
+          humanSize(selectedFile['size'])
+        }}</span>
+        <span style="padding: 0 2px">{{ selectedFile['name'] }}</span>
+      </div>
     </el-row>
-    <el-dialog
-      v-model="fileDetailDialogVisible"
-      :title="selectedFile['name']"
-      custom-class="file-detail"
-      width="250px"
-    >
-      <el-descriptions title="" direction="horizontal" :column="1">
-        <el-descriptions-item :label="$t('type')">
-          {{ selectedFile['isDir'] === true ? 'dir' : 'file' }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="$t('permission')">
-          {{ selectedFile['mode'] }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="$t('size')">
-          {{ humanSize(selectedFile['size']) }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="$t('modifiedTime')">
-          {{ selectedFile['modTime'] }}
-        </el-descriptions-item>
-      </el-descriptions>
-    </el-dialog>
   </el-row>
 </template>
 
@@ -250,7 +235,6 @@ const props = defineProps({
 })
 
 let ws: WebSocket
-const fileDetailDialogVisible = ref(false)
 const serverId = ref(props.server.id)
 const wsConnected = ref(false)
 const dir = ref('')
@@ -533,6 +517,7 @@ function getIcon(filename: string) {
   flex-direction: column;
   width: 100%;
   flex: 1;
+  min-height: 1px;
   .nav {
     padding: 10px;
     border-bottom: 1px solid var(--el-border-color);
@@ -563,6 +548,7 @@ function getIcon(filename: string) {
       margin-bottom: 5px;
     }
     .filename {
+      padding: 0 5px;
       font-size: 12px;
       text-overflow: ellipsis;
       overflow: hidden;
@@ -570,8 +556,7 @@ function getIcon(filename: string) {
     }
   }
   .footer {
-    height: 20px;
-    padding-left: 15px;
+    padding: 5px 15px;
     font-size: 12px;
     color: var(--el-text-color-regular);
   }
