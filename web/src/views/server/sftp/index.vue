@@ -15,14 +15,6 @@
                 :title="`${item.server.name} : ${item.dir}`"
                 @click="selectTab(item)"
               >
-                <!-- <el-button
-                  link
-                  style="font-size: 14px"
-                  :title="`${item.server.name}:${item.dir}`"
-                  @click="selectTab(item)"
-                >
-                  {{ item.server.name }}:{{ item.dir }}
-                </el-button> -->
                 {{ item.server.name }} : {{ item.dir }}
               </div>
               <el-button
@@ -55,11 +47,7 @@
                   :key="server.id"
                   style="padding: 4px 0"
                 >
-                  <el-button
-                    link
-                    class="server-item"
-                    @click="selectServer(server)"
-                  >
+                  <el-button link @click="selectServer(server)">
                     <span :title="server.label">
                       {{ server.label }}
                     </span>
@@ -149,7 +137,6 @@ function selectServer(server: ServerData) {
 }
 
 function handleDirChange(dir: string) {
-  console.log(dir)
   const index = serverList.value.findIndex(
     (server) => server.uuid === currentUUID.value
   )

@@ -284,7 +284,8 @@
     "cycle": "Cycle",
     "vaildPeriod": "Vaild period",
     "silentCycle": "Silent cycle",
-    "advance": "Advanced setting"
+    "advance": "Advanced setting",
+    "sftpFileCount": "items"
   },
   "monitorPage": {
     "typeOption": ["Unknown", "Site check", "Port check", "Ping check", "Process check", "Custom script check"],

@@ -12,19 +12,16 @@
             "
           >
             <el-row>
-              <el-row class="nav-item-name">
-                <el-button
-                  link
-                  style="color: #bfcbd9; font-size: 14px"
-                  :title="`${item.server.label}`"
-                  @click="selectTerminal(item)"
-                >
-                  {{ item.server.label }}
-                </el-button>
-              </el-row>
+              <div
+                class="nav-item-name"
+                :title="`${item.server.label}`"
+                @click="selectTerminal(item)"
+              >
+                {{ item.server.label }}
+              </div>
               <el-button
                 link
-                style="color: #bfcbd9; font-size: 14px; padding-left: 8px"
+                style="color: #bfcbd9; padding-left: 8px"
                 @click="deleteTerminal(item, index)"
               >
                 x

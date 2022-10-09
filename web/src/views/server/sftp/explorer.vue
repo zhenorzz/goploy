@@ -56,7 +56,8 @@
         >
           <Button
             :disabled="dir === ''"
-            link
+            :icon="UploadFilled"
+            text
             style="color: var(--el-text-color-regular)"
             :permissions="[permission.SFTPUploadFile]"
           >
@@ -69,9 +70,9 @@
           :disabled="fileFilteredList.length === 0"
           @command="handleSort"
         >
-          <span style="font-size: 12px; margin-right: 10px">
+          <el-button text :icon="Sort">
             {{ $t('sort') }}
-          </span>
+          </el-button>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="default">
@@ -174,6 +175,9 @@
         </el-dropdown>
       </div>
     </el-row>
+    <el-row class="footer">
+      {{ fileFilteredList.length }} {{ $t('serverPage.sftpFileCount') }}
+    </el-row>
     <el-dialog
       v-model="fileDetailDialogVisible"
       :title="selectedFile['name']"
@@ -204,7 +208,14 @@ export default { name: 'SFTPExplorer' }
 <script lang="ts" setup>
 import permission from '@/permission'
 import { Button, Link } from '@/components/Permission'
-import { Back, Right, Top, RefreshRight } from '@element-plus/icons-vue'
+import {
+  Back,
+  Right,
+  Top,
+  RefreshRight,
+  UploadFilled,
+  Sort,
+} from '@element-plus/icons-vue'
 import svgIds from 'virtual:svg-icons-names'
 import path from 'path-browserify'
 import { humanSize, parseTime } from '@/utils'
@@ -394,7 +405,7 @@ function goto(target: string) {
   selectedFile.value = {} as file
   dir.value = path.normalize(target)
   ws?.send(dir.value)
-  emit('dir-change', target)
+  emit('dir-change', dir.value)
 }
 
 function dirOpen(dir: string) {
@@ -557,6 +568,12 @@ function getIcon(filename: string) {
       overflow: hidden;
       white-space: nowrap;
     }
+  }
+  .footer {
+    height: 20px;
+    padding-left: 15px;
+    font-size: 12px;
+    color: var(--el-text-color-regular);
   }
 }
 @media only screen and (max-device-width: 400px) {
