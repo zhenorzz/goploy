@@ -58,7 +58,7 @@
             :disabled="dir === ''"
             :icon="UploadFilled"
             text
-            style="color: var(--el-text-color-regular)"
+            style="color: var(--el-text-color-regular); padding: 8px 5px"
             :permissions="[permission.SFTPUploadFile]"
           >
             {{ $t('upload') }}
@@ -171,7 +171,7 @@
                 :permissions="[permission.SFTPDownloadFile]"
                 @click="transferFile"
               >
-                传输
+                {{ $t('transfer') }}
               </DropdownItem>
             </el-dropdown-menu>
           </template>
@@ -563,8 +563,8 @@ function getIcon(filename: string) {
     }
   }
   .footer {
-    padding: 5px 15px;
-    font-size: 12px;
+    padding: 8px 15px;
+    font-size: 13px;
     color: var(--el-text-color-regular);
   }
 }

@@ -593,14 +593,16 @@ func (Server) TransferFile(gp *core.Goploy) core.Response {
 			defer destSFTPClient.Close()
 
 			if reqData.SourceIsDir == false {
+				if err := destSFTPClient.MkdirAll(reqData.DestDir); err != nil {
+					return err
+				}
+				
 				srcFile, err := sftpClient.Open(reqData.SourceFile)
 				if err != nil {
 					return err
 				}
 				defer srcFile.Close()
-				if err := destSFTPClient.MkdirAll(reqData.DestDir); err != nil {
-					return err
-				}
+
 				destFile, err := destSFTPClient.Create(reqData.DestDir + "/" + path.Base(reqData.SourceFile))
 				if err != nil {
 					return err

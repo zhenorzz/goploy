@@ -29,44 +29,22 @@
               </el-button>
             </el-row>
           </div>
+
           <div class="tabs-plus">
-            <el-popover
-              v-model:visible="serverOptionVisible"
-              placement="bottom-start"
-              :width="200"
-              trigger="click"
-              popper-class="tabs-popover"
-              :show-arrow="false"
-              :offset="-2"
+            <el-select
+              v-model="serverId"
+              style="width: 200px"
+              filterable
+              clearable
+              @change="selectServer"
             >
-              <el-input
-                v-model="serverFilterInput"
-                placeholder="Filter server name"
-                @input="filterServer"
+              <el-option
+                v-for="item in serverOption"
+                :key="item.id"
+                :label="item.label"
+                :value="item.id"
               />
-              <el-scrollbar class="server-list">
-                <div
-                  v-for="server in serverFilteredOption"
-                  :key="server.id"
-                  style="padding: 4px 0"
-                >
-                  <el-button link @click="selectServer(server)">
-                    <span :title="server.label">
-                      {{ server.label }}
-                    </span>
-                  </el-button>
-                </div>
-              </el-scrollbar>
-              <template #reference>
-                <el-button
-                  link
-                  style="height: 45px; width: 100%; font-size: 24px"
-                  @click="serverOptionVisible = !serverOptionVisible"
-                >
-                  +
-                </el-button>
-              </template>
-            </el-popover>
+            </el-select>
           </div>
           <div class="tabs-placeholder"></div>
         </el-row>
@@ -165,11 +143,9 @@ interface sftp {
   dir: string
 }
 const currentUUID = ref(0)
-const serverOptionVisible = ref(false)
 const transferFileDialogVisible = ref(false)
 const serverOption = ref<ServerOption['datagram']['list']>([])
-const serverFilteredOption = ref<ServerOption['datagram']['list']>([])
-const serverFilterInput = ref('')
+const serverId = ref('')
 const serverList = ref<sftp[]>([])
 const selectedFile = ref<ServerSFTPFile>({} as ServerSFTPFile)
 const selectedSFTP = ref<sftp>({} as sftp)
@@ -194,14 +170,8 @@ getServerOption()
 
 function getServerOption() {
   new ServerOption().request().then((response) => {
-    serverOption.value = serverFilteredOption.value = response.data.list
+    serverOption.value = response.data.list
   })
-}
-
-function filterServer(value: string) {
-  serverFilteredOption.value = serverOption.value.filter((server) =>
-    server.name.includes(value)
-  )
 }
 
 function selectTab(sftp: sftp) {
@@ -219,7 +189,9 @@ function deleteTab(sftp: sftp, index: number) {
   }
 }
 
-function selectServer(server: ServerData) {
+function selectServer(value: number) {
+  const server =
+    serverOption.value.find((_) => _.id === value) || ({} as ServerData)
   if (serverList.value.length === 0) {
     currentUUID.value = 0
   } else {
@@ -228,7 +200,7 @@ function selectServer(server: ServerData) {
   const serverTab = { uuid: currentUUID.value, server, dir: '' }
   serverList.value.push(serverTab)
   selectTab(serverTab)
-  serverOptionVisible.value = false
+  serverId.value = ''
 }
 
 function handleDirChange(dir: string) {
@@ -325,18 +297,20 @@ function transferFile() {
     }
     &-plus {
       text-align: center;
-      width: 45px;
       border-bottom: 1px solid var(--el-border-color);
+      border-right: 1px solid var(--el-border-color);
     }
   }
 }
 </style>
 <style lang="scss">
-.input-with-select .el-input-group__prepend {
-  background-color: var(--el-bg-color);
-}
-.server-list {
-  height: 216px;
-  margin-top: 10px;
+.tabs-plus {
+  .el-input__wrapper {
+    border-radius: 0px !important;
+    box-shadow: none;
+  }
+  .el-input__inner {
+    height: 43px !important;
+  }
 }
 </style>

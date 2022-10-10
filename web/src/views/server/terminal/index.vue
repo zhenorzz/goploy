@@ -12,6 +12,9 @@
             "
           >
             <el-row>
+              <div class="nav-item-serial" @click="selectTerminal(item)">
+                {{ index + 1 }}
+              </div>
               <div
                 class="nav-item-name"
                 :title="`${item.server.label}`"
@@ -29,54 +32,20 @@
             </el-row>
           </div>
           <div class="nav-plus">
-            <el-popover
-              v-model:visible="serverOptionVisible"
-              placement="bottom-start"
-              :width="200"
-              trigger="click"
-              popper-class="nav-popover"
-              :show-arrow="false"
-              :offset="-2"
-              style="background: #0e0f12"
+            <el-select
+              v-model="serverId"
+              style="width: 200px"
+              filterable
+              clearable
+              @change="selectServer"
             >
-              <el-input
-                v-model="serverFilterInput"
-                placeholder="Filter server name"
-                class="server-filter"
-                @input="filterServer"
+              <el-option
+                v-for="item in serverOption"
+                :key="item.id"
+                :label="item.label"
+                :value="item.id"
               />
-              <el-scrollbar class="server-list">
-                <div
-                  v-for="server in serverFilteredOption"
-                  :key="server.id"
-                  style="padding: 4px 0"
-                >
-                  <el-button
-                    link
-                    class="server-item"
-                    @click="selectServer(server)"
-                  >
-                    <span :title="server.label">
-                      {{ server.label }}
-                    </span>
-                  </el-button>
-                </div>
-              </el-scrollbar>
-              <template #reference>
-                <el-button
-                  link
-                  style="
-                    color: #bfcbd9;
-                    height: 45px;
-                    width: 100%;
-                    font-size: 24px;
-                  "
-                  @click="serverOptionVisible = !serverOptionVisible"
-                >
-                  +
-                </el-button>
-              </template>
-            </el-popover>
+            </el-select>
           </div>
         </el-row>
       </el-scrollbar>
@@ -120,12 +89,10 @@ interface terminal {
   xterm?: xterm
   server: ServerData
 }
-const serverOptionVisible = ref(false)
 const terminalList = ref<terminal[]>([])
 const currentTerminalUUID = ref(0)
 const serverOption = ref<ServerOption['datagram']['list']>([])
-const serverFilteredOption = ref<ServerOption['datagram']['list']>([])
-const serverFilterInput = ref('')
+const serverId = ref('')
 const command = ref('')
 const terminalRefs = ref<Record<string, Element | ComponentPublicInstance>>({})
 
@@ -133,15 +100,13 @@ getServerOption()
 
 function getServerOption() {
   new ServerOption().request().then((response) => {
-    serverOption.value = serverFilteredOption.value = response.data.list
+    serverOption.value = response.data.list
   })
 }
-function filterServer(value: string) {
-  serverFilteredOption.value = serverOption.value.filter((server) =>
-    server.name.includes(value)
-  )
-}
-function selectServer(server: ServerData) {
+
+function selectServer(value: number) {
+  const server =
+    serverOption.value.find((_) => _.id === value) || ({} as ServerData)
   if (terminalList.value.length === 0) {
     currentTerminalUUID.value = 0
   } else {
@@ -149,7 +114,7 @@ function selectServer(server: ServerData) {
       terminalList.value[terminalList.value.length - 1].uuid + 1
   }
   terminalList.value.push({ uuid: currentTerminalUUID.value, server })
-  serverOptionVisible.value = false
+  serverId.value = ''
   nextTick(() => {
     const x = new xterm(
       terminalRefs.value[currentTerminalUUID.value] as HTMLDivElement,
@@ -192,13 +157,19 @@ function enterCommand() {
     color: #bfcbd9;
     font-size: 14px;
     flex-shrink: 0;
-    width: 150px;
+    width: 170px;
     height: 45px;
     line-height: 45px;
     padding: 0 10px;
+    &-serial {
+      cursor: pointer;
+      color: var(--el-text-color-secondary);
+      text-align: center;
+      font-weight: 600;
+      width: 20px;
+    }
     &-name {
       cursor: pointer;
-      text-align: center;
       text-overflow: ellipsis;
       overflow: hidden;
       width: 110px;
@@ -210,7 +181,8 @@ function enterCommand() {
   }
   &-plus {
     text-align: center;
-    width: 40px;
+    // border-bottom: 1px solid var(--el-border-color);
+    // border-right: 1px solid var(--el-border-color);
   }
 }
 
@@ -253,6 +225,18 @@ function enterCommand() {
     &__inner {
       color: #f0f2f5 !important;
     }
+  }
+}
+
+.nav-plus {
+  .el-input__wrapper {
+    border-radius: 0px !important;
+    box-shadow: none;
+    background-color: #0e0f12 !important;
+    border-color: #304156 !important;
+  }
+  .el-input__inner {
+    height: 43px !important;
   }
 }
 
