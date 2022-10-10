@@ -83,7 +83,7 @@ export default { name: 'ServerTerminal' }
 import 'xterm/css/xterm.css'
 import { ServerOption, ServerData } from '@/api/server'
 import { xterm } from './xterm'
-import { ref, nextTick, ComponentPublicInstance } from 'vue'
+import { ref, nextTick, ComponentPublicInstance, onBeforeUnmount } from 'vue'
 interface terminal {
   uuid: number
   xterm?: xterm
@@ -97,6 +97,12 @@ const command = ref('')
 const terminalRefs = ref<Record<string, Element | ComponentPublicInstance>>({})
 
 getServerOption()
+
+onBeforeUnmount(() => {
+  for (const terminal of terminalList.value) {
+    terminal.xterm?.close()
+  }
+})
 
 function getServerOption() {
   new ServerOption().request().then((response) => {
