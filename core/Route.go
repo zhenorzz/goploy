@@ -58,7 +58,7 @@ type Route struct {
 // Router is Route slice and global middlewares
 type Router struct {
 	routes      map[string]Route
-	middlewares []func(gp *Goploy) error // Middlewares run before all Route
+	middlewares *[]func(gp *Goploy) error // Middlewares run before all Route
 }
 
 func NewRouter() Router {
@@ -100,7 +100,7 @@ func (rt Router) Start() {
 
 // Middleware global Middleware handle function
 func (rt Router) Middleware(middleware func(gp *Goploy) error) {
-	rt.middlewares = append(rt.middlewares, middleware)
+	*rt.middlewares = append(*rt.middlewares, middleware)
 }
 
 // Add pattern path
@@ -251,7 +251,7 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 	}
 
 	// common middlewares
-	for _, middleware := range rt.middlewares {
+	for _, middleware := range *rt.middlewares {
 		err := middleware(gp)
 		if err != nil {
 			return gp, response.JSON{Code: response.Error, Message: err.Error()}

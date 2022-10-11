@@ -168,7 +168,7 @@
                 </Link>
               </el-dropdown-item>
               <DropdownItem
-                :permissions="[permission.SFTPDownloadFile]"
+                :permissions="[permission.SFTPTransferFile]"
                 @click="transferFile"
               >
                 {{ $t('transfer') }}

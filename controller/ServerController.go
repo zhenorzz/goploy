@@ -42,7 +42,7 @@ func (s Server) Routes() []core.Route {
 		core.NewRoute("/server/installAgent", http.MethodPost, s.InstallAgent).Permissions(permission.InstallAgent).LogFunc(middleware.AddOPLog),
 		core.NewRoute("/server/previewFile", http.MethodGet, s.PreviewFile).Permissions(permission.SFTPPreviewFile).LogFunc(middleware.AddPreviewLog),
 		core.NewRoute("/server/downloadFile", http.MethodGet, s.DownloadFile).Permissions(permission.SFTPDownloadFile).LogFunc(middleware.AddDownloadLog),
-		core.NewRoute("/server/uploadFile", http.MethodPost, s.UploadFile).Permissions(permission.SFTPUploadFile).LogFunc(middleware.AddUploadLog),
+		core.NewRoute("/server/uploadFile", http.MethodPost, s.UploadFile).Permissions(permission.SFTPTransferFile).LogFunc(middleware.AddUploadLog),
 		core.NewRoute("/server/transferFile", http.MethodPost, s.TransferFile).Permissions(permission.SFTPUploadFile),
 		core.NewRoute("/server/report", http.MethodGet, s.Report).Permissions(permission.ShowServerMonitorPage),
 		core.NewRoute("/server/getAllMonitor", http.MethodGet, s.GetAllMonitor).Permissions(permission.ShowServerMonitorPage),
@@ -596,7 +596,7 @@ func (Server) TransferFile(gp *core.Goploy) core.Response {
 				if err := destSFTPClient.MkdirAll(reqData.DestDir); err != nil {
 					return err
 				}
-				
+
 				srcFile, err := sftpClient.Open(reqData.SourceFile)
 				if err != nil {
 					return err

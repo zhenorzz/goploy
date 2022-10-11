@@ -79,4 +79,5 @@ const (
 	EditServerProcess       = 72
 	DeleteServerProcess     = 73
 	ShowOperationLogPage    = 74
+	SFTPTransferFile        = 75
 )

@@ -454,6 +454,7 @@ INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALU
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (72, 23, 'EditServerProcess', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (73, 23, 'DeleteServerProcess', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (74, 1, 'ShowOperationLogPage', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (75, 23, 'SFTPTransferFile', 0, '');
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 13);
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 14);
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 15);
