@@ -126,6 +126,10 @@
             tabindex="1"
             class="file"
             :class="item.uuid === selectedFile['uuid'] ? 'file-selected' : ''"
+            @dblclick="
+              selectedFile['isDir'] === true &&
+                dirOpen(`${dir}/${selectedFile['name']}`)
+            "
             @click="selectFile(item)"
           >
             <svg-icon class="file-type" :icon-class="item.icon" />
