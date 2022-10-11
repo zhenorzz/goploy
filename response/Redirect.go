@@ -8,6 +8,12 @@ import (
 	"net/http"
 )
 
-type Empty struct{}
+type Redirect struct {
+	URL  string
+	Code int
+}
 
-func (Empty) Write(http.ResponseWriter, *http.Request) error { return nil }
+func (rdr Redirect) Write(w http.ResponseWriter, r *http.Request) error {
+	http.Redirect(w, r, rdr.URL, rdr.Code)
+	return nil
+}

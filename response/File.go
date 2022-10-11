@@ -15,8 +15,7 @@ type File struct {
 	Filename string
 }
 
-//JSON response
-func (f File) Write(w http.ResponseWriter) error {
+func (f File) Write(w http.ResponseWriter, _ *http.Request) error {
 	file, err := os.Open(f.Filename)
 	if err != nil {
 		return err

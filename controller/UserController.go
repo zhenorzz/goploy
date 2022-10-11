@@ -5,13 +5,16 @@
 package controller
 
 import (
+	"crypto/md5"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"github.com/go-ldap/ldap/v3"
 	"github.com/zhenorzz/goploy/middleware"
 	"github.com/zhenorzz/goploy/permission"
 	"github.com/zhenorzz/goploy/response"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/zhenorzz/goploy/config"
@@ -24,6 +27,7 @@ type User Controller
 func (u User) Routes() []core.Route {
 	return []core.Route{
 		core.NewWhiteRoute("/user/login", http.MethodPost, u.Login).LogFunc(middleware.AddLoginLog),
+		core.NewWhiteRoute("/user/extLogin", http.MethodPost, u.ExtLogin).LogFunc(middleware.AddLoginLog),
 		core.NewRoute("/user/info", http.MethodGet, u.Info),
 		core.NewRoute("/user/changePassword", http.MethodPut, u.ChangePassword),
 		core.NewRoute("/user/getList", http.MethodGet, u.GetList).Permissions(permission.ShowMemberPage),
@@ -36,7 +40,7 @@ func (u User) Routes() []core.Route {
 
 func (User) Login(gp *core.Goploy) core.Response {
 	type ReqData struct {
-		Account  string `json:"account" validate:"min=5,max=25"`
+		Account  string `json:"account" validate:"min=1,max=25"`
 		Password string `json:"password" validate:"password"`
 	}
 	var reqData ReqData
@@ -126,6 +130,69 @@ func (User) Login(gp *core.Goploy) core.Response {
 	}
 }
 
+func (User) ExtLogin(gp *core.Goploy) core.Response {
+	type ReqData struct {
+		Account string `json:"account" validate:"min=1,max=25"`
+		Time    int64  `json:"time"`
+		Token   string `json:"token"  validate:"len=32"`
+	}
+	var reqData ReqData
+	if err := decodeJson(gp.Body, &reqData); err != nil {
+		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
+	}
+
+	if time.Now().Unix() > reqData.Time+30 {
+		return response.JSON{Code: response.IllegalParam, Message: "request time expired"}
+	}
+
+	h := md5.New()
+	h.Write([]byte(reqData.Account + config.Toml.JWT.Key + strconv.FormatInt(reqData.Time, 10)))
+	signedToken := hex.EncodeToString(h.Sum(nil))
+
+	if signedToken != reqData.Token {
+		return response.JSON{Code: response.IllegalParam, Message: "sign error"}
+	}
+
+	userData, err := model.User{Account: reqData.Account}.GetDataByAccount()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	if userData.State == model.Disable {
+		return response.JSON{Code: response.AccountDisabled, Message: "Account is disabled"}
+	}
+
+	namespaceList, err := model.Namespace{UserID: userData.ID}.GetAllByUserID()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	} else if len(namespaceList) == 0 {
+		return response.JSON{Code: response.Error, Message: "No space assigned, please contact the administrator"}
+	}
+
+	token, err := userData.CreateToken()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	_ = model.User{ID: userData.ID, LastLoginTime: time.Now().Format("20060102150405")}.UpdateLastLoginTime()
+
+	cookie := http.Cookie{
+		Name:     config.Toml.Cookie.Name,
+		Value:    token,
+		Path:     "/",
+		MaxAge:   config.Toml.Cookie.Expire,
+		HttpOnly: true,
+	}
+	http.SetCookie(gp.ResponseWriter, &cookie)
+
+	return response.JSON{
+		Data: struct {
+			Token         string           `json:"token"`
+			NamespaceList model.Namespaces `json:"namespaceList"`
+		}{Token: token, NamespaceList: namespaceList},
+	}
+}
+
 func (User) Info(gp *core.Goploy) core.Response {
 	type RespData struct {
 		UserInfo struct {
@@ -180,7 +247,7 @@ func (User) GetOption(*core.Goploy) core.Response {
 
 func (User) Add(gp *core.Goploy) core.Response {
 	type ReqData struct {
-		Account      string `json:"account" validate:"min=5,max=25"`
+		Account      string `json:"account" validate:"min=1,max=25"`
 		Password     string `json:"password" validate:"omitempty,password"`
 		Name         string `json:"name" validate:"required"`
 		Contact      string `json:"contact" validate:"omitempty,len=11,numeric"`

@@ -15,7 +15,6 @@ type JSON struct {
 	Data    interface{} `json:"data"`
 }
 
-// response code
 const (
 	Pass             = 0
 	Deny             = 1
@@ -28,6 +27,6 @@ const (
 )
 
 //JSON response
-func (j JSON) Write(w http.ResponseWriter) error {
+func (j JSON) Write(w http.ResponseWriter, _ *http.Request) error {
 	return json.NewEncoder(w).Encode(j)
 }

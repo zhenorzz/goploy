@@ -29,6 +29,23 @@ export class Login extends Request {
   }
 }
 
+export class extLogin extends Request {
+  readonly url = '/user/extLogin'
+  readonly method = 'post'
+  public param: {
+    account: string
+    token: string
+    time: number
+  }
+  public declare datagram: {
+    namespaceList: { id: number; name: string; roleId: number }[]
+  }
+  constructor(param: extLogin['param']) {
+    super()
+    this.param = param
+  }
+}
+
 export class Info extends Request {
   readonly url = '/user/info'
   readonly method = 'get'

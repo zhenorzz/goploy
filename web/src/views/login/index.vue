@@ -117,6 +117,14 @@ watch(
   useRoute(),
   (route) => {
     redirect.value = route.query?.redirect
+    console.log(route.query)
+    if (route.query['account'] && route.query['time'] && route.query['token']) {
+      handleExtLogin(
+        route.query['account'] as string,
+        Number(route.query['time']),
+        route.query['token'] as string
+      )
+    }
   },
   { immediate: true }
 )
@@ -131,6 +139,21 @@ function showPwd() {
   nextTick(() => {
     password.value?.focus()
   })
+}
+
+function handleExtLogin(account: string, time: number, token: string) {
+  store
+    .dispatch('user/extLogin', { account, time, token })
+    .then(() => {
+      router.push({
+        path: redirect.value || '/',
+        query: redirect.value ? param2Obj(redirect.value) : {},
+      })
+      loading.value = false
+    })
+    .catch(() => {
+      loading.value = false
+    })
 }
 
 function handleLogin() {

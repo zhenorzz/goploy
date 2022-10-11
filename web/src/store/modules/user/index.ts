@@ -1,7 +1,7 @@
 import { Module, MutationTree, ActionTree } from 'vuex'
 import { UserState } from './types'
 import { RootState } from '../../types'
-import { Login, Info } from '@/api/user'
+import { Login, extLogin, Info } from '@/api/user'
 import { setLogin, logout } from '@/utils/auth'
 import { getNamespaceId, setNamespace } from '@/utils/namespace'
 import { resetRouter } from '@/router'
@@ -34,6 +34,27 @@ const actions: ActionTree<UserState, RootState> = {
     const { account, password } = userInfo
     return new Promise((resolve, reject) => {
       new Login({ account: account.trim(), password: password })
+        .request()
+        .then((response) => {
+          const { data } = response
+          if (!getNamespaceId()) {
+            const namespace = data.namespaceList[data.namespaceList.length - 1]
+            setNamespace(namespace)
+          }
+
+          setLogin('ok')
+          resolve(response)
+        })
+        .catch((error) => {
+          reject(error)
+        })
+    })
+  },
+
+  // user ext login
+  extLogin(_, userInfo) {
+    return new Promise((resolve, reject) => {
+      new extLogin(userInfo)
         .request()
         .then((response) => {
           const { data } = response

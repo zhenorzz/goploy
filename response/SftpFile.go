@@ -18,8 +18,7 @@ type SftpFile struct {
 	Disposition string // attachment | inline
 }
 
-//JSON response
-func (sf SftpFile) Write(w http.ResponseWriter) error {
+func (sf SftpFile) Write(w http.ResponseWriter, _ *http.Request) error {
 	defer sf.Client.Close()
 
 	sftpClient, err := sftp.NewClient(sf.Client)

@@ -42,7 +42,7 @@ type RouteApi interface {
 }
 
 type Response interface {
-	Write(http.ResponseWriter) error
+	Write(http.ResponseWriter, *http.Request) error
 }
 
 type Route struct {
@@ -149,7 +149,7 @@ func (rt Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, resp := rt.doRequest(w, r)
-	if err := resp.Write(w); err != nil {
+	if err := resp.Write(w, r); err != nil {
 		Log(ERROR, err.Error())
 	}
 	return
