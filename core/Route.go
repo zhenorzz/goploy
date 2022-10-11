@@ -63,7 +63,8 @@ type Router struct {
 
 func NewRouter() Router {
 	return Router{
-		routes: map[string]Route{},
+		routes:      map[string]Route{},
+		middlewares: new([]func(gp *Goploy) error),
 	}
 }
 
