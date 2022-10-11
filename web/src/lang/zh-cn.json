@@ -228,7 +228,8 @@
     "AddServerProcess": "新增服务器进程",
     "EditServerProcess": "编辑服务器进程",
     "DeleteServerProcess": "删除服务器进程",
-    "ShowOperationLogPage": "查看操作日志"
+    "ShowOperationLogPage": "查看操作日志",
+    "SFTPTransferFile": "SFTP传输文件"
   },
   "tagsView": {
     "refresh": "刷新",

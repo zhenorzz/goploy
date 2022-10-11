@@ -228,7 +228,8 @@
     "ShowServerProcessPage": "See the server process page",
     "AddServerProcess": "Add a server process",
     "EditServerProcess": "Edit the server process",
-    "DeleteServerProcess": "Delete the server process"
+    "DeleteServerProcess": "Delete the server process",
+    "SFTPTransferFile": "Can transfer file via SFTP"
   },
   "tagsView": {
     "refresh": "Refresh",
