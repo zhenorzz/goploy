@@ -44,8 +44,7 @@
     "@types/nprogress": "^0.2.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
-    "@vitejs/plugin-vue": "^1.10.2",
-    "@vue/compiler-sfc": "^3.0.5",
+    "@vitejs/plugin-vue": "^3.1.2",
     "eslint": "^8.10.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
@@ -57,6 +56,6 @@
     "vite": "^3.1.1",
     "vite-plugin-compression": "^0.5.1",
     "vite-plugin-svg-icons": "^0.5.0",
-    "vue-tsc": "^0.33.2-patch.1"
+    "vue-tsc": "^1.0.8"
   }
 }
