@@ -33,8 +33,7 @@ func (w *xtermBufferWriter) Write(p []byte) (int, error) {
 	return w.buffer.Write(p)
 }
 
-// Xterm the publish information in websocket
-func (hub *Hub) Xterm(gp *core.Goploy) core.Response {
+func (hub *Hub) xterm(gp *core.Goploy) core.Response {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {

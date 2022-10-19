@@ -410,3 +410,18 @@ export class ServerTransferFile extends Request {
     this.param = param
   }
 }
+
+export class ServerExecScript extends Request {
+  readonly url = '/server/execScript'
+  readonly method = 'post'
+  readonly timeout = 0
+  public param: {
+    serverIds: number[]
+    dir: string
+    command: string
+  }
+  constructor(param: ServerExecScript['param']) {
+    super()
+    this.param = param
+  }
+}

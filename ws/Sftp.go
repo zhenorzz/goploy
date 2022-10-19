@@ -18,8 +18,8 @@ import (
 	"time"
 )
 
-// Sftp the server file information in websocket
-func (hub *Hub) Sftp(gp *core.Goploy) core.Response {
+// sftp the server file information in websocket
+func (hub *Hub) sftp(gp *core.Goploy) core.Response {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {

@@ -120,11 +120,8 @@
                     {{ $t('navbar.doc') }}
                   </el-dropdown-item>
                 </el-link>
-                <el-dropdown-item divided>
-                  <span
-                    style="display: block; text-align: center"
-                    @click="logout"
-                  >
+                <el-dropdown-item divided @click="logout">
+                  <span style="display: block; text-align: center">
                     {{ $t('navbar.logout') }}
                   </span>
                 </el-dropdown-item>

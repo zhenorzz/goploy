@@ -140,6 +140,7 @@
     "serverTerminal": "Terminal",
     "serverSFTP": "SFTP",
     "serverAgent": "服务器监控",
+    "serverScript": "执行脚本",
     "serverProcess": "进程管理",
     "serverCron": "定时任务",
     "crontab": "Crontab管理",
@@ -287,7 +288,8 @@
     "silentCycle": "通道沉默周期",
     "advance": "高级选项",
     "transferFile": "传输文件",
-    "sftpFileCount": "个项目"
+    "sftpFileCount": "个项目",
+    "execDir": "执行目录"
   },
   "monitorPage": {
     "typeOption": ["未知", "站点检测", "端口检测", "Ping检测", "进程检测", "自定义脚本检测"],

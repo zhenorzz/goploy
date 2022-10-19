@@ -140,6 +140,7 @@
     "serverTerminal": "Terminal",
     "serverSFTP": "SFTP",
     "serverAgent": "Monitor",
+    "serverScript": "Script",
     "serverProcess": "Process",
     "template": "Template",
     "crontab": "Crontab",
@@ -288,7 +289,8 @@
     "silentCycle": "Silent cycle",
     "advance": "Advanced setting",
     "transferFile": "Transfer file",
-    "sftpFileCount": "items"
+    "sftpFileCount": "items",
+    "execDir": "Exec dir"
   },
   "monitorPage": {
     "typeOption": ["Unknown", "Site check", "Port check", "Ping check", "Process check", "Custom script check"],

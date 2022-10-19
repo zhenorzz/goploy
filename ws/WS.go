@@ -71,9 +71,9 @@ func Init() {
 
 func (hub *Hub) Routes() []core.Route {
 	return []core.Route{
-		core.NewRoute("/ws/connect", http.MethodGet, hub.Connect),
-		core.NewRoute("/ws/xterm", http.MethodGet, hub.Xterm),
-		core.NewRoute("/ws/sftp", http.MethodGet, hub.Sftp),
+		core.NewRoute("/ws/connect", http.MethodGet, hub.connect),
+		core.NewRoute("/ws/xterm", http.MethodGet, hub.xterm),
+		core.NewRoute("/ws/sftp", http.MethodGet, hub.sftp),
 	}
 }
 
@@ -89,8 +89,7 @@ func GetHub() *Hub {
 	return hub
 }
 
-// Connect the publish information in websocket
-func (hub *Hub) Connect(gp *core.Goploy) core.Response {
+func (hub *Hub) connect(gp *core.Goploy) core.Response {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {

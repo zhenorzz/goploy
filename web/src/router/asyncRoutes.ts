@@ -115,17 +115,16 @@ export default <RouteRecordRaw[]>[
           permissions: [permission.ShowSftpFilePage],
         },
       },
-      {
-        path: 'agent',
-        name: 'ServerAgent',
-        component: () => import('@/views/server/agent.vue'),
-        meta: {
-          hidden: true,
-          title: 'serverAgent',
-          icon: 'monitor',
-          permissions: [permission.ShowServerMonitorPage],
-        },
-      },
+      // {
+      //   path: 'script',
+      //   name: 'ServerScript',
+      //   component: () => import('@/views/server/script.vue'),
+      //   meta: {
+      //     title: 'serverScript',
+      //     icon: 'script',
+      //     permissions: [permission.ShowServerProcessPage],
+      //   },
+      // },
       {
         path: 'process',
         name: 'ServerProcess',
@@ -144,6 +143,17 @@ export default <RouteRecordRaw[]>[
           title: 'serverCron',
           icon: 'crontab',
           permissions: [permission.ShowCronPage],
+        },
+      },
+      {
+        path: 'agent',
+        name: 'ServerAgent',
+        component: () => import('@/views/server/agent.vue'),
+        meta: {
+          hidden: true,
+          title: 'serverAgent',
+          icon: 'monitor',
+          permissions: [permission.ShowServerMonitorPage],
         },
       },
     ],

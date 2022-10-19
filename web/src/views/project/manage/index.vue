@@ -1075,7 +1075,9 @@ function getList() {
 }
 
 function handleAdd() {
-  restoreFormData()
+  if (formData.value.id > 0) {
+    restoreFormData()
+  }
   formProps.value.symlink = false
   dialogVisible.value = true
 }
