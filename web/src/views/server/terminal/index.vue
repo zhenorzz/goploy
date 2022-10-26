@@ -24,7 +24,7 @@
               </div>
               <el-button
                 link
-                style="color: #bfcbd9; padding-left: 8px"
+                style="color: #bfcbd9; padding-left: 8px; height: 42px"
                 @click="deleteTerminal(item, index)"
               >
                 x
@@ -163,7 +163,7 @@ function enterCommand() {
     color: #bfcbd9;
     font-size: 14px;
     flex-shrink: 0;
-    width: 170px;
+    width: 185px;
     height: 45px;
     line-height: 45px;
     padding: 0 10px;
@@ -178,7 +178,7 @@ function enterCommand() {
       cursor: pointer;
       text-overflow: ellipsis;
       overflow: hidden;
-      width: 110px;
+      width: 120px;
       display: inline-block;
     }
     &-selected {
