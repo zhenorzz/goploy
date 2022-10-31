@@ -32,6 +32,7 @@ const (
 	SftpLogTypeUpload   = "UPLOAD"
 	SftpLogTypeRead     = "READ"
 	SftpLogTypePreview  = "PREVIEW"
+	SftpLogTypeDelete   = "DELETE"
 )
 
 type SftpLogs []SftpLog

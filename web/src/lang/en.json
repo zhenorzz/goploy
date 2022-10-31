@@ -230,7 +230,8 @@
     "AddServerProcess": "Add a server process",
     "EditServerProcess": "Edit the server process",
     "DeleteServerProcess": "Delete the server process",
-    "SFTPTransferFile": "Can transfer file via SFTP"
+    "SFTPTransferFile": "Can transfer file via SFTP",
+    "SFTPDeleteFile": "Can delete file via SFTP"
   },
   "tagsView": {
     "refresh": "Refresh",

@@ -96,6 +96,36 @@ func AddUploadLog(gp *core.Goploy, resp core.Response) {
 	}
 }
 
+func AddDeleteLog(gp *core.Goploy, resp core.Response) {
+	var serverID int64 = 0
+	var path = ""
+	respJson := resp.(response.JSON)
+	if respJson.Code != response.IllegalParam {
+		type ReqData struct {
+			ServerID int64  `json:"account"`
+			File     string `json:"file"`
+		}
+		var reqData ReqData
+		_ = json.Unmarshal(gp.Body, &reqData)
+		serverID = reqData.ServerID
+		path = reqData.File
+	}
+
+	err := model.SftpLog{
+		NamespaceID: gp.Namespace.ID,
+		UserID:      gp.UserInfo.ID,
+		ServerID:    serverID,
+		RemoteAddr:  gp.Request.RemoteAddr,
+		UserAgent:   gp.Request.UserAgent(),
+		Type:        model.SftpLogTypeDelete,
+		Path:        path,
+		Reason:      respJson.Message,
+	}.AddRow()
+	if err != nil {
+		core.Log(core.ERROR, err.Error())
+	}
+}
+
 func AddDownloadLog(gp *core.Goploy, resp core.Response) {
 	msg := ""
 	path := ""

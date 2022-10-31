@@ -43,6 +43,7 @@ func (s Server) Routes() []core.Route {
 		core.NewRoute("/server/previewFile", http.MethodGet, s.PreviewFile).Permissions(permission.SFTPPreviewFile).LogFunc(middleware.AddPreviewLog),
 		core.NewRoute("/server/downloadFile", http.MethodGet, s.DownloadFile).Permissions(permission.SFTPDownloadFile).LogFunc(middleware.AddDownloadLog),
 		core.NewRoute("/server/uploadFile", http.MethodPost, s.UploadFile).Permissions(permission.SFTPTransferFile).LogFunc(middleware.AddUploadLog),
+		core.NewRoute("/server/deleteFile", http.MethodDelete, s.DeleteFile).Permissions(permission.SFTPDeleteFile).LogFunc(middleware.AddDeleteLog),
 		core.NewRoute("/server/transferFile", http.MethodPost, s.TransferFile).Permissions(permission.SFTPUploadFile),
 		core.NewRoute("/server/report", http.MethodGet, s.Report).Permissions(permission.ShowServerMonitorPage),
 		core.NewRoute("/server/getAllMonitor", http.MethodGet, s.GetAllMonitor).Permissions(permission.ShowServerMonitorPage),
@@ -544,6 +545,50 @@ func (Server) UploadFile(gp *core.Goploy) core.Response {
 
 	return response.JSON{}
 }
+
+func (Server) DeleteFile(gp *core.Goploy) core.Response {
+	type ReqData struct {
+		File     string `json:"file" validate:"required"`
+		ServerID int64  `json:"serverId" validate:"gt=0"`
+	}
+	var reqData ReqData
+	if err := decodeJson(gp.Body, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	server, err := (model.Server{ID: reqData.ServerID}).GetData()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	client, err := server.ToSSHConfig().Dial()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer client.Close()
+
+	sftpClient, err := sftp.NewClient(client)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer sftpClient.Close()
+
+	fi, err := sftpClient.Stat(reqData.File)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	if fi.IsDir() == true {
+		err = sftpClient.RemoveDirectory(reqData.File)
+	} else {
+		err = sftpClient.Remove(reqData.File)
+	}
+
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	return response.JSON{}
+}
+
 func (Server) TransferFile(gp *core.Goploy) core.Response {
 	type ReqData struct {
 		SourceServerID int64   `json:"sourceServerId" validate:"required"`

@@ -394,6 +394,19 @@ export class ServerExecProcess extends Request {
   }
 }
 
+export class ServerDeleteFile extends Request {
+  readonly url = '/server/deleteFile'
+  readonly method = 'delete'
+  readonly timeout = 0
+  public param: {
+    serverId: number
+    file: string
+  }
+  constructor(param: ServerDeleteFile['param']) {
+    super()
+    this.param = param
+  }
+}
 export class ServerTransferFile extends Request {
   readonly url = '/server/transferFile'
   readonly method = 'post'
@@ -410,7 +423,6 @@ export class ServerTransferFile extends Request {
     this.param = param
   }
 }
-
 export class ServerExecScript extends Request {
   readonly url = '/server/execScript'
   readonly method = 'post'

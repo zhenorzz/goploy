@@ -172,6 +172,13 @@
                 </Link>
               </el-dropdown-item>
               <DropdownItem
+                v-if="selectedFile['isDir'] === false"
+                :permissions="[permission.SFTPDeleteFile]"
+                @click="deleteFile"
+              >
+                {{ $t('delete') }}
+              </DropdownItem>
+              <DropdownItem
                 :permissions="[permission.SFTPTransferFile]"
                 @click="transferFile"
               >
@@ -188,9 +195,9 @@
       </div>
       <div v-show="selectedFile['mode']">
         <span style="padding: 0 2px">{{ selectedFile['mode'] }}</span>
-        <span style="padding: 0 2px">{{
-          humanSize(selectedFile['size'])
-        }}</span>
+        <span style="padding: 0 2px">
+          {{ humanSize(selectedFile['size']) }}
+        </span>
         <span style="padding: 0 2px">{{ selectedFile['name'] }}</span>
       </div>
     </el-row>
@@ -216,7 +223,7 @@ import path from 'path-browserify'
 import { humanSize, parseTime } from '@/utils'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import type { ElUpload } from 'element-plus'
-import { ServerData, ServerSFTPFile } from '@/api/server'
+import { ServerData, ServerSFTPFile, ServerDeleteFile } from '@/api/server'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { HttpResponse } from '@/api/types'
 import { ref, PropType, computed, onBeforeUnmount } from 'vue'
@@ -407,6 +414,33 @@ function dirOpen(dir: string) {
   forwardHistory.value = []
   lastDir.value = dir
   goto(dir)
+}
+
+function deleteFile() {
+  const file = path.normalize(dir.value + '/' + selectedFile.value.name)
+  ElMessageBox.confirm(t('serverPage.deleteTips', { name: file }), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
+    .then(() => {
+      fileListLoading.value = true
+      new ServerDeleteFile({
+        serverId: serverId.value,
+        file: file,
+      })
+        .request()
+        .then(() => {
+          const pos = fileList.value.findIndex(
+            (item) => item.name === selectedFile.value.name
+          )
+          fileList.value.splice(pos, 1)
+        })
+        .finally(() => {
+          fileListLoading.value = false
+        })
+    })
+    .catch()
 }
 
 function transferFile() {
