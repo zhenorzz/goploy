@@ -55,7 +55,6 @@ func (s Server) Routes() []core.Route {
 		core.NewRoute("/server/editProcess", http.MethodPut, s.EditProcess).Permissions(permission.EditServerProcess).LogFunc(middleware.AddOPLog),
 		core.NewRoute("/server/deleteProcess", http.MethodDelete, s.DeleteProcess).Permissions(permission.DeleteServerProcess).LogFunc(middleware.AddOPLog),
 		core.NewRoute("/server/execProcess", http.MethodPost, s.ExecProcess).Permissions(permission.ShowServerProcessPage).LogFunc(middleware.AddOPLog),
-		core.NewRoute("/server/getRemoteCrontabList", http.MethodGet, s.GetRemoteCrontabList).Permissions(permission.ShowServerProcessPage),
 	}
 }
 
@@ -1052,57 +1051,4 @@ func (Server) ExecProcess(gp *core.Goploy) core.Response {
 	respData.Stdout = sshOutbuf.String()
 	respData.Stderr = sshErrbuf.String()
 	return response.JSON{Data: respData}
-}
-
-func (Server) GetRemoteCrontabList(gp *core.Goploy) core.Response {
-	type ReqData struct {
-		ServerID int64 `schema:"serverId" validate:"gt=0"`
-	}
-	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	server, err := (model.Server{ID: reqData.ServerID}).GetData()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	client, err := server.ToSSHConfig().Dial()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	defer client.Close()
-
-	session, err := client.NewSession()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	b, err := session.CombinedOutput("crontab -l")
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	var crontabList []string
-	for _, crontab := range strings.Split(string(b), "\n") {
-		// windows \r\n
-		crontab = strings.TrimRight(crontab, "\r")
-		if len(crontab) == 0 {
-			continue
-		}
-		// skip error format
-		if len(strings.Split(crontab, " ")) < 5 {
-			continue
-		}
-		// skip comment
-		if strings.HasPrefix(crontab, "#") {
-			continue
-		}
-
-		crontabList = append(crontabList, crontab)
-	}
-
-	fmt.Printf("%v", crontabList)
-	return response.JSON{}
 }
