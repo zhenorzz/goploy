@@ -13,6 +13,7 @@
       <el-input-number
         v-model="password.length"
         :min="1"
+        :max="40"
         placeholder="Please enter the password length"
       />
       <el-button type="primary" @click="createPassword">Gen</el-button>

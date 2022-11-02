@@ -437,3 +437,15 @@ export class ServerExecScript extends Request {
     this.param = param
   }
 }
+
+export class ServerRemoteCrontabList extends Request {
+  readonly url = '/server/getRemoteCrontabList'
+  readonly method = 'get'
+  public param: {
+    serverId: number
+  }
+  constructor(param: ServerRemoteCrontabList['param']) {
+    super()
+    this.param = param
+  }
+}

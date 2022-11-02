@@ -111,7 +111,7 @@ export default <RouteRecordRaw[]>[
         component: () => import('@/views/server/sftp/index.vue'),
         meta: {
           title: 'serverSFTP',
-          icon: 'ftp',
+          icon: 'sftpManage',
           permissions: [permission.ShowSftpFilePage],
         },
       },
@@ -135,6 +135,16 @@ export default <RouteRecordRaw[]>[
           permissions: [permission.ShowServerProcessPage],
         },
       },
+      // {
+      //   path: 'crontab',
+      //   name: 'ServerCrontab',
+      //   component: () => import('@/views/server/crontab.vue'),
+      //   meta: {
+      //     title: 'serverCrontab',
+      //     icon: 'crontabManage',
+      //     permissions: [permission.ShowServerProcessPage],
+      //   },
+      // },
       {
         path: 'cron',
         name: 'ServerCron',
