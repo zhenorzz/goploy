@@ -175,10 +175,11 @@ function enterCommand() {
       width: 20px;
     }
     &-name {
+      flex: 1;
       cursor: pointer;
       text-overflow: ellipsis;
       overflow: hidden;
-      width: 120px;
+      white-space: nowrap;
       display: inline-block;
     }
     &-selected {

@@ -277,10 +277,10 @@ function transferFile() {
         width: 20px;
       }
       &-name {
+        flex: 1;
         cursor: pointer;
         text-overflow: ellipsis;
         overflow: hidden;
-        width: 130px;
         padding-left: 5px;
         white-space: nowrap;
         display: inline-block;
