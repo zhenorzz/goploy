@@ -4,7 +4,7 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "dev": "vite",
-    "server": "cd ../ && go run main.go --asset-dir=./",
+    "server": "cd ../ && go run cmd/server/main.go --asset-dir=./",
     "air": "cd ../ && air",
     "build": "vite build"
   },
