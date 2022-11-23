@@ -46,13 +46,11 @@ func init() {
 	flag.StringVar(&s, "s", "", "stop")
 	flag.BoolVar(&help, "help", false, "list available subcommands and some concept guides")
 	flag.BoolVar(&v, "version", false, "show goploy version")
-	// 改变默认的 Usage
-	flag.Usage = usage
-}
-
-func usage() {
-	fmt.Fprintf(os.Stderr, "Options:\n")
-	flag.PrintDefaults()
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Options:\n")
+		flag.PrintDefaults()
+	}
+	go checkUpdate()
 }
 
 func main() {
@@ -90,8 +88,6 @@ func main() {
 	println("Listen:        " + config.Toml.Web.Port)
 	println("Running...")
 	task.Init()
-	go checkUpdate()
-	// server
 	srv := server.Server{
 		Server: http.Server{
 			Addr: ":" + config.Toml.Web.Port,
