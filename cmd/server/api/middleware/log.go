@@ -6,15 +6,15 @@ package middleware
 
 import (
 	"encoding/json"
-	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/internal/pkg"
+	"github.com/zhenorzz/goploy/internal/server"
+	"github.com/zhenorzz/goploy/internal/server/response"
 	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/response"
 	"strconv"
 	"time"
 )
 
-func AddLoginLog(gp *core.Goploy, resp core.Response) {
+func AddLoginLog(gp *server.Goploy, resp server.Response) {
 	respJson := resp.(response.JSON)
 	account := ""
 	if respJson.Code != response.IllegalParam {
@@ -39,7 +39,7 @@ func AddLoginLog(gp *core.Goploy, resp core.Response) {
 	}
 }
 
-func AddOPLog(gp *core.Goploy, resp core.Response) {
+func AddOPLog(gp *server.Goploy, resp server.Response) {
 	requestData := ""
 	if gp.URLQuery != nil && len(gp.URLQuery) > 0 && len(gp.Body) > 2 {
 		requestData = "{" + string(gp.Body[1:len(gp.Body)-1]) + ", \"_query\":\"" + gp.URLQuery.Encode() + "\"}"
@@ -71,7 +71,7 @@ func AddOPLog(gp *core.Goploy, resp core.Response) {
 	}
 }
 
-func AddUploadLog(gp *core.Goploy, resp core.Response) {
+func AddUploadLog(gp *server.Goploy, resp server.Response) {
 	var serverID int64 = 0
 	var path = ""
 	respJson := resp.(response.JSON)
@@ -97,7 +97,7 @@ func AddUploadLog(gp *core.Goploy, resp core.Response) {
 	}
 }
 
-func AddDeleteLog(gp *core.Goploy, resp core.Response) {
+func AddDeleteLog(gp *server.Goploy, resp server.Response) {
 	var serverID int64 = 0
 	var path = ""
 	respJson := resp.(response.JSON)
@@ -127,7 +127,7 @@ func AddDeleteLog(gp *core.Goploy, resp core.Response) {
 	}
 }
 
-func AddDownloadLog(gp *core.Goploy, resp core.Response) {
+func AddDownloadLog(gp *server.Goploy, resp server.Response) {
 	msg := ""
 	path := ""
 	var serverID int64 = 0
@@ -157,7 +157,7 @@ func AddDownloadLog(gp *core.Goploy, resp core.Response) {
 	}
 }
 
-func AddPreviewLog(gp *core.Goploy, resp core.Response) {
+func AddPreviewLog(gp *server.Goploy, resp server.Response) {
 	msg := ""
 	path := ""
 	var serverID int64 = 0

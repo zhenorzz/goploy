@@ -9,12 +9,12 @@ import (
 	"encoding/base64"
 	"errors"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/internal/server"
 	"strconv"
 	"time"
 )
 
-func CheckSign(gp *core.Goploy) error {
+func CheckSign(gp *server.Goploy) error {
 	sign := gp.URLQuery.Get("sign")
 	if sign == "" {
 		return errors.New("sign missing")

@@ -7,14 +7,13 @@ package middleware
 import (
 	"encoding/json"
 	"errors"
-	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/permission"
 )
 
-// HasProjectPermission check the user has publish auth
-func HasProjectPermission(gp *core.Goploy) error {
-	if _, ok := gp.Namespace.PermissionIDs[permission.GetAllDeployList]; ok {
+func HasProjectPermission(gp *server.Goploy) error {
+	if _, ok := gp.Namespace.PermissionIDs[config.GetAllDeployList]; ok {
 		return nil
 	}
 	type ReqData struct {
@@ -32,8 +31,7 @@ func HasProjectPermission(gp *core.Goploy) error {
 	return nil
 }
 
-// FilterEvent check the webhook event has publish auth
-func FilterEvent(gp *core.Goploy) error {
+func FilterEvent(gp *server.Goploy) error {
 	if XGitHubEvent := gp.Request.Header.Get("X-GitHub-Event"); len(XGitHubEvent) != 0 && XGitHubEvent == "push" {
 		return nil
 	} else if XGitLabEvent := gp.Request.Header.Get("X-Gitlab-Event"); len(XGitLabEvent) != 0 && XGitLabEvent == "Push Hook" {

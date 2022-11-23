@@ -2,59 +2,25 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package core
+package server
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt"
-	"github.com/vearutop/statigz"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/pkg"
+	"github.com/zhenorzz/goploy/internal/server/response"
 	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/response"
 	"github.com/zhenorzz/goploy/web"
-	"io/fs"
 	"io/ioutil"
 	"log"
 	"mime"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
 )
-
-type Goploy struct {
-	UserInfo  model.User
-	Namespace struct {
-		ID            int64
-		PermissionIDs map[int64]struct{}
-	}
-	Request        *http.Request
-	ResponseWriter http.ResponseWriter
-	URLQuery       url.Values
-	Body           []byte
-}
-
-type RouteApi interface {
-	Routes() []Route
-}
-
-type Response interface {
-	Write(http.ResponseWriter, *http.Request) error
-}
-
-type Route struct {
-	pattern       string
-	method        string                    // Method specifies the HTTP method (GET, POST, PUT, etc.).
-	permissionIDs []int64                   // permission list
-	white         bool                      // no need to login
-	middlewares   []func(gp *Goploy) error  // Middlewares run before callback, trigger error will end the request
-	callback      func(gp *Goploy) Response // Controller function
-	logFunc       func(gp *Goploy, resp Response)
-}
 
 // Router is Route slice and global middlewares
 type Router struct {
@@ -62,88 +28,36 @@ type Router struct {
 	middlewares *[]func(gp *Goploy) error // Middlewares run before all Route
 }
 
-func NewRouter() Router {
-	return Router{
+func NewRouter() *Router {
+	router := Router{
 		routes:      map[string]Route{},
 		middlewares: new([]func(gp *Goploy) error),
 	}
+
+	return &router
 }
 
-func NewRoute(pattern, method string, callback func(gp *Goploy) Response) Route {
-	return newRoute(pattern, method, callback)
-}
-
-func NewWhiteRoute(pattern, method string, callback func(gp *Goploy) Response) Route {
-	route := newRoute(pattern, method, callback)
-	route.white = true
-	return route
-}
-
-func newRoute(pattern, method string, callback func(gp *Goploy) Response) Route {
-	return Route{
-		pattern:  pattern,
-		method:   method,
-		callback: callback,
-	}
-}
-
-// Start a router
-func (rt Router) Start() {
-	if config.Toml.Env == "production" {
-		subFS, err := fs.Sub(web.Dist, "dist")
-		if err != nil {
-			log.Fatal(err)
-		}
-		http.Handle("/assets/", statigz.FileServer(subFS.(fs.ReadDirFS)))
-		http.Handle("/favicon.ico", statigz.FileServer(subFS.(fs.ReadDirFS)))
-	}
-	http.Handle("/", rt)
-}
-
-// Middleware global Middleware handle function
-func (rt Router) Middleware(middleware func(gp *Goploy) error) {
+func (rt *Router) Middleware(middleware func(gp *Goploy) error) {
 	*rt.middlewares = append(*rt.middlewares, middleware)
 }
 
-// Add pattern path
-// callback where path should be handled
-func (rt Router) Add(ra RouteApi) Router {
-	for _, r := range ra.Routes() {
+func (rt *Router) Register(ra RouteHandler) {
+	for _, r := range ra.Handler() {
 		rt.routes[r.pattern] = r
 	}
-	return rt
 }
 
-func (r Route) Permissions(permissionIDs ...int64) Route {
-	for _, permissionID := range permissionIDs {
-		r.permissionIDs = append(r.permissionIDs, permissionID)
-	}
-	return r
-}
-
-// Middleware global Middleware handle function
-func (r Route) Middleware(middleware func(gp *Goploy) error) Route {
-	r.middlewares = append(r.middlewares, middleware)
-	return r
-}
-
-// LogFunc callback finished
-func (r Route) LogFunc(f func(gp *Goploy, resp Response)) Route {
-	r.logFunc = f
-	return r
-}
-
-func (rt Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// If in production env, serve file in go server,
 	// else serve file in npm
 	if config.Toml.Env == "production" {
 		if "/" == r.URL.Path {
-			r, err := web.Dist.Open("dist/index.html")
+			index, err := web.Dist.Open("dist/index.html")
 			if err != nil {
 				log.Fatal(err)
 			}
-			defer r.Close()
-			contents, err := ioutil.ReadAll(r)
+			defer index.Close()
+			contents, err := ioutil.ReadAll(index)
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			fmt.Fprint(w, string(contents))
 			return
@@ -157,7 +71,7 @@ func (rt Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Response) {
+func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Response) {
 	gp := new(Goploy)
 	route, ok := rt.routes[r.URL.Path]
 	if !ok {
@@ -190,9 +104,9 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 			return gp, response.JSON{Code: response.LoginExpired, Message: "Login expired"}
 		}
 
-		namespaceIDRaw := r.Header.Get(NamespaceHeaderName)
+		namespaceIDRaw := r.Header.Get(config.NamespaceHeaderName)
 		if namespaceIDRaw == "" {
-			namespaceIDRaw = r.URL.Query().Get(NamespaceHeaderName)
+			namespaceIDRaw = r.URL.Query().Get(config.NamespaceHeaderName)
 		}
 
 		namespaceID, err := strconv.ParseInt(namespaceIDRaw, 10, 64)
@@ -274,20 +188,6 @@ func (rt Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Res
 	}
 
 	return gp, resp
-}
-
-func (r Route) hasPermission(permissionIDs map[int64]struct{}) error {
-	if len(r.permissionIDs) == 0 {
-		return nil
-	}
-
-	for _, permissionID := range r.permissionIDs {
-		if _, ok := permissionIDs[permissionID]; ok {
-			return nil
-		}
-	}
-
-	return errors.New("no permission")
 }
 
 func hasContentType(r *http.Request, mimetype string) bool {

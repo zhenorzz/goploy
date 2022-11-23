@@ -2,6 +2,12 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package config
+package response
 
-const NamespaceHeaderName = "G-N-ID"
+import (
+	"net/http"
+)
+
+type Empty struct{}
+
+func (Empty) Write(http.ResponseWriter, *http.Request) error { return nil }

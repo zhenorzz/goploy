@@ -13,11 +13,13 @@ import (
 	"flag"
 	"fmt"
 	"github.com/hashicorp/go-version"
+	"github.com/zhenorzz/goploy/cmd/server/api"
+	"github.com/zhenorzz/goploy/cmd/server/task"
+	"github.com/zhenorzz/goploy/cmd/server/ws"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/pkg"
+	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/route"
-	"github.com/zhenorzz/goploy/task"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -87,13 +89,28 @@ func main() {
 	println("Log:           " + config.Toml.Log.Path)
 	println("Listen:        " + config.Toml.Web.Port)
 	println("Running...")
-	route.Init()
 	task.Init()
 	go checkUpdate()
 	// server
-	srv := http.Server{
-		Addr: ":" + config.Toml.Web.Port,
+	srv := server.Server{
+		Server: http.Server{
+			Addr: ":" + config.Toml.Web.Port,
+		},
+		Router: server.NewRouter(),
 	}
+
+	srv.Router.Register(api.User{})
+	srv.Router.Register(api.Namespace{})
+	srv.Router.Register(api.Role{})
+	srv.Router.Register(api.Project{})
+	srv.Router.Register(api.Repository{})
+	srv.Router.Register(api.Monitor{})
+	srv.Router.Register(api.Deploy{})
+	srv.Router.Register(api.Server{})
+	srv.Router.Register(api.Log{})
+	srv.Router.Register(api.Cron{})
+	srv.Router.Register(api.Agent{})
+	srv.Router.Register(ws.GetHub())
 	go func() {
 		c := make(chan os.Signal, 1)
 
@@ -116,9 +133,7 @@ func main() {
 		}
 		println("Task shutdown gracefully")
 	}()
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal("ListenAndServe: ", err.Error())
-	}
+	srv.Spin()
 	_ = os.Remove(config.GetAssetDir())
 	println("shutdown success")
 }
