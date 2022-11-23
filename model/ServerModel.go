@@ -5,7 +5,7 @@
 package model
 
 import (
-	"github.com/zhenorzz/goploy/utils"
+	"github.com/zhenorzz/goploy/internal/pkg"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -305,8 +305,8 @@ func (s Server) ToggleRow() error {
 	return nil
 }
 
-func (s Server) ToSSHConfig() utils.SSHConfig {
-	return utils.SSHConfig{
+func (s Server) ToSSHConfig() pkg.SSHConfig {
+	return pkg.SSHConfig{
 		User:         s.Owner,
 		Password:     s.Password,
 		Path:         s.Path,

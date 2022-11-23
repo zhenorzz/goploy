@@ -2,11 +2,13 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package repository
+package repo
 
 import (
 	"fmt"
 	"github.com/zhenorzz/goploy/model"
+	"strconv"
+	"strings"
 )
 
 type Repo interface {
@@ -50,4 +52,25 @@ func GetRepo(repoType string) (Repo, error) {
 		return SftpRepo{}, nil
 	}
 	return nil, fmt.Errorf("wrong repo type passed")
+}
+
+func (commitInfo CommitInfo) ReplaceVars(script string) string {
+	scriptVars := map[string]string{
+		"${COMMIT_TAG}":       commitInfo.Tag,
+		"${COMMIT_BRANCH}":    commitInfo.Branch,
+		"${COMMIT_ID}":        commitInfo.Commit,
+		"${COMMIT_SHORT_ID}":  commitInfo.Commit,
+		"${COMMIT_AUTHOR}":    commitInfo.Author,
+		"${COMMIT_TIMESTAMP}": strconv.FormatInt(commitInfo.Timestamp, 10),
+		"${COMMIT_MESSAGE}":   commitInfo.Message,
+	}
+
+	if len(commitInfo.Commit) > 6 {
+		scriptVars["${COMMIT_SHORT_ID}"] = commitInfo.Commit[0:6]
+	}
+
+	for key, value := range scriptVars {
+		script = strings.Replace(script, key, value, -1)
+	}
+	return script
 }

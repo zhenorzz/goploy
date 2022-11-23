@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/response"
 	"net/http"
@@ -94,7 +95,7 @@ func (hub *Hub) sftp(gp *core.Goploy) core.Response {
 		messageType, message, err := c.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-				core.Log(core.ERROR, err.Error())
+				pkg.Log(pkg.ERROR, err.Error())
 			}
 			break
 		}
@@ -123,7 +124,7 @@ func (hub *Hub) sftp(gp *core.Goploy) core.Response {
 
 			b, _ := json.Marshal(response.JSON{Code: code, Message: msg, Data: fileList})
 			if err := c.WriteMessage(websocket.TextMessage, b); err != nil {
-				core.Log(core.ERROR, err.Error())
+				pkg.Log(pkg.ERROR, err.Error())
 				break
 			}
 
@@ -138,7 +139,7 @@ func (hub *Hub) sftp(gp *core.Goploy) core.Response {
 				Path:        string(message),
 				Reason:      msg,
 			}.AddRow()); err != nil {
-				core.Log(core.ERROR, err.Error())
+				pkg.Log(pkg.ERROR, err.Error())
 			}
 		}
 	}

@@ -7,13 +7,14 @@ package controller
 import (
 	"bytes"
 	"fmt"
+	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/internal/pkg"
+	"github.com/zhenorzz/goploy/internal/repo"
 	"github.com/zhenorzz/goploy/middleware"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/permission"
-	"github.com/zhenorzz/goploy/repository"
 	"github.com/zhenorzz/goploy/response"
-	"github.com/zhenorzz/goploy/utils"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -114,12 +115,12 @@ func (Project) PingRepos(gp *core.Goploy) core.Response {
 		}
 	}
 
-	repo, err := repository.GetRepo(reqData.RepoType)
+	r, err := repo.GetRepo(reqData.RepoType)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := repo.Ping(reqData.URL); err != nil {
+	if err := r.Ping(reqData.URL); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -168,12 +169,12 @@ func (Project) GetRemoteBranchList(gp *core.Goploy) core.Response {
 		}
 	}
 
-	repo, err := repository.GetRepo(reqData.RepoType)
+	r, err := repo.GetRepo(reqData.RepoType)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	list, err := repo.RemoteBranchList(reqData.URL)
+	list, err := r.RemoteBranchList(reqData.URL)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -240,7 +241,7 @@ func (Project) GetProjectFileContent(gp *core.Goploy) core.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	fileBytes, err := ioutil.ReadFile(path.Join(core.GetProjectFilePath(projectFileData.ProjectID), projectFileData.Filename))
+	fileBytes, err := ioutil.ReadFile(path.Join(config.GetProjectFilePath(projectFileData.ProjectID), projectFileData.Filename))
 	if err != nil {
 		fmt.Println("read fail", err)
 	}
@@ -261,7 +262,7 @@ func (Project) GetReposFileList(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	files, err := ioutil.ReadDir(path.Join(core.GetProjectPath(reqData.ID), reqData.Path))
+	files, err := ioutil.ReadDir(path.Join(config.GetProjectPath(reqData.ID), reqData.Path))
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -316,7 +317,7 @@ func (Project) Add(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if _, err := utils.ParseCommandLine(reqData.TransferOption); err != nil {
+	if _, err := pkg.ParseCommandLine(reqData.TransferOption); err != nil {
 		return response.JSON{Code: response.Error, Message: "Invalid transfer option format"}
 	}
 
@@ -402,7 +403,7 @@ func (Project) Edit(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if _, err := utils.ParseCommandLine(reqData.TransferOption); err != nil {
+	if _, err := pkg.ParseCommandLine(reqData.TransferOption); err != nil {
 		return response.JSON{Code: response.Error, Message: "Invalid option format"}
 	}
 
@@ -438,7 +439,7 @@ func (Project) Edit(gp *core.Goploy) core.Response {
 	}
 
 	if reqData.URL != projectData.URL {
-		srcPath := core.GetProjectPath(projectData.ID)
+		srcPath := config.GetProjectPath(projectData.ID)
 		_, err := os.Stat(srcPath)
 		if err == nil || os.IsNotExist(err) == false {
 			repo := reqData.URL
@@ -518,7 +519,7 @@ func (Project) Remove(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	srcPath := core.GetProjectPath(projectData.ID)
+	srcPath := config.GetProjectPath(projectData.ID)
 	if err := os.RemoveAll(srcPath); err != nil {
 		return response.JSON{Code: response.Error, Message: "Delete folder fail, Detail: " + err.Error()}
 	}
@@ -547,7 +548,7 @@ func (Project) UploadFile(gp *core.Goploy) core.Response {
 	}
 	defer file.Close()
 
-	filePath := path.Join(core.GetProjectFilePath(reqData.ProjectID), reqData.Filename)
+	filePath := path.Join(config.GetProjectFilePath(reqData.ProjectID), reqData.Filename)
 	fileDir := path.Dir(filePath)
 	if _, err := os.Stat(fileDir); err != nil {
 		if os.IsNotExist(err) {
@@ -606,7 +607,7 @@ func (Project) AddFile(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	filePath := path.Join(core.GetProjectFilePath(reqData.ProjectID), reqData.Filename)
+	filePath := path.Join(config.GetProjectFilePath(reqData.ProjectID), reqData.Filename)
 	fileDir := path.Dir(filePath)
 	if _, err := os.Stat(fileDir); err != nil {
 		if os.IsNotExist(err) {
@@ -656,15 +657,15 @@ func (Project) EditFile(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	_, err = os.Stat(core.GetProjectFilePath(projectFileData.ProjectID))
+	_, err = os.Stat(config.GetProjectFilePath(projectFileData.ProjectID))
 	if err != nil {
-		err := os.MkdirAll(core.GetProjectFilePath(projectFileData.ProjectID), os.ModePerm)
+		err := os.MkdirAll(config.GetProjectFilePath(projectFileData.ProjectID), os.ModePerm)
 		if err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 	}
 
-	file, err := os.Create(path.Join(core.GetProjectFilePath(projectFileData.ProjectID), projectFileData.Filename))
+	file, err := os.Create(path.Join(config.GetProjectFilePath(projectFileData.ProjectID), projectFileData.Filename))
 	if err != nil {
 		panic(err)
 	}
@@ -689,7 +690,7 @@ func (Project) RemoveFile(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := os.Remove(path.Join(core.GetProjectFilePath(projectFileData.ProjectID), projectFileData.Filename)); err != nil {
+	if err := os.Remove(path.Join(config.GetProjectFilePath(projectFileData.ProjectID), projectFileData.Filename)); err != nil {
 		if !os.IsNotExist(err) {
 			return response.JSON{Code: response.Error, Message: "Delete file fail, Detail: " + err.Error()}
 		}

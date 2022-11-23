@@ -2,14 +2,14 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package repository
+package repo
 
 import (
 	"errors"
 	"fmt"
-	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/utils"
 	"os"
 	"strconv"
 	"strings"
@@ -23,7 +23,7 @@ func (GitRepo) CanRollback() bool {
 
 // Ping -
 func (GitRepo) Ping(url string) error {
-	git := utils.GIT{}
+	git := pkg.GIT{}
 	if err := git.LsRemote("-h", url); err != nil {
 		return errors.New(git.Err.String())
 	}
@@ -33,40 +33,40 @@ func (GitRepo) Ping(url string) error {
 
 // Create -
 func (GitRepo) Create(projectID int64) error {
-	srcPath := core.GetProjectPath(projectID)
+	srcPath := config.GetProjectPath(projectID)
 	if _, err := os.Stat(srcPath); err == nil {
 		return nil
 	}
 	project, err := model.Project{ID: projectID}.GetData()
 	if err != nil {
-		core.Log(core.ERROR, fmt.Sprintf("The project does not exist, projectID:%d", projectID))
+		pkg.Log(pkg.ERROR, fmt.Sprintf("The project does not exist, projectID:%d", projectID))
 		return err
 	}
 	if err := os.RemoveAll(srcPath); err != nil {
-		core.Log(core.ERROR, fmt.Sprintf("The project fail to remove, projectID:%d, error: %s", projectID, err.Error()))
+		pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to remove, projectID:%d, error: %s", projectID, err.Error()))
 		return err
 	}
-	git := utils.GIT{}
+	git := pkg.GIT{}
 	if err := git.Clone(project.URL, srcPath); err != nil {
-		core.Log(core.ERROR, fmt.Sprintf("The project fail to initialize, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
+		pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to initialize, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
 		return err
 	}
 
 	git.Dir = srcPath
 	if err := git.Current(); err != nil {
-		core.Log(core.ERROR, fmt.Sprintf("The project fail to get current branch, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
+		pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to get current branch, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
 		return err
 	}
 
-	currentBranch := utils.ClearNewline(git.Output.String())
+	currentBranch := pkg.ClearNewline(git.Output.String())
 	if project.Branch != currentBranch {
 		if err := git.Checkout("-b", project.Branch, "origin/"+project.Branch); err != nil {
-			core.Log(core.ERROR, fmt.Sprintf("The project fail to switch branch, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
+			pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to switch branch, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
 			_ = os.RemoveAll(srcPath)
 			return err
 		}
 	}
-	core.Log(core.TRACE, fmt.Sprintf("The project success to initialize, projectID:%d", projectID))
+	pkg.Log(pkg.TRACE, fmt.Sprintf("The project success to initialize, projectID:%d", projectID))
 	return nil
 }
 
@@ -74,38 +74,38 @@ func (gitRepo GitRepo) Follow(project model.Project, target string) error {
 	if err := gitRepo.Create(project.ID); err != nil {
 		return err
 	}
-	git := utils.GIT{Dir: core.GetProjectPath(project.ID)}
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git add .")
+	git := pkg.GIT{Dir: config.GetProjectPath(project.ID)}
+	pkg.Log(pkg.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git add .")
 	if err := git.Add("."); err != nil {
-		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
+		pkg.Log(pkg.ERROR, err.Error()+", detail: "+git.Err.String())
 		return errors.New(git.Err.String())
 	}
 
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git reset --hard")
+	pkg.Log(pkg.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git reset --hard")
 	if err := git.Reset("--hard"); err != nil {
-		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
+		pkg.Log(pkg.ERROR, err.Error()+", detail: "+git.Err.String())
 		return errors.New(git.Err.String())
 	}
 
 	// the length of commit id is 40
 	if len(target) != 40 {
-		core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git fetch")
+		pkg.Log(pkg.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git fetch")
 		if err := git.Fetch(); err != nil {
-			core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
+			pkg.Log(pkg.ERROR, err.Error()+", detail: "+git.Err.String())
 			return errors.New(git.Err.String())
 		}
 	}
 
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git checkout -B goploy "+target)
+	pkg.Log(pkg.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git checkout -B goploy "+target)
 	if err := git.Checkout("-B", "goploy", target); err != nil {
-		core.Log(core.ERROR, err.Error()+", detail: "+git.Err.String())
+		pkg.Log(pkg.ERROR, err.Error()+", detail: "+git.Err.String())
 		return errors.New(git.Err.String())
 	}
 	return nil
 }
 
 func (GitRepo) RemoteBranchList(url string) ([]string, error) {
-	git := utils.GIT{}
+	git := pkg.GIT{}
 	if err := git.LsRemote("-h", url); err != nil {
 		return []string{}, errors.New(git.Err.String())
 	}
@@ -123,7 +123,7 @@ func (GitRepo) RemoteBranchList(url string) ([]string, error) {
 }
 
 func (GitRepo) BranchList(projectID int64) ([]string, error) {
-	git := utils.GIT{Dir: core.GetProjectPath(projectID)}
+	git := pkg.GIT{Dir: config.GetProjectPath(projectID)}
 
 	if err := git.Fetch(); err != nil {
 		return []string{}, errors.New(err.Error() + " detail: " + git.Err.String())
@@ -146,7 +146,7 @@ func (GitRepo) BranchList(projectID int64) ([]string, error) {
 }
 
 func (GitRepo) CommitLog(projectID int64, rows int) ([]CommitInfo, error) {
-	git := utils.GIT{Dir: core.GetProjectPath(projectID)}
+	git := pkg.GIT{Dir: config.GetProjectPath(projectID)}
 
 	if err := git.Log("--stat", "--pretty=format:`start`%H`%an`%at`%s`%d`", "-n", strconv.Itoa(rows)); err != nil {
 		return []CommitInfo{}, errors.New(git.Err.String())
@@ -157,7 +157,7 @@ func (GitRepo) CommitLog(projectID int64, rows int) ([]CommitInfo, error) {
 }
 
 func (GitRepo) BranchLog(projectID int64, branch string, rows int) ([]CommitInfo, error) {
-	git := utils.GIT{Dir: core.GetProjectPath(projectID)}
+	git := pkg.GIT{Dir: config.GetProjectPath(projectID)}
 
 	if err := git.Log(branch, "--stat", "--pretty=format:`start`%H`%an`%at`%s`%d`", "-n", strconv.Itoa(rows)); err != nil {
 		return []CommitInfo{}, errors.New(git.Err.String())
@@ -168,7 +168,7 @@ func (GitRepo) BranchLog(projectID int64, branch string, rows int) ([]CommitInfo
 }
 
 func (GitRepo) TagLog(projectID int64, rows int) ([]CommitInfo, error) {
-	git := utils.GIT{Dir: core.GetProjectPath(projectID)}
+	git := pkg.GIT{Dir: config.GetProjectPath(projectID)}
 	if err := git.Add("."); err != nil {
 		return []CommitInfo{}, errors.New(git.Err.String())
 	}

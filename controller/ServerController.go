@@ -12,11 +12,11 @@ import (
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/middleware"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/permission"
 	"github.com/zhenorzz/goploy/response"
-	"github.com/zhenorzz/goploy/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -114,7 +114,7 @@ func (Server) Check(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	sshConfig := utils.SSHConfig{
+	sshConfig := pkg.SSHConfig{
 		User:         reqData.Owner,
 		Password:     reqData.Password,
 		Path:         reqData.Path,
@@ -197,19 +197,19 @@ func (Server) Import(gp *core.Goploy) core.Response {
 					NamespaceID: gp.Namespace.ID,
 				}
 				server.Name = record[headerIdx["name"]]
-				err = core.Validate.Var(server.Name, "required")
+				err = Validate.Var(server.Name, "required")
 				if err != nil {
 					errMsg += "name,"
 				}
 
 				server.OS = record[headerIdx["os"]]
-				err = core.Validate.Var(server.OS, "oneof=linux windows")
+				err = Validate.Var(server.OS, "oneof=linux windows")
 				if err != nil {
 					errMsg += "os,"
 				}
 
 				server.IP = record[headerIdx["host"]]
-				err = core.Validate.Var(server.IP, "ip|hostname")
+				err = Validate.Var(server.IP, "ip|hostname")
 				if err != nil {
 					errMsg += "host,"
 				}
@@ -220,13 +220,13 @@ func (Server) Import(gp *core.Goploy) core.Response {
 				}
 
 				server.Owner = record[headerIdx["owner"]]
-				err = core.Validate.Var(server.Owner, "required,max=255")
+				err = Validate.Var(server.Owner, "required,max=255")
 				if err != nil {
 					errMsg += "owner,"
 				}
 
 				server.Path = record[headerIdx["path"]]
-				err = core.Validate.Var(record[headerIdx["path"]], "max=255")
+				err = Validate.Var(record[headerIdx["path"]], "max=255")
 				if err != nil {
 					errMsg += "path,"
 				}
@@ -255,12 +255,12 @@ func (Server) Import(gp *core.Goploy) core.Response {
 				errMsg = strings.TrimRight(errMsg, ",")
 				if errMsg != "" {
 					errOccur = true
-					core.Log(core.ERROR, fmt.Sprintf("Error on No.%d line %s, field validation on %s failed", i, record, errMsg))
+					pkg.Log(pkg.ERROR, fmt.Sprintf("Error on No.%d line %s, field validation on %s failed", i, record, errMsg))
 				} else {
 					server.OSInfo = server.ToSSHConfig().GetOSInfo()
 					if _, err := server.AddRow(); err != nil {
 						errOccur = true
-						core.Log(core.ERROR, fmt.Sprintf("Error on No.%d line %s, %s", i, record, err.Error()))
+						pkg.Log(pkg.ERROR, fmt.Sprintf("Error on No.%d line %s, %s", i, record, err.Error()))
 					}
 				}
 
@@ -416,19 +416,19 @@ func (Server) InstallAgent(gp *core.Goploy) core.Response {
 		go func(id int64) {
 			server, err := (model.Server{ID: id}).GetData()
 			if err != nil {
-				core.Log(core.ERROR, fmt.Sprintf("Error on %d server, %s", id, err.Error()))
+				pkg.Log(pkg.ERROR, fmt.Sprintf("Error on %d server, %s", id, err.Error()))
 				return
 			}
 			client, err := server.ToSSHConfig().Dial()
 			if err != nil {
-				core.Log(core.ERROR, fmt.Sprintf("Error on %d server, %s", id, err.Error()))
+				pkg.Log(pkg.ERROR, fmt.Sprintf("Error on %d server, %s", id, err.Error()))
 				return
 			}
 			defer client.Close()
 
 			session, err := client.NewSession()
 			if err != nil {
-				core.Log(core.ERROR, fmt.Sprintf("Error on %d server, %s", id, err.Error()))
+				pkg.Log(pkg.ERROR, fmt.Sprintf("Error on %d server, %s", id, err.Error()))
 				return
 			}
 			defer session.Close()
@@ -455,10 +455,10 @@ func (Server) InstallAgent(gp *core.Goploy) core.Response {
 				"nohup ./goploy-agent &",
 			}
 			if err := session.Run(strings.Join(commands, "&&")); err != nil {
-				core.Log(core.ERROR, fmt.Sprintf("Error on %d server, %s, detail: %s", id, err.Error(), sshErrbuf.String()))
+				pkg.Log(pkg.ERROR, fmt.Sprintf("Error on %d server, %s, detail: %s", id, err.Error(), sshErrbuf.String()))
 				return
 			}
-			core.Log(core.INFO, sshErrbuf.String())
+			pkg.Log(pkg.INFO, sshErrbuf.String())
 		}(id)
 	}
 

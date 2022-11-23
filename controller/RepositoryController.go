@@ -6,8 +6,8 @@ package controller
 
 import (
 	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/internal/repo"
 	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/repository"
 	"github.com/zhenorzz/goploy/response"
 	"net/http"
 	"strconv"
@@ -40,19 +40,19 @@ func (Repository) GetCommitList(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	repo, err := repository.GetRepo(project.RepoType)
+	r, err := repo.GetRepo(project.RepoType)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	list, err := repo.BranchLog(project.ID, reqData.Branch, 10)
+	list, err := r.BranchLog(project.ID, reqData.Branch, 10)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	return response.JSON{
 		Data: struct {
-			CommitList []repository.CommitInfo `json:"list"`
+			CommitList []repo.CommitInfo `json:"list"`
 		}{CommitList: list},
 	}
 }
@@ -68,12 +68,12 @@ func (Repository) GetBranchList(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	repo, err := repository.GetRepo(project.RepoType)
+	r, err := repo.GetRepo(project.RepoType)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	branchList, err := repo.BranchList(project.ID)
+	branchList, err := r.BranchList(project.ID)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -96,19 +96,19 @@ func (Repository) GetTagList(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	repo, err := repository.GetRepo(project.RepoType)
+	r, err := repo.GetRepo(project.RepoType)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	list, err := repo.TagLog(project.ID, 10)
+	list, err := r.TagLog(project.ID, 10)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	return response.JSON{
 		Data: struct {
-			TagList []repository.CommitInfo `json:"list"`
+			TagList []repo.CommitInfo `json:"list"`
 		}{TagList: list},
 	}
 }

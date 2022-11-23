@@ -7,9 +7,9 @@ package transmitter
 import (
 	"fmt"
 	"github.com/pkg/sftp"
-	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/utils"
 	"io"
 	"io/ioutil"
 	"os"
@@ -41,7 +41,7 @@ func (st sftpTransmitter) Exec() (string, error) {
 	defer sftpClient.Close()
 
 	project := st.Project
-	transferOption, _ := utils.ParseCommandLine(project.TransferOption)
+	transferOption, _ := pkg.ParseCommandLine(project.TransferOption)
 	var opt struct {
 		isVerbose bool
 	}
@@ -95,9 +95,9 @@ func (st sftpTransmitter) Exec() (string, error) {
 		}
 		nextItem = ""
 	}
-	includes = append(includes, fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, st.ProjectServer.ServerID, utils.GetScriptExt(project.AfterDeployScriptMode)))
+	includes = append(includes, fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, st.ProjectServer.ServerID, pkg.GetScriptExt(project.AfterDeployScriptMode)))
 
-	srcPath := core.GetProjectPath(project.ID) + "/"
+	srcPath := config.GetProjectPath(project.ID) + "/"
 	destPath := project.Path
 	if len(project.SymlinkPath) != 0 {
 		destPath = path.Join(project.SymlinkPath, project.LastPublishToken)

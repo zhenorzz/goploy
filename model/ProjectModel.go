@@ -7,6 +7,10 @@ package model
 import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
+	"github.com/zhenorzz/goploy/config"
+	"path"
+	"strconv"
+	"strings"
 )
 
 const projectTable = "`project`"
@@ -491,4 +495,22 @@ func (p Project) GetUserProjectData() (Project, error) {
 		return project, err
 	}
 	return project, nil
+}
+
+func (p Project) ReplaceVars(script string) string {
+	scriptVars := map[string]string{
+		"${PROJECT_ID}":           strconv.FormatInt(p.ID, 10),
+		"${PROJECT_PATH}":         p.Path,
+		"${PROJECT_SYMLINK_PATH}": path.Join(p.SymlinkPath, p.LastPublishToken),
+		"${PROJECT_NAME}":         p.Name,
+		"${PROJECT_BRANCH}":       p.Branch,
+		"${REPOSITORY_TYPE}":      p.RepoType,
+		"${REPOSITORY_URL}":       p.URL,
+		"${REPOSITORY_PATH}":      config.GetProjectPath(p.ID),
+		"${PUBLISH_TOKEN}":        p.LastPublishToken,
+	}
+	for key, value := range scriptVars {
+		script = strings.Replace(script, key, value, -1)
+	}
+	return script
 }

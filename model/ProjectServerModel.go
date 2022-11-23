@@ -7,7 +7,9 @@ package model
 import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
-	"github.com/zhenorzz/goploy/utils"
+	"github.com/zhenorzz/goploy/internal/pkg"
+	"strconv"
+	"strings"
 )
 
 const projectServerTable = "`project_server`"
@@ -129,8 +131,8 @@ func (ps ProjectServer) DeleteByProjectID() error {
 	return err
 }
 
-func (ps ProjectServer) ToSSHConfig() utils.SSHConfig {
-	return utils.SSHConfig{
+func (ps ProjectServer) ToSSHConfig() pkg.SSHConfig {
+	return pkg.SSHConfig{
 		User:         ps.ServerOwner,
 		Password:     ps.ServerPassword,
 		Path:         ps.ServerPath,
@@ -166,4 +168,25 @@ func (ps ProjectServer) ToSSHOption() string {
 	} else {
 		return fmt.Sprintf("sshpass -p %s ssh -o StrictHostKeyChecking=no %s -p %d", ps.ServerPassword, proxyCommand, ps.ServerPort)
 	}
+}
+
+func (ps ProjectServer) ReplaceVars(script string) string {
+	scriptVars := map[string]string{
+		"${SERVER_ID}":            strconv.FormatInt(ps.ServerID, 10),
+		"${SERVER_NAME}":          ps.ServerName,
+		"${SERVER_IP}":            ps.ServerIP,
+		"${SERVER_PORT}":          strconv.Itoa(ps.ServerPort),
+		"${SERVER_OWNER}":         ps.ServerOwner,
+		"${SERVER_PASSWORD}":      ps.ServerPassword,
+		"${SERVER_PATH}":          ps.ServerPath,
+		"${SERVER_JUMP_IP}":       ps.ServerJumpIP,
+		"${SERVER_JUMP_PORT}":     strconv.Itoa(ps.ServerJumpPort),
+		"${SERVER_JUMP_OWNER}":    ps.ServerJumpOwner,
+		"${SERVER_JUMP_PASSWORD}": ps.ServerJumpPassword,
+		"${SERVER_JUMP_PATH}":     ps.ServerJumpPath,
+	}
+	for key, value := range scriptVars {
+		script = strings.Replace(script, key, value, -1)
+	}
+	return script
 }

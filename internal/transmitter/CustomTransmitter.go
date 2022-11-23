@@ -6,9 +6,9 @@ package transmitter
 
 import (
 	"fmt"
-	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/utils"
 	"os/exec"
 	"path"
 	"strconv"
@@ -32,8 +32,8 @@ func (ct customTransmitter) String() string {
 		"${PROJECT_BRANCH}":        project.Branch,
 		"${REPOSITORY_TYPE}":       project.RepoType,
 		"${REPOSITORY_URL}":        project.URL,
-		"${REPOSITORY_PATH}":       core.GetProjectPath(project.ID),
-		"${AFTER_DEPLOY_FILENAME}": fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, server.ServerID, utils.GetScriptExt(project.AfterDeployScriptMode)),
+		"${REPOSITORY_PATH}":       config.GetProjectPath(project.ID),
+		"${AFTER_DEPLOY_FILENAME}": fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, server.ServerID, pkg.GetScriptExt(project.AfterDeployScriptMode)),
 		"${PUBLISH_TOKEN}":         project.LastPublishToken,
 		"${SERVER_ID}":             strconv.FormatInt(server.ServerID, 10),
 		"${SERVER_NAME}":           server.ServerName,
@@ -58,7 +58,7 @@ func (ct customTransmitter) Exec() (string, error) {
 	if ct.Project.TransferOption == "" {
 		return "", nil
 	}
-	parts, _ := utils.ParseCommandLine(ct.String())
+	parts, _ := pkg.ParseCommandLine(ct.String())
 	cmd := exec.Command(parts[0], parts[1:]...)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return string(output), err

@@ -6,7 +6,7 @@ package task
 
 import (
 	"database/sql"
-	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/service"
 	"github.com/zhenorzz/goploy/ws"
@@ -42,7 +42,7 @@ var monitorCaches = map[int64]MonitorCache{}
 func monitorTask() {
 	monitors, err := model.Monitor{State: model.Enable}.GetAllByState()
 	if err != nil && err != sql.ErrNoRows {
-		core.Log(core.ERROR, "get monitor list error, detail:"+err.Error())
+		pkg.Log(pkg.ERROR, "get monitor list error, detail:"+err.Error())
 	}
 	monitorIDs := map[int64]struct{}{}
 	for _, monitor := range monitors {
@@ -70,7 +70,7 @@ func monitorTask() {
 			ms, err := service.NewMonitorFromTarget(monitor.Type, monitor.Target)
 			if err != nil {
 				_ = monitor.TurnOff(err.Error())
-				core.Log(core.ERROR, "monitor "+monitor.Name+" encounter error, "+err.Error())
+				pkg.Log(pkg.ERROR, "monitor "+monitor.Name+" encounter error, "+err.Error())
 				ws.GetHub().Data <- &ws.Data{
 					Type:    ws.TypeMonitor,
 					Message: ws.MonitorMessage{MonitorID: monitor.ID, State: ws.MonitorTurnOff, ErrorContent: err.Error()},
@@ -78,14 +78,14 @@ func monitorTask() {
 			} else if err := ms.Check(); err != nil {
 				monitorErrorContent := err.Error()
 				monitorCache.errorTimes++
-				core.Log(core.ERROR, "monitor "+monitor.Name+" encounter error, "+monitorErrorContent)
+				pkg.Log(pkg.ERROR, "monitor "+monitor.Name+" encounter error, "+monitorErrorContent)
 				if monitor.Times <= uint16(monitorCache.errorTimes) {
 					if body, err := monitor.Notify(monitorErrorContent); err != nil {
-						core.Log(core.ERROR, "monitor "+monitor.Name+" notify error, "+err.Error())
+						pkg.Log(pkg.ERROR, "monitor "+monitor.Name+" notify error, "+err.Error())
 					} else {
 						monitorCache.errorTimes = 0
 						monitorCache.silentCycle = 1
-						core.Log(core.TRACE, "monitor "+monitor.Name+" notify return "+body)
+						pkg.Log(pkg.TRACE, "monitor "+monitor.Name+" notify return "+body)
 						_ = monitor.TurnOff(monitorErrorContent)
 						ws.GetHub().Data <- &ws.Data{
 							Type:    ws.TypeMonitor,

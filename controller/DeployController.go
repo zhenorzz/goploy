@@ -14,16 +14,16 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/pkg/sftp"
+	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/internal/pkg"
+	"github.com/zhenorzz/goploy/internal/pkg/cmd"
+	"github.com/zhenorzz/goploy/internal/repo"
 	"github.com/zhenorzz/goploy/middleware"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/permission"
-	"github.com/zhenorzz/goploy/repository"
 	"github.com/zhenorzz/goploy/response"
-	"github.com/zhenorzz/goploy/service"
-	"github.com/zhenorzz/goploy/service/cmd"
 	"github.com/zhenorzz/goploy/task"
-	"github.com/zhenorzz/goploy/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -188,7 +188,7 @@ func (Deploy) FileCompare(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	srcPath := path.Join(core.GetProjectPath(reqData.ProjectID), reqData.FilePath)
+	srcPath := path.Join(config.GetProjectPath(reqData.ProjectID), reqData.FilePath)
 	file, err := os.Open(srcPath)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
@@ -279,7 +279,7 @@ func (Deploy) FileDiff(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	srcText, err := ioutil.ReadFile(path.Join(core.GetProjectPath(reqData.ProjectID), reqData.FilePath))
+	srcText, err := ioutil.ReadFile(path.Join(config.GetProjectPath(reqData.ProjectID), reqData.FilePath))
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -358,7 +358,7 @@ func (Deploy) ManageProcess(gp *core.Goploy) core.Response {
 		return response.JSON{Code: response.Error, Message: "Command empty"}
 	}
 
-	script = service.ReplaceProjectVars(script, project)
+	script = project.ReplaceVars(script)
 
 	client, err := server.ToSSHConfig().Dial()
 	if err != nil {
@@ -376,7 +376,7 @@ func (Deploy) ManageProcess(gp *core.Goploy) core.Response {
 	session.Stdout = &sshOutbuf
 	session.Stderr = &sshErrbuf
 	err = session.Run(script)
-	core.Log(core.TRACE, fmt.Sprintf("%s exec cmd %s, result %t, stdout: %s, stderr: %s", gp.UserInfo.Name, script, err == nil, sshOutbuf.String(), sshErrbuf.String()))
+	pkg.Log(pkg.TRACE, fmt.Sprintf("%s exec cmd %s, result %t, stdout: %s, stderr: %s", gp.UserInfo.Name, script, err == nil, sshOutbuf.String(), sshErrbuf.String()))
 	return response.JSON{
 		Data: struct {
 			ExecRes bool   `json:"execRes"`
@@ -439,7 +439,7 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 	}
 
 	needToPublish := project.SymlinkPath == ""
-	var commitInfo repository.CommitInfo
+	var commitInfo repo.CommitInfo
 	publishTraceServerCount := 0
 	for _, publishTrace := range publishTraceList {
 		// publish failed
@@ -475,44 +475,44 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 				cmdEntity := cmd.New(projectServer.ServerOS)
 				afterDeployCommands := []string{cmdEntity.Symlink(destDir, project.Path), cmdEntity.ChangeDirTime(destDir)}
 				if len(project.AfterDeployScript) != 0 {
-					scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, utils.GetScriptExt(project.AfterDeployScriptMode))
-					scriptContent := service.ReplaceProjectVars(project.AfterDeployScript, project)
-					scriptContent = service.ReplaceProjectServerVars(scriptContent, projectServer)
-					ioutil.WriteFile(path.Join(core.GetProjectPath(project.ID), scriptName), []byte(service.ReplaceProjectVars(project.AfterDeployScript, project)), 0755)
+					scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.AfterDeployScriptMode))
+					scriptContent := project.ReplaceVars(project.AfterDeployScript)
+					scriptContent = projectServer.ReplaceVars(scriptContent)
+					ioutil.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(project.ReplaceVars(project.AfterDeployScript)), 0755)
 					afterDeployScriptPath := path.Join(project.Path, scriptName)
 					afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.AfterDeployScriptMode, afterDeployScriptPath))
 					afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
 				}
 				client, err := projectServer.ToSSHConfig().Dial()
 				if err != nil {
-					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" dial err: "+err.Error())
+					pkg.Log(pkg.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" dial err: "+err.Error())
 					ch <- false
 					return
 				}
 				defer client.Close()
 				session, err := client.NewSession()
 				if err != nil {
-					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" new session err: "+err.Error())
+					pkg.Log(pkg.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" new session err: "+err.Error())
 					ch <- false
 					return
 				}
 
 				// check if the path is existed or not
 				if output, err := session.CombinedOutput("cd " + destDir); err != nil {
-					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" check symlink path err: "+err.Error()+", detail: "+string(output))
+					pkg.Log(pkg.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" check symlink path err: "+err.Error()+", detail: "+string(output))
 					ch <- false
 					return
 				}
 				session, err = client.NewSession()
 				if err != nil {
-					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" new session err: "+err.Error())
+					pkg.Log(pkg.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" new session err: "+err.Error())
 					ch <- false
 					return
 				}
 
 				// redirect to project path
 				if output, err := session.CombinedOutput(strings.Join(afterDeployCommands, "&&")); err != nil {
-					core.Log(core.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" symlink err: "+err.Error()+", detail: "+string(output))
+					pkg.Log(pkg.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" symlink err: "+err.Error()+", detail: "+string(output))
 					ch <- false
 					return
 				}
@@ -541,7 +541,7 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 	}
 
 	if needToPublish == true {
-		repoEntity, _ := repository.GetRepo(project.RepoType)
+		repoEntity, _ := repo.GetRepo(project.RepoType)
 		if !repoEntity.CanRollback() {
 			return response.JSON{Code: response.Error, Message: fmt.Sprintf("plesae enable symlink to rollback the %s repo", project.RepoType)}
 		}
@@ -554,7 +554,7 @@ func (Deploy) Rebuild(gp *core.Goploy) core.Response {
 		if err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
-		task.AddDeployTask(service.Gsync{
+		task.AddDeployTask(task.Gsync{
 			UserInfo:       gp.UserInfo,
 			Project:        project,
 			ProjectServers: projectServers,
@@ -606,7 +606,7 @@ func (Deploy) GreyPublish(gp *core.Goploy) core.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	task.AddDeployTask(service.Gsync{
+	task.AddDeployTask(task.Gsync{
 		UserInfo:       gp.UserInfo,
 		Project:        project,
 		ProjectServers: projectServers,
@@ -711,7 +711,7 @@ func (Deploy) Webhook(gp *core.Goploy) core.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	task.AddDeployTask(service.Gsync{
+	task.AddDeployTask(task.Gsync{
 		UserInfo:       gp.UserInfo,
 		Project:        project,
 		ProjectServers: projectServers,
@@ -765,7 +765,7 @@ func projectDeploy(gp *core.Goploy, project model.Project, commitID string, bran
 	if err != nil {
 		return err
 	}
-	task.AddDeployTask(service.Gsync{
+	task.AddDeployTask(task.Gsync{
 		UserInfo:       gp.UserInfo,
 		Project:        project,
 		ProjectServers: projectServers,

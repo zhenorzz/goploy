@@ -8,7 +8,7 @@ import (
 )
 
 func TestInitDB(t *testing.T) {
-	config.Create("../goploy.toml")
+	config.InitToml("../goploy.toml")
 	db, err := sql.Open(config.Toml.DB.Type, fmt.Sprintf(
 		"%s:%s@(%s:%s)/?charset=utf8mb4,utf8\n",
 		config.Toml.DB.User,
@@ -21,7 +21,7 @@ func TestInitDB(t *testing.T) {
 	if err := CreateDB(db, config.Toml.DB.Database); err != nil {
 		t.Fatal(err)
 	}
-	if err := UserDB(db, config.Toml.DB.Database); err != nil {
+	if err := UseDB(db, config.Toml.DB.Database); err != nil {
 		t.Fatal(err)
 	}
 	if err := ImportSQL(db, "sql/goploy.sql"); err != nil {

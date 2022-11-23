@@ -66,8 +66,8 @@ type LDAPConfig struct {
 
 var Toml Config
 
-func Create(filename string) {
-	config, err := ioutil.ReadFile(filename)
+func InitToml() {
+	config, err := ioutil.ReadFile(GetConfigFile())
 	if err != nil {
 		panic(err)
 	}
@@ -100,14 +100,14 @@ func setDBDefault() {
 	}
 }
 
-func Write(filename string, cfg Config) error {
+func Write(cfg Config) error {
 	yamlData, err := toml.Marshal(&cfg)
 
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(filename, yamlData, 0644)
+	err = ioutil.WriteFile(GetConfigFile(), yamlData, 0644)
 	if err != nil {
 		return err
 	}

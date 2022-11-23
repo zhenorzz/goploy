@@ -11,6 +11,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/vearutop/statigz"
 	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/response"
 	"github.com/zhenorzz/goploy/web"
@@ -151,7 +152,7 @@ func (rt Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	_, resp := rt.doRequest(w, r)
 	if err := resp.Write(w, r); err != nil {
-		Log(ERROR, err.Error())
+		pkg.Log(pkg.ERROR, err.Error())
 	}
 	return
 }

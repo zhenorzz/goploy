@@ -5,6 +5,7 @@
 package controller
 
 import (
+	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/core"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/permission"
@@ -257,7 +258,7 @@ func (Log) GetTerminalRecord(gp *core.Goploy) core.Response {
 	if gp.UserInfo.SuperManager != model.SuperManager && terminalLog.NamespaceID != gp.Namespace.ID {
 		return response.JSON{Code: response.Error, Message: "You have no access to enter this record"}
 	}
-	return response.File{Filename: core.GetTerminalLogPath(reqData.RecordID)}
+	return response.File{Filename: config.GetTerminalLogPath(reqData.RecordID)}
 }
 
 func (Log) GetPublishLogList(gp *core.Goploy) core.Response {

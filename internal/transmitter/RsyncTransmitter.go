@@ -6,9 +6,9 @@ package transmitter
 
 import (
 	"fmt"
-	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/utils"
 	"os/exec"
 	"path"
 	"regexp"
@@ -28,17 +28,17 @@ func (rt rsyncTransmitter) args() []string {
 	if len(project.SymlinkPath) != 0 {
 		destDir = path.Join(project.SymlinkPath, project.LastPublishToken)
 	}
-	srcPath := core.GetProjectPath(project.ID) + "/"
+	srcPath := config.GetProjectPath(project.ID) + "/"
 	// rsync path can not contain colon
 	// windows like C:\
 	if strings.Contains(srcPath, ":\\") {
 		srcPath = "/cygdrive/" + strings.Replace(srcPath, ":\\", "/", 1)
 	}
 
-	rsyncOption, _ := utils.ParseCommandLine(project.TransferOption)
+	rsyncOption, _ := pkg.ParseCommandLine(project.TransferOption)
 	rsyncOption = append([]string{
 		"--include",
-		fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, utils.GetScriptExt(project.AfterDeployScriptMode)),
+		fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.AfterDeployScriptMode)),
 	}, rsyncOption...)
 	rsyncOption = append(rsyncOption, "-e", projectServer.ToSSHOption())
 

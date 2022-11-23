@@ -7,10 +7,11 @@ package ws
 import (
 	"bytes"
 	"github.com/gorilla/websocket"
+	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/response"
-	"github.com/zhenorzz/goploy/utils"
 	"golang.org/x/crypto/ssh"
 	"net/http"
 	"strconv"
@@ -119,10 +120,10 @@ func (hub *Hub) xterm(gp *core.Goploy) core.Response {
 		return response.Empty{}
 	}
 
-	var recorder *utils.Recorder
-	recorder, err = utils.NewRecorder(core.GetTerminalLogPath(tlID), "xterm", rows, cols)
+	var recorder *pkg.Recorder
+	recorder, err = pkg.NewRecorder(config.GetTerminalLogPath(tlID), "xterm", rows, cols)
 	if err != nil {
-		core.Log(core.ERROR, err.Error())
+		pkg.Log(pkg.ERROR, err.Error())
 	} else {
 		defer recorder.Close()
 	}
@@ -152,7 +153,7 @@ func (hub *Hub) xterm(gp *core.Goploy) core.Response {
 					}
 					if recorder != nil {
 						if err := recorder.WriteData(comboWriter.buffer.String()); err != nil {
-							core.Log(core.ERROR, err.Error())
+							pkg.Log(pkg.ERROR, err.Error())
 						}
 					}
 					comboWriter.buffer.Reset()
@@ -167,13 +168,13 @@ func (hub *Hub) xterm(gp *core.Goploy) core.Response {
 		messageType, p, err := c.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-				core.Log(core.ERROR, err.Error())
+				pkg.Log(pkg.ERROR, err.Error())
 			}
 			break
 		}
 		if messageType != websocket.PongMessage {
 			if _, err := sessionStdin.Write(p); err != nil {
-				core.Log(core.ERROR, err.Error())
+				pkg.Log(pkg.ERROR, err.Error())
 				break
 			}
 		}
@@ -183,7 +184,7 @@ func (hub *Hub) xterm(gp *core.Goploy) core.Response {
 		ID:      tlID,
 		EndTime: time.Now().Format("20060102150405"),
 	}.EditRow()); err != nil {
-		core.Log(core.ERROR, err.Error())
+		pkg.Log(pkg.ERROR, err.Error())
 	}
 
 	return response.Empty{}

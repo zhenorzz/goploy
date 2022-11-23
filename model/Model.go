@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/go-version"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/utils"
+	"github.com/zhenorzz/goploy/internal/pkg"
 	"log"
 	"net/url"
 	"path"
@@ -92,7 +92,7 @@ func CreateDB(db *sql.DB, name string) error {
 	return nil
 }
 
-func UserDB(db *sql.DB, name string) error {
+func UseDB(db *sql.DB, name string) error {
 	query := fmt.Sprintf("USE `%s`", name)
 	_, err := db.Exec(query)
 	if err != nil {
@@ -107,7 +107,7 @@ func ImportSQL(db *sql.DB, sqlPath string) error {
 		return err
 	}
 	for _, query := range strings.Split(string(sqlContent), ";") {
-		query = utils.ClearNewline(query)
+		query = pkg.ClearNewline(query)
 		if len(query) == 0 {
 			continue
 		}

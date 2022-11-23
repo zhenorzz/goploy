@@ -2,15 +2,15 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package repository
+package repo
 
 import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
-	"github.com/zhenorzz/goploy/utils"
 	"os"
 	"strconv"
 	"strings"
@@ -25,7 +25,7 @@ func (SvnRepo) CanRollback() bool {
 
 // Ping -
 func (SvnRepo) Ping(url string) error {
-	svn := utils.SVN{}
+	svn := pkg.SVN{}
 	if err := svn.LS(strings.Split(url, " ")...); err != nil {
 		return errors.New(svn.Err.String())
 	}
@@ -34,27 +34,27 @@ func (SvnRepo) Ping(url string) error {
 
 // Create -
 func (SvnRepo) Create(projectID int64) error {
-	srcPath := core.GetProjectPath(projectID)
+	srcPath := config.GetProjectPath(projectID)
 	if _, err := os.Stat(srcPath); err == nil {
 		return nil
 	}
 	project, err := model.Project{ID: projectID}.GetData()
 	if err != nil {
-		core.Log(core.TRACE, "The project does not exist, projectID:"+strconv.FormatInt(projectID, 10))
+		pkg.Log(pkg.TRACE, "The project does not exist, projectID:"+strconv.FormatInt(projectID, 10))
 		return err
 	}
 	if err := os.RemoveAll(srcPath); err != nil {
-		core.Log(core.TRACE, "The project fail to remove, projectID:"+strconv.FormatInt(project.ID, 10)+" ,error: "+err.Error())
+		pkg.Log(pkg.TRACE, "The project fail to remove, projectID:"+strconv.FormatInt(project.ID, 10)+" ,error: "+err.Error())
 		return err
 	}
-	svn := utils.SVN{}
+	svn := pkg.SVN{}
 	options := strings.Split(project.URL, " ")
 	options = append(options, srcPath)
 	if err := svn.Clone(options...); err != nil {
-		core.Log(core.ERROR, "The project fail to initialize, projectID:"+strconv.FormatInt(project.ID, 10)+" ,error: "+err.Error()+", detail: "+svn.Err.String())
+		pkg.Log(pkg.ERROR, "The project fail to initialize, projectID:"+strconv.FormatInt(project.ID, 10)+" ,error: "+err.Error()+", detail: "+svn.Err.String())
 		return err
 	}
-	core.Log(core.TRACE, "The project success to initialize, projectID:"+strconv.FormatInt(project.ID, 10))
+	pkg.Log(pkg.TRACE, "The project success to initialize, projectID:"+strconv.FormatInt(project.ID, 10))
 	return nil
 }
 
@@ -62,18 +62,18 @@ func (svnRepo SvnRepo) Follow(project model.Project, target string) error {
 	if err := svnRepo.Create(project.ID); err != nil {
 		return err
 	}
-	svn := utils.SVN{Dir: core.GetProjectPath(project.ID)}
+	svn := pkg.SVN{Dir: config.GetProjectPath(project.ID)}
 
 	// the length of commit id is 40
-	core.Log(core.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" svn up")
+	pkg.Log(pkg.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" svn up")
 	if strings.Index(target, "r") == 0 {
 		if err := svn.Pull("-r", target); err != nil {
-			core.Log(core.ERROR, err.Error()+", detail: "+svn.Err.String())
+			pkg.Log(pkg.ERROR, err.Error()+", detail: "+svn.Err.String())
 			return errors.New(svn.Err.String())
 		}
 	} else {
 		if err := svn.Pull(); err != nil {
-			core.Log(core.ERROR, err.Error()+", detail: "+svn.Err.String())
+			pkg.Log(pkg.ERROR, err.Error()+", detail: "+svn.Err.String())
 			return errors.New(svn.Err.String())
 		}
 	}
@@ -86,7 +86,7 @@ func (SvnRepo) RemoteBranchList(url string) ([]string, error) {
 }
 
 func (SvnRepo) BranchList(projectID int64) ([]string, error) {
-	svn := utils.SVN{Dir: core.GetProjectPath(projectID)}
+	svn := pkg.SVN{Dir: config.GetProjectPath(projectID)}
 	if err := svn.Pull(); err != nil {
 		return []string{}, errors.New(err.Error() + " detail: " + svn.Err.String())
 	}
@@ -94,7 +94,7 @@ func (SvnRepo) BranchList(projectID int64) ([]string, error) {
 }
 
 func (SvnRepo) CommitLog(projectID int64, rows int) ([]CommitInfo, error) {
-	svn := utils.SVN{Dir: core.GetProjectPath(projectID)}
+	svn := pkg.SVN{Dir: config.GetProjectPath(projectID)}
 
 	if err := svn.Log("-v", "--xml", "-l", strconv.Itoa(rows)); err != nil {
 		return []CommitInfo{}, errors.New(svn.Err.String())
@@ -105,7 +105,7 @@ func (SvnRepo) CommitLog(projectID int64, rows int) ([]CommitInfo, error) {
 }
 
 func (SvnRepo) BranchLog(projectID int64, branch string, rows int) ([]CommitInfo, error) {
-	svn := utils.SVN{Dir: core.GetProjectPath(projectID)}
+	svn := pkg.SVN{Dir: config.GetProjectPath(projectID)}
 
 	if err := svn.Log("-v", "--xml", "-l", strconv.Itoa(rows)); err != nil {
 		return []CommitInfo{}, errors.New(svn.Err.String())

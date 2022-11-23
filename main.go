@@ -14,18 +14,15 @@ import (
 	"fmt"
 	"github.com/hashicorp/go-version"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/core"
+	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/route"
 	"github.com/zhenorzz/goploy/task"
-	"github.com/zhenorzz/goploy/utils"
-	"github.com/zhenorzz/goploy/ws"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"path"
 	"runtime"
 	"strconv"
 	"syscall"
@@ -43,7 +40,7 @@ var (
 const appVersion = "1.12.2"
 
 func init() {
-	flag.StringVar(&core.AssetDir, "asset-dir", "", "default: ./")
+	flag.StringVar(&config.AssetDir, "asset-dir", "", "default: ./")
 	flag.StringVar(&s, "s", "", "stop")
 	flag.BoolVar(&help, "help", false, "list available subcommands and some concept guides")
 	flag.BoolVar(&v, "version", false, "show goploy version")
@@ -75,23 +72,21 @@ func main() {
 \____/\____/ .___/_/\____/\__, /  
           /_/            /____/   ` + appVersion + "\n")
 	install()
-	config.Create(core.GetConfigFile())
+	config.InitToml()
 	model.Init()
 	if err := model.Update(appVersion); err != nil {
 		println(err.Error())
 	}
 	pid := strconv.Itoa(os.Getpid())
-	_ = ioutil.WriteFile(path.Join(core.GetAssetDir(), "goploy.pid"), []byte(pid), 0755)
+	_ = ioutil.WriteFile(config.GetPidFile(), []byte(pid), 0755)
 	println("Start at " + time.Now().String())
 	println("goploy -h for more help")
 	println("Current pid:   " + pid)
-	println("Config Loaded: " + core.GetConfigFile())
+	println("Config Loaded: " + config.GetConfigFile())
 	println("Env:           " + config.Toml.Env)
 	println("Log:           " + config.Toml.Log.Path)
 	println("Listen:        " + config.Toml.Web.Port)
 	println("Running...")
-	core.CreateValidator()
-	ws.Init()
 	route.Init()
 	task.Init()
 	go checkUpdate()
@@ -124,13 +119,12 @@ func main() {
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal("ListenAndServe: ", err.Error())
 	}
-	_ = os.Remove(path.Join(core.GetAssetDir(), "goploy.pid"))
+	_ = os.Remove(config.GetAssetDir())
 	println("shutdown success")
-	return
 }
 
 func install() {
-	_, err := os.Stat(core.GetConfigFile())
+	_, err := os.Stat(config.GetConfigFile())
 	if err == nil || os.IsExist(err) {
 		println("The configuration file already exists, no need to reinstall (if you need to reinstall, please back up the database `goploy` first, delete the .env file, then restart.)")
 		return
@@ -152,13 +146,13 @@ func install() {
 	if err != nil {
 		panic("There were errors reading, exiting program.")
 	}
-	cfg.DB.User = utils.ClearNewline(mysqlUser)
+	cfg.DB.User = pkg.ClearNewline(mysqlUser)
 	println("Please enter the mysql password:")
 	mysqlPassword, err := inputReader.ReadString('\n')
 	if err != nil {
 		panic("There were errors reading, exiting program.")
 	}
-	mysqlPassword = utils.ClearNewline(mysqlPassword)
+	mysqlPassword = pkg.ClearNewline(mysqlPassword)
 	if len(mysqlPassword) != 0 {
 		cfg.DB.Password = mysqlPassword
 	}
@@ -167,7 +161,7 @@ func install() {
 	if err != nil {
 		panic("There were errors reading, exiting program.")
 	}
-	mysqlHost = utils.ClearNewline(mysqlHost)
+	mysqlHost = pkg.ClearNewline(mysqlHost)
 	if len(mysqlHost) != 0 {
 		cfg.DB.Host = mysqlHost
 	}
@@ -176,7 +170,7 @@ func install() {
 	if err != nil {
 		panic("There were errors reading, exiting program.")
 	}
-	mysqlPort = utils.ClearNewline(mysqlPort)
+	mysqlPort = pkg.ClearNewline(mysqlPort)
 	if len(mysqlPort) != 0 {
 		cfg.DB.Port = mysqlPort
 	}
@@ -185,7 +179,7 @@ func install() {
 	if err != nil {
 		panic("There were errors reading, exiting program.")
 	}
-	logPath = utils.ClearNewline(logPath)
+	logPath = pkg.ClearNewline(logPath)
 	if len(logPath) != 0 {
 		cfg.Log.Path = logPath
 	}
@@ -194,7 +188,7 @@ func install() {
 	if err != nil {
 		panic("There were errors reading, exiting program.")
 	}
-	port = utils.ClearNewline(port)
+	port = pkg.ClearNewline(port)
 	if len(port) != 0 {
 		cfg.Web.Port = port
 	}
@@ -213,7 +207,7 @@ func install() {
 	if err := model.CreateDB(db, cfg.DB.Database); err != nil {
 		panic(err)
 	}
-	if err := model.UserDB(db, cfg.DB.Database); err != nil {
+	if err := model.UseDB(db, cfg.DB.Database); err != nil {
 		panic(err)
 	}
 	if err := model.ImportSQL(db, "sql/goploy.sql"); err != nil {
@@ -221,7 +215,7 @@ func install() {
 	}
 	println("Database installation is complete")
 	println("Start writing configuration file...")
-	err = config.Write(core.GetConfigFile(), cfg)
+	err = config.Write(cfg)
 	if err != nil {
 		panic("Write config file error, " + err.Error())
 	}
@@ -231,7 +225,7 @@ func install() {
 func handleClientSignal() {
 	switch s {
 	case "stop":
-		pidFile := path.Join(core.GetAssetDir(), "goploy.pid")
+		pidFile := config.GetPidFile()
 		pidStr, err := ioutil.ReadFile(pidFile)
 		if err != nil {
 			log.Fatal("handle stop, ", err.Error(), ", may be the server not start")
