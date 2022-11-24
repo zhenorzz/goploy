@@ -7,7 +7,7 @@ package task
 import (
 	"database/sql"
 	"fmt"
-	"github.com/zhenorzz/goploy/internal/pkg"
+	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/model"
 	"strings"
 	"sync/atomic"
@@ -45,7 +45,7 @@ func serverMonitorTask() {
 	var serverCaches = map[int64]model.Server{}
 	serverMonitorTasks, err := model.ServerMonitor{}.GetAllModBy(loop, time.Now().Format("15:04"))
 	if err != nil && err != sql.ErrNoRows {
-		pkg.Log(pkg.ERROR, "get server monitor list error, detail:"+err.Error())
+		log.Error("get server monitor list error, detail:" + err.Error())
 	}
 	for _, serverMonitor := range serverMonitorTasks {
 		monitorCache, ok := serverMonitorCaches[serverMonitor.ID]
@@ -68,7 +68,7 @@ func serverMonitorTask() {
 			Item:     serverMonitor.Item,
 		}.GetCycleValue(serverMonitor.GroupCycle, serverMonitor.Formula)
 		if err != nil {
-			pkg.Log(pkg.ERROR, "get cycle value failed, detail:"+err.Error())
+			log.Error("get cycle value failed, detail:" + err.Error())
 			continue
 		}
 
@@ -98,16 +98,16 @@ func serverMonitorTask() {
 			if _, ok := serverCaches[serverMonitor.ServerID]; !ok {
 				server, err := model.Server{ID: serverMonitor.ServerID}.GetData()
 				if err != nil {
-					pkg.Log(pkg.ERROR, fmt.Sprintf("monitor task %d has no server, detail: %s", serverMonitor.ID, err.Error()))
+					log.Error(fmt.Sprintf("monitor task %d has no server, detail: %s", serverMonitor.ID, err.Error()))
 					continue
 				}
 				serverCaches[serverMonitor.ServerID] = server
 			}
 			body, err := serverMonitor.Notify(serverCaches[serverMonitor.ServerID], cycleValue)
 			if err != nil {
-				pkg.Log(pkg.ERROR, fmt.Sprintf("monitor task %d notify error, %s", serverMonitor.ID, err.Error()))
+				log.Error(fmt.Sprintf("monitor task %d notify error, %s", serverMonitor.ID, err.Error()))
 			} else {
-				pkg.Log(pkg.TRACE, fmt.Sprintf("monitor task %d notify return %s", serverMonitor.ID, body))
+				log.Trace(fmt.Sprintf("monitor task %d notify return %s", serverMonitor.ID, body))
 			}
 		}
 		serverMonitorCaches[serverMonitor.ID] = monitorCache

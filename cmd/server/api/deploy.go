@@ -17,6 +17,7 @@ import (
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/cmd/server/task"
 	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/internal/pkg/cmd"
 	"github.com/zhenorzz/goploy/internal/repo"
@@ -375,7 +376,7 @@ func (Deploy) ManageProcess(gp *server.Goploy) server.Response {
 	session.Stdout = &sshOutbuf
 	session.Stderr = &sshErrbuf
 	err = session.Run(script)
-	pkg.Log(pkg.TRACE, fmt.Sprintf("%s exec cmd %s, result %t, stdout: %s, stderr: %s", gp.UserInfo.Name, script, err == nil, sshOutbuf.String(), sshErrbuf.String()))
+	log.Trace(fmt.Sprintf("%s exec cmd %s, result %t, stdout: %s, stderr: %s", gp.UserInfo.Name, script, err == nil, sshOutbuf.String(), sshErrbuf.String()))
 	return response.JSON{
 		Data: struct {
 			ExecRes bool   `json:"execRes"`
@@ -484,34 +485,34 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 				}
 				client, err := projectServer.ToSSHConfig().Dial()
 				if err != nil {
-					pkg.Log(pkg.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" dial err: "+err.Error())
+					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " dial err: " + err.Error())
 					ch <- false
 					return
 				}
 				defer client.Close()
 				session, err := client.NewSession()
 				if err != nil {
-					pkg.Log(pkg.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" new session err: "+err.Error())
+					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " new session err: " + err.Error())
 					ch <- false
 					return
 				}
 
 				// check if the path is existed or not
 				if output, err := session.CombinedOutput("cd " + destDir); err != nil {
-					pkg.Log(pkg.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" check symlink path err: "+err.Error()+", detail: "+string(output))
+					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " check symlink path err: " + err.Error() + ", detail: " + string(output))
 					ch <- false
 					return
 				}
 				session, err = client.NewSession()
 				if err != nil {
-					pkg.Log(pkg.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" new session err: "+err.Error())
+					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " new session err: " + err.Error())
 					ch <- false
 					return
 				}
 
 				// redirect to project path
 				if output, err := session.CombinedOutput(strings.Join(afterDeployCommands, "&&")); err != nil {
-					pkg.Log(pkg.ERROR, "projectID:"+strconv.FormatInt(project.ID, 10)+" symlink err: "+err.Error()+", detail: "+string(output))
+					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " symlink err: " + err.Error() + ", detail: " + string(output))
 					ch <- false
 					return
 				}

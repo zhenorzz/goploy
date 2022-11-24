@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
 	"os"
@@ -39,34 +40,34 @@ func (GitRepo) Create(projectID int64) error {
 	}
 	project, err := model.Project{ID: projectID}.GetData()
 	if err != nil {
-		pkg.Log(pkg.ERROR, fmt.Sprintf("The project does not exist, projectID:%d", projectID))
+		log.Error(fmt.Sprintf("The project does not exist, projectID:%d", projectID))
 		return err
 	}
 	if err := os.RemoveAll(srcPath); err != nil {
-		pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to remove, projectID:%d, error: %s", projectID, err.Error()))
+		log.Error(fmt.Sprintf("The project fail to remove, projectID:%d, error: %s", projectID, err.Error()))
 		return err
 	}
 	git := pkg.GIT{}
 	if err := git.Clone(project.URL, srcPath); err != nil {
-		pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to initialize, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
+		log.Error(fmt.Sprintf("The project fail to initialize, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
 		return err
 	}
 
 	git.Dir = srcPath
 	if err := git.Current(); err != nil {
-		pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to get current branch, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
+		log.Error(fmt.Sprintf("The project fail to get current branch, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
 		return err
 	}
 
 	currentBranch := pkg.ClearNewline(git.Output.String())
 	if project.Branch != currentBranch {
 		if err := git.Checkout("-b", project.Branch, "origin/"+project.Branch); err != nil {
-			pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to switch branch, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
+			log.Error(fmt.Sprintf("The project fail to switch branch, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
 			_ = os.RemoveAll(srcPath)
 			return err
 		}
 	}
-	pkg.Log(pkg.TRACE, fmt.Sprintf("The project success to initialize, projectID:%d", projectID))
+	log.Trace(fmt.Sprintf("The project success to initialize, projectID:%d", projectID))
 	return nil
 }
 
@@ -75,30 +76,30 @@ func (gitRepo GitRepo) Follow(project model.Project, target string) error {
 		return err
 	}
 	git := pkg.GIT{Dir: config.GetProjectPath(project.ID)}
-	pkg.Log(pkg.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git add .")
+	log.Trace("projectID:" + strconv.FormatInt(project.ID, 10) + " git add .")
 	if err := git.Add("."); err != nil {
-		pkg.Log(pkg.ERROR, err.Error()+", detail: "+git.Err.String())
+		log.Error(err.Error() + ", detail: " + git.Err.String())
 		return errors.New(git.Err.String())
 	}
 
-	pkg.Log(pkg.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git reset --hard")
+	log.Trace("projectID:" + strconv.FormatInt(project.ID, 10) + " git reset --hard")
 	if err := git.Reset("--hard"); err != nil {
-		pkg.Log(pkg.ERROR, err.Error()+", detail: "+git.Err.String())
+		log.Error(err.Error() + ", detail: " + git.Err.String())
 		return errors.New(git.Err.String())
 	}
 
 	// the length of commit id is 40
 	if len(target) != 40 {
-		pkg.Log(pkg.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git fetch")
+		log.Trace("projectID:" + strconv.FormatInt(project.ID, 10) + " git fetch")
 		if err := git.Fetch(); err != nil {
-			pkg.Log(pkg.ERROR, err.Error()+", detail: "+git.Err.String())
+			log.Error(err.Error() + ", detail: " + git.Err.String())
 			return errors.New(git.Err.String())
 		}
 	}
 
-	pkg.Log(pkg.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" git checkout -B goploy "+target)
+	log.Trace("projectID:" + strconv.FormatInt(project.ID, 10) + " git checkout -B goploy " + target)
 	if err := git.Checkout("-B", "goploy", target); err != nil {
-		pkg.Log(pkg.ERROR, err.Error()+", detail: "+git.Err.String())
+		log.Error(err.Error() + ", detail: " + git.Err.String())
 		return errors.New(git.Err.String())
 	}
 	return nil

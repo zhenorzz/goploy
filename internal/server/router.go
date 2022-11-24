@@ -9,12 +9,11 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/internal/pkg"
+	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/web"
 	"io/ioutil"
-	"log"
 	"mime"
 	"net/http"
 	"strconv"
@@ -52,13 +51,14 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// else serve file in npm
 	if config.Toml.Env == "production" {
 		if "/" == r.URL.Path {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			index, err := web.Dist.Open("dist/index.html")
 			if err != nil {
-				log.Fatal(err)
+				fmt.Fprint(w, "404")
+				log.Error(err.Error())
 			}
 			defer index.Close()
 			contents, err := ioutil.ReadAll(index)
-			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			fmt.Fprint(w, string(contents))
 			return
 		}
@@ -66,7 +66,7 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	_, resp := rt.doRequest(w, r)
 	if err := resp.Write(w, r); err != nil {
-		pkg.Log(pkg.ERROR, err.Error())
+		log.Error(err.Error())
 	}
 	return
 }

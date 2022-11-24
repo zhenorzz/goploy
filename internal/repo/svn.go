@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
 	"os"
@@ -40,21 +41,21 @@ func (SvnRepo) Create(projectID int64) error {
 	}
 	project, err := model.Project{ID: projectID}.GetData()
 	if err != nil {
-		pkg.Log(pkg.TRACE, "The project does not exist, projectID:"+strconv.FormatInt(projectID, 10))
+		log.Trace("The project does not exist, projectID:" + strconv.FormatInt(projectID, 10))
 		return err
 	}
 	if err := os.RemoveAll(srcPath); err != nil {
-		pkg.Log(pkg.TRACE, "The project fail to remove, projectID:"+strconv.FormatInt(project.ID, 10)+" ,error: "+err.Error())
+		log.Trace("The project fail to remove, projectID:" + strconv.FormatInt(project.ID, 10) + " ,error: " + err.Error())
 		return err
 	}
 	svn := pkg.SVN{}
 	options := strings.Split(project.URL, " ")
 	options = append(options, srcPath)
 	if err := svn.Clone(options...); err != nil {
-		pkg.Log(pkg.ERROR, "The project fail to initialize, projectID:"+strconv.FormatInt(project.ID, 10)+" ,error: "+err.Error()+", detail: "+svn.Err.String())
+		log.Error("The project fail to initialize, projectID:" + strconv.FormatInt(project.ID, 10) + " ,error: " + err.Error() + ", detail: " + svn.Err.String())
 		return err
 	}
-	pkg.Log(pkg.TRACE, "The project success to initialize, projectID:"+strconv.FormatInt(project.ID, 10))
+	log.Trace("The project success to initialize, projectID:" + strconv.FormatInt(project.ID, 10))
 	return nil
 }
 
@@ -65,15 +66,15 @@ func (svnRepo SvnRepo) Follow(project model.Project, target string) error {
 	svn := pkg.SVN{Dir: config.GetProjectPath(project.ID)}
 
 	// the length of commit id is 40
-	pkg.Log(pkg.TRACE, "projectID:"+strconv.FormatInt(project.ID, 10)+" svn up")
+	log.Trace("projectID:" + strconv.FormatInt(project.ID, 10) + " svn up")
 	if strings.Index(target, "r") == 0 {
 		if err := svn.Pull("-r", target); err != nil {
-			pkg.Log(pkg.ERROR, err.Error()+", detail: "+svn.Err.String())
+			log.Error(err.Error() + ", detail: " + svn.Err.String())
 			return errors.New(svn.Err.String())
 		}
 	} else {
 		if err := svn.Pull(); err != nil {
-			pkg.Log(pkg.ERROR, err.Error()+", detail: "+svn.Err.String())
+			log.Error(err.Error() + ", detail: " + svn.Err.String())
 			return errors.New(svn.Err.String())
 		}
 	}

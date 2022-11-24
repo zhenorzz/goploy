@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
@@ -254,12 +255,12 @@ func (Server) Import(gp *server.Goploy) server.Response {
 				errMsg = strings.TrimRight(errMsg, ",")
 				if errMsg != "" {
 					errOccur = true
-					pkg.Log(pkg.ERROR, fmt.Sprintf("Error on No.%d line %s, field validation on %s failed", i, record, errMsg))
+					log.Error(fmt.Sprintf("Error on No.%d line %s, field validation on %s failed", i, record, errMsg))
 				} else {
 					srv.OSInfo = srv.ToSSHConfig().GetOSInfo()
 					if _, err := srv.AddRow(); err != nil {
 						errOccur = true
-						pkg.Log(pkg.ERROR, fmt.Sprintf("Error on No.%d line %s, %s", i, record, err.Error()))
+						log.Error(fmt.Sprintf("Error on No.%d line %s, %s", i, record, err.Error()))
 					}
 				}
 
@@ -415,19 +416,19 @@ func (Server) InstallAgent(gp *server.Goploy) server.Response {
 		go func(id int64) {
 			srv, err := (model.Server{ID: id}).GetData()
 			if err != nil {
-				pkg.Log(pkg.ERROR, fmt.Sprintf("Error on %d server, %s", id, err.Error()))
+				log.Error(fmt.Sprintf("Error on %d server, %s", id, err.Error()))
 				return
 			}
 			client, err := srv.ToSSHConfig().Dial()
 			if err != nil {
-				pkg.Log(pkg.ERROR, fmt.Sprintf("Error on %d server, %s", id, err.Error()))
+				log.Error(fmt.Sprintf("Error on %d server, %s", id, err.Error()))
 				return
 			}
 			defer client.Close()
 
 			session, err := client.NewSession()
 			if err != nil {
-				pkg.Log(pkg.ERROR, fmt.Sprintf("Error on %d server, %s", id, err.Error()))
+				log.Error(fmt.Sprintf("Error on %d server, %s", id, err.Error()))
 				return
 			}
 			defer session.Close()
@@ -454,10 +455,10 @@ func (Server) InstallAgent(gp *server.Goploy) server.Response {
 				"nohup ./goploy-agent &",
 			}
 			if err := session.Run(strings.Join(commands, "&&")); err != nil {
-				pkg.Log(pkg.ERROR, fmt.Sprintf("Error on %d server, %s, detail: %s", id, err.Error(), sshErrbuf.String()))
+				log.Error(fmt.Sprintf("Error on %d server, %s, detail: %s", id, err.Error(), sshErrbuf.String()))
 				return
 			}
-			pkg.Log(pkg.INFO, sshErrbuf.String())
+			log.Info(sshErrbuf.String())
 		}(id)
 	}
 

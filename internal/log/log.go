@@ -2,32 +2,27 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package pkg
+package log
 
 import (
 	"fmt"
 	"github.com/zhenorzz/goploy/config"
 	"io"
-	"log"
+	log1 "log"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 )
 
-// LogLevel is log level
-type LogLevel string
-
-// log level
 const (
-	TRACE   LogLevel = "TRACE: "
-	WARNING LogLevel = "WARNING: "
-	INFO    LogLevel = "INFO: "
-	ERROR   LogLevel = "ERROR: "
+	TRACE   = "TRACE: "
+	WARNING = "WARNING: "
+	INFO    = "INFO: "
+	ERROR   = "ERROR: "
 )
 
-// Log information to file with logged day
-func Log(lv LogLevel, content string) {
+func log(lv string, content string) {
 	var logFile io.Writer
 	logPathEnv := config.Toml.Log.Path
 	if strings.ToLower(logPathEnv) == "stdout" {
@@ -55,10 +50,42 @@ func Log(lv LogLevel, content string) {
 		}
 	}
 
-	logger := log.New(logFile, string(lv), log.LstdFlags|log.Lshortfile)
+	logger := log1.New(logFile, lv, log1.LstdFlags|log1.Lshortfile)
 	logger.Output(2, content)
 }
 
-func Logf(lv LogLevel, format string, a ...interface{}) {
-	Log(lv, fmt.Sprintf(format, a...))
+func logf(lv string, format string, a ...interface{}) {
+	log(lv, fmt.Sprintf(format, a...))
+}
+
+func Error(s string) {
+	log(ERROR, s)
+}
+
+func Errorf(s string, a ...interface{}) {
+	logf(ERROR, s, a...)
+}
+
+func Warning(s string) {
+	log(WARNING, s)
+}
+
+func Warningf(s string, a ...interface{}) {
+	logf(WARNING, s, a...)
+}
+
+func Trace(s string) {
+	log(TRACE, s)
+}
+
+func Tracef(s string, a ...interface{}) {
+	logf(TRACE, s, a...)
+}
+
+func Info(s string) {
+	log(INFO, s)
+}
+
+func Infof(s string, a ...interface{}) {
+	logf(INFO, s, a...)
 }

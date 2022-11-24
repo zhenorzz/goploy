@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/sftp"
-	"github.com/zhenorzz/goploy/internal/pkg"
+	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"github.com/zhenorzz/goploy/model"
@@ -95,7 +95,7 @@ func (hub *Hub) sftp(gp *server.Goploy) server.Response {
 		messageType, message, err := c.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-				pkg.Log(pkg.ERROR, err.Error())
+				log.Error(err.Error())
 			}
 			break
 		}
@@ -124,7 +124,7 @@ func (hub *Hub) sftp(gp *server.Goploy) server.Response {
 
 			b, _ := json.Marshal(response.JSON{Code: code, Message: msg, Data: fileList})
 			if err := c.WriteMessage(websocket.TextMessage, b); err != nil {
-				pkg.Log(pkg.ERROR, err.Error())
+				log.Error(err.Error())
 				break
 			}
 
@@ -139,7 +139,7 @@ func (hub *Hub) sftp(gp *server.Goploy) server.Response {
 				Path:        string(message),
 				Reason:      msg,
 			}.AddRow()); err != nil {
-				pkg.Log(pkg.ERROR, err.Error())
+				log.Error(err.Error())
 			}
 		}
 	}

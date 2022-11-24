@@ -6,7 +6,7 @@ package ws
 
 import (
 	"github.com/gorilla/websocket"
-	"github.com/zhenorzz/goploy/internal/pkg"
+	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"github.com/zhenorzz/goploy/model"
@@ -100,7 +100,7 @@ func (hub *Hub) connect(gp *server.Goploy) server.Response {
 	}
 	c, err := upgrader.Upgrade(gp.ResponseWriter, gp.Request, nil)
 	if err != nil {
-		pkg.Log(pkg.ERROR, err.Error())
+		log.Error(err.Error())
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	c.SetReadLimit(maxMessageSize)
@@ -129,7 +129,7 @@ func (hub *Hub) connect(gp *server.Goploy) server.Response {
 		_, _, err = c.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-				pkg.Log(pkg.ERROR, err.Error())
+				log.Error(err.Error())
 			}
 			break
 		}

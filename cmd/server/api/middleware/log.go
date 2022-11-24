@@ -6,7 +6,7 @@ package middleware
 
 import (
 	"encoding/json"
-	"github.com/zhenorzz/goploy/internal/pkg"
+	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"github.com/zhenorzz/goploy/model"
@@ -35,7 +35,7 @@ func AddLoginLog(gp *server.Goploy, resp server.Response) {
 		LoginTime:  time.Now().Format("20060102150405"),
 	}.AddRow()
 	if err != nil {
-		pkg.Log(pkg.ERROR, err.Error())
+		log.Error(err.Error())
 	}
 }
 
@@ -67,7 +67,7 @@ func AddOPLog(gp *server.Goploy, resp server.Response) {
 		ResponseData: responseData,
 	}.AddRow()
 	if err != nil {
-		pkg.Log(pkg.ERROR, err.Error())
+		log.Error(err.Error())
 	}
 }
 
@@ -93,7 +93,7 @@ func AddUploadLog(gp *server.Goploy, resp server.Response) {
 		Reason:      respJson.Message,
 	}.AddRow()
 	if err != nil {
-		pkg.Log(pkg.ERROR, err.Error())
+		log.Error(err.Error())
 	}
 }
 
@@ -123,7 +123,7 @@ func AddDeleteLog(gp *server.Goploy, resp server.Response) {
 		Reason:      respJson.Message,
 	}.AddRow()
 	if err != nil {
-		pkg.Log(pkg.ERROR, err.Error())
+		log.Error(err.Error())
 	}
 }
 
@@ -153,7 +153,7 @@ func AddDownloadLog(gp *server.Goploy, resp server.Response) {
 		Reason:      msg,
 	}.AddRow()
 	if err != nil {
-		pkg.Log(pkg.ERROR, err.Error())
+		log.Error(err.Error())
 	}
 }
 
@@ -183,6 +183,6 @@ func AddPreviewLog(gp *server.Goploy, resp server.Response) {
 		Reason:      msg,
 	}.AddRow()
 	if err != nil {
-		pkg.Log(pkg.ERROR, err.Error())
+		log.Error(err.Error())
 	}
 }

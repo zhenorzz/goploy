@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"github.com/gorilla/websocket"
 	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
@@ -123,7 +124,7 @@ func (hub *Hub) xterm(gp *server.Goploy) server.Response {
 	var recorder *pkg.Recorder
 	recorder, err = pkg.NewRecorder(config.GetTerminalLogPath(tlID), "xterm", rows, cols)
 	if err != nil {
-		pkg.Log(pkg.ERROR, err.Error())
+		log.Error(err.Error())
 	} else {
 		defer recorder.Close()
 	}
@@ -153,7 +154,7 @@ func (hub *Hub) xterm(gp *server.Goploy) server.Response {
 					}
 					if recorder != nil {
 						if err := recorder.WriteData(comboWriter.buffer.String()); err != nil {
-							pkg.Log(pkg.ERROR, err.Error())
+							log.Error(err.Error())
 						}
 					}
 					comboWriter.buffer.Reset()
@@ -168,13 +169,13 @@ func (hub *Hub) xterm(gp *server.Goploy) server.Response {
 		messageType, p, err := c.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-				pkg.Log(pkg.ERROR, err.Error())
+				log.Error(err.Error())
 			}
 			break
 		}
 		if messageType != websocket.PongMessage {
 			if _, err := sessionStdin.Write(p); err != nil {
-				pkg.Log(pkg.ERROR, err.Error())
+				log.Error(err.Error())
 				break
 			}
 		}
@@ -184,7 +185,7 @@ func (hub *Hub) xterm(gp *server.Goploy) server.Response {
 		ID:      tlID,
 		EndTime: time.Now().Format("20060102150405"),
 	}.EditRow()); err != nil {
-		pkg.Log(pkg.ERROR, err.Error())
+		log.Error(err.Error())
 	}
 
 	return response.Empty{}

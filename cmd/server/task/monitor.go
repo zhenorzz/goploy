@@ -7,8 +7,8 @@ package task
 import (
 	"database/sql"
 	"github.com/zhenorzz/goploy/cmd/server/ws"
+	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/monitor"
-	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
 	"sync/atomic"
 	"time"
@@ -42,7 +42,7 @@ var monitorCaches = map[int64]MonitorCache{}
 func monitorTask() {
 	monitors, err := model.Monitor{State: model.Enable}.GetAllByState()
 	if err != nil && err != sql.ErrNoRows {
-		pkg.Log(pkg.ERROR, "get m list error, detail:"+err.Error())
+		log.Error("get m list error, detail:" + err.Error())
 	}
 	monitorIDs := map[int64]struct{}{}
 	for _, m := range monitors {
@@ -70,7 +70,7 @@ func monitorTask() {
 			ms, err := monitor.NewMonitorFromTarget(m.Type, m.Target)
 			if err != nil {
 				_ = m.TurnOff(err.Error())
-				pkg.Log(pkg.ERROR, "m "+m.Name+" encounter error, "+err.Error())
+				log.Error("m " + m.Name + " encounter error, " + err.Error())
 				ws.GetHub().Data <- &ws.Data{
 					Type:    ws.TypeMonitor,
 					Message: ws.MonitorMessage{MonitorID: m.ID, State: ws.MonitorTurnOff, ErrorContent: err.Error()},
@@ -78,14 +78,14 @@ func monitorTask() {
 			} else if err := ms.Check(); err != nil {
 				monitorErrorContent := err.Error()
 				monitorCache.errorTimes++
-				pkg.Log(pkg.ERROR, "m "+m.Name+" encounter error, "+monitorErrorContent)
+				log.Error("m " + m.Name + " encounter error, " + monitorErrorContent)
 				if m.Times <= uint16(monitorCache.errorTimes) {
 					if body, err := m.Notify(monitorErrorContent); err != nil {
-						pkg.Log(pkg.ERROR, "m "+m.Name+" notify error, "+err.Error())
+						log.Error("m " + m.Name + " notify error, " + err.Error())
 					} else {
 						monitorCache.errorTimes = 0
 						monitorCache.silentCycle = 1
-						pkg.Log(pkg.TRACE, "m "+m.Name+" notify return "+body)
+						log.Trace("m " + m.Name + " notify return " + body)
 						_ = m.TurnOff(monitorErrorContent)
 						ws.GetHub().Data <- &ws.Data{
 							Type:    ws.TypeMonitor,

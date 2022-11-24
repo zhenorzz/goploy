@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/jlaffaye/ftp"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/internal/pkg"
+	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/model"
 	"io"
 	"net/url"
@@ -38,7 +38,7 @@ func (ftpRepo FtpRepo) Ping(url string) error {
 func (ftpRepo FtpRepo) Create(projectID int64) error {
 	project, err := model.Project{ID: projectID}.GetData()
 	if err != nil {
-		pkg.Log(pkg.ERROR, fmt.Sprintf("The project does not exist, projectID:%d", projectID))
+		log.Error(fmt.Sprintf("The project does not exist, projectID:%d", projectID))
 		return err
 	}
 	return ftpRepo.Follow(project, "")
@@ -49,13 +49,13 @@ func (ftpRepo FtpRepo) Follow(project model.Project, _ string) error {
 	srcPath := config.GetProjectPath(projectID)
 	_ = os.RemoveAll(srcPath)
 	if err := os.MkdirAll(srcPath, 0755); err != nil {
-		pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to mkdir, projectID:%d, error:%s", projectID, err.Error()))
+		log.Error(fmt.Sprintf("The project fail to mkdir, projectID:%d, error:%s", projectID, err.Error()))
 		return err
 	}
 
 	c, err := ftpRepo.dial(project.URL)
 	if err != nil {
-		pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to connect ftp, projectID:%d, error:%s", projectID, err.Error()))
+		log.Error(fmt.Sprintf("The project fail to connect ftp, projectID:%d, error:%s", projectID, err.Error()))
 		return err
 	}
 	var downloadFromFTP func(localDir, remoteDir string) error
@@ -94,11 +94,11 @@ func (ftpRepo FtpRepo) Follow(project model.Project, _ string) error {
 		return nil
 	}
 	if err := downloadFromFTP(srcPath, ""); err != nil {
-		pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to download file, projectID:%d, error:%s", projectID, err.Error()))
+		log.Error(fmt.Sprintf("The project fail to download file, projectID:%d, error:%s", projectID, err.Error()))
 		return err
 	}
 	_ = c.Quit()
-	pkg.Log(pkg.TRACE, fmt.Sprintf("The project success to download, projectID:%d", projectID))
+	log.Trace(fmt.Sprintf("The project success to download, projectID:%d", projectID))
 	return nil
 }
 

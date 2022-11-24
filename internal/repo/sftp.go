@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
 	"golang.org/x/crypto/ssh"
@@ -38,7 +39,7 @@ func (sftpRepo SftpRepo) Ping(url string) error {
 func (sftpRepo SftpRepo) Create(projectID int64) error {
 	project, err := model.Project{ID: projectID}.GetData()
 	if err != nil {
-		pkg.Log(pkg.ERROR, fmt.Sprintf("The project does not exist, projectID:%d", projectID))
+		log.Error(fmt.Sprintf("The project does not exist, projectID:%d", projectID))
 		return err
 	}
 	return sftpRepo.Follow(project, "")
@@ -49,13 +50,13 @@ func (sftpRepo SftpRepo) Follow(project model.Project, _ string) error {
 	srcPath := config.GetProjectPath(projectID)
 	_ = os.RemoveAll(srcPath)
 	if err := os.MkdirAll(srcPath, 0755); err != nil {
-		pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to mkdir, projectID:%d, error:%s", projectID, err.Error()))
+		log.Error(fmt.Sprintf("The project fail to mkdir, projectID:%d, error:%s", projectID, err.Error()))
 		return err
 	}
 
 	sshClient, err := sftpRepo.dial(project.URL)
 	if err != nil {
-		pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to connect ftp, projectID:%d, error:%s", projectID, err.Error()))
+		log.Error(fmt.Sprintf("The project fail to connect ftp, projectID:%d, error:%s", projectID, err.Error()))
 		return err
 	}
 	defer sshClient.Close()
@@ -112,14 +113,14 @@ func (sftpRepo SftpRepo) Follow(project model.Project, _ string) error {
 	_url, _, _ := sftpRepo.parseURL(project.URL)
 	u, err := url.Parse(_url)
 	if err != nil {
-		pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to parse url, projectID:%d, error:%s", projectID, err.Error()))
+		log.Error(fmt.Sprintf("The project fail to parse url, projectID:%d, error:%s", projectID, err.Error()))
 		return err
 	}
 	if err := downloadFromSFTP(srcPath, u.Path); err != nil {
-		pkg.Log(pkg.ERROR, fmt.Sprintf("The project fail to download file, projectID:%d, error:%s", projectID, err.Error()))
+		log.Error(fmt.Sprintf("The project fail to download file, projectID:%d, error:%s", projectID, err.Error()))
 		return err
 	}
-	pkg.Log(pkg.TRACE, fmt.Sprintf("The project success to download, projectID:%d", projectID))
+	log.Trace(fmt.Sprintf("The project success to download, projectID:%d", projectID))
 	return nil
 }
 
