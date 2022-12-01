@@ -407,7 +407,7 @@ func (Server) InstallAgent(gp *server.Goploy) server.Response {
 	}
 
 	downloadURL := "https://github.com/goploy-devops/goploy-agent/releases/latest/download/goploy-agent"
-	downloadCommand := fmt.Sprintf("wget -N %s", downloadURL)
+	downloadCommand := fmt.Sprintf("wget %s --connect-timeout=7 --dns-timeout=7 -nv -O goploy-agent >> /dev/null 2>&1", downloadURL)
 	if reqData.Tool == "curl" {
 		downloadCommand = fmt.Sprintf("curl %s -o goploy-agent", downloadURL)
 	}
