@@ -45,7 +45,7 @@ type Data struct {
 }
 
 type Message interface {
-	canSendTo(client *Client) error
+	CanSendTo(client *Client) error
 }
 
 // Hub is a client struct
@@ -158,7 +158,7 @@ func (hub *Hub) run() {
 			}
 		case data := <-hub.Data:
 			for client := range hub.clients {
-				if data.Message.canSendTo(client) != nil {
+				if data.Message.CanSendTo(client) != nil {
 					continue
 				}
 				// check userIDs list

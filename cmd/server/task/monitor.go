@@ -31,6 +31,16 @@ func startMonitorTask() {
 	}()
 }
 
+type monitorMessage struct {
+	MonitorID    int64  `json:"monitorId"`
+	State        uint8  `json:"state"`
+	ErrorContent string `json:"errorContent"`
+}
+
+func (monitorMessage) CanSendTo(*ws.Client) error {
+	return nil
+}
+
 type MonitorCache struct {
 	errorTimes  int
 	time        int64
@@ -73,7 +83,7 @@ func monitorTask() {
 				log.Error("m " + m.Name + " encounter error, " + err.Error())
 				ws.GetHub().Data <- &ws.Data{
 					Type:    ws.TypeMonitor,
-					Message: ws.MonitorMessage{MonitorID: m.ID, State: ws.MonitorTurnOff, ErrorContent: err.Error()},
+					Message: monitorMessage{MonitorID: m.ID, State: model.Disable, ErrorContent: err.Error()},
 				}
 			} else if err := ms.Check(); err != nil {
 				monitorErrorContent := err.Error()
@@ -89,7 +99,7 @@ func monitorTask() {
 						_ = m.TurnOff(monitorErrorContent)
 						ws.GetHub().Data <- &ws.Data{
 							Type:    ws.TypeMonitor,
-							Message: ws.MonitorMessage{MonitorID: m.ID, State: ws.MonitorTurnOff, ErrorContent: monitorErrorContent},
+							Message: monitorMessage{MonitorID: m.ID, State: model.Disable, ErrorContent: monitorErrorContent},
 						}
 					}
 				}

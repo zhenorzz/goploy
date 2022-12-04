@@ -49,6 +49,27 @@ type syncMessage struct {
 	state      int
 }
 
+type deployMessage struct {
+	ProjectID   int64       `json:"projectId"`
+	ProjectName string      `json:"projectName"`
+	State       uint8       `json:"state"`
+	Message     string      `json:"message"`
+	Ext         interface{} `json:"ext"`
+}
+
+const (
+	DeployFail      = 0
+	Queue           = 1
+	RepoFollow      = 2
+	AfterPullScript = 3
+	Rsync           = 4
+	DeploySuccess   = 5
+)
+
+func (deployMessage) CanSendTo(*ws.Client) error {
+	return nil
+}
+
 var projectLogFormat = "projectID: %d %s"
 
 func startDeployTask() {
@@ -84,10 +105,10 @@ func startDeployTask() {
 func AddDeployTask(gsync Gsync) {
 	ws.GetHub().Data <- &ws.Data{
 		Type: ws.TypeProject,
-		Message: ws.ProjectMessage{
+		Message: deployMessage{
 			ProjectID:   gsync.Project.ID,
 			ProjectName: gsync.Project.Name,
-			State:       ws.TaskWaiting,
+			State:       Queue,
 			Message:     "Task waiting",
 			Ext: struct {
 				LastPublishToken string `json:"lastPublishToken"`
@@ -120,7 +141,7 @@ func (gsync Gsync) Exec() {
 
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
-		Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.RepoFollow, Message: "Repo follow"},
+		Message: deployMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: RepoFollow, Message: "Repo follow"},
 	}
 	r, _ := repo.GetRepo(gsync.Project.RepoType)
 	if len(gsync.CommitID) == 0 {
@@ -132,7 +153,7 @@ func (gsync Gsync) Exec() {
 		log.Errorf(projectLogFormat, gsync.Project.ID, err)
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeployFail, Message: err.Error()},
+			Message: deployMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: DeployFail, Message: err.Error()},
 		}
 		_ = gsync.Project.DeployFail()
 		publishTraceModel.Detail = err.Error()
@@ -173,7 +194,7 @@ func (gsync Gsync) Exec() {
 	if gsync.Project.AfterPullScript != "" {
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.AfterPullScript, Message: "Run pull script"},
+			Message: deployMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: AfterPullScript, Message: "Run pull script"},
 		}
 
 		publishTraceModel.Type = model.AfterPull
@@ -186,7 +207,7 @@ func (gsync Gsync) Exec() {
 			log.Errorf(projectLogFormat, gsync.Project.ID, fmt.Sprintf("err: %s, output: %s", err, outputString))
 			ws.GetHub().Data <- &ws.Data{
 				Type:    ws.TypeProject,
-				Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeployFail, Message: err.Error()},
+				Message: deployMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: DeployFail, Message: err.Error()},
 			}
 			_ = gsync.Project.DeployFail()
 			publishTraceModel.Detail = fmt.Sprintf("err: %s\noutput: %s", err, outputString)
@@ -207,7 +228,7 @@ func (gsync Gsync) Exec() {
 
 	ws.GetHub().Data <- &ws.Data{
 		Type:    ws.TypeProject,
-		Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.Rsync, Message: "Sync"},
+		Message: deployMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: Rsync, Message: "Sync"},
 	}
 	ch := make(chan syncMessage, len(gsync.ProjectServers))
 
@@ -225,7 +246,7 @@ func (gsync Gsync) Exec() {
 		log.Tracef(projectLogFormat, gsync.Project.ID, "deploy success")
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeploySuccess, Message: "Success", Ext: gsync.CommitInfo},
+			Message: deployMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: DeploySuccess, Message: "Success", Ext: gsync.CommitInfo},
 		}
 		gsync.notify(model.ProjectSuccess, message)
 	} else {
@@ -233,7 +254,7 @@ func (gsync Gsync) Exec() {
 		log.Tracef(projectLogFormat, gsync.Project.ID, "deploy fail")
 		ws.GetHub().Data <- &ws.Data{
 			Type:    ws.TypeProject,
-			Message: ws.ProjectMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: ws.DeployFail, Message: message},
+			Message: deployMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: DeployFail, Message: message},
 		}
 		gsync.notify(model.ProjectFail, message)
 	}
