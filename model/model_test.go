@@ -8,7 +8,7 @@ import (
 )
 
 func TestInitDB(t *testing.T) {
-	config.InitToml("../goploy.toml")
+	config.InitToml()
 	db, err := sql.Open(config.Toml.DB.Type, fmt.Sprintf(
 		"%s:%s@(%s:%s)/?charset=utf8mb4,utf8\n",
 		config.Toml.DB.User,
