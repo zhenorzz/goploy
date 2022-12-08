@@ -6,6 +6,7 @@ package pkg
 
 import (
 	"bytes"
+	"fmt"
 	"os/exec"
 )
 
@@ -25,7 +26,7 @@ func (git *GIT) Run(operator string, options ...string) error {
 	cmd.Stdout = &git.Output
 	cmd.Stderr = &git.Err
 	if err := cmd.Run(); err != nil {
-		return err
+		return fmt.Errorf("error: %s, detail: %s", err, git.Err.String())
 	}
 	return nil
 }
