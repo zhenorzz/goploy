@@ -22,7 +22,6 @@ func (GitRepo) CanRollback() bool {
 	return true
 }
 
-// Ping -
 func (GitRepo) Ping(url string) error {
 	git := pkg.GIT{}
 	if err := git.LsRemote("-h", url); err != nil {
@@ -32,7 +31,6 @@ func (GitRepo) Ping(url string) error {
 	return nil
 }
 
-// Create -
 func (GitRepo) Create(projectID int64) error {
 	srcPath := config.GetProjectPath(projectID)
 	if _, err := os.Stat(srcPath); err == nil {
@@ -79,13 +77,13 @@ func (gitRepo GitRepo) Follow(project model.Project, target string) error {
 	log.Trace("projectID:" + strconv.FormatInt(project.ID, 10) + " git add .")
 	if err := git.Add("."); err != nil {
 		log.Error(err.Error() + ", detail: " + git.Err.String())
-		return errors.New(git.Err.String())
+		return err
 	}
 
 	log.Trace("projectID:" + strconv.FormatInt(project.ID, 10) + " git reset --hard")
 	if err := git.Reset("--hard"); err != nil {
 		log.Error(err.Error() + ", detail: " + git.Err.String())
-		return errors.New(git.Err.String())
+		return err
 	}
 
 	// the length of commit id is 40
@@ -93,14 +91,14 @@ func (gitRepo GitRepo) Follow(project model.Project, target string) error {
 		log.Trace("projectID:" + strconv.FormatInt(project.ID, 10) + " git fetch")
 		if err := git.Fetch(); err != nil {
 			log.Error(err.Error() + ", detail: " + git.Err.String())
-			return errors.New(git.Err.String())
+			return err
 		}
 	}
 
 	log.Trace("projectID:" + strconv.FormatInt(project.ID, 10) + " git checkout -B goploy " + target)
 	if err := git.Checkout("-B", "goploy", target); err != nil {
 		log.Error(err.Error() + ", detail: " + git.Err.String())
-		return errors.New(git.Err.String())
+		return err
 	}
 	return nil
 }
@@ -108,7 +106,7 @@ func (gitRepo GitRepo) Follow(project model.Project, target string) error {
 func (GitRepo) RemoteBranchList(url string) ([]string, error) {
 	git := pkg.GIT{}
 	if err := git.LsRemote("-h", url); err != nil {
-		return []string{}, errors.New(git.Err.String())
+		return []string{}, err
 	}
 
 	var list []string
@@ -131,7 +129,7 @@ func (GitRepo) BranchList(projectID int64) ([]string, error) {
 	}
 
 	if err := git.Branch("-r", "--sort=-committerdate"); err != nil {
-		return []string{}, errors.New(err.Error() + " detail: " + git.Err.String())
+		return []string{}, err
 	}
 
 	rawBranchList := strings.Split(git.Output.String(), "\n")
@@ -150,7 +148,7 @@ func (GitRepo) CommitLog(projectID int64, rows int) ([]CommitInfo, error) {
 	git := pkg.GIT{Dir: config.GetProjectPath(projectID)}
 
 	if err := git.Log("--stat", "--pretty=format:`start`%H`%an`%at`%s`%d`", "-n", strconv.Itoa(rows)); err != nil {
-		return []CommitInfo{}, errors.New(git.Err.String())
+		return []CommitInfo{}, err
 	}
 
 	list := parseGITLog(git.Output.String())
@@ -161,7 +159,7 @@ func (GitRepo) BranchLog(projectID int64, branch string, rows int) ([]CommitInfo
 	git := pkg.GIT{Dir: config.GetProjectPath(projectID)}
 
 	if err := git.Log(branch, "--stat", "--pretty=format:`start`%H`%an`%at`%s`%d`", "-n", strconv.Itoa(rows)); err != nil {
-		return []CommitInfo{}, errors.New(git.Err.String())
+		return []CommitInfo{}, err
 	}
 
 	list := parseGITLog(git.Output.String())
@@ -171,19 +169,19 @@ func (GitRepo) BranchLog(projectID int64, branch string, rows int) ([]CommitInfo
 func (GitRepo) TagLog(projectID int64, rows int) ([]CommitInfo, error) {
 	git := pkg.GIT{Dir: config.GetProjectPath(projectID)}
 	if err := git.Add("."); err != nil {
-		return []CommitInfo{}, errors.New(git.Err.String())
+		return []CommitInfo{}, err
 	}
 
 	if err := git.Reset("--hard"); err != nil {
-		return []CommitInfo{}, errors.New(git.Err.String())
+		return []CommitInfo{}, err
 	}
 
 	if err := git.Pull(); err != nil {
-		return []CommitInfo{}, errors.New(git.Err.String())
+		return []CommitInfo{}, err
 	}
 
 	if err := git.Log("--tags", "-n", strconv.Itoa(rows), "--no-walk", "--stat", "--pretty=format:`start`%H`%an`%at`%s`%d`"); err != nil {
-		return []CommitInfo{}, errors.New(git.Err.String())
+		return []CommitInfo{}, err
 	}
 
 	list := parseGITLog(git.Output.String())

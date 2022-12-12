@@ -165,7 +165,23 @@ func (gsync Gsync) Exec() {
 		return
 	}
 
-	commitList, _ := r.CommitLog(gsync.Project.ID, 1)
+	commitList, err := r.CommitLog(gsync.Project.ID, 1)
+	if err != nil {
+		log.Errorf(projectLogFormat, gsync.Project.ID, err)
+		ws.GetHub().Data <- &ws.Data{
+			Type:    ws.TypeProject,
+			Message: deployMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: DeployFail, Message: err.Error()},
+		}
+		_ = gsync.Project.DeployFail()
+		publishTraceModel.Detail = err.Error()
+		publishTraceModel.State = model.Fail
+		if _, err := publishTraceModel.AddRow(); err != nil {
+			log.Errorf(projectLogFormat, gsync.Project.ID, err)
+		}
+		gsync.notify(model.ProjectFail, err.Error())
+		return
+	}
+
 	gsync.CommitInfo = commitList[0]
 	if gsync.Branch != "" {
 		gsync.CommitInfo.Branch = gsync.Branch
@@ -276,7 +292,7 @@ func (gsync Gsync) runAfterPullScript() (string, error) {
 		scriptMode = project.AfterPullScriptMode
 	}
 	scriptText := project.ReplaceVars(commitInfo.ReplaceVars(project.AfterPullScript))
-	_ = ioutil.WriteFile(scriptFullName, []byte(scriptText), 0755)
+	_ = os.WriteFile(scriptFullName, []byte(scriptText), 0755)
 	var commandOptions []string
 	if project.AfterPullScriptMode == "cmd" {
 		commandOptions = append(commandOptions, "/C")
@@ -311,7 +327,7 @@ func (gsync Gsync) remoteSync(msgChIn chan<- syncMessage) {
 		if len(project.AfterDeployScript) != 0 {
 			scriptContent := project.ReplaceVars(project.AfterDeployScript)
 			scriptContent = projectServer.ReplaceVars(scriptContent)
-			_ = ioutil.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(scriptContent), 0755)
+			_ = os.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(scriptContent), 0755)
 		}
 
 		transmitterEntity := transmitter.New(project, projectServer)
@@ -617,7 +633,7 @@ func (gsync Gsync) notify(deployState int, detail string) {
 	}
 }
 
-//keep the latest 10 project
+// keep the latest 10 project
 func (gsync Gsync) removeExpiredBackup() {
 	var wg sync.WaitGroup
 	for _, projectServer := range gsync.ProjectServers {

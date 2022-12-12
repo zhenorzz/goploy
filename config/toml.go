@@ -7,6 +7,7 @@ package config
 import (
 	"github.com/pelletier/go-toml/v2"
 	"io/ioutil"
+	"os"
 	"time"
 )
 
@@ -107,7 +108,7 @@ func Write(cfg Config) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(GetConfigFile(), yamlData, 0644)
+	err = os.WriteFile(GetConfigFile(), yamlData, 0644)
 	if err != nil {
 		return err
 	}

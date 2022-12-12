@@ -567,7 +567,7 @@ func (Project) UploadFile(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := ioutil.WriteFile(filePath, fileBytes, 0755); err != nil {
+	if err := os.WriteFile(filePath, fileBytes, 0755); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

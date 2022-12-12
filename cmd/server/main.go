@@ -78,7 +78,7 @@ func main() {
 		println(err.Error())
 	}
 	pid := strconv.Itoa(os.Getpid())
-	_ = ioutil.WriteFile(config.GetPidFile(), []byte(pid), 0755)
+	_ = os.WriteFile(config.GetPidFile(), []byte(pid), 0755)
 	println("Start at " + time.Now().String())
 	println("goploy -h for more help")
 	println("Current pid:   " + pid)

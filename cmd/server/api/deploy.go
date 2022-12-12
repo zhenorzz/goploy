@@ -478,7 +478,7 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 					scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.AfterDeployScriptMode))
 					scriptContent := project.ReplaceVars(project.AfterDeployScript)
 					scriptContent = projectServer.ReplaceVars(scriptContent)
-					ioutil.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(project.ReplaceVars(project.AfterDeployScript)), 0755)
+					os.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(project.ReplaceVars(project.AfterDeployScript)), 0755)
 					afterDeployScriptPath := path.Join(project.Path, scriptName)
 					afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.AfterDeployScriptMode, afterDeployScriptPath))
 					afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
