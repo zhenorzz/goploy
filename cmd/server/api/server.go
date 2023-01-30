@@ -979,7 +979,7 @@ func (Server) ExecProcess(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ID       int64  `json:"id" validate:"gt=0"`
 		ServerID int64  `json:"serverId" validate:"gt=0"`
-		Name     string `json:"name" validate:"required"`
+		Command  string `json:"command" validate:"required"`
 	}
 
 	type RespData struct {
@@ -1019,7 +1019,7 @@ func (Server) ExecProcess(gp *server.Goploy) server.Response {
 
 	script := ""
 	for _, processItem := range processItems {
-		if processItem.Name == reqData.Name {
+		if processItem.Command == reqData.Command {
 			script = processItem.Command
 			break
 		}

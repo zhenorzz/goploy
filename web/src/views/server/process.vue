@@ -22,64 +22,76 @@
       </el-row>
     </el-row>
     <el-row class="app-table">
-      <el-scrollbar style="width: 100%">
-        <el-row style="width: 100%" :gutter="10">
-          <el-col
-            v-for="(row, index) in tablePage.list"
-            :key="index"
-            style="margin-bottom: 10px"
-            :sm="12"
-            :md="8"
-            :lg="6"
-            :xl="4"
-          >
-            <el-card
-              shadow="hover"
-              style="border: none"
-              :body-style="{ padding: '0px' }"
-            >
-              <div style="padding: 15px">
-                <el-row justify="space-between" align="middle">
-                  <span
-                    style="
-                      flex: 1;
-                      overflow: hidden;
-                      text-overflow: ellipsis;
-                      font-size: 16px;
-                      font-weight: 600;
-                      white-space: nowrap;
-                    "
-                    :title="row.name"
-                  >
-                    {{ row.name }}
-                  </span>
-                  <el-row>
-                    <el-button :icon="CaretRight" @click="handleProcess(row)" />
-                    <Button
-                      type="primary"
-                      :icon="Edit"
-                      :permissions="[pms.EditServerProcess]"
-                      @click="handleEdit(row)"
-                    />
-                    <Button
-                      type="info"
-                      :icon="DocumentCopy"
-                      :permissions="[pms.AddServerProcess]"
-                      @click="handleCopy(row)"
-                    />
-                    <Button
-                      type="danger"
-                      :icon="Delete"
-                      :permissions="[pms.DeleteServerProcess]"
-                      @click="handleRemove(row)"
-                    />
-                  </el-row>
-                </el-row>
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
-      </el-scrollbar>
+      <el-table
+        v-loading="tableLoading"
+        height="100%"
+        highlight-current-row
+        :data="tablePage.list"
+      >
+      <el-table-column
+          prop="id"
+          label="ID"
+          min-width="40"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="name"
+          :label="$t('name')"
+          min-width="120"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="items"
+          min-width="240"
+          :label="$t('command')"
+          show-overflow-tooltip
+        >
+          <template #default="scope">
+            {{ JSON.stringify(scope.row.items) }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="insertTime"
+          :label="$t('insertTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="updateTime"
+          :label="$t('updateTime')"
+          width="155"
+          align="center"
+        />
+        <el-table-column
+          prop="operation"
+          :label="$t('op')"
+          width="260"
+          align="center"
+          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+        >
+          <template #default="scope">
+            <el-button :icon="CaretRight" @click="handleProcess(scope.row)" />
+            <Button
+              type="primary"
+              :icon="Edit"
+              :permissions="[pms.EditServerProcess]"
+              @click="handleEdit(scope.row)"
+            />
+            <Button
+              type="info"
+              :icon="DocumentCopy"
+              :permissions="[pms.AddServerProcess]"
+              @click="handleCopy(scope.row)"
+            />
+            <Button
+              type="danger"
+              :icon="Delete"
+              :permissions="[pms.DeleteServerProcess]"
+              @click="handleRemove(scope.row)"
+            />
+          </template>
+        </el-table-column>
+      </el-table>
     </el-row>
     <el-row type="flex" justify="end" class="app-page">
       <el-pagination
@@ -119,10 +131,8 @@
         <el-form-item v-for="(item, index) in formData.items" :key="index">
           <el-row style="width: 100%">
             <el-row style="flex: 1">
-              <el-input v-model="item.name">
-                <template #prepend>{{ $t('name') }}</template>
+              <el-input v-model="item.command" >
               </el-input>
-              <el-input v-model="item.command" type="textarea" />
             </el-row>
             <el-button
               type="warning"
@@ -174,7 +184,7 @@
         style="margin: 10px 10px 10px 0"
         @click="handleProcessCmd(item)"
       >
-        {{ item.name }}<el-icon><CaretRight /></el-icon>
+        {{ item.command }}<el-icon><CaretRight /></el-icon>
       </el-button>
       <el-tabs type="border-card" tab-position="left" style="height: 350px">
         <el-tab-pane v-for="serverId in serverIds" :key="serverId">
@@ -196,14 +206,16 @@
               </span>
             </el-row>
           </template>
+          <el-scrollbar style="height: 320px">
           <p>
             stdout:
-            {{ processExecRes[serverId] && processExecRes[serverId]['stdout'] }}
+            <pre>{{ processExecRes[serverId] && processExecRes[serverId]['stdout'] }}</pre>
           </p>
           <p>
             stderr:
-            {{ processExecRes[serverId] && processExecRes[serverId]['stderr'] }}
-          </p>
+            <pre>{{ processExecRes[serverId] && processExecRes[serverId]['stderr'] }}</pre>
+          </p>  
+          </el-scrollbar>
         </el-tab-pane>
       </el-tabs>
     </el-dialog>
@@ -255,7 +267,7 @@ const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
   name: '',
-  items: [] as { name: string; command: string }[],
+  items: [] as { command: string }[],
 }
 const formData = ref(tempFormData)
 const formProps = ref({
@@ -320,7 +332,7 @@ function handleEdit(data: ServerProcessData) {
 }
 
 function handleCommandAdd() {
-  formData.value.items.push({ name: '', command: '' })
+  formData.value.items.push({ command: '' })
 }
 
 function handleCommandDel(index: number) {
@@ -360,7 +372,7 @@ function handleRemove(data: ServerProcessData) {
 }
 const processExecRes = ref<Record<number, ServerExecProcess['datagram']>>({})
 
-const handleProcessCmd = async (item: { name: string; command: string }) => {
+const handleProcessCmd = async (item: { command: string }) => {
   if (serverIds.value.length === 0) {
     ElMessage.error('Select server')
     return
@@ -388,7 +400,7 @@ const handleProcessCmd = async (item: { name: string; command: string }) => {
       return await new ServerExecProcess({
         id: selectedItem.value.id,
         serverId: serverId,
-        name: item.name,
+        command: item.command,
       })
         .request()
         .then((response) => {
