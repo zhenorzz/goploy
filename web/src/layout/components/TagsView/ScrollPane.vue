@@ -28,7 +28,9 @@ const props = defineProps({
 })
 const emit = defineEmits(['scroll'])
 const scrollContainer = ref()
-const scrollWrapper = computed(() => scrollContainer.value.$refs.wrap$)
+const scrollWrapper = computed(() => {
+  return scrollContainer.value.$refs.wrapRef
+})
 onMounted(() => {
   scrollWrapper.value.addEventListener('scroll', emitScroll, true)
 })

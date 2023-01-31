@@ -2,7 +2,7 @@
   <el-dialog
     v-model="dialogVisible"
     :title="$t('manage')"
-    custom-class="file-dialog"
+    class="file-dialog"
     :close-on-click-modal="false"
     :fullscreen="$store.state.app.device === 'mobile'"
   >

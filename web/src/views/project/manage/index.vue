@@ -141,7 +141,7 @@
       v-model="dialogVisible"
       :title="$t('setting')"
       width="60%"
-      custom-class="project-setting-dialog"
+      class="project-setting-dialog"
       :fullscreen="$store.state.app.device === 'mobile'"
       :close-on-click-modal="false"
     >

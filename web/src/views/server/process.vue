@@ -164,6 +164,7 @@
       <el-select
         v-model="serverIds"
         placeholder="Select server"
+        placement="top"
         style="width: 100%"
         filterable
         multiple

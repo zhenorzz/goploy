@@ -54,17 +54,17 @@
     minimatch "^3.1.2"
     strip-json-comments "^3.1.1"
 
-"@floating-ui/core@^0.7.3":
-  version "0.7.3"
-  resolved "https://registry.yarnpkg.com/@floating-ui/core/-/core-0.7.3.tgz#d274116678ffae87f6b60e90f88cc4083eefab86"
-  integrity sha512-buc8BXHmG9l82+OQXOFU3Kr2XQx9ys01U/Q9HMIrZ300iLc8HLMgh7dcCqgYzAzf4BkoQvDcXf5Y+CuEZ5JBYg==
+"@floating-ui/core@^1.1.0":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@floating-ui/core/-/core-1.1.1.tgz#cf8b4cdd8987c687329a6099561764d8a16f2f22"
+  integrity sha512-PL7g3dhA4dHgZfujkuD8Q+tfJJynEtnNQSPzmucCnxMvkxf4cLBJw/ZYqZUn4HCh33U3WHrAfv2R2tbi9UCSmw==
 
-"@floating-ui/dom@^0.5.4":
-  version "0.5.4"
-  resolved "https://registry.yarnpkg.com/@floating-ui/dom/-/dom-0.5.4.tgz#4eae73f78bcd4bd553ae2ade30e6f1f9c73fe3f1"
-  integrity sha512-419BMceRLq0RrmTSDxn8hf9R3VCJv2K9PUfugh5JyEFmdjzDo+e8U5EdR8nzKq8Yj1htzLm3b6eQEEam3/rrtg==
+"@floating-ui/dom@^1.0.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@floating-ui/dom/-/dom-1.1.1.tgz#66aa747e15894910869bf9144fc54fc7d6e9f975"
+  integrity sha512-TpIO93+DIujg3g7SykEAGZMDtbJRrmnYRCNYSjJlvIbGhBjRSNTLVbNeDQBrzy9qDgUbiWdc7KA0uZHZ2tJmiw==
   dependencies:
-    "@floating-ui/core" "^0.7.3"
+    "@floating-ui/core" "^1.1.0"
 
 "@humanwhocodes/config-array@^0.9.2":
   version "0.9.5"
@@ -266,10 +266,10 @@
   dependencies:
     "@types/estree" "*"
 
-"@types/web-bluetooth@^0.0.14":
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/@types/web-bluetooth/-/web-bluetooth-0.0.14.tgz#94e175b53623384bff1f354cdb3197a8d63cdbe5"
-  integrity sha512-5d2RhCard1nQUC3aHcq/gHzWYO6K0WJmAbjO7mQJgCQKtZpgXxv1rOM6O/dBDhDYYVutk1sciOgNSe+5YyfM8A==
+"@types/web-bluetooth@^0.0.16":
+  version "0.0.16"
+  resolved "https://registry.yarnpkg.com/@types/web-bluetooth/-/web-bluetooth-0.0.16.tgz#1d12873a8e49567371f2a75fe3e7f7edca6662d8"
+  integrity sha512-oh8q2Zc32S6gd/j50GowEjKLoOVOwHP/bWVjKJInBwQqdOYMdPrf1oVlelTlyfFK3CKxL1uahMDAr+vy8T7yMQ==
 
 "@typescript-eslint/eslint-plugin@^5.0.0":
   version "5.30.5"
@@ -561,25 +561,25 @@
   resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.2.41.tgz#fbc95422df654ea64e8428eced96ba6ad555d2bb"
   integrity sha512-W9mfWLHmJhkfAmV+7gDjcHeAWALQtgGT3JErxULl0oz6R6+3ug91I7IErs93eCFhPCZPHBs4QJS7YWEV7A3sxw==
 
-"@vueuse/core@^8.7.5":
-  version "8.9.1"
-  resolved "https://registry.yarnpkg.com/@vueuse/core/-/core-8.9.1.tgz#9e986c9847ec41996321709494176ad54810b9c9"
-  integrity sha512-a7goYb/gJxjXRBw4Fr/jEACiN33ghwM1ohJVu+Zwsr3lNL4qCQ1nU+ogta98lNg5hXJxWj7mYEmQDjjyWOu5nA==
+"@vueuse/core@^9.1.0":
+  version "9.12.0"
+  resolved "https://registry.yarnpkg.com/@vueuse/core/-/core-9.12.0.tgz#e5b20f901e081c7ae5fe0e5f3af217929034eefe"
+  integrity sha512-h/Di8Bvf6xRcvS/PvUVheiMYYz3U0tH3X25YxONSaAUBa841ayMwxkuzx/DGUMCW/wHWzD8tRy2zYmOC36r4sg==
   dependencies:
-    "@types/web-bluetooth" "^0.0.14"
-    "@vueuse/metadata" "8.9.1"
-    "@vueuse/shared" "8.9.1"
+    "@types/web-bluetooth" "^0.0.16"
+    "@vueuse/metadata" "9.12.0"
+    "@vueuse/shared" "9.12.0"
     vue-demi "*"
 
-"@vueuse/metadata@8.9.1":
-  version "8.9.1"
-  resolved "https://registry.yarnpkg.com/@vueuse/metadata/-/metadata-8.9.1.tgz#5699e7d9a67894b8490cfb61c37beb0428e6fe07"
-  integrity sha512-6LADOlyl3oENHa9dsoY7LXjU1Mh14DnpM6ztETI3hpm5ZffOMIG5CB2Q6aEZfIvYr1lkJVmG2L82wFKk7VRfIA==
+"@vueuse/metadata@9.12.0":
+  version "9.12.0"
+  resolved "https://registry.yarnpkg.com/@vueuse/metadata/-/metadata-9.12.0.tgz#19a0fefcba6a66a2382af10a7a67ebad6eec1f27"
+  integrity sha512-9oJ9MM9lFLlmvxXUqsR1wLt1uF7EVbP5iYaHJYqk+G2PbMjY6EXvZeTjbdO89HgoF5cI6z49o2zT/jD9SVoNpQ==
 
-"@vueuse/shared@8.9.1":
-  version "8.9.1"
-  resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-8.9.1.tgz#1b48414c06d1e3d14fe3f32bf72f5fab35451a3d"
-  integrity sha512-klZfn7ijI3juqVgpfQVrrlBh4uTFajwSCWm8Cdt45Kg26b1LZ9jn9n7J6GhmkFay5016GnjjivQoekQSMeJNUg==
+"@vueuse/shared@9.12.0":
+  version "9.12.0"
+  resolved "https://registry.yarnpkg.com/@vueuse/shared/-/shared-9.12.0.tgz#e6597da80084cba8fc3d6545f4c2fa9817b80428"
+  integrity sha512-TWuJLACQ0BVithVTRbex4Wf1a1VaRuSpVeyEd4vMUWl54PzlE0ciFUshKCXnlLuD0lxIaLK4Ypj3NXYzZh4+SQ==
   dependencies:
     vue-demi "*"
 
@@ -1175,18 +1175,18 @@ echarts@^5.2.1:
     tslib "2.3.0"
     zrender "5.3.2"
 
-element-plus@^2.2.9:
-  version "2.2.9"
-  resolved "https://registry.yarnpkg.com/element-plus/-/element-plus-2.2.9.tgz#f0366dfb2048d614813926274cb443f17e5fdef2"
-  integrity sha512-jYbL0JkCdv95rkT6trZJjCAizLPySa0qcd2cgq+57SKQnCZAcNDDq4GbTuFRnNavdoeCJnuM3HIficTIUpsMOQ==
+element-plus@^2.2.28:
+  version "2.2.28"
+  resolved "https://registry.yarnpkg.com/element-plus/-/element-plus-2.2.28.tgz#855441976e82da597faecaf6ed74fc4650a970b2"
+  integrity sha512-BsxF7iEaBydmRfw1Tt++EO9jRBjbtJr7ZRIrnEwz4J3Cwa1IzHCNCcx3ZwcYTlJq9CYFxv94JnbNr1EbkTou3A==
   dependencies:
     "@ctrl/tinycolor" "^3.4.1"
     "@element-plus/icons-vue" "^2.0.6"
-    "@floating-ui/dom" "^0.5.4"
+    "@floating-ui/dom" "^1.0.1"
     "@popperjs/core" "npm:@sxzz/popperjs-es@^2.11.7"
     "@types/lodash" "^4.14.182"
     "@types/lodash-es" "^4.17.6"
-    "@vueuse/core" "^8.7.5"
+    "@vueuse/core" "^9.1.0"
     async-validator "^4.2.5"
     dayjs "^1.11.3"
     escape-html "^1.0.3"
@@ -1194,7 +1194,7 @@ element-plus@^2.2.9:
     lodash-es "^4.17.21"
     lodash-unified "^1.0.2"
     memoize-one "^6.0.0"
-    normalize-wheel-es "^1.1.2"
+    normalize-wheel-es "^1.2.0"
 
 emoji-regex@^8.0.0:
   version "8.0.0"
@@ -2327,10 +2327,10 @@ normalize-path@^3.0.0, normalize-path@~3.0.0:
   resolved "https://registry.yarnpkg.com/normalize-path/-/normalize-path-3.0.0.tgz#0dcd69ff23a1c9b11fd0978316644a0388216a65"
   integrity sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==
 
-normalize-wheel-es@^1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/normalize-wheel-es/-/normalize-wheel-es-1.1.2.tgz#285e43676a62d687bf145e33452ea6be435162d0"
-  integrity sha512-scX83plWJXYH1J4+BhAuIHadROzxX0UBF3+HuZNY2Ks8BciE7tSTQ+5JhTsvzjaO0/EJdm4JBGrfObKxFf3Png==
+normalize-wheel-es@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/normalize-wheel-es/-/normalize-wheel-es-1.2.0.tgz#0fa2593d619f7245a541652619105ab076acf09e"
+  integrity sha512-Wj7+EJQ8mSuXr2iWfnujrimU35R2W4FAErEyTmJoJ7ucwTn2hOUSsRehMb5RSYkxXGTM7Y9QpvPmp++w5ftoJw==
 
 normalize.css@^8.0.1:
   version "8.0.1"
