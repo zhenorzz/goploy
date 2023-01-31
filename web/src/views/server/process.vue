@@ -132,7 +132,7 @@
           <el-row style="width: 100%">
             <el-row style="flex: 1">
               <el-input v-model="item.name">
-                <template #prepend>{{ $t('name') }}</template>
+                <template #prepend>Alias</template>
               </el-input>
               <el-input v-model="item.command" type="textarea" />
             </el-row>
