@@ -131,8 +131,10 @@
         <el-form-item v-for="(item, index) in formData.items" :key="index">
           <el-row style="width: 100%">
             <el-row style="flex: 1">
-              <el-input v-model="item.command" >
+              <el-input v-model="item.name">
+                <template #prepend>{{ $t('name') }}</template>
               </el-input>
+              <el-input v-model="item.command" type="textarea" />
             </el-row>
             <el-button
               type="warning"
@@ -185,7 +187,7 @@
         style="margin: 10px 10px 10px 0"
         @click="handleProcessCmd(item)"
       >
-        {{ item.command }}<el-icon><CaretRight /></el-icon>
+        {{ item.name }}<el-icon><CaretRight /></el-icon>
       </el-button>
       <el-tabs type="border-card" tab-position="left" style="height: 350px">
         <el-tab-pane v-for="serverId in serverIds" :key="serverId">
@@ -268,7 +270,7 @@ const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
   name: '',
-  items: [] as { command: string }[],
+  items: [] as { name: string, command: string }[],
 }
 const formData = ref(tempFormData)
 const formProps = ref({
@@ -333,7 +335,7 @@ function handleEdit(data: ServerProcessData) {
 }
 
 function handleCommandAdd() {
-  formData.value.items.push({ command: '' })
+  formData.value.items.push({name: '', command: '' })
 }
 
 function handleCommandDel(index: number) {
@@ -373,7 +375,7 @@ function handleRemove(data: ServerProcessData) {
 }
 const processExecRes = ref<Record<number, ServerExecProcess['datagram']>>({})
 
-const handleProcessCmd = async (item: { command: string }) => {
+const handleProcessCmd = async (item: { name:string, command: string }) => {
   if (serverIds.value.length === 0) {
     ElMessage.error('Select server')
     return
@@ -401,7 +403,7 @@ const handleProcessCmd = async (item: { command: string }) => {
       return await new ServerExecProcess({
         id: selectedItem.value.id,
         serverId: serverId,
-        command: item.command,
+        name: item.name,
       })
         .request()
         .then((response) => {

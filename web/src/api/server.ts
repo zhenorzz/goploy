@@ -380,7 +380,7 @@ export class ServerExecProcess extends Request {
   public param: {
     id: number
     serverId: number
-    command: string
+    name: string
   }
   public declare datagram: {
     serverId: number
