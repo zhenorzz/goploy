@@ -36,24 +36,24 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="commit" label="commit" width="290">
-        <template #default="scope">
-          <RepoURL
-            style="font-size: 12px"
-            :url="projectRow.url"
-            :suffix="`/commit/${scope.row.commit}`"
-            :text="scope.row.commit"
-          >
-          </RepoURL>
-        </template>
-      </el-table-column>
-      <el-table-column prop="author" width="155" label="author" />
       <el-table-column
         prop="message"
         width="155"
         label="message"
         show-overflow-tooltip
       />
+      <el-table-column prop="commit" label="commit" width="290">
+        <template #default="scope">
+          <RepoURL
+            style="font-size: 12px"
+            :url="projectRow.url"
+            :suffix="`/commit/${scope.row.commit}`"
+            :text="scope.row.commit.substring(0, 6)"
+          >
+          </RepoURL>
+        </template>
+      </el-table-column>
+      <el-table-column prop="author" width="155" label="author" />
       <el-table-column label="time" width="155" align="center">
         <template #default="scope">
           {{ parseTime(scope.row.timestamp) }}
