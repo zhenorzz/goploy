@@ -21,8 +21,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.0-beta.4
 	github.com/pkg/sftp v1.13.1
 	github.com/vearutop/statigz v1.1.8
-	golang.org/x/crypto v0.0.0-20211209193657-4570a0811e8b
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/crypto v0.1.0
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0
 )
