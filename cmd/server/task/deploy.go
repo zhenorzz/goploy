@@ -304,7 +304,7 @@ func (gsync Gsync) runAfterPullScript() (string, error) {
 	handler.Dir = srcPath
 
 	if output, err := handler.CombinedOutput(); err != nil {
-		return "", err
+		return string(output), err
 	} else {
 		_ = os.Remove(scriptFullName)
 		return string(output), nil
