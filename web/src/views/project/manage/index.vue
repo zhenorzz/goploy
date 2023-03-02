@@ -1119,17 +1119,11 @@ function handleCopy(data: ProjectData) {
 }
 
 function handleRemove(data: ProjectData) {
-  ElMessageBox.confirm(
-    t('removeTips', {
-      projectName: data.name,
-    }),
-    t('tips'),
-    {
-      confirmButtonText: t('confirm'),
-      cancelButtonText: t('cancel'),
-      type: 'warning',
-    }
-  )
+  ElMessageBox.confirm(t('removeTips', { name: data.name }), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
     .then(() => {
       tableLoading.value = true
       new ProjectRemove({ id: data.id }).request().then(() => {
