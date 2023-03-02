@@ -126,14 +126,17 @@
       <el-form
         ref="form"
         v-loading="formProps.loading"
-        :rules="formRules"
         :model="formData"
         label-width="120px"
         :label-position="
           $store.state.app.device === 'desktop' ? 'right' : 'top'
         "
       >
-        <el-form-item :label="$t('expression')" prop="expression">
+        <el-form-item
+          :label="$t('expression')"
+          prop="expression"
+          :rules="formRules.expression"
+        >
           <el-input
             v-model="formData.expression"
             autocomplete="off"
@@ -142,7 +145,13 @@
           />
           <span>{{ formProps.dateLocale }}</span>
         </el-form-item>
-        <el-form-item :label="$t('command')" prop="command">
+        <el-form-item
+          :label="$t('command')"
+          prop="command"
+          :rules="[
+            { required: true, message: 'Command required', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="formData.command" autocomplete="off" />
         </el-form-item>
         <el-form-item label="Single mode">
@@ -240,7 +249,6 @@ const formRules: InstanceType<typeof ElForm>['rules'] = {
       trigger: 'blur',
     },
   ],
-  command: [{ required: true, message: 'Command required', trigger: 'blur' }],
 }
 
 getServerOption()

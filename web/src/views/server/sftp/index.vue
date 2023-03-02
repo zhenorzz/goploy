@@ -66,7 +66,6 @@
     >
       <el-form
         ref="form"
-        :rules="formRules"
         :model="formData"
         label-width="105px"
         :label-position="
@@ -81,7 +80,13 @@
         >
           {{ formData.sourceFile }}
         </el-form-item>
-        <el-form-item label="Dest server" prop="destServerIds">
+        <el-form-item
+          label="Dest server"
+          prop="destServerIds"
+          :rules="[
+            { required: true, message: 'Server required', trigger: 'blur' },
+          ]"
+        >
           <el-select
             v-model="formData.destServerIds"
             style="width: 100%"
@@ -96,7 +101,13 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="Dest Dir" prop="destDir">
+        <el-form-item
+          label="Dest Dir"
+          prop="destDir"
+          :rules="[
+            { required: true, message: 'Dest dir required', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="formData.destDir" autocomplete="off" />
         </el-form-item>
       </el-form>
@@ -159,12 +170,6 @@ const formProps = ref({
   disabled: false,
   errorLog: '',
 })
-const formRules: InstanceType<typeof ElForm>['rules'] = {
-  destServerIds: [
-    { required: true, message: 'Server required', trigger: 'blur' },
-  ],
-  destDir: [{ required: true, message: 'Dest dir required', trigger: 'blur' }],
-}
 
 getServerOption()
 

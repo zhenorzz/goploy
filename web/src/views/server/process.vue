@@ -110,17 +110,22 @@
       <el-form
         ref="form"
         v-loading="formProps.loading"
-        :rules="formRules"
         :model="formData"
         label-width="80px"
         :label-position="
           $store.state.app.device === 'desktop' ? 'right' : 'top'
         "
       >
-        <el-form-item :label="$t('name')" prop="name">
+        <el-form-item
+          :label="$t('name')"
+          prop="name"
+          :rules="[
+            { required: true, message: 'Name required', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="formData.name" />
         </el-form-item>
-        <el-form-item :label="$t('command')" prop="">
+        <el-form-item :label="$t('command')">
           <el-button
             type="primary"
             :icon="Plus"
@@ -277,9 +282,6 @@ const formProps = ref({
   loading: false,
   disabled: false,
 })
-const formRules: InstanceType<typeof ElForm>['rules'] = {
-  name: [{ required: true, message: 'Name required', trigger: 'blur' }],
-}
 
 getServerOption()
 getList()

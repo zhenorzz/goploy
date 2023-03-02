@@ -219,17 +219,28 @@
     >
       <el-form
         ref="form"
-        :rules="formRules"
         :model="formData"
         label-width="105px"
         :label-position="
           $store.state.app.device === 'desktop' ? 'right' : 'top'
         "
       >
-        <el-form-item :label="$t('name')" prop="name">
+        <el-form-item
+          :label="$t('name')"
+          prop="name"
+          :rules="[
+            { required: true, message: 'Name required', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
-        <el-form-item :label="$t('description')" prop="description">
+        <el-form-item
+          :label="$t('description')"
+          prop="description"
+          :rules="[
+            { max: 2047, message: 'Max 2047 characters', trigger: 'blur' },
+          ]"
+        >
           <el-input
             v-model="formData.description"
             type="textarea"
@@ -317,9 +328,7 @@ const formProps = ref({
   disabled: false,
   errorLog: '',
 })
-const formRules: InstanceType<typeof ElForm>['rules'] = {
-  name: [{ required: true, message: 'Command required', trigger: 'blur' }],
-}
+
 const { t } = useI18n()
 getServerOption()
 function getServerOption() {
@@ -414,22 +423,29 @@ function handleRun() {
 }
 
 function handleSaveTemplate() {
-  saving.value = true
-  new TemplateAdd({
-    type: TemplateType.Script,
-    name: formData.value.name,
-    content: script.value,
-    description: formData.value.description,
+  form.value?.validate((valid) => {
+    if (valid) {
+      saving.value = true
+      new TemplateAdd({
+        type: TemplateType.Script,
+        name: formData.value.name,
+        content: script.value,
+        description: formData.value.description,
+      })
+        .request()
+        .then(() => {
+          ElMessage.success('Success')
+          templateDialogVisible.value = false
+          getTemplateOption()
+        })
+        .finally(() => {
+          saving.value = false
+        })
+      return Promise.resolve(true)
+    } else {
+      return Promise.reject(false)
+    }
   })
-    .request()
-    .then(() => {
-      ElMessage.success('Success')
-      templateDialogVisible.value = false
-      getTemplateOption()
-    })
-    .finally(() => {
-      saving.value = false
-    })
 }
 
 function templateRemove(data: TemplateData) {

@@ -166,14 +166,19 @@
       <el-form
         ref="form"
         v-loading="formProps.loading"
-        :rules="formRules"
         :model="formData"
         label-width="130px"
         :label-position="
           $store.state.app.device === 'desktop' ? 'right' : 'top'
         "
       >
-        <el-form-item :label="$t('namespace')" prop="namespaceId">
+        <el-form-item
+          :label="$t('namespace')"
+          prop="namespaceId"
+          :rules="[
+            { required: true, message: 'Namespace required', trigger: 'blur' },
+          ]"
+        >
           <el-radio-group v-model="formData.namespaceId">
             <el-radio :label="getNamespace()['id']">
               {{ $t('current') }}
@@ -187,13 +192,36 @@
             <el-radio label="windows">windows</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="$t('name')" prop="name">
+        <el-form-item
+          :label="$t('name')"
+          prop="name"
+          :rules="[
+            { required: true, message: 'Name required', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="Host" prop="ip">
+        <el-form-item
+          label="Host"
+          prop="ip"
+          :rules="[{ required: true, message: 'IP required', trigger: 'blur' }]"
+        >
           <el-input v-model="formData.ip" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="Port" prop="port">
+        <el-form-item
+          label="Port"
+          prop="port"
+          :rules="[
+            {
+              type: 'number',
+              required: true,
+              min: 0,
+              max: 65535,
+              message: '0 ~ 65535',
+              trigger: 'blur',
+            },
+          ]"
+        >
           <el-input v-model.number="formData.port" autocomplete="off" />
         </el-form-item>
         <el-form-item :label="$t('serverPage.loginType')">
@@ -205,7 +233,17 @@
             <el-radio label="user">user</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="$t('owner')" prop="owner">
+        <el-form-item
+          :label="$t('owner')"
+          prop="owner"
+          :rules="[
+            {
+              required: true,
+              message: 'SSH-KEY owner required',
+              trigger: 'blur',
+            },
+          ]"
+        >
           <el-input
             v-model="formData.owner"
             autocomplete="off"
@@ -216,6 +254,13 @@
           v-if="formProps.loginType === 'key'"
           :label="$t('serverPage.sshKeyPath')"
           prop="path"
+          :rules="[
+            {
+              required: true,
+              message: 'SSH-KEY path required',
+              trigger: 'blur',
+            },
+          ]"
         >
           <el-row type="flex" style="width: 100%">
             <el-input
@@ -242,7 +287,13 @@
             placeholder=""
           />
         </el-form-item>
-        <el-form-item :label="$t('description')" prop="description">
+        <el-form-item
+          :label="$t('description')"
+          prop="description"
+          :rules="[
+            { max: 255, message: 'Max 255 characters', trigger: 'blur' },
+          ]"
+        >
           <el-input
             v-model="formData.description"
             type="textarea"
@@ -328,21 +379,36 @@
     >
       <el-form
         ref="agentForm"
-        :rules="agentFormRules"
         :model="agentFormData"
         label-width="130px"
         :label-position="
           $store.state.app.device === 'desktop' ? 'right' : 'top'
         "
       >
-        <el-form-item label="Install path" prop="installPath">
+        <el-form-item
+          label="Install path"
+          prop="installPath"
+          :rules="[
+            {
+              required: true,
+              message: 'Install path required',
+              trigger: 'blur',
+            },
+          ]"
+        >
           <el-input v-model="agentFormData.installPath" autocomplete="off" />
         </el-form-item>
         <el-form-item label="Use" prop="tool">
           <el-radio v-model="agentFormData.tool" label="wget">wget</el-radio>
           <el-radio v-model="agentFormData.tool" label="curl">curl</el-radio>
         </el-form-item>
-        <el-form-item label="Report URL" prop="reportURL">
+        <el-form-item
+          label="Report URL"
+          prop="reportURL"
+          :rules="[
+            { required: true, message: 'Report url required', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="agentFormData.reportURL" autocomplete="off" />
         </el-form-item>
         <el-form-item label="Turn on web" prop="webState">
@@ -442,32 +508,6 @@ const formProps = ref({
   loginType: 'key',
   jumpLoginType: 'key',
 })
-const formRules: InstanceType<typeof ElForm>['rules'] = {
-  namespaceId: [
-    { required: true, message: 'Namespace required', trigger: 'blur' },
-  ],
-  name: [{ required: true, message: 'Name required', trigger: 'blur' }],
-  ip: [{ required: true, message: 'IP required', trigger: 'blur' }],
-  port: [
-    {
-      type: 'number',
-      required: true,
-      min: 0,
-      max: 65535,
-      message: '0 ~ 65535',
-      trigger: 'blur',
-    },
-  ],
-  owner: [
-    {
-      required: true,
-      message: 'SSH-KEY owner required',
-      trigger: 'blur',
-    },
-  ],
-  path: [{ required: true, message: 'SSH-KEY path required', trigger: 'blur' }],
-  description: [{ max: 255, message: 'Max 255 characters', trigger: 'blur' }],
-}
 
 const uploading = ref(false)
 const uploadHref = computed(() => {
@@ -487,14 +527,6 @@ const agentFormData = ref({
 const agentFormProps = ref({
   disabled: false,
 })
-const agentFormRules: InstanceType<typeof ElForm>['rules'] = {
-  installPath: [
-    { required: true, message: 'Install path required', trigger: 'blur' },
-  ],
-  reportURL: [
-    { required: true, message: 'Report url required', trigger: 'blur' },
-  ],
-}
 
 getList()
 
@@ -621,15 +653,11 @@ function onSwitchState(value: boolean, index: number) {
         tableData.value[index].state = value ? 1 : 0
       })
   } else {
-    ElMessageBox.confirm(
-      t('serverPage.removeTips', { serverName: data.name }),
-      t('tips'),
-      {
-        confirmButtonText: t('confirm'),
-        cancelButtonText: t('cancel'),
-        type: 'warning',
-      }
-    )
+    ElMessageBox.confirm(t('removeTips', { name: data.name }), t('tips'), {
+      confirmButtonText: t('confirm'),
+      cancelButtonText: t('cancel'),
+      type: 'warning',
+    })
       .then(() => {
         new ServerToggle({ id: data.id, state: value ? 1 : 0 })
           .request()

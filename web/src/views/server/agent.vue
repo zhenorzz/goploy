@@ -62,14 +62,19 @@
       <el-form
         ref="form"
         v-loading="formProps.loading"
-        :rules="formRules"
         :model="formData"
         label-width="100px"
         :label-position="
           $store.state.app.device === 'desktop' ? 'right' : 'top'
         "
       >
-        <el-form-item :label="$t('serverPage.item')" prop="item">
+        <el-form-item
+          :label="$t('serverPage.item')"
+          prop="item"
+          :rules="[
+            { required: true, message: 'Target required', trigger: 'blur' },
+          ]"
+        >
           <el-select
             v-model="formData.item"
             style="width: 100%"
@@ -84,7 +89,13 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item :label="$t('serverPage.formula')" prop="value">
+        <el-form-item
+          :label="$t('serverPage.formula')"
+          prop="value"
+          :rules="[
+            { required: true, message: 'Value required', trigger: 'blur' },
+          ]"
+        >
           <el-row>
             <el-col :span="8">
               <el-select
@@ -194,7 +205,11 @@
             <el-option label="24 hour" :value="1440" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="$t('notice')" prop="notifyTarget">
+        <el-form-item
+          :label="$t('notice')"
+          prop="notifyTarget"
+          :rules="[{ required: true, message: 'Webhook required' }]"
+        >
           <el-row>
             <el-col :span="8">
               <el-select v-model="formData.notifyType" style="width: 100%">
@@ -507,11 +522,6 @@ const tempFormData = {
 }
 const formData = ref(tempFormData)
 const formProps = ref({ loading: false, disabled: false })
-const formRules = {
-  item: [{ required: true, message: 'Target required', trigger: 'blur' }],
-  value: [{ required: true, message: 'Value required', trigger: 'blur' }],
-  notifyTarget: [{ required: true, message: 'Webhook required' }],
-}
 const itemOptions = ref<string[]>([])
 onActivated(() => {
   formData.value.serverId = serverId = Number(route.query.serverId)
@@ -546,17 +556,11 @@ function handleEdit(data: ServerMonitorData) {
 }
 
 function handleDelete(data: ServerMonitorData) {
-  ElMessageBox.confirm(
-    t('deleteTips', {
-      item: data.item,
-    }),
-    t('tips'),
-    {
-      confirmButtonText: t('confirm'),
-      cancelButtonText: t('cancel'),
-      type: 'warning',
-    }
-  )
+  ElMessageBox.confirm(t('deleteTips', { name: data.item }), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
     .then(() => {
       new ServerMonitorDelete({ id: data.id }).request().then(() => {
         ElMessage.success('Success')
