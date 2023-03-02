@@ -418,7 +418,7 @@ function dirOpen(dir: string) {
 
 function deleteFile() {
   const file = path.normalize(dir.value + '/' + selectedFile.value.name)
-  ElMessageBox.confirm(t('serverPage.deleteTips', { name: file }), t('tips'), {
+  ElMessageBox.confirm(t('deleteTips', { name: file }), t('tips'), {
     confirmButtonText: t('confirm'),
     cancelButtonText: t('cancel'),
     type: 'warning',

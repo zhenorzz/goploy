@@ -106,6 +106,7 @@ func main() {
 	srv.Router.Register(api.Log{})
 	srv.Router.Register(api.Cron{})
 	srv.Router.Register(api.Agent{})
+	srv.Router.Register(api.Template{})
 	srv.Router.Register(ws.GetHub())
 	go func() {
 		c := make(chan os.Signal, 1)

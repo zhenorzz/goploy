@@ -323,15 +323,11 @@ function handleCheckedChange(id: number) {
 }
 
 function handleRemove(data: RoleData) {
-  ElMessageBox.confirm(
-    t('namespacePage.removeRoleTips', { name: data.name }),
-    t('tips'),
-    {
-      confirmButtonText: t('confirm'),
-      cancelButtonText: t('cancel'),
-      type: 'warning',
-    }
-  )
+  ElMessageBox.confirm(t('deleteTips', { name: data.name }), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
     .then(() => {
       new RoleRemove(data).request().then(() => {
         ElMessage.success('Success')

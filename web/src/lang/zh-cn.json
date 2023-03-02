@@ -127,6 +127,8 @@
     "3": "飞书",
     "255": "自定义"
   },
+  "deleteTips": "此操作将永久删除({name}), 是否继续?",
+  "removeTips": "此操作将移除({name}), 是否继续?",
   "route": {
     "no-name": "未知",
     "userProfile": "个人信息",
@@ -231,7 +233,8 @@
     "DeleteServerProcess": "删除服务器进程",
     "ShowOperationLogPage": "查看操作日志",
     "SFTPTransferFile": "SFTP传输文件",
-    "SFTPDeleteFile": "SFTP删除文件"
+    "SFTPDeleteFile": "SFTP删除文件",
+    "ShowServerScriptPage": "执行脚本"
   },
   "tagsView": {
     "refresh": "刷新",
@@ -254,13 +257,12 @@
     "removeUserTips": "此操作将删除用户{name}, 是否继续?"
   },
   "namespacePage": {
-    "removeUserTips": "此操作将永久删除该用户的绑定关系, 是否继续?",
-    "removeRoleTips": "此操作将删除角色{name}, 是否继续?"
+    "removeUserTips": "此操作将永久删除该用户的绑定关系, 是否继续?"
   },
   "serverPage": {
     "importCSV": "导入csv",
     "installAgent": "安装agent",
-    "installAgentTips": "Agent正在安装，请密切关注日志输出",
+    "installAgentTips": "Agent正在安装, 请密切关注日志输出",
     "loginType": "登录方式",
     "sshKeyOwner": "SSH-Key 所有者",
     "sshKeyPath": "SSH-Key 路径",
@@ -268,8 +270,6 @@
     "copyPub": "复制公钥",
     "copyPubTips": "复制成功，请粘贴到目标服务器~/.ssh/authorized_keys里面",
     "testConnection": "测试连接",
-    "removeServerTips": "此操作将删除服务器({serverName}), 是否继续?",
-    "deleteTips": "此操作将永久删除({name}), 是否继续?",
     "cpuUsage": "CPU使用率",
     "ramUsage": "RAM使用率",
     "loadavg": "系统负载",
@@ -280,8 +280,6 @@
     "diskIO": "硬盘IO",
     "addMonitor": "创建警报规则",
     "monitorList": "警报规则列表",
-    "removeCronTips": "此操作将删除该定时任务, 是否继续?",
-    "removeMonitorTips": "此操作将删除({item})的监控规则, 是否继续?",
     "item": "条目",
     "formula": "公式",
     "cycle": "周期",
@@ -332,11 +330,7 @@
     "autoDeployTitle": "构建触发器：达成某种条件后自动构建发布项目",
     "autoDeployGitTips": "前往GitLab、GitHub或Gitee的webhook（可前往谷歌查找各自webhook所在的位置）\n填入连接http(s)://域名(IP)/deploy/webhook?project_id={projectId}\n勾选push event即可, (Gitlab可以选对应的分支)",
     "autoDeploySVNTips": "前往服务器SVN的hook目录（可前往谷歌查找hook所在的位置）\n填入连接http(s)://域名(IP)/deploy/webhook?project_id={projectId} -X POST --header \"Content-Type: application/json\" --header \"X-SVN-Event: push\" -d \"{ref}\" 即可",
-    "projectFileTips": "构建项目时上传到目标服务器",
-    "removeProjectTips": "此操作将删除项目({projectName}), 是否继续?",
-    "removeFileTips": "此操作将永久删除文件({filename}), 是否继续?",
-    "removeServerTips": "此操作将永久删除服务器({serverName})的绑定关系, 是否继续?",
-    "removeUserTips": "此操作将永久删除用户({userName})的绑定关系, 是否继续?"
+    "projectFileTips": "构建项目时上传到目标服务器"
   },
   "deployPage": {
     "resetState": "重置状态",

@@ -429,9 +429,16 @@ export class ServerExecScript extends Request {
   readonly timeout = 0
   public param: {
     serverIds: number[]
-    dir: string
-    command: string
+    script: string
   }
+
+  public declare datagram: {
+    serverId: number
+    execRes: boolean
+    stderr: string
+    stdout: string
+  }[]
+
   constructor(param: ServerExecScript['param']) {
     super()
     this.param = param

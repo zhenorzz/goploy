@@ -547,7 +547,7 @@ function handleEdit(data: ServerMonitorData) {
 
 function handleDelete(data: ServerMonitorData) {
   ElMessageBox.confirm(
-    t('serverPage.removeMonitorTips', {
+    t('deleteTips', {
       item: data.item,
     }),
     t('tips'),

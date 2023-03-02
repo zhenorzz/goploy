@@ -127,6 +127,8 @@
     "3": "Feishu",
     "255": "Custom"
   },
+  "deleteTips": "This action will delete the {name}, continue?",
+  "removeTips": "This action will delete the {name}, continue?",
   "route": {
     "no-name": "Unknown",
     "userProfile": "Profile",
@@ -230,7 +232,8 @@
     "EditServerProcess": "Edit the server process",
     "DeleteServerProcess": "Delete the server process",
     "SFTPTransferFile": "Can transfer file via SFTP",
-    "SFTPDeleteFile": "Can delete file via SFTP"
+    "SFTPDeleteFile": "Can delete file via SFTP",
+    "ShowServerScriptPage": "Can execute script"
   },
   "tagsView": {
     "refresh": "Refresh",
@@ -253,8 +256,7 @@
     "removeUserTips": "This action will delete the user({name}), continue?"
   },
   "namespacePage": {
-    "removeUserTips": "This action will delete the user\"s binding relationship, continue?",
-    "removeRoleTips": "This action will delete the role({name}), continue?"
+    "removeUserTips": "This action will delete the user\"s binding relationship, continue?"
   },
   "serverPage": {
     "importCSV": "Import CSV",
@@ -267,8 +269,6 @@
     "copyPub": "Copy pub",
     "copyPubTips": "Copy success. Paste it to ~/.ssh/authorized_keys",
     "testConnection": "Test",
-    "removeServerTips":
-      "This action will delete the server({serverName}), continue?",
     "cpuUsage": "CPU usage rate",
     "ramUsage": "RAM usage rate",
     "loadavg": "Loadavg",
@@ -279,9 +279,6 @@
     "diskIO": "Disk IO",
     "addMonitor": "Create monitor",
     "monitorList": "Monitor list",
-    "deleteTips": "This action will delete the {name}, continue?",
-    "removeCronTips": "This action will delete the crontab, continue?",
-    "removeMonitorTips": "This action will delete the monitor({item}), continue?",
     "item": "Item",
     "formula": "Formula",
     "cycle": "Cycle",
@@ -337,10 +334,6 @@
     "autoDeployGitTips": "Go to the webhook page in GitLab、GitHub or Gitee \nFill in URL http(s)://domian(IP)/deploy/webhook?project_id={projectId}\nCheck push event, (Gitlab can choose the corresponding branch)",
     "autoDeploySVNTips": "Go to the hook dir in SVN \nFill in URL http(s)://domian(IP)/deploy/webhook?project_id={projectId} -X POST --header \"Content-Type: application/json\" --header \"X-SVN-Event: push\" -d \"{ref}\"",
     "projectFileTips": "Upload to the target server with the project deploy.",
-    "removeProjectTips": "This action will delete the project({projectName}), continue?",
-    "removeFileTips": "This action will delete the file({filename}), continue?",
-    "removeServerTips": "This action will delete the server\"s({serverName}) binding relationship, continue?",
-    "removeUserTips": "This action will delete the user\"s({userName}) binding relationship, continue?"
   },
   "deployPage": {
     "resetState": "Reset state",

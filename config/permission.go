@@ -81,4 +81,5 @@ const (
 	ShowOperationLogPage    = 74
 	SFTPTransferFile        = 75
 	SFTPDeleteFile          = 76
+	ShowServerScriptPage    = 77
 )

@@ -55,6 +55,7 @@ func (s Server) Handler() []server.Route {
 		server.NewRoute("/server/editProcess", http.MethodPut, s.EditProcess).Permissions(config.EditServerProcess).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/server/deleteProcess", http.MethodDelete, s.DeleteProcess).Permissions(config.DeleteServerProcess).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/server/execProcess", http.MethodPost, s.ExecProcess).Permissions(config.ShowServerProcessPage).LogFunc(middleware.AddOPLog),
+		server.NewRoute("/server/execScript", http.MethodPost, s.ExecScript).Permissions(config.ShowServerScriptPage).LogFunc(middleware.AddOPLog),
 	}
 }
 
@@ -1050,5 +1051,75 @@ func (Server) ExecProcess(gp *server.Goploy) server.Response {
 	respData.ExecRes = err == nil
 	respData.Stdout = sshOutbuf.String()
 	respData.Stderr = sshErrbuf.String()
+	return response.JSON{Data: respData}
+}
+
+func (Server) ExecScript(gp *server.Goploy) server.Response {
+	type ReqData struct {
+		ServerIDs []int64 `json:"serverIds" validate:"gt=0"`
+		Script    string  `json:"script" validate:"required"`
+	}
+
+	var reqData ReqData
+	if err := decodeJson(gp.Body, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	type ServerResp struct {
+		ServerID int64  `json:"serverId"`
+		ExecRes  bool   `json:"execRes"`
+		Stdout   string `json:"stdout"`
+		Stderr   string `json:"stderr"`
+	}
+
+	ch := make(chan ServerResp, len(reqData.ServerIDs))
+
+	for _, serverId := range reqData.ServerIDs {
+		go func(serverId int64) {
+			serverResp := ServerResp{
+				ServerID: serverId,
+			}
+
+			srv, err := (model.Server{ID: serverId}).GetData()
+			if err != nil {
+				serverResp.ExecRes = false
+				serverResp.Stderr = err.Error()
+				ch <- serverResp
+				return
+			}
+			client, err := srv.ToSSHConfig().Dial()
+			if err != nil {
+				serverResp.ExecRes = false
+				serverResp.Stderr = err.Error()
+				ch <- serverResp
+				return
+			}
+			defer client.Close()
+
+			session, err := client.NewSession()
+			if err != nil {
+				serverResp.ExecRes = false
+				serverResp.Stderr = err.Error()
+				ch <- serverResp
+				return
+			}
+			defer session.Close()
+
+			var sshOutbuf, sshErrbuf bytes.Buffer
+			session.Stdout = &sshOutbuf
+			session.Stderr = &sshErrbuf
+			err = session.Run(srv.ReplaceVars(reqData.Script))
+			serverResp.ExecRes = err == nil
+			serverResp.Stdout = sshOutbuf.String()
+			serverResp.Stderr = sshErrbuf.String()
+			ch <- serverResp
+			return
+		}(serverId)
+	}
+
+	var respData []ServerResp
+	for range reqData.ServerIDs {
+		respData = append(respData, <-ch)
+	}
 	return response.JSON{Data: respData}
 }

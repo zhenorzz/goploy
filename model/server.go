@@ -6,6 +6,8 @@ package model
 
 import (
 	"github.com/zhenorzz/goploy/internal/pkg"
+	"strconv"
+	"strings"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -318,4 +320,25 @@ func (s Server) ToSSHConfig() pkg.SSHConfig {
 		JumpHost:     s.JumpIP,
 		JumpPort:     s.JumpPort,
 	}
+}
+
+func (s Server) ReplaceVars(script string) string {
+	scriptVars := map[string]string{
+		"${SERVER_ID}":            strconv.FormatInt(s.ID, 10),
+		"${SERVER_NAME}":          s.Name,
+		"${SERVER_IP}":            s.IP,
+		"${SERVER_PORT}":          strconv.Itoa(s.Port),
+		"${SERVER_OWNER}":         s.Owner,
+		"${SERVER_PASSWORD}":      s.Password,
+		"${SERVER_PATH}":          s.Path,
+		"${SERVER_JUMP_IP}":       s.JumpIP,
+		"${SERVER_JUMP_PORT}":     strconv.Itoa(s.JumpPort),
+		"${SERVER_JUMP_OWNER}":    s.JumpOwner,
+		"${SERVER_JUMP_PASSWORD}": s.JumpPassword,
+		"${SERVER_JUMP_PATH}":     s.JumpPath,
+	}
+	for key, value := range scriptVars {
+		script = strings.Replace(script, key, value, -1)
+	}
+	return script
 }

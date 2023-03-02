@@ -1120,7 +1120,7 @@ function handleCopy(data: ProjectData) {
 
 function handleRemove(data: ProjectData) {
   ElMessageBox.confirm(
-    t('projectPage.removeProjectTips', {
+    t('removeTips', {
       projectName: data.name,
     }),
     t('tips'),

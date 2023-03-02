@@ -251,7 +251,8 @@
         </el-form-item>
         <el-form-item label="">
           <el-button
-            type="text"
+            text
+            type="primary"
             @click="formProps.showAdvance = !formProps.showAdvance"
           >
             {{ $t('serverPage.advance') }}
@@ -621,7 +622,7 @@ function onSwitchState(value: boolean, index: number) {
       })
   } else {
     ElMessageBox.confirm(
-      t('serverPage.removeServerTips', { serverName: data.name }),
+      t('serverPage.removeTips', { serverName: data.name }),
       t('tips'),
       {
         confirmButtonText: t('confirm'),

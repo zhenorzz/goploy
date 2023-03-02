@@ -28,7 +28,7 @@
         highlight-current-row
         :data="tablePage.list"
       >
-      <el-table-column
+        <el-table-column
           prop="id"
           label="ID"
           min-width="40"
@@ -210,14 +210,14 @@
             </el-row>
           </template>
           <el-scrollbar style="height: 320px">
-          <p>
             stdout:
-            <pre>{{ processExecRes[serverId] && processExecRes[serverId]['stdout'] }}</pre>
-          </p>
-          <p>
+            <pre>{{
+              processExecRes[serverId] && processExecRes[serverId]['stdout']
+            }}</pre>
             stderr:
-            <pre>{{ processExecRes[serverId] && processExecRes[serverId]['stderr'] }}</pre>
-          </p>  
+            <pre>{{
+              processExecRes[serverId] && processExecRes[serverId]['stderr']
+            }}</pre>
           </el-scrollbar>
         </el-tab-pane>
       </el-tabs>
@@ -270,7 +270,7 @@ const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
   name: '',
-  items: [] as { name: string, command: string }[],
+  items: [] as { name: string; command: string }[],
 }
 const formData = ref(tempFormData)
 const formProps = ref({
@@ -335,7 +335,7 @@ function handleEdit(data: ServerProcessData) {
 }
 
 function handleCommandAdd() {
-  formData.value.items.push({name: '', command: '' })
+  formData.value.items.push({ name: '', command: '' })
 }
 
 function handleCommandDel(index: number) {
@@ -354,15 +354,11 @@ function handleProcess(data: ServerProcessData) {
 }
 
 function handleRemove(data: ServerProcessData) {
-  ElMessageBox.confirm(
-    t('serverPage.deleteTips', { name: data.name }),
-    t('tips'),
-    {
-      confirmButtonText: t('confirm'),
-      cancelButtonText: t('cancel'),
-      type: 'warning',
-    }
-  )
+  ElMessageBox.confirm(t('deleteTips', { name: data.name }), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
     .then(() => {
       new ServerProcessDelete({ id: data.id }).request().then(() => {
         getList()
@@ -375,7 +371,7 @@ function handleRemove(data: ServerProcessData) {
 }
 const processExecRes = ref<Record<number, ServerExecProcess['datagram']>>({})
 
-const handleProcessCmd = async (item: { name:string, command: string }) => {
+const handleProcessCmd = async (item: { name: string; command: string }) => {
   if (serverIds.value.length === 0) {
     ElMessage.error('Select server')
     return

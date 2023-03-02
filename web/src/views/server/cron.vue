@@ -296,15 +296,11 @@ function handleEdit(data: CronData) {
 }
 
 function handleRemove(data: CronData) {
-  ElMessageBox.confirm(
-    t('serverPage.deleteTips', { name: data.command }),
-    t('tips'),
-    {
-      confirmButtonText: t('confirm'),
-      cancelButtonText: t('cancel'),
-      type: 'warning',
-    }
-  )
+  ElMessageBox.confirm(t('deleteTips', { name: data.command }), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
     .then(() => {
       new CronRemove({ id: data.id }).request().then(() => {
         getList()

@@ -320,7 +320,7 @@ function removeFile(index: number) {
     formData.value.files.splice(index, 1)
   } else {
     ElMessageBox.confirm(
-      t('projectPage.removeFileTips', {
+      t('deleteTips', {
         filename: formData.value.files[index].filename,
       }),
       t('tips'),

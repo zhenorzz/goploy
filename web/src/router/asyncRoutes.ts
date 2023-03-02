@@ -115,16 +115,16 @@ export default <RouteRecordRaw[]>[
           permissions: [permission.ShowSftpFilePage],
         },
       },
-      // {
-      //   path: 'script',
-      //   name: 'ServerScript',
-      //   component: () => import('@/views/server/script.vue'),
-      //   meta: {
-      //     title: 'serverScript',
-      //     icon: 'script',
-      //     permissions: [permission.ShowServerProcessPage],
-      //   },
-      // },
+      {
+        path: 'script',
+        name: 'ServerScript',
+        component: () => import('@/views/server/script.vue'),
+        meta: {
+          title: 'serverScript',
+          icon: 'script',
+          permissions: [permission.ShowServerScriptPage],
+        },
+      },
       {
         path: 'process',
         name: 'ServerProcess',
