@@ -252,8 +252,7 @@
     "rePassword": "Confirm password"
   },
   "memberPage": {
-    "permissionDesc": "Admin has all namespace and project permissions",
-    "removeUserTips": "This action will delete the user({name}), continue?"
+    "permissionDesc": "Admin has all namespace and project permissions"
   },
   "namespacePage": {
     "removeUserTips": "This action will delete the user\"s binding relationship, continue?"

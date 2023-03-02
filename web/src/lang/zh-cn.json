@@ -253,8 +253,7 @@
     "rePassword": "确认新密码"
   },
   "memberPage": {
-    "permissionDesc": "超管具有所有空间和项目权限",
-    "removeUserTips": "此操作将删除用户{name}, 是否继续?"
+    "permissionDesc": "超管具有所有空间和项目权限"
   },
   "namespacePage": {
     "removeUserTips": "此操作将永久删除该用户的绑定关系, 是否继续?"

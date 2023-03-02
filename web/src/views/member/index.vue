@@ -292,15 +292,11 @@ function handleEdit(data: UserData) {
 }
 
 function handleRemove(data: UserData) {
-  ElMessageBox.confirm(
-    t('memberPage.removeUserTips', { name: data.name }),
-    t('tips'),
-    {
-      confirmButtonText: t('confirm'),
-      cancelButtonText: t('cancel'),
-      type: 'warning',
-    }
-  )
+  ElMessageBox.confirm(t('removeTips', { name: data.name }), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
     .then(() => {
       new UserRemove(data).request().then(() => {
         ElMessage.success('Success')
