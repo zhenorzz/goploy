@@ -288,7 +288,7 @@
     "advance": "高级选项",
     "transferFile": "传输文件",
     "sftpFileCount": "个项目",
-    "execDir": "执行目录"
+    "saveTemplate": "保存模板"
   },
   "monitorPage": {
     "typeOption": ["未知", "站点检测", "端口检测", "Ping检测", "进程检测", "自定义脚本检测"],

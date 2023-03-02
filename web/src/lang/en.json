@@ -287,7 +287,7 @@
     "advance": "Advanced setting",
     "transferFile": "Transfer file",
     "sftpFileCount": "items",
-    "execDir": "Exec dir"
+    "saveTemplate": "Save template"
   },
   "monitorPage": {
     "typeOption": ["Unknown", "Site check", "Port check", "Ping check", "Process check", "Custom script check"],
@@ -333,7 +333,7 @@
     "autoDeployTips": "Go to the webhook page in GitLab、GitHub or Gitee \nFill in URL http(s)://domian(IP)/deploy/webhook?project_id={projectId}\nCheck push event, (Gitlab can choose the corresponding branch)",
     "autoDeployGitTips": "Go to the webhook page in GitLab、GitHub or Gitee \nFill in URL http(s)://domian(IP)/deploy/webhook?project_id={projectId}\nCheck push event, (Gitlab can choose the corresponding branch)",
     "autoDeploySVNTips": "Go to the hook dir in SVN \nFill in URL http(s)://domian(IP)/deploy/webhook?project_id={projectId} -X POST --header \"Content-Type: application/json\" --header \"X-SVN-Event: push\" -d \"{ref}\"",
-    "projectFileTips": "Upload to the target server with the project deploy.",
+    "projectFileTips": "Upload to the target server with the project deploy."
   },
   "deployPage": {
     "resetState": "Reset state",

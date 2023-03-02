@@ -80,7 +80,7 @@
             :disabled="script == ''"
             @click="templateDialogVisible = true"
           >
-            保存模板
+            {{ $t('serverPage.saveTemplate') }}
           </el-button>
           <el-popover
             placement="bottom-end"
@@ -178,7 +178,6 @@
     <el-dialog
       v-model="execDialogVisible"
       :fullscreen="$store.state.app.device === 'mobile'"
-      :title="'执行结果'"
       :close-on-click-modal="false"
     >
       <el-tabs v-model="serverTab" type="border-card">
@@ -215,7 +214,7 @@
     <el-dialog
       v-model="templateDialogVisible"
       :fullscreen="$store.state.app.device === 'mobile'"
-      :title="'保存模板'"
+      :title="$t('serverPage.saveTemplate')"
       :close-on-click-modal="false"
     >
       <el-form
