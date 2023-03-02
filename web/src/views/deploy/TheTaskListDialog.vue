@@ -118,7 +118,6 @@
       </el-row>
       <el-form
         ref="form"
-        :rules="formRules"
         :model="formData"
         label-width="65px"
         :label-position="$store.state.app.device === 'desktop' ? 'left' : 'top'"
@@ -173,7 +172,13 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <el-form-item :label="$t('date')" prop="date">
+        <el-form-item
+          :label="$t('date')"
+          prop="date"
+          :rules="[
+            { required: true, message: 'Date required', trigger: 'blur' },
+          ]"
+        >
           <el-date-picker
             v-model="formData.date"
             type="datetime"
@@ -265,9 +270,6 @@ const formProps = ref({
   commitOption: [] as RepositoryCommitList['datagram']['list'],
   disabled: false,
 })
-const formRules: InstanceType<typeof ElForm>['rules'] = {
-  date: [{ required: true, message: 'Date required', trigger: 'blur' }],
-}
 
 const getTaskList = () => {
   tableLoading.value = true

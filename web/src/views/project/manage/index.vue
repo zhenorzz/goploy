@@ -148,7 +148,6 @@
       <el-form
         ref="form"
         v-loading="formProps.disabled"
-        :rules="formRules"
         :model="formData"
         label-width="120px"
         :label-position="
@@ -162,14 +161,29 @@
                 {{ $t('baseSetting') }}
               </span>
             </template>
-            <el-form-item :label="$t('name')" prop="name">
+            <el-form-item
+              :label="$t('name')"
+              prop="name"
+              :rules="[
+                { required: true, message: 'Name required', trigger: ['blur'] },
+              ]"
+            >
               <el-input
                 v-model.trim="formData.name"
                 autocomplete="off"
                 placeholder="goploy"
               />
             </el-form-item>
-            <el-form-item prop="url">
+            <el-form-item
+              prop="url"
+              :rules="[
+                {
+                  required: true,
+                  message: 'Repository url required',
+                  trigger: ['blur'],
+                },
+              ]"
+            >
               <template #label>
                 <span style="vertical-align: middle; padding-right: 4px">
                   {{ $t('projectURL') }}
@@ -212,7 +226,13 @@
                 </el-button>
               </el-row>
             </el-form-item>
-            <el-form-item :label="$t('projectPath')" prop="path">
+            <el-form-item
+              :label="$t('projectPath')"
+              prop="path"
+              :rules="[
+                { required: true, message: 'Path required', trigger: ['blur'] },
+              ]"
+            >
               <el-input
                 v-model.trim="formData.path"
                 autocomplete="off"
@@ -220,7 +240,17 @@
                 @input="() => handleSymlink(formProps.symlink)"
               />
             </el-form-item>
-            <el-form-item :label="$t('environment')" prop="environment">
+            <el-form-item
+              :label="$t('environment')"
+              prop="environment"
+              :rules="[
+                {
+                  required: true,
+                  message: 'Environment required',
+                  trigger: ['blur'],
+                },
+              ]"
+            >
               <el-select v-model="formData.environment" style="width: 100%">
                 <el-option :label="$t('envOption[1]')" :value="1" />
                 <el-option :label="$t('envOption[2]')" :value="2" />
@@ -228,7 +258,17 @@
                 <el-option :label="$t('envOption[4]')" :value="4" />
               </el-select>
             </el-form-item>
-            <el-form-item :label="$t('branch')" prop="branch">
+            <el-form-item
+              :label="$t('branch')"
+              prop="branch"
+              :rules="[
+                {
+                  required: true,
+                  message: 'Branch required',
+                  trigger: ['blur'],
+                },
+              ]"
+            >
               <el-row type="flex" style="width: 100%">
                 <el-select
                   v-model="formData.branch"
@@ -303,7 +343,7 @@
                 placeholder="-rtv --exclude .git --delete-after"
               />
             </el-form-item>
-            <el-form-item prop="notifyTarget">
+            <el-form-item prop="notifyTarget" :rules="notifyTargetRules">
               <template #label>
                 <el-link
                   type="primary"
@@ -890,13 +930,14 @@ import {
   ProjectAutoDeploy,
   ProjectData,
 } from '@/api/project'
-import type { ElRadioGroup, ElForm } from 'element-plus'
+import type { ElRadioGroup, ElForm, FormItemRule } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref, computed } from 'vue'
 import { useDark } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const isDark = useDark()
+
 ace.config.set(
   'basePath',
   'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
@@ -997,39 +1038,20 @@ const tempFormData = {
   notifyTarget: '',
 }
 const formData = ref(tempFormData)
-const formRules: InstanceType<typeof ElForm>['rules'] = {
-  name: [{ required: true, message: 'Name required', trigger: ['blur'] }],
-  url: [
-    {
-      required: true,
-      message: 'Repository url required',
-      trigger: ['blur'],
+const notifyTargetRules: FormItemRule[] = [
+  {
+    trigger: 'blur',
+    validator: (_, value) => {
+      if (value !== '' && formData.value.notifyType > 0) {
+        return true
+      } else if (formData.value.notifyType === 0) {
+        return true
+      } else {
+        return new Error('Select the notice mode')
+      }
     },
-  ],
-  path: [{ required: true, message: 'Path required', trigger: ['blur'] }],
-  environment: [
-    {
-      required: true,
-      message: 'Environment required',
-      trigger: ['blur'],
-    },
-  ],
-  branch: [{ required: true, message: 'Branch required', trigger: ['blur'] }],
-  notifyTarget: [
-    {
-      trigger: 'blur',
-      validator: (_, value) => {
-        if (value !== '' && formData.value.notifyType > 0) {
-          return true
-        } else if (formData.value.notifyType === 0) {
-          return true
-        } else {
-          return new Error('Select the notice mode')
-        }
-      },
-    },
-  ],
-}
+  },
+]
 const autoDeployForm = ref<InstanceType<typeof ElForm>>()
 const autoDeployFormProps = ref({ disabled: false })
 const autoDeployFormData = ref({ id: 0, autoDeploy: 0 })

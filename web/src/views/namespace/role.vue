@@ -94,14 +94,19 @@
     >
       <el-form
         ref="form"
-        :rules="formRules"
         :model="formData"
         label-width="80px"
         :label-position="
           $store.state.app.device === 'desktop' ? 'right' : 'top'
         "
       >
-        <el-form-item :label="$t('name')" prop="name">
+        <el-form-item
+          :label="$t('name')"
+          prop="name"
+          :rules="[
+            { required: true, message: 'Name required', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
         <el-form-item :label="$t('description')" prop="description">
@@ -180,7 +185,7 @@ import {
   RolePermissionBindings,
   RolePermissionChange,
 } from '@/api/role'
-import type { ElForm } from 'element-plus'
+import type { CheckboxValueType, ElForm } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { deepClone } from '@/utils'
 import { ref, computed } from 'vue'
@@ -207,9 +212,7 @@ const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = { id: 0, name: '', description: '' }
 const formData = ref(tempFormData)
 const formProps = ref({ disabled: false })
-const formRules = {
-  name: [{ required: true, message: 'Name required', trigger: 'blur' }],
-}
+
 const tempPermissionList = {} as Record<number, permission>
 const permissionList = ref<Record<number, permission>>({})
 const rolePermissionLoading = ref(false)
@@ -307,7 +310,7 @@ function handlePermission(data: RoleData) {
   permissionDialogVisible.value = true
 }
 
-function handleCheckAllChange(val: boolean, id: number) {
+function handleCheckAllChange(val: CheckboxValueType, id: number) {
   permissionList.value[id].checkedGroup = val
     ? permissionList.value[id].children.map((_) => _.id)
     : []

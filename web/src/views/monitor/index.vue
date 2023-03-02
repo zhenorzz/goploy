@@ -143,17 +143,28 @@
         ref="form"
         v-loading="formProps.loading"
         :class="$store.state.app.device === 'desktop' ? 'monitor-dialog' : ''"
-        :rules="formRules"
         :model="formData"
         label-width="120px"
         :label-position="
           $store.state.app.device === 'desktop' ? 'right' : 'top'
         "
       >
-        <el-form-item :label="$t('name')" prop="name">
+        <el-form-item
+          :label="$t('name')"
+          prop="name"
+          :rules="[
+            { required: true, message: 'Name required', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
-        <el-form-item :label="$t('type')" prop="type">
+        <el-form-item
+          :label="$t('type')"
+          prop="type"
+          :rules="[
+            { required: true, message: 'Type required', trigger: 'blur' },
+          ]"
+        >
           <el-select
             v-model="formData.type"
             style="width: 100%"
@@ -237,7 +248,19 @@
             placeholder=""
           />
         </el-form-item>
-        <el-form-item :label="$t('interval') + '(s)'" prop="second">
+        <el-form-item
+          :label="$t('interval') + '(s)'"
+          prop="second"
+          :rules="[
+            {
+              type: 'number',
+              required: true,
+              min: 1,
+              message: 'Interval required',
+              trigger: 'blur',
+            },
+          ]"
+        >
           <el-radio-group v-model="formData.second">
             <el-radio :label="60">1 min</el-radio>
             <el-radio :label="300">5 min</el-radio>
@@ -246,7 +269,20 @@
             <el-radio :label="3600">60 min</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item :label="$t('monitorPage.failTimes')" prop="times">
+        <el-form-item
+          :label="$t('monitorPage.failTimes')"
+          prop="times"
+          :rules="[
+            {
+              type: 'number',
+              required: true,
+              min: 1,
+              max: 65535,
+              message: 'Times required',
+              trigger: 'blur',
+            },
+          ]"
+        >
           <el-radio-group v-model="formData.times">
             <el-radio :label="1">1</el-radio>
             <el-radio :label="2">2</el-radio>
@@ -272,7 +308,11 @@
             <el-option label="24 hour" :value="1440" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="$t('notice')" prop="notifyTarget">
+        <el-form-item
+          :label="$t('notice')"
+          prop="notifyTarget"
+          :rules="[{ required: true, message: 'Webhook required' }]"
+        >
           <el-row type="flex" style="width: 100%">
             <el-select v-model="formData.notifyType">
               <el-option :label="$t('webhookOption[1]')" :value="1" />
@@ -288,7 +328,13 @@
             />
           </el-row>
         </el-form-item>
-        <el-form-item :label="$t('description')" prop="description">
+        <el-form-item
+          :label="$t('description')"
+          prop="description"
+          :rules="[
+            { max: 255, message: 'Max 255 characters', trigger: 'blur' },
+          ]"
+        >
           <el-input
             v-model="formData.description"
             type="textarea"
@@ -361,7 +407,7 @@ const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
   name: '',
-  type: '' as number,
+  type: 1,
   target: '',
   second: 60,
   times: 1,
@@ -381,51 +427,6 @@ const formProps = ref({
   process: '',
   script: '',
 })
-const formRules: InstanceType<typeof ElForm>['rules'] = {
-  name: [{ required: true, message: 'Name required', trigger: 'blur' }],
-  type: [{ required: true, message: 'Type required', trigger: 'blur' }],
-  port: [
-    {
-      type: 'number',
-      required: true,
-      min: 0,
-      max: 65535,
-      message: '0 ~ 65535',
-      trigger: 'blur',
-    },
-  ],
-  second: [
-    {
-      type: 'number',
-      required: true,
-      min: 1,
-      message: 'Interval required',
-      trigger: 'blur',
-    },
-  ],
-  times: [
-    {
-      type: 'number',
-      required: true,
-      min: 1,
-      max: 65535,
-      message: 'Times required',
-      trigger: 'blur',
-    },
-  ],
-  notifyTarget: [{ required: true, message: 'Webhook required' }],
-  notifyTimes: [
-    {
-      type: 'number',
-      required: true,
-      min: 1,
-      max: 65535,
-      message: 'Notify times required',
-      trigger: 'blur',
-    },
-  ],
-  description: [{ max: 255, message: 'Max 255 characters', trigger: 'blur' }],
-}
 
 watch(
   () => store.state.websocket.message,

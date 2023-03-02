@@ -18,12 +18,20 @@
         justify="center"
         style="margin-top: 10px; width: 100%"
       >
-        <el-form ref="form" :inline="true" :rules="formRules" :model="formData">
+        <el-form ref="form" :inline="true" :model="formData">
           <el-form-item
             :label="$t('user')"
             label-width="60px"
             prop="userIds"
             style="margin-bottom: 5px"
+            :rules="[
+              {
+                type: 'array',
+                required: true,
+                message: 'User required',
+                trigger: 'change',
+              },
+            ]"
           >
             <el-select
               v-model="formData.userIds"
@@ -47,6 +55,9 @@
             label-width="60px"
             prop="roleId"
             style="margin-bottom: 5px"
+            :rules="[
+              { required: true, message: 'Role required', trigger: 'change' },
+            ]"
           >
             <el-select
               v-model="formData.roleId"
@@ -153,17 +164,7 @@ const emit = defineEmits(['update:modelValue'])
 const form = ref<InstanceType<typeof ElForm>>()
 const formProps = ref({ disabled: false })
 const formData = ref({ namespaceId: 0, userIds: [], roleId: '' })
-const formRules: InstanceType<typeof ElForm>['rules'] = {
-  userIds: [
-    {
-      type: 'array',
-      required: true,
-      message: 'User required',
-      trigger: 'change',
-    },
-  ],
-  roleId: [{ required: true, message: 'Role required', trigger: 'change' }],
-}
+
 let tableData = ref<NamespaceUserList['datagram']['list']>([])
 const dialogVisible = computed({
   get: () => props.modelValue,

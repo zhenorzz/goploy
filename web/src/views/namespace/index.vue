@@ -94,14 +94,19 @@
     >
       <el-form
         ref="form"
-        :rules="formRules"
         :model="formData"
         label-width="80px"
         :label-position="
           $store.state.app.device === 'desktop' ? 'right' : 'top'
         "
       >
-        <el-form-item :label="$t('name')" prop="name">
+        <el-form-item
+          :label="$t('name')"
+          prop="name"
+          :rules="[
+            { required: true, message: 'Name required', trigger: 'blur' },
+          ]"
+        >
           <el-input v-model="formData.name" autocomplete="off" />
         </el-form-item>
       </el-form>
@@ -153,9 +158,6 @@ const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = { id: 0, name: '' }
 const formData = ref(tempFormData)
 const formProps = ref({ disabled: false })
-const formRules = {
-  name: [{ required: true, message: 'Name required', trigger: 'blur' }],
-}
 
 getList()
 
