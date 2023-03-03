@@ -639,6 +639,10 @@ function check() {
 
 function submit() {
   form.value?.validate((valid) => {
+    if (!valid) {
+      return Promise.reject(false)
+    }
+    formProps.value.items = formProps.value.items.filter((_) => _ != '')
     if (formProps.value.items.length === 0) {
       ElMessage.error('Target at least one item')
       return
@@ -670,16 +674,12 @@ function submit() {
       })
     }
 
-    if (valid) {
-      if (formData.value.id === 0) {
-        add()
-      } else {
-        edit()
-      }
-      return Promise.resolve(true)
+    if (formData.value.id === 0) {
+      add()
     } else {
-      return Promise.reject(false)
+      edit()
     }
+    return Promise.resolve(true)
   })
 }
 
