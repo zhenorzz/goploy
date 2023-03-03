@@ -1,7 +1,7 @@
 # Import sql manually https://github.com/zhenorzz/goploy/blob/master/model/sql/goploy.sql
 FROM alpine
 LABEL maintainer="zhenorzz@gmail.com"
-ARG GOPLOY_VER=v1.12.3
+ARG GOPLOY_VER=v1.13.0
 ENV GOPLOY_VER=${GOPLOY_VER}
 
 ENV MYSQL_PORT=3306
