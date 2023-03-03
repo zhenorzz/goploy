@@ -73,9 +73,7 @@ func monitorTask() {
 		}
 
 		now := time.Now().Unix()
-		println(m.Name, "detect", time.Now().String())
 		if int(now-monitorCache.time) >= m.Second {
-			println(m.Name, "in", time.Now().String())
 			monitorCache.time = now
 			ms, err := monitor.NewMonitorFromTarget(m.Type, m.Target)
 			if err != nil {

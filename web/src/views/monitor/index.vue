@@ -32,12 +32,42 @@
       >
         <el-table-column prop="id" label="ID" width="100" />
         <el-table-column prop="name" :label="$t('name')" min-width="120" />
-        <el-table-column
-          prop="target"
-          label="Domain"
-          min-width="140"
-          show-overflow-tooltip
-        >
+        <el-table-column prop="type" :label="$t('type')" min-width="120">
+          <template #default="scope">
+            {{ $t(`monitorPage.typeOption[${scope.row.type || 0}]`) }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="target" label="Content" min-width="180">
+          <template #default="scope">
+            <div v-if="scope.row.type == 1">
+              http.get: {{ scope.row.target.items.join(',') }} <br />
+              Timeout: {{ scope.row.target.timeout }}
+            </div>
+            <div v-else-if="scope.row.type == 2">
+              net.dial: {{ scope.row.target.items.join(',') }} <br />
+              Timeout: {{ scope.row.target.timeout }}
+            </div>
+            <div v-else-if="scope.row.type == 3">
+              ping: {{ scope.row.target.items.join(',') }} <br />
+              Timeout: {{ scope.row.target.timeout }}
+            </div>
+            <div v-else-if="scope.row.type == 4">
+              <div class="title-ellipsis" :title="scope.row.target.itemsName">
+                server: {{ scope.row.target.itemsName }}
+              </div>
+              process: {{ scope.row.target.process }} <br />
+              Timeout: {{ scope.row.target.timeout }}
+            </div>
+            <div v-else-if="scope.row.type == 5">
+              <div class="title-ellipsis" :title="scope.row.target.itemsName">
+                server: {{ scope.row.target.itemsName }}
+              </div>
+              <div class="title-ellipsis" :title="scope.row.target.script">
+                script: {{ scope.row.target.script }}
+              </div>
+              Timeout: {{ scope.row.target.timeout }}
+            </div>
+          </template>
         </el-table-column>
         <el-table-column
           prop="second"
@@ -51,18 +81,7 @@
         />
         <el-table-column prop="notifyType" :label="$t('notice')" width="90">
           <template #default="scope">
-            <span v-if="scope.row.notifyType === 1">
-              {{ $t('webhookOption[1]') }}
-            </span>
-            <span v-else-if="scope.row.notifyType === 2">
-              {{ $t('webhookOption[2]') }}
-            </span>
-            <span v-else-if="scope.row.notifyType === 3">
-              {{ $t('webhookOption[3]') }}
-            </span>
-            <span v-else-if="scope.row.notifyType === 255">
-              {{ $t('webhookOption[255]') }}
-            </span>
+            {{ $t(`webhookOption[${scope.row.notifyType || 0}]`) }}
           </template>
         </el-table-column>
         <el-table-column
@@ -74,7 +93,7 @@
           <template #default="scope">
             {{ $t(`switchOption[${scope.row.state || 0}]`) }}
             <Switch
-              :value="scope.row.state === 1"
+              :model-value="scope.row.state === 1"
               active-color="#13ce66"
               inactive-color="#ff4949"
               :permissions="[pms.EditMonitor]"
@@ -177,18 +196,28 @@
             <el-option :label="$t('monitorPage.typeOption[5]')" :value="5" />
           </el-select>
         </el-form-item>
-        <template v-if="4 > formData.type && formData.type > 0">
+        <template v-if="0 < formData.type && formData.type < 4">
           <el-form-item :label="$t('target')">
-            <el-select
-              v-model="formProps.items"
-              style="width: 100%"
-              allow-create
-              filterable
-              multiple
-              default-first-option
+            <el-button
+              type="primary"
+              :icon="Plus"
+              plain
+              @click="formProps.items.push('')"
+            ></el-button>
+            <el-input
+              v-for="(_, index) in formProps.items"
+              :key="index"
+              v-model="formProps.items[index]"
+              :placeholder="formProps.itemPlaceholder[formData.type]"
               clearable
             >
-            </el-select>
+              <template #append>
+                <el-button
+                  :icon="Minus"
+                  @click="formProps.items.splice(index, 1)"
+                />
+              </template>
+            </el-input>
           </el-form-item>
         </template>
         <template v-else-if="formData.type === 4">
@@ -200,8 +229,8 @@
               style="width: 100%"
             >
               <el-option
-                v-for="(item, index) in formProps.serverOption"
-                :key="index"
+                v-for="item in serverOption"
+                :key="item.label"
                 :label="item.label"
                 :value="item.id.toString()"
               />
@@ -224,8 +253,8 @@
               style="width: 100%"
             >
               <el-option
-                v-for="(item, index) in formProps.serverOption"
-                :key="index"
+                v-for="item in serverOption"
+                :key="item.label"
                 :label="item.label"
                 :value="item.id.toString()"
               />
@@ -370,7 +399,7 @@ export default { name: 'MonitorIndex' }
 <script lang="ts" setup>
 import pms from '@/permission'
 import { Button, Switch } from '@/components/Permission'
-import { Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Refresh, Plus, Edit, Delete, Minus } from '@element-plus/icons-vue'
 import { VAceEditor } from 'vue3-ace-editor'
 import * as ace from 'ace-builds/src-noconflict/ace'
 import { ServerOption } from '@/api/server'
@@ -400,6 +429,7 @@ ace.config.set(
 )
 const dialogVisible = ref(false)
 const monitorName = ref('')
+const serverOption = ref<ServerOption['datagram']['list']>([])
 const tableLoading = ref(false)
 const tableData = ref<MonitorList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 20 })
@@ -420,12 +450,16 @@ const formData = ref(tempFormData)
 const formProps = ref({
   loading: false,
   disabled: false,
-  serverLoading: false,
-  serverOption: [] as ServerOption['datagram']['list'],
-  items: [],
+  items: [] as string[],
   timeout: 10,
   process: '',
   script: '',
+  itemPlaceholder: [
+    '',
+    'http(s)://www.example.com',
+    '127.0.0.1:8080',
+    'www.example.com',
+  ],
 })
 
 watch(
@@ -444,8 +478,10 @@ watch(
     }
   }
 )
-
-getList()
+;(async () => {
+  await getServerOption()
+  await getList()
+})()
 
 const tablePage = computed(() => {
   let _tableData = tableData.value
@@ -464,16 +500,33 @@ const tablePage = computed(() => {
   }
 })
 
-function getList() {
+async function getList() {
   tableLoading.value = true
-  new MonitorList()
+  await new MonitorList()
     .request()
     .then((response) => {
-      tableData.value = response.data.list
+      tableData.value = response.data.list.map((elem) => {
+        elem.target = JSON.parse(elem.target)
+        if (elem.type == 4 || elem.type == 5) {
+          elem.target.itemsName = elem.target.items
+            .map(
+              (item: number) =>
+                serverOption.value.find((server) => server.id == item)?.name
+            )
+            .join(', ')
+        }
+        return elem
+      })
     })
     .finally(() => {
       tableLoading.value = false
     })
+}
+
+async function getServerOption() {
+  await new ServerOption().request().then((response) => {
+    serverOption.value = response.data.list
+  })
 }
 
 function refresList() {
@@ -488,15 +541,7 @@ function handlePageChange(val = 1) {
 
 function handleTypeChange(type: number) {
   if (type > 3) {
-    formProps.value.serverLoading = true
-    new ServerOption()
-      .request()
-      .then((response) => {
-        formProps.value.serverOption = response.data.list
-      })
-      .finally(() => {
-        formProps.value.serverLoading = false
-      })
+    formProps.value.items = []
   }
 }
 
@@ -508,8 +553,7 @@ function handleAdd() {
 
 function handleEdit(data: MonitorData) {
   formData.value = Object.assign({}, data)
-  formProps.value = Object.assign(formProps.value, JSON.parse(data.target))
-  handleTypeChange(formData.value.type)
+  formProps.value = Object.assign(formProps.value, data.target)
   dialogVisible.value = true
 }
 
@@ -676,5 +720,12 @@ function restoreFormData() {
   max-height: 50vh;
   overflow-y: auto;
   @include scrollBar();
+}
+
+.title-ellipsis {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 </style>

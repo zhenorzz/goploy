@@ -5,7 +5,7 @@ export interface MonitorData {
   namespaceId: number
   name: string
   type: number
-  target: string
+  target: any
   second: number
   times: number
   silentCycle: number
