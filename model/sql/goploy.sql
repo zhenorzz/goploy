@@ -308,6 +308,17 @@ CREATE TABLE IF NOT EXISTS `role_permission` (
     UNIQUE KEY `uk_role_permission` (`role_id`,`permission_id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE IF NOT EXISTS `template` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `type` tinyint(3) unsigned NOT NULL DEFAULT '0',
+    `name` varchar(255) NOT NULL DEFAULT '',
+    `content` text NOT NULL,
+    `description` varchar(2047) NOT NULL DEFAULT '',
+    `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 CREATE TABLE IF NOT EXISTS `system_config` (
     `id`    int(10) unsigned NOT NULL AUTO_INCREMENT,
     `key`   varchar(255) NOT NULL DEFAULT '',
@@ -456,6 +467,7 @@ INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALU
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (74, 1, 'ShowOperationLogPage', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (75, 23, 'SFTPTransferFile', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (76, 23, 'SFTPDeleteFile', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (77, 23, 'ShowServerScriptPage', 0, '');
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 13);
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 14);
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 15);
