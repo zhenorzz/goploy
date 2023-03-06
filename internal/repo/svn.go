@@ -82,7 +82,7 @@ func (svnRepo SvnRepo) Follow(project model.Project, target string) error {
 	return nil
 }
 
-func (SvnRepo) RemoteBranchList(url string) ([]string, error) {
+func (SvnRepo) RemoteBranchList(_ string) ([]string, error) {
 	return []string{"master"}, nil
 }
 
@@ -105,7 +105,7 @@ func (SvnRepo) CommitLog(projectID int64, rows int) ([]CommitInfo, error) {
 	return list, nil
 }
 
-func (SvnRepo) BranchLog(projectID int64, branch string, rows int) ([]CommitInfo, error) {
+func (SvnRepo) BranchLog(projectID int64, _ string, rows int) ([]CommitInfo, error) {
 	svn := pkg.SVN{Dir: config.GetProjectPath(projectID)}
 
 	if err := svn.Log("-v", "--xml", "-l", strconv.Itoa(rows)); err != nil {
@@ -116,7 +116,7 @@ func (SvnRepo) BranchLog(projectID int64, branch string, rows int) ([]CommitInfo
 	return list, nil
 }
 
-func (SvnRepo) TagLog(projectID int64, rows int) ([]CommitInfo, error) {
+func (SvnRepo) TagLog(_ int64, _ int) ([]CommitInfo, error) {
 	return []CommitInfo{}, nil
 }
 
@@ -137,12 +137,10 @@ func parseSVNLog(rawCommitLog string) []CommitInfo {
 		Paths    []path `xml:"paths>path"`
 	}
 
-	type log struct {
+	logs := new(struct {
 		XMLName  xml.Name   `xml:"log"`
 		LogEntry []logEntry `xml:"logentry"`
-	}
-
-	logs := new(log)
+	})
 	err := xml.Unmarshal([]byte(rawCommitLog), logs)
 	if err != nil {
 		fmt.Printf("error: %v", err)

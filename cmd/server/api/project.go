@@ -446,8 +446,7 @@ func (Project) Edit(gp *server.Goploy) server.Response {
 		srcPath := config.GetProjectPath(projectData.ID)
 		_, err := os.Stat(srcPath)
 		if err == nil || os.IsNotExist(err) == false {
-			repo := reqData.URL
-			cmd := exec.Command("git", "remote", "set-url", "origin", repo)
+			cmd := exec.Command("git", "remote", "set-url", "origin", reqData.URL)
 			cmd.Dir = srcPath
 			if err := cmd.Run(); err != nil {
 				return response.JSON{Code: response.Error, Message: "Project change url fail, you can do it manually, reason: " + err.Error()}
@@ -626,10 +625,14 @@ func (Project) AddFile(gp *server.Goploy) server.Response {
 
 	file, err := os.Create(filePath)
 	if err != nil {
-		panic(err)
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	defer file.Close()
-	file.WriteString(reqData.Content)
+
+	_, err = file.WriteString(reqData.Content)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
 
 	id, err := model.ProjectFile{
 		ProjectID: reqData.ProjectID,
@@ -674,7 +677,10 @@ func (Project) EditFile(gp *server.Goploy) server.Response {
 		panic(err)
 	}
 	defer file.Close()
-	file.WriteString(reqData.Content)
+	_, err = file.WriteString(reqData.Content)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
 
 	return response.JSON{}
 }

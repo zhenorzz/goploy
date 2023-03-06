@@ -286,25 +286,20 @@ func (s Server) ToggleRow() error {
 		Where(sq.Eq{"id": s.ID}).
 		RunWith(tx).
 		Exec()
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	if s.State == Disable {
+	
+	if err == nil && s.State == Disable {
 		_, err = sq.
 			Delete(projectServerTable).
 			Where(sq.Eq{"server_id": s.ID}).
 			RunWith(tx).
 			Exec()
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
 	}
-	if err = tx.Commit(); err != nil {
-		return err
+
+	if err != nil {
+		return tx.Rollback()
 	}
-	return nil
+
+	return tx.Commit()
 }
 
 func (s Server) ToSSHConfig() pkg.SSHConfig {

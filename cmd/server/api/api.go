@@ -30,7 +30,7 @@ func init() {
 	uni := ut.New(english, english)
 	Trans, _ = uni.GetTranslator("english")
 	Validate = validator.New()
-	enTranslations.RegisterDefaultTranslations(Validate, Trans)
+	_ = enTranslations.RegisterDefaultTranslations(Validate, Trans)
 	Validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
 		if name == "-" {
@@ -38,7 +38,7 @@ func init() {
 		}
 		return name
 	})
-	Validate.RegisterValidation("password", func(fl validator.FieldLevel) bool {
+	_ = Validate.RegisterValidation("password", func(fl validator.FieldLevel) bool {
 		password := fl.Field().String()
 		if len(password) < 8 || len(password) > 16 {
 			return false

@@ -55,25 +55,20 @@ func (r Role) DeleteRow() error {
 		Where(sq.Eq{"id": r.ID}).
 		RunWith(tx).
 		Exec()
-	if err != nil {
-		tx.Rollback()
-		return err
+
+	if err == nil {
+		_, err = sq.
+			Delete(rolePermissionTable).
+			Where(sq.Eq{"role_id": r.ID}).
+			RunWith(tx).
+			Exec()
 	}
 
-	_, err = sq.
-		Delete(rolePermissionTable).
-		Where(sq.Eq{"role_id": r.ID}).
-		RunWith(tx).
-		Exec()
 	if err != nil {
-		tx.Rollback()
-		return err
+		return tx.Rollback()
 	}
 
-	if err = tx.Commit(); err != nil {
-		return err
-	}
-	return nil
+	return tx.Commit()
 }
 
 func (r Role) GetList() (Roles, error) {

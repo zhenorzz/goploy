@@ -746,24 +746,24 @@ func (Server) Report(gp *server.Goploy) server.Response {
 
 	flagMap := map[string]Flag{}
 
-	for _, log := range serverAgentLogs {
-		if _, ok := flagMap[log.Item]; !ok {
-			flagMap[log.Item] = Flag{}
+	for _, serverAgentLog := range serverAgentLogs {
+		if _, ok := flagMap[serverAgentLog.Item]; !ok {
+			flagMap[serverAgentLog.Item] = Flag{}
 		}
-		flagMap[log.Item] = Flag{Count: flagMap[log.Item].Count + 1}
+		flagMap[serverAgentLog.Item] = Flag{Count: flagMap[serverAgentLog.Item].Count + 1}
 	}
 
 	serverAgentMap := map[string]model.ServerAgentLogs{}
-	for _, log := range serverAgentLogs {
-		flagMap[log.Item] = Flag{
-			Count: flagMap[log.Item].Count,
-			Curr:  flagMap[log.Item].Curr + 1,
+	for _, serverAgentLog := range serverAgentLogs {
+		flagMap[serverAgentLog.Item] = Flag{
+			Count: flagMap[serverAgentLog.Item].Count,
+			Curr:  flagMap[serverAgentLog.Item].Curr + 1,
 		}
-		step := flagMap[log.Item].Count / 60
-		if flagMap[log.Item].Count <= 60 ||
-			flagMap[log.Item].Curr%step == 0 ||
-			flagMap[log.Item].Count-1 == flagMap[log.Item].Curr {
-			serverAgentMap[log.Item] = append(serverAgentMap[log.Item], log)
+		step := flagMap[serverAgentLog.Item].Count / 60
+		if flagMap[serverAgentLog.Item].Count <= 60 ||
+			flagMap[serverAgentLog.Item].Curr%step == 0 ||
+			flagMap[serverAgentLog.Item].Count-1 == flagMap[serverAgentLog.Item].Curr {
+			serverAgentMap[serverAgentLog.Item] = append(serverAgentMap[serverAgentLog.Item], serverAgentLog)
 		}
 	}
 

@@ -202,7 +202,7 @@ func (Deploy) FileCompare(gp *server.Goploy) server.Response {
 	}
 
 	if len(projectServers) == 0 {
-		return response.JSON{Code: response.Error, Message: "project have no server"}
+		return response.JSON{Code: response.Error, Message: "project have no projectServer"}
 	}
 
 	type FileCompareData struct {
@@ -216,7 +216,7 @@ func (Deploy) FileCompare(gp *server.Goploy) server.Response {
 	ch := make(chan FileCompareData, len(projectServers))
 
 	distPath := path.Join(project.Path, reqData.FilePath)
-	for _, server := range projectServers {
+	for _, projectServer := range projectServers {
 		go func(server model.ProjectServer) {
 			fileCompare := FileCompareData{server.ServerName, server.ServerIP, server.ServerID, "no change", false}
 			client, err := server.ToSSHConfig().Dial()
@@ -252,7 +252,7 @@ func (Deploy) FileCompare(gp *server.Goploy) server.Response {
 				return
 			}
 			ch <- fileCompare
-		}(server)
+		}(projectServer)
 	}
 
 	for i := 0; i < len(projectServers); i++ {
@@ -283,12 +283,12 @@ func (Deploy) FileDiff(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	server, err := model.Server{ID: reqData.ServerID}.GetData()
+	srv, err := model.Server{ID: reqData.ServerID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	client, err := server.ToSSHConfig().Dial()
+	client, err := srv.ToSSHConfig().Dial()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -335,7 +335,7 @@ func (Deploy) ManageProcess(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	server, err := (model.Server{ID: reqData.ServerID}).GetData()
+	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -359,7 +359,7 @@ func (Deploy) ManageProcess(gp *server.Goploy) server.Response {
 
 	script = project.ReplaceVars(script)
 
-	client, err := server.ToSSHConfig().Dial()
+	client, err := srv.ToSSHConfig().Dial()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -477,7 +477,12 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 					scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.AfterDeployScriptMode))
 					scriptContent := project.ReplaceVars(project.AfterDeployScript)
 					scriptContent = projectServer.ReplaceVars(scriptContent)
-					os.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(project.ReplaceVars(project.AfterDeployScript)), 0755)
+					err = os.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(project.ReplaceVars(project.AfterDeployScript)), 0755)
+					if err != nil {
+						log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " write file err: " + err.Error())
+						ch <- false
+						return
+					}
 					afterDeployScriptPath := path.Join(project.Path, scriptName)
 					afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.AfterDeployScriptMode, afterDeployScriptPath))
 					afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
@@ -527,14 +532,14 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 		}
 		close(ch)
 		if needToPublish == false {
-			model.PublishTrace{
+			_ = model.PublishTrace{
 				Token:      reqData.Token,
 				UpdateTime: time.Now().Format("20060102150405"),
 			}.EditUpdateTimeByToken()
 			project.PublisherID = gp.UserInfo.ID
 			project.PublisherName = gp.UserInfo.Name
 			project.LastPublishToken = reqData.Token
-			project.Publish()
+			_ = project.Publish()
 			return response.JSON{Data: "symlink"}
 		}
 	}
@@ -651,7 +656,10 @@ func (Deploy) Review(gp *server.Goploy) server.Response {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 	}
-	projectReviewModel.EditRow()
+
+	if err = projectReviewModel.EditRow(); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
 
 	return response.JSON{}
 }
@@ -746,7 +754,10 @@ func (Deploy) Callback(gp *server.Goploy) server.Response {
 	if err := projectDeploy(gp, project, projectReview.CommitID, projectReview.Branch); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	projectReviewModel.EditRow()
+
+	if err = projectReviewModel.EditRow(); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
 
 	return response.JSON{}
 }
