@@ -11,7 +11,6 @@ import (
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/model"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"regexp"
@@ -104,14 +103,15 @@ func (st sftpTransmitter) Exec() (string, error) {
 	}
 	var uploadViaSFTP func(localDir, remoteDir string) error
 	uploadViaSFTP = func(localDir, remoteDir string) error {
-		localEntries, err := ioutil.ReadDir(localDir)
+		localEntries, err := os.ReadDir(localDir)
+
 		if err != nil {
 			return err
 		}
 		for _, entry := range localEntries {
 			nextLocalDir := path.Join(localDir, entry.Name())
 			nextRemoteDir := path.Join(remoteDir, entry.Name())
-			if entry.Mode()&os.ModeSymlink != 0 {
+			if entry.Type()&os.ModeSymlink != 0 {
 				continue
 			}
 			target := nextLocalDir[len(srcPath):]

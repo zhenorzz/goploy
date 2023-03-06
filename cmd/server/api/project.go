@@ -15,7 +15,6 @@ import (
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"github.com/zhenorzz/goploy/model"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -262,7 +261,7 @@ func (Project) GetReposFileList(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	files, err := ioutil.ReadDir(path.Join(config.GetProjectPath(reqData.ID), reqData.Path))
+	files, err := os.ReadDir(path.Join(config.GetProjectPath(reqData.ID), reqData.Path))
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -275,13 +274,18 @@ func (Project) GetReposFileList(gp *server.Goploy) server.Response {
 		IsDir   bool   `json:"isDir"`
 	}
 	var fileList []fileInfo
-	for _, f := range files {
+	for _, file := range files {
+		fileDetail, err := file.Info()
+		if err != nil {
+			return response.JSON{Code: response.Error, Message: err.Error()}
+		}
+
 		fileList = append(fileList, fileInfo{
-			Name:    f.Name(),
-			Size:    f.Size(),
-			Mode:    f.Mode().String(),
-			ModTime: f.ModTime().Format("2006-01-02 15:04:05"),
-			IsDir:   f.IsDir(),
+			Name:    file.Name(),
+			Size:    fileDetail.Size(),
+			Mode:    file.Type().String(),
+			ModTime: fileDetail.ModTime().Format("2006-01-02 15:04:05"),
+			IsDir:   file.IsDir(),
 		})
 	}
 
