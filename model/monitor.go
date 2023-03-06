@@ -7,7 +7,7 @@ package model
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	sq "github.com/Masterminds/squirrel"
@@ -289,7 +289,7 @@ func (m Monitor) Notify(errMsg string) (string, error) {
 	}
 
 	defer resp.Body.Close()
-	responseData, err := ioutil.ReadAll(resp.Body)
+	responseData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	} else {

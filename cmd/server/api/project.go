@@ -14,6 +14,7 @@ import (
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"github.com/zhenorzz/goploy/model"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -560,9 +561,9 @@ func (Project) UploadFile(gp *server.Goploy) server.Response {
 		}
 	}
 
-	// read all of the contents of our uploaded file into a
+	// read all the contents of our uploaded file into a
 	// byte array
-	fileBytes, err := ioutil.ReadAll(file)
+	fileBytes, err := io.ReadAll(file)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}

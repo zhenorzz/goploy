@@ -25,7 +25,6 @@ import (
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"github.com/zhenorzz/goploy/model"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -307,7 +306,7 @@ func (Deploy) FileDiff(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	defer distFile.Close()
-	distText, err := ioutil.ReadAll(distFile)
+	distText, err := io.ReadAll(distFile)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}

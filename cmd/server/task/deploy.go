@@ -17,7 +17,7 @@ import (
 	"github.com/zhenorzz/goploy/internal/repo"
 	"github.com/zhenorzz/goploy/internal/transmitter"
 	"github.com/zhenorzz/goploy/model"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
@@ -624,7 +624,7 @@ func (gsync Gsync) notify(deployState int, detail string) {
 		log.Error(fmt.Sprintf("projectID: %d notify exec err: %s", project.ID, err))
 	} else {
 		defer resp.Body.Close()
-		responseData, err := ioutil.ReadAll(resp.Body)
+		responseData, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Error(fmt.Sprintf("projectID: %d notify read body err: %s", project.ID, err))
 		} else {

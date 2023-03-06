@@ -20,7 +20,7 @@ import (
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/model"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -274,7 +274,7 @@ func checkUpdate() {
 		return
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		println("Check failed")
 		println(err.Error())

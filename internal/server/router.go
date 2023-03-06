@@ -13,7 +13,7 @@ import (
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/web"
-	"io/ioutil"
+	"io"
 	"mime"
 	"net/http"
 	"strconv"
@@ -58,7 +58,7 @@ func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				log.Error(err.Error())
 			}
 			defer index.Close()
-			contents, err := ioutil.ReadAll(index)
+			contents, err := io.ReadAll(index)
 			fmt.Fprint(w, string(contents))
 			return
 		}
@@ -163,7 +163,7 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Re
 
 	// save the body request data because ioutil.ReadAll will clear the requestBody
 	if r.ContentLength > 0 && hasContentType(r, "application/json") {
-		gp.Body, _ = ioutil.ReadAll(r.Body)
+		gp.Body, _ = io.ReadAll(r.Body)
 	}
 
 	// common middlewares

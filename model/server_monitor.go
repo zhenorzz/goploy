@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 )
@@ -308,7 +308,7 @@ func (sm ServerMonitor) Notify(server Server, cycleValue string) (string, error)
 		return "", err
 	}
 	defer resp.Body.Close()
-	responseData, err := ioutil.ReadAll(resp.Body)
+	responseData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	} else {
