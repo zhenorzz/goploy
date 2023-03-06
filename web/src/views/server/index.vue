@@ -727,10 +727,11 @@ function edit() {
     .request()
     .then(() => {
       getList()
+      dialogVisible.value = false
       ElMessage.success('Success')
     })
     .finally(() => {
-      formProps.value.disabled = dialogVisible.value = false
+      formProps.value.disabled = false
     })
 }
 
