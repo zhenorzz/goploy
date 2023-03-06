@@ -175,7 +175,9 @@
         style="width: 100%"
         filterable
         multiple
+        @change="serverChange"
       >
+        <el-option :value="0" label="Select all" />
         <el-option
           v-for="server in serverOption"
           :key="server.id"
@@ -262,7 +264,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n({ useScope: 'global' })
 const name = ref('')
-const serverIds = ref([])
+const serverIds = ref<number[]>([])
 const dialogVisible = ref(false)
 const processDialogVisible = ref(false)
 const processExecLoading = ref(false)
@@ -418,6 +420,12 @@ function handlePageChange(val = 1) {
   pagination.value.page = val
 }
 
+function serverChange(_serverIds: number[]) {
+  if (_serverIds.includes(0)) {
+    serverIds.value = _serverIds = serverOption.value.map((_) => _.id)
+  }
+}
+
 function submit() {
   form.value?.validate((valid) => {
     if (valid) {
@@ -442,10 +450,11 @@ function add() {
     .request()
     .then(() => {
       getList()
+      dialogVisible.value = false
       ElMessage.success('Success')
     })
     .finally(() => {
-      formProps.value.disabled = dialogVisible.value = false
+      formProps.value.disabled = false
     })
 }
 
@@ -458,10 +467,11 @@ function edit() {
     .request()
     .then(() => {
       getList()
+      dialogVisible.value = false
       ElMessage.success('Success')
     })
     .finally(() => {
-      formProps.value.disabled = dialogVisible.value = false
+      formProps.value.disabled = false
     })
 }
 

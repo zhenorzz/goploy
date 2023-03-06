@@ -12,7 +12,7 @@
             clearable
             @change="serverChange"
           >
-            <el-option :value="0" label="All" />
+            <el-option :value="0" label="Select all" />
             <el-option
               v-for="(item, index) in serverOption"
               :key="index"
@@ -402,6 +402,7 @@ function handleRun() {
     .request()
     .then((response) => {
       let execRes = true
+      let firstTag!: ServerTag
       for (const serverRes of response.data) {
         Object.assign(serverTags.value[serverRes.serverId], {
           isRun: true,
@@ -410,7 +411,11 @@ function handleRun() {
         if (execRes && serverRes.execRes == false) {
           execRes = false
         }
+        if (!firstTag) {
+          firstTag = serverTags.value[serverRes.serverId]
+        }
       }
+      showExecRes(firstTag)
       if (execRes) {
         ElMessage.success('Success')
       } else {
