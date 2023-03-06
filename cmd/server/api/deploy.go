@@ -279,7 +279,7 @@ func (Deploy) FileDiff(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	srcText, err := ioutil.ReadFile(path.Join(config.GetProjectPath(reqData.ProjectID), reqData.FilePath))
+	srcText, err := os.ReadFile(path.Join(config.GetProjectPath(reqData.ProjectID), reqData.FilePath))
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}

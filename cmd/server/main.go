@@ -238,7 +238,7 @@ func handleClientSignal() {
 	switch s {
 	case "stop":
 		pidFile := config.GetPidFile()
-		pidStr, err := ioutil.ReadFile(pidFile)
+		pidStr, err := os.ReadFile(pidFile)
 		if err != nil {
 			log.Fatal("handle stop, ", err.Error(), ", may be the server not start")
 		}

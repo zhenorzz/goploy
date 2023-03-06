@@ -6,7 +6,6 @@ package config
 
 import (
 	"github.com/pelletier/go-toml/v2"
-	"io/ioutil"
 	"os"
 	"time"
 )
@@ -68,7 +67,7 @@ type LDAPConfig struct {
 var Toml Config
 
 func InitToml() {
-	config, err := ioutil.ReadFile(GetConfigFile())
+	config, err := os.ReadFile(GetConfigFile())
 	if err != nil {
 		panic(err)
 	}

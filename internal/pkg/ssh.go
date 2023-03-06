@@ -9,8 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"golang.org/x/crypto/ssh"
-	"io/ioutil"
 	"net"
+	"os"
 	"strings"
 	"time"
 )
@@ -97,7 +97,7 @@ func (sshConfig SSHConfig) getConfig(user, password, path string) (*ssh.ClientCo
 	auth := make([]ssh.AuthMethod, 0)
 
 	if path != "" {
-		pemBytes, err := ioutil.ReadFile(path)
+		pemBytes, err := os.ReadFile(path)
 		if err != nil {
 			return nil, err
 		}

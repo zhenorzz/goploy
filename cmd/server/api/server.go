@@ -18,8 +18,8 @@ import (
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"github.com/zhenorzz/goploy/model"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -86,7 +86,7 @@ func (Server) GetOption(gp *server.Goploy) server.Response {
 func (Server) GetPublicKey(gp *server.Goploy) server.Response {
 	publicKeyPath := gp.URLQuery.Get("path")
 
-	contentByte, err := ioutil.ReadFile(publicKeyPath + ".pub")
+	contentByte, err := os.ReadFile(publicKeyPath + ".pub")
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}

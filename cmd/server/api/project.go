@@ -240,7 +240,7 @@ func (Project) GetProjectFileContent(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	fileBytes, err := ioutil.ReadFile(path.Join(config.GetProjectFilePath(projectFileData.ProjectID), projectFileData.Filename))
+	fileBytes, err := os.ReadFile(path.Join(config.GetProjectFilePath(projectFileData.ProjectID), projectFileData.Filename))
 	if err != nil {
 		fmt.Println("read fail", err)
 	}
