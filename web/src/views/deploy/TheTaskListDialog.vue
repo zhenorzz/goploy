@@ -58,7 +58,7 @@
             </RepoURL>
           </template>
         </el-table-column>
-        <el-table-column prop="date" :label="$t('date')" width="155" />
+        <el-table-column prop="date" :label="$t('date')" width="160" />
         <el-table-column prop="isRun" :label="$t('task')" width="80">
           <template #default="scope">
             {{ $t(`runOption[${scope.row.isRun || 0}]`) }}
@@ -74,13 +74,13 @@
         <el-table-column
           prop="insertTime"
           :label="$t('insertTime')"
-          width="155"
+          width="160"
           align="center"
         />
         <el-table-column
           prop="updateTime"
           :label="$t('updateTime')"
-          width="155"
+          width="160"
           align="center"
         />
         <el-table-column

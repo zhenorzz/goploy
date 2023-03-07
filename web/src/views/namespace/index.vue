@@ -37,13 +37,13 @@
         <el-table-column
           prop="insertTime"
           :label="$t('insertTime')"
-          width="155"
+          width="160"
           align="center"
         />
         <el-table-column
           prop="updateTime"
           :label="$t('updateTime')"
-          width="155"
+          width="160"
           align="center"
         />
         <el-table-column

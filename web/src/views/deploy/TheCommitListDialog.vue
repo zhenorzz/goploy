@@ -54,7 +54,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="author" width="155" label="author" />
-      <el-table-column label="time" width="155" align="center">
+      <el-table-column label="time" width="160" align="center">
         <template #default="scope">
           {{ parseTime(scope.row.timestamp) }}
         </template>

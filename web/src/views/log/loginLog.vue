@@ -34,7 +34,7 @@
           show-overflow-tooltip
         />
         <el-table-column prop="reason" label="Reason" show-overflow-tooltip />
-        <el-table-column prop="loginTime" label="Login time" width="155" />
+        <el-table-column prop="loginTime" label="Login time" width="160" />
       </el-table>
     </el-row>
     <el-row type="flex" justify="end" class="app-page">

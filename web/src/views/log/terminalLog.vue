@@ -40,8 +40,8 @@
           label="User agent"
           show-overflow-tooltip
         />
-        <el-table-column prop="startTime" label="Start time" width="155" />
-        <el-table-column prop="endTime" label="End time" width="155" />
+        <el-table-column prop="startTime" label="Start time" width="160" />
+        <el-table-column prop="endTime" label="End time" width="160" />
         <el-table-column
           prop="operation"
           :label="$t('op')"

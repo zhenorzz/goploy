@@ -839,6 +839,7 @@
         </el-button>
         <el-button
           :disabled="formProps.disabled"
+          :loading="formProps.disabled"
           type="primary"
           @click="submit"
         >
@@ -1223,28 +1224,45 @@ function handleAfterDeployScriptModeChange(mode: string) {
 }
 
 function submit() {
-  form.value?.validate((valid) => {
-    if (valid) {
-      if (formData.value.review === 1 && formProps.value.reviewURL.length > 0) {
-        const url = new URL(formProps.value.reviewURL)
-        formProps.value.reviewURLParam.forEach((param) => {
-          const [name, value] = param.split('=')
-          url.searchParams.set(name, value)
-        })
-        formData.value.reviewURL = url.href
-      } else {
-        formData.value.reviewURL = ''
-      }
-
-      if (formData.value.id === 0) {
-        add()
-      } else {
-        edit()
-      }
-      return Promise.resolve(true)
-    } else {
-      return Promise.reject(false)
+  form.value?.validate(async (valid) => {
+    if (!valid) {
+      return false
     }
+    formProps.value.disabled = true
+    try {
+      await new ProjectPingRepos({
+        repoType: formData.value.repoType,
+        url: formData.value.url,
+      }).request()
+    } catch (error) {
+      formProps.value.disabled = false
+    }
+
+    if (formData.value.review === 1 && formProps.value.reviewURL.length > 0) {
+      const url = new URL(formProps.value.reviewURL)
+      formProps.value.reviewURLParam.forEach((param) => {
+        const [name, value] = param.split('=')
+        url.searchParams.set(name, value)
+      })
+      formData.value.reviewURL = url.href
+    } else {
+      formData.value.reviewURL = ''
+    }
+    ;(formData.value.id === 0
+      ? new ProjectAdd(formData.value)
+      : new ProjectEdit(formData.value)
+    )
+      .request()
+      .then(() => {
+        dialogVisible.value = false
+        ElMessage.success('Success')
+        getList()
+      })
+      .finally(() => {
+        formProps.value.disabled = false
+      })
+
+    return true
   })
 }
 
