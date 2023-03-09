@@ -1266,34 +1266,6 @@ function submit() {
   })
 }
 
-function add() {
-  formProps.value.disabled = true
-  new ProjectAdd(formData.value)
-    .request()
-    .then(() => {
-      dialogVisible.value = false
-      ElMessage.success('Success')
-      getList()
-    })
-    .finally(() => {
-      formProps.value.disabled = false
-    })
-}
-
-function edit() {
-  formProps.value.disabled = true
-  new ProjectEdit(formData.value)
-    .request()
-    .then(() => {
-      dialogVisible.value = false
-      ElMessage.success('Success')
-      getList()
-    })
-    .finally(() => {
-      formProps.value.disabled = false
-    })
-}
-
 function setAutoDeploy() {
   autoDeployForm.value?.validate((valid) => {
     if (valid) {

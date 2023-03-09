@@ -36,6 +36,12 @@ type Server struct {
 	UpdateTime   string `json:"updateTime"`
 }
 
+// Project deploy state
+const (
+	ServerOSWindows = "windows"
+	ServerOSLinux   = "linux"
+)
+
 type Servers []Server
 
 func (s Server) GetList() (Servers, error) {
@@ -286,7 +292,7 @@ func (s Server) ToggleRow() error {
 		Where(sq.Eq{"id": s.ID}).
 		RunWith(tx).
 		Exec()
-	
+
 	if err == nil && s.State == Disable {
 		_, err = sq.
 			Delete(projectServerTable).
