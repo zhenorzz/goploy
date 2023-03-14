@@ -5,6 +5,7 @@
     class="file-dialog"
     :close-on-click-modal="false"
     :fullscreen="$store.state.app.device === 'mobile'"
+    @close="formProps.show = 'file-list'"
   >
     <el-row
       v-if="formProps.show === 'file-list'"
@@ -212,6 +213,7 @@ watch(
 )
 
 function getProjectFileList(projectId: number) {
+  formData.value.files = []
   new ProjectFileList({ id: projectId }).request().then((response) => {
     formData.value.files = response.data.list.map((item) => {
       return { ...item, state: 'success', content: '' }
