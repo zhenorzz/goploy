@@ -84,10 +84,7 @@ export class MonitorCheck extends Request {
   readonly timeout = 100000
   public param: {
     type: number
-    items: string[]
-    timeout: number
-    process: string
-    script: string
+    target: string
   }
   constructor(param: MonitorCheck['param']) {
     super()

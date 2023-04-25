@@ -613,14 +613,17 @@ function handleRemove(data: MonitorData) {
 function check() {
   form.value?.validate((valid) => {
     if (valid) {
+      try {
+        var target = formatTarget(formData.value.type)
+      } catch (error) {
+        ElMessage.error(error)
+        return
+      }
       formProps.value.loading = true
       formProps.value.disabled = true
       new MonitorCheck({
         type: formData.value.type,
-        items: formProps.value.items,
-        timeout: formProps.value.timeout,
-        process: formProps.value.process,
-        script: formProps.value.script,
+        target: target,
       })
         .request()
         .then(() => {
@@ -637,6 +640,35 @@ function check() {
   })
 }
 
+function formatTarget(type: number): string {
+  let target = ''
+  if (4 > type && type > 0) {
+    target = JSON.stringify({
+      items: formProps.value.items,
+      timeout: formProps.value.timeout || 0,
+    })
+  } else if (type === 4) {
+    if (formProps.value.process.length === 0) {
+      throw new Error('Process empty')
+    }
+    target = JSON.stringify({
+      items: formProps.value.items,
+      timeout: formProps.value.timeout || 0,
+      process: formProps.value.process,
+    })
+  } else if (type === 5) {
+    if (formProps.value.script.length === 0) {
+      throw new Error('Script empty')
+    }
+    target = JSON.stringify({
+      items: formProps.value.items,
+      timeout: formProps.value.timeout || 0,
+      script: formProps.value.script,
+    })
+  }
+  return target
+}
+
 function submit() {
   form.value?.validate((valid) => {
     if (!valid) {
@@ -647,31 +679,12 @@ function submit() {
       ElMessage.error('Target at least one item')
       return
     }
-    if (4 > formData.value.type && formData.value.type > 0) {
-      formData.value.target = JSON.stringify({
-        items: formProps.value.items,
-        timeout: formProps.value.timeout || 0,
-      })
-    } else if (formData.value.type === 4) {
-      if (formProps.value.process.length === 0) {
-        ElMessage.error('Process empty')
-        return
-      }
-      formData.value.target = JSON.stringify({
-        items: formProps.value.items,
-        timeout: formProps.value.timeout || 0,
-        process: formProps.value.process,
-      })
-    } else if (formData.value.type === 5) {
-      if (formProps.value.script.length === 0) {
-        ElMessage.error('Script empty')
-        return
-      }
-      formData.value.target = JSON.stringify({
-        items: formProps.value.items,
-        timeout: formProps.value.timeout || 0,
-        script: formProps.value.script,
-      })
+
+    try {
+      formData.value.target = formatTarget(formData.value.type)
+    } catch (error) {
+      ElMessage.error(error)
+      return
     }
 
     if (formData.value.id === 0) {

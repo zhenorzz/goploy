@@ -12,7 +12,6 @@ import (
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"github.com/zhenorzz/goploy/model"
 	"net/http"
-	"time"
 )
 
 type Monitor API
@@ -42,23 +41,20 @@ func (Monitor) GetList(gp *server.Goploy) server.Response {
 
 func (Monitor) Check(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		Type    int           `json:"type" validate:"oneof=1 2 3 4 5"`
-		Items   []string      `json:"items" validate:"required"`
-		Timeout time.Duration `json:"timeout"`
-		Process string        `json:"process"`
-		Script  string        `json:"script"`
+		Type   int    `json:"type" validate:"oneof=1 2 3 4 5"`
+		Target string `json:"target" validate:"required"`
 	}
 	var reqData ReqData
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	if err := (monitor.Monitor{
-		Type:    reqData.Type,
-		Items:   reqData.Items,
-		Timeout: reqData.Timeout,
-		Process: reqData.Process,
-		Script:  reqData.Script,
-	}.Check()); err != nil {
+
+	ms, err := monitor.NewMonitorFromTarget(reqData.Type, reqData.Target)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	if err := ms.Check(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{Message: "Connected"}
