@@ -67,8 +67,20 @@ Goploy 用于:
 - LDAP
 
 ## 安装
-1. 安装mysql
-2. 下载最新的release
+
+下载 [release](https://github.com/zhenorzz/goploy/releases)
+
+或者从tag构建
+```
+git clone https://github.com/zhenorzz/goploy.git
+cd ./goploy
+git checkout -b tagname
+cd ./web
+npm install && npm run build
+cd ../
+go build -o goploy cmd/server/main.go
+    
+```
 
 ## 使用
 1. 运行./goploy or goploy.exe or goploy.mac (运行不了可能需要 chmod a+x, 再不行就发issue或加群)
@@ -86,8 +98,9 @@ Goploy 用于:
 1. 安装go，必须是1.16以上
 2. 项目使用 go mod 管理
 3. 修改 goploy.toml `cp goploy.example.toml goploy.toml`
-4. 运行 `go run main.go --asset-dir=./` (需要编译一次前端 [前端开发说明](#前端开发说明))
-5. 或者使用 gin（可以热更新代码，改变就生效）
+4. 需要编译一次前端 [前端开发说明](#前端开发说明)
+5. 运行 `go run main.go --asset-dir=./`
+6. 或者使用 gin（可以热更新代码，改变就生效）
 
 ## 前端开发说明
 1. `cd web`

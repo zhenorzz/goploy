@@ -68,8 +68,20 @@ Goploy is commonly used for:
 - LDAP
 
 ## Install
-1. Install mysql
-2. Download the latest release
+
+via [release](https://github.com/zhenorzz/goploy/releases)
+
+or build from tag
+```
+git clone https://github.com/zhenorzz/goploy.git
+cd ./goploy
+git checkout -b tagname
+cd ./web
+npm install && npm run build
+cd ../
+go build -o goploy cmd/server/main.go
+    
+```
 
 ## Use
 1. Run ./goploy or goploy.exe or goploy.mac
@@ -87,8 +99,9 @@ Goploy is commonly used for:
 1. Install go >= 1.16
 2. go mod required
 3. edit goploy.toml `cp goploy.example.toml goploy.toml`
-4. run `go run main.go --asset-dir=./` (need build [Frontend](#Frontend))
-5. use gin (hot reload)
+4. build [Frontend](#Frontend)
+5. run `go run main.go --asset-dir=./`
+6. use gin (hot reload)
 
 ## Frontend
 1. `cd web`
