@@ -80,7 +80,6 @@ cd ./web
 npm install && npm run build
 cd ../
 go build -o goploy cmd/server/main.go
-    
 ```
 
 ## Use

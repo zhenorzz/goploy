@@ -78,8 +78,7 @@ git checkout -b tagname
 cd ./web
 npm install && npm run build
 cd ../
-go build -o goploy cmd/server/main.go
-    
+go build -o goploy cmd/server/main.go 
 ```
 
 ## 使用
