@@ -66,6 +66,11 @@ Goploy 用于:
 - Sftp
 - LDAP
 
+## 视频
+
+[环境配置](https://www.zhihu.com/zvideo/1512006837884469248)
+[应用配置](https://www.zhihu.com/zvideo/1513073009618952192)
+
 ## 安装
 
 下载 [release](https://github.com/zhenorzz/goploy/releases)
