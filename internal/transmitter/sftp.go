@@ -43,6 +43,7 @@ func (st sftpTransmitter) Exec() (string, error) {
 	transferOption, _ := pkg.ParseCommandLine(project.TransferOption)
 	var opt struct {
 		isVerbose bool
+		isDelete  bool
 	}
 	var excludes []string
 	var excludeRegexps []*regexp.Regexp
@@ -67,6 +68,8 @@ func (st sftpTransmitter) Exec() (string, error) {
 			if strings.Contains(item, "v") {
 				opt.isVerbose = true
 			}
+		} else if item == "--delete" {
+			opt.isDelete = true
 		}
 
 		if nextItem == "--exclude" {
@@ -185,16 +188,50 @@ func (st sftpTransmitter) Exec() (string, error) {
 		}
 		return nil
 	}
+
+	if opt.isDelete {
+		if err := deleteDirectory(sftpClient, destPath); err != nil {
+			return "", err
+		}
+	}
+
 	if err := sftpClient.MkdirAll(destPath); err != nil {
 		return "", err
 	}
+
 	if err := uploadViaSFTP(srcPath, destPath); err != nil {
 		return "", err
 	}
+
 	if opt.isVerbose {
 		output += "sent files success"
 	} else {
 		output = "sent files success"
 	}
 	return output, nil
+}
+
+func deleteDirectory(sftpClient *sftp.Client, dirPath string) error {
+	fileInfos, err := sftpClient.ReadDir(dirPath)
+	if err != nil {
+		return err
+	}
+
+	for _, fileInfo := range fileInfos {
+		filePath := dirPath + "/" + fileInfo.Name()
+
+		if fileInfo.IsDir() {
+			err = deleteDirectory(sftpClient, filePath)
+			if err != nil {
+				return err
+			}
+		} else {
+			err = sftpClient.Remove(filePath)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
