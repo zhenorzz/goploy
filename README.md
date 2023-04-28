@@ -88,8 +88,7 @@ go build -o goploy cmd/server/main.go
 3. web http://ip:port  (Account:Password admin:admin!@#)
 
 ## Preview
-![PreviewLight](./preview_light.png)
-![PreviewDark](./preview_dark.png)
+![Preview](./preview.gif)
 
 ## Diagram
 ![Diagram](./goploy.png)
