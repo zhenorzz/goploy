@@ -93,7 +93,7 @@ func (m Monitor) GetData() (Monitor, error) {
 
 func (m Monitor) GetAllByState() (Monitors, error) {
 	rows, err := sq.
-		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target, description").
+		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target, description, update_time").
 		From(monitorTable).
 		Where(sq.Eq{
 			"state": m.State,
@@ -117,7 +117,9 @@ func (m Monitor) GetAllByState() (Monitors, error) {
 			&monitor.SilentCycle,
 			&monitor.NotifyType,
 			&monitor.NotifyTarget,
-			&monitor.Description); err != nil {
+			&monitor.Description,
+			&monitor.UpdateTime,
+		); err != nil {
 			return nil, err
 		}
 		monitors = append(monitors, monitor)

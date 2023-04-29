@@ -42,9 +42,10 @@ func (monitorMessage) CanSendTo(*ws.Client) error {
 }
 
 type MonitorCache struct {
-	errorTimes  int
-	time        int64
-	silentCycle int
+	errorTimes     int
+	time           int64
+	silentCycle    int
+	itemEditedTime string
 }
 
 var monitorCaches = map[int64]MonitorCache{}
@@ -59,7 +60,10 @@ func monitorTask() {
 		monitorIDs[m.ID] = struct{}{}
 		monitorCache, ok := monitorCaches[m.ID]
 		if !ok {
-			monitorCaches[m.ID] = MonitorCache{}
+			monitorCaches[m.ID] = MonitorCache{itemEditedTime: m.UpdateTime}
+			monitorCache = monitorCaches[m.ID]
+		} else if monitorCache.itemEditedTime != m.UpdateTime {
+			monitorCaches[m.ID] = MonitorCache{itemEditedTime: m.UpdateTime}
 			monitorCache = monitorCaches[m.ID]
 		}
 
