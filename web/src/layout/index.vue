@@ -1,14 +1,8 @@
 <template>
   <div :class="classObj" class="app-wrapper">
-    <div
-      v-if="device === 'mobile' && sidebar.opened"
-      class="drawer-bg"
-      @click="handleClickOutside"
-    />
     <div>
       <Navbar />
     </div>
-    <Sidebar class="sidebar-container" />
     <div class="main-container">
       <TagsView />
       <AppMain />
@@ -19,7 +13,7 @@
 export default { name: 'Layout' }
 </script>
 <script lang="ts" setup>
-import { Navbar, Sidebar, AppMain, TagsView } from './components'
+import { Navbar, AppMain, TagsView } from './components'
 import ResizeHandler from './mixin/ResizeHandler'
 import { computed } from 'vue'
 import { useStore } from 'vuex'
@@ -28,7 +22,6 @@ const sidebar = computed(() => store.state['app'].sidebar)
 const device = computed(() => store.state['app'].device)
 const classObj = computed(() => {
   return {
-    hideSidebar: !sidebar.value.opened,
     openSidebar: sidebar.value.opened,
     withoutAnimation: sidebar.value.withoutAnimation,
     mobile: device.value === 'mobile',
@@ -36,9 +29,6 @@ const classObj = computed(() => {
 })
 ResizeHandler()
 store.dispatch('websocket/init')
-function handleClickOutside() {
-  store.dispatch('app/closeSideBar', { withoutAnimation: false })
-}
 </script>
 
 <style lang="scss" scoped>
@@ -54,15 +44,6 @@ function handleClickOutside() {
     position: fixed;
     top: 0;
   }
-}
-.drawer-bg {
-  background: #000;
-  opacity: 0.3;
-  width: 100%;
-  top: 0;
-  height: 100%;
-  position: absolute;
-  z-index: 999;
 }
 
 .hideSidebar .fixed-header {

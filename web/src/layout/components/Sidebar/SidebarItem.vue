@@ -100,7 +100,7 @@ export default defineComponent({
       }
       return false
     },
-    resolvePath(routePath) {
+    resolvePath(routePath: string) {
       if (isExternal(routePath)) {
         return routePath
       }

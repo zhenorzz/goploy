@@ -2,13 +2,12 @@
   <el-scrollbar wrap-class="scrollbar-wrapper">
     <el-menu
       :default-active="activeMenu"
-      :collapse="isCollapse"
       :background-color="variables.menuBg"
       :text-color="variables.menuText"
       :unique-opened="false"
       :active-text-color="variables.menuActiveText"
       :collapse-transition="true"
-      mode="vertical"
+      mode="horizontal"
     >
       <sidebar-item
         v-for="item in permission.routes"
@@ -29,8 +28,6 @@ import { computed } from 'vue'
 const route = useRoute()
 const store = useStore()
 const permission = computed(() => store.state['permission'])
-const app = computed(() => store.state['app'])
-const isCollapse = computed(() => !app.value.sidebar.opened)
 const activeMenu = computed(() => {
   const { meta, path } = route
   // if set path, the sidebar will highlight the path you set

@@ -30,7 +30,7 @@ export default defineComponent({
 <style scoped>
 .app-main {
   /*50 = navbar  */
-  min-height: calc(100vh - 91px);
+  min-height: calc(100vh - 97px);
   width: 100%;
   position: relative;
   overflow: hidden;

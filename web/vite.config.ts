@@ -4,6 +4,9 @@ import vue from '@vitejs/plugin-vue'
 import vueI18n from '@intlify/vite-plugin-vue-i18n'
 import viteSvgIcons from 'vite-plugin-svg-icons'
 import viteCompression from 'vite-plugin-compression'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 // https://vitejs.dev/config/
 export default ({ mode }: ConfigEnv): UserConfigExport => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) }
@@ -23,6 +26,12 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
         symbolId: 'icon-[dir]-[name]',
       }),
       viteCompression({ deleteOriginFile: true }),
+      AutoImport({
+        resolvers: [ElementPlusResolver()],
+      }),
+      Components({
+        resolvers: [ElementPlusResolver()],
+      }),
     ],
     build: {
       rollupOptions: {

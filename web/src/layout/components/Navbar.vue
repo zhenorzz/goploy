@@ -1,45 +1,19 @@
 <template>
-  <div class="navbar">
+  <el-row class="navbar" align="middle">
     <el-dropdown
+      style="padding-left: 10px; line-height: 56px; cursor: pointer"
       trigger="click"
       placement="bottom"
-      style="float: left"
-      @command="showTransformDialog"
-    >
-      <img :src="logo" class="navbar-logo" />
-      <template #dropdown>
-        <el-dropdown-menu>
-          <el-dropdown-item command="time">Date Transform</el-dropdown-item>
-          <el-dropdown-item command="json">JSON Pretty</el-dropdown-item>
-          <el-dropdown-item command="password">Random PWD</el-dropdown-item>
-          <el-dropdown-item command="unicode">Unicode</el-dropdown-item>
-          <el-dropdown-item command="decodeURI">DecodeURI</el-dropdown-item>
-          <el-dropdown-item command="md5">MD5 </el-dropdown-item>
-          <el-dropdown-item command="cron">Crontab</el-dropdown-item>
-          <el-dropdown-item command="qrcode">QRcode</el-dropdown-item>
-          <el-dropdown-item command="byte">Byte Transform</el-dropdown-item>
-          <el-dropdown-item command="color">Color Transform</el-dropdown-item>
-        </el-dropdown-menu>
-      </template>
-    </el-dropdown>
-    <hamburger
-      :is-active="app.sidebar.opened"
-      class="hamburger-container"
-      @toggle-click="toggleSideBar"
-    />
-    <el-dropdown
-      style="float: left; line-height: 48px; cursor: pointer"
-      trigger="click"
-      placement="bottom-start"
       @visible-change="handleNamespaceVisible"
       @command="handleNamespaceChange"
     >
-      <span class="el-dropdown-link">
-        {{ namespace.name }}
-        <el-icon class="el-icon--right" style="vertical-align: middle">
+      <el-row align="middle">
+        <img :src="logo" class="navbar-logo" />
+        <span>{{ namespace.name }}</span>
+        <el-icon class="el-icon--right">
           <arrow-down />
         </el-icon>
-      </span>
+      </el-row>
       <template #dropdown>
         <el-dropdown-menu v-loading="namespaceListLoading">
           <el-dropdown-item
@@ -52,56 +26,72 @@
         </el-dropdown-menu>
       </template>
     </el-dropdown>
-    <!-- <breadcrumb
-      v-show="$store.state.app.device === 'desktop'"
-      class="breadcrumb-container"
-    /> -->
-    <div class="right">
-      <div class="international">
-        <el-switch
-          v-model="isDark"
-          style="
-            --el-switch-on-color: var(--el-border-color);
-            --el-switch-off-color: var(--el-border-color);
-            margin-right: 20px;
-            height: 48px;
-          "
-          inline-prompt
-          :active-icon="Moon"
-          :inactive-icon="Sunny"
-        />
-        <el-dropdown
-          trigger="click"
-          placement="bottom"
-          @command="handleSetLanguage"
-        >
-          <div style="height: 100%; padding-top: 2px">
-            <svg-icon class-name="international-icon" :icon-class="'global'" />
-          </div>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item
-                :disabled="app.language === 'zh-cn'"
-                command="zh-cn"
-              >
-                中文
-              </el-dropdown-item>
-              <el-dropdown-item :disabled="app.language === 'en'" command="en">
-                English
-              </el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
+    <Sidebar class="sidebar-container" style="flex: 1" />
+    <div class="international">
+      <el-switch
+        v-model="isDark"
+        style="
+          --el-switch-on-color: var(--el-border-color);
+          --el-switch-off-color: var(--el-border-color);
+          margin-right: 20px;
+          height: 56px;
+        "
+        inline-prompt
+        :active-icon="Moon"
+        :inactive-icon="Sunny"
+      />
+      <el-dropdown
+        trigger="click"
+        placement="bottom"
+        @command="showTransformDialog"
+      >
+        <div style="height: 100%; padding-top: 2px; margin-right: 20px">
+          <svg-icon class-name="international-icon" :icon-class="'toolbox'" />
+        </div>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="time">Date Transform</el-dropdown-item>
+            <el-dropdown-item command="json">JSON Pretty</el-dropdown-item>
+            <el-dropdown-item command="password">Random PWD</el-dropdown-item>
+            <el-dropdown-item command="unicode">Unicode</el-dropdown-item>
+            <el-dropdown-item command="decodeURI">DecodeURI</el-dropdown-item>
+            <el-dropdown-item command="md5">MD5 </el-dropdown-item>
+            <el-dropdown-item command="cron">Crontab</el-dropdown-item>
+            <el-dropdown-item command="qrcode">QRcode</el-dropdown-item>
+            <el-dropdown-item command="byte">Byte Transform</el-dropdown-item>
+            <el-dropdown-item command="color">Color Transform</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
+      <el-dropdown
+        trigger="click"
+        placement="bottom"
+        @command="handleSetLanguage"
+      >
+        <div style="height: 100%; padding-top: 2px">
+          <svg-icon class-name="international-icon" :icon-class="'global'" />
+        </div>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item
+              :disabled="app.language === 'zh-cn'"
+              command="zh-cn"
+            >
+              中文
+            </el-dropdown-item>
+            <el-dropdown-item :disabled="app.language === 'en'" command="en">
+              English
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
       <div class="user-menu">
         <div class="user-container">
           <el-dropdown trigger="click">
             <div class="user-wrapper">
-              <el-row type="flex">
-                <div class="user-name">
-                  {{ user.name }}
-                </div>
-              </el-row>
+              <div class="user-name">
+                {{ user.name }}
+              </div>
             </div>
             <template #dropdown>
               <el-dropdown-menu class="user-dropdown">
@@ -194,12 +184,12 @@
         <TheRGBTransform v-model="transformType" />
       </el-row>
     </el-dialog>
-  </div>
+  </el-row>
 </template>
 
 <script lang="ts" setup>
 import logo from '@/assets/images/logo.png'
-import Hamburger from '@/components/Hamburger/index.vue'
+import Sidebar from './Sidebar/index.vue'
 import VueQrcode from '@chenfengyuan/vue-qrcode'
 import { md5 as hashByMD5 } from '@/utils/md5'
 import TheDatetransform from './Toolbox/TheDatetransform.vue'
@@ -242,10 +232,6 @@ const app = computed(() => store.state['app'])
 const user = computed(() => store.state['user'])
 
 document.title = `Goploy-${namespace.value.name}`
-
-function toggleSideBar() {
-  store.dispatch('app/toggleSideBar')
-}
 
 function showTransformDialog(type: string) {
   transformVisible.value = true
@@ -292,37 +278,15 @@ async function logout() {
 
 <style lang="scss" scoped>
 .navbar {
-  height: 50px;
+  width: 100vw;
+  height: 56px;
   overflow: hidden;
   position: relative;
   background-color: var(--el-bg-color);
   // box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
   &-logo {
-    width: 25px;
-    cursor: pointer;
-    margin-left: 15px;
-    margin-top: 11px;
-  }
-  .hamburger-container {
-    line-height: 46px;
-    height: 100%;
-    float: left;
-    cursor: pointer;
-    transition: background 0.3s;
-    -webkit-tap-highlight-color: transparent;
-
-    &:hover {
-      background: rgba(0, 0, 0, 0.025);
-    }
-  }
-
-  .breadcrumb-container {
-    float: left;
-  }
-
-  .right {
-    float: right;
-    width: auto;
+    width: 30px;
+    margin-right: 10px;
   }
 
   .international {
@@ -333,7 +297,8 @@ async function logout() {
       font-size: 17px;
     }
     .el-dropdown {
-      line-height: 46px;
+      line-height: 54px;
+      height: 56px;
     }
   }
   .user-menu {
@@ -346,19 +311,18 @@ async function logout() {
 
     .user-container {
       padding: 0 20px;
-      height: 50px;
+      height: 56px;
       line-height: 0;
       .user-wrapper {
         position: relative;
         cursor: pointer;
-        margin-top: 5px;
+        height: 56px;
       }
 
       .user-name {
-        margin-top: 4px;
         font-size: 15px;
         font-weight: 900;
-        line-height: 30px;
+        line-height: 56px;
         color: var(--el-text-color-regular);
         &:hover {
           color: var(--el-color-primary);
