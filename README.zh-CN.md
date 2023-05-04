@@ -112,22 +112,13 @@ go build -o goploy cmd/server/main.go
 4. `npm run dev` 或者 `yarn dev`
 5. 编译 `npm run build` 或者 `yarn build`
 
-## 相关仓库
+## 服务
 
-- [element-plus](https://element-plus.gitee.io/) - UI。
-
-## 捐赠
-
-如果你觉得这个项目帮助到了你，你可以请作者喝一杯奶茶表示鼓励 🥛
-
-<p>
-  <img src="https://www.goploy.icu/weixin.png" width="200" alt="weixin">
-  <img src="https://www.goploy.icu/alipay.png" width="209" alt="alipay">
-</p>
+有偿提供代搭建，代运维服务。
 
 ## 如何贡献
 
-非常欢迎你的加入! QQ群903750786，群里有基础安装视频。
+非常欢迎你的加入!
 
 [提一个Issue](https://github.com/zhenorzz/goploy/issues/new) 
 
