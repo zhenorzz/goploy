@@ -3,8 +3,7 @@
     <template
       v-if="
         hasOneShowingChild(item.children, item) &&
-        (!onlyOneChild.children || onlyOneChild.noShowingChildren) &&
-        !item.alwaysShow
+        (!onlyOneChild.children || onlyOneChild.noShowingChildren)
       "
     >
       <app-link v-if="onlyOneChild.meta" :to="resolvePath(onlyOneChild.path)">
@@ -14,7 +13,7 @@
         >
           <svg-icon
             v-if="onlyOneChild.meta.icon || (item.meta && item.meta.icon)"
-            :icon-class="onlyOneChild.meta.icon || item.meta.icon"
+            :icon-class="onlyOneChild.meta.icon || item.meta?.icon"
           />
           <template #title>
             <span class="menu-title">
@@ -29,9 +28,9 @@
       <template #title>
         <svg-icon
           v-if="item.meta && item.meta.icon"
-          :icon-class="item.meta.icon"
+          :icon-class="item.meta?.icon"
         />
-        <span class="menu-title">{{ $t(`route.${item.meta.title}`) }}</span>
+        <span class="menu-title">{{ $t(`route.${item.meta?.title}`) }}</span>
       </template>
       <sidebar-item
         v-for="child in item.children"
@@ -46,10 +45,11 @@
 </template>
 
 <script lang="ts">
+import type { RouteRecordRaw } from 'vue-router'
 import { isExternal } from '@/utils/validate'
 import AppLink from './Link.vue'
 import FixiOSBug from './FixiOSBug'
-import { defineComponent } from 'vue'
+import { defineComponent, PropType } from 'vue'
 import path from 'path-browserify'
 
 export default defineComponent({
@@ -59,7 +59,7 @@ export default defineComponent({
   props: {
     // route object
     item: {
-      type: Object,
+      type: Object as PropType<RouteRecordRaw>,
       required: true,
     },
     isNest: {
@@ -74,11 +74,15 @@ export default defineComponent({
   data() {
     // To fix https://github.com/PanJiaChen/vue-admin-template/issues/237
     // TODO: refactor with render function
-    this.onlyOneChild = null
-    return {}
+    return {
+      onlyOneChild: {} as any,
+    }
   },
   methods: {
-    hasOneShowingChild(children = [], parent) {
+    hasOneShowingChild(
+      children: RouteRecordRaw[] = [],
+      parent: RouteRecordRaw
+    ) {
       const showingChildren = children.filter((item) => {
         if (item.meta && item.meta.hidden) {
           return false
