@@ -1,7 +1,7 @@
 <template>
   <el-row class="navbar" align="middle">
     <el-dropdown
-      style="padding-left: 10px; line-height: 56px; cursor: pointer"
+      class="navbar-namespace"
       trigger="click"
       placement="bottom"
       @visible-change="handleNamespaceVisible"
@@ -283,6 +283,15 @@ async function logout() {
   overflow: hidden;
   position: relative;
   background-color: var(--el-bg-color);
+  &-namespace {
+    padding: 0 10px;
+    line-height: 56px;
+    cursor: pointer;
+    &:hover {
+      color: var(--el-menu-hover-text-color);
+      background-color: var(--el-menu-hover-bg-color);
+    }
+  }
   // box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
   &-logo {
     width: 30px;

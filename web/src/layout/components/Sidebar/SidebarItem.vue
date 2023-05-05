@@ -28,7 +28,7 @@
       <template #title>
         <svg-icon
           v-if="item.meta && item.meta.icon"
-          :icon-class="item.meta?.icon"
+          :icon-class="(item.meta?.icon as string)"
         />
         <span class="menu-title">{{ $t(`route.${item.meta?.title}`) }}</span>
       </template>
