@@ -3,41 +3,41 @@
     <el-row class="app-bar" type="flex" justify="space-between">
       <el-row>
         <el-input
-          v-model="projectName"
-          style="width: 200px"
-          placeholder="Filter the project name"
+            v-model="projectName"
+            style="width: 200px"
+            placeholder="Filter the project name"
         />
       </el-row>
       <el-row>
         <el-button
-          :loading="tableLoading"
-          type="primary"
-          :icon="Refresh"
-          @click="refresList"
+            :loading="tableLoading"
+            type="primary"
+            :icon="Refresh"
+            @click="refresList"
         />
         <Button
-          type="primary"
-          :icon="Plus"
-          :permissions="[pms.AddProject]"
-          @click="handleAdd"
+            type="primary"
+            :icon="Plus"
+            :permissions="[pms.AddProject]"
+            @click="handleAdd"
         />
       </el-row>
     </el-row>
     <el-row class="app-table">
       <el-table
-        v-loading="tableLoading"
-        highlight-current-row
-        height="100%"
-        :data="tablePage.list"
+          v-loading="tableLoading"
+          highlight-current-row
+          height="100%"
+          :data="tablePage.list"
       >
         <el-table-column prop="id" label="ID" width="60" />
         <el-table-column prop="name" :label="$t('name')" width="180">
           <template #default="scope">
             <el-link
-              v-if="isLink(scope.row.name)"
-              :href="scope.row.name"
-              type="primary"
-              target="_blank"
+                v-if="isLink(scope.row.name)"
+                :href="scope.row.name"
+                type="primary"
+                target="_blank"
             >
               {{ scope.row.name }}
               <el-icon><Link /></el-icon>
@@ -52,9 +52,9 @@
           </template>
         </el-table-column>
         <el-table-column
-          prop="path"
-          :label="$t('projectPath')"
-          min-width="200"
+            prop="path"
+            :label="$t('projectPath')"
+            min-width="200"
         />
         <el-table-column width="120" :label="$t('environment')" align="center">
           <template #default="scope">
@@ -62,10 +62,10 @@
           </template>
         </el-table-column>
         <el-table-column
-          prop="branch"
-          width="160"
-          :label="$t('branch')"
-          align="center"
+            prop="branch"
+            width="160"
+            :label="$t('branch')"
+            align="center"
         />
         <el-table-column width="80" :label="$t('review')" align="center">
           <template #default="scope">
@@ -74,55 +74,55 @@
           </template>
         </el-table-column>
         <el-table-column
-          width="110"
-          align="center"
-          :label="$t('autoDeploy')"
-          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+            width="110"
+            align="center"
+            :label="$t('autoDeploy')"
+            :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
         >
           <template #default="scope">
             <span v-if="scope.row.autoDeploy === 0">{{ $t('close') }}</span>
             <span v-else>{{ $t('open') }}</span>
             <Button
-              type="primary"
-              link
-              :icon="Edit"
-              :permissions="[pms.SwitchProjectWebhook]"
-              @click="handleAutoDeploy(scope.row)"
+                type="primary"
+                link
+                :icon="Edit"
+                :permissions="[pms.SwitchProjectWebhook]"
+                @click="handleAutoDeploy(scope.row)"
             />
           </template>
         </el-table-column>
         <el-table-column
-          prop="operation"
-          :label="$t('op')"
-          width="190"
-          align="center"
-          :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
+            prop="operation"
+            :label="$t('op')"
+            width="190"
+            align="center"
+            :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
         >
           <template #default="scope">
             <Button
-              type="primary"
-              :icon="Edit"
-              :permissions="[pms.EditProject]"
-              @click="handleEdit(scope.row)"
+                type="primary"
+                :icon="Edit"
+                :permissions="[pms.EditProject]"
+                @click="handleEdit(scope.row)"
             />
             <el-tooltip
-              class="item"
-              effect="dark"
-              content="Copy"
-              placement="bottom"
+                class="item"
+                effect="dark"
+                content="Copy"
+                placement="bottom"
             >
               <Button
-                type="info"
-                :icon="DocumentCopy"
-                :permissions="[pms.AddProject]"
-                @click="handleCopy(scope.row)"
+                  type="info"
+                  :icon="DocumentCopy"
+                  :permissions="[pms.AddProject]"
+                  @click="handleCopy(scope.row)"
               />
             </el-tooltip>
             <Button
-              type="danger"
-              :icon="Delete"
-              :permissions="[pms.DeleteProject]"
-              @click="handleRemove(scope.row)"
+                type="danger"
+                :icon="Delete"
+                :permissions="[pms.DeleteProject]"
+                @click="handleRemove(scope.row)"
             />
           </template>
         </el-table-column>
@@ -130,27 +130,27 @@
     </el-row>
     <el-row type="flex" justify="end" class="app-page">
       <el-pagination
-        :total="tablePage.total"
-        :page-size="pagination.rows"
-        background
-        layout="total, prev, pager, next"
-        @current-change="handlePageChange"
+          :total="tablePage.total"
+          :page-size="pagination.rows"
+          background
+          layout="total, prev, pager, next"
+          @current-change="handlePageChange"
       />
     </el-row>
     <el-dialog
-      v-model="dialogVisible"
-      :title="$t('setting')"
-      width="60%"
-      class="project-setting-dialog"
-      :fullscreen="$store.state.app.device === 'mobile'"
-      :close-on-click-modal="false"
+        v-model="dialogVisible"
+        :title="$t('setting')"
+        width="60%"
+        class="project-setting-dialog"
+        :fullscreen="$store.state.app.device === 'mobile'"
+        :close-on-click-modal="false"
     >
       <el-form
-        ref="form"
-        v-loading="formProps.disabled"
-        :model="formData"
-        label-width="120px"
-        :label-position="
+          ref="form"
+          v-loading="formProps.disabled"
+          :model="formData"
+          label-width="120px"
+          :label-position="
           $store.state.app.device === 'desktop' ? 'right' : 'top'
         "
       >
@@ -162,21 +162,21 @@
               </span>
             </template>
             <el-form-item
-              :label="$t('name')"
-              prop="name"
-              :rules="[
+                :label="$t('name')"
+                prop="name"
+                :rules="[
                 { required: true, message: 'Name required', trigger: ['blur'] },
               ]"
             >
               <el-input
-                v-model.trim="formData.name"
-                autocomplete="off"
-                placeholder="goploy"
+                  v-model.trim="formData.name"
+                  autocomplete="off"
+                  placeholder="goploy"
               />
             </el-form-item>
             <el-form-item
-              prop="url"
-              :rules="[
+                prop="url"
+                :rules="[
                 {
                   required: true,
                   message: 'Repository url required',
@@ -210,40 +210,40 @@
                   <el-option label="sftp" value="sftp" />
                 </el-select>
                 <el-input
-                  v-model.trim="formData.url"
-                  style="flex: 1"
-                  autocomplete="off"
-                  placeholder="repository url"
-                  @change="formProps.branch = []"
+                    v-model.trim="formData.url"
+                    style="flex: 1"
+                    autocomplete="off"
+                    placeholder="repository url"
+                    @change="formProps.branch = []"
                 />
                 <el-button
-                  :icon="View"
-                  type="success"
-                  :loading="formProps.pinging"
-                  @click="pingRepos"
+                    :icon="View"
+                    type="success"
+                    :loading="formProps.pinging"
+                    @click="pingRepos"
                 >
                   {{ $t('projectPage.testConnection') }}
                 </el-button>
               </el-row>
             </el-form-item>
             <el-form-item
-              :label="$t('projectPath')"
-              prop="path"
-              :rules="[
+                :label="$t('projectPath')"
+                prop="path"
+                :rules="[
                 { required: true, message: 'Path required', trigger: ['blur'] },
               ]"
             >
               <el-input
-                v-model.trim="formData.path"
-                autocomplete="off"
-                placeholder="/var/www/goploy"
-                @input="() => handleSymlink(formProps.symlink)"
+                  v-model.trim="formData.path"
+                  autocomplete="off"
+                  placeholder="/var/www/goploy"
+                  @input="() => handleSymlink(formProps.symlink)"
               />
             </el-form-item>
             <el-form-item
-              :label="$t('environment')"
-              prop="environment"
-              :rules="[
+                :label="$t('environment')"
+                prop="environment"
+                :rules="[
                 {
                   required: true,
                   message: 'Environment required',
@@ -259,9 +259,9 @@
               </el-select>
             </el-form-item>
             <el-form-item
-              :label="$t('branch')"
-              prop="branch"
-              :rules="[
+                :label="$t('branch')"
+                prop="branch"
+                :rules="[
                 {
                   required: true,
                   message: 'Branch required',
@@ -271,84 +271,84 @@
             >
               <el-row type="flex" style="width: 100%">
                 <el-select
-                  v-model="formData.branch"
-                  filterable
-                  allow-create
-                  default-first-option
-                  style="flex: 1"
+                    v-model="formData.branch"
+                    filterable
+                    allow-create
+                    default-first-option
+                    style="flex: 1"
                 >
                   <el-option
-                    v-for="branch in formProps.branch"
-                    :key="branch"
-                    :label="branch"
-                    :value="branch"
+                      v-for="branch in formProps.branch"
+                      :key="branch"
+                      :label="branch"
+                      :value="branch"
                   />
                 </el-select>
                 <el-button
-                  :icon="Search"
-                  type="success"
-                  :loading="formProps.lsBranchLoading"
-                  @click="getRemoteBranchList"
+                    :icon="Search"
+                    type="success"
+                    :loading="formProps.lsBranchLoading"
+                    @click="getRemoteBranchList"
                 >
                   {{ $t('projectPage.lishBranch') }}
                 </el-button>
               </el-row>
             </el-form-item>
             <el-form-item
-              :label="$t('projectPage.transferType')"
-              prop="transferType"
+                :label="$t('projectPage.transferType')"
+                prop="transferType"
             >
               <el-radio-group v-model="formData.transferType">
                 <el-radio :label="'rsync'">
                   rsync
                   <el-link
-                    :underline="false"
-                    :href="$t('projectPage.rsyncDoc')"
-                    target="_blank"
-                    :icon="QuestionFilled"
-                    style="color: #666"
+                      :underline="false"
+                      :href="$t('projectPage.rsyncDoc')"
+                      target="_blank"
+                      :icon="QuestionFilled"
+                      style="color: #666"
                   />
                 </el-radio>
                 <el-radio :label="'sftp'">
                   sftp
                   <el-link
-                    :underline="false"
-                    :href="$t('projectPage.sftpDoc')"
-                    target="_blank"
-                    :icon="QuestionFilled"
-                    style="color: #666"
+                      :underline="false"
+                      :href="$t('projectPage.sftpDoc')"
+                      target="_blank"
+                      :icon="QuestionFilled"
+                      style="color: #666"
                   />
                 </el-radio>
                 <el-radio :label="'custom'">
                   custom
                   <el-link
-                    :underline="false"
-                    :href="$t('projectPage.customDoc')"
-                    target="_blank"
-                    :icon="QuestionFilled"
-                    style="color: #666"
+                      :underline="false"
+                      :href="$t('projectPage.customDoc')"
+                      target="_blank"
+                      :icon="QuestionFilled"
+                      style="color: #666"
                   />
                 </el-radio>
               </el-radio-group>
             </el-form-item>
             <el-form-item
-              :label="$t('projectPage.transferOption')"
-              prop="transferOption"
+                :label="$t('projectPage.transferOption')"
+                prop="transferOption"
             >
               <el-input
-                v-model="formData.transferOption"
-                type="textarea"
-                :rows="3"
-                autocomplete="off"
-                placeholder="-rtv --exclude .git --delete-after"
+                  v-model="formData.transferOption"
+                  type="textarea"
+                  :rows="3"
+                  autocomplete="off"
+                  placeholder="-rtv --exclude .git --delete-after"
               />
             </el-form-item>
             <el-form-item prop="notifyTarget" :rules="notifyTargetRules">
               <template #label>
                 <el-link
-                  type="primary"
-                  href="https://docs.goploy.icu/#/dependency/notice"
-                  target="_blank"
+                    type="primary"
+                    href="https://docs.goploy.icu/#/dependency/notice"
+                    target="_blank"
                 >
                   {{ $t('projectPage.deployNotice') }}
                 </el-link>
@@ -362,50 +362,50 @@
                   <el-option :label="$t('webhookOption[255]')" :value="255" />
                 </el-select>
                 <el-input
-                  v-if="formData.notifyType > 0"
-                  v-model.trim="formData.notifyTarget"
-                  style="flex: 1"
-                  autocomplete="off"
-                  placeholder="webhook"
+                    v-if="formData.notifyType > 0"
+                    v-model.trim="formData.notifyTarget"
+                    style="flex: 1"
+                    autocomplete="off"
+                    placeholder="webhook"
                 />
               </el-row>
             </el-form-item>
             <el-form-item :label="$t('server')" prop="serverIds">
               <el-radio-group
-                v-model="formData.deployServerMode"
-                style="margin-bottom: 5px"
+                  v-model="formData.deployServerMode"
+                  style="margin-bottom: 5px"
               >
                 <el-radio label="parallel">{{ $t('parallel') }}</el-radio>
                 <el-radio label="serial">{{ $t('serial') }}</el-radio>
               </el-radio-group>
               <el-select
-                v-model="formData.serverIds"
-                multiple
-                filterable
-                style="width: 100%"
+                  v-model="formData.serverIds"
+                  multiple
+                  filterable
+                  style="width: 100%"
               >
                 <el-option
-                  v-for="(item, index) in serverOption"
-                  :key="index"
-                  :label="item.label"
-                  :value="item.id"
+                    v-for="(item, index) in serverOption"
+                    :key="index"
+                    :label="item.label"
+                    :value="item.id"
                 />
               </el-select>
             </el-form-item>
             <el-form-item :label="$t('user')" prop="userIds">
               <el-select
-                v-model="formData.userIds"
-                multiple
-                filterable
-                style="width: 100%"
+                  v-model="formData.userIds"
+                  multiple
+                  filterable
+                  style="width: 100%"
               >
                 <el-option
-                  v-for="(item, index) in userOption.filter(
+                    v-for="(item, index) in userOption.filter(
                     (item) => item.roleId > 0
                   )"
-                  :key="index"
-                  :label="item.userName"
-                  :value="item.userId"
+                    :key="index"
+                    :label="item.userName"
+                    :value="item.userId"
                 />
               </el-select>
             </el-form-item>
@@ -423,35 +423,35 @@
               </el-radio-group>
             </el-form-item>
             <el-form-item
-              v-show="formData.review"
-              label="URL"
-              label-width="60px"
+                v-show="formData.review"
+                label="URL"
+                label-width="60px"
             >
               <el-input
-                v-model.trim="formProps.reviewURL"
-                autocomplete="off"
-                placeholder="http(s)://domain?custom-param=1"
+                  v-model.trim="formProps.reviewURL"
+                  autocomplete="off"
+                  placeholder="http(s)://domain?custom-param=1"
               />
             </el-form-item>
             <el-form-item
-              v-show="formData.review"
-              :label="$t('param')"
-              label-width="60px"
+                v-show="formData.review"
+                :label="$t('param')"
+                label-width="60px"
             >
               <el-checkbox-group v-model="formProps.reviewURLParam">
                 <el-checkbox
-                  v-for="(item, key) in formProps.reviewURLParamOption"
-                  :key="key"
-                  :label="item.value"
-                  :disabled="item['disabled']"
+                    v-for="(item, key) in formProps.reviewURLParamOption"
+                    :key="key"
+                    :label="item.value"
+                    :disabled="item['disabled']"
                 >
                   {{ item.label }}
                 </el-checkbox>
               </el-checkbox-group>
             </el-form-item>
             <el-row
-              v-show="formData.review"
-              style="margin: 0 10px; white-space: pre-wrap"
+                v-show="formData.review"
+                style="margin: 0 10px; white-space: pre-wrap"
             >
               {{ $t('projectPage.reviewFooterTips') }}
             </el-row>
@@ -467,8 +467,8 @@
             </el-row>
             <el-form-item label="Symlink" label-width="120px">
               <el-radio-group
-                v-model="formProps.symlink"
-                @change="handleSymlink"
+                  v-model="formProps.symlink"
+                  @change="handleSymlink"
               >
                 <el-radio :label="false">{{ $t('close') }}</el-radio>
                 <el-radio :label="true">
@@ -477,20 +477,20 @@
               </el-radio-group>
             </el-form-item>
             <el-form-item
-              v-show="formProps.symlink"
-              label="Backup number"
-              label-width="120px"
+                v-show="formProps.symlink"
+                label="Backup number"
+                label-width="120px"
             >
               <el-input-number
-                v-model="formData.symlinkBackupNumber"
-                :min="1"
+                  v-model="formData.symlinkBackupNumber"
+                  :min="1"
               />
             </el-form-item>
             <el-form-item
-              v-show="formProps.symlink"
-              label="Directory"
-              prop="symlink_path"
-              label-width="120px"
+                v-show="formProps.symlink"
+                label="Directory"
+                prop="symlink_path"
+                label-width="120px"
             >
               <el-input v-model="formData.symlinkPath" readonly disabled>
                 <template #append>/uuid-version</template>
@@ -501,8 +501,8 @@
               </div>
             </el-form-item>
             <el-row
-              v-show="formProps.symlink"
-              style="margin: 5px 10px 0; white-space: pre-line"
+                v-show="formProps.symlink"
+                style="margin: 5px 10px 0; white-space: pre-line"
             >
               {{ $t('projectPage.symlinkFooterTips') }}
             </el-row>
@@ -526,32 +526,32 @@
             <el-form-item prop="afterPullScript" label-width="0px">
               <el-row type="flex" style="width: 100%">
                 <el-select
-                  v-model="formData.afterPullScriptMode"
-                  :placeholder="
+                    v-model="formData.afterPullScriptMode"
+                    :placeholder="
                     $t('projectPage.scriptMode') + '(Default: bash)'
                   "
-                  style="flex: 1"
-                  @change="handleAfterPullScriptModeChange"
+                    style="flex: 1"
+                    @change="handleAfterPullScriptModeChange"
                 >
                   <el-option
-                    v-for="(item, index) in scriptLangOption"
-                    :key="index"
-                    :label="item.label"
-                    :value="item.value"
+                      v-for="(item, index) in scriptLang.Option"
+                      :key="index"
+                      :label="item.label"
+                      :value="item.value"
                   />
                 </el-select>
                 <el-popover
-                  placement="bottom-end"
-                  :title="$t('projectPage.predefinedVar')"
-                  width="400"
-                  trigger="hover"
+                    placement="bottom-end"
+                    :title="$t('projectPage.predefinedVar')"
+                    width="400"
+                    trigger="hover"
                 >
                   <div>
                     <el-row>
                       <span>${PROJECT_ID}: </span>
                       <span>{{
-                        formData.id > 0 ? formData.id : 'project.id'
-                      }}</span>
+                          formData.id > 0 ? formData.id : 'project.id'
+                        }}</span>
                     </el-row>
                     <el-row>
                       <span>${PROJECT_NAME}: </span>
@@ -574,26 +574,26 @@
                       <span>
                         {{
                           formProps.symlink === true
-                            ? formData.symlinkPath
-                            : 'project.symlink_path'
+                              ? formData.symlinkPath
+                              : 'project.symlink_path'
                         }}
                       </span>
                     </el-row>
                     <el-row>
                       <span>${PROJECT_BRANCH}: </span>
                       <span>{{
-                        formData.branch !== ''
-                          ? formData.branch
-                          : 'project.branch'
-                      }}</span>
+                          formData.branch !== ''
+                              ? formData.branch
+                              : 'project.branch'
+                        }}</span>
                     </el-row>
                     <el-row>
                       <span>${REPOSITORY_TYPE}: </span>
                       <span>{{
-                        formData.repoType !== ''
-                          ? formData.repoType
-                          : 'project.repoType'
-                      }}</span>
+                          formData.repoType !== ''
+                              ? formData.repoType
+                              : 'project.repoType'
+                        }}</span>
                     </el-row>
                     <el-row>
                       <span>${REPOSITORY_URL}: </span>
@@ -643,12 +643,12 @@
             <el-form-item prop="afterPullScript" label-width="0px">
               <!-- <span>No support for demo</span> -->
               <v-ace-editor
-                v-model:value="formData.afterPullScript"
-                :lang="getScriptLang(formData.afterPullScriptMode)"
-                :theme="isDark ? 'one_dark' : 'github'"
-                style="height: 400px; width: 100%"
-                placeholder="Already switched to project directory..."
-                :options="{
+                  v-model:value="formData.afterPullScript"
+                  :lang="scriptLang.getScriptLang(formData.afterPullScriptMode)"
+                  :theme="isDark ? 'one_dark' : 'github'"
+                  style="height: 400px; width: 100%"
+                  placeholder="Already switched to project directory..."
+                  :options="{
                   newLineMode:
                     formData.afterPullScriptMode === 'cmd' ? 'windows' : 'unix',
                 }"
@@ -674,32 +674,32 @@
             <el-form-item prop="afterDeployScript" label-width="0px">
               <el-row type="flex" style="width: 100%">
                 <el-select
-                  v-model="formData.afterDeployScriptMode"
-                  :placeholder="
+                    v-model="formData.afterDeployScriptMode"
+                    :placeholder="
                     $t('projectPage.scriptMode') + '(Default: bash)'
                   "
-                  style="flex: 1"
-                  @change="handleAfterDeployScriptModeChange"
+                    style="flex: 1"
+                    @change="handleAfterDeployScriptModeChange"
                 >
                   <el-option
-                    v-for="(item, index) in scriptLangOption"
-                    :key="index"
-                    :label="item.label"
-                    :value="item.value"
+                      v-for="(item, index) in scriptLang.Option"
+                      :key="index"
+                      :label="item.label"
+                      :value="item.value"
                   />
                 </el-select>
                 <el-popover
-                  placement="bottom-end"
-                  :title="$t('projectPage.predefinedVar')"
-                  width="400"
-                  trigger="hover"
+                    placement="bottom-end"
+                    :title="$t('projectPage.predefinedVar')"
+                    width="400"
+                    trigger="hover"
                 >
                   <div>
                     <el-row>
                       <span>${PROJECT_ID}: </span>
                       <span>{{
-                        formData.id > 0 ? formData.id : 'project.id'
-                      }}</span>
+                          formData.id > 0 ? formData.id : 'project.id'
+                        }}</span>
                     </el-row>
                     <el-row>
                       <span>${PROJECT_NAME}: </span>
@@ -722,26 +722,26 @@
                       <span>
                         {{
                           formProps.symlink === true
-                            ? formData.symlinkPath
-                            : 'project.symlink_path'
+                              ? formData.symlinkPath
+                              : 'project.symlink_path'
                         }}
                       </span>
                     </el-row>
                     <el-row>
                       <span>${PROJECT_BRANCH}: </span>
                       <span>{{
-                        formData.branch !== ''
-                          ? formData.branch
-                          : 'project.branch'
-                      }}</span>
+                          formData.branch !== ''
+                              ? formData.branch
+                              : 'project.branch'
+                        }}</span>
                     </el-row>
                     <el-row>
                       <span>${REPOSITORY_TYPE}: </span>
                       <span>{{
-                        formData.repoType !== ''
-                          ? formData.repoType
-                          : 'project.repoType'
-                      }}</span>
+                          formData.repoType !== ''
+                              ? formData.repoType
+                              : 'project.repoType'
+                        }}</span>
                     </el-row>
                     <el-row>
                       <span>${REPOSITORY_URL}: </span>
@@ -815,11 +815,11 @@
             <el-form-item prop="afterDeployScript" label-width="0px">
               <!-- <span>No support for demo</span> -->
               <v-ace-editor
-                v-model:value="formData.afterDeployScript"
-                :lang="getScriptLang(formData.afterDeployScriptMode)"
-                :theme="isDark ? 'one_dark' : 'github'"
-                style="height: 400px; width: 100%"
-                :options="{
+                  v-model:value="formData.afterDeployScript"
+                  :lang="scriptLang.getScriptLang(formData.afterDeployScriptMode)"
+                  :theme="isDark ? 'one_dark' : 'github'"
+                  style="height: 400px; width: 100%"
+                  :options="{
                   newLineMode:
                     formData.afterDeployScriptMode === 'cmd'
                       ? 'windows'
@@ -832,16 +832,16 @@
       </el-form>
       <template #footer>
         <el-button
-          :disabled="formProps.disabled"
-          @click="dialogVisible = false"
+            :disabled="formProps.disabled"
+            @click="dialogVisible = false"
         >
           {{ $t('cancel') }}
         </el-button>
         <el-button
-          :disabled="formProps.disabled"
-          :loading="formProps.disabled"
-          type="primary"
-          @click="submit"
+            :disabled="formProps.disabled"
+            :loading="formProps.disabled"
+            type="primary"
+            @click="submit"
         >
           {{ $t('confirm') }}
         </el-button>
@@ -853,15 +853,15 @@
           {{ $t('projectPage.autoDeployTitle') }}
         </el-row>
         <el-radio-group
-          v-model="autoDeployFormData.autoDeploy"
-          style="margin: 10px"
+            v-model="autoDeployFormData.autoDeploy"
+            style="margin: 10px"
         >
           <el-radio :label="0">{{ $t('close') }}</el-radio>
           <el-radio :label="1">webhook</el-radio>
         </el-radio-group>
         <el-row
-          v-show="autoDeployFormData.autoDeploy === 1"
-          style="margin: 10px; white-space: pre-line"
+            v-show="autoDeployFormData.autoDeploy === 1"
+            style="margin: 10px; white-space: pre-line"
         >
           <span v-if="selectedItem.repoType === 'svn'">
             {{
@@ -885,9 +885,9 @@
           {{ $t('cancel') }}
         </el-button>
         <el-button
-          :disabled="autoDeployFormProps.disabled"
-          type="primary"
-          @click="setAutoDeploy"
+            :disabled="autoDeployFormProps.disabled"
+            type="primary"
+            @click="setAutoDeploy"
         >
           {{ $t('confirm') }}
         </el-button>
@@ -900,6 +900,7 @@ export default { name: 'ProjectIndex' }
 </script>
 <script lang="ts" setup>
 import pms from '@/permission'
+import { scriptLang } from '@/const/const'
 import Button from '@/components/Permission/Button.vue'
 import {
   Search,
@@ -940,21 +941,14 @@ const { t } = useI18n()
 const isDark = useDark()
 
 ace.config.set(
-  'basePath',
-  'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
+    'basePath',
+    'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
 )
 ace.config.set(
-  'themePath',
-  'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
+    'themePath',
+    'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
 )
-const scriptLangOption = [
-  { label: 'sh', value: 'sh', lang: 'sh' },
-  { label: 'zsh', value: 'zsh', lang: 'sh' },
-  { label: 'bash', value: 'bash', lang: 'sh' },
-  { label: 'python', value: 'python', lang: 'python' },
-  { label: 'php', value: 'php', lang: 'php' },
-  { label: 'bat', value: 'cmd', lang: 'batchfile' },
-]
+
 const projectName = ref('')
 const dialogVisible = ref(false)
 const dialogAutoDeployVisible = ref(false)
@@ -1064,13 +1058,13 @@ const tablePage = computed(() => {
   let _tableData = tableData.value
   if (projectName.value !== '') {
     _tableData = tableData.value.filter(
-      (item) => item.name.indexOf(projectName.value) !== -1
+        (item) => item.name.indexOf(projectName.value) !== -1
     )
   }
   return {
     list: _tableData.slice(
-      (pagination.value.page - 1) * pagination.value.rows,
-      pagination.value.page * pagination.value.rows
+        (pagination.value.page - 1) * pagination.value.rows,
+        pagination.value.page * pagination.value.rows
     ),
     total: _tableData.length,
   }
@@ -1088,13 +1082,13 @@ function getOptions() {
 function getList() {
   tableLoading.value = true
   new ProjectList()
-    .request()
-    .then((response) => {
-      tableData.value = response.data.list
-    })
-    .finally(() => {
-      tableLoading.value = false
-    })
+      .request()
+      .then((response) => {
+        tableData.value = response.data.list
+      })
+      .finally(() => {
+        tableLoading.value = false
+      })
 }
 
 function handleAdd() {
@@ -1147,37 +1141,26 @@ function handleRemove(data: ProjectData) {
     cancelButtonText: t('cancel'),
     type: 'warning',
   })
-    .then(() => {
-      tableLoading.value = true
-      new ProjectRemove({ id: data.id }).request().then(() => {
-        ElMessage.success('Success')
-        getList()
+      .then(() => {
+        tableLoading.value = true
+        new ProjectRemove({ id: data.id }).request().then(() => {
+          ElMessage.success('Success')
+          getList()
+        })
       })
-    })
-    .catch(() => {
-      ElMessage.info('Cancel')
-    })
-}
-
-function getScriptLang(scriptMode = '') {
-  if (scriptMode !== '') {
-    const scriptInfo = scriptLangOption.find(
-      (elem) => elem.value === scriptMode
-    )
-    return scriptInfo ? scriptInfo['lang'] : ''
-  } else {
-    return 'sh'
-  }
+      .catch(() => {
+        ElMessage.info('Cancel')
+      })
 }
 
 function getSymlinkPath(projectPath: string) {
   return path.normalize(
-    path.dirname(projectPath) + '/goploy-symlink/' + path.basename(projectPath)
+      path.dirname(projectPath) + '/goploy-symlink/' + path.basename(projectPath)
   )
 }
 
 const handleSymlink: InstanceType<typeof ElRadioGroup>['onChange'] = (
-  value
+    value
 ) => {
   if (value) {
     formData.value.symlinkPath = getSymlinkPath(formData.value.path)
@@ -1196,8 +1179,8 @@ function handleAutoDeploy(data: ProjectData) {
 function handleAfterPullScriptModeChange(mode: string) {
   if (mode === 'cmd') {
     if (
-      !formData.value.afterPullScript.includes('\r\n') &&
-      formData.value.afterPullScript.includes('\n')
+        !formData.value.afterPullScript.includes('\r\n') &&
+        formData.value.afterPullScript.includes('\n')
     ) {
       formData.value.afterPullScript = ''
     }
@@ -1211,8 +1194,8 @@ function handleAfterPullScriptModeChange(mode: string) {
 function handleAfterDeployScriptModeChange(mode: string) {
   if (mode === 'cmd') {
     if (
-      !formData.value.afterDeployScript.includes('\r\n') &&
-      formData.value.afterDeployScript.includes('\n')
+        !formData.value.afterDeployScript.includes('\r\n') &&
+        formData.value.afterDeployScript.includes('\n')
     ) {
       formData.value.afterDeployScript = ''
     }
@@ -1249,18 +1232,18 @@ function submit() {
       formData.value.reviewURL = ''
     }
     ;(formData.value.id === 0
-      ? new ProjectAdd(formData.value)
-      : new ProjectEdit(formData.value)
+            ? new ProjectAdd(formData.value)
+            : new ProjectEdit(formData.value)
     )
-      .request()
-      .then(() => {
-        dialogVisible.value = false
-        ElMessage.success('Success')
-        getList()
-      })
-      .finally(() => {
-        formProps.value.disabled = false
-      })
+        .request()
+        .then(() => {
+          dialogVisible.value = false
+          ElMessage.success('Success')
+          getList()
+        })
+        .finally(() => {
+          formProps.value.disabled = false
+        })
 
     return true
   })
@@ -1271,15 +1254,15 @@ function setAutoDeploy() {
     if (valid) {
       autoDeployFormProps.value.disabled = true
       new ProjectAutoDeploy(autoDeployFormData.value)
-        .request()
-        .then(() => {
-          dialogAutoDeployVisible.value = false
-          ElMessage.success('Success')
-          getList()
-        })
-        .finally(() => {
-          autoDeployFormProps.value.disabled = false
-        })
+          .request()
+          .then(() => {
+            dialogAutoDeployVisible.value = false
+            ElMessage.success('Success')
+            getList()
+          })
+          .finally(() => {
+            autoDeployFormProps.value.disabled = false
+          })
       return Promise.resolve(true)
     } else {
       return Promise.reject(false)
@@ -1298,13 +1281,13 @@ function pingRepos() {
     repoType: formData.value.repoType,
     url: formData.value.url,
   })
-    .request()
-    .then(() => {
-      ElMessage.success('Success')
-    })
-    .finally(() => {
-      formProps.value.pinging = false
-    })
+      .request()
+      .then(() => {
+        ElMessage.success('Success')
+      })
+      .finally(() => {
+        formProps.value.pinging = false
+      })
 }
 
 function getRemoteBranchList() {
@@ -1322,14 +1305,14 @@ function getRemoteBranchList() {
     repoType: formData.value.repoType,
     url: formData.value.url,
   })
-    .request()
-    .then((response) => {
-      formProps.value.branch = response.data.branch
-      ElMessage.success('Success')
-    })
-    .finally(() => {
-      formProps.value.lsBranchLoading = false
-    })
+      .request()
+      .then((response) => {
+        formProps.value.branch = response.data.branch
+        ElMessage.success('Success')
+      })
+      .finally(() => {
+        formProps.value.lsBranchLoading = false
+      })
 }
 
 function refresList() {

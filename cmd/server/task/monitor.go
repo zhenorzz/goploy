@@ -10,6 +10,8 @@ import (
 	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/monitor"
 	"github.com/zhenorzz/goploy/model"
+	"reflect"
+	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -79,7 +81,10 @@ func monitorTask() {
 		now := time.Now().Unix()
 		if int(now-monitorCache.time) >= m.Second {
 			monitorCache.time = now
-			ms, err := monitor.NewMonitorFromTarget(m.Type, m.Target)
+			ms, err := monitor.NewMonitorFromTarget(m.Type, m.Target,
+				monitor.NewScript(m.SuccessServerId, m.SuccessScript),
+				monitor.NewScript(m.FailServerId, m.FailScript),
+			)
 			if err != nil {
 				_ = m.TurnOff(err.Error())
 				log.Error("m " + m.Name + " encounter error, " + err.Error())
@@ -105,8 +110,29 @@ func monitorTask() {
 						}
 					}
 				}
+				var serverId int64
+				if reflect.TypeOf(err).String() == "monitor.ScriptError" {
+					serverId = (err.(monitor.ScriptError)).ServerId
+				}
+				err = ms.RunFailScript(serverId)
+				if err != nil {
+					log.Error("Failed to run fail script ." + err.Error())
+				}
 			} else {
+				for _, item := range ms.Items {
+					serverId, err := strconv.ParseInt(item, 10, 64)
+					if err != nil {
+						err = ms.RunSuccessScript(0)
+					} else {
+						err = ms.RunSuccessScript(serverId)
+					}
+					if err != nil {
+						log.Error("Failed to run successful script ." + err.Error())
+					}
+
+				}
 				monitorCache.errorTimes = 0
+
 			}
 			monitorCaches[m.ID] = monitorCache
 		}

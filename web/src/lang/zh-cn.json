@@ -290,12 +290,18 @@
     "saveTemplate": "保存模板"
   },
   "monitorPage": {
+    "scriptMode": "脚本类型",
     "typeOption": ["未知", "站点检测", "端口检测", "Ping检测", "进程检测", "自定义脚本检测"],
     "testState": "测试状态",
     "failTimes": "连续失败次数",
     "silentCycle": "通道沉默周期",
     "notifyTimes": "通知次数",
     "errorContent": "错误内容",
+    "baseInfoLabel": "基本信息",
+    "successScriptLabel": "成功运行脚本",
+    "failScriptLabel": "失败运行脚本",
+    "failScriptTips": "监听结果不健康时执行的脚本文件.\n如果未填写脚本，则不会执行",
+    "successScriptTips": "监听结果健康时执行的脚本文件.\n如果未填写脚本，则不会执行",
     "toggleStateTips": "此操作将暂停监控应用({monitorName}), 是否继续?",
     "removeMontiorTips": "此操作将不再监控应用({monitorName}), 是否继续?"
   },
