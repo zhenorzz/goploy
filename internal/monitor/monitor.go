@@ -168,8 +168,6 @@ func (m Monitor) RunFailScript(serverId int64) error {
 		session, err := NewSession(sId, m.Timeout*time.Second)
 		if err != nil {
 			return err
-		} else if session == nil {
-			return nil
 		}
 		return session.Run(m.FailScript.Script)
 	}
@@ -186,8 +184,6 @@ func (m Monitor) RunSuccessScript(serverId int64) error {
 		session, err := NewSession(sId, m.Timeout*time.Second)
 		if err != nil {
 			return err
-		} else if session == nil {
-			return nil
 		}
 		return session.Run(m.SuccessScript.Script)
 	}
@@ -199,7 +195,7 @@ func NewSession(serverId int64, timeout time.Duration) (session *ssh.Session, er
 	if err != nil {
 		return nil, err
 	} else if server.State == model.Disable {
-		return nil, err
+		return nil, errors.New("Server Disable [" + server.Name + "]")
 	}
 	client, err := server.ToSSHConfig().SetTimeout(timeout).Dial()
 	if err != nil {

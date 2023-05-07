@@ -10,7 +10,6 @@ import (
 	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/monitor"
 	"github.com/zhenorzz/goploy/model"
-	"reflect"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -111,8 +110,8 @@ func monitorTask() {
 					}
 				}
 				var serverId int64
-				if reflect.TypeOf(err).String() == "monitor.ScriptError" {
-					serverId = (err.(monitor.ScriptError)).ServerId
+				if e, ok := err.(monitor.ScriptError); ok {
+					serverId = e.ServerId
 				}
 				err = ms.RunFailScript(serverId)
 				if err != nil {

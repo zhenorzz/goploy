@@ -12,7 +12,6 @@ import (
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"github.com/zhenorzz/goploy/model"
 	"net/http"
-	"reflect"
 	"strconv"
 	"strings"
 )
@@ -69,8 +68,8 @@ func (Monitor) Check(gp *server.Goploy) server.Response {
 		sb.WriteString("MonitorErr : ")
 		sb.WriteString(err.Error())
 		var serverId int64
-		if reflect.TypeOf(err).String() == "monitor.ScriptError" {
-			serverId = (err.(monitor.ScriptError)).ServerId
+		if e, ok := err.(monitor.ScriptError); ok {
+			serverId = e.ServerId
 		}
 
 		err := ms.RunFailScript(serverId)
