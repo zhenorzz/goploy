@@ -588,11 +588,9 @@ function getList() {
     })
 }
 function getTagList() {
-  new TagList()
-    .request()
-    .then((response) => {
-      tagList.value = response.data.list
-    })
+  new TagList().request().then((response) => {
+    tagList.value = response.data.list
+  })
 }
 
 function stickChange() {
