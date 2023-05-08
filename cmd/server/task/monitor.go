@@ -81,8 +81,8 @@ func monitorTask() {
 		if int(now-monitorCache.time) >= m.Second {
 			monitorCache.time = now
 			ms, err := monitor.NewMonitorFromTarget(m.Type, m.Target,
-				monitor.NewScript(m.SuccessServerId, m.SuccessScript),
-				monitor.NewScript(m.FailServerId, m.FailScript),
+				monitor.NewScript(m.SuccessServerID, m.SuccessScript),
+				monitor.NewScript(m.FailServerID, m.FailScript),
 			)
 			if err != nil {
 				_ = m.TurnOff(err.Error())

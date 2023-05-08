@@ -163,6 +163,8 @@ func (m Monitor) RunFailScript(serverId int64) error {
 		if sId == -1 {
 			if serverId == 0 {
 				return errors.New("the executor is not clear")
+			} else {
+				sId = serverId
 			}
 		}
 		session, err := NewSession(sId, m.Timeout*time.Second)
@@ -179,6 +181,8 @@ func (m Monitor) RunSuccessScript(serverId int64) error {
 		if sId == -1 {
 			if serverId == 0 {
 				return errors.New("the executor is not clear")
+			} else {
+				sId = serverId
 			}
 		}
 		session, err := NewSession(sId, m.Timeout*time.Second)

@@ -26,9 +26,9 @@ type Monitor struct {
 	SilentCycle     int    `json:"silentCycle"`
 	NotifyType      uint8  `json:"notifyType"`
 	NotifyTarget    string `json:"notifyTarget"`
-	SuccessServerId int64  `json:"successServerId"`
+	SuccessServerID int64  `json:"successServerId"`
 	SuccessScript   string `json:"successScript"`
-	FailServerId    int64  `json:"failServerId"`
+	FailServerID    int64  `json:"failServerId"`
 	FailScript      string `json:"failScript"`
 	Description     string `json:"description"`
 	ErrorContent    string `json:"errorContent"`
@@ -41,7 +41,7 @@ type Monitors []Monitor
 
 func (m Monitor) GetList() (Monitors, error) {
 	rows, err := sq.
-		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target, description, error_content, state,success_script ,fail_script ,success_server_id ,fail_server_id, insert_time, update_time").
+		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target, description, error_content, state, success_script, fail_script, success_server_id, fail_server_id, insert_time, update_time").
 		From(monitorTable).
 		Where(sq.Eq{
 			"namespace_id": m.NamespaceID,
@@ -71,8 +71,8 @@ func (m Monitor) GetList() (Monitors, error) {
 			&monitor.State,
 			&monitor.SuccessScript,
 			&monitor.FailScript,
-			&monitor.SuccessServerId,
-			&monitor.FailServerId,
+			&monitor.SuccessServerID,
+			&monitor.FailServerID,
 			&monitor.InsertTime,
 			&monitor.UpdateTime); err != nil {
 			return nil, err
@@ -92,7 +92,7 @@ func (m Monitor) GetData() (Monitor, error) {
 		OrderBy("id DESC").
 		RunWith(DB).
 		QueryRow().
-		Scan(&monitor.ID, &monitor.Name, &monitor.Type, &monitor.Target, &monitor.Second, &monitor.Times, &monitor.SilentCycle, &monitor.NotifyType, &monitor.NotifyTarget, &monitor.State, &monitor.SuccessScript, &monitor.FailScript, &monitor.SuccessServerId, &monitor.FailServerId)
+		Scan(&monitor.ID, &monitor.Name, &monitor.Type, &monitor.Target, &monitor.Second, &monitor.Times, &monitor.SilentCycle, &monitor.NotifyType, &monitor.NotifyTarget, &monitor.State, &monitor.SuccessScript, &monitor.FailScript, &monitor.SuccessServerID, &monitor.FailServerID)
 	if err != nil {
 		return monitor, err
 	}
@@ -101,7 +101,7 @@ func (m Monitor) GetData() (Monitor, error) {
 
 func (m Monitor) GetAllByState() (Monitors, error) {
 	rows, err := sq.
-		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target,success_script ,fail_script ,success_server_id,fail_server_id , description, update_time").
+		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target, success_script, fail_script, success_server_id, fail_server_id, description, update_time").
 		From(monitorTable).
 		Where(sq.Eq{
 			"state": m.State,
@@ -127,8 +127,8 @@ func (m Monitor) GetAllByState() (Monitors, error) {
 			&monitor.NotifyTarget,
 			&monitor.SuccessScript,
 			&monitor.FailScript,
-			&monitor.SuccessServerId,
-			&monitor.FailServerId,
+			&monitor.SuccessServerID,
+			&monitor.FailServerID,
 			&monitor.Description,
 			&monitor.UpdateTime,
 		); err != nil {
@@ -144,7 +144,7 @@ func (m Monitor) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(monitorTable).
 		Columns("namespace_id", "name", "type", "target", "second", "times", "silent_cycle", "notify_type", "notify_target", "description", "error_content", "success_script", "fail_script", "success_server_id", "fail_server_id").
-		Values(m.NamespaceID, m.Name, m.Type, m.Target, m.Second, m.Times, m.SilentCycle, m.NotifyType, m.NotifyTarget, m.Description, "", m.SuccessScript, m.FailScript, m.SuccessServerId, m.FailServerId).
+		Values(m.NamespaceID, m.Name, m.Type, m.Target, m.Second, m.Times, m.SilentCycle, m.NotifyType, m.NotifyTarget, m.Description, "", m.SuccessScript, m.FailScript, m.SuccessServerID, m.FailServerID).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -169,8 +169,8 @@ func (m Monitor) EditRow() error {
 			"description":       m.Description,
 			"success_script":    m.SuccessScript,
 			"fail_script":       m.FailScript,
-			"success_server_id": m.SuccessServerId,
-			"fail_server_id":    m.FailServerId,
+			"success_server_id": m.SuccessServerID,
+			"fail_server_id":    m.FailServerID,
 		}).
 		Where(sq.Eq{"id": m.ID}).
 		RunWith(DB).

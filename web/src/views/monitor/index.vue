@@ -233,7 +233,7 @@
             <el-form-item prop="successServerId" :label="$t('target')">
               <el-select v-model="formData.successServerId" style="width: 100%">
                 <el-option v-for="item in [
-                  { id: -1, label: '跟随宿主机' },
+                  { id: -1, label:  $t('monitorPage.defaultServer') },
                   ...serverOption,
                 ]" :key="item.label" :label="item.label" :value="item.id" />
               </el-select>
@@ -263,7 +263,7 @@
             <el-form-item prop="failServerId" :label="$t('target')">
               <el-select v-model="formData.failServerId" style="width: 100%">
                 <el-option v-for="item in [
-                  { id: -1, label: '跟随宿主机' },
+                  { id: -1, label:  $t('monitorPage.defaultServer') },
                   ...serverOption,
                 ]" :key="item.label" :label="item.label" :value="item.id" />
               </el-select>

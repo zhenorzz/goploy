@@ -307,6 +307,7 @@
     "saveTemplate": "Save template"
   },
   "monitorPage": {
+    "defaultServer": "Follow Host",
     "scriptMode": "Script mode",
     "typeOption": [
       "Unknown",

@@ -291,6 +291,7 @@
   },
   "monitorPage": {
     "scriptMode": "脚本类型",
+    "defaultServer": "跟随宿主机",
     "typeOption": ["未知", "站点检测", "端口检测", "Ping检测", "进程检测", "自定义脚本检测"],
     "testState": "测试状态",
     "failTimes": "连续失败次数",

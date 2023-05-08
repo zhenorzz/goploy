@@ -136,8 +136,8 @@ func (Monitor) Add(gp *server.Goploy) server.Response {
 		Description:     reqData.Description,
 		FailScript:      reqData.FailScript,
 		SuccessScript:   reqData.SuccessScript,
-		SuccessServerId: reqData.SuccessServerId,
-		FailServerId:    reqData.FailServerId,
+		SuccessServerID: reqData.SuccessServerId,
+		FailServerID:    reqData.FailServerId,
 	}.AddRow()
 
 	if err != nil {
@@ -184,8 +184,8 @@ func (Monitor) Edit(gp *server.Goploy) server.Response {
 		Description:     reqData.Description,
 		FailScript:      reqData.FailScript,
 		SuccessScript:   reqData.SuccessScript,
-		SuccessServerId: reqData.SuccessServerId,
-		FailServerId:    reqData.FailServerId,
+		SuccessServerID: reqData.SuccessServerId,
+		FailServerID:    reqData.FailServerId,
 	}.EditRow()
 
 	if err != nil {
