@@ -145,8 +145,6 @@ func (m Monitor) CheckScript() error {
 		session, err := NewSession(serverID, m.Timeout*time.Second)
 		if err != nil {
 			return err
-		} else if session == nil {
-			continue
 		}
 		var stdout, stderr bytes.Buffer
 		session.Stdout = &stdout

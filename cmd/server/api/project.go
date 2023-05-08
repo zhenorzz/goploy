@@ -56,14 +56,20 @@ func (p Project) Handler() []server.Route {
 }
 
 func (Project) TagList(gp *server.Goploy) server.Response {
-	list, err := model.Project{}.TagList()
+	var tagList []string
+	var err error
+	if _, ok := gp.Namespace.PermissionIDs[config.GetAllProjectList]; ok {
+		tagList, err = model.Project{NamespaceID: gp.Namespace.ID}.GetTagList()
+	} else {
+		tagList, err = model.Project{NamespaceID: gp.Namespace.ID, UserID: gp.UserInfo.ID}.GetTagList()
+	}
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
 			List []string `json:"list"`
-		}{List: list},
+		}{List: tagList},
 	}
 }
 func (Project) GetList(gp *server.Goploy) server.Response {
@@ -309,7 +315,7 @@ func (Project) Add(gp *server.Goploy) server.Response {
 		Name                  string  `json:"name" validate:"required"`
 		RepoType              string  `json:"repoType" validate:"required"`
 		URL                   string  `json:"url" validate:"required"`
-		TAG                   string  `json:"tag"`
+		Tag                   string  `json:"tag"`
 		Path                  string  `json:"path" validate:"required"`
 		Environment           uint8   `json:"environment" validate:"required"`
 		Branch                string  `json:"branch" validate:"required"`
@@ -343,7 +349,7 @@ func (Project) Add(gp *server.Goploy) server.Response {
 		Name:                  reqData.Name,
 		RepoType:              reqData.RepoType,
 		URL:                   reqData.URL,
-		TAG:                   reqData.TAG,
+		Tag:                   reqData.Tag,
 		Path:                  reqData.Path,
 		Environment:           reqData.Environment,
 		Branch:                reqData.Branch,
@@ -397,7 +403,7 @@ func (Project) Edit(gp *server.Goploy) server.Response {
 		Name                  string  `json:"name"`
 		RepoType              string  `json:"repoType"`
 		URL                   string  `json:"url"`
-		TAG                   string  `json:"tag"`
+		Tag                   string  `json:"tag"`
 		Path                  string  `json:"path"`
 		SymlinkPath           string  `json:"symlinkPath"`
 		SymlinkBackupNumber   uint8   `json:"symlinkBackupNumber"`
@@ -436,7 +442,7 @@ func (Project) Edit(gp *server.Goploy) server.Response {
 		Name:                  reqData.Name,
 		RepoType:              reqData.RepoType,
 		URL:                   reqData.URL,
-		TAG:                   reqData.TAG,
+		Tag:                   reqData.Tag,
 		Path:                  reqData.Path,
 		Environment:           reqData.Environment,
 		Branch:                reqData.Branch,

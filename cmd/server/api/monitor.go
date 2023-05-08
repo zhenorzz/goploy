@@ -45,9 +45,9 @@ func (Monitor) Check(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		Type            int    `json:"type" validate:"oneof=1 2 3 4 5"`
 		Target          string `json:"target" validate:"required"`
-		SuccessServerId int64  `json:"successServerId"`
+		SuccessServerID int64  `json:"successServerId"`
 		SuccessScript   string `json:"successScript"`
-		FailServerId    int64  `json:"failServerId"`
+		FailServerID    int64  `json:"failServerId"`
 		FailScript      string `json:"failScript"`
 	}
 	var reqData ReqData
@@ -56,8 +56,8 @@ func (Monitor) Check(gp *server.Goploy) server.Response {
 	}
 
 	ms, err := monitor.NewMonitorFromTarget(reqData.Type, reqData.Target,
-		monitor.NewScript(reqData.SuccessServerId, reqData.SuccessScript),
-		monitor.NewScript(reqData.FailServerId, reqData.FailScript),
+		monitor.NewScript(reqData.SuccessServerID, reqData.SuccessScript),
+		monitor.NewScript(reqData.FailServerID, reqData.FailScript),
 	)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
@@ -115,8 +115,8 @@ func (Monitor) Add(gp *server.Goploy) server.Response {
 		Description     string `json:"description" validate:"max=255"`
 		FailScript      string `json:"failScript" `
 		SuccessScript   string `json:"successScript" `
-		SuccessServerId int64  `json:"successServerId" `
-		FailServerId    int64  `json:"failServerId" `
+		SuccessServerID int64  `json:"successServerId" `
+		FailServerID    int64  `json:"failServerId" `
 	}
 	var reqData ReqData
 	if err := decodeJson(gp.Body, &reqData); err != nil {
@@ -136,8 +136,8 @@ func (Monitor) Add(gp *server.Goploy) server.Response {
 		Description:     reqData.Description,
 		FailScript:      reqData.FailScript,
 		SuccessScript:   reqData.SuccessScript,
-		SuccessServerID: reqData.SuccessServerId,
-		FailServerID:    reqData.FailServerId,
+		SuccessServerID: reqData.SuccessServerID,
+		FailServerID:    reqData.FailServerID,
 	}.AddRow()
 
 	if err != nil {
@@ -164,8 +164,8 @@ func (Monitor) Edit(gp *server.Goploy) server.Response {
 		Description     string `json:"description" validate:"max=255"`
 		FailScript      string `json:"failScript" `
 		SuccessScript   string `json:"successScript" `
-		SuccessServerId int64  `json:"successServerId" `
-		FailServerId    int64  `json:"failServerId" `
+		SuccessServerID int64  `json:"successServerId" `
+		FailServerID    int64  `json:"failServerId" `
 	}
 	var reqData ReqData
 	if err := decodeJson(gp.Body, &reqData); err != nil {
@@ -184,8 +184,8 @@ func (Monitor) Edit(gp *server.Goploy) server.Response {
 		Description:     reqData.Description,
 		FailScript:      reqData.FailScript,
 		SuccessScript:   reqData.SuccessScript,
-		SuccessServerID: reqData.SuccessServerId,
-		FailServerID:    reqData.FailServerId,
+		SuccessServerID: reqData.SuccessServerID,
+		FailServerID:    reqData.FailServerID,
 	}.EditRow()
 
 	if err != nil {
