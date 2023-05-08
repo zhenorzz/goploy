@@ -160,10 +160,21 @@ func (p Project) GetTagList() (tags []string, err error) {
 	if err != nil {
 		return nil, err
 	}
+	tagMap := map[string]bool{}
 	for rows.Next() {
 		var tag string
 		rows.Scan(&tag)
-		tags = append(tags, tag)
+		if tag != "" {
+			for _, item := range strings.Split(tag, ",") {
+				tagMap[item] = false
+			}
+		}
+	}
+	tags = make([]string, len(tagMap))
+	var i int
+	for k := range tagMap {
+		tags[i] = k
+		i++
 	}
 	return tags, nil
 }

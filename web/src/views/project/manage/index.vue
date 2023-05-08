@@ -7,7 +7,15 @@
           style="width: 200px"
           placeholder="Filter the project name"
         />
-        <el-select v-model="searchProject.tag" clearable placeholder="Filter the project tag">
+        <el-select
+          v-model="searchProject.tag"
+          :max-collapse-tags="1"
+          style="width: 300px"
+          multiple
+          collapse-tags
+          collapse-tags-tooltip
+          placeholder="Filter the project tag"
+        >
           <el-option
             v-for="item in tagList"
             :key="item"
@@ -185,19 +193,7 @@
                 placeholder="goploy"
               />
             </el-form-item>
-            <el-form-item
-              :label="$t('tag')"
-              prop="tag"
-              :rules="[
-                { required: true, message: 'tag required', trigger: ['blur'] },
-              ]"
-            >
-              <el-input
-                v-model.trim="formData.tag"
-                autocomplete="off"
-                placeholder="goploy"
-              />
-            </el-form-item>
+
             <el-form-item
               prop="url"
               :rules="[
@@ -430,6 +426,28 @@
                   :key="index"
                   :label="item.userName"
                   :value="item.userId"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item :label="$t('tag')" prop="tag">
+              <el-select
+                v-model="formData.tag"
+                style="width: 100%"
+                :max-collapse-tags="5"
+                allow-create
+                :reserve-keyword="false"
+                collapse-tags-tooltip
+                multiple
+                clearable
+                filterable
+                default-first-option
+                placeholder="TAG"
+              >
+                <el-option
+                  v-for="item in tagList"
+                  :key="item"
+                  :label="item"
+                  :value="item"
                 />
               </el-select>
             </el-form-item>
@@ -962,6 +980,7 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref, computed } from 'vue'
 import { useDark } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
+
 const { t } = useI18n()
 const isDark = useDark()
 
@@ -974,9 +993,9 @@ ace.config.set(
   'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
 )
 
-const searchProject = ref({
-  projectName:'',
-  tag:'',
+const searchProject = ref<{ projectName: string; tag: string[] }>({
+  projectName: '',
+  tag: [],
 })
 const dialogVisible = ref(false)
 const dialogAutoDeployVisible = ref(false)
@@ -1032,6 +1051,7 @@ const formProps = ref({
   reviewURLParam: ['callback=__CALLBACK__'],
   symlink: false,
   disabled: false,
+  tag: [] as string[],
   branch: [] as string[],
   pinging: false,
   lsBranchLoading: false,
@@ -1040,7 +1060,7 @@ const formProps = ref({
 const tempFormData = {
   id: 0,
   name: '',
-  tag: '',
+  tag: [] as string[],
   repoType: 'git',
   url: '',
   path: '',
@@ -1092,9 +1112,9 @@ const tablePage = computed(() => {
       (item) => item.name.indexOf(searchProject.value.projectName) !== -1
     )
   }
-  if (searchProject.value.tag!== '') {
-    _tableData = _tableData.filter(
-      (item) => item.tag.indexOf(searchProject.value.tag) !== -1
+  if (searchProject.value.tag.length > 0) {
+    _tableData = _tableData.filter((item) =>
+      item.tag.split(',').find((p) => searchProject.value.tag.indexOf(p) !== -1)
     )
   }
   return {
@@ -1126,14 +1146,11 @@ function getList() {
       tableLoading.value = false
     })
 }
+
 function getTagList() {
-  new TagList()
-    .request()
-    .then((response) => {
-      tagList.value = response.data.list
-    })
-    .finally(() => {
-    })
+  new TagList().request().then((response) => {
+    tagList.value = response.data.list
+  })
 }
 
 function handleAdd() {
@@ -1151,6 +1168,8 @@ function handleEdit(data: ProjectData) {
   formProps.value.reviewURL = ''
   formProps.value.reviewURLParam = []
   formProps.value.disabled = true
+  formData.value.tag = data.tag.split(',')
+
   Promise.all([
     new ProjectUserList({ id: data.id }).request(),
     new ProjectServerList({ id: data.id }).request(),
@@ -1277,9 +1296,18 @@ function submit() {
     } else {
       formData.value.reviewURL = ''
     }
+    if (
+      formData.value.tag.filter((p) => String(p).indexOf(',') !== -1).length > 0
+    ) {
+      ElMessage.error('Tag is not allowed to contain , ')
+      return false
+    }
     ;(formData.value.id === 0
-      ? new ProjectAdd(formData.value)
-      : new ProjectEdit(formData.value)
+      ? new ProjectAdd({ ...formData.value, tag: formData.value.tag.join(',') })
+      : new ProjectEdit({
+          ...formData.value,
+          tag: formData.value.tag.join(','),
+        })
     )
       .request()
       .then(() => {
@@ -1364,8 +1392,8 @@ function getRemoteBranchList() {
 
 function refresList() {
   searchProject.value = {
-    productName:'',
-    tag:'',
+    projectName: '',
+    tag: [],
   }
 
   pagination.value.page = 1
