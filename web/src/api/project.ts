@@ -11,6 +11,7 @@ export interface ProjectData {
   path: string
   environment: number
   branch: string
+  tag: string
   symlinkPath: string
   symlinkBackupNumber: number
   review: number
@@ -105,6 +106,14 @@ export class ProjectList extends Request {
 
   public declare datagram: {
     list: ProjectData[]
+  }
+}
+export class TagList extends Request {
+  readonly url = '/project/tagList'
+  readonly method = 'get'
+
+  public declare datagram: {
+    list: string[]
   }
 }
 

@@ -1,6 +1,7 @@
 {
   "default": "默认",
   "name": "名称",
+  "tag": "标签",
   "script": "脚本",
   "owner": "拥有者",
   "user": "用户",

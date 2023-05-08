@@ -22,6 +22,7 @@ type Project struct {
 	RepoType              string `json:"repoType"`
 	Name                  string `json:"name"`
 	URL                   string `json:"url"`
+	TAG                   string `json:"tag"`
 	Path                  string `json:"path"`
 	Environment           uint8  `json:"environment"`
 	Branch                string `json:"branch"`
@@ -88,6 +89,7 @@ func (p Project) AddRow() (int64, error) {
 			"name",
 			"repo_type",
 			"url",
+			"tag",
 			"path",
 			"environment",
 			"branch",
@@ -110,6 +112,7 @@ func (p Project) AddRow() (int64, error) {
 			p.Name,
 			p.RepoType,
 			p.URL,
+			p.TAG,
 			p.Path,
 			p.Environment,
 			p.Branch,
@@ -136,6 +139,23 @@ func (p Project) AddRow() (int64, error) {
 	return id, err
 }
 
+func (p Project) TagList() (tags []string, err error) {
+
+	rows, err := sq.Select("tag").
+		From(projectTable).
+		Distinct().
+		RunWith(DB).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var tag string
+		rows.Scan(&tag)
+		tags = append(tags, tag)
+	}
+	return tags, nil
+}
 func (p Project) EditRow() error {
 	_, err := sq.
 		Update(projectTable).
@@ -143,6 +163,7 @@ func (p Project) EditRow() error {
 			"name":                     p.Name,
 			"repo_type":                p.RepoType,
 			"url":                      p.URL,
+			"tag":                      p.TAG,
 			"path":                     p.Path,
 			"environment":              p.Environment,
 			"branch":                   p.Branch,
@@ -255,6 +276,7 @@ func (p Project) GetList() (Projects, error) {
 			name, 
 			repo_type, 
 			url, 
+			tag, 
 			path, 
 			environment,
 			branch,
@@ -304,6 +326,7 @@ func (p Project) GetList() (Projects, error) {
 			&project.Name,
 			&project.RepoType,
 			&project.URL,
+			&project.TAG,
 			&project.Path,
 			&project.Environment,
 			&project.Branch,
@@ -340,6 +363,7 @@ func (p Project) GetDeployList() (Projects, error) {
 			project.repo_type,
 			project.transfer_type,
 			project.url,
+			project.tag,
 			project.publisher_id,
 			project.publisher_name,
 			IFNULL(publish_trace.ext, '{}'),
@@ -382,6 +406,7 @@ func (p Project) GetDeployList() (Projects, error) {
 			&project.RepoType,
 			&project.TransferType,
 			&project.URL,
+			&project.TAG,
 			&project.PublisherID,
 			&project.PublisherName,
 			&project.PublishExt,
@@ -411,6 +436,7 @@ func (p Project) GetData() (Project, error) {
 			name, 
 			repo_type, 
 			url, 
+			tag, 
 			path, 
 			environment, 
 			branch, 
@@ -443,6 +469,7 @@ func (p Project) GetData() (Project, error) {
 			&project.Name,
 			&project.RepoType,
 			&project.URL,
+			&project.TAG,
 			&project.Path,
 			&project.Environment,
 			&project.Branch,

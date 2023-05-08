@@ -1,6 +1,7 @@
 {
   "default": "Default",
   "name": "Name",
+  "tag": "Tag",
   "script": "Script",
   "owner": "Owner",
   "user": "User",

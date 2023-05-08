@@ -205,7 +205,8 @@
                   <el-option :label="$t('webhookOption[3]')" :value="3" />
                   <el-option :label="$t('webhookOption[255]')" :value="255" />
                 </el-select>
-                <el-input v-model.trim="formData.notifyTarget" style="flex: 1" autocomplete="off" placeholder="webhook" />
+                <el-input v-model.trim="formData.notifyTarget" style="flex: 1" autocomplete="off"
+                  placeholder="webhook" />
               </el-row>
             </el-form-item>
             <el-form-item :label="$t('description')" prop="description" :rules="[
@@ -233,7 +234,7 @@
             <el-form-item prop="successServerId" :label="$t('target')">
               <el-select v-model="formData.successServerId" style="width: 100%">
                 <el-option v-for="item in [
-                  { id: -1, label:  $t('monitorPage.defaultServer') },
+                  { id: -1, label: $t('monitorPage.defaultServer') },
                   ...serverOption,
                 ]" :key="item.label" :label="item.label" :value="item.id" />
               </el-select>
@@ -263,14 +264,14 @@
             <el-form-item prop="failServerId" :label="$t('target')">
               <el-select v-model="formData.failServerId" style="width: 100%">
                 <el-option v-for="item in [
-                  { id: -1, label:  $t('monitorPage.defaultServer') },
+                  { id: -1, label: $t('monitorPage.defaultServer') },
                   ...serverOption,
                 ]" :key="item.label" :label="item.label" :value="item.id" />
               </el-select>
             </el-form-item>
             <el-form-item prop="failScript" :label="$t('script')">
-              <VAceEditor v-model:value="formData.failScript" lang="sh" theme="github" style="height: 360px; width: 100%"
-                :options="{ newLineMode: 'unix' }" />
+              <VAceEditor v-model:value="formData.failScript" lang="sh" theme="github"
+                style="height: 360px; width: 100%" :options="{ newLineMode: 'unix' }" />
             </el-form-item>
           </el-tab-pane>
         </el-tabs>
