@@ -29,6 +29,22 @@
         <el-option :label="$t('envOption[3]')" :value="3" />
         <el-option :label="$t('envOption[4]')" :value="4" />
       </el-select>
+      <el-select
+        v-model="searchProject.tag"
+        :max-collapse-tags="1"
+        style="width: 300px"
+        multiple
+        collapse-tags
+        collapse-tags-tooltip
+        placeholder="Filter the project tag"
+      >
+        <el-option
+          v-for="item in tagList"
+          :key="item"
+          :label="item"
+          :value="item"
+        />
+      </el-select>
       <el-input
         v-model="searchProject.name"
         style="width: 300px"
@@ -59,51 +75,58 @@
                     style="margin-right: 5px; color: var(--el-color-warning)"
                     icon-class="pin"
                   />
-                  <span
-                    v-if="row.environment === 1"
-                    style="
-                      flex: 1;
-                      overflow: hidden;
-                      text-overflow: ellipsis;
-                      font-size: 14px;
-                      font-weight: 600;
-                      white-space: nowrap;
-                      color: var(--el-color-danger);
-                    "
+                  <el-tooltip
+                    class="box-item"
+                    effect="dark"
+                    :content="row.tag"
+                    placement="bottom"
                   >
-                    {{ row.name }} -
-                    {{ $t(`envOption[${row.environment || 0}]`) }}
-                  </span>
-                  <span
-                    v-else-if="row.environment === 3"
-                    style="
-                      flex: 1;
-                      overflow: hidden;
-                      text-overflow: ellipsis;
-                      font-size: 14px;
-                      font-weight: 600;
-                      white-space: nowrap;
-                      color: var(--el-color-warning);
-                    "
-                  >
-                    {{ row.name }} -
-                    {{ $t(`envOption[${row.environment || 0}]`) }}
-                  </span>
-                  <span
-                    v-else
-                    style="
-                      flex: 1;
-                      overflow: hidden;
-                      text-overflow: ellipsis;
-                      font-size: 14px;
-                      font-weight: 600;
-                      white-space: nowrap;
-                      color: var(--el-color-info);
-                    "
-                  >
-                    {{ row.name }} -
-                    {{ $t(`envOption[${row.environment || 0}]`) }}
-                  </span>
+                    <span
+                      v-if="row.environment === 1"
+                      style="
+                        flex: 1;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        font-size: 14px;
+                        font-weight: 600;
+                        white-space: nowrap;
+                        color: var(--el-color-danger);
+                      "
+                    >
+                      {{ row.name }} -
+                      {{ $t(`envOption[${row.environment || 0}]`) }}
+                    </span>
+                    <span
+                      v-else-if="row.environment === 3"
+                      style="
+                        flex: 1;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        font-size: 14px;
+                        font-weight: 600;
+                        white-space: nowrap;
+                        color: var(--el-color-warning);
+                      "
+                    >
+                      {{ row.name }} -
+                      {{ $t(`envOption[${row.environment || 0}]`) }}
+                    </span>
+                    <span
+                      v-else
+                      style="
+                        flex: 1;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        font-size: 14px;
+                        font-weight: 600;
+                        white-space: nowrap;
+                        color: var(--el-color-info);
+                      "
+                    >
+                      {{ row.name }} -
+                      {{ $t(`envOption[${row.environment || 0}]`) }}
+                    </span>
+                  </el-tooltip>
                   <el-dropdown
                     trigger="click"
                     @command="(funcName: string) => cardMoreFunc[funcName](row)"
@@ -188,7 +211,9 @@
                       type="primary"
                     >
                       {{ $t('submit') }}
-                      <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                      <el-icon class="el-icon--right">
+                        <arrow-down />
+                      </el-icon>
                     </el-button>
                     <span v-else>{{ $t('deploy') }}</span>
                     <template #dropdown>
@@ -209,7 +234,9 @@
                   >
                     <el-button size="small" type="warning">
                       {{ $t('func') }}
-                      <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                      <el-icon class="el-icon--right">
+                        <arrow-down />
+                      </el-icon>
                     </el-button>
                     <template #dropdown>
                       <el-dropdown-menu
@@ -387,7 +414,7 @@ import {
   DeployResetState,
   DeployGreyPublish,
 } from '@/api/deploy'
-import { ProjectServerList, ProjectData } from '@/api/project'
+import { ProjectServerList, ProjectData, TagList } from '@/api/project'
 import RepoURL from '@/components/RepoURL/index.vue'
 import { parseTime } from '@/utils'
 import TheDetailDialog from './TheDetailDialog.vue'
@@ -420,11 +447,13 @@ const searchProject = ref({
   sort: getSort(),
   name: '',
   environment: '',
+  tag: [] as string[],
   pin: '',
 })
 const selectedItem = ref({} as ProjectData)
 const tableloading = ref(false)
 const tableData = ref<any[]>([])
+const tagList = ref<string[]>([])
 const pagination = ref({ page: 1, rows: 20 })
 const greyServerForm = ref<InstanceType<typeof ElForm>>()
 const greyServerFormProps = ref({
@@ -461,6 +490,13 @@ const tablePage = computed(() => {
   if (searchProject.value.pin !== '') {
     _tableData = _tableData.filter(
       (item) => item.pin === searchProject.value.pin
+    )
+  }
+  if (searchProject.value.tag.length > 0) {
+    _tableData = _tableData.filter((item) =>
+      String(item.tag)
+        .split(',')
+        .find((p) => searchProject.value.tag.indexOf(p) > -1)
     )
   }
   return {
@@ -510,6 +546,7 @@ watch(
 )
 
 getList()
+getTagList()
 
 function getList() {
   tableloading.value = true
@@ -549,6 +586,11 @@ function getList() {
     .finally(() => {
       tableloading.value = false
     })
+}
+function getTagList() {
+  new TagList().request().then((response) => {
+    tagList.value = response.data.list
+  })
 }
 
 function stickChange() {

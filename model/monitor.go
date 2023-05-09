@@ -16,28 +16,32 @@ import (
 const monitorTable = "`monitor`"
 
 type Monitor struct {
-	ID           int64  `json:"id"`
-	NamespaceID  int64  `json:"namespaceId"`
-	Name         string `json:"name"`
-	Type         int    `json:"type"`
-	Target       string `json:"target"`
-	Second       int    `json:"second"`
-	Times        uint16 `json:"times"`
-	SilentCycle  int    `json:"silentCycle"`
-	NotifyType   uint8  `json:"notifyType"`
-	NotifyTarget string `json:"notifyTarget"`
-	Description  string `json:"description"`
-	ErrorContent string `json:"errorContent"`
-	State        uint8  `json:"state"`
-	InsertTime   string `json:"insertTime"`
-	UpdateTime   string `json:"updateTime"`
+	ID              int64  `json:"id"`
+	NamespaceID     int64  `json:"namespaceId"`
+	Name            string `json:"name"`
+	Type            int    `json:"type"`
+	Target          string `json:"target"`
+	Second          int    `json:"second"`
+	Times           uint16 `json:"times"`
+	SilentCycle     int    `json:"silentCycle"`
+	NotifyType      uint8  `json:"notifyType"`
+	NotifyTarget    string `json:"notifyTarget"`
+	SuccessServerID int64  `json:"successServerId"`
+	SuccessScript   string `json:"successScript"`
+	FailServerID    int64  `json:"failServerId"`
+	FailScript      string `json:"failScript"`
+	Description     string `json:"description"`
+	ErrorContent    string `json:"errorContent"`
+	State           uint8  `json:"state"`
+	InsertTime      string `json:"insertTime"`
+	UpdateTime      string `json:"updateTime"`
 }
 
 type Monitors []Monitor
 
 func (m Monitor) GetList() (Monitors, error) {
 	rows, err := sq.
-		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target, description, error_content, state, insert_time, update_time").
+		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target, description, error_content, state, success_script, fail_script, success_server_id, fail_server_id, insert_time, update_time").
 		From(monitorTable).
 		Where(sq.Eq{
 			"namespace_id": m.NamespaceID,
@@ -65,6 +69,10 @@ func (m Monitor) GetList() (Monitors, error) {
 			&monitor.Description,
 			&monitor.ErrorContent,
 			&monitor.State,
+			&monitor.SuccessScript,
+			&monitor.FailScript,
+			&monitor.SuccessServerID,
+			&monitor.FailServerID,
 			&monitor.InsertTime,
 			&monitor.UpdateTime); err != nil {
 			return nil, err
@@ -78,13 +86,13 @@ func (m Monitor) GetList() (Monitors, error) {
 func (m Monitor) GetData() (Monitor, error) {
 	var monitor Monitor
 	err := sq.
-		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target, state").
+		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target, state", "success_script", "fail_script", "success_server_id", "fail_server_id").
 		From(monitorTable).
 		Where(sq.Eq{"id": m.ID}).
 		OrderBy("id DESC").
 		RunWith(DB).
 		QueryRow().
-		Scan(&monitor.ID, &monitor.Name, &monitor.Type, &monitor.Target, &monitor.Second, &monitor.Times, &monitor.SilentCycle, &monitor.NotifyType, &monitor.NotifyTarget, &monitor.State)
+		Scan(&monitor.ID, &monitor.Name, &monitor.Type, &monitor.Target, &monitor.Second, &monitor.Times, &monitor.SilentCycle, &monitor.NotifyType, &monitor.NotifyTarget, &monitor.State, &monitor.SuccessScript, &monitor.FailScript, &monitor.SuccessServerID, &monitor.FailServerID)
 	if err != nil {
 		return monitor, err
 	}
@@ -93,7 +101,7 @@ func (m Monitor) GetData() (Monitor, error) {
 
 func (m Monitor) GetAllByState() (Monitors, error) {
 	rows, err := sq.
-		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target, description, update_time").
+		Select("id, name, type, target, second, times, silent_cycle, notify_type, notify_target, success_script, fail_script, success_server_id, fail_server_id, description, update_time").
 		From(monitorTable).
 		Where(sq.Eq{
 			"state": m.State,
@@ -117,6 +125,10 @@ func (m Monitor) GetAllByState() (Monitors, error) {
 			&monitor.SilentCycle,
 			&monitor.NotifyType,
 			&monitor.NotifyTarget,
+			&monitor.SuccessScript,
+			&monitor.FailScript,
+			&monitor.SuccessServerID,
+			&monitor.FailServerID,
 			&monitor.Description,
 			&monitor.UpdateTime,
 		); err != nil {
@@ -131,8 +143,8 @@ func (m Monitor) GetAllByState() (Monitors, error) {
 func (m Monitor) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(monitorTable).
-		Columns("namespace_id", "name", "type", "target", "second", "times", "silent_cycle", "notify_type", "notify_target", "description", "error_content").
-		Values(m.NamespaceID, m.Name, m.Type, m.Target, m.Second, m.Times, m.SilentCycle, m.NotifyType, m.NotifyTarget, m.Description, "").
+		Columns("namespace_id", "name", "type", "target", "second", "times", "silent_cycle", "notify_type", "notify_target", "description", "error_content", "success_script", "fail_script", "success_server_id", "fail_server_id").
+		Values(m.NamespaceID, m.Name, m.Type, m.Target, m.Second, m.Times, m.SilentCycle, m.NotifyType, m.NotifyTarget, m.Description, "", m.SuccessScript, m.FailScript, m.SuccessServerID, m.FailServerID).
 		RunWith(DB).
 		Exec()
 	if err != nil {
@@ -146,15 +158,19 @@ func (m Monitor) EditRow() error {
 	_, err := sq.
 		Update(monitorTable).
 		SetMap(sq.Eq{
-			"name":          m.Name,
-			"type":          m.Type,
-			"target":        m.Target,
-			"second":        m.Second,
-			"times":         m.Times,
-			"silent_cycle":  m.SilentCycle,
-			"notify_type":   m.NotifyType,
-			"notify_target": m.NotifyTarget,
-			"description":   m.Description,
+			"name":              m.Name,
+			"type":              m.Type,
+			"target":            m.Target,
+			"second":            m.Second,
+			"times":             m.Times,
+			"silent_cycle":      m.SilentCycle,
+			"notify_type":       m.NotifyType,
+			"notify_target":     m.NotifyTarget,
+			"description":       m.Description,
+			"success_script":    m.SuccessScript,
+			"fail_script":       m.FailScript,
+			"success_server_id": m.SuccessServerID,
+			"fail_server_id":    m.FailServerID,
 		}).
 		Where(sq.Eq{"id": m.ID}).
 		RunWith(DB).

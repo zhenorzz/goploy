@@ -3,11 +3,28 @@
     <el-row class="app-bar" type="flex" justify="space-between">
       <el-row>
         <el-input
-          v-model="projectName"
+          v-model="searchProject.projectName"
           style="width: 200px"
           placeholder="Filter the project name"
         />
+        <el-select
+          v-model="searchProject.tag"
+          :max-collapse-tags="1"
+          style="width: 300px"
+          multiple
+          collapse-tags
+          collapse-tags-tooltip
+          placeholder="Filter the project tag"
+        >
+          <el-option
+            v-for="item in tagList"
+            :key="item"
+            :label="item"
+            :value="item"
+          />
+        </el-select>
       </el-row>
+
       <el-row>
         <el-button
           :loading="tableLoading"
@@ -40,7 +57,9 @@
               target="_blank"
             >
               {{ scope.row.name }}
-              <el-icon><Link /></el-icon>
+              <el-icon>
+                <Link />
+              </el-icon>
             </el-link>
             <span v-else>{{ scope.row.name }}</span>
           </template>
@@ -174,6 +193,7 @@
                 placeholder="goploy"
               />
             </el-form-item>
+
             <el-form-item
               prop="url"
               :rules="[
@@ -409,6 +429,28 @@
                 />
               </el-select>
             </el-form-item>
+            <el-form-item :label="$t('tag')" prop="tag">
+              <el-select
+                v-model="formData.tag"
+                style="width: 100%"
+                :max-collapse-tags="5"
+                allow-create
+                :reserve-keyword="false"
+                collapse-tags-tooltip
+                multiple
+                clearable
+                filterable
+                default-first-option
+                placeholder="TAG"
+              >
+                <el-option
+                  v-for="item in tagList"
+                  :key="item"
+                  :label="item"
+                  :value="item"
+                />
+              </el-select>
+            </el-form-item>
           </el-tab-pane>
           <el-tab-pane name="review">
             <template #label>
@@ -534,7 +576,7 @@
                   @change="handleAfterPullScriptModeChange"
                 >
                   <el-option
-                    v-for="(item, index) in scriptLangOption"
+                    v-for="(item, index) in scriptLang.Option"
                     :key="index"
                     :label="item.label"
                     :value="item.value"
@@ -644,7 +686,7 @@
               <!-- <span>No support for demo</span> -->
               <v-ace-editor
                 v-model:value="formData.afterPullScript"
-                :lang="getScriptLang(formData.afterPullScriptMode)"
+                :lang="scriptLang.getScriptLang(formData.afterPullScriptMode)"
                 :theme="isDark ? 'one_dark' : 'github'"
                 style="height: 400px; width: 100%"
                 placeholder="Already switched to project directory..."
@@ -682,7 +724,7 @@
                   @change="handleAfterDeployScriptModeChange"
                 >
                   <el-option
-                    v-for="(item, index) in scriptLangOption"
+                    v-for="(item, index) in scriptLang.Option"
                     :key="index"
                     :label="item.label"
                     :value="item.value"
@@ -816,7 +858,7 @@
               <!-- <span>No support for demo</span> -->
               <v-ace-editor
                 v-model:value="formData.afterDeployScript"
-                :lang="getScriptLang(formData.afterDeployScriptMode)"
+                :lang="scriptLang.getScriptLang(formData.afterDeployScriptMode)"
                 :theme="isDark ? 'one_dark' : 'github'"
                 style="height: 400px; width: 100%"
                 :options="{
@@ -900,6 +942,7 @@ export default { name: 'ProjectIndex' }
 </script>
 <script lang="ts" setup>
 import pms from '@/permission'
+import { scriptLang } from '@/const/const'
 import Button from '@/components/Permission/Button.vue'
 import {
   Search,
@@ -930,12 +973,14 @@ import {
   ProjectRemove,
   ProjectAutoDeploy,
   ProjectData,
+  TagList,
 } from '@/api/project'
 import type { ElRadioGroup, ElForm, FormItemRule } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref, computed } from 'vue'
 import { useDark } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
+
 const { t } = useI18n()
 const isDark = useDark()
 
@@ -947,15 +992,11 @@ ace.config.set(
   'themePath',
   'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
 )
-const scriptLangOption = [
-  { label: 'sh', value: 'sh', lang: 'sh' },
-  { label: 'zsh', value: 'zsh', lang: 'sh' },
-  { label: 'bash', value: 'bash', lang: 'sh' },
-  { label: 'python', value: 'python', lang: 'python' },
-  { label: 'php', value: 'php', lang: 'php' },
-  { label: 'bat', value: 'cmd', lang: 'batchfile' },
-]
-const projectName = ref('')
+
+const searchProject = ref<{ projectName: string; tag: string[] }>({
+  projectName: '',
+  tag: [],
+})
 const dialogVisible = ref(false)
 const dialogAutoDeployVisible = ref(false)
 const serverOption = ref<ServerOption['datagram']['list']>([])
@@ -963,6 +1004,7 @@ const userOption = ref<NamespaceUserOption['datagram']['list']>([])
 const selectedItem = ref({} as ProjectData)
 const tableLoading = ref(false)
 const tableData = ref<ProjectList['datagram']['list']>([])
+const tagList = ref<TagList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 20 })
 const form = ref<InstanceType<typeof ElForm>>()
 const formProps = ref({
@@ -1009,6 +1051,7 @@ const formProps = ref({
   reviewURLParam: ['callback=__CALLBACK__'],
   symlink: false,
   disabled: false,
+  tag: [] as string[],
   branch: [] as string[],
   pinging: false,
   lsBranchLoading: false,
@@ -1017,6 +1060,7 @@ const formProps = ref({
 const tempFormData = {
   id: 0,
   name: '',
+  tag: [] as string[],
   repoType: 'git',
   url: '',
   path: '',
@@ -1059,12 +1103,18 @@ const autoDeployFormData = ref({ id: 0, autoDeploy: 0 })
 
 getOptions()
 getList()
+getTagList()
 
 const tablePage = computed(() => {
   let _tableData = tableData.value
-  if (projectName.value !== '') {
+  if (searchProject.value.projectName !== '') {
     _tableData = tableData.value.filter(
-      (item) => item.name.indexOf(projectName.value) !== -1
+      (item) => item.name.indexOf(searchProject.value.projectName) !== -1
+    )
+  }
+  if (searchProject.value.tag.length > 0) {
+    _tableData = _tableData.filter((item) =>
+      item.tag.split(',').find((p) => searchProject.value.tag.indexOf(p) !== -1)
     )
   }
   return {
@@ -1097,6 +1147,12 @@ function getList() {
     })
 }
 
+function getTagList() {
+  new TagList().request().then((response) => {
+    tagList.value = response.data.list
+  })
+}
+
 function handleAdd() {
   if (formData.value.id > 0) {
     restoreFormData()
@@ -1112,6 +1168,8 @@ function handleEdit(data: ProjectData) {
   formProps.value.reviewURL = ''
   formProps.value.reviewURLParam = []
   formProps.value.disabled = true
+  formData.value.tag = data.tag.split(',')
+
   Promise.all([
     new ProjectUserList({ id: data.id }).request(),
     new ProjectServerList({ id: data.id }).request(),
@@ -1152,22 +1210,12 @@ function handleRemove(data: ProjectData) {
       new ProjectRemove({ id: data.id }).request().then(() => {
         ElMessage.success('Success')
         getList()
+        getTagList()
       })
     })
     .catch(() => {
       ElMessage.info('Cancel')
     })
-}
-
-function getScriptLang(scriptMode = '') {
-  if (scriptMode !== '') {
-    const scriptInfo = scriptLangOption.find(
-      (elem) => elem.value === scriptMode
-    )
-    return scriptInfo ? scriptInfo['lang'] : ''
-  } else {
-    return 'sh'
-  }
 }
 
 function getSymlinkPath(projectPath: string) {
@@ -1248,15 +1296,25 @@ function submit() {
     } else {
       formData.value.reviewURL = ''
     }
+    if (
+      formData.value.tag.filter((p) => String(p).indexOf(',') !== -1).length > 0
+    ) {
+      ElMessage.error('Tag is not allowed to contain , ')
+      return false
+    }
     ;(formData.value.id === 0
-      ? new ProjectAdd(formData.value)
-      : new ProjectEdit(formData.value)
+      ? new ProjectAdd({ ...formData.value, tag: formData.value.tag.join(',') })
+      : new ProjectEdit({
+          ...formData.value,
+          tag: formData.value.tag.join(','),
+        })
     )
       .request()
       .then(() => {
         dialogVisible.value = false
         ElMessage.success('Success')
         getList()
+        getTagList()
       })
       .finally(() => {
         formProps.value.disabled = false
@@ -1333,7 +1391,11 @@ function getRemoteBranchList() {
 }
 
 function refresList() {
-  projectName.value = ''
+  searchProject.value = {
+    projectName: '',
+    tag: [],
+  }
+
   pagination.value.page = 1
   getList()
   getOptions()

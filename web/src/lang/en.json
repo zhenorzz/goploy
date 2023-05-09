@@ -1,6 +1,7 @@
 {
   "default": "Default",
   "name": "Name",
+  "tag": "Tag",
   "script": "Script",
   "owner": "Owner",
   "user": "User",
@@ -48,7 +49,7 @@
   "reject": "Reject",
   "manage": "Manage",
   "interval": "Interval",
-  "sort" : "Sort",
+  "sort": "Sort",
   "asc": "ASC",
   "desc": "DESC",
   "size": "Size",
@@ -115,11 +116,29 @@
   "state": "State",
   "current": "Current",
   "unlimited": "Unlimited",
-  "stateOption": ["Disable", "Enable"],
-  "switchOption": ["Close", "Open"],
-  "boolOption": ["No", "Yes"],
-  "runOption": ["Not run", "Run"],
-  "envOption": ["Unknown", "Production", "Pre-release", "Test", "Development"],
+  "stateOption": [
+    "Disable",
+    "Enable"
+  ],
+  "switchOption": [
+    "Close",
+    "Open"
+  ],
+  "boolOption": [
+    "No",
+    "Yes"
+  ],
+  "runOption": [
+    "Not run",
+    "Run"
+  ],
+  "envOption": [
+    "Unknown",
+    "Production",
+    "Pre-release",
+    "Test",
+    "Development"
+  ],
   "webhookOption": {
     "0": "Nothing",
     "1": "WeCom",
@@ -289,24 +308,36 @@
     "saveTemplate": "Save template"
   },
   "monitorPage": {
-    "typeOption": ["Unknown", "Site check", "Port check", "Ping check", "Process check", "Custom script check"],
+    "defaultServer": "Follow Host",
+    "scriptMode": "Script mode",
+    "typeOption": [
+      "Unknown",
+      "Site check",
+      "Port check",
+      "Ping check",
+      "Process check",
+      "Custom script check"
+    ],
+
+    "successScriptLabel": "Success Script",
+    "failScriptLabel": "Fail Script",
+    "failScriptTips": "Script files executed when listening to unhealthy results .\n If the script is not filled in, it will not be executed",
+    "successScriptTips": "Script file executed when listening to healthy results .\n If the script is not filled in, it will not be executed",
+    "baseInfoLabel": "Base Info",
     "testState": "Test state",
     "failTimes": "Failure times",
     "silentCycle": "Silent cycle",
     "notifyTimes": "Notice times",
     "errorContent": "Error content",
-    "toggleStateTips":
-      "This action will suspend the monitoring application({monitorName}), continue?",
-    "removeMontiorTips":
-      "This action will no longer monitor the app({monitorName}), continue?"
+    "toggleStateTips": "This action will suspend the monitoring application({monitorName}), continue?",
+    "removeMontiorTips": "This action will no longer monitor the app({monitorName}), continue?"
   },
   "JSONPage": {
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",
     "unmarkAll": "Unmark all",
     "copyAll": "Copy all",
-    "tips":
-      "1.Hold down ALT and click label to achieve highlighting<br>2.Hold down SHIFT and click label to view the JSON path"
+    "tips": "1.Hold down ALT and click label to achieve highlighting<br>2.Hold down SHIFT and click label to view the JSON path"
   },
   "projectPage": {
     "testConnection": "Test",
@@ -348,7 +379,11 @@
     "resetStateTips": "This action will reset project state, continue?",
     "reviewDeploy": "Review deploy",
     "reviewTips": "This action will approve commit, continue?",
-    "reviewStateOption": ["Wait", "Reviewed", "Rejected"],
+    "reviewStateOption": [
+      "Wait",
+      "Reviewed",
+      "Rejected"
+    ],
     "removeProjectTaskTips": "This action will delete the crontab task in {projectName}, continue?",
     "publishCommitTips": "This action will rebuild {commit}, continue?"
   }

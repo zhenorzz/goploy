@@ -11,6 +11,7 @@ export interface ProjectData {
   path: string
   environment: number
   branch: string
+  tag: string
   symlinkPath: string
   symlinkBackupNumber: number
   review: number
@@ -107,6 +108,14 @@ export class ProjectList extends Request {
     list: ProjectData[]
   }
 }
+export class TagList extends Request {
+  readonly url = '/project/tagList'
+  readonly method = 'get'
+
+  public declare datagram: {
+    list: string[]
+  }
+}
 
 export class ProjectPingRepos extends Request {
   readonly url = '/project/pingRepos'
@@ -151,6 +160,7 @@ export class ProjectAdd extends Request {
     name: string
     repoType: string
     url: string
+    tag: string
     path: string
     environment: number
     branch: string
@@ -183,6 +193,7 @@ export class ProjectEdit extends Request {
     name: string
     repoType: string
     url: string
+    tag: string
     path: string
     symlinkPath: string
     review: number

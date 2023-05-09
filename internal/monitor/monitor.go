@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/zhenorzz/goploy/model"
+	"golang.org/x/crypto/ssh"
 	"net"
 	"net/http"
 	"os/exec"
@@ -18,19 +19,51 @@ import (
 	"time"
 )
 
-type Monitor struct {
-	Type    int
-	Items   []string
-	Timeout time.Duration
-	Process string
-	Script  string
+type ScriptError struct {
+	Message  string
+	ServerId int64
 }
 
-func NewMonitorFromTarget(t int, target string) (Monitor, error) {
+func (ce ScriptError) Error() string {
+	return ce.Message
+}
+
+func (ce ScriptError) Server() int64 {
+	return ce.ServerId
+}
+
+type Script struct {
+	ServerId int64
+	Script   string
+}
+
+func (ce Script) IsValid() bool {
+	return ce.Script != ""
+}
+func NewScript(serverId int64, script string) Script {
+	return Script{
+		ServerId: serverId,
+		Script:   script,
+	}
+}
+
+type Monitor struct {
+	Type          int
+	Items         []string
+	Timeout       time.Duration
+	Process       string
+	Script        string
+	FailScript    Script
+	SuccessScript Script
+}
+
+func NewMonitorFromTarget(t int, target string, successScript Script, failScript Script) (Monitor, error) {
 	var m Monitor
 	if err := json.Unmarshal([]byte(target), &m); err != nil {
 		return m, err
 	}
+	m.FailScript = failScript
+	m.SuccessScript = successScript
 	m.Type = t
 	return m, nil
 }
@@ -109,17 +142,7 @@ func (m Monitor) CheckScript() error {
 		if err != nil {
 			return err
 		}
-		server, err := (model.Server{ID: serverID}).GetData()
-		if err != nil {
-			return err
-		} else if server.State == model.Disable {
-			continue
-		}
-		client, err := server.ToSSHConfig().SetTimeout(m.Timeout * time.Second).Dial()
-		if err != nil {
-			return err
-		}
-		session, err := client.NewSession()
+		session, err := NewSession(serverID, m.Timeout*time.Second)
 		if err != nil {
 			return err
 		}
@@ -127,8 +150,58 @@ func (m Monitor) CheckScript() error {
 		session.Stdout = &stdout
 		session.Stderr = &stderr
 		if err := session.Run(m.Script); err != nil {
-			return errors.New(err.Error() + ", stdout: " + stdout.String() + ", stderr: " + stderr.String())
+			return ScriptError{Message: err.Error() + ", stdout: " + stdout.String() + ", stderr: " + stderr.String(), ServerId: serverID}
 		}
 	}
 	return nil
+}
+func (m Monitor) RunFailScript(serverId int64) error {
+	if m.FailScript.IsValid() {
+		sId := m.FailScript.ServerId
+		if sId == -1 {
+			if serverId == 0 {
+				return errors.New("the executor is not clear")
+			} else {
+				sId = serverId
+			}
+		}
+		session, err := NewSession(sId, m.Timeout*time.Second)
+		if err != nil {
+			return err
+		}
+		return session.Run(m.FailScript.Script)
+	}
+	return nil
+}
+func (m Monitor) RunSuccessScript(serverId int64) error {
+	if m.SuccessScript.IsValid() {
+		sId := m.SuccessScript.ServerId
+		if sId == -1 {
+			if serverId == 0 {
+				return errors.New("the executor is not clear")
+			} else {
+				sId = serverId
+			}
+		}
+		session, err := NewSession(sId, m.Timeout*time.Second)
+		if err != nil {
+			return err
+		}
+		return session.Run(m.SuccessScript.Script)
+	}
+	return nil
+}
+
+func NewSession(serverId int64, timeout time.Duration) (session *ssh.Session, err error) {
+	server, err := (model.Server{ID: serverId}).GetData()
+	if err != nil {
+		return nil, err
+	} else if server.State == model.Disable {
+		return nil, errors.New("Server Disable [" + server.Name + "]")
+	}
+	client, err := server.ToSSHConfig().SetTimeout(timeout).Dial()
+	if err != nil {
+		return nil, err
+	}
+	return client.NewSession()
 }
