@@ -13,6 +13,10 @@ export interface MonitorData {
   notifyTarget: string
   description: string
   errorContent: string
+  successServerId: number
+  successScript: string
+  failServerId: number
+  failScript: string
   state: number
   insertTime: string
   updateTime: string
@@ -85,6 +89,10 @@ export class MonitorCheck extends Request {
   public param: {
     type: number
     target: string
+    successServerId: number
+    successScript: string
+    failServerId: number
+    failScript: string
   }
   constructor(param: MonitorCheck['param']) {
     super()

@@ -80,7 +80,9 @@ func monitorTask() {
 		now := time.Now().Unix()
 		if int(now-monitorCache.time) >= m.Second {
 			monitorCache.time = now
-			ms, err := monitor.NewMonitorFromTarget(m.Type, m.Target,
+			ms, err := monitor.NewMonitorFromTarget(
+				m.Type,
+				m.Target,
 				monitor.NewScript(m.SuccessServerID, m.SuccessScript),
 				monitor.NewScript(m.FailServerID, m.FailScript),
 			)
@@ -121,7 +123,7 @@ func monitorTask() {
 				for _, item := range ms.Items {
 					serverId, err := strconv.ParseInt(item, 10, 64)
 					if err != nil {
-						err = ms.RunSuccessScript(0)
+						err = ms.RunSuccessScript(-1)
 					} else {
 						err = ms.RunSuccessScript(serverId)
 					}

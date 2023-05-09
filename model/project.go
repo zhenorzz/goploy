@@ -150,7 +150,7 @@ func (p Project) GetTagList() (tags []string, err error) {
 
 	if p.UserID > 0 {
 		builder = builder.
-			Join(projectUserTable + " ON project_user.project_id = project.id").
+			Join(fmt.Sprintf("%[1]s on %[1]s.project_id = %s.project_id", projectUserTable, projectTable)).
 			Where(sq.Eq{"user_id": p.UserID})
 	}
 
@@ -161,9 +161,11 @@ func (p Project) GetTagList() (tags []string, err error) {
 		return nil, err
 	}
 	tagMap := map[string]bool{}
+	var tag string
 	for rows.Next() {
-		var tag string
-		rows.Scan(&tag)
+		if err := rows.Scan(&tag); err != nil {
+			return nil, err
+		}
 		if tag != "" {
 			for _, item := range strings.Split(tag, ",") {
 				tagMap[item] = false

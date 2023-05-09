@@ -24,26 +24,26 @@ type ScriptError struct {
 	ServerId int64
 }
 
-func (ce ScriptError) Error() string {
-	return ce.Message
+func (se ScriptError) Error() string {
+	return se.Message
 }
 
-func (ce ScriptError) Server() int64 {
-	return ce.ServerId
+func (se ScriptError) Server() int64 {
+	return se.ServerId
 }
 
 type Script struct {
 	ServerId int64
-	Script   string
+	Content  string
 }
 
-func (ce Script) IsValid() bool {
-	return ce.Script != ""
+func (s Script) IsValid() bool {
+	return s.Content != ""
 }
 func NewScript(serverId int64, script string) Script {
 	return Script{
 		ServerId: serverId,
-		Script:   script,
+		Content:  script,
 	}
 }
 
@@ -142,14 +142,14 @@ func (m Monitor) CheckScript() error {
 		if err != nil {
 			return err
 		}
-		session, err := NewSession(serverID, m.Timeout*time.Second)
+		server, session, err := NewServerSession(serverID, m.Timeout*time.Second)
 		if err != nil {
 			return err
 		}
 		var stdout, stderr bytes.Buffer
 		session.Stdout = &stdout
 		session.Stderr = &stderr
-		if err := session.Run(m.Script); err != nil {
+		if err := session.Run(server.ReplaceVars(m.Script)); err != nil {
 			return ScriptError{Message: err.Error() + ", stdout: " + stdout.String() + ", stderr: " + stderr.String(), ServerId: serverID}
 		}
 	}
@@ -158,50 +158,49 @@ func (m Monitor) CheckScript() error {
 func (m Monitor) RunFailScript(serverId int64) error {
 	if m.FailScript.IsValid() {
 		sId := m.FailScript.ServerId
-		if sId == -1 {
-			if serverId == 0 {
-				return errors.New("the executor is not clear")
-			} else {
-				sId = serverId
+		if sId == 0 {
+			if serverId == -1 {
+				return errors.New("the server is not set")
 			}
+			sId = serverId
 		}
-		session, err := NewSession(sId, m.Timeout*time.Second)
+		server, session, err := NewServerSession(sId, m.Timeout*time.Second)
 		if err != nil {
 			return err
 		}
-		return session.Run(m.FailScript.Script)
+		return session.Run(server.ReplaceVars(m.FailScript.Content))
 	}
 	return nil
 }
 func (m Monitor) RunSuccessScript(serverId int64) error {
 	if m.SuccessScript.IsValid() {
 		sId := m.SuccessScript.ServerId
-		if sId == -1 {
-			if serverId == 0 {
-				return errors.New("the executor is not clear")
-			} else {
-				sId = serverId
+		if sId == 0 {
+			if serverId == -1 {
+				return errors.New("the server is not set")
 			}
+			sId = serverId
 		}
-		session, err := NewSession(sId, m.Timeout*time.Second)
+		server, session, err := NewServerSession(sId, m.Timeout*time.Second)
 		if err != nil {
 			return err
 		}
-		return session.Run(m.SuccessScript.Script)
+		return session.Run(server.ReplaceVars(m.SuccessScript.Content))
 	}
 	return nil
 }
 
-func NewSession(serverId int64, timeout time.Duration) (session *ssh.Session, err error) {
+func NewServerSession(serverId int64, timeout time.Duration) (model.Server, *ssh.Session, error) {
 	server, err := (model.Server{ID: serverId}).GetData()
 	if err != nil {
-		return nil, err
+		return server, nil, err
 	} else if server.State == model.Disable {
-		return nil, errors.New("Server Disable [" + server.Name + "]")
+		return server, nil, errors.New("Server Disable [" + server.Name + "]")
 	}
 	client, err := server.ToSSHConfig().SetTimeout(timeout).Dial()
 	if err != nil {
-		return nil, err
+		return server, nil, err
 	}
-	return client.NewSession()
+	session, err := client.NewSession()
+	return server, session, err
 }

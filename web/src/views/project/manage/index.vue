@@ -12,6 +12,7 @@
           :max-collapse-tags="1"
           style="width: 300px"
           multiple
+          clearable
           collapse-tags
           collapse-tags-tooltip
           placeholder="Filter the project tag"
@@ -431,7 +432,7 @@
             </el-form-item>
             <el-form-item :label="$t('tag')" prop="tag">
               <el-select
-                v-model="formData.tag"
+                v-model="formProps.tag"
                 style="width: 100%"
                 :max-collapse-tags="5"
                 allow-create
@@ -441,7 +442,6 @@
                 clearable
                 filterable
                 default-first-option
-                placeholder="TAG"
               >
                 <el-option
                   v-for="item in tagList"
@@ -1060,7 +1060,7 @@ const formProps = ref({
 const tempFormData = {
   id: 0,
   name: '',
-  tag: [] as string[],
+  tag: '',
   repoType: 'git',
   url: '',
   path: '',
@@ -1168,8 +1168,7 @@ function handleEdit(data: ProjectData) {
   formProps.value.reviewURL = ''
   formProps.value.reviewURLParam = []
   formProps.value.disabled = true
-  formData.value.tag = data.tag.split(',')
-
+  formProps.value.tag = data.tag != '' ? data.tag.split(',') : []
   Promise.all([
     new ProjectUserList({ id: data.id }).request(),
     new ProjectServerList({ id: data.id }).request(),
@@ -1296,17 +1295,18 @@ function submit() {
     } else {
       formData.value.reviewURL = ''
     }
-    if (
-      formData.value.tag.filter((p) => String(p).indexOf(',') !== -1).length > 0
-    ) {
+    if (formProps.value.tag.filter((p) => String(p).includes(',')).length > 0) {
       ElMessage.error('Tag is not allowed to contain , ')
       return false
     }
     ;(formData.value.id === 0
-      ? new ProjectAdd({ ...formData.value, tag: formData.value.tag.join(',') })
+      ? new ProjectAdd({
+          ...formData.value,
+          tag: formProps.value.tag.join(','),
+        })
       : new ProjectEdit({
           ...formData.value,
-          tag: formData.value.tag.join(','),
+          tag: formProps.value.tag.join(','),
         })
     )
       .request()

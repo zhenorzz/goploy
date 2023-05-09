@@ -76,7 +76,7 @@
                     icon-class="pin"
                   />
                   <el-tooltip
-                    class="box-item"
+                    :disabled="row.tag == ''"
                     effect="dark"
                     :content="row.tag"
                     placement="bottom"
