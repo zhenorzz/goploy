@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/go-ldap/ldap/v3"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
+	model2 "github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"net/http"
@@ -18,7 +19,6 @@ import (
 	"time"
 
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/model"
 )
 
 type User API
@@ -47,7 +47,7 @@ func (User) Login(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	userData, err := model.User{Account: reqData.Account}.GetDataByAccount()
+	userData, err := model2.User{Account: reqData.Account}.GetDataByAccount()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -96,10 +96,10 @@ func (User) Login(gp *server.Goploy) server.Response {
 		}
 	}
 
-	if userData.State == model.Disable {
+	if userData.State == model2.Disable {
 		return response.JSON{Code: response.AccountDisabled, Message: "Account is disabled"}
 	}
-	namespaceList, err := model.Namespace{UserID: userData.ID}.GetAllByUserID()
+	namespaceList, err := model2.Namespace{UserID: userData.ID}.GetAllByUserID()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	} else if len(namespaceList) == 0 {
@@ -111,7 +111,7 @@ func (User) Login(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	_ = model.User{ID: userData.ID, LastLoginTime: time.Now().Format("20060102150405")}.UpdateLastLoginTime()
+	_ = model2.User{ID: userData.ID, LastLoginTime: time.Now().Format("20060102150405")}.UpdateLastLoginTime()
 
 	cookie := http.Cookie{
 		Name:     config.Toml.Cookie.Name,
@@ -123,8 +123,8 @@ func (User) Login(gp *server.Goploy) server.Response {
 	http.SetCookie(gp.ResponseWriter, &cookie)
 	return response.JSON{
 		Data: struct {
-			Token         string           `json:"token"`
-			NamespaceList model.Namespaces `json:"namespaceList"`
+			Token         string            `json:"token"`
+			NamespaceList model2.Namespaces `json:"namespaceList"`
 		}{Token: token, NamespaceList: namespaceList},
 	}
 }
@@ -152,16 +152,16 @@ func (User) ExtLogin(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: "sign error"}
 	}
 
-	userData, err := model.User{Account: reqData.Account}.GetDataByAccount()
+	userData, err := model2.User{Account: reqData.Account}.GetDataByAccount()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if userData.State == model.Disable {
+	if userData.State == model2.Disable {
 		return response.JSON{Code: response.AccountDisabled, Message: "Account is disabled"}
 	}
 
-	namespaceList, err := model.Namespace{UserID: userData.ID}.GetAllByUserID()
+	namespaceList, err := model2.Namespace{UserID: userData.ID}.GetAllByUserID()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	} else if len(namespaceList) == 0 {
@@ -173,7 +173,7 @@ func (User) ExtLogin(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	_ = model.User{ID: userData.ID, LastLoginTime: time.Now().Format("20060102150405")}.UpdateLastLoginTime()
+	_ = model2.User{ID: userData.ID, LastLoginTime: time.Now().Format("20060102150405")}.UpdateLastLoginTime()
 
 	cookie := http.Cookie{
 		Name:     config.Toml.Cookie.Name,
@@ -186,8 +186,8 @@ func (User) ExtLogin(gp *server.Goploy) server.Response {
 
 	return response.JSON{
 		Data: struct {
-			Token         string           `json:"token"`
-			NamespaceList model.Namespaces `json:"namespaceList"`
+			Token         string            `json:"token"`
+			NamespaceList model2.Namespaces `json:"namespaceList"`
 		}{Token: token, NamespaceList: namespaceList},
 	}
 }
@@ -223,24 +223,24 @@ func (User) Info(gp *server.Goploy) server.Response {
 }
 
 func (User) GetList(*server.Goploy) server.Response {
-	users, err := model.User{}.GetList()
+	users, err := model2.User{}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			Users model.Users `json:"list"`
+			Users model2.Users `json:"list"`
 		}{Users: users},
 	}
 }
 
 func (User) GetOption(*server.Goploy) server.Response {
-	users, err := model.User{}.GetAll()
+	users, err := model2.User{}.GetAll()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{Data: struct {
-		Users model.Users `json:"list"`
+		Users model2.Users `json:"list"`
 	}{Users: users}}
 }
 
@@ -258,13 +258,13 @@ func (User) Add(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	userInfo, err := model.User{Account: reqData.Account}.GetDataByAccount()
+	userInfo, err := model2.User{Account: reqData.Account}.GetDataByAccount()
 	if err != nil && err != sql.ErrNoRows {
 		return response.JSON{Code: response.Error, Message: err.Error()}
-	} else if userInfo != (model.User{}) {
+	} else if userInfo != (model2.User{}) {
 		return response.JSON{Code: response.Error, Message: "Account is already exist"}
 	}
-	id, err := model.User{
+	id, err := model2.User{
 		Account:      reqData.Account,
 		Password:     reqData.Password,
 		Name:         reqData.Name,
@@ -276,11 +276,11 @@ func (User) Add(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if reqData.SuperManager == model.SuperManager {
-		if err := (model.NamespaceUser{UserID: id}).AddAdminByUserID(); err != nil {
+	if reqData.SuperManager == model2.SuperManager {
+		if err := (model2.NamespaceUser{UserID: id}).AddAdminByUserID(); err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
-		if err := (model.ProjectUser{UserID: id}).AddAdminByUserID(); err != nil {
+		if err := (model2.ProjectUser{UserID: id}).AddAdminByUserID(); err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 	}
@@ -304,13 +304,13 @@ func (User) Edit(gp *server.Goploy) server.Response {
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	userInfo, err := model.User{ID: reqData.ID}.GetData()
+	userInfo, err := model2.User{ID: reqData.ID}.GetData()
 
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	err = model.User{
+	err = model2.User{
 		ID:           reqData.ID,
 		Password:     reqData.Password,
 		Name:         reqData.Name,
@@ -322,18 +322,18 @@ func (User) Edit(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if userInfo.SuperManager == model.SuperManager && reqData.SuperManager == model.GeneralUser {
-		if err := (model.NamespaceUser{UserID: reqData.ID}).DeleteByUserID(); err != nil {
+	if userInfo.SuperManager == model2.SuperManager && reqData.SuperManager == model2.GeneralUser {
+		if err := (model2.NamespaceUser{UserID: reqData.ID}).DeleteByUserID(); err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
-		if err := (model.ProjectUser{UserID: reqData.ID}).DeleteByUserID(); err != nil {
+		if err := (model2.ProjectUser{UserID: reqData.ID}).DeleteByUserID(); err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
-	} else if userInfo.SuperManager == model.GeneralUser && reqData.SuperManager == model.SuperManager {
-		if err := (model.NamespaceUser{UserID: reqData.ID}).AddAdminByUserID(); err != nil {
+	} else if userInfo.SuperManager == model2.GeneralUser && reqData.SuperManager == model2.SuperManager {
+		if err := (model2.NamespaceUser{UserID: reqData.ID}).AddAdminByUserID(); err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
-		if err := (model.ProjectUser{UserID: reqData.ID}).AddAdminByUserID(); err != nil {
+		if err := (model2.ProjectUser{UserID: reqData.ID}).AddAdminByUserID(); err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 	}
@@ -352,7 +352,7 @@ func (User) Remove(gp *server.Goploy) server.Response {
 	if reqData.ID == 1 {
 		return response.JSON{Code: response.Error, Message: "Can not delete the super manager"}
 	}
-	if err := (model.User{ID: reqData.ID}).RemoveRow(); err != nil {
+	if err := (model2.User{ID: reqData.ID}).RemoveRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{}
@@ -367,7 +367,7 @@ func (User) ChangePassword(gp *server.Goploy) server.Response {
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	userData, err := model.User{ID: gp.UserInfo.ID}.GetData()
+	userData, err := model2.User{ID: gp.UserInfo.ID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -376,7 +376,7 @@ func (User) ChangePassword(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := (model.User{ID: gp.UserInfo.ID, Password: reqData.NewPassword}).UpdatePassword(); err != nil {
+	if err := (model2.User{ID: gp.UserInfo.ID, Password: reqData.NewPassword}).UpdatePassword(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{}

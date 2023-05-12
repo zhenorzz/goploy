@@ -7,9 +7,9 @@ package api
 import (
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
+	model2 "github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
-	"github.com/zhenorzz/goploy/model"
 	"net/http"
 	"strconv"
 )
@@ -30,38 +30,38 @@ func (n Namespace) Handler() []server.Route {
 }
 
 func (Namespace) GetList(gp *server.Goploy) server.Response {
-	namespaceList, err := model.Namespace{UserID: gp.UserInfo.ID}.GetList()
+	namespaceList, err := model2.Namespace{UserID: gp.UserInfo.ID}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	return response.JSON{
 		Data: struct {
-			Namespaces model.Namespaces `json:"list"`
+			Namespaces model2.Namespaces `json:"list"`
 		}{Namespaces: namespaceList},
 	}
 }
 
 func (Namespace) GetOption(gp *server.Goploy) server.Response {
-	namespaceUsers, err := model.NamespaceUser{UserID: gp.UserInfo.ID}.GetUserNamespaceList()
+	namespaceUsers, err := model2.NamespaceUser{UserID: gp.UserInfo.ID}.GetUserNamespaceList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			NamespaceUsers model.NamespaceUsers `json:"list"`
+			NamespaceUsers model2.NamespaceUsers `json:"list"`
 		}{NamespaceUsers: namespaceUsers},
 	}
 }
 
 func (Namespace) GetUserOption(gp *server.Goploy) server.Response {
-	namespaceUsers, err := model.NamespaceUser{NamespaceID: gp.Namespace.ID}.GetAllUserByNamespaceID()
+	namespaceUsers, err := model2.NamespaceUser{NamespaceID: gp.Namespace.ID}.GetAllUserByNamespaceID()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			NamespaceUsers model.NamespaceUsers `json:"list"`
+			NamespaceUsers model2.NamespaceUsers `json:"list"`
 		}{NamespaceUsers: namespaceUsers},
 	}
 }
@@ -71,13 +71,13 @@ func (Namespace) GetBindUserList(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	namespaceUsers, err := model.NamespaceUser{NamespaceID: id}.GetBindUserListByNamespaceID()
+	namespaceUsers, err := model2.NamespaceUser{NamespaceID: id}.GetBindUserListByNamespaceID()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			NamespaceUsers model.NamespaceUsers `json:"list"`
+			NamespaceUsers model2.NamespaceUsers `json:"list"`
 		}{NamespaceUsers: namespaceUsers},
 	}
 }
@@ -90,13 +90,13 @@ func (Namespace) Add(gp *server.Goploy) server.Response {
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	id, err := model.Namespace{Name: reqData.Name}.AddRow()
+	id, err := model2.Namespace{Name: reqData.Name}.AddRow()
 
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := (model.NamespaceUser{NamespaceID: id}).AddAdminByNamespaceID(); err != nil {
+	if err := (model2.NamespaceUser{NamespaceID: id}).AddAdminByNamespaceID(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -116,7 +116,7 @@ func (Namespace) Edit(gp *server.Goploy) server.Response {
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	err := model.Namespace{
+	err := model2.Namespace{
 		ID:   reqData.ID,
 		Name: reqData.Name,
 	}.EditRow()
@@ -138,9 +138,9 @@ func (Namespace) AddUser(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	namespaceUsersModel := model.NamespaceUsers{}
+	namespaceUsersModel := model2.NamespaceUsers{}
 	for _, userID := range reqData.UserIDs {
-		namespaceUserModel := model.NamespaceUser{
+		namespaceUserModel := model2.NamespaceUser{
 			NamespaceID: reqData.NamespaceID,
 			UserID:      userID,
 			RoleID:      reqData.RoleID,
@@ -164,7 +164,7 @@ func (Namespace) RemoveUser(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := (model.NamespaceUser{ID: reqData.NamespaceUserID}).DeleteRow(); err != nil {
+	if err := (model2.NamespaceUser{ID: reqData.NamespaceUserID}).DeleteRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{}

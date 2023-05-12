@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/database"
 	"testing"
 )
 
@@ -24,7 +25,7 @@ func TestInitDB(t *testing.T) {
 	if err := UseDB(db, config.Toml.DB.Database); err != nil {
 		t.Fatal(err)
 	}
-	if err := ImportSQL(db, "sql/goploy.sql"); err != nil {
+	if err := ImportSQL(db, database.GoploySQL); err != nil {
 		t.Fatal(err)
 	}
 }

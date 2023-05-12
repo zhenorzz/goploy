@@ -7,9 +7,9 @@ package middleware
 import (
 	"encoding/json"
 	"github.com/zhenorzz/goploy/internal/log"
+	model2 "github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
-	"github.com/zhenorzz/goploy/model"
 	"strconv"
 	"time"
 )
@@ -26,7 +26,7 @@ func AddLoginLog(gp *server.Goploy, resp server.Response) {
 		account = reqData.Account
 	}
 
-	err := model.LoginLog{
+	err := model2.LoginLog{
 		Account:    account,
 		RemoteAddr: gp.Request.RemoteAddr,
 		UserAgent:  gp.Request.UserAgent(),
@@ -56,7 +56,7 @@ func AddOPLog(gp *server.Goploy, resp server.Response) {
 			responseData = string(jsonBytes)
 		}
 	}
-	err := model.OperationLog{
+	err := model2.OperationLog{
 		NamespaceID:  gp.Namespace.ID,
 		UserID:       gp.UserInfo.ID,
 		Router:       gp.Request.Header.Get("Router"),
@@ -82,13 +82,13 @@ func AddUploadLog(gp *server.Goploy, resp server.Response) {
 		_ = file.Close()
 	}
 
-	err := model.SftpLog{
+	err := model2.SftpLog{
 		NamespaceID: gp.Namespace.ID,
 		UserID:      gp.UserInfo.ID,
 		ServerID:    serverID,
 		RemoteAddr:  gp.Request.RemoteAddr,
 		UserAgent:   gp.Request.UserAgent(),
-		Type:        model.SftpLogTypeUpload,
+		Type:        model2.SftpLogTypeUpload,
 		Path:        path,
 		Reason:      respJson.Message,
 	}.AddRow()
@@ -112,13 +112,13 @@ func AddDeleteLog(gp *server.Goploy, resp server.Response) {
 		path = reqData.File
 	}
 
-	err := model.SftpLog{
+	err := model2.SftpLog{
 		NamespaceID: gp.Namespace.ID,
 		UserID:      gp.UserInfo.ID,
 		ServerID:    serverID,
 		RemoteAddr:  gp.Request.RemoteAddr,
 		UserAgent:   gp.Request.UserAgent(),
-		Type:        model.SftpLogTypeDelete,
+		Type:        model2.SftpLogTypeDelete,
 		Path:        path,
 		Reason:      respJson.Message,
 	}.AddRow()
@@ -142,13 +142,13 @@ func AddDownloadLog(gp *server.Goploy, resp server.Response) {
 		path = resp.(response.SftpFile).Filename
 	}
 
-	err := model.SftpLog{
+	err := model2.SftpLog{
 		NamespaceID: gp.Namespace.ID,
 		UserID:      gp.UserInfo.ID,
 		ServerID:    serverID,
 		RemoteAddr:  gp.Request.RemoteAddr,
 		UserAgent:   gp.Request.UserAgent(),
-		Type:        model.SftpLogTypeDownload,
+		Type:        model2.SftpLogTypeDownload,
 		Path:        path,
 		Reason:      msg,
 	}.AddRow()
@@ -172,13 +172,13 @@ func AddPreviewLog(gp *server.Goploy, resp server.Response) {
 		path = resp.(response.SftpFile).Filename
 	}
 
-	err := model.SftpLog{
+	err := model2.SftpLog{
 		NamespaceID: gp.Namespace.ID,
 		UserID:      gp.UserInfo.ID,
 		ServerID:    serverID,
 		RemoteAddr:  gp.Request.RemoteAddr,
 		UserAgent:   gp.Request.UserAgent(),
-		Type:        model.SftpLogTypePreview,
+		Type:        model2.SftpLogTypePreview,
 		Path:        path,
 		Reason:      msg,
 	}.AddRow()

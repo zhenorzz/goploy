@@ -6,7 +6,7 @@ package repo
 
 import (
 	"fmt"
-	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"strconv"
 	"strings"
 )

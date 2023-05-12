@@ -10,7 +10,7 @@ import (
 	"github.com/jlaffaye/ftp"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/log"
-	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"io"
 	"net/url"
 	"os"

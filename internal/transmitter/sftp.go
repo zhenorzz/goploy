@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/config"
+	model2 "github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
-	"github.com/zhenorzz/goploy/model"
 	"io"
 	"os"
 	"path"
@@ -18,8 +18,8 @@ import (
 )
 
 type sftpTransmitter struct {
-	Project       model.Project
-	ProjectServer model.ProjectServer
+	Project       model2.Project
+	ProjectServer model2.ProjectServer
 }
 
 func (st sftpTransmitter) String() string {

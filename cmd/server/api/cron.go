@@ -7,9 +7,9 @@ package api
 import (
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
+	model2 "github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
-	"github.com/zhenorzz/goploy/model"
 	"net/http"
 )
 
@@ -36,14 +36,14 @@ func (Cron) GetList(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	crons, err := model.Cron{ServerID: reqData.ServerID}.GetList()
+	crons, err := model2.Cron{ServerID: reqData.ServerID}.GetList()
 
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			List model.Crons `json:"list"`
+			List model2.Crons `json:"list"`
 		}{List: crons},
 	}
 }
@@ -61,14 +61,14 @@ func (Cron) GetLogs(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	crons, err := model.CronLog{ServerID: reqData.ServerID, CronID: reqData.CronID}.GetList(reqData.Page, reqData.Rows)
+	crons, err := model2.CronLog{ServerID: reqData.ServerID, CronID: reqData.CronID}.GetList(reqData.Page, reqData.Rows)
 
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			List model.CronLogs `json:"list"`
+			List model2.CronLogs `json:"list"`
 		}{List: crons},
 	}
 }
@@ -88,7 +88,7 @@ func (Cron) Add(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	id, err := model.Cron{
+	id, err := model2.Cron{
 		ServerID:    reqData.ServerID,
 		Expression:  reqData.Expression,
 		Command:     reqData.Command,
@@ -122,7 +122,7 @@ func (Cron) Edit(gp *server.Goploy) server.Response {
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	err := model.Cron{
+	err := model2.Cron{
 		ID:          reqData.ID,
 		Expression:  reqData.Expression,
 		Command:     reqData.Command,
@@ -147,7 +147,7 @@ func (Cron) Remove(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := (model.Cron{ID: reqData.ID}).RemoveRow(); err != nil {
+	if err := (model2.Cron{ID: reqData.ID}).RemoveRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

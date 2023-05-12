@@ -7,8 +7,8 @@ package transmitter
 import (
 	"fmt"
 	"github.com/zhenorzz/goploy/config"
+	model2 "github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
-	"github.com/zhenorzz/goploy/model"
 	"os/exec"
 	"path"
 	"regexp"
@@ -16,8 +16,8 @@ import (
 )
 
 type rsyncTransmitter struct {
-	Project       model.Project
-	ProjectServer model.ProjectServer
+	Project       model2.Project
+	ProjectServer model2.ProjectServer
 }
 
 func (rt rsyncTransmitter) args() []string {
@@ -42,10 +42,10 @@ func (rt rsyncTransmitter) args() []string {
 	}, rsyncOption...)
 	rsyncOption = append(rsyncOption, "-e", projectServer.ToSSHOption())
 
-	if projectServer.ServerOS == model.ServerOSLinux {
+	if projectServer.ServerOS == model2.ServerOSLinux {
 		rsyncOption = append(rsyncOption, "--rsync-path=mkdir -p "+destDir+" && rsync")
 	}
-	
+
 	destPath := remoteMachine + ":" + destDir
 	rsyncOption = append(rsyncOption, srcPath, destPath)
 	return rsyncOption

@@ -5,10 +5,10 @@
 package api
 
 import (
+	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/repo"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
-	"github.com/zhenorzz/goploy/model"
 	"net/http"
 	"strconv"
 )

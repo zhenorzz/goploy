@@ -7,7 +7,7 @@ package server
 import (
 	"github.com/vearutop/statigz"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/web"
 	"io/fs"
 	"log"

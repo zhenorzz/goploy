@@ -6,11 +6,11 @@ package model
 
 import (
 	"database/sql"
-	"embed"
 	"errors"
 	"fmt"
 	"github.com/hashicorp/go-version"
 	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/database"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"log"
 	"net/url"
@@ -19,9 +19,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-//go:embed sql
-var sqlFile embed.FS
 
 // Pagination struct
 type Pagination struct {
@@ -102,7 +99,7 @@ func UseDB(db *sql.DB, name string) error {
 }
 
 func ImportSQL(db *sql.DB, sqlPath string) error {
-	sqlContent, err := sqlFile.ReadFile(sqlPath)
+	sqlContent, err := database.File.ReadFile(sqlPath)
 	if err != nil {
 		return err
 	}
@@ -147,7 +144,7 @@ func Update(targetVerStr string) error {
 		return errors.New("currentVer greater than targetVer")
 	}
 
-	sqlEntries, err := sqlFile.ReadDir("sql")
+	sqlEntries, err := database.File.ReadDir(".")
 	if err != nil {
 		return err
 	}
@@ -165,7 +162,7 @@ func Update(targetVerStr string) error {
 
 	for _, ver := range vers {
 		if currentVer.LessThan(ver) && targetVer.GreaterThanOrEqual(ver) {
-			if err := ImportSQL(DB, "sql/"+ver.String()+".sql"); err != nil {
+			if err := ImportSQL(DB, ver.String()+database.FileExt); err != nil {
 				return err
 			}
 		}

@@ -9,10 +9,10 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/log"
+	model2 "github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
-	"github.com/zhenorzz/goploy/model"
 	"golang.org/x/crypto/ssh"
 	"net/http"
 	"strconv"
@@ -69,7 +69,7 @@ func (hub *Hub) xterm(gp *server.Goploy) server.Response {
 		return response.Empty{}
 	}
 
-	srv, err := (model.Server{ID: serverID}).GetData()
+	srv, err := (model2.Server{ID: serverID}).GetData()
 	if err != nil {
 		_ = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
 		return response.Empty{}
@@ -108,7 +108,7 @@ func (hub *Hub) xterm(gp *server.Goploy) server.Response {
 	}
 
 	// terminal log
-	tlID, err := model.TerminalLog{
+	tlID, err := model2.TerminalLog{
 		NamespaceID: gp.Namespace.ID,
 		UserID:      gp.UserInfo.ID,
 		ServerID:    serverID,
@@ -181,7 +181,7 @@ func (hub *Hub) xterm(gp *server.Goploy) server.Response {
 		}
 	}
 
-	if err := (model.TerminalLog{
+	if err := (model2.TerminalLog{
 		ID:      tlID,
 		EndTime: time.Now().Format("20060102150405"),
 	}.EditRow()); err != nil {

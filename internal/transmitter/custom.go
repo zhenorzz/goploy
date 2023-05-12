@@ -7,8 +7,8 @@ package transmitter
 import (
 	"fmt"
 	"github.com/zhenorzz/goploy/config"
+	model2 "github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
-	"github.com/zhenorzz/goploy/model"
 	"os/exec"
 	"path"
 	"strconv"
@@ -16,8 +16,8 @@ import (
 )
 
 type customTransmitter struct {
-	Project       model.Project
-	ProjectServer model.ProjectServer
+	Project       model2.Project
+	ProjectServer model2.ProjectServer
 }
 
 func (ct customTransmitter) String() string {

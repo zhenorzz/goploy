@@ -17,9 +17,10 @@ import (
 	"github.com/zhenorzz/goploy/cmd/server/task"
 	"github.com/zhenorzz/goploy/cmd/server/ws"
 	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/database"
+	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/internal/server"
-	"github.com/zhenorzz/goploy/model"
 	"io"
 	"log"
 	"net/http"
@@ -153,12 +154,14 @@ func install() {
 	println("Installation guide ↓")
 	inputReader := bufio.NewReader(os.Stdin)
 	println("Installation guidelines (Enter to confirm input)")
+
 	println("Please enter the mysql user:")
 	mysqlUser, err := inputReader.ReadString('\n')
 	if err != nil {
 		panic("There were errors reading, exiting program.")
 	}
 	cfg.DB.User = pkg.ClearNewline(mysqlUser)
+
 	println("Please enter the mysql password:")
 	mysqlPassword, err := inputReader.ReadString('\n')
 	if err != nil {
@@ -168,6 +171,7 @@ func install() {
 	if len(mysqlPassword) != 0 {
 		cfg.DB.Password = mysqlPassword
 	}
+
 	println("Please enter the mysql host(default 127.0.0.1, without port):")
 	mysqlHost, err := inputReader.ReadString('\n')
 	if err != nil {
@@ -177,6 +181,7 @@ func install() {
 	if len(mysqlHost) != 0 {
 		cfg.DB.Host = mysqlHost
 	}
+
 	println("Please enter the mysql port(default 3306):")
 	mysqlPort, err := inputReader.ReadString('\n')
 	if err != nil {
@@ -186,6 +191,17 @@ func install() {
 	if len(mysqlPort) != 0 {
 		cfg.DB.Port = mysqlPort
 	}
+
+	println("Please enter the database name(default goploy):")
+	mysqlDB, err := inputReader.ReadString('\n')
+	if err != nil {
+		panic("There were errors reading, exiting program.")
+	}
+	mysqlDB = pkg.ClearNewline(mysqlDB)
+	if len(mysqlDB) != 0 {
+		cfg.DB.Database = mysqlDB
+	}
+
 	println("Please enter the absolute path of the log directory(default stdout):")
 	logPath, err := inputReader.ReadString('\n')
 	if err != nil {
@@ -195,6 +211,7 @@ func install() {
 	if len(logPath) != 0 {
 		cfg.Log.Path = logPath
 	}
+
 	println("Please enter the listening port(default 80):")
 	port, err := inputReader.ReadString('\n')
 	if err != nil {
@@ -204,6 +221,7 @@ func install() {
 	if len(port) != 0 {
 		cfg.Web.Port = port
 	}
+
 	println("Start to install the database...")
 
 	db, err := sql.Open(cfg.DB.Type, fmt.Sprintf(
@@ -222,7 +240,7 @@ func install() {
 	if err := model.UseDB(db, cfg.DB.Database); err != nil {
 		panic(err)
 	}
-	if err := model.ImportSQL(db, "sql/goploy.sql"); err != nil {
+	if err := model.ImportSQL(db, database.GoploySQL); err != nil {
 		panic(err)
 	}
 	println("Database installation is complete")

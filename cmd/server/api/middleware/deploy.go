@@ -8,8 +8,8 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
-	"github.com/zhenorzz/goploy/model"
 )
 
 func HasProjectPermission(gp *server.Goploy) error {

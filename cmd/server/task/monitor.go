@@ -8,8 +8,8 @@ import (
 	"database/sql"
 	"github.com/zhenorzz/goploy/cmd/server/ws"
 	"github.com/zhenorzz/goploy/internal/log"
+	model2 "github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/monitor"
-	"github.com/zhenorzz/goploy/model"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -52,7 +52,7 @@ type MonitorCache struct {
 var monitorCaches = map[int64]MonitorCache{}
 
 func monitorTask() {
-	monitors, err := model.Monitor{State: model.Enable}.GetAllByState()
+	monitors, err := model2.Monitor{State: model2.Enable}.GetAllByState()
 	if err != nil && err != sql.ErrNoRows {
 		log.Error("get m list error, detail:" + err.Error())
 	}
@@ -91,7 +91,7 @@ func monitorTask() {
 				log.Error("m " + m.Name + " encounter error, " + err.Error())
 				ws.GetHub().Data <- &ws.Data{
 					Type:    ws.TypeMonitor,
-					Message: monitorMessage{MonitorID: m.ID, State: model.Disable, ErrorContent: err.Error()},
+					Message: monitorMessage{MonitorID: m.ID, State: model2.Disable, ErrorContent: err.Error()},
 				}
 			} else if err := ms.Check(); err != nil {
 				monitorErrorContent := err.Error()
@@ -107,7 +107,7 @@ func monitorTask() {
 						_ = m.TurnOff(monitorErrorContent)
 						ws.GetHub().Data <- &ws.Data{
 							Type:    ws.TypeMonitor,
-							Message: monitorMessage{MonitorID: m.ID, State: model.Disable, ErrorContent: monitorErrorContent},
+							Message: monitorMessage{MonitorID: m.ID, State: model2.Disable, ErrorContent: monitorErrorContent},
 						}
 					}
 				}

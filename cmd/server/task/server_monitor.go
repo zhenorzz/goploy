@@ -8,7 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/zhenorzz/goploy/internal/log"
-	"github.com/zhenorzz/goploy/model"
+	model2 "github.com/zhenorzz/goploy/internal/model"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -42,8 +42,8 @@ var loop = 0
 
 func serverMonitorTask() {
 	loop++
-	var serverCaches = map[int64]model.Server{}
-	serverMonitorTasks, err := model.ServerMonitor{}.GetAllModBy(loop, time.Now().Format("15:04"))
+	var serverCaches = map[int64]model2.Server{}
+	serverMonitorTasks, err := model2.ServerMonitor{}.GetAllModBy(loop, time.Now().Format("15:04"))
 	if err != nil && err != sql.ErrNoRows {
 		log.Error("get server monitor list error, detail:" + err.Error())
 	}
@@ -63,7 +63,7 @@ func serverMonitorTask() {
 			continue
 		}
 
-		cycleValue, err := model.ServerAgentLog{
+		cycleValue, err := model2.ServerAgentLog{
 			ServerID: serverMonitor.ServerID,
 			Item:     serverMonitor.Item,
 		}.GetCycleValue(serverMonitor.GroupCycle, serverMonitor.Formula)
@@ -96,7 +96,7 @@ func serverMonitorTask() {
 			monitorCache.lastCycle = 0
 
 			if _, ok := serverCaches[serverMonitor.ServerID]; !ok {
-				server, err := model.Server{ID: serverMonitor.ServerID}.GetData()
+				server, err := model2.Server{ID: serverMonitor.ServerID}.GetData()
 				if err != nil {
 					log.Error(fmt.Sprintf("monitor task %d has no server, detail: %s", serverMonitor.ID, err.Error()))
 					continue

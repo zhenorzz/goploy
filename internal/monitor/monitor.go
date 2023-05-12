@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/zhenorzz/goploy/model"
+	model2 "github.com/zhenorzz/goploy/internal/model"
 	"golang.org/x/crypto/ssh"
 	"net"
 	"net/http"
@@ -190,11 +190,11 @@ func (m Monitor) RunSuccessScript(serverId int64) error {
 	return nil
 }
 
-func NewServerSession(serverId int64, timeout time.Duration) (model.Server, *ssh.Session, error) {
-	server, err := (model.Server{ID: serverId}).GetData()
+func NewServerSession(serverId int64, timeout time.Duration) (model2.Server, *ssh.Session, error) {
+	server, err := (model2.Server{ID: serverId}).GetData()
 	if err != nil {
 		return server, nil, err
-	} else if server.State == model.Disable {
+	} else if server.State == model2.Disable {
 		return server, nil, errors.New("Server Disable [" + server.Name + "]")
 	}
 	client, err := server.ToSSHConfig().SetTimeout(timeout).Dial()

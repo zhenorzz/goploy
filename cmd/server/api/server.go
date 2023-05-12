@@ -13,10 +13,10 @@ import (
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/log"
+	model2 "github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
-	"github.com/zhenorzz/goploy/model"
 	"io"
 	"net/http"
 	"os"
@@ -60,25 +60,25 @@ func (s Server) Handler() []server.Route {
 }
 
 func (Server) GetList(gp *server.Goploy) server.Response {
-	serverList, err := model.Server{NamespaceID: gp.Namespace.ID}.GetList()
+	serverList, err := model2.Server{NamespaceID: gp.Namespace.ID}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			Servers model.Servers `json:"list"`
+			Servers model2.Servers `json:"list"`
 		}{Servers: serverList},
 	}
 }
 
 func (Server) GetOption(gp *server.Goploy) server.Response {
-	serverList, err := model.Server{NamespaceID: gp.Namespace.ID}.GetAll()
+	serverList, err := model2.Server{NamespaceID: gp.Namespace.ID}.GetAll()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			Servers model.Servers `json:"list"`
+			Servers model2.Servers `json:"list"`
 		}{Servers: serverList},
 	}
 }
@@ -194,7 +194,7 @@ func (Server) Import(gp *server.Goploy) server.Response {
 			wg.Add(1)
 			go func() {
 				errMsg := ""
-				srv := model.Server{
+				srv := model2.Server{
 					NamespaceID: gp.Namespace.ID,
 				}
 				srv.Name = record[headerIdx["name"]]
@@ -301,7 +301,7 @@ func (s Server) Add(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	srv := model.Server{
+	srv := model2.Server{
 		NamespaceID:  reqData.NamespaceID,
 		Name:         reqData.Name,
 		OS:           reqData.OS,
@@ -353,7 +353,7 @@ func (s Server) Edit(gp *server.Goploy) server.Response {
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	srv := model.Server{
+	srv := model2.Server{
 		ID:           reqData.ID,
 		NamespaceID:  reqData.NamespaceID,
 		Name:         reqData.Name,
@@ -388,7 +388,7 @@ func (Server) Toggle(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := (model.Server{ID: reqData.ID, State: reqData.State}).ToggleRow(); err != nil {
+	if err := (model2.Server{ID: reqData.ID, State: reqData.State}).ToggleRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{}
@@ -415,7 +415,7 @@ func (Server) InstallAgent(gp *server.Goploy) server.Response {
 
 	for _, id := range reqData.IDs {
 		go func(id int64) {
-			srv, err := (model.Server{ID: id}).GetData()
+			srv, err := (model2.Server{ID: id}).GetData()
 			if err != nil {
 				log.Error(fmt.Sprintf("Error on %d server, %s", id, err.Error()))
 				return
@@ -471,7 +471,7 @@ func (Server) PreviewFile(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: "invalid server id"}
 	}
-	srv, err := (model.Server{ID: id}).GetData()
+	srv, err := (model2.Server{ID: id}).GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -488,7 +488,7 @@ func (Server) DownloadFile(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: "invalid server id"}
 	}
-	srv, err := (model.Server{ID: id}).GetData()
+	srv, err := (model2.Server{ID: id}).GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -516,7 +516,7 @@ func (Server) UploadFile(gp *server.Goploy) server.Response {
 	}
 	defer file.Close()
 
-	srv, err := (model.Server{ID: reqData.ID}).GetData()
+	srv, err := (model2.Server{ID: reqData.ID}).GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -557,7 +557,7 @@ func (Server) DeleteFile(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
+	srv, err := (model2.Server{ID: reqData.ServerID}).GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -603,7 +603,7 @@ func (Server) TransferFile(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	sourceServer, err := (model.Server{ID: reqData.SourceServerID}).GetData()
+	sourceServer, err := (model2.Server{ID: reqData.SourceServerID}).GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -621,7 +621,7 @@ func (Server) TransferFile(gp *server.Goploy) server.Response {
 	defer sftpClient.Close()
 
 	for _, destServerID := range reqData.DestServerIDs {
-		destServer, err := (model.Server{ID: destServerID}).GetData()
+		destServer, err := (model2.Server{ID: destServerID}).GetData()
 		if err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
@@ -734,7 +734,7 @@ func (Server) Report(gp *server.Goploy) server.Response {
 	if len(datetimeRange) != 2 {
 		return response.JSON{Code: response.Error, Message: "invalid datetime range"}
 	}
-	serverAgentLogs, err := (model.ServerAgentLog{ServerID: reqData.ServerID, Type: reqData.Type}).GetListBetweenTime(datetimeRange[0], datetimeRange[1])
+	serverAgentLogs, err := (model2.ServerAgentLog{ServerID: reqData.ServerID, Type: reqData.Type}).GetListBetweenTime(datetimeRange[0], datetimeRange[1])
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -753,7 +753,7 @@ func (Server) Report(gp *server.Goploy) server.Response {
 		flagMap[serverAgentLog.Item] = Flag{Count: flagMap[serverAgentLog.Item].Count + 1}
 	}
 
-	serverAgentMap := map[string]model.ServerAgentLogs{}
+	serverAgentMap := map[string]model2.ServerAgentLogs{}
 	for _, serverAgentLog := range serverAgentLogs {
 		flagMap[serverAgentLog.Item] = Flag{
 			Count: flagMap[serverAgentLog.Item].Count,
@@ -769,20 +769,20 @@ func (Server) Report(gp *server.Goploy) server.Response {
 
 	return response.JSON{
 		Data: struct {
-			ServerAgentMap map[string]model.ServerAgentLogs `json:"map"`
+			ServerAgentMap map[string]model2.ServerAgentLogs `json:"map"`
 		}{ServerAgentMap: serverAgentMap},
 	}
 }
 
 func (Server) GetAllMonitor(gp *server.Goploy) server.Response {
 	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
-	serverMonitorList, err := model.ServerMonitor{ServerID: serverID}.GetAll()
+	serverMonitorList, err := model2.ServerMonitor{ServerID: serverID}.GetAll()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			List model.ServerMonitors `json:"list"`
+			List model2.ServerMonitors `json:"list"`
 		}{List: serverMonitorList},
 	}
 }
@@ -808,7 +808,7 @@ func (s Server) AddMonitor(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	id, err := model.ServerMonitor{
+	id, err := model2.ServerMonitor{
 		ServerID:     reqData.ServerID,
 		Item:         reqData.Item,
 		Formula:      reqData.Formula,
@@ -855,7 +855,7 @@ func (s Server) EditMonitor(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	err := model.ServerMonitor{
+	err := model2.ServerMonitor{
 		ID:           reqData.ID,
 		Item:         reqData.Item,
 		Formula:      reqData.Formula,
@@ -887,7 +887,7 @@ func (s Server) DeleteMonitor(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	err := model.ServerMonitor{
+	err := model2.ServerMonitor{
 		ID: reqData.ID,
 	}.DeleteRow()
 
@@ -899,13 +899,13 @@ func (s Server) DeleteMonitor(gp *server.Goploy) server.Response {
 }
 
 func (Server) GetProcessList(gp *server.Goploy) server.Response {
-	list, err := model.ServerProcess{NamespaceID: gp.Namespace.ID}.GetList()
+	list, err := model2.ServerProcess{NamespaceID: gp.Namespace.ID}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			List model.ServerProcesses `json:"list"`
+			List model2.ServerProcesses `json:"list"`
 		}{List: list},
 	}
 }
@@ -921,7 +921,7 @@ func (Server) AddProcess(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	id, err := model.ServerProcess{
+	id, err := model2.ServerProcess{
 		NamespaceID: gp.Namespace.ID,
 		Name:        reqData.Name,
 		Items:       reqData.Items,
@@ -948,7 +948,7 @@ func (Server) EditProcess(gp *server.Goploy) server.Response {
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	err := model.ServerProcess{
+	err := model2.ServerProcess{
 		ID:    reqData.ID,
 		Name:  reqData.Name,
 		Items: reqData.Items,
@@ -969,7 +969,7 @@ func (Server) DeleteProcess(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := (model.ServerProcess{ID: reqData.ID}).DeleteRow(); err != nil {
+	if err := (model2.ServerProcess{ID: reqData.ID}).DeleteRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -1001,18 +1001,18 @@ func (Server) ExecProcess(gp *server.Goploy) server.Response {
 		return response.JSON{Data: respData}
 	}
 
-	serverProcess, err := model.ServerProcess{ID: reqData.ID}.GetData()
+	serverProcess, err := model2.ServerProcess{ID: reqData.ID}.GetData()
 	if err != nil {
 		respData.Stderr = err.Error()
 		return response.JSON{Data: respData}
 	}
-	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
+	srv, err := (model2.Server{ID: reqData.ServerID}).GetData()
 	if err != nil {
 		respData.Stderr = err.Error()
 		return response.JSON{Data: respData}
 	}
 
-	var processItems model.ServerProcessItems
+	var processItems model2.ServerProcessItems
 	if err := json.Unmarshal([]byte(serverProcess.Items), &processItems); err != nil {
 		respData.Stderr = err.Error()
 		return response.JSON{Data: respData}
@@ -1080,7 +1080,7 @@ func (Server) ExecScript(gp *server.Goploy) server.Response {
 				ServerID: serverId,
 			}
 
-			srv, err := (model.Server{ID: serverId}).GetData()
+			srv, err := (model2.Server{ID: serverId}).GetData()
 			if err != nil {
 				serverResp.ExecRes = false
 				serverResp.Stderr = err.Error()

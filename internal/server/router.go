@@ -10,8 +10,8 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/log"
+	model2 "github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server/response"
-	"github.com/zhenorzz/goploy/model"
 	"github.com/zhenorzz/goploy/web"
 	"io"
 	"mime"
@@ -114,7 +114,7 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Re
 			return gp, response.JSON{Code: response.Deny, Message: "Invalid namespace"}
 		}
 
-		gp.UserInfo, err = model.User{ID: int64(claims["id"].(float64))}.GetData()
+		gp.UserInfo, err = model2.User{ID: int64(claims["id"].(float64))}.GetData()
 		if err != nil {
 			return gp, response.JSON{Code: response.Deny, Message: "Get user information error"}
 		}
@@ -122,15 +122,15 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Re
 			return gp, response.JSON{Code: response.AccountDisabled, Message: "No available user"}
 		}
 
-		if gp.UserInfo.SuperManager == model.SuperManager {
-			permissionIDs, err := model.Permission{}.GetIDs()
+		if gp.UserInfo.SuperManager == model2.SuperManager {
+			permissionIDs, err := model2.Permission{}.GetIDs()
 			if err != nil {
 				return gp, response.JSON{Code: response.Deny, Message: err.Error()}
 			}
 			gp.Namespace.ID = namespaceID
 			gp.Namespace.PermissionIDs = permissionIDs
 		} else {
-			namespace, err := model.NamespaceUser{
+			namespace, err := model2.NamespaceUser{
 				NamespaceID: namespaceID,
 				UserID:      int64(claims["id"].(float64)),
 			}.GetDataByUserNamespace()
@@ -149,7 +149,7 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Re
 			return gp, response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 
-		goployTokenStr, err := model.User{ID: int64(claims["id"].(float64)), Name: claims["name"].(string)}.CreateToken()
+		goployTokenStr, err := model2.User{ID: int64(claims["id"].(float64)), Name: claims["name"].(string)}.CreateToken()
 		if err == nil {
 			// update jwt time
 			cookie := http.Cookie{Name: config.Toml.Cookie.Name, Value: goployTokenStr, Path: "/", MaxAge: config.Toml.Cookie.Expire, HttpOnly: true}
