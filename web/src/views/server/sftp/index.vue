@@ -56,6 +56,7 @@
       :key="item.uuid"
       :server="item.server"
       @dir-change="handleDirChange"
+      @edit-file="handleEditFile"
       @transfer-file="handleTransferFile"
     ></explorer>
     <el-dialog
@@ -130,6 +131,36 @@
         </el-button>
       </template>
     </el-dialog>
+    <el-dialog
+      v-model="fileEditorDialogVisible"
+      :fullscreen="$store.state.app.device === 'mobile'"
+      :title="selectedFile['name']"
+      :close-on-click-modal="false"
+    >
+      <VAceEditor
+        ref="fileEditor"
+        v-model:value="fileContent"
+        v-loading="formProps.disabled"
+        :lang="getModeForPath(selectedFile['name']).name"
+        :theme="isDark ? 'one_dark' : 'github'"
+        style="height: 360px; width: 100%"
+      />
+      <template #footer>
+        <el-button
+          :disabled="formProps.disabled"
+          @click="fileEditorDialogVisible = false"
+        >
+          {{ $t('cancel') }}
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="formProps.disabled"
+          @click="editFile"
+        >
+          {{ $t('confirm') }}
+        </el-button>
+      </template>
+    </el-dialog>
   </el-row>
 </template>
 
@@ -141,20 +172,36 @@ import explorer from './explorer.vue'
 import path from 'path-browserify'
 import type { ElForm } from 'element-plus'
 import { ElMessage } from 'element-plus'
+import { VAceEditor } from 'vue3-ace-editor'
+import * as ace from 'ace-builds/src-noconflict/ace'
+import { getModeForPath } from 'ace-builds/src-noconflict/ext-modelist'
+import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import {
   ServerOption,
   ServerData,
   ServerSFTPFile,
+  ServerEditFile,
   ServerTransferFile,
 } from '@/api/server'
+import { useDark } from '@vueuse/core'
 import { ref } from 'vue'
 interface sftp {
   uuid: number
   server: ServerData
   dir: string
 }
+ace.config.set(
+  'basePath',
+  'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
+)
+ace.config.set(
+  'themePath',
+  'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
+)
+const isDark = useDark()
 const currentUUID = ref(0)
 const transferFileDialogVisible = ref(false)
+const fileEditorDialogVisible = ref(false)
 const serverOption = ref<ServerOption['datagram']['list']>([])
 const serverId = ref('')
 const serverList = ref<sftp[]>([])
@@ -170,6 +217,8 @@ const formProps = ref({
   disabled: false,
   errorLog: '',
 })
+
+const fileContent = ref('')
 
 getServerOption()
 
@@ -210,6 +259,46 @@ function selectServer(value: number) {
 
 function handleDirChange(dir: string) {
   selectedSFTP.value.dir = dir
+}
+
+function handleEditFile(file: ServerSFTPFile) {
+  selectedFile.value = file
+  fileContent.value = ''
+  fileEditorDialogVisible.value = true
+  formProps.value.disabled = true
+  const f = path.normalize(`${selectedSFTP.value.dir}/${file.name}`)
+  fetch(
+    `${
+      import.meta.env.VITE_APP_BASE_API
+    }/server/previewFile?${NamespaceKey}=${getNamespaceId()}&id=${
+      selectedSFTP.value.server.id
+    }&file=${f}`
+  )
+    .then((response) => response.text())
+    .then((content) => {
+      fileContent.value = content
+    })
+    .finally(() => {
+      formProps.value.disabled = false
+    })
+}
+
+function editFile() {
+  formProps.value.disabled = true
+  new ServerEditFile({
+    serverId: selectedSFTP.value.server.id,
+    file: path.normalize(
+      `${selectedSFTP.value.dir}/${selectedFile.value.name}`
+    ),
+    content: fileContent.value,
+  })
+    .request()
+    .then(() => {
+      ElMessage.success('Success')
+    })
+    .finally(() => {
+      formProps.value.disabled = false
+    })
 }
 
 function handleTransferFile(file: ServerSFTPFile) {

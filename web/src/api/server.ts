@@ -394,6 +394,37 @@ export class ServerExecProcess extends Request {
   }
 }
 
+export class ServerRenameFile extends Request {
+  readonly url = '/server/renameFile'
+  readonly method = 'put'
+  readonly timeout = 0
+  public param: {
+    serverId: number
+    dir: string
+    currentName: string
+    newName: string
+  }
+  constructor(param: ServerRenameFile['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ServerEditFile extends Request {
+  readonly url = '/server/editFile'
+  readonly method = 'put'
+  readonly timeout = 0
+  public param: {
+    serverId: number
+    file: string
+    content: string
+  }
+  constructor(param: ServerEditFile['param']) {
+    super()
+    this.param = param
+  }
+}
+
 export class ServerDeleteFile extends Request {
   readonly url = '/server/deleteFile'
   readonly method = 'delete'
@@ -407,6 +438,7 @@ export class ServerDeleteFile extends Request {
     this.param = param
   }
 }
+
 export class ServerTransferFile extends Request {
   readonly url = '/server/transferFile'
   readonly method = 'post'

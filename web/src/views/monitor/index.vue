@@ -287,7 +287,7 @@
                 <VAceEditor
                   v-model:value="formProps.script"
                   lang="sh"
-                  theme="github"
+                  :theme="isDark ? 'one_dark' : 'github'"
                   style="height: 360px; width: 100%"
                   :options="{ newLineMode: 'unix' }"
                 />

@@ -32,6 +32,8 @@ const (
 	SftpLogTypeUpload   = "UPLOAD"
 	SftpLogTypeRead     = "READ"
 	SftpLogTypePreview  = "PREVIEW"
+	SftpLogTypeRename   = "RENAME"
+	SftpLogTypeEdit     = "EDIT"
 	SftpLogTypeDelete   = "DELETE"
 )
 

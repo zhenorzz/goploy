@@ -157,6 +157,13 @@
                   {{ $t('preview') }}
                 </Link>
               </el-dropdown-item>
+              <DropdownItem
+                v-if="selectedFile['isDir'] === false"
+                :permissions="[permission.SFTPEditFile]"
+                @click="editFile"
+              >
+                {{ $t('edit') }}
+              </DropdownItem>
               <el-dropdown-item
                 v-if="selectedFile['isDir'] === false"
                 style="padding: 0"
@@ -171,6 +178,12 @@
                   {{ $t('download') }}
                 </Link>
               </el-dropdown-item>
+              <DropdownItem
+                :permissions="[permission.SFTPRenameFile]"
+                @click="rename"
+              >
+                {{ $t('rename') }}
+              </DropdownItem>
               <DropdownItem
                 v-if="selectedFile['isDir'] === false"
                 :permissions="[permission.SFTPDeleteFile]"
@@ -223,14 +236,18 @@ import path from 'path-browserify'
 import { humanSize, parseTime } from '@/utils'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import type { ElUpload } from 'element-plus'
-import { ServerData, ServerSFTPFile, ServerDeleteFile } from '@/api/server'
+import {
+  ServerData,
+  ServerSFTPFile,
+  ServerRenameFile,
+  ServerDeleteFile,
+} from '@/api/server'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { HttpResponse } from '@/api/types'
 import { ref, PropType, computed, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
-
-const emit = defineEmits(['dir-change', 'transfer-file'])
+const emit = defineEmits(['dir-change', 'edit-file', 'transfer-file'])
 const props = defineProps({
   uuid: {
     type: Number,
@@ -435,6 +452,43 @@ function deleteFile() {
             (item) => item.name === selectedFile.value.name
           )
           fileList.value.splice(pos, 1)
+        })
+        .finally(() => {
+          fileListLoading.value = false
+        })
+    })
+    .catch()
+}
+
+function editFile() {
+  emit('edit-file', selectedFile.value)
+}
+
+function rename() {
+  ElMessageBox.prompt(
+    t('serverPage.renameTips', { name: selectedFile.value.name }),
+    t('rename'),
+    {
+      confirmButtonText: t('confirm'),
+      cancelButtonText: t('cancel'),
+      inputPattern: /.+/,
+      inputErrorMessage: 'Name required',
+    }
+  )
+    .then(({ value }) => {
+      fileListLoading.value = true
+      new ServerRenameFile({
+        serverId: serverId.value,
+        dir: dir.value,
+        currentName: selectedFile.value.name,
+        newName: value,
+      })
+        .request()
+        .then(() => {
+          const pos = fileList.value.findIndex(
+            (item) => item.name === selectedFile.value.name
+          )
+          fileList.value[pos].name = value
         })
         .finally(() => {
           fileListLoading.value = false

@@ -90,6 +90,7 @@
   "edit": "Edit",
   "copy": "Copy",
   "transfer": "Transfer",
+  "rename": "Rename",
   "approve": "Approve",
   "deny": "Deny",
   "preview": "Preview",
@@ -305,7 +306,8 @@
     "advance": "Advanced setting",
     "transferFile": "Transfer file",
     "sftpFileCount": "items",
-    "saveTemplate": "Save template"
+    "saveTemplate": "Save template",
+    "renameTips": "rename {name}"
   },
   "monitorPage": {
     "defaultServer": "Follow Host",
