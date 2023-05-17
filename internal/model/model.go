@@ -60,8 +60,14 @@ func Init() {
 		config.Toml.DB.Database,
 	)
 	var err error
+	// err != nil, only occur in driver has not registered
 	DB, err = sql.Open(config.Toml.DB.Type, dbConn)
 	if err != nil {
+		log.Fatal(err)
+	}
+
+	// ping db to make sure the db has connected
+	if err := DB.Ping(); err != nil {
 		log.Fatal(err)
 	}
 }
