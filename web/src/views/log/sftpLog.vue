@@ -40,6 +40,7 @@
         <el-table-column prop="type" label="Type" width="110" />
         <el-table-column prop="path" label="Path" show-overflow-tooltip />
         <el-table-column prop="reason" label="Reason" show-overflow-tooltip />
+        <el-table-column prop="insertTime" label="Time" width="160" />
       </el-table>
     </el-row>
     <el-row type="flex" justify="end" class="app-page">

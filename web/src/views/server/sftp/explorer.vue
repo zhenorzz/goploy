@@ -212,12 +212,12 @@
       <div>
         {{ fileFilteredList.length }} {{ $t('serverPage.sftpFileCount') }}
       </div>
+      <span style="padding: 0 2px">{{ selectedFile['name'] }}</span>
       <div v-show="selectedFile['mode']">
         <span style="padding: 0 2px">{{ selectedFile['mode'] }}</span>
         <span style="padding: 0 2px">
           {{ humanSize(selectedFile['size']) }}
         </span>
-        <span style="padding: 0 2px">{{ selectedFile['name'] }}</span>
       </div>
     </el-row>
   </el-row>

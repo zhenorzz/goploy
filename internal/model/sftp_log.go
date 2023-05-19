@@ -54,6 +54,7 @@ func (sl SftpLog) GetList(page, limit uint64) (SftpLogs, error) {
 			sftpLogTable+".type",
 			sftpLogTable+".path",
 			sftpLogTable+".reason",
+			sftpLogTable+".insert_time",
 		).
 		From(sftpLogTable).
 		LeftJoin(fmt.Sprintf("%s ON %[1]s.id = %s.user_id", userTable, sftpLogTable)).
@@ -93,6 +94,7 @@ func (sl SftpLog) GetList(page, limit uint64) (SftpLogs, error) {
 			&sftpLog.Type,
 			&sftpLog.Path,
 			&sftpLog.Reason,
+			&sftpLog.InsertTime,
 		); err != nil {
 			return nil, err
 		}
