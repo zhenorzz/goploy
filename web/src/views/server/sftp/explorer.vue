@@ -179,6 +179,12 @@
                 </Link>
               </el-dropdown-item>
               <DropdownItem
+                :permissions="[permission.SFTPDownloadFile]"
+                @click="copy"
+              >
+                {{ $t('copy') }}
+              </DropdownItem>
+              <DropdownItem
                 :permissions="[permission.SFTPRenameFile]"
                 @click="rename"
               >
@@ -239,6 +245,7 @@ import type { ElUpload } from 'element-plus'
 import {
   ServerData,
   ServerSFTPFile,
+  ServerCopyFile,
   ServerRenameFile,
   ServerDeleteFile,
 } from '@/api/server'
@@ -464,17 +471,44 @@ function editFile() {
   emit('edit-file', selectedFile.value)
 }
 
+function copy() {
+  ElMessageBox.prompt('', t('copy') + selectedFile.value.name, {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    inputPattern: /.+/,
+    inputErrorMessage: 'Name required',
+  })
+    .then(({ value }) => {
+      fileListLoading.value = true
+      new ServerCopyFile({
+        serverId: serverId.value,
+        isDir: selectedFile.value.isDir,
+        dir: dir.value,
+        srcName: selectedFile.value.name,
+        dstName: value,
+      })
+        .request()
+        .then(() => {
+          fileList.value.push({
+            ...selectedFile.value,
+            uuid: fileUUID++,
+            name: value,
+          })
+        })
+        .finally(() => {
+          fileListLoading.value = false
+        })
+    })
+    .catch()
+}
+
 function rename() {
-  ElMessageBox.prompt(
-    t('serverPage.renameTips', { name: selectedFile.value.name }),
-    t('rename'),
-    {
-      confirmButtonText: t('confirm'),
-      cancelButtonText: t('cancel'),
-      inputPattern: /.+/,
-      inputErrorMessage: 'Name required',
-    }
-  )
+  ElMessageBox.prompt('', t('rename') + selectedFile.value.name, {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    inputPattern: /.+/,
+    inputErrorMessage: 'Name required',
+  })
     .then(({ value }) => {
       fileListLoading.value = true
       new ServerRenameFile({

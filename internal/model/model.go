@@ -49,7 +49,6 @@ const (
 // DB init when the program start
 var DB *sql.DB
 
-// Init DB
 func Init() {
 	dbConn := fmt.Sprintf(
 		"%s:%s@(%s:%s)/%s?charset=utf8mb4,utf8",
@@ -59,16 +58,19 @@ func Init() {
 		config.Toml.DB.Port,
 		config.Toml.DB.Database,
 	)
-	var err error
-	// err != nil, only occur in driver has not registered
-	DB, err = sql.Open(config.Toml.DB.Type, dbConn)
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	// ping db to make sure the db has connected
-	if err := DB.Ping(); err != nil {
-		log.Fatal(err)
+	{
+		// @see https://github.com/go-sql-driver/mysql/wiki/Examples#a-word-on-sqlopen
+		var err error
+		DB, err = sql.Open(config.Toml.DB.Type, dbConn)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// ping db to make sure the db has connected
+		if err := DB.Ping(); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 

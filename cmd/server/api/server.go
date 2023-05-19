@@ -45,6 +45,7 @@ func (s Server) Handler() []server.Route {
 		server.NewRoute("/server/uploadFile", http.MethodPost, s.UploadFile).Permissions(config.SFTPTransferFile).LogFunc(middleware.AddUploadLog),
 		server.NewRoute("/server/editFile", http.MethodPut, s.EditFile).Permissions(config.SFTPEditFile).LogFunc(middleware.AddEditLog),
 		server.NewRoute("/server/renameFile", http.MethodPut, s.RenameFile).Permissions(config.SFTPRenameFile).LogFunc(middleware.AddRenameLog),
+		server.NewRoute("/server/copyFile", http.MethodPut, s.CopyFile).Permissions(config.SFTPUploadFile).LogFunc(middleware.AddCopyLog),
 		server.NewRoute("/server/deleteFile", http.MethodDelete, s.DeleteFile).Permissions(config.SFTPDeleteFile).LogFunc(middleware.AddDeleteLog),
 		server.NewRoute("/server/transferFile", http.MethodPost, s.TransferFile).Permissions(config.SFTPUploadFile),
 		server.NewRoute("/server/report", http.MethodGet, s.Report).Permissions(config.ShowServerMonitorPage),
@@ -586,6 +587,48 @@ func (Server) EditFile(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
+	return response.JSON{}
+}
+
+func (Server) CopyFile(gp *server.Goploy) server.Response {
+	type ReqData struct {
+		ServerID int64  `json:"serverId" validate:"gt=0"`
+		IsDir    bool   `json:"isDir"`
+		Dir      string `json:"dir" validate:"required"`
+		SrcName  string `json:"srcName" validate:"required"`
+		DstName  string `json:"dstName" validate:"required"`
+	}
+	var reqData ReqData
+	if err := decodeJson(gp.Body, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	client, err := srv.ToSSHConfig().Dial()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer client.Close()
+
+	session, err := client.NewSession()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer session.Close()
+
+	var sshOutbuf, sshErrbuf bytes.Buffer
+	session.Stdout = &sshOutbuf
+	session.Stderr = &sshErrbuf
+	optionR := ""
+	if reqData.IsDir {
+		optionR = "-r"
+	}
+	if err = session.Run(fmt.Sprintf("cp %s %s %s", optionR, path.Join(reqData.Dir, reqData.SrcName), path.Join(reqData.Dir, reqData.DstName))); err != nil {
+		return response.JSON{Code: response.Error, Message: "err: " + err.Error() + ", detail: " + sshErrbuf.String()}
+	}
 	return response.JSON{}
 }
 

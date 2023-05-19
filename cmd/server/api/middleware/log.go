@@ -105,7 +105,7 @@ func AddEditLog(gp *server.Goploy, resp server.Response) {
 	if respJson.Code != response.IllegalParam {
 		type ReqData struct {
 			ServerID    int64  `json:"serverId"`
-			File         string `json:"file"`
+			File        string `json:"file"`
 			NewName     string `json:"newName"`
 			CurrentName string `json:"currentName"`
 		}
@@ -123,6 +123,42 @@ func AddEditLog(gp *server.Goploy, resp server.Response) {
 		UserAgent:   gp.Request.UserAgent(),
 		Type:        model.SftpLogTypeEdit,
 		Path:        path,
+		Reason:      respJson.Message,
+	}.AddRow()
+	if err != nil {
+		log.Error(err.Error())
+	}
+}
+
+func AddCopyLog(gp *server.Goploy, resp server.Response) {
+	var serverID int64 = 0
+	var dir = ""
+	var srcName = ""
+	var dstName = ""
+	respJson := resp.(response.JSON)
+	if respJson.Code != response.IllegalParam {
+		type ReqData struct {
+			ServerID int64  `json:"serverId"`
+			Dir      string `json:"dir"`
+			SrcName  string `json:"srcName"`
+			DstName  string `json:"dstName"`
+		}
+		var reqData ReqData
+		_ = json.Unmarshal(gp.Body, &reqData)
+		serverID = reqData.ServerID
+		dir = reqData.Dir
+		srcName = reqData.SrcName
+		dstName = reqData.DstName
+	}
+
+	err := model.SftpLog{
+		NamespaceID: gp.Namespace.ID,
+		UserID:      gp.UserInfo.ID,
+		ServerID:    serverID,
+		RemoteAddr:  gp.Request.RemoteAddr,
+		UserAgent:   gp.Request.UserAgent(),
+		Type:        model.SftpLogTypeCopy,
+		Path:        fmt.Sprintf("%s/%s->%s", dir, srcName, dstName),
 		Reason:      respJson.Message,
 	}.AddRow()
 	if err != nil {

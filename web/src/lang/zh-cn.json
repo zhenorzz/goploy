@@ -289,8 +289,7 @@
     "advance": "高级选项",
     "transferFile": "传输文件",
     "sftpFileCount": "个项目",
-    "saveTemplate": "保存模板",
-    "renameTips": "重命名{name}"
+    "saveTemplate": "保存模板"
   },
   "monitorPage": {
     "scriptMode": "脚本类型",

@@ -394,6 +394,23 @@ export class ServerExecProcess extends Request {
   }
 }
 
+export class ServerCopyFile extends Request {
+  readonly url = '/server/copyFile'
+  readonly method = 'put'
+  readonly timeout = 0
+  public param: {
+    serverId: number
+    dir: string
+    isDir: boolean
+    srcName: string
+    dstName: string
+  }
+  constructor(param: ServerCopyFile['param']) {
+    super()
+    this.param = param
+  }
+}
+
 export class ServerRenameFile extends Request {
   readonly url = '/server/renameFile'
   readonly method = 'put'

@@ -306,8 +306,7 @@
     "advance": "Advanced setting",
     "transferFile": "Transfer file",
     "sftpFileCount": "items",
-    "saveTemplate": "Save template",
-    "renameTips": "rename {name}"
+    "saveTemplate": "Save template"
   },
   "monitorPage": {
     "defaultServer": "Follow Host",
