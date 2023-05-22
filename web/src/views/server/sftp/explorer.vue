@@ -185,7 +185,7 @@
                 {{ $t('copy') }}
               </DropdownItem>
               <DropdownItem
-                :permissions="[permission.SFTPRenameFile]"
+                :permissions="[permission.SFTPEditFile]"
                 @click="rename"
               >
                 {{ $t('rename') }}

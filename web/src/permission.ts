@@ -76,6 +76,5 @@ export default Object.freeze({
   SFTPTransferFile: 75,
   SFTPDeleteFile: 76,
   ShowServerScriptPage: 77,
-  SFTPRenameFile: 78,
-  SFTPEditFile: 79,
+  SFTPEditFile: 78,
 })

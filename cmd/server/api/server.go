@@ -44,7 +44,7 @@ func (s Server) Handler() []server.Route {
 		server.NewRoute("/server/downloadFile", http.MethodGet, s.DownloadFile).Permissions(config.SFTPDownloadFile).LogFunc(middleware.AddDownloadLog),
 		server.NewRoute("/server/uploadFile", http.MethodPost, s.UploadFile).Permissions(config.SFTPTransferFile).LogFunc(middleware.AddUploadLog),
 		server.NewRoute("/server/editFile", http.MethodPut, s.EditFile).Permissions(config.SFTPEditFile).LogFunc(middleware.AddEditLog),
-		server.NewRoute("/server/renameFile", http.MethodPut, s.RenameFile).Permissions(config.SFTPRenameFile).LogFunc(middleware.AddRenameLog),
+		server.NewRoute("/server/renameFile", http.MethodPut, s.RenameFile).Permissions(config.SFTPEditFile).LogFunc(middleware.AddRenameLog),
 		server.NewRoute("/server/copyFile", http.MethodPut, s.CopyFile).Permissions(config.SFTPUploadFile).LogFunc(middleware.AddCopyLog),
 		server.NewRoute("/server/deleteFile", http.MethodDelete, s.DeleteFile).Permissions(config.SFTPDeleteFile).LogFunc(middleware.AddDeleteLog),
 		server.NewRoute("/server/transferFile", http.MethodPost, s.TransferFile).Permissions(config.SFTPUploadFile),
