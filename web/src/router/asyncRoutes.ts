@@ -156,6 +156,16 @@ export default <RouteRecordRaw[]>[
           permissions: [permission.ShowServerMonitorPage],
         },
       },
+      {
+        path: 'nginx',
+        name: 'ServerNginx',
+        component: () => import('@/views/server/nginx/index.vue'),
+        meta: {
+          title: 'serverNginx',
+          icon: 'nginx',
+          permissions: [permission.ShowServerNginxPage],
+        },
+      },
     ],
   },
   {

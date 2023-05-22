@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -59,6 +60,11 @@ func (s Server) Handler() []server.Route {
 		server.NewRoute("/server/deleteProcess", http.MethodDelete, s.DeleteProcess).Permissions(config.DeleteServerProcess).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/server/execProcess", http.MethodPost, s.ExecProcess).Permissions(config.ShowServerProcessPage).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/server/execScript", http.MethodPost, s.ExecScript).Permissions(config.ShowServerScriptPage).LogFunc(middleware.AddOPLog),
+		server.NewRoute("/server/getNginxConfigList", http.MethodGet, s.GetNginxConfigList).Permissions(config.ShowServerNginxPage),
+		server.NewRoute("/server/manageNginx", http.MethodPost, s.ManageNginx).Permissions(config.ManageServerNginx).LogFunc(middleware.AddOPLog),
+		server.NewRoute("/server/getNginxConfigContent", http.MethodPost, s.GetNginxConfContent).Permissions(config.ShowServerNginxPage),
+		server.NewRoute("/server/editNginxConfig", http.MethodPut, s.EditNginxConfig).Permissions(config.EditNginxConfig).LogFunc(middleware.AddOPLog),
+		server.NewRoute("/server/copyNginxConfig", http.MethodPut, s.CopyNginxConfig).Permissions(config.CopyNginxConfig).LogFunc(middleware.AddOPLog),
 	}
 }
 
@@ -1241,4 +1247,301 @@ func (Server) ExecScript(gp *server.Goploy) server.Response {
 		respData = append(respData, <-ch)
 	}
 	return response.JSON{Data: respData}
+}
+
+func (Server) GetNginxConfigList(gp *server.Goploy) server.Response {
+	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
+	srv, err := (model.Server{ID: serverID}).GetData()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	client, err := srv.ToSSHConfig().Dial()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer client.Close()
+
+	sftpClient, err := sftp.NewClient(client)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer sftpClient.Close()
+
+	session, err := client.NewSession()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer session.Close()
+
+	nginxPath := gp.URLQuery.Get("dir")
+
+	output, err := session.CombinedOutput(path.Join(nginxPath, "sbin", "nginx") + " -t")
+
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: fmt.Sprintf("output: %s", output)}
+	}
+
+	configPath := ""
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		if strings.HasPrefix(line, "nginx: the configuration file ") && strings.Contains(line, "syntax is ok") {
+			configPath = strings.TrimPrefix(line, "nginx: the configuration file ")
+			configPath = strings.TrimSuffix(configPath, " syntax is ok")
+		}
+	}
+
+	if configPath == "" {
+		return response.JSON{Code: response.Error, Message: "can not find nginx config path or config error"}
+	}
+
+	configFile, err := sftpClient.Open(configPath)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer configFile.Close()
+
+	configContent, err := io.ReadAll(configFile)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	configFileDir := path.Dir(configPath)
+	var includeConfigPaths []string
+
+	// match the file path in the include directive
+	re := regexp.MustCompile("(?i)include\\s+([\"']?)(.*?)([\"']?);")
+	matches := re.FindAllSubmatch(configContent, -1)
+
+	for _, match := range matches {
+		tmpPath := match[2]
+		includeConfigPaths = append(includeConfigPaths, path.Join(configFileDir, string(tmpPath)))
+	}
+
+	type fileInfo struct {
+		Name    string `json:"name"`
+		Size    int64  `json:"size"`
+		Mode    string `json:"mode"`
+		ModTime string `json:"modTime"`
+		Dir     string `json:"dir"`
+	}
+
+	var fileList []fileInfo
+	for _, includeConfigPath := range includeConfigPaths {
+		fileInfos, err := sftpClient.Glob(includeConfigPath)
+		if err != nil {
+			return response.JSON{Code: response.Error, Message: err.Error()}
+		} else {
+			for _, f := range fileInfos {
+				fileStat, err := sftpClient.Stat(f)
+				if err != nil {
+					return response.JSON{Code: response.Error, Message: err.Error()}
+				}
+
+				if fileStat.Mode()&os.ModeSymlink != 0 {
+					continue
+				}
+
+				if !fileStat.IsDir() {
+					fileList = append(fileList, fileInfo{
+						Name:    fileStat.Name(),
+						Size:    fileStat.Size(),
+						Mode:    fileStat.Mode().String(),
+						ModTime: fileStat.ModTime().Format("2006-01-02 15:04:05"),
+						Dir:     path.Dir(includeConfigPath),
+					})
+				}
+			}
+		}
+	}
+
+	return response.JSON{
+		Data: struct {
+			List []fileInfo `json:"list"`
+		}{List: fileList},
+	}
+}
+
+func (Server) ManageNginx(gp *server.Goploy) server.Response {
+	type ReqData struct {
+		ServerID int64  `json:"serverId" validate:"gt=0"`
+		Path     string `json:"path" validate:"required"`
+		Command  string `json:"command" validate:"required"`
+	}
+	var reqData ReqData
+	if err := decodeJson(gp.Body, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	nginxPath := path.Join(reqData.Path, "sbin", "nginx")
+
+	script := ""
+	switch reqData.Command {
+	case "reload":
+		script = nginxPath + " -s reload"
+	case "stop":
+		script = nginxPath + " -s stop"
+	case "check":
+		script = nginxPath + " -t"
+	default:
+		script = reqData.Command
+	}
+
+	client, err := srv.ToSSHConfig().Dial()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer client.Close()
+
+	session, err := client.NewSession()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer session.Close()
+
+	output, err := session.CombinedOutput(script)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	log.Trace(fmt.Sprintf("%s exec nginx cmd %s, result %t, output: %s", gp.UserInfo.Name, script, err == nil, string(output)))
+	return response.JSON{
+		Data: struct {
+			ExecRes bool   `json:"execRes"`
+			Output  string `json:"output"`
+		}{ExecRes: err == nil, Output: string(output)},
+	}
+}
+
+func (Server) GetNginxConfContent(gp *server.Goploy) server.Response {
+	type ReqData struct {
+		ServerID int64  `json:"serverId" validate:"gt=0"`
+		Dir      string `json:"dir" validate:"required"`
+		Filename string `json:"filename" validate:"required"`
+	}
+	var reqData ReqData
+	if err := decodeJson(gp.Body, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	client, err := srv.ToSSHConfig().Dial()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer client.Close()
+
+	sftpClient, err := sftp.NewClient(client)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer sftpClient.Close()
+
+	configFile, err := sftpClient.Open(path.Join(reqData.Dir, reqData.Filename))
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer configFile.Close()
+
+	configContent, err := io.ReadAll(configFile)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	return response.JSON{
+		Data: struct {
+			Content string `json:"content"`
+		}{Content: string(configContent)},
+	}
+}
+
+func (Server) EditNginxConfig(gp *server.Goploy) server.Response {
+	type ReqData struct {
+		ServerID int64  `json:"serverId" validate:"gt=0"`
+		Dir      string `json:"dir" validate:"required"`
+		Filename string `json:"filename" validate:"required"`
+		Content  string `json:"content" validate:"required"`
+	}
+	var reqData ReqData
+	if err := decodeJson(gp.Body, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	client, err := srv.ToSSHConfig().Dial()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer client.Close()
+
+	sftpClient, err := sftp.NewClient(client)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer sftpClient.Close()
+
+	file, err := sftpClient.Create(path.Join(reqData.Dir, reqData.Filename))
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer file.Close()
+
+	_, err = file.Write([]byte(reqData.Content))
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	return response.JSON{}
+}
+
+func (Server) CopyNginxConfig(gp *server.Goploy) server.Response {
+	type ReqData struct {
+		ServerID int64  `json:"serverId" validate:"gt=0"`
+		Dir      string `json:"dir" validate:"required"`
+		SrcName  string `json:"srcName" validate:"required"`
+		DstName  string `json:"dstName" validate:"required"`
+	}
+	var reqData ReqData
+	if err := decodeJson(gp.Body, &reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	client, err := srv.ToSSHConfig().Dial()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer client.Close()
+
+	session, err := client.NewSession()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer session.Close()
+
+	var sshOutbuf, sshErrbuf bytes.Buffer
+	session.Stdout = &sshOutbuf
+	session.Stderr = &sshErrbuf
+
+	if err = session.Run(fmt.Sprintf("cp %s %s", path.Join(reqData.Dir, reqData.SrcName), path.Join(reqData.Dir, reqData.DstName))); err != nil {
+		return response.JSON{Code: response.Error, Message: "err: " + err.Error() + ", detail: " + sshErrbuf.String()}
+	}
+	return response.JSON{}
 }

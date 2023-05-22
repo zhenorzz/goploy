@@ -505,3 +505,98 @@ export class ServerRemoteCrontabList extends Request {
     this.param = param
   }
 }
+
+export class ManageNginx extends Request {
+  readonly url = '/server/manageNginx'
+  readonly method = 'post'
+  readonly timeout = 0
+  public param: {
+    serverId: number
+    path: string
+    command: string
+  }
+  public declare datagram: {
+    execRes: boolean
+    output: string
+  }
+  constructor(param: ManageNginx['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export interface ServerNginxData {
+  [key: string]: any
+  modTime: string
+  mode: string
+  name: string
+  size: number
+  dir: string
+}
+
+export class ServerNginxConfigList extends Request {
+  readonly url = '/server/getNginxConfigList'
+  readonly method = 'get'
+
+  public declare datagram: {
+    list: ServerNginxData[]
+  }
+
+  public param: {
+    serverId: number
+    dir: string
+  }
+
+  constructor(param: ServerNginxConfigList['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class NginxConfigContent extends Request {
+  readonly url = '/server/getNginxConfigContent'
+  readonly method = 'post'
+  public param: {
+    serverId: number
+    dir: string
+    filename: string
+  }
+  public declare datagram: {
+    content: string
+  }
+  constructor(param: NginxConfigContent['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class NginxConfigEdit extends Request {
+  readonly url = '/server/editNginxConfig'
+  readonly method = 'put'
+  public param: {
+    serverId: number
+    dir: string
+    filename: string
+    content: string
+  }
+  constructor(param: NginxConfigEdit['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class NginxConfigCopy extends Request {
+  readonly url = '/server/copyNginxConfig'
+  readonly method = 'put'
+  readonly timeout = 0
+  public param: {
+    serverId: number
+    dir: string
+    srcName: string
+    dstName: string
+  }
+  constructor(param: NginxConfigCopy['param']) {
+    super()
+    this.param = param
+  }
+}

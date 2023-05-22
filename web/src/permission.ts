@@ -78,4 +78,8 @@ export default Object.freeze({
   ShowServerScriptPage: 77,
   SFTPRenameFile: 78,
   SFTPEditFile: 79,
+  ShowServerNginxPage: 80,
+  ManageServerNginx: 81,
+  EditNginxConfig: 82,
+  CopyNginxConfig: 83,
 })

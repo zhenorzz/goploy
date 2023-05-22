@@ -148,6 +148,7 @@
     "serverProcess": "进程管理",
     "serverCrontab": "Crontab UI",
     "serverCron": "定时任务",
+    "serverNginx": "Nginx管理",
     "namespace": "空间",
     "namespaceSetting": "空间设置",
     "roleSetting": "角色设置",
@@ -236,7 +237,11 @@
     "ShowOperationLogPage": "查看操作日志",
     "SFTPTransferFile": "SFTP传输文件",
     "SFTPDeleteFile": "SFTP删除文件",
-    "ShowServerScriptPage": "执行脚本"
+    "ShowServerScriptPage": "执行脚本",
+    "ShowServerNginxPage": "查看Nginx管理",
+    "ManageServerNginx": "Nginx进程管理",
+    "EditNginxConfig": "编辑Nginx配置文件",
+    "CopyNginxConfig": "复制Nginx配置文件"
   },
   "tagsView": {
     "refresh": "刷新",
@@ -289,7 +294,9 @@
     "advance": "高级选项",
     "transferFile": "传输文件",
     "sftpFileCount": "个项目",
-    "saveTemplate": "保存模板"
+    "saveTemplate": "保存模板",
+    "execTips": "执行{command}命令?",
+    "nginxStartTips": "请输入nginx的启动命令"
   },
   "monitorPage": {
     "scriptMode": "脚本类型",
