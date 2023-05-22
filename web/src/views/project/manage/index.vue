@@ -798,6 +798,18 @@
                       <span>project.branch</span>
                     </el-row>
                     <el-row>
+                      <span>${SERVER_TOTAL_NUMBER}: </span>
+                      <span>{{
+                        formData.serverIds.length > 0
+                          ? formData.serverIds.length
+                          : 'server.total.number'
+                      }}</span>
+                    </el-row>
+                    <el-row v-if="formData.deployServerMode === 'serial'">
+                      <span>${SERVER_SERIAL_NUMBER}: </span>
+                      <span>start from 1</span>
+                    </el-row>
+                    <el-row>
                       <span>${SERVER_ID}: </span>
                       <span>server.id</span>
                     </el-row>
