@@ -555,7 +555,7 @@ export class ServerNginxConfigList extends Request {
 
 export class NginxConfigContent extends Request {
   readonly url = '/server/getNginxConfigContent'
-  readonly method = 'post'
+  readonly method = 'get'
   public param: {
     serverId: number
     dir: string
@@ -587,7 +587,7 @@ export class NginxConfigEdit extends Request {
 
 export class NginxConfigCopy extends Request {
   readonly url = '/server/copyNginxConfig'
-  readonly method = 'put'
+  readonly method = 'post'
   readonly timeout = 0
   public param: {
     serverId: number
@@ -596,6 +596,51 @@ export class NginxConfigCopy extends Request {
     dstName: string
   }
   constructor(param: NginxConfigCopy['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ServerNginxPath extends Request {
+  readonly url = '/server/getNginxPath'
+  readonly method = 'get'
+  public param: {
+    serverId: number
+  }
+  public declare datagram: {
+    path: string
+  }
+  constructor(param: ServerNginxPath['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class NginxConfigRename extends Request {
+  readonly url = '/server/renameNginxConfig'
+  readonly method = 'put'
+  readonly timeout = 0
+  public param: {
+    serverId: number
+    dir: string
+    currentName: string
+    newName: string
+  }
+  constructor(param: NginxConfigRename['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class NginxConfigDelete extends Request {
+  readonly url = '/server/deleteNginxConfig'
+  readonly method = 'delete'
+  readonly timeout = 0
+  public param: {
+    serverId: number
+    file: string
+  }
+  constructor(param: NginxConfigDelete['param']) {
     super()
     this.param = param
   }

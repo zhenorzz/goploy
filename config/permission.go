@@ -82,10 +82,10 @@ const (
 	SFTPTransferFile        = 75
 	SFTPDeleteFile          = 76
 	ShowServerScriptPage    = 77
-	SFTPRenameFile          = 78
-	SFTPEditFile            = 79
-	ShowServerNginxPage     = 80
-	ManageServerNginx       = 81
+	SFTPEditFile            = 78
+	ShowServerNginxPage     = 79
+	ManageServerNginx       = 80
+	AddNginxConfig          = 81
 	EditNginxConfig         = 82
-	CopyNginxConfig         = 83
+	DeleteNginxConfig       = 83
 )

@@ -312,8 +312,7 @@
     "transferFile": "Transfer file",
     "sftpFileCount": "items",
     "saveTemplate": "Save template",
-    "execTips": "Exec command {command}?",
-    "nginxStartTips": "Input your nginx start command"
+    "execTips": "Exec command {command}?"
   },
   "monitorPage": {
     "defaultServer": "Follow Host",

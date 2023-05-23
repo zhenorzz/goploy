@@ -295,8 +295,7 @@
     "transferFile": "传输文件",
     "sftpFileCount": "个项目",
     "saveTemplate": "保存模板",
-    "execTips": "执行{command}命令?",
-    "nginxStartTips": "请输入nginx的启动命令"
+    "execTips": "执行{command}命令?"
   },
   "monitorPage": {
     "scriptMode": "脚本类型",

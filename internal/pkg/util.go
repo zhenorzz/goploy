@@ -6,6 +6,7 @@ package pkg
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -93,4 +94,15 @@ func ParseCommandLine(command string) ([]string, error) {
 
 func ClearNewline(str string) string {
 	return strings.TrimRight(strings.Replace(str, "\r\n", "\n", -1), "\n")
+}
+
+func IsFilePath(path string) bool {
+	pathPattern := `^\/(?:[^\/]+\/)*[^\/]+(?:\.[^\/]+)?$`
+	regex, _ := regexp.Compile(pathPattern)
+
+	if !regex.MatchString(path) {
+		return false
+	}
+
+	return true
 }

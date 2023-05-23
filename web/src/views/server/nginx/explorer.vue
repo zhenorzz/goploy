@@ -4,7 +4,8 @@
       <el-row class="nav-path" style="flex: 1">
         <el-input
           v-model="dir"
-          placeholder="Please input nginx absolute path"
+          v-loading="dirLoading"
+          placeholder="Please input nginx execution path"
           class="input-with-select"
           @keyup.enter="dirOpen(dir)"
         >
@@ -23,24 +24,10 @@
         </el-button>
         <el-button
           :loading="commandLoading"
-          type="primary"
+          type="success"
           @click="handleNginxCmd(dir, 'reload')"
         >
           reload
-        </el-button>
-        <el-button
-          :loading="commandLoading"
-          type="success"
-          @click="handleNginxCmd(dir, 'start')"
-        >
-          start
-        </el-button>
-        <el-button
-          :loading="commandLoading"
-          type="danger"
-          @click="handleNginxCmd(dir, 'stop')"
-        >
-          stop
         </el-button>
       </el-row>
     </el-row>
@@ -104,13 +91,13 @@
           <el-table-column
             prop="modTime"
             :label="$t('updateTime')"
-            min-width="100"
+            min-width="80"
             align="center"
           />
           <el-table-column
             prop="operation"
             :label="$t('op')"
-            width="180"
+            min-width="50"
             align="center"
           >
             <template #default="scope">
@@ -124,10 +111,24 @@
               </Button>
               <Button
                 type="primary"
-                :permissions="[permission.CopyNginxConfig]"
+                :permissions="[permission.AddNginxConfig]"
                 @click="handleCopy(scope.row)"
               >
                 {{ $t('copy') }}
+              </Button>
+              <Button
+                type="primary"
+                :permissions="[permission.EditNginxConfig]"
+                @click="handleRename(scope.row)"
+              >
+                {{ $t('rename') }}
+              </Button>
+              <Button
+                type="danger"
+                :permissions="[permission.DeleteNginxConfig]"
+                @click="handleDelete(scope.row)"
+              >
+                {{ $t('delete') }}
               </Button>
             </template>
           </el-table-column>
@@ -183,6 +184,9 @@ import {
   NginxConfigContent,
   NginxConfigEdit,
   NginxConfigCopy,
+  NginxConfigRename,
+  ServerNginxPath,
+  NginxConfigDelete,
 } from '@/api/server'
 import permission from '@/permission'
 import { Button } from '@/components/Permission'
@@ -193,6 +197,7 @@ import { ManageNginx } from '@/api/server'
 import { useDark } from '@vueuse/core'
 import { VAceEditor } from 'vue3-ace-editor'
 import * as ace from 'ace-builds/src-noconflict/ace'
+import path from 'path-browserify'
 ace.config.set(
   'basePath',
   'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
@@ -232,6 +237,7 @@ const EditProps = ref({
 })
 
 const commandLoading = ref(false)
+const dirLoading = ref(false)
 
 function handleSort(command: string) {
   let compareFunc = (
@@ -297,6 +303,23 @@ function handleSort(command: string) {
   fileFilteredList.value.sort(compareFunc)
 }
 
+init()
+
+function init() {
+  dirLoading.value = true
+  new ServerNginxPath({ serverId: serverId.value })
+    .request()
+    .then((response) => {
+      if (response.data.path !== '') {
+        dir.value = response.data.path
+        dirOpen(response.data.path)
+      }
+    })
+    .finally(() => {
+      dirLoading.value = false
+    })
+}
+
 function dirOpen(dir: string) {
   lastDir.value = dir
   emit('dir-change', dir)
@@ -337,7 +360,7 @@ function handleCopy(data: ServerNginxData) {
     })
 }
 
-function handleEdit(data: any) {
+function handleEdit(data: ServerNginxData) {
   EditProps.value.editButtonLoading = true
   EditProps.value.selectedConfig = data
   new NginxConfigContent({
@@ -368,49 +391,32 @@ function getNginxConfigList(dir: string) {
     })
 }
 
-async function handleNginxCmd(dir: string, command: string) {
-  if (command === 'start') {
-    await ElMessageBox.prompt(t('serverPage.nginxStartTips'), 'start', {
-      confirmButtonText: t('confirm'),
-      cancelButtonText: t('cancel'),
-      inputPattern: /.+/,
-      inputErrorMessage: 'command required',
-    })
-      .then(({ value }) => {
-        command = value
+function handleNginxCmd(dir: string, command: string) {
+  ElMessageBox.confirm(t('serverPage.execTips', { command }), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
+    .then(() => {
+      commandLoading.value = true
+      new ManageNginx({
+        serverId: serverId.value,
+        path: dir,
+        command,
       })
-      .catch(() => {
-        ElMessage.info('Cancel')
-        command = ''
-      })
-  }
-  if (command !== '') {
-    ElMessageBox.confirm(t('serverPage.execTips', { command }), t('tips'), {
-      confirmButtonText: t('confirm'),
-      cancelButtonText: t('cancel'),
-      type: 'warning',
-    })
-      .then(() => {
-        commandLoading.value = true
-        new ManageNginx({
-          serverId: serverId.value,
-          path: dir,
-          command,
+        .request()
+        .then((response) => {
+          ElMessage.success(
+            response.data.output === '' ? 'Success' : response.data.output
+          )
         })
-          .request()
-          .then((response) => {
-            ElMessage.success(
-              response.data.output === '' ? 'Success' : response.data.output
-            )
-          })
-          .finally(() => {
-            commandLoading.value = false
-          })
-      })
-      .catch(() => {
-        ElMessage.info('Cancel')
-      })
-  }
+        .finally(() => {
+          commandLoading.value = false
+        })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
 }
 
 function editConfig() {
@@ -430,6 +436,64 @@ function editConfig() {
     .finally(() => {
       EditProps.value.disabled = false
     })
+}
+
+function handleRename(data: ServerNginxData) {
+  ElMessageBox.prompt('', t('rename') + data.name, {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    inputPattern: /.+/,
+    inputErrorMessage: 'Name required',
+  })
+    .then(({ value }) => {
+      fileListLoading.value = true
+      new NginxConfigRename({
+        serverId: serverId.value,
+        dir: data.dir,
+        currentName: data.name,
+        newName: value,
+      })
+        .request()
+        .then(() => {
+          ElMessage.success('Success')
+          const pos = fileList.value.findIndex(
+            (item) => item.name === data.name
+          )
+          fileList.value[pos].name = value
+        })
+        .finally(() => {
+          fileListLoading.value = false
+        })
+    })
+    .catch()
+}
+
+function handleDelete(data: ServerNginxData) {
+  const file = path.normalize(data.dir + '/' + data.name)
+  ElMessageBox.confirm(t('deleteTips', { name: file }), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
+    .then(() => {
+      fileListLoading.value = true
+      new NginxConfigDelete({
+        serverId: serverId.value,
+        file: file,
+      })
+        .request()
+        .then(() => {
+          ElMessage.success('Success')
+          const pos = fileList.value.findIndex(
+            (item) => item.name === data.name
+          )
+          fileList.value.splice(pos, 1)
+        })
+        .finally(() => {
+          fileListLoading.value = false
+        })
+    })
+    .catch()
 }
 </script>
 <style lang="scss" scoped>
