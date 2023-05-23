@@ -284,7 +284,7 @@
     "item": "条目",
     "formula": "公式",
     "cycle": "周期",
-    "vaildPeriod": "有效时段",
+    "validPeriod": "有效时段",
     "silentCycle": "通道沉默周期",
     "advance": "高级选项",
     "transferFile": "传输文件",

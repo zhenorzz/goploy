@@ -161,7 +161,7 @@
             </el-col>
           </el-row>
         </el-form-item>
-        <el-form-item :label="$t('serverPage.vaildPeriod')">
+        <el-form-item :label="$t('serverPage.validPeriod')">
           <el-row>
             <el-col :span="12">
               <el-time-select
