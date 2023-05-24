@@ -6,7 +6,6 @@ import (
 	"gopkg.in/go-playground/validator.v9"
 	enTranslations "gopkg.in/go-playground/validator.v9/translations/en"
 	"reflect"
-	"strings"
 )
 
 // Validate use a single instance of Validate, it caches struct info
@@ -22,10 +21,20 @@ func init() {
 	Validate = validator.New()
 	_ = enTranslations.RegisterDefaultTranslations(Validate, Trans)
 	Validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		name := fld.Tag.Get("json")
+
+		if name == "" {
+			name = fld.Tag.Get("schema")
+		}
+
+		if name == "" {
+			name = fld.Name
+		}
+
 		if name == "-" {
 			return ""
 		}
+
 		return name
 	})
 

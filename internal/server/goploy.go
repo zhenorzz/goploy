@@ -44,6 +44,10 @@ func (g *Goploy) Decode(v interface{}) error {
 	}
 
 	if err := _validator.Validate.Struct(v); err != nil {
+		if err, ok := err.(*validator.InvalidValidationError); ok {
+			return err
+		}
+
 		for _, err := range err.(validator.ValidationErrors) {
 			return errors.New(err.Translate(_validator.Trans))
 		}

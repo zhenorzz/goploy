@@ -1256,15 +1256,11 @@ func (Server) ExecScript(gp *server.Goploy) server.Response {
 func (Server) GetNginxConfigList(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ServerID int64  `schema:"serverId" validate:"gt=0"`
-		Dir      string `schema:"dir" validate:"required"`
+		Dir      string `schema:"dir" validate:"filepath"`
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
-	}
-
-	if !pkg.IsFilePath(reqData.Dir) {
-		return response.JSON{Code: response.Error, Message: "please input the correct file path"}
 	}
 
 	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
@@ -1376,16 +1372,12 @@ func (Server) GetNginxConfigList(gp *server.Goploy) server.Response {
 func (Server) ManageNginx(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ServerID int64  `json:"serverId" validate:"gt=0"`
-		Path     string `json:"path" validate:"required"`
+		Path     string `json:"path" validate:"filepath"`
 		Command  string `json:"command" validate:"required"`
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	if !pkg.IsFilePath(reqData.Path) {
-		return response.JSON{Code: response.Error, Message: "please input the correct file path"}
 	}
 
 	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
@@ -1622,7 +1614,7 @@ func (Server) GetNginxPath(gp *server.Goploy) server.Response {
 func (Server) RenameNginxConfig(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ServerID    int64  `json:"serverId" validate:"gt=0"`
-		Dir         string `json:"dir" validate:"required"`
+		Dir         string `json:"dir" validate:"filepath"`
 		NewName     string `json:"newName" validate:"required"`
 		CurrentName string `json:"currentName" validate:"required"`
 	}

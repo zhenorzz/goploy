@@ -8,11 +8,7 @@ import (
 
 func registerFilepath() {
 	_ = Validate.RegisterValidation("filepath", func(fl validator.FieldLevel) bool {
-		filepath := fl.Field().String()
-		if pkg.IsFilePath(filepath) {
-			return true
-		}
-		return false
+		return pkg.IsFilePath(fl.Field().String())
 	})
 
 	_ = Validate.RegisterTranslation("filepath", Trans, func(ut ut.Translator) error {
