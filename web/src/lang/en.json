@@ -166,6 +166,7 @@
     "serverProcess": "Process",
     "serverCrontab": "Crontab UI",
     "serverCron": "Cron",
+    "serverNginx": "Nginx",
     "namespace": "Namespace",
     "namespaceSetting": "NS setting",
     "roleSetting": "Role setting",
@@ -253,7 +254,12 @@
     "DeleteServerProcess": "Delete the server process",
     "SFTPTransferFile": "Can transfer file via SFTP",
     "SFTPDeleteFile": "Can delete file via SFTP",
-    "ShowServerScriptPage": "Can execute script"
+    "ShowServerScriptPage": "Can execute script",
+    "ShowServerNginxPage": "See the server nginx page",
+    "ManageServerNginx": "Manage nginx process",
+    "EditNginxConfig": "Edit the nginx config",
+    "AddNginxConfig": "Add the nginx config",
+    "DeleteNginxConfig": "Delete the nginx config"
   },
   "tagsView": {
     "refresh": "Refresh",
@@ -308,7 +314,8 @@
     "advance": "Advanced setting",
     "transferFile": "Transfer file",
     "sftpFileCount": "items",
-    "saveTemplate": "Save template"
+    "saveTemplate": "Save template",
+    "execTips": "Exec command {command}?"
   },
   "monitorPage": {
     "defaultServer": "Follow Host",

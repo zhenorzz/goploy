@@ -7,25 +7,11 @@ package server
 import (
 	"github.com/vearutop/statigz"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/web"
 	"io/fs"
 	"log"
 	"net/http"
-	"net/url"
 )
-
-type Goploy struct {
-	UserInfo  model.User
-	Namespace struct {
-		ID            int64
-		PermissionIDs map[int64]struct{}
-	}
-	Request        *http.Request
-	ResponseWriter http.ResponseWriter
-	URLQuery       url.Values
-	Body           []byte
-}
 
 type Response interface {
 	Write(http.ResponseWriter, *http.Request) error

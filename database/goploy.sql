@@ -474,6 +474,11 @@ INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALU
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (76, 23, 'SFTPDeleteFile', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (77, 23, 'ShowServerScriptPage', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (78, 23, 'SFTPEditFile', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (79, 23, 'ShowServerNginxPage', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (80, 23, 'ManageServerNginx', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (81, 23, 'AddNginxConfig', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (82, 23, 'EditNginxConfig', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (83, 23, 'DeleteNginxConfig', 0, '');
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 13);
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 14);
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 15);
