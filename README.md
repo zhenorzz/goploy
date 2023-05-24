@@ -98,7 +98,7 @@ go build -o goploy cmd/server/main.go
 2. go mod required
 3. edit goploy.toml `cp goploy.example.toml goploy.toml`
 4. build [Frontend](#Frontend)
-5. run `go run main.go --asset-dir=./`
+5. run `cd cmd/server && go run main.go --asset-dir=../../`
 6. use gin (hot reload)
 
 ## Frontend
