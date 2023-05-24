@@ -17,6 +17,7 @@ import (
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
+	"github.com/zhenorzz/goploy/internal/validator"
 	"io"
 	"net/http"
 	"os"
@@ -210,19 +211,19 @@ func (Server) Import(gp *server.Goploy) server.Response {
 					NamespaceID: gp.Namespace.ID,
 				}
 				srv.Name = record[headerIdx["name"]]
-				err = Validate.Var(srv.Name, "required")
+				err = validator.Validate.Var(srv.Name, "required")
 				if err != nil {
 					errMsg += "name,"
 				}
 
 				srv.OS = record[headerIdx["os"]]
-				err = Validate.Var(srv.OS, "oneof=linux windows")
+				err = validator.Validate.Var(srv.OS, "oneof=linux windows")
 				if err != nil {
 					errMsg += "os,"
 				}
 
 				srv.IP = record[headerIdx["host"]]
-				err = Validate.Var(srv.IP, "ip|hostname")
+				err = validator.Validate.Var(srv.IP, "ip|hostname")
 				if err != nil {
 					errMsg += "host,"
 				}
@@ -233,13 +234,13 @@ func (Server) Import(gp *server.Goploy) server.Response {
 				}
 
 				srv.Owner = record[headerIdx["owner"]]
-				err = Validate.Var(srv.Owner, "required,max=255")
+				err = validator.Validate.Var(srv.Owner, "required,max=255")
 				if err != nil {
 					errMsg += "owner,"
 				}
 
 				srv.Path = record[headerIdx["path"]]
-				err = Validate.Var(record[headerIdx["path"]], "max=255")
+				err = validator.Validate.Var(record[headerIdx["path"]], "max=255")
 				if err != nil {
 					errMsg += "path,"
 				}
