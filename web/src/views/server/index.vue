@@ -310,10 +310,10 @@
           </el-button>
         </el-form-item>
         <template v-if="formProps.showAdvance">
-          <el-form-item label="Jump host">
+          <el-form-item :label="$t('serverPage.jumpHost')">
             <el-input v-model="formData.jumpIP" autocomplete="off" />
           </el-form-item>
-          <el-form-item label="Jump port">
+          <el-form-item :label="$t('serverPage.jumpPort')">
             <el-input v-model.number="formData.jumpPort" autocomplete="off" />
           </el-form-item>
           <el-form-item :label="$t('serverPage.loginType')">

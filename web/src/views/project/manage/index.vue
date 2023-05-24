@@ -1180,6 +1180,8 @@ function handleEdit(data: ProjectData) {
   formProps.value.reviewURL = ''
   formProps.value.reviewURLParam = []
   formProps.value.disabled = true
+  formData.value.userIds = []
+  formData.value.serverIds = []
   formProps.value.tag = data.tag != '' ? data.tag.split(',') : []
   Promise.all([
     new ProjectUserList({ id: data.id }).request(),

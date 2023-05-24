@@ -12,7 +12,9 @@
       label-position="left"
     >
       <div class="title-container">
-        <h3 class="title">Sign in to Goploy</h3>
+        <h3 class="title">
+          Sign in to Goploy <sub>{{ version }}</sub>
+        </h3>
       </div>
 
       <el-form-item prop="account" class="login-form-input">
@@ -72,6 +74,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import type { ElForm } from 'element-plus'
 import { ref, watch, nextTick } from 'vue'
+const version = import.meta.env.VITE_APP_VERSION
 const store = useStore()
 const router = useRouter()
 const form = ref<InstanceType<typeof ElForm>>()
@@ -117,7 +120,6 @@ watch(
   useRoute(),
   (route) => {
     redirect.value = route.query?.redirect
-    console.log(route.query)
     if (route.query['account'] && route.query['time'] && route.query['token']) {
       handleExtLogin(
         route.query['account'] as string,
@@ -200,7 +202,6 @@ $cursor: #2f2f2f;
     width: 85%;
     background: $bg;
     border: none;
-    -webkit-appearance: none;
     padding: 12px 5px 12px 15px;
     color: #2f2f2f;
     height: 40px;

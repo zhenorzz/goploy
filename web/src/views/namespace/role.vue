@@ -78,7 +78,7 @@
         </el-table-column>
       </el-table>
     </el-row>
-    <el-row type="flex" justify="end">
+    <el-row type="flex" justify="end" class="app-page">
       <el-pagination
         :total="tablePage.total"
         :page-size="pagination.rows"

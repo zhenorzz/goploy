@@ -9,7 +9,11 @@ import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 // https://vitejs.dev/config/
 export default ({ mode }: ConfigEnv): UserConfigExport => {
-  process.env = { ...process.env, ...loadEnv(mode, process.cwd()) }
+  process.env = {
+    ...process.env,
+    ...loadEnv(mode, process.cwd()),
+    VITE_APP_VERSION: process.env.npm_package_version,
+  }
   return defineConfig({
     resolve: {
       alias: [{ find: '@', replacement: path.resolve(__dirname, 'src') }],

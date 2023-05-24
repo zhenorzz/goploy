@@ -151,12 +151,12 @@ func (ps ProjectServer) ToSSHOption() string {
 	if ps.ServerJumpIP != "" {
 		if ps.ServerJumpPath != "" {
 			if ps.ServerJumpPassword != "" {
-				proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", ps.ServerPassword, ps.ServerJumpPath, ps.ServerJumpPort, ps.ServerJumpOwner, ps.ServerJumpIP)
+				proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", ps.ServerJumpPassword, ps.ServerJumpPath, ps.ServerJumpPort, ps.ServerJumpOwner, ps.ServerJumpIP)
 			} else {
 				proxyCommand = fmt.Sprintf("-o ProxyCommand='ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", ps.ServerJumpPath, ps.ServerJumpPort, ps.ServerJumpOwner, ps.ServerJumpIP)
 			}
 		} else {
-			proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s ssh -o StrictHostKeyChecking=no -W %%h:%%p -p %d %s@%s' ", ps.ServerPassword, ps.ServerJumpPort, ps.ServerJumpOwner, ps.ServerJumpIP)
+			proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s ssh -o StrictHostKeyChecking=no -W %%h:%%p -p %d %s@%s' ", ps.ServerJumpPassword, ps.ServerJumpPort, ps.ServerJumpOwner, ps.ServerJumpIP)
 		}
 	}
 	if ps.ServerPath != "" {
