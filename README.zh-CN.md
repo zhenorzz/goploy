@@ -102,7 +102,7 @@ go build -o goploy cmd/server/main.go
 2. 项目使用 go mod 管理
 3. 修改 goploy.toml `cp goploy.example.toml goploy.toml`
 4. 需要编译一次前端 [前端开发说明](#前端开发说明)
-5. 运行 `go run main.go --asset-dir=./`
+5. 运行 `cd cmd/server && go run main.go --asset-dir=../../`
 6. 或者使用 gin（可以热更新代码，改变就生效）
 
 ## 前端开发说明
