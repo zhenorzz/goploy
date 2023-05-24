@@ -1253,13 +1253,20 @@ func (Server) ExecScript(gp *server.Goploy) server.Response {
 }
 
 func (Server) GetNginxConfigList(gp *server.Goploy) server.Response {
-	nginxPath := gp.URLQuery.Get("dir")
-	if !pkg.IsFilePath(nginxPath) {
+	type ReqData struct {
+		ServerID int64  `schema:"serverId" validate:"gt=0"`
+		Dir      string `schema:"dir" validate:"required"`
+	}
+	var reqData ReqData
+	if err := gp.Decode(&reqData); err != nil {
+		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
+	}
+
+	if !pkg.IsFilePath(reqData.Dir) {
 		return response.JSON{Code: response.Error, Message: "please input the correct file path"}
 	}
 
-	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
-	srv, err := (model.Server{ID: serverID}).GetData()
+	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -1276,7 +1283,7 @@ func (Server) GetNginxConfigList(gp *server.Goploy) server.Response {
 	}
 	defer session.Close()
 
-	output, err := session.CombinedOutput(nginxPath + " -t")
+	output, err := session.CombinedOutput(reqData.Dir + " -t")
 
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: fmt.Sprintf("output: %s", output)}
@@ -1372,7 +1379,7 @@ func (Server) ManageNginx(gp *server.Goploy) server.Response {
 		Command  string `json:"command" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -1431,7 +1438,7 @@ func (Server) ManageNginx(gp *server.Goploy) server.Response {
 	}
 
 	outputString := string(output)
-	log.Trace(fmt.Sprintf("%s exec nginx cmd %s, result %t, output: %s", gp.UserInfo.Name, script, err == nil, outputString))
+
 	return response.JSON{
 		Data: struct {
 			ExecRes bool   `json:"execRes"`
@@ -1441,9 +1448,17 @@ func (Server) ManageNginx(gp *server.Goploy) server.Response {
 }
 
 func (Server) GetNginxConfContent(gp *server.Goploy) server.Response {
-	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
+	type ReqData struct {
+		ServerID int64  `schema:"serverId" validate:"gt=0"`
+		Dir      string `schema:"dir" validate:"required"`
+		Filename string `schema:"filename" validate:"required"`
+	}
+	var reqData ReqData
+	if err := gp.Decode(&reqData); err != nil {
+		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
+	}
 
-	srv, err := (model.Server{ID: serverID}).GetData()
+	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -1460,10 +1475,7 @@ func (Server) GetNginxConfContent(gp *server.Goploy) server.Response {
 	}
 	defer sftpClient.Close()
 
-	dir := gp.URLQuery.Get("dir")
-	filename := gp.URLQuery.Get("filename")
-
-	configFile, err := sftpClient.Open(path.Join(dir, filename))
+	configFile, err := sftpClient.Open(path.Join(reqData.Dir, reqData.Filename))
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -1489,7 +1501,7 @@ func (Server) EditNginxConfig(gp *server.Goploy) server.Response {
 		Content  string `json:"content" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -1532,7 +1544,7 @@ func (Server) CopyNginxConfig(gp *server.Goploy) server.Response {
 		DstName  string `json:"dstName" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -1564,8 +1576,15 @@ func (Server) CopyNginxConfig(gp *server.Goploy) server.Response {
 }
 
 func (Server) GetNginxPath(gp *server.Goploy) server.Response {
-	serverID, err := strconv.ParseInt(gp.URLQuery.Get("serverId"), 10, 64)
-	srv, err := (model.Server{ID: serverID}).GetData()
+	type ReqData struct {
+		ServerID int64 `schema:"serverId" validate:"gt=0"`
+	}
+	var reqData ReqData
+	if err := gp.Decode(&reqData); err != nil {
+		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
+	}
+
+	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -1591,7 +1610,6 @@ func (Server) GetNginxPath(gp *server.Goploy) server.Response {
 	if err = session.Run(command); err != nil {
 		return response.JSON{Code: response.Error, Message: "err: " + err.Error() + ", detail: " + sshErrbuf.String()}
 	}
-	log.Trace(fmt.Sprintf("%s exec cmd %s, result %t, stdout: %s, stderr: %s", gp.UserInfo.Name, command, err == nil, sshOutbuf.String(), sshErrbuf.String()))
 
 	return response.JSON{
 		Data: struct {
@@ -1608,7 +1626,7 @@ func (Server) RenameNginxConfig(gp *server.Goploy) server.Response {
 		CurrentName string `json:"currentName" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -1642,7 +1660,7 @@ func (Server) DeleteNginxConfig(gp *server.Goploy) server.Response {
 		ServerID int64  `json:"serverId" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

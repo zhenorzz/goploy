@@ -152,6 +152,15 @@
         lang="nginx"
         :theme="isDark ? 'one_dark' : 'github'"
         style="height: 500px; width: 100%"
+        :options="{
+          enableBasicAutocompletion: true,
+          enableSnippets: true,
+          enableLiveAutocompletion: true,
+          fontSize: 14,
+          tabSize: 2,
+          showPrintMargin: false, // Remove vertical lines from the editor
+          highlightActiveLine: true,
+        }"
       />
       <template #footer>
         <el-button
@@ -197,6 +206,7 @@ import { ManageNginx } from '@/api/server'
 import { useDark } from '@vueuse/core'
 import { VAceEditor } from 'vue3-ace-editor'
 import * as ace from 'ace-builds/src-noconflict/ace'
+import 'ace-builds/src-noconflict/ext-language_tools'
 import path from 'path-browserify'
 ace.config.set(
   'basePath',

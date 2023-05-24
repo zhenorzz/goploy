@@ -241,7 +241,8 @@
     "ShowServerNginxPage": "查看Nginx管理",
     "ManageServerNginx": "Nginx进程管理",
     "EditNginxConfig": "编辑Nginx配置文件",
-    "CopyNginxConfig": "复制Nginx配置文件"
+    "AddNginxConfig": "添加Nginx配置文件",
+    "DeleteNginxConfig": "删除Nginx配置文件"
   },
   "tagsView": {
     "refresh": "刷新",

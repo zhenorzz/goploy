@@ -258,7 +258,8 @@
     "ShowServerNginxPage": "See the server nginx page",
     "ManageServerNginx": "Manage nginx process",
     "EditNginxConfig": "Edit the nginx config",
-    "CopyNginxConfig": "Copy the nginx config"
+    "AddNginxConfig": "Add the nginx config",
+    "DeleteNginxConfig": "Delete the nginx config"
   },
   "tagsView": {
     "refresh": "Refresh",
