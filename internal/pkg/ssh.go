@@ -31,35 +31,45 @@ type SSHConfig struct {
 }
 
 func (sshConfig SSHConfig) Dial() (*ssh.Client, error) {
-	clientConfig, err := sshConfig.getConfig(sshConfig.User, sshConfig.Password, sshConfig.Path)
-	if err != nil {
-		return nil, err
-	}
-	// connect to ssh
-	sshClient, err := ssh.Dial("tcp", sshConfig.addr(), clientConfig)
-	if err != nil {
-		return nil, err
-	}
-
 	if sshConfig.JumpHost != "" {
-		conn, err := sshClient.Dial("tcp", sshConfig.jumpAddr())
+		// 连接跳板机
+		clientConfig, err := sshConfig.getConfig(sshConfig.JumpUser, sshConfig.JumpPassword, sshConfig.JumpPath)
+		if err != nil {
+			return nil, err
+		}
+		sshClient, err := ssh.Dial("tcp", sshConfig.jumpAddr(), clientConfig)
 		if err != nil {
 			return nil, err
 		}
 
-		targetConfig, err := sshConfig.getConfig(sshConfig.JumpUser, sshConfig.JumpPassword, sshConfig.JumpPath)
+		// 连接目标机
+		conn, err := sshClient.Dial("tcp", sshConfig.addr())
 		if err != nil {
 			return nil, err
 		}
-		ncc, chans, reqs, err := ssh.NewClientConn(conn, sshConfig.jumpAddr(), targetConfig)
+		targetConfig, err := sshConfig.getConfig(sshConfig.User, sshConfig.Password, sshConfig.Path)
+		if err != nil {
+			return nil, err
+		}
+		ncc, chans, reqs, err := ssh.NewClientConn(conn, sshConfig.addr(), targetConfig)
 		if err != nil {
 			return nil, err
 		}
 
 		sshClient = ssh.NewClient(ncc, chans, reqs)
+		return sshClient, err
+	} else {
+		clientConfig, err := sshConfig.getConfig(sshConfig.User, sshConfig.Password, sshConfig.Path)
+		if err != nil {
+			return nil, err
+		}
+		// connect to ssh
+		sshClient, err := ssh.Dial("tcp", sshConfig.addr(), clientConfig)
+		if err != nil {
+			return nil, err
+		}
+		return sshClient, err
 	}
-
-	return sshClient, err
 }
 
 // version|cpu cores|mem
