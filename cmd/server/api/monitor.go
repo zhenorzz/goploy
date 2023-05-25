@@ -71,7 +71,7 @@ func (Monitor) Check(gp *server.Goploy) server.Response {
 		sb.WriteString("MonitorErr : ")
 		sb.WriteString(err.Error())
 		if e, ok := err.(monitor.ScriptError); ok {
-			serverID = e.ServerId
+			serverID = e.ServerID
 		}
 
 		err = ms.RunFailScript(serverID)

@@ -111,21 +111,21 @@ func monitorTask() {
 						}
 					}
 				}
-				var serverId int64
-				if e, ok := err.(monitor.ScriptError); ok {
-					serverId = e.ServerId
+				var serverID int64
+				if err, ok := err.(monitor.ScriptError); ok {
+					serverID = err.ServerID
 				}
-				err = ms.RunFailScript(serverId)
-				if err != nil {
+
+				if err = ms.RunFailScript(serverID); err != nil {
 					log.Error("Failed to run fail script ." + err.Error())
 				}
 			} else {
 				for _, item := range ms.Items {
-					serverId, err := strconv.ParseInt(item, 10, 64)
+					serverID, err := strconv.ParseInt(item, 10, 64)
 					if err != nil {
 						err = ms.RunSuccessScript(-1)
 					} else {
-						err = ms.RunSuccessScript(serverId)
+						err = ms.RunSuccessScript(serverID)
 					}
 					if err != nil {
 						log.Error("Failed to run successful script ." + err.Error())

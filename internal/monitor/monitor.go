@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	model2 "github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"golang.org/x/crypto/ssh"
 	"net"
 	"net/http"
@@ -21,7 +21,7 @@ import (
 
 type ScriptError struct {
 	Message  string
-	ServerId int64
+	ServerID int64
 }
 
 func (se ScriptError) Error() string {
@@ -29,20 +29,20 @@ func (se ScriptError) Error() string {
 }
 
 func (se ScriptError) Server() int64 {
-	return se.ServerId
+	return se.ServerID
 }
 
 type Script struct {
-	ServerId int64
+	ServerID int64
 	Content  string
 }
 
 func (s Script) IsValid() bool {
 	return s.Content != ""
 }
-func NewScript(serverId int64, script string) Script {
+func NewScript(serverID int64, script string) Script {
 	return Script{
-		ServerId: serverId,
+		ServerID: serverID,
 		Content:  script,
 	}
 }
@@ -150,51 +150,64 @@ func (m Monitor) CheckScript() error {
 		session.Stdout = &stdout
 		session.Stderr = &stderr
 		if err := session.Run(server.ReplaceVars(m.Script)); err != nil {
-			return ScriptError{Message: err.Error() + ", stdout: " + stdout.String() + ", stderr: " + stderr.String(), ServerId: serverID}
+			return ScriptError{Message: err.Error() + ", stdout: " + stdout.String() + ", stderr: " + stderr.String(), ServerID: serverID}
 		}
 	}
 	return nil
 }
-func (m Monitor) RunFailScript(serverId int64) error {
+func (m Monitor) RunFailScript(serverID int64) error {
 	if m.FailScript.IsValid() {
-		sId := m.FailScript.ServerId
-		if sId == 0 {
-			if serverId == -1 {
-				return errors.New("the server is not set")
+		sId := m.FailScript.ServerID
+		if sId == 0 && serverID != -1 {
+			sId = serverID
+		}
+
+		if sId != -1 {
+			server, session, err := NewServerSession(sId, m.Timeout*time.Second)
+			if err != nil {
+				return err
 			}
-			sId = serverId
+			return session.Run(server.ReplaceVars(m.FailScript.Content))
+		} else {
+			cmd := exec.Command(m.FailScript.Content)
+			if output, err := cmd.CombinedOutput(); err != nil {
+				return fmt.Errorf("err: %s, detail: %s", err, string(output))
+			}
 		}
-		server, session, err := NewServerSession(sId, m.Timeout*time.Second)
-		if err != nil {
-			return err
-		}
-		return session.Run(server.ReplaceVars(m.FailScript.Content))
+
 	}
 	return nil
 }
-func (m Monitor) RunSuccessScript(serverId int64) error {
+func (m Monitor) RunSuccessScript(serverID int64) error {
 	if m.SuccessScript.IsValid() {
-		sId := m.SuccessScript.ServerId
-		if sId == 0 {
-			if serverId == -1 {
-				return errors.New("the server is not set")
+		sId := m.SuccessScript.ServerID
+
+		if sId == 0 && serverID != -1 {
+			sId = serverID
+		}
+
+		if sId != -1 {
+			server, session, err := NewServerSession(sId, m.Timeout*time.Second)
+			if err != nil {
+				return err
 			}
-			sId = serverId
+			return session.Run(server.ReplaceVars(m.SuccessScript.Content))
+		} else {
+			cmd := exec.Command(m.SuccessScript.Content)
+			if output, err := cmd.CombinedOutput(); err != nil {
+				return fmt.Errorf("err: %s, detail: %s", err, string(output))
+			}
 		}
-		server, session, err := NewServerSession(sId, m.Timeout*time.Second)
-		if err != nil {
-			return err
-		}
-		return session.Run(server.ReplaceVars(m.SuccessScript.Content))
+
 	}
 	return nil
 }
 
-func NewServerSession(serverId int64, timeout time.Duration) (model2.Server, *ssh.Session, error) {
-	server, err := (model2.Server{ID: serverId}).GetData()
+func NewServerSession(serverID int64, timeout time.Duration) (model.Server, *ssh.Session, error) {
+	server, err := (model.Server{ID: serverID}).GetData()
 	if err != nil {
 		return server, nil, err
-	} else if server.State == model2.Disable {
+	} else if server.State == model.Disable {
 		return server, nil, errors.New("Server Disable [" + server.Name + "]")
 	}
 	client, err := server.ToSSHConfig().SetTimeout(timeout).Dial()
