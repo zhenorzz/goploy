@@ -22,7 +22,7 @@ type Project struct {
 	RepoType              string `json:"repoType"`
 	Name                  string `json:"name"`
 	URL                   string `json:"url"`
-	Tag                   string `json:"tag"`
+	Label                 string `json:"label"`
 	Path                  string `json:"path"`
 	Environment           uint8  `json:"environment"`
 	Branch                string `json:"branch"`
@@ -89,7 +89,7 @@ func (p Project) AddRow() (int64, error) {
 			"name",
 			"repo_type",
 			"url",
-			"tag",
+			"label",
 			"path",
 			"environment",
 			"branch",
@@ -112,7 +112,7 @@ func (p Project) AddRow() (int64, error) {
 			p.Name,
 			p.RepoType,
 			p.URL,
-			p.Tag,
+			p.Label,
 			p.Path,
 			p.Environment,
 			p.Branch,
@@ -139,8 +139,8 @@ func (p Project) AddRow() (int64, error) {
 	return id, err
 }
 
-func (p Project) GetTagList() (tags []string, err error) {
-	builder := sq.Select("tag").
+func (p Project) GetLabelList() (labels []string, err error) {
+	builder := sq.Select("label").
 		From(projectTable).
 		Where(sq.Eq{
 			"namespace_id": p.NamespaceID,
@@ -160,25 +160,25 @@ func (p Project) GetTagList() (tags []string, err error) {
 	if err != nil {
 		return nil, err
 	}
-	tagMap := map[string]bool{}
-	var tag string
+	labelMap := map[string]bool{}
+	var label string
 	for rows.Next() {
-		if err := rows.Scan(&tag); err != nil {
+		if err := rows.Scan(&label); err != nil {
 			return nil, err
 		}
-		if tag != "" {
-			for _, item := range strings.Split(tag, ",") {
-				tagMap[item] = false
+		if label != "" {
+			for _, item := range strings.Split(label, ",") {
+				labelMap[item] = false
 			}
 		}
 	}
-	tags = make([]string, len(tagMap))
+	labels = make([]string, len(labelMap))
 	var i int
-	for k := range tagMap {
-		tags[i] = k
+	for k := range labelMap {
+		labels[i] = k
 		i++
 	}
-	return tags, nil
+	return labels, nil
 }
 func (p Project) EditRow() error {
 	_, err := sq.
@@ -187,7 +187,7 @@ func (p Project) EditRow() error {
 			"name":                     p.Name,
 			"repo_type":                p.RepoType,
 			"url":                      p.URL,
-			"tag":                      p.Tag,
+			"label":                    p.Label,
 			"path":                     p.Path,
 			"environment":              p.Environment,
 			"branch":                   p.Branch,
@@ -300,7 +300,7 @@ func (p Project) GetList() (Projects, error) {
 			name, 
 			repo_type, 
 			url, 
-			tag, 
+			label, 
 			path, 
 			environment,
 			branch,
@@ -350,7 +350,7 @@ func (p Project) GetList() (Projects, error) {
 			&project.Name,
 			&project.RepoType,
 			&project.URL,
-			&project.Tag,
+			&project.Label,
 			&project.Path,
 			&project.Environment,
 			&project.Branch,
@@ -387,7 +387,7 @@ func (p Project) GetDeployList() (Projects, error) {
 			project.repo_type,
 			project.transfer_type,
 			project.url,
-			project.tag,
+			project.label,
 			project.publisher_id,
 			project.publisher_name,
 			IFNULL(publish_trace.ext, '{}'),
@@ -430,7 +430,7 @@ func (p Project) GetDeployList() (Projects, error) {
 			&project.RepoType,
 			&project.TransferType,
 			&project.URL,
-			&project.Tag,
+			&project.Label,
 			&project.PublisherID,
 			&project.PublisherName,
 			&project.PublishExt,
@@ -460,7 +460,7 @@ func (p Project) GetData() (Project, error) {
 			name, 
 			repo_type, 
 			url, 
-			tag, 
+			label, 
 			path, 
 			environment, 
 			branch, 
@@ -493,7 +493,7 @@ func (p Project) GetData() (Project, error) {
 			&project.Name,
 			&project.RepoType,
 			&project.URL,
-			&project.Tag,
+			&project.Label,
 			&project.Path,
 			&project.Environment,
 			&project.Branch,

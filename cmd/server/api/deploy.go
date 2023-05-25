@@ -18,7 +18,7 @@ import (
 	"github.com/zhenorzz/goploy/cmd/server/task"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/log"
-	model2 "github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/internal/pkg/cmd"
 	"github.com/zhenorzz/goploy/internal/repo"
@@ -56,12 +56,12 @@ func (d Deploy) Handler() []server.Route {
 }
 
 func (Deploy) GetList(gp *server.Goploy) server.Response {
-	var projects model2.Projects
+	var projects model.Projects
 	var err error
 	if _, ok := gp.Namespace.PermissionIDs[config.GetAllDeployList]; ok {
-		projects, err = model2.Project{NamespaceID: gp.Namespace.ID}.GetDeployList()
+		projects, err = model.Project{NamespaceID: gp.Namespace.ID}.GetDeployList()
 	} else {
-		projects, err = model2.Project{NamespaceID: gp.Namespace.ID, UserID: gp.UserInfo.ID}.GetDeployList()
+		projects, err = model.Project{NamespaceID: gp.Namespace.ID, UserID: gp.UserInfo.ID}.GetDeployList()
 	}
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
@@ -69,7 +69,7 @@ func (Deploy) GetList(gp *server.Goploy) server.Response {
 
 	return response.JSON{
 		Data: struct {
-			Project model2.Projects `json:"list"`
+			Project model.Projects `json:"list"`
 		}{Project: projects},
 	}
 }
@@ -90,7 +90,7 @@ func (Deploy) GetPreview(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	pagination, err := model2.PaginationFrom(gp.URLQuery)
+	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -100,7 +100,7 @@ func (Deploy) GetPreview(gp *server.Goploy) server.Response {
 		tm2, _ := time.Parse("2006-01-02 15:04:05", date)
 		commitDate[i] = strconv.FormatInt(tm2.Unix(), 10)
 	}
-	gitTraceList, pagination, err := model2.PublishTrace{
+	gitTraceList, pagination, err := model.PublishTrace{
 		ProjectID:   reqData.ProjectID,
 		PublisherID: reqData.UserID,
 		State:       reqData.State,
@@ -117,15 +117,15 @@ func (Deploy) GetPreview(gp *server.Goploy) server.Response {
 	}
 	return response.JSON{
 		Data: struct {
-			GitTraceList model2.PublishTraces `json:"list"`
-			Pagination   model2.Pagination    `json:"pagination"`
+			GitTraceList model.PublishTraces `json:"list"`
+			Pagination   model.Pagination    `json:"pagination"`
 		}{GitTraceList: gitTraceList, Pagination: pagination},
 	}
 }
 
 func (Deploy) GetPublishTrace(gp *server.Goploy) server.Response {
 	lastPublishToken := gp.URLQuery.Get("lastPublishToken")
-	publishTraceList, err := model2.PublishTrace{Token: lastPublishToken}.GetListByToken()
+	publishTraceList, err := model.PublishTrace{Token: lastPublishToken}.GetListByToken()
 	if err == sql.ErrNoRows {
 		return response.JSON{Code: response.Error, Message: "No deploy record"}
 	} else if err != nil {
@@ -133,7 +133,7 @@ func (Deploy) GetPublishTrace(gp *server.Goploy) server.Response {
 	}
 	return response.JSON{
 		Data: struct {
-			PublishTraceList model2.PublishTraces `json:"list"`
+			PublishTraceList model.PublishTraces `json:"list"`
 		}{PublishTraceList: publishTraceList},
 	}
 }
@@ -143,7 +143,7 @@ func (Deploy) GetPublishTraceDetail(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	detail, err := model2.PublishTrace{ID: id}.GetDetail()
+	detail, err := model.PublishTrace{ID: id}.GetDetail()
 	if err == sql.ErrNoRows {
 		return response.JSON{Code: response.Error, Message: "No deploy record"}
 	} else if err != nil {
@@ -165,7 +165,7 @@ func (Deploy) ResetState(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := (model2.Project{ID: reqData.ProjectID}).ResetState(); err != nil {
+	if err := (model.Project{ID: reqData.ProjectID}).ResetState(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -182,7 +182,7 @@ func (Deploy) FileCompare(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	project, err := model2.Project{ID: reqData.ProjectID}.GetData()
+	project, err := model.Project{ID: reqData.ProjectID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -196,7 +196,7 @@ func (Deploy) FileCompare(gp *server.Goploy) server.Response {
 	hash := md5.New()
 	_, _ = io.Copy(hash, file)
 	srcMD5 := hex.EncodeToString(hash.Sum(nil))
-	projectServers, err := model2.ProjectServer{ProjectID: reqData.ProjectID}.GetBindServerListByProjectID()
+	projectServers, err := model.ProjectServer{ProjectID: reqData.ProjectID}.GetBindServerListByProjectID()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -217,7 +217,7 @@ func (Deploy) FileCompare(gp *server.Goploy) server.Response {
 
 	distPath := path.Join(project.Path, reqData.FilePath)
 	for _, projectServer := range projectServers {
-		go func(server model2.ProjectServer) {
+		go func(server model.ProjectServer) {
 			fileCompare := FileCompareData{server.ServerName, server.ServerIP, server.ServerID, "no change", false}
 			client, err := server.ToSSHConfig().Dial()
 			if err != nil {
@@ -273,7 +273,7 @@ func (Deploy) FileDiff(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	project, err := model2.Project{ID: reqData.ProjectID}.GetData()
+	project, err := model.Project{ID: reqData.ProjectID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -283,7 +283,7 @@ func (Deploy) FileDiff(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	srv, err := model2.Server{ID: reqData.ServerID}.GetData()
+	srv, err := model.Server{ID: reqData.ServerID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -327,15 +327,15 @@ func (Deploy) ManageProcess(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	projectProcess, err := model2.ProjectProcess{ID: reqData.ProjectProcessID}.GetData()
+	projectProcess, err := model.ProjectProcess{ID: reqData.ProjectProcessID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	project, err := (model2.Project{ID: projectProcess.ProjectID}).GetData()
+	project, err := (model.Project{ID: projectProcess.ProjectID}).GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	srv, err := (model2.Server{ID: reqData.ServerID}).GetData()
+	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -395,14 +395,14 @@ func (Deploy) Publish(gp *server.Goploy) server.Response {
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	project, err := model2.Project{ID: reqData.ProjectID}.GetData()
+	project, err := model.Project{ID: reqData.ProjectID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if project.DeployState == model2.ProjectNotDeploy {
+	if project.DeployState == model.ProjectNotDeploy {
 		err = projectDeploy(gp, project, "", "")
-	} else if project.Review == model2.Enable {
+	} else if project.Review == model.Enable {
 		err = projectReview(gp, project, reqData.Commit, reqData.Branch)
 	} else {
 		err = projectDeploy(gp, project, reqData.Commit, reqData.Branch)
@@ -422,17 +422,17 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	var err error
-	publishTraceList, err := model2.PublishTrace{Token: reqData.Token}.GetListByToken()
+	publishTraceList, err := model.PublishTrace{Token: reqData.Token}.GetListByToken()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	projectID := publishTraceList[0].ProjectID
-	project, err := model2.Project{ID: projectID}.GetData()
+	project, err := model.Project{ID: projectID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	projectServers, err := model2.ProjectServer{ProjectID: projectID}.GetBindServerListByProjectID()
+	projectServers, err := model.ProjectServer{ProjectID: projectID}.GetBindServerListByProjectID()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -447,12 +447,12 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 			break
 		}
 
-		if publishTrace.Type == model2.Pull {
+		if publishTrace.Type == model.Pull {
 			err := json.Unmarshal([]byte(publishTrace.Ext), &commitInfo)
 			if err != nil {
 				return response.JSON{Code: response.Error, Message: err.Error()}
 			}
-		} else if publishTrace.Type == model2.Deploy {
+		} else if publishTrace.Type == model.Deploy {
 			for _, projectServer := range projectServers {
 				if strings.Contains(publishTrace.Ext, projectServer.ServerIP) {
 					publishTraceServerCount++
@@ -469,7 +469,7 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 	if needToPublish == false {
 		ch := make(chan bool, len(projectServers))
 		for _, projectServer := range projectServers {
-			go func(projectServer model2.ProjectServer) {
+			go func(projectServer model.ProjectServer) {
 				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
 				cmdEntity := cmd.New(projectServer.ServerOS)
 				afterDeployCommands := []string{cmdEntity.Symlink(destDir, project.Path), cmdEntity.ChangeDirTime(destDir)}
@@ -532,7 +532,7 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 		}
 		close(ch)
 		if needToPublish == false {
-			_ = model2.PublishTrace{
+			_ = model.PublishTrace{
 				Token:      reqData.Token,
 				UpdateTime: time.Now().Format("20060102150405"),
 			}.EditUpdateTimeByToken()
@@ -552,7 +552,7 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 
 		project.PublisherID = gp.UserInfo.ID
 		project.PublisherName = gp.UserInfo.Name
-		project.DeployState = model2.ProjectDeploying
+		project.DeployState = model.ProjectDeploying
 		project.LastPublishToken = uuid.New().String()
 		err = project.Publish()
 		if err != nil {
@@ -580,19 +580,19 @@ func (Deploy) GreyPublish(gp *server.Goploy) server.Response {
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	project, err := model2.Project{ID: reqData.ProjectID}.GetData()
+	project, err := model.Project{ID: reqData.ProjectID}.GetData()
 
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	bindProjectServers, err := model2.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
+	bindProjectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
 
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	projectServers := model2.ProjectServers{}
+	projectServers := model.ProjectServers{}
 
 	for _, projectServer := range bindProjectServers {
 		for _, serverID := range reqData.ServerIDs {
@@ -604,7 +604,7 @@ func (Deploy) GreyPublish(gp *server.Goploy) server.Response {
 
 	project.PublisherID = gp.UserInfo.ID
 	project.PublisherName = gp.UserInfo.Name
-	project.DeployState = model2.ProjectDeploying
+	project.DeployState = model.ProjectDeploying
 	project.LastPublishToken = uuid.New().String()
 	err = project.Publish()
 	if err != nil {
@@ -632,7 +632,7 @@ func (Deploy) Review(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	projectReviewModel := model2.ProjectReview{
+	projectReviewModel := model.ProjectReview{
 		ID:       reqData.ProjectReviewID,
 		State:    reqData.State,
 		Editor:   gp.UserInfo.Name,
@@ -643,12 +643,12 @@ func (Deploy) Review(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if projectReview.State != model2.PENDING {
+	if projectReview.State != model.PENDING {
 		return response.JSON{Code: response.Error, Message: "Project review state is invalid"}
 	}
 
-	if reqData.State == model2.APPROVE {
-		project, err := model2.Project{ID: projectReview.ProjectID}.GetData()
+	if reqData.State == model.APPROVE {
+		project, err := model.Project{ID: projectReview.ProjectID}.GetData()
 		if err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
@@ -677,21 +677,21 @@ func (Deploy) Webhook(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	project, err := model2.Project{ID: projectID}.GetData()
+	project, err := model.Project{ID: projectID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if project.State != model2.Disable {
+	if project.State != model.Disable {
 		return response.JSON{Code: response.Deny, Message: "Project is disabled"}
 	}
 
-	if project.AutoDeploy != model2.ProjectWebhookDeploy {
+	if project.AutoDeploy != model.ProjectWebhookDeploy {
 		return response.JSON{Code: response.Deny, Message: "Webhook auto deploy turn off, go to project setting turn on"}
 	}
 
 	branch := ""
-	if project.RepoType == model2.RepoSVN {
+	if project.RepoType == model.RepoSVN {
 		branch = reqData.Ref
 	} else {
 		branch = strings.Split(reqData.Ref, "/")[2]
@@ -701,18 +701,18 @@ func (Deploy) Webhook(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Deny, Message: "Receive branch:" + branch + " push event, not equal to current branch"}
 	}
 
-	gp.UserInfo, err = model2.User{ID: 1}.GetData()
+	gp.UserInfo, err = model.User{ID: 1}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	projectServers, err := model2.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
+	projectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	project.PublisherID = gp.UserInfo.ID
 	project.PublisherName = "webhook"
-	project.DeployState = model2.ProjectDeploying
+	project.DeployState = model.ProjectDeploying
 	project.LastPublishToken = uuid.New().String()
 	err = project.Publish()
 	if err != nil {
@@ -732,9 +732,9 @@ func (Deploy) Callback(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	projectReviewModel := model2.ProjectReview{
+	projectReviewModel := model.ProjectReview{
 		ID:       projectReviewID,
-		State:    model2.APPROVE,
+		State:    model.APPROVE,
 		Editor:   "admin",
 		EditorID: 1,
 	}
@@ -743,11 +743,11 @@ func (Deploy) Callback(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if projectReview.State != model2.PENDING {
+	if projectReview.State != model.PENDING {
 		return response.JSON{Code: response.Error, Message: "Project review state is invalid"}
 	}
 
-	project, err := model2.Project{ID: projectReview.ProjectID}.GetData()
+	project, err := model.Project{ID: projectReview.ProjectID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -762,14 +762,14 @@ func (Deploy) Callback(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
-func projectDeploy(gp *server.Goploy, project model2.Project, commitID string, branch string) error {
-	projectServers, err := model2.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
+func projectDeploy(gp *server.Goploy, project model.Project, commitID string, branch string) error {
+	projectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
 	if err != nil {
 		return err
 	}
 	project.PublisherID = gp.UserInfo.ID
 	project.PublisherName = gp.UserInfo.Name
-	project.DeployState = model2.ProjectDeploying
+	project.DeployState = model.ProjectDeploying
 	project.LastPublishToken = uuid.New().String()
 	err = project.Publish()
 	if err != nil {
@@ -785,11 +785,11 @@ func projectDeploy(gp *server.Goploy, project model2.Project, commitID string, b
 	return nil
 }
 
-func projectReview(gp *server.Goploy, project model2.Project, commitID string, branch string) error {
+func projectReview(gp *server.Goploy, project model.Project, commitID string, branch string) error {
 	if len(commitID) == 0 {
 		return errors.New("commit id is required")
 	}
-	projectReviewModel := model2.ProjectReview{
+	projectReviewModel := model.ProjectReview{
 		ProjectID: project.ID,
 		Branch:    branch,
 		CommitID:  commitID,

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
-	model2 "github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/internal/repo"
 	"github.com/zhenorzz/goploy/internal/server"
@@ -28,7 +28,7 @@ type Project API
 func (p Project) Handler() []server.Route {
 	return []server.Route{
 		server.NewRoute("/project/getList", http.MethodGet, p.GetList).Permissions(config.ShowProjectPage),
-		server.NewRoute("/project/tagList", http.MethodGet, p.TagList),
+		server.NewRoute("/project/getLabelList", http.MethodGet, p.GetLabelList),
 		server.NewRoute("/project/pingRepos", http.MethodGet, p.PingRepos),
 		server.NewRoute("/project/getRemoteBranchList", http.MethodGet, p.GetRemoteBranchList),
 		server.NewRoute("/project/getBindServerList", http.MethodGet, p.GetBindServerList),
@@ -55,13 +55,13 @@ func (p Project) Handler() []server.Route {
 	}
 }
 
-func (Project) TagList(gp *server.Goploy) server.Response {
-	var tagList []string
+func (Project) GetLabelList(gp *server.Goploy) server.Response {
+	var list []string
 	var err error
 	if _, ok := gp.Namespace.PermissionIDs[config.GetAllProjectList]; ok {
-		tagList, err = model2.Project{NamespaceID: gp.Namespace.ID}.GetTagList()
+		list, err = model.Project{NamespaceID: gp.Namespace.ID}.GetLabelList()
 	} else {
-		tagList, err = model2.Project{NamespaceID: gp.Namespace.ID, UserID: gp.UserInfo.ID}.GetTagList()
+		list, err = model.Project{NamespaceID: gp.Namespace.ID, UserID: gp.UserInfo.ID}.GetLabelList()
 	}
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
@@ -69,23 +69,23 @@ func (Project) TagList(gp *server.Goploy) server.Response {
 	return response.JSON{
 		Data: struct {
 			List []string `json:"list"`
-		}{List: tagList},
+		}{List: list},
 	}
 }
 func (Project) GetList(gp *server.Goploy) server.Response {
-	var projectList model2.Projects
+	var projectList model.Projects
 	var err error
 	if _, ok := gp.Namespace.PermissionIDs[config.GetAllProjectList]; ok {
-		projectList, err = model2.Project{NamespaceID: gp.Namespace.ID}.GetList()
+		projectList, err = model.Project{NamespaceID: gp.Namespace.ID}.GetList()
 	} else {
-		projectList, err = model2.Project{NamespaceID: gp.Namespace.ID, UserID: gp.UserInfo.ID}.GetList()
+		projectList, err = model.Project{NamespaceID: gp.Namespace.ID, UserID: gp.UserInfo.ID}.GetList()
 	}
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			Projects model2.Projects `json:"list"`
+			Projects model.Projects `json:"list"`
 		}{Projects: projectList},
 	}
 }
@@ -206,13 +206,13 @@ func (Project) GetBindServerList(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	projectServers, err := model2.ProjectServer{ProjectID: id}.GetBindServerListByProjectID()
+	projectServers, err := model.ProjectServer{ProjectID: id}.GetBindServerListByProjectID()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			ProjectServers model2.ProjectServers `json:"list"`
+			ProjectServers model.ProjectServers `json:"list"`
 		}{ProjectServers: projectServers},
 	}
 }
@@ -222,13 +222,13 @@ func (Project) GetBindUserList(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	projectUsers, err := model2.ProjectUser{ProjectID: id, NamespaceID: gp.Namespace.ID}.GetBindUserListByProjectID()
+	projectUsers, err := model.ProjectUser{ProjectID: id, NamespaceID: gp.Namespace.ID}.GetBindUserListByProjectID()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			ProjectUsers model2.ProjectUsers `json:"list"`
+			ProjectUsers model.ProjectUsers `json:"list"`
 		}{ProjectUsers: projectUsers},
 	}
 }
@@ -238,13 +238,13 @@ func (Project) GetProjectFileList(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	projectFiles, err := model2.ProjectFile{ProjectID: id}.GetListByProjectID()
+	projectFiles, err := model.ProjectFile{ProjectID: id}.GetListByProjectID()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			ProjectFiles model2.ProjectFiles `json:"list"`
+			ProjectFiles model.ProjectFiles `json:"list"`
 		}{ProjectFiles: projectFiles},
 	}
 }
@@ -254,7 +254,7 @@ func (Project) GetProjectFileContent(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	projectFileData, err := model2.ProjectFile{ID: id}.GetData()
+	projectFileData, err := model.ProjectFile{ID: id}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -315,7 +315,7 @@ func (Project) Add(gp *server.Goploy) server.Response {
 		Name                  string  `json:"name" validate:"required"`
 		RepoType              string  `json:"repoType" validate:"required"`
 		URL                   string  `json:"url" validate:"required"`
-		Tag                   string  `json:"tag"`
+		Label                 string  `json:"label"`
 		Path                  string  `json:"path" validate:"required"`
 		Environment           uint8   `json:"environment" validate:"required"`
 		Branch                string  `json:"branch" validate:"required"`
@@ -344,12 +344,12 @@ func (Project) Add(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: "Invalid transfer option format"}
 	}
 
-	projectID, err := model2.Project{
+	projectID, err := model.Project{
 		NamespaceID:           gp.Namespace.ID,
 		Name:                  reqData.Name,
 		RepoType:              reqData.RepoType,
 		URL:                   reqData.URL,
-		Tag:                   reqData.Tag,
+		Label:                 reqData.Label,
 		Path:                  reqData.Path,
 		Environment:           reqData.Environment,
 		Branch:                reqData.Branch,
@@ -371,9 +371,9 @@ func (Project) Add(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	projectServersModel := model2.ProjectServers{}
+	projectServersModel := model.ProjectServers{}
 	for _, serverID := range reqData.ServerIDs {
-		projectServerModel := model2.ProjectServer{
+		projectServerModel := model.ProjectServer{
 			ProjectID: projectID,
 			ServerID:  serverID,
 		}
@@ -383,9 +383,9 @@ func (Project) Add(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	projectUsersModel := model2.ProjectUsers{}
+	projectUsersModel := model.ProjectUsers{}
 	for _, userID := range reqData.UserIDs {
-		projectUserModel := model2.ProjectUser{
+		projectUserModel := model.ProjectUser{
 			ProjectID: projectID,
 			UserID:    userID,
 		}
@@ -403,7 +403,7 @@ func (Project) Edit(gp *server.Goploy) server.Response {
 		Name                  string  `json:"name"`
 		RepoType              string  `json:"repoType"`
 		URL                   string  `json:"url"`
-		Tag                   string  `json:"tag"`
+		Label                 string  `json:"label"`
 		Path                  string  `json:"path"`
 		SymlinkPath           string  `json:"symlinkPath"`
 		SymlinkBackupNumber   uint8   `json:"symlinkBackupNumber"`
@@ -432,17 +432,17 @@ func (Project) Edit(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: "Invalid option format"}
 	}
 
-	projectData, err := model2.Project{ID: reqData.ID}.GetData()
+	projectData, err := model.Project{ID: reqData.ID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	err = model2.Project{
+	err = model.Project{
 		ID:                    reqData.ID,
 		Name:                  reqData.Name,
 		RepoType:              reqData.RepoType,
 		URL:                   reqData.URL,
-		Tag:                   reqData.Tag,
+		Label:                 reqData.Label,
 		Path:                  reqData.Path,
 		Environment:           reqData.Environment,
 		Branch:                reqData.Branch,
@@ -476,12 +476,12 @@ func (Project) Edit(gp *server.Goploy) server.Response {
 		}
 	}
 
-	if err := (model2.ProjectServer{ProjectID: projectData.ID}).DeleteByProjectID(); err != nil {
+	if err := (model.ProjectServer{ProjectID: projectData.ID}).DeleteByProjectID(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	projectServersModel := model2.ProjectServers{}
+	projectServersModel := model.ProjectServers{}
 	for _, serverID := range reqData.ServerIDs {
-		projectServerModel := model2.ProjectServer{
+		projectServerModel := model.ProjectServer{
 			ProjectID: projectData.ID,
 			ServerID:  serverID,
 		}
@@ -491,13 +491,13 @@ func (Project) Edit(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := (model2.ProjectUser{ProjectID: projectData.ID}).DeleteByProjectID(); err != nil {
+	if err := (model.ProjectUser{ProjectID: projectData.ID}).DeleteByProjectID(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	projectUsersModel := model2.ProjectUsers{}
+	projectUsersModel := model.ProjectUsers{}
 	for _, userID := range reqData.UserIDs {
-		projectUserModel := model2.ProjectUser{
+		projectUserModel := model.ProjectUser{
 			ProjectID: projectData.ID,
 			UserID:    userID,
 		}
@@ -519,7 +519,7 @@ func (Project) SetAutoDeploy(gp *server.Goploy) server.Response {
 	if err := decodeJson(gp.Body, &reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	err := model2.Project{
+	err := model.Project{
 		ID:         reqData.ID,
 		AutoDeploy: reqData.AutoDeploy,
 	}.SetAutoDeploy()
@@ -539,7 +539,7 @@ func (Project) Remove(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	projectData, err := model2.Project{ID: reqData.ID}.GetData()
+	projectData, err := model.Project{ID: reqData.ID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -549,7 +549,7 @@ func (Project) Remove(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: "Delete folder fail, Detail: " + err.Error()}
 	}
 
-	if err := (model2.Project{ID: reqData.ID}).RemoveRow(); err != nil {
+	if err := (model.Project{ID: reqData.ID}).RemoveRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -598,12 +598,12 @@ func (Project) UploadFile(gp *server.Goploy) server.Response {
 	}
 
 	if reqData.ProjectFileID == 0 {
-		reqData.ProjectFileID, err = model2.ProjectFile{
+		reqData.ProjectFileID, err = model.ProjectFile{
 			Filename:  reqData.Filename,
 			ProjectID: reqData.ProjectID,
 		}.AddRow()
 	} else {
-		err = model2.ProjectFile{
+		err = model.ProjectFile{
 			ID:        reqData.ProjectFileID,
 			Filename:  reqData.Filename,
 			ProjectID: reqData.ProjectID,
@@ -656,7 +656,7 @@ func (Project) AddFile(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	id, err := model2.ProjectFile{
+	id, err := model.ProjectFile{
 		ProjectID: reqData.ProjectID,
 		Filename:  reqData.Filename,
 	}.AddRow()
@@ -681,7 +681,7 @@ func (Project) EditFile(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	projectFileData, err := model2.ProjectFile{ID: reqData.ID}.GetData()
+	projectFileData, err := model.ProjectFile{ID: reqData.ID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -717,7 +717,7 @@ func (Project) RemoveFile(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	projectFileData, err := model2.ProjectFile{ID: reqData.ProjectFileID}.GetData()
+	projectFileData, err := model.ProjectFile{ID: reqData.ProjectFileID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -728,7 +728,7 @@ func (Project) RemoveFile(gp *server.Goploy) server.Response {
 		}
 	}
 
-	if err := (model2.ProjectFile{ID: reqData.ProjectFileID}).DeleteRow(); err != nil {
+	if err := (model.ProjectFile{ID: reqData.ProjectFileID}).DeleteRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -736,7 +736,7 @@ func (Project) RemoveFile(gp *server.Goploy) server.Response {
 }
 
 func (Project) GetReviewList(gp *server.Goploy) server.Response {
-	pagination, err := model2.PaginationFrom(gp.URLQuery)
+	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -744,21 +744,21 @@ func (Project) GetReviewList(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	ProjectReviews, pagination, err := model2.ProjectReview{ProjectID: id}.GetListByProjectID(pagination)
+	ProjectReviews, pagination, err := model.ProjectReview{ProjectID: id}.GetListByProjectID(pagination)
 
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			ProjectReviews model2.ProjectReviews `json:"list"`
-			Pagination     model2.Pagination     `json:"pagination"`
+			ProjectReviews model.ProjectReviews `json:"list"`
+			Pagination     model.Pagination     `json:"pagination"`
 		}{ProjectReviews: ProjectReviews, Pagination: pagination},
 	}
 }
 
 func (Project) GetTaskList(gp *server.Goploy) server.Response {
-	pagination, err := model2.PaginationFrom(gp.URLQuery)
+	pagination, err := model.PaginationFrom(gp.URLQuery)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -766,15 +766,15 @@ func (Project) GetTaskList(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	projectTaskList, pagination, err := model2.ProjectTask{ProjectID: id}.GetListByProjectID(pagination)
+	projectTaskList, pagination, err := model.ProjectTask{ProjectID: id}.GetListByProjectID(pagination)
 
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			ProjectTasks model2.ProjectTasks `json:"list"`
-			Pagination   model2.Pagination   `json:"pagination"`
+			ProjectTasks model.ProjectTasks `json:"list"`
+			Pagination   model.Pagination   `json:"pagination"`
 		}{ProjectTasks: projectTaskList, Pagination: pagination},
 	}
 }
@@ -791,7 +791,7 @@ func (Project) AddTask(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	id, err := model2.ProjectTask{
+	id, err := model.ProjectTask{
 		ProjectID: reqData.ProjectID,
 		CommitID:  reqData.Commit,
 		Branch:    reqData.Branch,
@@ -819,7 +819,7 @@ func (Project) RemoveTask(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := (model2.ProjectTask{ID: reqData.ID}).RemoveRow(); err != nil {
+	if err := (model.ProjectTask{ID: reqData.ID}).RemoveRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -837,13 +837,13 @@ func (Project) GetProcessList(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	list, err := model2.ProjectProcess{ProjectID: reqData.ProjectID}.GetListByProjectID(reqData.Page, reqData.Rows)
+	list, err := model.ProjectProcess{ProjectID: reqData.ProjectID}.GetListByProjectID(reqData.Page, reqData.Rows)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			List model2.ProjectProcesses `json:"list"`
+			List model.ProjectProcesses `json:"list"`
 		}{List: list},
 	}
 }
@@ -862,7 +862,7 @@ func (Project) AddProcess(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	id, err := model2.ProjectProcess{
+	id, err := model.ProjectProcess{
 		ProjectID: reqData.ProjectID,
 		Name:      reqData.Name,
 		Status:    reqData.Status,
@@ -895,7 +895,7 @@ func (Project) EditProcess(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	err := model2.ProjectProcess{
+	err := model.ProjectProcess{
 		ID:      reqData.ID,
 		Name:    reqData.Name,
 		Status:  reqData.Status,
@@ -919,7 +919,7 @@ func (Project) DeleteProcess(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := (model2.ProjectProcess{ID: reqData.ID}).DeleteRow(); err != nil {
+	if err := (model.ProjectProcess{ID: reqData.ID}).DeleteRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

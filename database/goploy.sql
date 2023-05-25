@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `project`  (
   `symlink_backup_number` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT 'symlink backup number',
   `environment` tinyint(4) UNSIGNED NOT NULL DEFAULT 0 COMMENT '1.production 2.pre-release 3.test 4.development',
   `branch` varchar(255) NOT NULL DEFAULT 'master' COMMENT 'repository branch',
-  `tag` varchar(6382) NOT NULL DEFAULT '',
+  `label` varchar(6382) NOT NULL DEFAULT '',
   `review` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT '0.disable 1.enable',
   `review_url` varchar(1000) NOT NULL DEFAULT '' COMMENT 'review notification link',
   `after_pull_script_mode` varchar(20) NOT NULL DEFAULT '' COMMENT 'sh|php|py|...',

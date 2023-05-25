@@ -30,16 +30,17 @@
         <el-option :label="$t('envOption[4]')" :value="4" />
       </el-select>
       <el-select
-        v-model="searchProject.tag"
+        v-model="searchProject.label"
         :max-collapse-tags="1"
         style="width: 300px"
         multiple
         collapse-tags
         collapse-tags-tooltip
-        placeholder="Filter the project tag"
+        placeholder="Filter the project label"
+        clearable
       >
         <el-option
-          v-for="item in tagList"
+          v-for="item in labelList"
           :key="item"
           :label="item"
           :value="item"
@@ -76,9 +77,9 @@
                     icon-class="pin"
                   />
                   <el-tooltip
-                    :disabled="row.tag == ''"
+                    :disabled="row.label == ''"
                     effect="dark"
-                    :content="row.tag"
+                    :content="row.label"
                     placement="bottom"
                   >
                     <span
@@ -93,7 +94,7 @@
                         color: var(--el-color-danger);
                       "
                     >
-                      {{ row.name }} -
+                      #{{ row.id }} {{ row.name }} -
                       {{ $t(`envOption[${row.environment || 0}]`) }}
                     </span>
                     <span
@@ -108,7 +109,7 @@
                         color: var(--el-color-warning);
                       "
                     >
-                      {{ row.name }} -
+                      #{{ row.id }} {{ row.name }} -
                       {{ $t(`envOption[${row.environment || 0}]`) }}
                     </span>
                     <span
@@ -123,7 +124,7 @@
                         color: var(--el-color-info);
                       "
                     >
-                      {{ row.name }} -
+                      #{{ row.id }} {{ row.name }} -
                       {{ $t(`envOption[${row.environment || 0}]`) }}
                     </span>
                   </el-tooltip>
@@ -414,7 +415,7 @@ import {
   DeployResetState,
   DeployGreyPublish,
 } from '@/api/deploy'
-import { ProjectServerList, ProjectData, TagList } from '@/api/project'
+import { ProjectServerList, ProjectData, LabelList } from '@/api/project'
 import RepoURL from '@/components/RepoURL/index.vue'
 import { parseTime } from '@/utils'
 import TheDetailDialog from './TheDetailDialog.vue'
@@ -447,13 +448,13 @@ const searchProject = ref({
   sort: getSort(),
   name: '',
   environment: '',
-  tag: [] as string[],
+  label: [] as string[],
   pin: '',
 })
 const selectedItem = ref({} as ProjectData)
 const tableloading = ref(false)
 const tableData = ref<any[]>([])
-const tagList = ref<string[]>([])
+const labelList = ref<string[]>([])
 const pagination = ref({ page: 1, rows: 20 })
 const greyServerForm = ref<InstanceType<typeof ElForm>>()
 const greyServerFormProps = ref({
@@ -492,11 +493,11 @@ const tablePage = computed(() => {
       (item) => item.pin === searchProject.value.pin
     )
   }
-  if (searchProject.value.tag.length > 0) {
+  if (searchProject.value.label.length > 0) {
     _tableData = _tableData.filter((item) =>
-      String(item.tag)
+      item.label
         .split(',')
-        .find((p) => searchProject.value.tag.indexOf(p) > -1)
+        .find((p: string) => searchProject.value.label.indexOf(p) > -1)
     )
   }
   return {
@@ -546,7 +547,7 @@ watch(
 )
 
 getList()
-getTagList()
+getLabelList()
 
 function getList() {
   tableloading.value = true
@@ -587,9 +588,9 @@ function getList() {
       tableloading.value = false
     })
 }
-function getTagList() {
-  new TagList().request().then((response) => {
-    tagList.value = response.data.list
+function getLabelList() {
+  new LabelList().request().then((response) => {
+    labelList.value = response.data.list
   })
 }
 

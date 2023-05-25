@@ -8,17 +8,17 @@
           placeholder="Filter the project name"
         />
         <el-select
-          v-model="searchProject.tag"
+          v-model="searchProject.label"
           :max-collapse-tags="1"
           style="width: 300px"
           multiple
           clearable
           collapse-tags
           collapse-tags-tooltip
-          placeholder="Filter the project tag"
+          placeholder="Filter the project label"
         >
           <el-option
-            v-for="item in tagList"
+            v-for="item in labelList"
             :key="item"
             :label="item"
             :value="item"
@@ -432,7 +432,7 @@
             </el-form-item>
             <el-form-item :label="$t('tag')" prop="tag">
               <el-select
-                v-model="formProps.tag"
+                v-model="formProps.label"
                 style="width: 100%"
                 :max-collapse-tags="5"
                 allow-create
@@ -444,7 +444,7 @@
                 default-first-option
               >
                 <el-option
-                  v-for="item in tagList"
+                  v-for="item in labelList"
                   :key="item"
                   :label="item"
                   :value="item"
@@ -985,7 +985,7 @@ import {
   ProjectRemove,
   ProjectAutoDeploy,
   ProjectData,
-  TagList,
+  LabelList,
 } from '@/api/project'
 import type { ElRadioGroup, ElForm, FormItemRule } from 'element-plus'
 import { ElMessageBox, ElMessage } from 'element-plus'
@@ -1005,9 +1005,9 @@ ace.config.set(
   'https://cdn.jsdelivr.net/npm/ace-builds@' + ace.version + '/src-noconflict/'
 )
 
-const searchProject = ref<{ projectName: string; tag: string[] }>({
+const searchProject = ref({
   projectName: '',
-  tag: [],
+  label: [] as string[],
 })
 const dialogVisible = ref(false)
 const dialogAutoDeployVisible = ref(false)
@@ -1016,7 +1016,7 @@ const userOption = ref<NamespaceUserOption['datagram']['list']>([])
 const selectedItem = ref({} as ProjectData)
 const tableLoading = ref(false)
 const tableData = ref<ProjectList['datagram']['list']>([])
-const tagList = ref<TagList['datagram']['list']>([])
+const labelList = ref<LabelList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 20 })
 const form = ref<InstanceType<typeof ElForm>>()
 const formProps = ref({
@@ -1063,7 +1063,7 @@ const formProps = ref({
   reviewURLParam: ['callback=__CALLBACK__'],
   symlink: false,
   disabled: false,
-  tag: [] as string[],
+  label: [] as string[],
   branch: [] as string[],
   pinging: false,
   lsBranchLoading: false,
@@ -1072,7 +1072,7 @@ const formProps = ref({
 const tempFormData = {
   id: 0,
   name: '',
-  tag: '',
+  label: '',
   repoType: 'git',
   url: '',
   path: '',
@@ -1124,9 +1124,11 @@ const tablePage = computed(() => {
       (item) => item.name.indexOf(searchProject.value.projectName) !== -1
     )
   }
-  if (searchProject.value.tag.length > 0) {
+  if (searchProject.value.label.length > 0) {
     _tableData = _tableData.filter((item) =>
-      item.tag.split(',').find((p) => searchProject.value.tag.indexOf(p) !== -1)
+      item.label
+        .split(',')
+        .find((p) => searchProject.value.label.indexOf(p) !== -1)
     )
   }
   return {
@@ -1160,8 +1162,8 @@ function getList() {
 }
 
 function getTagList() {
-  new TagList().request().then((response) => {
-    tagList.value = response.data.list
+  new LabelList().request().then((response) => {
+    labelList.value = response.data.list
   })
 }
 
@@ -1182,7 +1184,7 @@ function handleEdit(data: ProjectData) {
   formProps.value.disabled = true
   formData.value.userIds = []
   formData.value.serverIds = []
-  formProps.value.tag = data.tag != '' ? data.tag.split(',') : []
+  formProps.value.label = data.label != '' ? data.label.split(',') : []
   Promise.all([
     new ProjectUserList({ id: data.id }).request(),
     new ProjectServerList({ id: data.id }).request(),
@@ -1309,18 +1311,20 @@ function submit() {
     } else {
       formData.value.reviewURL = ''
     }
-    if (formProps.value.tag.filter((p) => String(p).includes(',')).length > 0) {
+    if (
+      formProps.value.label.filter((p) => String(p).includes(',')).length > 0
+    ) {
       ElMessage.error('Tag is not allowed to contain , ')
       return false
     }
     ;(formData.value.id === 0
       ? new ProjectAdd({
           ...formData.value,
-          tag: formProps.value.tag.join(','),
+          label: formProps.value.label.join(','),
         })
       : new ProjectEdit({
           ...formData.value,
-          tag: formProps.value.tag.join(','),
+          label: formProps.value.label.join(','),
         })
     )
       .request()
@@ -1407,7 +1411,7 @@ function getRemoteBranchList() {
 function refresList() {
   searchProject.value = {
     projectName: '',
-    tag: [],
+    label: [],
   }
 
   pagination.value.page = 1
