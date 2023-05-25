@@ -133,10 +133,13 @@
         </el-table-column>
       </el-table>
     </el-row>
-    <el-row class="footer" justify="space-between">
-      <div>
-        {{ fileFilteredList.length }} {{ $t('serverPage.sftpFileCount') }}
-      </div>
+    <el-row class="footer" justify="end">
+      <el-pagination
+        :total="fileFilteredList.length"
+        :page-size="9999"
+        background
+        layout="total"
+      />
     </el-row>
     <el-dialog
       v-model="editDialogVisible"
