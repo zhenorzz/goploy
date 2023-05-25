@@ -252,8 +252,8 @@ const dirLoading = ref(false)
 
 function handleSort(command: string) {
   let compareFunc = (
-    fileA: ServerNginxData,
-    fileB: ServerNginxData
+    _fileA: ServerNginxData,
+    _fileB: ServerNginxData
   ): number => {
     return 0
   }
@@ -403,7 +403,13 @@ function getNginxConfigList(dir: string) {
 }
 
 function handleNginxCmd(dir: string, command: string) {
-  ElMessageBox.confirm(t('serverPage.execTips', { command }), t('tips'), {
+  let tips = ''
+  if (command == 'check') {
+    tips = dir + ' -t '
+  } else if (command == 'reload') {
+    tips = dir + ' -s reload '
+  }
+  ElMessageBox.confirm(t('serverPage.execTips', { command: tips }), t('tips'), {
     confirmButtonText: t('confirm'),
     cancelButtonText: t('cancel'),
     type: 'warning',
