@@ -75,65 +75,63 @@
       </el-row>
     </el-row>
     <el-row v-loading="fileListLoading" class="files">
-      <div style="width: 100%">
-        <el-empty
-          v-show="fileFilteredList.length === 0"
-          description="No result"
-        ></el-empty>
-        <el-table
-          v-show="fileFilteredList.length !== 0"
-          v-loading="fileListLoading"
-          height="100%"
-          highlight-current-row
-          :data="fileFilteredList"
+      <el-table
+        v-show="fileFilteredList.length !== 0"
+        v-loading="fileListLoading"
+        highlight-current-row
+        :data="fileFilteredList"
+      >
+        <el-table-column label="#" type="index" width="50" align="center">
+          <template #default="scope">
+            <span>{{ scope.$index + 1 }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="name" :label="$t('name')" min-width="120" />
+        <el-table-column
+          prop="modTime"
+          :label="$t('updateTime')"
+          min-width="80"
+          align="center"
+        />
+        <el-table-column
+          prop="operation"
+          :label="$t('op')"
+          width="350"
+          align="center"
         >
-          <el-table-column prop="name" :label="$t('name')" min-width="120" />
-          <el-table-column
-            prop="modTime"
-            :label="$t('updateTime')"
-            min-width="80"
-            align="center"
-          />
-          <el-table-column
-            prop="operation"
-            :label="$t('op')"
-            min-width="50"
-            align="center"
-          >
-            <template #default="scope">
-              <Button
-                type="primary"
-                :loading="EditProps.editButtonLoading"
-                :permissions="[permission.EditNginxConfig]"
-                @click="handleEdit(scope.row)"
-              >
-                {{ $t('edit') }}
-              </Button>
-              <Button
-                type="primary"
-                :permissions="[permission.AddNginxConfig]"
-                @click="handleCopy(scope.row)"
-              >
-                {{ $t('copy') }}
-              </Button>
-              <Button
-                type="primary"
-                :permissions="[permission.EditNginxConfig]"
-                @click="handleRename(scope.row)"
-              >
-                {{ $t('rename') }}
-              </Button>
-              <Button
-                type="danger"
-                :permissions="[permission.DeleteNginxConfig]"
-                @click="handleDelete(scope.row)"
-              >
-                {{ $t('delete') }}
-              </Button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
+          <template #default="scope">
+            <Button
+              type="primary"
+              :loading="EditProps.editButtonLoading"
+              :permissions="[permission.EditNginxConfig]"
+              @click="handleEdit(scope.row)"
+            >
+              {{ $t('edit') }}
+            </Button>
+            <Button
+              type="info"
+              :permissions="[permission.AddNginxConfig]"
+              @click="handleCopy(scope.row)"
+            >
+              {{ $t('copy') }}
+            </Button>
+            <Button
+              type="warning"
+              :permissions="[permission.EditNginxConfig]"
+              @click="handleRename(scope.row)"
+            >
+              {{ $t('rename') }}
+            </Button>
+            <Button
+              type="danger"
+              :permissions="[permission.DeleteNginxConfig]"
+              @click="handleDelete(scope.row)"
+            >
+              {{ $t('delete') }}
+            </Button>
+          </template>
+        </el-table-column>
+      </el-table>
     </el-row>
     <el-row class="footer" justify="space-between">
       <div>
@@ -525,9 +523,12 @@ function handleDelete(data: ServerNginxData) {
     }
   }
   .files {
+    width: 100%;
     flex: 1;
-    overflow-y: auto;
-    @include scrollBar();
+    overflow: hidden;
+    .el-table {
+      height: 100% !important;
+    }
   }
   .footer {
     padding: 8px 15px;

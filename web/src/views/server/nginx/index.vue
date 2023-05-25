@@ -28,7 +28,6 @@
                 x
               </el-button>
             </el-row>
-            {{ item }}
           </div>
 
           <div class="tabs-plus">

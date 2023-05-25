@@ -237,6 +237,7 @@
     "ShowOperationLogPage": "查看操作日志",
     "SFTPTransferFile": "SFTP传输文件",
     "SFTPDeleteFile": "SFTP删除文件",
+    "SFTPEditFile": "SFTP编辑文件",
     "ShowServerScriptPage": "执行脚本",
     "ShowServerNginxPage": "查看Nginx管理",
     "ManageServerNginx": "Nginx进程管理",

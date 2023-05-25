@@ -254,6 +254,7 @@
     "DeleteServerProcess": "Delete the server process",
     "SFTPTransferFile": "Can transfer file via SFTP",
     "SFTPDeleteFile": "Can delete file via SFTP",
+    "SFTPEditFile": "Can edit file via SFTP",
     "ShowServerScriptPage": "Can execute script",
     "ShowServerNginxPage": "See the server nginx page",
     "ManageServerNginx": "Manage nginx process",
