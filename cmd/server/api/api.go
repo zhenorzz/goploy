@@ -6,10 +6,8 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/gorilla/schema"
-	_validator "github.com/zhenorzz/goploy/internal/validator"
-	"gopkg.in/go-playground/validator.v9"
+	"github.com/zhenorzz/goploy/internal/validator"
 )
 
 type API struct{}
@@ -21,12 +19,7 @@ func decodeJson(data []byte, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	if err := _validator.Validate.Struct(v); err != nil {
-		for _, err := range err.(validator.ValidationErrors) {
-			return errors.New(err.Translate(_validator.Trans))
-		}
-	}
-	return nil
+	return validator.Verify(v)
 }
 
 func decodeQuery(data map[string][]string, v interface{}) error {
@@ -35,10 +28,5 @@ func decodeQuery(data map[string][]string, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	if err := _validator.Validate.Struct(v); err != nil {
-		for _, err := range err.(validator.ValidationErrors) {
-			return errors.New(err.Translate(_validator.Trans))
-		}
-	}
-	return nil
+	return validator.Verify(v)
 }

@@ -2,11 +2,9 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/gorilla/schema"
 	"github.com/zhenorzz/goploy/internal/model"
-	_validator "github.com/zhenorzz/goploy/internal/validator"
-	"gopkg.in/go-playground/validator.v9"
+	"github.com/zhenorzz/goploy/internal/validator"
 	"net/http"
 	"net/url"
 )
@@ -42,16 +40,5 @@ func (g *Goploy) Decode(v interface{}) error {
 			return err
 		}
 	}
-
-	if err := _validator.Validate.Struct(v); err != nil {
-		if err, ok := err.(*validator.InvalidValidationError); ok {
-			return err
-		}
-
-		for _, err := range err.(validator.ValidationErrors) {
-			return errors.New(err.Translate(_validator.Trans))
-		}
-	}
-
-	return nil
+	return validator.Verify(v)
 }

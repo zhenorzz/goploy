@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"errors"
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"gopkg.in/go-playground/validator.v9"
@@ -40,4 +41,17 @@ func init() {
 
 	registerPassword()
 	registerFilepath()
+}
+
+func Verify(v interface{}) error {
+	if err := Validate.Struct(v); err != nil {
+		if err, ok := err.(*validator.InvalidValidationError); ok {
+			return err
+		}
+
+		for _, err := range err.(validator.ValidationErrors) {
+			return errors.New(err.Translate(Trans))
+		}
+	}
+	return nil
 }
