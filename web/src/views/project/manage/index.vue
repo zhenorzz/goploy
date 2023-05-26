@@ -926,6 +926,26 @@
             }}
           </span>
           <span v-else>
+            <el-row>
+              <RepoURL
+                style="font-size: 14px"
+                :url="selectedItem.url"
+                suffix="/-/settings/integrations"
+                text="Gitlab Webhook"
+              />、
+              <RepoURL
+                style="font-size: 14px"
+                :url="selectedItem.url"
+                suffix="/settings/hooks"
+                text="Github Webhook"
+              />、
+              <RepoURL
+                style="font-size: 14px"
+                :url="selectedItem.url"
+                suffix="/hooks"
+                text="Gitee Webhook"
+              />
+            </el-row>
             {{
               $t('projectPage.autoDeployGitTips', {
                 projectId: autoDeployFormData.id,

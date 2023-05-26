@@ -274,3 +274,30 @@ export function copy(content: string): void {
     document.getSelection().addRange(selected)
   }
 }
+
+export function repoURLToHref(url: string, suffix: string): string {
+  url = url.trim()
+  if (url === '') {
+    return ''
+  }
+
+  url = url.split(' ').shift() || ''
+  const lastDotGitIndex = url.lastIndexOf('.git')
+  if (lastDotGitIndex !== -1) {
+    url = url.substring(0, lastDotGitIndex)
+  }
+
+  if (url.startsWith('git@')) {
+    return '//' + url.substring(4).replace(':', '/') + suffix
+  } else if (url.startsWith('http')) {
+    const urlObj = new URL(url)
+    if (urlObj.password !== '') {
+      urlObj.password = '******'
+    }
+    return urlObj.toString() + suffix
+  } else if (url.startsWith('svn')) {
+    return url
+  } else {
+    return ''
+  }
+}

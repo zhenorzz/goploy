@@ -16,6 +16,7 @@
 export default { name: 'RepoURL' }
 </script>
 <script lang="ts" setup>
+import { repoURLToHref } from '@/utils'
 import { computed } from 'vue'
 
 const props = defineProps({
@@ -34,30 +35,7 @@ const props = defineProps({
 })
 
 const href = computed(() => {
-  let url = props.url.trim()
-  if (props.url === '') {
-    return ''
-  }
-
-  url = props.url.split(' ').shift() || ''
-  const lastDotGitIndex = url.lastIndexOf('.git')
-  if (lastDotGitIndex !== -1) {
-    url = url.substring(0, lastDotGitIndex)
-  }
-
-  if (url.startsWith('git@')) {
-    return '//' + url.substring(4).replace(':', '/') + props.suffix
-  } else if (url.startsWith('http')) {
-    const urlObj = new URL(url)
-    if (urlObj.password !== '') {
-      urlObj.password = '******'
-    }
-    return urlObj.toString() + props.suffix
-  } else if (url.startsWith('svn')) {
-    return url
-  } else {
-    return ''
-  }
+  return repoURLToHref(props.url, props.suffix)
 })
 </script>
 
