@@ -86,6 +86,7 @@
             <span>{{ scope.$index + 1 }}</span>
           </template>
         </el-table-column>
+        <el-table-column prop="dir" :label="$t('directory')" min-width="120" />
         <el-table-column prop="name" :label="$t('name')" min-width="120" />
         <el-table-column
           prop="modTime"

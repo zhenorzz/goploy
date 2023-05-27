@@ -1253,6 +1253,54 @@ func (Server) ExecScript(gp *server.Goploy) server.Response {
 	return response.JSON{Data: respData}
 }
 
+func (Server) GetNginxPath(gp *server.Goploy) server.Response {
+	type ReqData struct {
+		ServerID int64 `schema:"serverId" validate:"gt=0"`
+	}
+	var reqData ReqData
+	if err := gp.Decode(&reqData); err != nil {
+		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
+	}
+
+	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	client, err := srv.ToSSHConfig().Dial()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer client.Close()
+
+	session, err := client.NewSession()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	defer session.Close()
+
+	var sshOutbuf, sshErrbuf bytes.Buffer
+	session.Stdout = &sshOutbuf
+	session.Stderr = &sshErrbuf
+
+	command := `ls -l /proc/$(ps -ef | grep nginx | grep master | grep -v ps | awk '{print $2}')/exe | awk '{print $NF}'`
+	nginxPath := ""
+	if err = session.Run(command); err == nil {
+		nginxPath = strings.Trim(sshOutbuf.String(), "\n")
+		if len(strings.Split(nginxPath, "\n")) > 1 {
+			nginxPath = ""
+		} else if !pkg.IsFilePath(nginxPath) {
+			nginxPath = ""
+		}
+	}
+
+	return response.JSON{
+		Data: struct {
+			Path string `json:"path"`
+		}{Path: nginxPath},
+	}
+}
+
 func (Server) GetNginxConfigList(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ServerID int64  `schema:"serverId" validate:"gt=0"`
@@ -1317,8 +1365,8 @@ func (Server) GetNginxConfigList(gp *server.Goploy) server.Response {
 	}
 
 	configFileDir := path.Dir(configPath)
-	var includeConfigPaths []string
 
+	includeConfigPaths := []string{configPath}
 	// match the file path in the include directive
 	re := regexp.MustCompile("(?i)include\\s+([\"']?)(.*?)([\"']?);")
 	matches := re.FindAllSubmatch(configContent, -1)
@@ -1566,49 +1614,6 @@ func (Server) CopyNginxConfig(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: "err: " + err.Error() + ", detail: " + sshErrbuf.String()}
 	}
 	return response.JSON{}
-}
-
-func (Server) GetNginxPath(gp *server.Goploy) server.Response {
-	type ReqData struct {
-		ServerID int64 `schema:"serverId" validate:"gt=0"`
-	}
-	var reqData ReqData
-	if err := gp.Decode(&reqData); err != nil {
-		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
-	}
-
-	srv, err := (model.Server{ID: reqData.ServerID}).GetData()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	client, err := srv.ToSSHConfig().Dial()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	defer client.Close()
-
-	session, err := client.NewSession()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	defer session.Close()
-
-	var sshOutbuf, sshErrbuf bytes.Buffer
-	session.Stdout = &sshOutbuf
-	session.Stderr = &sshErrbuf
-
-	command := `ls -l /proc/$(ps -ef | grep nginx | grep master | grep -v ps | awk '{print $2}')/exe | awk '{print $NF}'`
-
-	if err = session.Run(command); err != nil {
-		return response.JSON{Code: response.Error, Message: "err: " + err.Error() + ", detail: " + sshErrbuf.String()}
-	}
-
-	return response.JSON{
-		Data: struct {
-			Path string `json:"path"`
-		}{Path: strings.Trim(sshOutbuf.String(), "\n")},
-	}
 }
 
 func (Server) RenameNginxConfig(gp *server.Goploy) server.Response {

@@ -150,7 +150,7 @@ func (p Project) GetLabelList() (labels []string, err error) {
 
 	if p.UserID > 0 {
 		builder = builder.
-			Join(fmt.Sprintf("%[1]s on %[1]s.project_id = %s.project_id", projectUserTable, projectTable)).
+			Join(fmt.Sprintf("%[1]s on %[1]s.project_id = %s.id", projectUserTable, projectTable)).
 			Where(sq.Eq{"user_id": p.UserID})
 	}
 
