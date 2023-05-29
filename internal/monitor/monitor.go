@@ -40,12 +40,6 @@ type Script struct {
 func (s Script) IsValid() bool {
 	return s.Content != ""
 }
-func NewScript(serverID int64, script string) Script {
-	return Script{
-		ServerID: serverID,
-		Content:  script,
-	}
-}
 
 type Monitor struct {
 	Type          int
@@ -57,15 +51,38 @@ type Monitor struct {
 	SuccessScript Script
 }
 
-func NewMonitorFromTarget(t int, target string, successScript Script, failScript Script) (Monitor, error) {
-	var m Monitor
-	if err := json.Unmarshal([]byte(target), &m); err != nil {
-		return m, err
+type Option func(*Monitor)
+
+func WithSuccessScript(serverID int64, content string) Option {
+	return func(c *Monitor) {
+		c.SuccessScript = Script{
+			ServerID: serverID,
+			Content:  content,
+		}
 	}
-	m.FailScript = failScript
-	m.SuccessScript = successScript
+}
+
+func WithFailScript(serverID int64, content string) Option {
+	return func(c *Monitor) {
+		c.FailScript = Script{
+			ServerID: serverID,
+			Content:  content,
+		}
+	}
+}
+
+func NewMonitorFromTarget(t int, target string, options ...Option) Monitor {
+	m := Monitor{}
+	if err := json.Unmarshal([]byte(target), &m); err != nil {
+		return m
+	}
 	m.Type = t
-	return m, nil
+
+	for _, option := range options {
+		option(&m)
+	}
+
+	return m
 }
 
 func (m Monitor) Check() error {
@@ -142,14 +159,17 @@ func (m Monitor) CheckScript() error {
 		if err != nil {
 			return err
 		}
-		server, session, err := NewServerSession(serverID, m.Timeout*time.Second)
+		server, client, session, err := NewServerSession(serverID, m.Timeout*time.Second)
 		if err != nil {
 			return err
 		}
 		var stdout, stderr bytes.Buffer
 		session.Stdout = &stdout
 		session.Stderr = &stderr
-		if err := session.Run(server.ReplaceVars(m.Script)); err != nil {
+		err = session.Run(server.ReplaceVars(m.Script))
+		_ = client.Close()
+		_ = session.Close()
+		if err != nil {
 			return ScriptError{Message: err.Error() + ", stdout: " + stdout.String() + ", stderr: " + stderr.String(), ServerID: serverID}
 		}
 	}
@@ -163,11 +183,15 @@ func (m Monitor) RunFailScript(serverID int64) error {
 		}
 
 		if sId != -1 {
-			server, session, err := NewServerSession(sId, m.Timeout*time.Second)
+			server, client, session, err := NewServerSession(sId, m.Timeout*time.Second)
 			if err != nil {
 				return err
 			}
-			return session.Run(server.ReplaceVars(m.FailScript.Content))
+
+			err = session.Run(server.ReplaceVars(m.FailScript.Content))
+			_ = client.Close()
+			_ = session.Close()
+			return err
 		} else {
 			cmd := exec.Command(m.FailScript.Content)
 			if output, err := cmd.CombinedOutput(); err != nil {
@@ -187,11 +211,15 @@ func (m Monitor) RunSuccessScript(serverID int64) error {
 		}
 
 		if sId != -1 {
-			server, session, err := NewServerSession(sId, m.Timeout*time.Second)
+			server, client, session, err := NewServerSession(sId, m.Timeout*time.Second)
 			if err != nil {
 				return err
 			}
-			return session.Run(server.ReplaceVars(m.SuccessScript.Content))
+
+			err = session.Run(server.ReplaceVars(m.SuccessScript.Content))
+			_ = client.Close()
+			_ = session.Close()
+			return err
 		} else {
 			cmd := exec.Command(m.SuccessScript.Content)
 			if output, err := cmd.CombinedOutput(); err != nil {
@@ -203,17 +231,20 @@ func (m Monitor) RunSuccessScript(serverID int64) error {
 	return nil
 }
 
-func NewServerSession(serverID int64, timeout time.Duration) (model.Server, *ssh.Session, error) {
+func NewServerSession(serverID int64, timeout time.Duration) (model.Server, *ssh.Client, *ssh.Session, error) {
 	server, err := (model.Server{ID: serverID}).GetData()
 	if err != nil {
-		return server, nil, err
+		return server, nil, nil, err
 	} else if server.State == model.Disable {
-		return server, nil, errors.New("Server Disable [" + server.Name + "]")
+		return server, nil, nil, errors.New("Server Disable [" + server.Name + "]")
 	}
 	client, err := server.ToSSHConfig().SetTimeout(timeout).Dial()
 	if err != nil {
-		return server, nil, err
+		return server, nil, nil, err
 	}
 	session, err := client.NewSession()
-	return server, session, err
+	if err != nil {
+		_ = client.Close()
+	}
+	return server, client, session, err
 }

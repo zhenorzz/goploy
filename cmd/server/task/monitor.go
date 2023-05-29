@@ -8,14 +8,14 @@ import (
 	"database/sql"
 	"github.com/zhenorzz/goploy/cmd/server/ws"
 	"github.com/zhenorzz/goploy/internal/log"
-	model2 "github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/monitor"
 	"strconv"
 	"sync/atomic"
 	"time"
 )
 
-var monitorTick = time.Tick(time.Minute)
+var monitorTick = time.Tick(time.Second)
 
 func startMonitorTask() {
 	atomic.AddInt32(&counter, 1)
@@ -52,20 +52,16 @@ type MonitorCache struct {
 var monitorCaches = map[int64]MonitorCache{}
 
 func monitorTask() {
-	monitors, err := model2.Monitor{State: model2.Enable}.GetAllByState()
+	monitors, err := model.Monitor{State: model.Enable}.GetAllByState()
 	if err != nil && err != sql.ErrNoRows {
-		log.Error("get m list error, detail:" + err.Error())
+		log.Error("get monitor list error, detail:" + err.Error())
 	}
 	monitorIDs := map[int64]struct{}{}
 	for _, m := range monitors {
 		monitorIDs[m.ID] = struct{}{}
 		monitorCache, ok := monitorCaches[m.ID]
-		if !ok {
-			monitorCaches[m.ID] = MonitorCache{itemEditedTime: m.UpdateTime}
-			monitorCache = monitorCaches[m.ID]
-		} else if monitorCache.itemEditedTime != m.UpdateTime {
-			monitorCaches[m.ID] = MonitorCache{itemEditedTime: m.UpdateTime}
-			monitorCache = monitorCaches[m.ID]
+		if !ok || monitorCache.itemEditedTime != m.UpdateTime {
+			monitorCache = MonitorCache{itemEditedTime: m.UpdateTime}
 		}
 
 		if monitorCache.silentCycle > 0 {
@@ -78,65 +74,62 @@ func monitorTask() {
 		}
 
 		now := time.Now().Unix()
-		if int(now-monitorCache.time) >= m.Second {
-			monitorCache.time = now
-			ms, err := monitor.NewMonitorFromTarget(
-				m.Type,
-				m.Target,
-				monitor.NewScript(m.SuccessServerID, m.SuccessScript),
-				monitor.NewScript(m.FailServerID, m.FailScript),
-			)
-			if err != nil {
-				_ = m.TurnOff(err.Error())
-				log.Error("m " + m.Name + " encounter error, " + err.Error())
-				ws.GetHub().Data <- &ws.Data{
-					Type:    ws.TypeMonitor,
-					Message: monitorMessage{MonitorID: m.ID, State: model2.Disable, ErrorContent: err.Error()},
-				}
-			} else if err := ms.Check(); err != nil {
-				monitorErrorContent := err.Error()
-				monitorCache.errorTimes++
-				log.Error("m " + m.Name + " encounter error, " + monitorErrorContent)
-				if m.Times <= uint16(monitorCache.errorTimes) {
-					if body, err := m.Notify(monitorErrorContent); err != nil {
-						log.Error("m " + m.Name + " notify error, " + err.Error())
-					} else {
-						monitorCache.errorTimes = 0
-						monitorCache.silentCycle = 1
-						log.Trace("m " + m.Name + " notify return " + body)
-						_ = m.TurnOff(monitorErrorContent)
-						ws.GetHub().Data <- &ws.Data{
-							Type:    ws.TypeMonitor,
-							Message: monitorMessage{MonitorID: m.ID, State: model2.Disable, ErrorContent: monitorErrorContent},
-						}
-					}
-				}
-				var serverID int64
-				if err, ok := err.(monitor.ScriptError); ok {
-					serverID = err.ServerID
-				}
 
-				if err = ms.RunFailScript(serverID); err != nil {
-					log.Error("Failed to run fail script ." + err.Error())
-				}
-			} else {
-				for _, item := range ms.Items {
-					serverID, err := strconv.ParseInt(item, 10, 64)
-					if err != nil {
-						err = ms.RunSuccessScript(-1)
-					} else {
-						err = ms.RunSuccessScript(serverID)
-					}
-					if err != nil {
-						log.Error("Failed to run successful script ." + err.Error())
-					}
+		if int(now-monitorCache.time) < m.Second {
+			continue
+		}
 
+		monitorCache.time = now
+		ms := monitor.NewMonitorFromTarget(
+			m.Type,
+			m.Target,
+			monitor.WithSuccessScript(m.SuccessServerID, m.SuccessScript),
+			monitor.WithFailScript(m.FailServerID, m.FailScript),
+		)
+
+		if err := ms.Check(); err != nil {
+			monitorErrorContent := err.Error()
+			monitorCache.errorTimes++
+			log.Error("m " + m.Name + " encounter error, " + monitorErrorContent)
+			if m.Times <= uint16(monitorCache.errorTimes) {
+				if body, err := m.Notify(monitorErrorContent); err != nil {
+					log.Error("m " + m.Name + " notify error, " + err.Error())
+				} else {
+					monitorCache.errorTimes = 0
+					monitorCache.silentCycle = 1
+					log.Trace("m " + m.Name + " notify return " + body)
+					_ = m.TurnOff(monitorErrorContent)
+					ws.Send(ws.Data{
+						Type:    ws.TypeMonitor,
+						Message: monitorMessage{MonitorID: m.ID, State: model.Disable, ErrorContent: monitorErrorContent},
+					})
 				}
-				monitorCache.errorTimes = 0
+			}
+			var serverID int64
+			if err, ok := err.(monitor.ScriptError); ok {
+				serverID = err.ServerID
+			}
+
+			if err = ms.RunFailScript(serverID); err != nil {
+				log.Error("Failed to run fail script " + err.Error())
+			}
+		} else {
+			for _, item := range ms.Items {
+				serverID, err := strconv.ParseInt(item, 10, 64)
+				if err != nil {
+					err = ms.RunSuccessScript(-1)
+				} else {
+					err = ms.RunSuccessScript(serverID)
+				}
+				if err != nil {
+					log.Error("Failed to run successful script " + err.Error())
+				}
 
 			}
-			monitorCaches[m.ID] = monitorCache
+			monitorCache.errorTimes = 0
+
 		}
+		monitorCaches[m.ID] = monitorCache
 	}
 
 	for cacheID := range monitorCaches {

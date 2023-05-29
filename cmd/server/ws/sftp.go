@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/internal/log"
-	model2 "github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"net/http"
@@ -44,7 +44,7 @@ func (hub *Hub) sftp(gp *server.Goploy) server.Response {
 		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
 		return response.Empty{}
 	}
-	srv, err := (model2.Server{ID: serverID}).GetData()
+	srv, err := (model.Server{ID: serverID}).GetData()
 	if err != nil {
 		c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, err.Error()))
 		return response.Empty{}
@@ -129,13 +129,13 @@ func (hub *Hub) sftp(gp *server.Goploy) server.Response {
 			}
 
 			// sftp log
-			if err := (model2.SftpLog{
+			if err := (model.SftpLog{
 				NamespaceID: gp.Namespace.ID,
 				UserID:      gp.UserInfo.ID,
 				ServerID:    serverID,
 				RemoteAddr:  gp.Request.RemoteAddr,
 				UserAgent:   gp.Request.UserAgent(),
-				Type:        model2.SftpLogTypeRead,
+				Type:        model.SftpLogTypeRead,
 				Path:        string(message),
 				Reason:      msg,
 			}.AddRow()); err != nil {

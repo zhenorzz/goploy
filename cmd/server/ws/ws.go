@@ -89,6 +89,10 @@ func GetHub() *Hub {
 	return hub
 }
 
+func Send(d Data) {
+	GetHub().Data <- &d
+}
+
 func (hub *Hub) connect(gp *server.Goploy) server.Response {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {

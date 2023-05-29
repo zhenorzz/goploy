@@ -55,38 +55,35 @@ func (Monitor) Check(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	var err error
-	ms, err := monitor.NewMonitorFromTarget(
+	m := monitor.NewMonitorFromTarget(
 		reqData.Type,
 		reqData.Target,
-		monitor.NewScript(reqData.SuccessServerID, reqData.SuccessScript),
-		monitor.NewScript(reqData.FailServerID, reqData.FailScript),
+		monitor.WithSuccessScript(reqData.SuccessServerID, reqData.SuccessScript),
+		monitor.WithFailScript(reqData.FailServerID, reqData.FailScript),
 	)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
 
 	sb := strings.Builder{}
 	var serverID int64
-	if err = ms.Check(); err != nil {
+	if err = m.Check(); err != nil {
 		sb.WriteString("MonitorErr : ")
 		sb.WriteString(err.Error())
 		if e, ok := err.(monitor.ScriptError); ok {
 			serverID = e.ServerID
 		}
 
-		err = ms.RunFailScript(serverID)
+		err = m.RunFailScript(serverID)
 		if err != nil {
 			sb.WriteString("\nFailScriptErr : ")
 			sb.WriteString(err.Error())
 		}
 	} else {
 		sb.WriteString("Monitor : Success \n")
-		for _, item := range ms.Items {
+		for _, item := range m.Items {
 			serverID, err = strconv.ParseInt(item, 10, 64)
 			if err != nil {
-				err = ms.RunSuccessScript(-1)
+				err = m.RunSuccessScript(-1)
 			} else {
-				err = ms.RunSuccessScript(serverID)
+				err = m.RunSuccessScript(serverID)
 			}
 			if err != nil {
 				sb.WriteString("SuccessScriptErr: \n")
