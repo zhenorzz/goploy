@@ -8,7 +8,7 @@ import (
 	"database/sql"
 	"github.com/google/uuid"
 	"github.com/zhenorzz/goploy/internal/log"
-	model2 "github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"sync/atomic"
 	"time"
 )
@@ -32,12 +32,12 @@ func startProjectTask() {
 
 func projectTask() {
 	date := time.Now().Format("2006-01-02 15:04:05")
-	projectTasks, err := model2.ProjectTask{}.GetNotRunListLTDate(date)
+	projectTasks, err := model.ProjectTask{}.GetNotRunListLTDate(date)
 	if err != nil && err != sql.ErrNoRows {
 		log.Error("get project task list error, detail:" + err.Error())
 	}
 	for _, projectTask := range projectTasks {
-		project, err := model2.Project{ID: projectTask.ProjectID}.GetData()
+		project, err := model.Project{ID: projectTask.ProjectID}.GetData()
 
 		if err != nil {
 			log.Error("publish task has no project, detail:" + err.Error())
@@ -49,14 +49,14 @@ func projectTask() {
 			continue
 		}
 
-		projectServers, err := model2.ProjectServer{ProjectID: projectTask.ProjectID}.GetBindServerListByProjectID()
+		projectServers, err := model.ProjectServer{ProjectID: projectTask.ProjectID}.GetBindServerListByProjectID()
 
 		if err != nil {
 			log.Error("publish task has no server, detail:" + err.Error())
 			continue
 		}
 
-		userInfo, err := model2.User{ID: 1}.GetData()
+		userInfo, err := model.User{ID: 1}.GetData()
 		if err != nil {
 			log.Error("publish task has no user, detail:" + err.Error())
 			continue
@@ -64,7 +64,7 @@ func projectTask() {
 
 		project.PublisherID = userInfo.ID
 		project.PublisherName = userInfo.Name
-		project.DeployState = model2.ProjectDeploying
+		project.DeployState = model.ProjectDeploying
 		project.LastPublishToken = uuid.New().String()
 		err = project.Publish()
 		if err != nil {

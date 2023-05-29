@@ -11,11 +11,13 @@ import (
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/monitor"
 	"strconv"
+	"sync"
 	"sync/atomic"
 	"time"
 )
 
 var monitorTick = time.Tick(time.Second)
+var monitorMutex sync.Mutex
 
 func startMonitorTask() {
 	atomic.AddInt32(&counter, 1)
@@ -23,7 +25,10 @@ func startMonitorTask() {
 		for {
 			select {
 			case <-monitorTick:
-				monitorTask()
+				if monitorMutex.TryLock() {
+					monitorTask()
+					monitorMutex.Unlock()
+				}
 			case <-stop:
 				atomic.AddInt32(&counter, -1)
 				return
@@ -78,6 +83,7 @@ func monitorTask() {
 		if int(now-monitorCache.time) < m.Second {
 			continue
 		}
+		println(m.Name)
 
 		monitorCache.time = now
 		ms := monitor.NewMonitorFromTarget(

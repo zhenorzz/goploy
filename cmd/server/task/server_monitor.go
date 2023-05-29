@@ -8,13 +8,15 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/zhenorzz/goploy/internal/log"
-	model2 "github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 )
 
 var serverMonitorTick = time.Tick(time.Minute)
+var serverMonitorMutex sync.Mutex
 
 func startServerMonitorTask() {
 	atomic.AddInt32(&counter, 1)
@@ -22,7 +24,10 @@ func startServerMonitorTask() {
 		for {
 			select {
 			case <-serverMonitorTick:
-				serverMonitorTask()
+				if serverMonitorMutex.TryLock() {
+					serverMonitorTask()
+					serverMonitorMutex.Unlock()
+				}
 			case <-stop:
 				atomic.AddInt32(&counter, -1)
 				return
@@ -42,16 +47,15 @@ var loop = 0
 
 func serverMonitorTask() {
 	loop++
-	var serverCaches = map[int64]model2.Server{}
-	serverMonitorTasks, err := model2.ServerMonitor{}.GetAllModBy(loop, time.Now().Format("15:04"))
+	var serverCaches = map[int64]model.Server{}
+	serverMonitorTasks, err := model.ServerMonitor{}.GetAllModBy(loop, time.Now().Format("15:04"))
 	if err != nil && err != sql.ErrNoRows {
 		log.Error("get server monitor list error, detail:" + err.Error())
 	}
 	for _, serverMonitor := range serverMonitorTasks {
 		monitorCache, ok := serverMonitorCaches[serverMonitor.ID]
 		if !ok {
-			serverMonitorCaches[serverMonitor.ID] = ServerMonitorCache{}
-			monitorCache = serverMonitorCaches[serverMonitor.ID]
+			monitorCache = ServerMonitorCache{}
 		}
 
 		if monitorCache.silentCycle > 0 {
@@ -63,7 +67,7 @@ func serverMonitorTask() {
 			continue
 		}
 
-		cycleValue, err := model2.ServerAgentLog{
+		cycleValue, err := model.ServerAgentLog{
 			ServerID: serverMonitor.ServerID,
 			Item:     serverMonitor.Item,
 		}.GetCycleValue(serverMonitor.GroupCycle, serverMonitor.Formula)
@@ -96,7 +100,7 @@ func serverMonitorTask() {
 			monitorCache.lastCycle = 0
 
 			if _, ok := serverCaches[serverMonitor.ServerID]; !ok {
-				server, err := model2.Server{ID: serverMonitor.ServerID}.GetData()
+				server, err := model.Server{ID: serverMonitor.ServerID}.GetData()
 				if err != nil {
 					log.Error(fmt.Sprintf("monitor task %d has no server, detail: %s", serverMonitor.ID, err.Error()))
 					continue
