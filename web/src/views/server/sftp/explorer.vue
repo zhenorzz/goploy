@@ -329,6 +329,7 @@ function connectServer() {
     )
     ws.onopen = () => {
       wsConnected.value = true
+      dirOpen('/')
     }
     ws.onerror = (error) => {
       console.log(error)

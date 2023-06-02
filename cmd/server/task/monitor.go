@@ -83,7 +83,6 @@ func monitorTask() {
 		if int(now-monitorCache.time) < m.Second {
 			continue
 		}
-		println(m.Name)
 
 		monitorCache.time = now
 		ms := monitor.NewMonitorFromTarget(
