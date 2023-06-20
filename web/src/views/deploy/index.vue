@@ -68,7 +68,7 @@
               shadow="hover"
               :body-style="{
                 padding: '0px',
-                backgroundColor: '#fff',
+                backgroundColor: 'var(--el-bg-color)',
                 position: 'relative',
               }"
               class="card"
@@ -939,7 +939,7 @@ function setStick(value: string) {
 
 .deploying:before {
   animation: roll linear 3s infinite;
-  background: conic-gradient(#e6a23c, #fff);
+  background: conic-gradient(var(--el-color-warning), var(--el-bg-color));
   left: 50%;
   top: 50%;
 }
@@ -947,7 +947,7 @@ function setStick(value: string) {
 .success:before {
   animation: opacity 3s 1;
   animation-fill-mode: forwards;
-  background: #67c23a;
+  background: var(--el-color-success);
   left: -50%;
   top: -50%;
 }
@@ -955,7 +955,7 @@ function setStick(value: string) {
 .fail:before {
   animation: opacity linear 5s 1;
   animation-fill-mode: forwards;
-  background: #f56c6c;
+  background: var(--el-color-danger);
   left: -50%;
   top: -50%;
 }
