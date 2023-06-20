@@ -7,7 +7,7 @@ package task
 import (
 	"database/sql"
 	"github.com/google/uuid"
-	"github.com/zhenorzz/goploy/internal/log"
+	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/internal/model"
 	"sync/atomic"
 	"time"

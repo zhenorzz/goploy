@@ -5,8 +5,15 @@
 package config
 
 import (
+	"fmt"
 	"github.com/pelletier/go-toml/v2"
+	log "github.com/sirupsen/logrus"
+	"io"
 	"os"
+	"path"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"time"
 )
 
@@ -46,8 +53,7 @@ type DBConfig struct {
 }
 
 type LogConfig struct {
-	Path  string `toml:"path"`
-	Split bool   `toml:"split"`
+	Path string `toml:"path"`
 }
 
 type WebConfig struct {
@@ -77,6 +83,7 @@ func InitToml() {
 	}
 	setAPPDefault()
 	setDBDefault()
+	setLogger()
 }
 
 func setAPPDefault() {
@@ -98,6 +105,40 @@ func setDBDefault() {
 	if Toml.DB.Database == "" {
 		Toml.DB.Database = "goploy"
 	}
+}
+
+func setLogger() {
+	var logFile io.Writer
+	logPathEnv := Toml.Log.Path
+	if strings.ToLower(logPathEnv) == "stdout" {
+		logFile = os.Stdout
+	} else {
+		logPath, err := filepath.Abs(logPathEnv)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		if _, err := os.Stat(logPath); err != nil && os.IsNotExist(err) {
+			if err := os.Mkdir(logPath, os.ModePerm); nil != err {
+				panic(err.Error())
+			}
+		}
+		logFile, err = os.OpenFile(logPath+"/goploy.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766)
+		if nil != err {
+			panic(err.Error())
+		}
+	}
+	log.SetReportCaller(true)
+
+	log.SetFormatter(&log.TextFormatter{
+		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+			return fmt.Sprintf("%s()", path.Base(f.Function)), fmt.Sprintf("%s:%d", path.Base(f.File), f.Line)
+		},
+	})
+
+	log.SetOutput(logFile)
+
+	log.SetLevel(log.TraceLevel)
+
 }
 
 func Write(cfg Config) error {

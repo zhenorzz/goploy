@@ -7,7 +7,7 @@ package api
 import (
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
-	model2 "github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"net/http"
@@ -29,37 +29,37 @@ func (r Role) Handler() []server.Route {
 }
 
 func (Role) GetList(*server.Goploy) server.Response {
-	roleList, err := model2.Role{}.GetList()
+	roleList, err := model.Role{}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	return response.JSON{
 		Data: struct {
-			List model2.Roles `json:"list"`
+			List model.Roles `json:"list"`
 		}{List: roleList},
 	}
 }
 
 func (Role) GetOption(*server.Goploy) server.Response {
-	list, err := model2.Role{}.GetAll()
+	list, err := model.Role{}.GetAll()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{Data: struct {
-		List model2.Roles `json:"list"`
+		List model.Roles `json:"list"`
 	}{list}}
 }
 
 func (Role) GetPermissionList(*server.Goploy) server.Response {
-	list, err := model2.Permission{}.GetList()
+	list, err := model.Permission{}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	return response.JSON{
 		Data: struct {
-			List model2.Permissions `json:"list"`
+			List model.Permissions `json:"list"`
 		}{List: list},
 	}
 }
@@ -73,14 +73,14 @@ func (Role) GetPermissionBindings(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	list, err := model2.RolePermission{RoleID: reqData.RoleID}.GetList()
+	list, err := model.RolePermission{RoleID: reqData.RoleID}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	return response.JSON{
 		Data: struct {
-			List model2.RolePermissions `json:"list"`
+			List model.RolePermissions `json:"list"`
 		}{List: list},
 	}
 }
@@ -95,7 +95,7 @@ func (Role) Add(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	id, err := model2.Role{Name: reqData.Name, Description: reqData.Description}.AddRow()
+	id, err := model.Role{Name: reqData.Name, Description: reqData.Description}.AddRow()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -118,7 +118,7 @@ func (Role) Edit(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	err := model2.Role{ID: reqData.ID, Name: reqData.Name, Description: reqData.Description}.EditRow()
+	err := model.Role{ID: reqData.ID, Name: reqData.Name, Description: reqData.Description}.EditRow()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -135,7 +135,7 @@ func (Role) Remove(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	namespaceUser, err := (model2.NamespaceUser{RoleID: reqData.ID}).GetDataByRoleID()
+	namespaceUser, err := (model.NamespaceUser{RoleID: reqData.ID}).GetDataByRoleID()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -143,7 +143,7 @@ func (Role) Remove(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: "The role has binding user"}
 	}
 
-	if err := (model2.Role{ID: reqData.ID}).DeleteRow(); err != nil {
+	if err := (model.Role{ID: reqData.ID}).DeleteRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -160,13 +160,13 @@ func (Role) ChangePermission(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := (model2.RolePermission{RoleID: reqData.RoleID}).DeleteByRoleID(); err != nil {
+	if err := (model.RolePermission{RoleID: reqData.RoleID}).DeleteByRoleID(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	rolePermissionsModel := model2.RolePermissions{}
+	rolePermissionsModel := model.RolePermissions{}
 	for _, PermissionID := range reqData.PermissionIDs {
-		rolePermissionModel := model2.RolePermission{
+		rolePermissionModel := model.RolePermission{
 			PermissionID: PermissionID,
 			RoleID:       reqData.RoleID,
 		}

@@ -5,7 +5,7 @@
 package transmitter
 
 import (
-	model2 "github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/model"
 )
 
 type Transmitter interface {
@@ -13,7 +13,7 @@ type Transmitter interface {
 	Exec() (string, error)
 }
 
-func New(project model2.Project, server model2.ProjectServer) Transmitter {
+func New(project model.Project, server model.ProjectServer) Transmitter {
 	if project.TransferType == "sftp" {
 		return sftpTransmitter{project, server}
 	} else if project.TransferType == "custom" {

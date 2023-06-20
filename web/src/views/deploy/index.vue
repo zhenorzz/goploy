@@ -66,10 +66,23 @@
           >
             <el-card
               shadow="hover"
-              style="border: none"
-              :body-style="{ padding: '0px' }"
+              :body-style="{
+                padding: '0px',
+                backgroundColor: '#fff',
+                position: 'relative',
+              }"
+              class="card"
+              :class="
+                row.deployState === 0
+                  ? ''
+                  : row.deployState === 1
+                  ? 'deploying'
+                  : row.deployState === 2
+                  ? 'success'
+                  : 'fail'
+              "
             >
-              <div style="padding: 15px">
+              <div style="padding: 12px">
                 <el-row justify="space-between">
                   <svg-icon
                     v-if="row['pin'] === true"
@@ -172,12 +185,7 @@
                     {{ row.tagText }}
                   </el-tag>
                 </el-row>
-                <el-progress
-                  style="margin: 5px 0; width: 100%"
-                  :percentage="row.progressPercentage"
-                  :status="row.progressStatus"
-                />
-                <div>
+                <div style="margin-top: 8px">
                   <Button
                     v-if="row.deployState === 0"
                     :permissions="[pms.DeployProject]"
@@ -520,21 +528,15 @@ watch(
       (element) => element.id === data.projectId
     )
     if (projectIndex !== -1) {
-      const percent = 20 * data.state
-      tableData.value[projectIndex].progressPercentage = percent
-      tableData.value[projectIndex].progressStatus = 'warning'
-      tableData.value[projectIndex].tagType = 'warning'
       tableData.value[projectIndex].tagText = message
-      tableData.value[projectIndex].deployState = 1
-      if (percent === 0) {
-        tableData.value[projectIndex].progressStatus = 'exception'
+      tableData.value[projectIndex].deployState = data['state']
+      if (data['state'] === 2) {
+        tableData.value[projectIndex].tagType = 'success'
+      } else if (data['state'] === 3) {
         tableData.value[projectIndex].tagType = 'danger'
         tableData.value[projectIndex].tagText = 'Fail'
-        tableData.value[projectIndex].deployState = 3
-      } else if (percent === 100) {
-        tableData.value[projectIndex].progressStatus = 'success'
-        tableData.value[projectIndex].tagType = 'success'
-        tableData.value[projectIndex].deployState = 2
+      } else {
+        tableData.value[projectIndex].tagType = 'warning'
       }
 
       if (data['ext']) {
@@ -556,22 +558,15 @@ function getList() {
     .then((response) => {
       tableData.value = response.data.list.map((item) => {
         let element: any = item
-        element.progressPercentage = 0
         element.tagType = 'info'
         element.tagText = 'Not deploy'
         if (element.deployState === 2) {
-          element.progressPercentage = 100
-          element.progressStatus = 'success'
           element.tagType = 'success'
           element.tagText = 'Success'
         } else if (element.deployState === 1) {
-          element.progressPercentage = 60
-          element.progressStatus = 'warning'
           element.tagType = 'warning'
           element.tagText = 'Deploying'
         } else if (element.deployState === 3) {
-          element.progressPercentage = 0
-          element.progressStatus = 'exception'
           element.tagType = 'danger'
           element.tagText = 'Fail'
         }
@@ -924,3 +919,59 @@ function setStick(value: string) {
   localStorage.setItem('deploy-stick', value)
 }
 </script>
+
+<style lang="scss" scoped>
+.card {
+  border: none;
+  padding: 3px;
+  position: relative;
+  overflow: hidden;
+  &:before {
+    content: '';
+    position: absolute;
+    width: 1000px;
+    height: 1000px;
+  }
+}
+
+.deploying:before {
+  animation: roll linear 3s infinite;
+  background: conic-gradient(#e6a23c, #fff);
+  left: 50%;
+  top: 50%;
+}
+
+.success:before {
+  animation: opacity 3s 1;
+  animation-fill-mode: forwards;
+  background: #67c23a;
+  left: -50%;
+  top: -50%;
+}
+
+.fail:before {
+  animation: opacity linear 3s 1;
+  animation-fill-mode: forwards;
+  background: #f56c6c;
+  left: -50%;
+  top: -50%;
+}
+
+@keyframes roll {
+  from {
+    transform: translate(-50%, -50%) rotateZ(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotateZ(-360deg);
+  }
+}
+
+@keyframes opacity {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+</style>

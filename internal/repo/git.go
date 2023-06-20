@@ -7,8 +7,8 @@ package repo
 import (
 	"errors"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"os"
@@ -74,13 +74,13 @@ func (gitRepo GitRepo) Follow(project model.Project, target string) error {
 		return err
 	}
 	git := pkg.GIT{Dir: config.GetProjectPath(project.ID)}
-	log.Trace("projectID:" + strconv.FormatInt(project.ID, 10) + " git add .")
+	log.Trace("projectID: " + strconv.FormatInt(project.ID, 10) + " git add .")
 	if err := git.Add("."); err != nil {
 		log.Error(err.Error() + ", detail: " + git.Err.String())
 		return err
 	}
 
-	log.Trace("projectID:" + strconv.FormatInt(project.ID, 10) + " git reset --hard")
+	log.Trace("projectID: " + strconv.FormatInt(project.ID, 10) + " git reset --hard")
 	if err := git.Reset("--hard"); err != nil {
 		log.Error(err.Error() + ", detail: " + git.Err.String())
 		return err
@@ -88,14 +88,14 @@ func (gitRepo GitRepo) Follow(project model.Project, target string) error {
 
 	// the length of commit id is 40
 	if len(target) != 40 {
-		log.Trace("projectID:" + strconv.FormatInt(project.ID, 10) + " git fetch")
+		log.Trace("projectID: " + strconv.FormatInt(project.ID, 10) + " git fetch")
 		if err := git.Fetch(); err != nil {
 			log.Error(err.Error() + ", detail: " + git.Err.String())
 			return err
 		}
 	}
 
-	log.Trace("projectID:" + strconv.FormatInt(project.ID, 10) + " git checkout -B goploy " + target)
+	log.Trace("projectID: " + strconv.FormatInt(project.ID, 10) + " git checkout -B goploy " + target)
 	if err := git.Checkout("-B", "goploy", target); err != nil {
 		log.Error(err.Error() + ", detail: " + git.Err.String())
 		return err

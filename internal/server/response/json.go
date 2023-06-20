@@ -26,7 +26,7 @@ const (
 	LoginExpired     = 10086
 )
 
-//JSON response
+// JSON response
 func (j JSON) Write(w http.ResponseWriter, _ *http.Request) error {
 	return json.NewEncoder(w).Encode(j)
 }

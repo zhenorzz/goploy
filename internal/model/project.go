@@ -5,6 +5,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/zhenorzz/goploy/config"
@@ -15,39 +16,51 @@ import (
 
 const projectTable = "`project`"
 
+type ProjectScript struct {
+	AfterPull struct {
+		Mode    string `json:"mode"`
+		Content string `json:"content"`
+	} `json:"afterPull"`
+	AfterDeploy struct {
+		Mode    string `json:"mode"`
+		Content string `json:"content"`
+	} `json:"afterDeploy"`
+	DeploySuccess struct {
+		Mode    string `json:"mode"`
+		Content string `json:"content"`
+	} `json:"deploySuccess"`
+}
+
 type Project struct {
-	ID                    int64  `json:"id"`
-	NamespaceID           int64  `json:"namespaceId"`
-	UserID                int64  `json:"userId,omitempty"`
-	RepoType              string `json:"repoType"`
-	Name                  string `json:"name"`
-	URL                   string `json:"url"`
-	Label                 string `json:"label"`
-	Path                  string `json:"path"`
-	Environment           uint8  `json:"environment"`
-	Branch                string `json:"branch"`
-	SymlinkPath           string `json:"symlinkPath"`
-	SymlinkBackupNumber   uint8  `json:"symlinkBackupNumber"`
-	Review                uint8  `json:"review"`
-	ReviewURL             string `json:"reviewURL"`
-	AfterPullScriptMode   string `json:"afterPullScriptMode"`
-	AfterPullScript       string `json:"afterPullScript"`
-	AfterDeployScriptMode string `json:"afterDeployScriptMode"`
-	AfterDeployScript     string `json:"afterDeployScript"`
-	TransferType          string `json:"transferType"`
-	TransferOption        string `json:"transferOption"`
-	DeployServerMode      string `json:"deployServerMode"`
-	AutoDeploy            uint8  `json:"autoDeploy"`
-	PublisherID           int64  `json:"publisherId"`
-	PublisherName         string `json:"publisherName"`
-	PublishExt            string `json:"publishExt"`
-	DeployState           uint8  `json:"deployState"`
-	LastPublishToken      string `json:"lastPublishToken"`
-	NotifyType            uint8  `json:"notifyType"`
-	NotifyTarget          string `json:"notifyTarget"`
-	State                 uint8  `json:"state"`
-	InsertTime            string `json:"insertTime"`
-	UpdateTime            string `json:"updateTime"`
+	ID                  int64         `json:"id"`
+	NamespaceID         int64         `json:"namespaceId"`
+	UserID              int64         `json:"userId,omitempty"`
+	RepoType            string        `json:"repoType"`
+	Name                string        `json:"name"`
+	URL                 string        `json:"url"`
+	Label               string        `json:"label"`
+	Path                string        `json:"path"`
+	Environment         uint8         `json:"environment"`
+	Branch              string        `json:"branch"`
+	SymlinkPath         string        `json:"symlinkPath"`
+	SymlinkBackupNumber uint8         `json:"symlinkBackupNumber"`
+	Review              uint8         `json:"review"`
+	ReviewURL           string        `json:"reviewURL"`
+	Script              ProjectScript `json:"script"`
+	TransferType        string        `json:"transferType"`
+	TransferOption      string        `json:"transferOption"`
+	DeployServerMode    string        `json:"deployServerMode"`
+	AutoDeploy          uint8         `json:"autoDeploy"`
+	PublisherID         int64         `json:"publisherId"`
+	PublisherName       string        `json:"publisherName"`
+	PublishExt          string        `json:"publishExt"`
+	DeployState         uint8         `json:"deployState"`
+	LastPublishToken    string        `json:"lastPublishToken"`
+	NotifyType          uint8         `json:"notifyType"`
+	NotifyTarget        string        `json:"notifyTarget"`
+	State               uint8         `json:"state"`
+	InsertTime          string        `json:"insertTime"`
+	UpdateTime          string        `json:"updateTime"`
 }
 
 // Project deploy state
@@ -82,6 +95,10 @@ const (
 type Projects []Project
 
 func (p Project) AddRow() (int64, error) {
+	script, err := json.Marshal(p.Script)
+	if err != nil {
+		return 0, err
+	}
 	result, err := sq.
 		Insert(projectTable).
 		Columns(
@@ -97,10 +114,7 @@ func (p Project) AddRow() (int64, error) {
 			"symlink_backup_number",
 			"review",
 			"review_url",
-			"after_pull_script_mode",
-			"after_pull_script",
-			"after_deploy_script_mode",
-			"after_deploy_script",
+			"script",
 			"transfer_type",
 			"transfer_option",
 			"deploy_server_mode",
@@ -120,10 +134,7 @@ func (p Project) AddRow() (int64, error) {
 			p.SymlinkBackupNumber,
 			p.Review,
 			p.ReviewURL,
-			p.AfterPullScriptMode,
-			p.AfterPullScript,
-			p.AfterDeployScriptMode,
-			p.AfterDeployScript,
+			script,
 			p.TransferType,
 			p.TransferOption,
 			p.DeployServerMode,
@@ -139,71 +150,32 @@ func (p Project) AddRow() (int64, error) {
 	return id, err
 }
 
-func (p Project) GetLabelList() (labels []string, err error) {
-	builder := sq.Select("label").
-		From(projectTable).
-		Where(sq.Eq{
-			"namespace_id": p.NamespaceID,
-			"state":        Enable,
-		}).
-		Distinct()
-
-	if p.UserID > 0 {
-		builder = builder.
-			Join(fmt.Sprintf("%[1]s on %[1]s.project_id = %s.id", projectUserTable, projectTable)).
-			Where(sq.Eq{"user_id": p.UserID})
-	}
-
-	rows, err := builder.
-		RunWith(DB).
-		Query()
-	if err != nil {
-		return nil, err
-	}
-	labelMap := map[string]bool{}
-	var label string
-	for rows.Next() {
-		if err := rows.Scan(&label); err != nil {
-			return nil, err
-		}
-		if label != "" {
-			for _, item := range strings.Split(label, ",") {
-				labelMap[item] = false
-			}
-		}
-	}
-	labels = make([]string, len(labelMap))
-	var i int
-	for k := range labelMap {
-		labels[i] = k
-		i++
-	}
-	return labels, nil
-}
 func (p Project) EditRow() error {
-	_, err := sq.
+	script, err := json.Marshal(p.Script)
+	if err != nil {
+		return err
+	}
+
+	_, err = sq.
 		Update(projectTable).
 		SetMap(sq.Eq{
-			"name":                     p.Name,
-			"repo_type":                p.RepoType,
-			"url":                      p.URL,
-			"label":                    p.Label,
-			"path":                     p.Path,
-			"environment":              p.Environment,
-			"branch":                   p.Branch,
-			"symlink_path":             p.SymlinkPath,
-			"symlink_backup_number":    p.SymlinkBackupNumber,
-			"review":                   p.Review,
-			"review_url":               p.ReviewURL,
-			"after_pull_script_mode":   p.AfterPullScriptMode,
-			"after_pull_script":        p.AfterPullScript,
-			"after_deploy_script_mode": p.AfterDeployScriptMode,
-			"after_deploy_script":      p.AfterDeployScript,
-			"transfer_type":            p.TransferType,
-			"transfer_option":          p.TransferOption,
-			"deploy_server_mode":       p.DeployServerMode,
-			"notify_type":              p.NotifyType,
-			"notify_target":            p.NotifyTarget,
+			"name":                  p.Name,
+			"repo_type":             p.RepoType,
+			"url":                   p.URL,
+			"label":                 p.Label,
+			"path":                  p.Path,
+			"environment":           p.Environment,
+			"branch":                p.Branch,
+			"symlink_path":          p.SymlinkPath,
+			"symlink_backup_number": p.SymlinkBackupNumber,
+			"review":                p.Review,
+			"review_url":            p.ReviewURL,
+			"script":                script,
+			"transfer_type":         p.TransferType,
+			"transfer_option":       p.TransferOption,
+			"deploy_server_mode":    p.DeployServerMode,
+			"notify_type":           p.NotifyType,
+			"notify_target":         p.NotifyTarget,
 		}).
 		Where(sq.Eq{"id": p.ID}).
 		RunWith(DB).
@@ -293,6 +265,48 @@ func (p Project) DeployFail() error {
 	return err
 }
 
+func (p Project) GetLabelList() (labels []string, err error) {
+	builder := sq.Select("label").
+		From(projectTable).
+		Where(sq.Eq{
+			"namespace_id": p.NamespaceID,
+			"state":        Enable,
+		}).
+		Distinct()
+
+	if p.UserID > 0 {
+		builder = builder.
+			Join(fmt.Sprintf("%[1]s on %[1]s.project_id = %s.id", projectUserTable, projectTable)).
+			Where(sq.Eq{"user_id": p.UserID})
+	}
+
+	rows, err := builder.
+		RunWith(DB).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	labelMap := map[string]bool{}
+	var label string
+	for rows.Next() {
+		if err := rows.Scan(&label); err != nil {
+			return nil, err
+		}
+		if label != "" {
+			for _, item := range strings.Split(label, ",") {
+				labelMap[item] = false
+			}
+		}
+	}
+	labels = make([]string, len(labelMap))
+	var i int
+	for k := range labelMap {
+		labels[i] = k
+		i++
+	}
+	return labels, nil
+}
+
 func (p Project) GetList() (Projects, error) {
 	builder := sq.
 		Select(`
@@ -308,10 +322,7 @@ func (p Project) GetList() (Projects, error) {
 			symlink_backup_number, 
 			review, 
 			review_url, 
-			after_pull_script_mode,
-			after_pull_script,
-			after_deploy_script_mode,
-			after_deploy_script,
+			script,
 			transfer_type,
 			transfer_option,
 			deploy_server_mode,
@@ -344,8 +355,8 @@ func (p Project) GetList() (Projects, error) {
 	projects := Projects{}
 	for rows.Next() {
 		var project Project
-
-		if err := rows.Scan(
+		var script []byte
+		if err = rows.Scan(
 			&project.ID,
 			&project.Name,
 			&project.RepoType,
@@ -358,10 +369,7 @@ func (p Project) GetList() (Projects, error) {
 			&project.SymlinkBackupNumber,
 			&project.Review,
 			&project.ReviewURL,
-			&project.AfterPullScriptMode,
-			&project.AfterPullScript,
-			&project.AfterDeployScriptMode,
-			&project.AfterDeployScript,
+			&script,
 			&project.TransferType,
 			&project.TransferOption,
 			&project.DeployServerMode,
@@ -373,6 +381,11 @@ func (p Project) GetList() (Projects, error) {
 		); err != nil {
 			return nil, err
 		}
+
+		if err = json.Unmarshal(script, &project.Script); err != nil {
+			return nil, err
+		}
+
 		projects = append(projects, project)
 	}
 
@@ -453,6 +466,7 @@ func (p Project) GetDeployList() (Projects, error) {
 
 func (p Project) GetData() (Project, error) {
 	var project Project
+	var script []byte
 	err := sq.
 		Select(`
 			id, 
@@ -468,10 +482,7 @@ func (p Project) GetData() (Project, error) {
 			symlink_backup_number, 
 			review, 
 			review_url,
-			after_pull_script_mode, 
-			after_pull_script, 
-			after_deploy_script_mode, 
-			after_deploy_script, 
+			script, 
 			transfer_type, 
 			transfer_option, 
 			deploy_server_mode, 
@@ -501,10 +512,7 @@ func (p Project) GetData() (Project, error) {
 			&project.SymlinkBackupNumber,
 			&project.Review,
 			&project.ReviewURL,
-			&project.AfterPullScriptMode,
-			&project.AfterPullScript,
-			&project.AfterDeployScriptMode,
-			&project.AfterDeployScript,
+			&script,
 			&project.TransferType,
 			&project.TransferOption,
 			&project.DeployServerMode,
@@ -518,6 +526,11 @@ func (p Project) GetData() (Project, error) {
 	if err != nil {
 		return project, err
 	}
+
+	if err = json.Unmarshal(script, &project.Script); err != nil {
+		return project, err
+	}
+
 	return project, nil
 }
 

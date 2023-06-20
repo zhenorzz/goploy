@@ -33,7 +33,7 @@ func (ct customTransmitter) String() string {
 		"${REPOSITORY_TYPE}":       project.RepoType,
 		"${REPOSITORY_URL}":        project.URL,
 		"${REPOSITORY_PATH}":       config.GetProjectPath(project.ID),
-		"${AFTER_DEPLOY_FILENAME}": fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, server.ServerID, pkg.GetScriptExt(project.AfterDeployScriptMode)),
+		"${AFTER_DEPLOY_FILENAME}": fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, server.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode)),
 		"${PUBLISH_TOKEN}":         project.LastPublishToken,
 		"${SERVER_ID}":             strconv.FormatInt(server.ServerID, 10),
 		"${SERVER_NAME}":           server.ServerName,

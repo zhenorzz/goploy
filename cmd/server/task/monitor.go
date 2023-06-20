@@ -6,8 +6,8 @@ package task
 
 import (
 	"database/sql"
+	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/cmd/server/ws"
-	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/monitor"
 	"strconv"

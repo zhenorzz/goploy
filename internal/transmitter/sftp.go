@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/config"
-	model2 "github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"io"
 	"os"
@@ -18,8 +18,8 @@ import (
 )
 
 type sftpTransmitter struct {
-	Project       model2.Project
-	ProjectServer model2.ProjectServer
+	Project       model.Project
+	ProjectServer model.ProjectServer
 }
 
 func (st sftpTransmitter) String() string {
@@ -97,7 +97,7 @@ func (st sftpTransmitter) Exec() (string, error) {
 		}
 		nextItem = ""
 	}
-	includes = append(includes, fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, st.ProjectServer.ServerID, pkg.GetScriptExt(project.AfterDeployScriptMode)))
+	includes = append(includes, fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, st.ProjectServer.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode)))
 
 	srcPath := config.GetProjectPath(project.ID) + "/"
 	destPath := project.Path

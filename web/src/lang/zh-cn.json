@@ -344,6 +344,8 @@
     "afterPullScriptTips": "拉取代码后在宿主服务器运行的脚本\n运行方式：打包成一份脚本文件\n检查服务器是否安装该脚本类型(默认以bash运行)",
     "afterDeployScriptLabel": "部署后运行脚本",
     "afterDeployScriptTips": "部署后在目标服务器运行的脚本\n运行方式：打包成一份脚本文件\n如需重启服务，请注意是否需要nohup",
+    "deploySuccessScriptLabel": "部署成功运行脚本",
+    "deploySuccessScriptTips": "部署成功后在宿主服务器运行的脚本\n运行方式：打包成一份脚本文件\n检查服务器是否安装该脚本类型(默认以bash运行)",
     "predefinedVar": "预定义变量",
     "autoDeployTitle": "构建触发器：达成某种条件后自动构建发布项目",
     "autoDeployGitTips": "填入连接http(s)://域名(IP)/deploy/webhook?project_id={projectId}\n勾选push event即可, (Gitlab可以选对应的分支)",

@@ -14,10 +14,10 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/pkg/sftp"
+	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/cmd/server/task"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/internal/pkg/cmd"
@@ -473,18 +473,18 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
 				cmdEntity := cmd.New(projectServer.ServerOS)
 				afterDeployCommands := []string{cmdEntity.Symlink(destDir, project.Path), cmdEntity.ChangeDirTime(destDir)}
-				if len(project.AfterDeployScript) != 0 {
-					scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.AfterDeployScriptMode))
-					scriptContent := project.ReplaceVars(project.AfterDeployScript)
+				if project.Script.AfterDeploy.Content != "" {
+					scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode))
+					scriptContent := project.ReplaceVars(project.Script.AfterDeploy.Content)
 					scriptContent = projectServer.ReplaceVars(scriptContent)
-					err = os.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(project.ReplaceVars(project.AfterDeployScript)), 0755)
+					err = os.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(project.ReplaceVars(project.Script.AfterDeploy.Content)), 0755)
 					if err != nil {
 						log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " write file err: " + err.Error())
 						ch <- false
 						return
 					}
 					afterDeployScriptPath := path.Join(project.Path, scriptName)
-					afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.AfterDeployScriptMode, afterDeployScriptPath))
+					afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.Script.AfterDeploy.Mode, afterDeployScriptPath))
 					afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
 				}
 				client, err := projectServer.ToSSHConfig().Dial()

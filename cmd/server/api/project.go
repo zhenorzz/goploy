@@ -312,28 +312,25 @@ func (Project) GetReposFileList(gp *server.Goploy) server.Response {
 
 func (Project) Add(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		Name                  string  `json:"name" validate:"required"`
-		RepoType              string  `json:"repoType" validate:"required"`
-		URL                   string  `json:"url" validate:"required"`
-		Label                 string  `json:"label"`
-		Path                  string  `json:"path" validate:"required"`
-		Environment           uint8   `json:"environment" validate:"required"`
-		Branch                string  `json:"branch" validate:"required"`
-		SymlinkPath           string  `json:"symlinkPath"`
-		SymlinkBackupNumber   uint8   `json:"symlinkBackupNumber"`
-		Review                uint8   `json:"review"`
-		ReviewURL             string  `json:"reviewURL"`
-		AfterPullScriptMode   string  `json:"afterPullScriptMode"`
-		AfterPullScript       string  `json:"afterPullScript"`
-		AfterDeployScriptMode string  `json:"afterDeployScriptMode"`
-		AfterDeployScript     string  `json:"afterDeployScript"`
-		TransferType          string  `json:"transferType"`
-		TransferOption        string  `json:"transferOption"`
-		DeployServerMode      string  `json:"deployServerMode"`
-		ServerIDs             []int64 `json:"serverIds"`
-		UserIDs               []int64 `json:"userIds"`
-		NotifyType            uint8   `json:"notifyType"`
-		NotifyTarget          string  `json:"notifyTarget"`
+		Name                string              `json:"name" validate:"required"`
+		RepoType            string              `json:"repoType" validate:"required"`
+		URL                 string              `json:"url" validate:"required"`
+		Label               string              `json:"label"`
+		Path                string              `json:"path" validate:"required"`
+		Environment         uint8               `json:"environment" validate:"required"`
+		Branch              string              `json:"branch" validate:"required"`
+		SymlinkPath         string              `json:"symlinkPath"`
+		SymlinkBackupNumber uint8               `json:"symlinkBackupNumber"`
+		Review              uint8               `json:"review"`
+		ReviewURL           string              `json:"reviewURL"`
+		Script              model.ProjectScript `json:"script"`
+		TransferType        string              `json:"transferType"`
+		TransferOption      string              `json:"transferOption"`
+		DeployServerMode    string              `json:"deployServerMode"`
+		ServerIDs           []int64             `json:"serverIds"`
+		UserIDs             []int64             `json:"userIds"`
+		NotifyType          uint8               `json:"notifyType"`
+		NotifyTarget        string              `json:"notifyTarget"`
 	}
 	var reqData ReqData
 	if err := decodeJson(gp.Body, &reqData); err != nil {
@@ -345,27 +342,24 @@ func (Project) Add(gp *server.Goploy) server.Response {
 	}
 
 	projectID, err := model.Project{
-		NamespaceID:           gp.Namespace.ID,
-		Name:                  reqData.Name,
-		RepoType:              reqData.RepoType,
-		URL:                   reqData.URL,
-		Label:                 reqData.Label,
-		Path:                  reqData.Path,
-		Environment:           reqData.Environment,
-		Branch:                reqData.Branch,
-		SymlinkPath:           reqData.SymlinkPath,
-		SymlinkBackupNumber:   reqData.SymlinkBackupNumber,
-		Review:                reqData.Review,
-		ReviewURL:             reqData.ReviewURL,
-		AfterPullScriptMode:   reqData.AfterPullScriptMode,
-		AfterPullScript:       reqData.AfterPullScript,
-		AfterDeployScriptMode: reqData.AfterDeployScriptMode,
-		AfterDeployScript:     reqData.AfterDeployScript,
-		TransferType:          reqData.TransferType,
-		TransferOption:        reqData.TransferOption,
-		DeployServerMode:      reqData.DeployServerMode,
-		NotifyType:            reqData.NotifyType,
-		NotifyTarget:          reqData.NotifyTarget,
+		NamespaceID:         gp.Namespace.ID,
+		Name:                reqData.Name,
+		RepoType:            reqData.RepoType,
+		URL:                 reqData.URL,
+		Label:               reqData.Label,
+		Path:                reqData.Path,
+		Environment:         reqData.Environment,
+		Branch:              reqData.Branch,
+		SymlinkPath:         reqData.SymlinkPath,
+		SymlinkBackupNumber: reqData.SymlinkBackupNumber,
+		Review:              reqData.Review,
+		ReviewURL:           reqData.ReviewURL,
+		Script:              reqData.Script,
+		TransferType:        reqData.TransferType,
+		TransferOption:      reqData.TransferOption,
+		DeployServerMode:    reqData.DeployServerMode,
+		NotifyType:          reqData.NotifyType,
+		NotifyTarget:        reqData.NotifyTarget,
 	}.AddRow()
 
 	if err != nil {
@@ -399,29 +393,26 @@ func (Project) Add(gp *server.Goploy) server.Response {
 
 func (Project) Edit(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		ID                    int64   `json:"id" validate:"gt=0"`
-		Name                  string  `json:"name"`
-		RepoType              string  `json:"repoType"`
-		URL                   string  `json:"url"`
-		Label                 string  `json:"label"`
-		Path                  string  `json:"path"`
-		SymlinkPath           string  `json:"symlinkPath"`
-		SymlinkBackupNumber   uint8   `json:"symlinkBackupNumber"`
-		Review                uint8   `json:"review"`
-		ReviewURL             string  `json:"reviewURL"`
-		Environment           uint8   `json:"environment"`
-		Branch                string  `json:"branch"`
-		ServerIDs             []int64 `json:"serverIds"`
-		UserIDs               []int64 `json:"userIds"`
-		AfterPullScriptMode   string  `json:"afterPullScriptMode"`
-		AfterPullScript       string  `json:"afterPullScript"`
-		AfterDeployScriptMode string  `json:"afterDeployScriptMode"`
-		AfterDeployScript     string  `json:"afterDeployScript"`
-		TransferType          string  `json:"transferType"`
-		TransferOption        string  `json:"transferOption"`
-		DeployServerMode      string  `json:"deployServerMode"`
-		NotifyType            uint8   `json:"notifyType"`
-		NotifyTarget          string  `json:"notifyTarget"`
+		ID                  int64               `json:"id" validate:"gt=0"`
+		Name                string              `json:"name"`
+		RepoType            string              `json:"repoType"`
+		URL                 string              `json:"url"`
+		Label               string              `json:"label"`
+		Path                string              `json:"path"`
+		SymlinkPath         string              `json:"symlinkPath"`
+		SymlinkBackupNumber uint8               `json:"symlinkBackupNumber"`
+		Review              uint8               `json:"review"`
+		ReviewURL           string              `json:"reviewURL"`
+		Environment         uint8               `json:"environment"`
+		Branch              string              `json:"branch"`
+		ServerIDs           []int64             `json:"serverIds"`
+		UserIDs             []int64             `json:"userIds"`
+		Script              model.ProjectScript `json:"script"`
+		TransferType        string              `json:"transferType"`
+		TransferOption      string              `json:"transferOption"`
+		DeployServerMode    string              `json:"deployServerMode"`
+		NotifyType          uint8               `json:"notifyType"`
+		NotifyTarget        string              `json:"notifyTarget"`
 	}
 	var reqData ReqData
 	if err := decodeJson(gp.Body, &reqData); err != nil {
@@ -438,27 +429,24 @@ func (Project) Edit(gp *server.Goploy) server.Response {
 	}
 
 	err = model.Project{
-		ID:                    reqData.ID,
-		Name:                  reqData.Name,
-		RepoType:              reqData.RepoType,
-		URL:                   reqData.URL,
-		Label:                 reqData.Label,
-		Path:                  reqData.Path,
-		Environment:           reqData.Environment,
-		Branch:                reqData.Branch,
-		SymlinkPath:           reqData.SymlinkPath,
-		SymlinkBackupNumber:   reqData.SymlinkBackupNumber,
-		Review:                reqData.Review,
-		ReviewURL:             reqData.ReviewURL,
-		AfterPullScriptMode:   reqData.AfterPullScriptMode,
-		AfterPullScript:       reqData.AfterPullScript,
-		AfterDeployScriptMode: reqData.AfterDeployScriptMode,
-		AfterDeployScript:     reqData.AfterDeployScript,
-		TransferType:          reqData.TransferType,
-		TransferOption:        reqData.TransferOption,
-		DeployServerMode:      reqData.DeployServerMode,
-		NotifyType:            reqData.NotifyType,
-		NotifyTarget:          reqData.NotifyTarget,
+		ID:                  reqData.ID,
+		Name:                reqData.Name,
+		RepoType:            reqData.RepoType,
+		URL:                 reqData.URL,
+		Label:               reqData.Label,
+		Path:                reqData.Path,
+		Environment:         reqData.Environment,
+		Branch:              reqData.Branch,
+		SymlinkPath:         reqData.SymlinkPath,
+		SymlinkBackupNumber: reqData.SymlinkBackupNumber,
+		Review:              reqData.Review,
+		ReviewURL:           reqData.ReviewURL,
+		Script:              reqData.Script,
+		TransferType:        reqData.TransferType,
+		TransferOption:      reqData.TransferOption,
+		DeployServerMode:    reqData.DeployServerMode,
+		NotifyType:          reqData.NotifyType,
+		NotifyTarget:        reqData.NotifyTarget,
 	}.EditRow()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}

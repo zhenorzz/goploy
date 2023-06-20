@@ -568,12 +568,16 @@
             <el-form-item prop="afterPullScript" label-width="0px">
               <el-row type="flex" style="width: 100%">
                 <el-select
-                  v-model="formData.afterPullScriptMode"
+                  v-model="formData.script.afterPull.mode"
                   :placeholder="
                     $t('projectPage.scriptMode') + '(Default: bash)'
                   "
                   style="flex: 1"
-                  @change="handleAfterPullScriptModeChange"
+                  @change="
+                    (mode) => {
+                      handleScriptModeChange(ScriptKey.AfterPull, mode)
+                    }
+                  "
                 >
                   <el-option
                     v-for="(item, index) in scriptLang.Option"
@@ -683,16 +687,17 @@
               </el-row>
             </el-form-item>
             <el-form-item prop="afterPullScript" label-width="0px">
-              <!-- <span>No support for demo</span> -->
               <v-ace-editor
-                v-model:value="formData.afterPullScript"
-                :lang="scriptLang.getScriptLang(formData.afterPullScriptMode)"
+                v-model:value="formData.script.afterPull.content"
+                :lang="scriptLang.getScriptLang(formData.script.afterPull.mode)"
                 :theme="isDark ? 'one_dark' : 'github'"
                 style="height: 400px; width: 100%"
                 placeholder="Already switched to project directory..."
                 :options="{
                   newLineMode:
-                    formData.afterPullScriptMode === 'cmd' ? 'windows' : 'unix',
+                    formData.script.afterPull.mode === 'cmd'
+                      ? 'windows'
+                      : 'unix',
                 }"
               />
             </el-form-item>
@@ -716,12 +721,16 @@
             <el-form-item prop="afterDeployScript" label-width="0px">
               <el-row type="flex" style="width: 100%">
                 <el-select
-                  v-model="formData.afterDeployScriptMode"
+                  v-model="formData.script.afterDeploy.mode"
                   :placeholder="
                     $t('projectPage.scriptMode') + '(Default: bash)'
                   "
                   style="flex: 1"
-                  @change="handleAfterDeployScriptModeChange"
+                  @change="
+                    (mode) => {
+                      handleScriptModeChange(ScriptKey.AfterDeploy, mode)
+                    }
+                  "
                 >
                   <el-option
                     v-for="(item, index) in scriptLang.Option"
@@ -867,15 +876,171 @@
               </el-row>
             </el-form-item>
             <el-form-item prop="afterDeployScript" label-width="0px">
-              <!-- <span>No support for demo</span> -->
               <v-ace-editor
-                v-model:value="formData.afterDeployScript"
-                :lang="scriptLang.getScriptLang(formData.afterDeployScriptMode)"
+                v-model:value="formData.script.afterDeploy.content"
+                :lang="
+                  scriptLang.getScriptLang(formData.script.afterDeploy.mode)
+                "
                 :theme="isDark ? 'one_dark' : 'github'"
                 style="height: 400px; width: 100%"
                 :options="{
                   newLineMode:
-                    formData.afterDeployScriptMode === 'cmd'
+                    formData.script.afterDeploy.mode === 'cmd'
+                      ? 'windows'
+                      : 'unix',
+                }"
+              />
+            </el-form-item>
+          </el-tab-pane>
+          <el-tab-pane name="deploySuccessScript">
+            <template #label>
+              <span style="vertical-align: middle; padding-right: 4px">
+                {{ $t('projectPage.deploySuccessScriptLabel') }}
+              </span>
+              <el-tooltip class="item" effect="dark" placement="bottom">
+                <template #content>
+                  <div style="white-space: pre-line">
+                    {{ $t('projectPage.deploySuccessScriptTips') }}
+                  </div>
+                </template>
+                <el-icon style="vertical-align: middle" :size="16">
+                  <question-filled />
+                </el-icon>
+              </el-tooltip>
+            </template>
+            <el-form-item prop="deploySuccessScript" label-width="0px">
+              <el-row type="flex" style="width: 100%">
+                <el-select
+                  v-model="formData.script.deploySuccess.mode"
+                  :placeholder="
+                    $t('projectPage.scriptMode') + '(Default: bash)'
+                  "
+                  style="flex: 1"
+                  @change="
+                    (mode) => {
+                      handleScriptModeChange(ScriptKey.DeploySuccess, mode)
+                    }
+                  "
+                >
+                  <el-option
+                    v-for="(item, index) in scriptLang.Option"
+                    :key="index"
+                    :label="item.label"
+                    :value="item.value"
+                  />
+                </el-select>
+                <el-popover
+                  placement="bottom-end"
+                  :title="$t('projectPage.predefinedVar')"
+                  width="400"
+                  trigger="hover"
+                >
+                  <div>
+                    <el-row>
+                      <span>${PROJECT_ID}: </span>
+                      <span>{{
+                        formData.id > 0 ? formData.id : 'project.id'
+                      }}</span>
+                    </el-row>
+                    <el-row>
+                      <span>${PROJECT_NAME}: </span>
+                      <span>
+                        {{
+                          formData.name !== '' ? formData.name : 'project.name'
+                        }}
+                      </span>
+                    </el-row>
+                    <el-row>
+                      <span>${PROJECT_PATH}: </span>
+                      <span>
+                        {{
+                          formData.path !== '' ? formData.path : 'project.path'
+                        }}
+                      </span>
+                    </el-row>
+                    <el-row>
+                      <span>${PROJECT_SYMLINK_PATH}: </span>
+                      <span>
+                        {{
+                          formProps.symlink === true
+                            ? formData.symlinkPath
+                            : 'project.symlink_path'
+                        }}
+                      </span>
+                    </el-row>
+                    <el-row>
+                      <span>${PROJECT_BRANCH}: </span>
+                      <span>{{
+                        formData.branch !== ''
+                          ? formData.branch
+                          : 'project.branch'
+                      }}</span>
+                    </el-row>
+                    <el-row>
+                      <span>${REPOSITORY_TYPE}: </span>
+                      <span>{{
+                        formData.repoType !== ''
+                          ? formData.repoType
+                          : 'project.repoType'
+                      }}</span>
+                    </el-row>
+                    <el-row>
+                      <span>${REPOSITORY_URL}: </span>
+                      <span>project.url</span>
+                    </el-row>
+                    <el-row>
+                      <span>${REPOSITORY_PATH}: </span>
+                      <span>project.repo_path</span>
+                    </el-row>
+                    <el-row>
+                      <span>${PUBLISH_TOKEN}: </span>
+                      <span>project.branch</span>
+                    </el-row>
+                    <el-row>
+                      <span>${COMMIT_ID}: </span>
+                      <span>Commit ID</span>
+                    </el-row>
+                    <el-row>
+                      <span>${COMMIT_SHORT_ID}: </span>
+                      <span>Commit ID (6 char)</span>
+                    </el-row>
+                    <el-row>
+                      <span>${COMMIT_BRANCH}: </span>
+                      <span>Commit branch</span>
+                    </el-row>
+                    <el-row>
+                      <span>${COMMIT_TAG}: </span>
+                      <span>Commit tag</span>
+                    </el-row>
+                    <el-row>
+                      <span>${COMMIT_AUTHOR}: </span>
+                      <span>Commit author</span>
+                    </el-row>
+                    <el-row>
+                      <span>${COMMIT_TIMESTAMP}: </span>
+                      <span>Commit timestamp(second)</span>
+                    </el-row>
+                  </div>
+                  <template #reference>
+                    <el-button>
+                      {{ $t('projectPage.predefinedVar') }}
+                    </el-button>
+                  </template>
+                </el-popover>
+              </el-row>
+            </el-form-item>
+            <el-form-item prop="deploySuccessScript" label-width="0px">
+              <v-ace-editor
+                v-model:value="formData.script.deploySuccess.content"
+                :lang="
+                  scriptLang.getScriptLang(formData.script.deploySuccess.mode)
+                "
+                :theme="isDark ? 'one_dark' : 'github'"
+                style="height: 400px; width: 100%"
+                placeholder="Already switched to project directory..."
+                :options="{
+                  newLineMode:
+                    formData.script.deploySuccess.mode === 'cmd'
                       ? 'windows'
                       : 'unix',
                 }"
@@ -1098,10 +1263,11 @@ const tempFormData = {
   path: '',
   symlinkPath: '',
   symlinkBackupNumber: 10,
-  afterPullScriptMode: '',
-  afterPullScript: '',
-  afterDeployScriptMode: '',
-  afterDeployScript: '',
+  script: {
+    afterPull: { mode: '', content: '' },
+    afterDeploy: { mode: '', content: '' },
+    deploySuccess: { mode: '', content: '' },
+  },
   environment: 1,
   branch: '',
   transferType: 'rsync',
@@ -1276,32 +1442,23 @@ function handleAutoDeploy(data: ProjectData) {
   autoDeployFormData.value.autoDeploy = data.autoDeploy
 }
 
-function handleAfterPullScriptModeChange(mode: string) {
-  if (mode === 'cmd') {
-    if (
-      !formData.value.afterPullScript.includes('\r\n') &&
-      formData.value.afterPullScript.includes('\n')
-    ) {
-      formData.value.afterPullScript = ''
-    }
-  } else {
-    if (formData.value.afterPullScript.includes('\r\n')) {
-      formData.value.afterPullScript = ''
-    }
-  }
+enum ScriptKey {
+  AfterPull = 'afterPull',
+  AfterDeploy = 'afterDeploy',
+  DeploySuccess = 'deploySuccess',
 }
 
-function handleAfterDeployScriptModeChange(mode: string) {
+function handleScriptModeChange(type: ScriptKey, mode: string) {
   if (mode === 'cmd') {
     if (
-      !formData.value.afterDeployScript.includes('\r\n') &&
-      formData.value.afterDeployScript.includes('\n')
+      !formData.value.script[type].content.includes('\r\n') &&
+      formData.value.script[type].content.includes('\n')
     ) {
-      formData.value.afterDeployScript = ''
+      formData.value.script[type].content = ''
     }
   } else {
-    if (formData.value.afterDeployScript.includes('\r\n')) {
-      formData.value.afterDeployScript = ''
+    if (formData.value.script[type].content.includes('\r\n')) {
+      formData.value.script[type].content = ''
     }
   }
 }

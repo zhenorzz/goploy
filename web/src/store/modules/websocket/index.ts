@@ -49,7 +49,7 @@ const actions: ActionTree<WebsocketState, RootState> = {
 
       websocket.onmessage = (event) => {
         const responseData = JSON.parse(event.data)
-        console.log(responseData)
+        import.meta.env.DEV && console.log(responseData)
         dispatch('setMessage', responseData)
       }
       websocket.onclose = (e) => {

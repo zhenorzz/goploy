@@ -1,5 +1,11 @@
 import { Request, Pagination, ID, Total } from './types'
 
+export interface ProjectScript {
+  afterPull: { mode: string; content: string }
+  afterDeploy: { mode: string; content: string }
+  deploySuccess: { mode: string; content: string }
+}
+
 export interface ProjectData {
   [key: string]: any
   id: number
@@ -16,6 +22,7 @@ export interface ProjectData {
   symlinkBackupNumber: number
   review: number
   reviewURL: string
+  script: ProjectScript
   afterPullScriptMode: string
   afterPullScript: string
   afterDeployScriptMode: string
@@ -108,6 +115,7 @@ export class ProjectList extends Request {
     list: ProjectData[]
   }
 }
+
 export class LabelList extends Request {
   readonly url = '/project/getLabelList'
   readonly method = 'get'
@@ -167,10 +175,7 @@ export class ProjectAdd extends Request {
     symlinkPath: string
     review: number
     reviewURL: string
-    afterPullScriptMode: string
-    afterPullScript: string
-    afterDeployScriptMode: string
-    afterDeployScript: string
+    script: ProjectScript
     transferType: string
     transferOption: string
     deployServerMode: string
@@ -200,10 +205,7 @@ export class ProjectEdit extends Request {
     reviewURL: string
     environment: number
     branch: string
-    afterPullScriptMode: string
-    afterPullScript: string
-    afterDeployScriptMode: string
-    afterDeployScript: string
+    script: ProjectScript
     transferType: string
     transferOption: string
     deployServerMode: string

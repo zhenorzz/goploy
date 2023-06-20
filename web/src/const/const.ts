@@ -1,21 +1,19 @@
 const scriptLang = {
-    Option: [
-        { label: 'sh', value: 'sh', lang: 'sh' },
-        { label: 'zsh', value: 'zsh', lang: 'sh' },
-        { label: 'bash', value: 'bash', lang: 'sh' },
-        { label: 'python', value: 'python', lang: 'python' },
-        { label: 'php', value: 'php', lang: 'php' },
-        { label: 'bat', value: 'cmd', lang: 'batchfile' },
-    ],
-    getScriptLang: function (scriptMode = '') {
-        if (scriptMode !== '') {
-            const scriptInfo = scriptLang.Option.find(
-                (elem) => elem.value === scriptMode
-            )
-            return scriptInfo ? scriptInfo['lang'] : ''
-        } else {
-            return 'sh'
-        }
-    },
+  Option: [
+    { label: 'sh', value: 'sh', lang: 'sh' },
+    { label: 'zsh', value: 'zsh', lang: 'sh' },
+    { label: 'bash', value: 'bash', lang: 'sh' },
+    { label: 'python', value: 'python', lang: 'python' },
+    { label: 'php', value: 'php', lang: 'php' },
+    { label: 'bat', value: 'cmd', lang: 'batchfile' },
+  ],
+  getScriptLang: function (mode = '') {
+    if (mode !== '') {
+      const scriptInfo = scriptLang.Option.find((elem) => elem.value === mode)
+      return scriptInfo ? scriptInfo['lang'] : ''
+    } else {
+      return 'sh'
+    }
+  },
 }
 export { scriptLang }

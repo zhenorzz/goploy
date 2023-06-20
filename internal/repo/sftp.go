@@ -7,8 +7,8 @@ package repo
 import (
 	"fmt"
 	"github.com/pkg/sftp"
+	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/internal/log"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"golang.org/x/crypto/ssh"

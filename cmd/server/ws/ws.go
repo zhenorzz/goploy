@@ -6,7 +6,7 @@ package ws
 
 import (
 	"github.com/gorilla/websocket"
-	"github.com/zhenorzz/goploy/internal/log"
+	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
