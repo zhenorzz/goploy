@@ -169,6 +169,11 @@ func (gsync *Gsync) Exec() {
 		return
 	}
 
+	err = gsync.deployFinishScriptStage()
+	if err != nil {
+		return
+	}
+
 	if err := gsync.Project.DeploySuccess(); err != nil {
 		log.Errorf(projectLogFormat, gsync.Project.ID, err)
 	}
@@ -245,66 +250,16 @@ func (gsync *Gsync) copyLocalFileStage() error {
 }
 
 func (gsync *Gsync) afterPullScriptStage() error {
-	if gsync.Project.Script.AfterPull.Content != "" {
+	if gsync.Project.Script.AfterPull.Content == "" {
 		return nil
 	}
-
-	ws.Send(ws.Data{
-		Type:    ws.TypeProject,
-		Message: deployMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: Deploying, Message: "Run pull script"},
-	})
 
 	gsync.PublishTrace.Type = model.AfterPull
 	ext, _ := json.Marshal(struct {
 		Script string `json:"script"`
 	}{gsync.Project.Script.AfterPull.Content})
 	gsync.PublishTrace.Ext = string(ext)
-	log.Tracef(projectLogFormat, gsync.Project.ID, gsync.Project.Script.AfterPull.Content)
-	if outputString, err := gsync.runAfterPullScript(); err != nil {
-		gsync.PublishTrace.Detail = fmt.Sprintf("err: %s\noutput: %s", err, outputString)
-		gsync.PublishTrace.State = model.Fail
-		if _, err := gsync.PublishTrace.AddRow(); err != nil {
-			log.Errorf(projectLogFormat, gsync.Project.ID, err)
-		}
-		return fmt.Errorf("err: %s, output: %s", err, outputString)
-	} else {
-		gsync.PublishTrace.Detail = outputString
-		gsync.PublishTrace.State = model.Success
-		if _, err := gsync.PublishTrace.AddRow(); err != nil {
-			log.Errorf(projectLogFormat, gsync.Project.ID, err)
-		}
-		return nil
-	}
-}
-
-func (gsync *Gsync) runAfterPullScript() (string, error) {
-	project := gsync.Project
-	commitInfo := gsync.CommitInfo
-	srcPath := config.GetProjectPath(project.ID)
-	scriptName := "goploy-after-pull." + pkg.GetScriptExt(project.Script.AfterPull.Mode)
-	scriptFullName := path.Join(srcPath, scriptName)
-	scriptMode := "bash"
-	if len(project.Script.AfterPull.Mode) != 0 {
-		scriptMode = project.Script.AfterPull.Mode
-	}
-	scriptText := project.ReplaceVars(commitInfo.ReplaceVars(project.Script.AfterPull.Content))
-	_ = os.WriteFile(scriptFullName, []byte(scriptText), 0755)
-	var commandOptions []string
-	if project.Script.AfterPull.Mode == "cmd" {
-		commandOptions = append(commandOptions, "/C")
-		scriptFullName, _ = filepath.Abs(scriptFullName)
-	}
-	commandOptions = append(commandOptions, scriptFullName)
-
-	handler := exec.Command(scriptMode, commandOptions...)
-	handler.Dir = srcPath
-
-	if output, err := handler.CombinedOutput(); err != nil {
-		return string(output), err
-	} else {
-		_ = os.Remove(scriptFullName)
-		return string(output), nil
-	}
+	return gsync.runLocalScript()
 }
 
 func (gsync *Gsync) serverStage() error {
@@ -477,6 +432,87 @@ func (gsync *Gsync) serverStage() error {
 		return errors.New(message)
 	}
 	return nil
+}
+
+func (gsync *Gsync) deployFinishScriptStage() error {
+	if gsync.Project.Script.DeployFinish.Content == "" {
+		return nil
+	}
+
+	gsync.PublishTrace.Type = model.DeployFinish
+	ext, _ := json.Marshal(struct {
+		Script string `json:"script"`
+	}{gsync.Project.Script.DeployFinish.Content})
+	gsync.PublishTrace.Ext = string(ext)
+
+	return gsync.runLocalScript()
+}
+
+func (gsync *Gsync) runLocalScript() error {
+	var mode = ""
+	var content = ""
+	var scriptName = ""
+	project := gsync.Project
+	switch gsync.PublishTrace.Type {
+	case model.AfterPull:
+		ws.Send(ws.Data{
+			Type:    ws.TypeProject,
+			Message: deployMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: Deploying, Message: "Run pull script"},
+		})
+		mode = project.Script.AfterPull.Mode
+		content = project.Script.AfterPull.Content
+		scriptName = "goploy-after-pull." + pkg.GetScriptExt(project.Script.AfterPull.Mode)
+
+	case model.DeployFinish:
+		ws.Send(ws.Data{
+			Type:    ws.TypeProject,
+			Message: deployMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: Deploying, Message: "Run finish script"},
+		})
+		mode = project.Script.DeployFinish.Mode
+		content = project.Script.DeployFinish.Content
+		scriptName = "goploy-deploy-finish." + pkg.GetScriptExt(project.Script.DeployFinish.Mode)
+
+	default:
+		return errors.New("not support stage")
+	}
+
+	log.Tracef(projectLogFormat, gsync.Project.ID, content)
+
+	commitInfo := gsync.CommitInfo
+	srcPath := config.GetProjectPath(project.ID)
+	scriptFullName := path.Join(srcPath, scriptName)
+	scriptMode := "bash"
+	if mode != "" {
+		scriptMode = mode
+	}
+	scriptText := project.ReplaceVars(commitInfo.ReplaceVars(content))
+	_ = os.WriteFile(scriptFullName, []byte(scriptText), 0755)
+	var commandOptions []string
+	if scriptMode == "cmd" {
+		commandOptions = append(commandOptions, "/C")
+		scriptFullName, _ = filepath.Abs(scriptFullName)
+	}
+	commandOptions = append(commandOptions, scriptFullName)
+
+	handler := exec.Command(scriptMode, commandOptions...)
+	handler.Dir = srcPath
+
+	if output, err := handler.CombinedOutput(); err != nil {
+		gsync.PublishTrace.Detail = fmt.Sprintf("err: %s\noutput: %s", err, string(output))
+		gsync.PublishTrace.State = model.Fail
+		if _, err := gsync.PublishTrace.AddRow(); err != nil {
+			log.Errorf(projectLogFormat, gsync.Project.ID, err)
+		}
+		return fmt.Errorf("err: %s, output: %s", err, string(output))
+	} else {
+		_ = os.Remove(scriptFullName)
+		gsync.PublishTrace.Detail = string(output)
+		gsync.PublishTrace.State = model.Success
+		if _, err := gsync.PublishTrace.AddRow(); err != nil {
+			log.Errorf(projectLogFormat, gsync.Project.ID, err)
+		}
+		return nil
+	}
 }
 
 // commit id

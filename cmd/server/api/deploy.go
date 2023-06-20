@@ -84,6 +84,7 @@ func (Deploy) GetPreview(gp *server.Goploy) server.Response {
 		Branch     string `schema:"branch"`
 		Commit     string `schema:"commit"`
 		Filename   string `schema:"filename"`
+		Token      string `schema:"token"`
 	}
 	var reqData ReqData
 	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
@@ -101,6 +102,7 @@ func (Deploy) GetPreview(gp *server.Goploy) server.Response {
 		commitDate[i] = strconv.FormatInt(tm2.Unix(), 10)
 	}
 	gitTraceList, pagination, err := model.PublishTrace{
+		Token:       reqData.Token,
 		ProjectID:   reqData.ProjectID,
 		PublisherID: reqData.UserID,
 		State:       reqData.State,

@@ -6,7 +6,7 @@ package api
 
 import (
 	"github.com/zhenorzz/goploy/config"
-	model2 "github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"net/http"
@@ -42,13 +42,13 @@ func (Log) GetLoginLogList(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	list, err := model2.LoginLog{Account: reqData.Account}.GetList(reqData.Page, reqData.Rows)
+	list, err := model.LoginLog{Account: reqData.Account}.GetList(reqData.Page, reqData.Rows)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			List model2.LoginLogs `json:"list"`
+			List model.LoginLogs `json:"list"`
 		}{List: list},
 	}
 }
@@ -61,7 +61,7 @@ func (Log) GetLoginLogTotal(gp *server.Goploy) server.Response {
 	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
-	total, err := model2.LoginLog{Account: reqData.Account}.GetTotal()
+	total, err := model.LoginLog{Account: reqData.Account}.GetTotal()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
@@ -85,9 +85,9 @@ func (Log) GetOperationLogList(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	opLog := model2.OperationLog{Username: reqData.Username, Router: reqData.Router, API: reqData.API}
+	opLog := model.OperationLog{Username: reqData.Username, Router: reqData.Router, API: reqData.API}
 
-	if gp.UserInfo.SuperManager != model2.SuperManager {
+	if gp.UserInfo.SuperManager != model.SuperManager {
 		opLog.NamespaceID = gp.Namespace.ID
 	}
 
@@ -97,7 +97,7 @@ func (Log) GetOperationLogList(gp *server.Goploy) server.Response {
 	}
 	return response.JSON{
 		Data: struct {
-			List model2.OperationLogs `json:"list"`
+			List model.OperationLogs `json:"list"`
 		}{List: list},
 	}
 }
@@ -113,9 +113,9 @@ func (Log) GetOperationLogTotal(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	opLog := model2.OperationLog{Username: reqData.Username, Router: reqData.Router, API: reqData.API}
+	opLog := model.OperationLog{Username: reqData.Username, Router: reqData.Router, API: reqData.API}
 
-	if gp.UserInfo.SuperManager != model2.SuperManager {
+	if gp.UserInfo.SuperManager != model.SuperManager {
 		opLog.NamespaceID = gp.Namespace.ID
 	}
 
@@ -142,9 +142,9 @@ func (Log) GetSftpLogList(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	sftpLog := model2.SftpLog{Username: reqData.Username, ServerName: reqData.ServerName}
+	sftpLog := model.SftpLog{Username: reqData.Username, ServerName: reqData.ServerName}
 
-	if gp.UserInfo.SuperManager != model2.SuperManager {
+	if gp.UserInfo.SuperManager != model.SuperManager {
 		sftpLog.NamespaceID = gp.Namespace.ID
 	}
 
@@ -154,7 +154,7 @@ func (Log) GetSftpLogList(gp *server.Goploy) server.Response {
 	}
 	return response.JSON{
 		Data: struct {
-			List model2.SftpLogs `json:"list"`
+			List model.SftpLogs `json:"list"`
 		}{List: list},
 	}
 }
@@ -169,9 +169,9 @@ func (Log) GetSftpLogTotal(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	sftpLog := model2.SftpLog{Username: reqData.Username, ServerName: reqData.ServerName}
+	sftpLog := model.SftpLog{Username: reqData.Username, ServerName: reqData.ServerName}
 
-	if gp.UserInfo.SuperManager != model2.SuperManager {
+	if gp.UserInfo.SuperManager != model.SuperManager {
 		sftpLog.NamespaceID = gp.Namespace.ID
 	}
 
@@ -198,9 +198,9 @@ func (Log) GetTerminalLogList(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	terminalLog := model2.TerminalLog{Username: reqData.Username, ServerName: reqData.ServerName}
+	terminalLog := model.TerminalLog{Username: reqData.Username, ServerName: reqData.ServerName}
 
-	if gp.UserInfo.SuperManager != model2.SuperManager {
+	if gp.UserInfo.SuperManager != model.SuperManager {
 		terminalLog.NamespaceID = gp.Namespace.ID
 	}
 
@@ -210,7 +210,7 @@ func (Log) GetTerminalLogList(gp *server.Goploy) server.Response {
 	}
 	return response.JSON{
 		Data: struct {
-			List model2.TerminalLogs `json:"list"`
+			List model.TerminalLogs `json:"list"`
 		}{List: list},
 	}
 }
@@ -225,9 +225,9 @@ func (Log) GetTerminalLogTotal(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	terminalLog := model2.TerminalLog{Username: reqData.Username, ServerName: reqData.ServerName}
+	terminalLog := model.TerminalLog{Username: reqData.Username, ServerName: reqData.ServerName}
 
-	if gp.UserInfo.SuperManager != model2.SuperManager {
+	if gp.UserInfo.SuperManager != model.SuperManager {
 		terminalLog.NamespaceID = gp.Namespace.ID
 	}
 
@@ -250,11 +250,11 @@ func (Log) GetTerminalRecord(gp *server.Goploy) server.Response {
 	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
-	terminalLog, err := model2.TerminalLog{ID: reqData.RecordID}.GetData()
+	terminalLog, err := model.TerminalLog{ID: reqData.RecordID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	if gp.UserInfo.SuperManager != model2.SuperManager && terminalLog.NamespaceID != gp.Namespace.ID {
+	if gp.UserInfo.SuperManager != model.SuperManager && terminalLog.NamespaceID != gp.Namespace.ID {
 		return response.JSON{Code: response.Error, Message: "You have no access to enter this record"}
 	}
 	return response.File{Filename: config.GetTerminalLogPath(reqData.RecordID)}
@@ -272,9 +272,9 @@ func (Log) GetPublishLogList(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	publishLog := model2.PublishTrace{PublisherName: reqData.Username, ProjectName: reqData.ProjectName}
+	publishLog := model.PublishTrace{PublisherName: reqData.Username, ProjectName: reqData.ProjectName}
 
-	if gp.UserInfo.SuperManager != model2.SuperManager {
+	if gp.UserInfo.SuperManager != model.SuperManager {
 		publishLog.NamespaceID = gp.Namespace.ID
 	}
 
@@ -284,7 +284,7 @@ func (Log) GetPublishLogList(gp *server.Goploy) server.Response {
 	}
 	return response.JSON{
 		Data: struct {
-			List model2.PublishTraces `json:"list"`
+			List model.PublishTraces `json:"list"`
 		}{List: list},
 	}
 }
@@ -299,9 +299,9 @@ func (Log) GetPublishLogTotal(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	publishLog := model2.PublishTrace{PublisherName: reqData.Username, ProjectName: reqData.ProjectName}
+	publishLog := model.PublishTrace{PublisherName: reqData.Username, ProjectName: reqData.ProjectName}
 
-	if gp.UserInfo.SuperManager != model2.SuperManager {
+	if gp.UserInfo.SuperManager != model.SuperManager {
 		publishLog.NamespaceID = gp.Namespace.ID
 	}
 

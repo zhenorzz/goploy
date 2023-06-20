@@ -33,19 +33,14 @@ type PublishTraces []PublishTrace
 
 // publish trace state
 const (
-	QUEUE = 0
-
-	BeforePull = 1
-
-	Pull = 2
-
-	AfterPull = 3
-
-	BeforeDeploy = 4
-
-	Deploy = 5
-
-	AfterDeploy = 6
+	QUEUE = iota
+	BeforePull
+	Pull
+	AfterPull
+	BeforeDeploy
+	Deploy
+	AfterDeploy
+	DeployFinish
 )
 
 func (pt PublishTrace) GetList(page, limit uint64) (PublishTraces, error) {
@@ -196,6 +191,9 @@ func (pt PublishTrace) GetPreview(
 	}
 	if pt.PublisherID != 0 {
 		builder = builder.Where(sq.Eq{"publisher_id": pt.PublisherID})
+	}
+	if pt.Token != "" {
+		builder = builder.Where(sq.Eq{"token": pt.Token})
 	}
 	if branch != "" {
 		builder = builder.Where(sq.Like{"ext": "%" + branch + "%"})

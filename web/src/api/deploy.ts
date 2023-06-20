@@ -62,13 +62,16 @@ export class DeployPreviewList extends Request {
     commit: string
     filename: string
     deployDate: string
+    token: string
   }
+
   public pagination: Pagination
 
   public declare datagram: {
     list: PublishTraceData[]
     pagination: Pagination & Total
   }
+
   constructor(param: DeployPreviewList['param'], pagination: Pagination) {
     super()
     this.pagination = pagination

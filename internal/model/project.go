@@ -25,10 +25,10 @@ type ProjectScript struct {
 		Mode    string `json:"mode"`
 		Content string `json:"content"`
 	} `json:"afterDeploy"`
-	DeploySuccess struct {
+	DeployFinish struct {
 		Mode    string `json:"mode"`
 		Content string `json:"content"`
-	} `json:"deploySuccess"`
+	} `json:"deployFinish"`
 }
 
 type Project struct {

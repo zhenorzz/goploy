@@ -892,15 +892,15 @@
               />
             </el-form-item>
           </el-tab-pane>
-          <el-tab-pane name="deploySuccessScript">
+          <el-tab-pane name="deployFinishScript">
             <template #label>
               <span style="vertical-align: middle; padding-right: 4px">
-                {{ $t('projectPage.deploySuccessScriptLabel') }}
+                {{ $t('projectPage.deployFinishScriptLabel') }}
               </span>
               <el-tooltip class="item" effect="dark" placement="bottom">
                 <template #content>
                   <div style="white-space: pre-line">
-                    {{ $t('projectPage.deploySuccessScriptTips') }}
+                    {{ $t('projectPage.deployFinishScriptTips') }}
                   </div>
                 </template>
                 <el-icon style="vertical-align: middle" :size="16">
@@ -908,17 +908,17 @@
                 </el-icon>
               </el-tooltip>
             </template>
-            <el-form-item prop="deploySuccessScript" label-width="0px">
+            <el-form-item prop="deployFinishScript" label-width="0px">
               <el-row type="flex" style="width: 100%">
                 <el-select
-                  v-model="formData.script.deploySuccess.mode"
+                  v-model="formData.script.deployFinish.mode"
                   :placeholder="
                     $t('projectPage.scriptMode') + '(Default: bash)'
                   "
                   style="flex: 1"
                   @change="
                     (mode) => {
-                      handleScriptModeChange(ScriptKey.DeploySuccess, mode)
+                      handleScriptModeChange(ScriptKey.DeployFinish, mode)
                     }
                   "
                 >
@@ -1029,18 +1029,18 @@
                 </el-popover>
               </el-row>
             </el-form-item>
-            <el-form-item prop="deploySuccessScript" label-width="0px">
+            <el-form-item prop="deployFinishScript" label-width="0px">
               <v-ace-editor
-                v-model:value="formData.script.deploySuccess.content"
+                v-model:value="formData.script.deployFinish.content"
                 :lang="
-                  scriptLang.getScriptLang(formData.script.deploySuccess.mode)
+                  scriptLang.getScriptLang(formData.script.deployFinish.mode)
                 "
                 :theme="isDark ? 'one_dark' : 'github'"
                 style="height: 400px; width: 100%"
                 placeholder="Already switched to project directory..."
                 :options="{
                   newLineMode:
-                    formData.script.deploySuccess.mode === 'cmd'
+                    formData.script.deployFinish.mode === 'cmd'
                       ? 'windows'
                       : 'unix',
                 }"
@@ -1266,7 +1266,7 @@ const tempFormData = {
   script: {
     afterPull: { mode: '', content: '' },
     afterDeploy: { mode: '', content: '' },
-    deploySuccess: { mode: '', content: '' },
+    deployFinish: { mode: '', content: '' },
   },
   environment: 1,
   branch: '',
@@ -1445,7 +1445,7 @@ function handleAutoDeploy(data: ProjectData) {
 enum ScriptKey {
   AfterPull = 'afterPull',
   AfterDeploy = 'afterDeploy',
-  DeploySuccess = 'deploySuccess',
+  DeployFinish = 'deployFinish',
 }
 
 function handleScriptModeChange(type: ScriptKey, mode: string) {

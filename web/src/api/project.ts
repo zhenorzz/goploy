@@ -3,7 +3,7 @@ import { Request, Pagination, ID, Total } from './types'
 export interface ProjectScript {
   afterPull: { mode: string; content: string }
   afterDeploy: { mode: string; content: string }
-  deploySuccess: { mode: string; content: string }
+  deployFinish: { mode: string; content: string }
 }
 
 export interface ProjectData {

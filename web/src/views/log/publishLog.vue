@@ -69,174 +69,11 @@
         @current-change="handlePageChange"
       />
     </el-row>
-    <el-dialog
+    <TheDetailDialog
       v-model="dialogVisible"
-      :title="$t('detail')"
-      :fullscreen="$store.state.app.device === 'mobile'"
-    >
-      <el-row v-loading="traceLoading" class="project-detail">
-        <div
-          v-for="(item, index) in publishLocalTraceList"
-          :key="index"
-          style="width: 100%"
-        >
-          <template v-if="item.type === 2">
-            <el-row style="margin: 5px 0">
-              <div class="project-title">
-                <span style="margin-right: 5px">Repo</span>
-                <span v-if="item.state === 1" class="icon-success"></span>
-                <span v-else class="icon-fail"></span>
-              </div>
-            </el-row>
-            <el-row>Time: {{ item.updateTime }}</el-row>
-            <template v-if="item.state !== 0">
-              <el-row>Branch: {{ item['branch'] }}</el-row>
-              <el-row>Commit:{{ item['commit'] }}</el-row>
-              <el-row>Message: {{ item['message'] }}</el-row>
-              <el-row>Author: {{ item['author'] }}</el-row>
-              <el-row>
-                Datetime:
-                {{ item['timestamp'] ? parseTime(item['timestamp']) : '' }}
-              </el-row>
-              <el-row>
-                <span style="white-space: pre-line">{{ item['diff'] }}</span>
-              </el-row>
-            </template>
-            <el-row v-else style="margin: 5px 0">
-              <span style="white-space: pre-line; padding: 5px 0">
-                {{ item.detail }}
-              </span>
-            </el-row>
-          </template>
-          <div v-if="item.type === 3">
-            <el-row style="margin: 5px 0">
-              <div class="project-title">
-                <span style="margin-right: 5px">After pull</span>
-                <span v-if="item.state === 1" class="icon-success"></span>
-                <span v-else class="icon-fail"></span>
-              </div>
-            </el-row>
-            <el-row>Time: {{ item.updateTime }}</el-row>
-            <el-row style="width: 100%">
-              <div>Script:</div>
-              <pre style="white-space: pre-line">{{ item.script }}</pre>
-            </el-row>
-            <div v-loading="traceDetail[item.id] === ''" style="margin: 5px 0">
-              <span style="padding: 5px 0">[goploy ~]#</span>
-              <el-button
-                v-if="item.state === 1 && !(item.id in traceDetail)"
-                type="primary"
-                link
-                @click="getPublishTraceDetail(item)"
-              >
-                {{ $t('deployPage.showDetail') }}
-              </el-button>
-              <div v-else style="white-space: pre-line; padding: 5px 0">
-                {{ traceDetail[item.id] }}
-              </div>
-            </div>
-          </div>
-        </div>
-        <el-tabs v-model="activeRomoteTracePane">
-          <el-tab-pane
-            v-for="(item, serverName) in publishRemoteTraceList"
-            :key="serverName"
-            :label="serverName"
-            :name="serverName"
-          >
-            <div v-for="(trace, key) in item" :key="key">
-              <template v-if="trace.type === 4">
-                <el-row style="margin: 5px 0">
-                  <div class="project-title">
-                    <span style="margin-right: 5px">Before deploy</span>
-                    <span v-if="trace.state === 1" class="icon-success"></span>
-                    <span v-else class="icon-fail"></span>
-                  </div>
-                </el-row>
-                <el-row style="margin: 5px 0">
-                  Time: {{ trace.updateTime }}
-                </el-row>
-                <el-row>
-                  Script:
-                  <pre style="white-space: pre-line">{{ trace.script }}</pre>
-                </el-row>
-                <div v-loading="traceDetail[trace.id] === ''">
-                  <span style="padding: 5px 0">[goploy ~]#</span>
-                  <el-button
-                    v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                    type="primary"
-                    link
-                    @click="getPublishTraceDetail(trace)"
-                  >
-                    {{ $t('deployPage.showDetail') }}
-                  </el-button>
-                  <div v-else style="white-space: pre-line; padding: 5px 0">
-                    {{ traceDetail[trace.id] }}
-                  </div>
-                </div>
-              </template>
-              <template v-else-if="trace.type === 5">
-                <el-row style="margin: 5px 0">
-                  <div class="project-title">
-                    <span style="margin-right: 5px">Sync</span>
-                    <span v-if="trace.state === 1" class="icon-success"></span>
-                    <span v-else class="icon-fail"></span>
-                  </div>
-                </el-row>
-                <el-row style="margin: 5px 0">
-                  Time: {{ trace.updateTime }}
-                </el-row>
-                <el-row>Command: {{ trace.command }}</el-row>
-                <div v-loading="traceDetail[trace.id] === ''">
-                  <span style="padding: 5px 0">[goploy ~]#</span>
-                  <el-button
-                    v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                    type="primary"
-                    link
-                    @click="getPublishTraceDetail(trace)"
-                  >
-                    {{ $t('deployPage.showDetail') }}
-                  </el-button>
-                  <div v-else style="white-space: pre-line; padding: 5px 0">
-                    {{ traceDetail[trace.id] }}
-                  </div>
-                </div>
-              </template>
-              <template v-else-if="trace.type === 6">
-                <el-row style="margin: 5px 0">
-                  <div class="project-title">
-                    <span style="margin-right: 5px">After deploy</span>
-                    <span v-if="trace.state === 1" class="icon-success"></span>
-                    <span v-else class="icon-fail"></span>
-                  </div>
-                </el-row>
-                <el-row style="margin: 5px 0">
-                  Time: {{ trace.updateTime }}
-                </el-row>
-                <el-row>Script: {{ trace.script }}</el-row>
-                <div
-                  v-loading="traceDetail[trace.id] === ''"
-                  style="margin: 5px 0"
-                >
-                  <span>[goploy ~]#</span>
-                  <el-button
-                    v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                    type="primary"
-                    link
-                    @click="getPublishTraceDetail(trace)"
-                  >
-                    {{ $t('deployPage.showDetail') }}
-                  </el-button>
-                  <div v-else style="white-space: pre-line; padding: 5px 0">
-                    {{ traceDetail[trace.id] }}
-                  </div>
-                </div>
-              </template>
-            </div>
-          </el-tab-pane>
-        </el-tabs>
-      </el-row>
-    </el-dialog>
+      :show-preivew="false"
+      :project-row="projectItem"
+    />
   </el-row>
 </template>
 
@@ -247,30 +84,18 @@ export default { name: 'PublishLog' }
 import pms from '@/permission'
 import Button from '@/components/Permission/Button.vue'
 import { Search } from '@element-plus/icons-vue'
+import TheDetailDialog from '@/views/deploy/TheDetailDialog.vue'
 import { PublishLogData, PublishLogList, PublishLogTotal } from '@/api/log'
-import {
-  DeployTrace,
-  DeployTraceDetail,
-  PublishTraceData,
-  PublishTraceExt,
-} from '@/api/deploy'
-import { parseTime } from '@/utils'
 import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-const { t } = useI18n()
+import { ProjectData } from '@/api/project'
 
 const dialogVisible = ref(false)
 const searchParam = ref({ username: '', projectName: '' })
 const tableLoading = ref(false)
 const tableData = ref<PublishLogList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 20, total: 0 })
-const traceLoading = ref(false)
-const traceDetail = ref({} as Record<number, string>)
-const activeRomoteTracePane = ref('')
-const publishLocalTraceList = ref<(PublishTraceData & PublishTraceExt)[]>([])
-const publishRemoteTraceList = ref(
-  {} as Record<string, (PublishTraceData & PublishTraceExt)[]>
-)
+const projectItem = ref({} as ProjectData)
+
 getList()
 getTotal()
 
@@ -301,47 +126,12 @@ function handlePageChange(val = 1) {
   getList()
 }
 function handleDetail(data: PublishLogData) {
+  projectItem.value.id = data.projectId
+  projectItem.value.lastPublishToken = data.token
+  projectItem.value.deployState = data.state === 1 ? 2 : 3
+  projectItem.value.repoType = 'repository'
+  projectItem.value.transferType = 'transfer'
   dialogVisible.value = true
-  traceLoading.value = true
-  new DeployTrace({ lastPublishToken: data.token })
-    .request()
-    .then((response) => {
-      const publishTraceList = response.data.list.map((element) => {
-        if (element.ext !== '') {
-          Object.assign(element, JSON.parse(element.ext))
-        }
-        return element as PublishTraceData & PublishTraceExt
-      })
-
-      publishLocalTraceList.value = publishTraceList.filter(
-        (element) => element.type < 4
-      )
-      publishRemoteTraceList.value = {}
-      for (const trace of publishTraceList) {
-        if (trace.detail !== '') {
-          traceDetail.value[trace.id] = trace.detail
-        }
-        if (trace.type < 4) continue
-        if (!publishRemoteTraceList.value[trace.serverName]) {
-          publishRemoteTraceList.value[trace.serverName] = []
-        }
-        publishRemoteTraceList.value[trace.serverName].push(trace)
-      }
-      activeRomoteTracePane.value = Object.keys(publishRemoteTraceList.value)[0]
-    })
-    .finally(() => {
-      traceLoading.value = false
-    })
-}
-
-function getPublishTraceDetail(data: PublishTraceData) {
-  traceDetail.value[data.id] = ''
-  new DeployTraceDetail({ id: data.id }).request().then((response) => {
-    traceDetail.value[data.id] =
-      response.data.detail === ''
-        ? t('deployPage.noDetail')
-        : response.data.detail
-  })
 }
 </script>
 

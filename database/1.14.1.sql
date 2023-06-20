@@ -11,6 +11,6 @@ SET script = JSON_OBJECT(
     JSON_OBJECT( 'mode', after_pull_script_mode, 'content', after_pull_script ),
     'after_deploy',
     JSON_OBJECT( 'mode', after_deploy_script_mode, 'content', after_deploy_script ),
-    'deploy_success',
+    'deploy_finish',
     JSON_OBJECT( 'mode', '', 'content', '' )
 )

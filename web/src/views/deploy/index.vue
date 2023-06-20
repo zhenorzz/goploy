@@ -141,6 +141,7 @@
                       {{ $t(`envOption[${row.environment || 0}]`) }}
                     </span>
                   </el-tooltip>
+
                   <el-dropdown
                     trigger="click"
                     @command="(funcName: string) => cardMoreFunc[funcName](row)"
@@ -158,7 +159,7 @@
                     </template>
                   </el-dropdown>
                 </el-row>
-                <el-row style="margin-top: 6px" align="middle">
+                <el-row style="margin-top: 8px" align="middle">
                   <svg-icon style="margin-right: 5px" icon-class="branch" />
                   <RepoURL
                     style="font-size: 14px"
@@ -176,125 +177,127 @@
                   >
                   </RepoURL>
                 </el-row>
-                <el-row style="margin-top: 8px" align="middle">
+                <el-row style="margin-top: 10px" align="middle">
                   <svg-icon icon-class="publishTime" />
                   <span style="margin: 0 5px; font-size: 14px">
                     {{ row.updateTime }}
                   </span>
-                  <el-tag :type="row.tagType" size="small" effect="plain">
+                </el-row>
+                <el-row style="margin-top: 10px" justify="space-between">
+                  <div>
+                    <Button
+                      v-if="row.deployState === 0"
+                      :permissions="[pms.DeployProject]"
+                      type="primary"
+                      size="small"
+                      @click="publish(row)"
+                    >
+                      {{ $t('initial') }}
+                    </Button>
+                    <Button
+                      v-else-if="row.deployState === 1"
+                      :permissions="[pms.DeployResetState]"
+                      type="primary"
+                      size="small"
+                      @click="resetState(row)"
+                    >
+                      {{ $t('deployPage.resetState') }}
+                    </Button>
+                    <Dropdown
+                      v-else
+                      :permissions="[pms.DeployProject]"
+                      :split-button="row.review === 1 ? false : true"
+                      trigger="click"
+                      type="primary"
+                      size="small"
+                      @click="publish(row)"
+                      @command="(funcName: string) => commandFunc[funcName](row)"
+                    >
+                      <el-button
+                        v-if="row.review === 1"
+                        size="small"
+                        type="primary"
+                      >
+                        {{ $t('submit') }}
+                        <el-icon class="el-icon--right">
+                          <arrow-down />
+                        </el-icon>
+                      </el-button>
+                      <span v-else>{{ $t('deploy') }}</span>
+                      <template #dropdown>
+                        <el-dropdown-menu>
+                          <el-dropdown-item :command="'handleCommitCommand'">
+                            Commit list
+                          </el-dropdown-item>
+                          <el-dropdown-item :command="'handleTagCommand'">
+                            Tag list
+                          </el-dropdown-item>
+                        </el-dropdown-menu>
+                      </template>
+                    </Dropdown>
+                    <el-dropdown
+                      trigger="click"
+                      style="margin-left: 5px"
+                      @command="(funcName) => commandFunc[funcName](row)"
+                    >
+                      <el-button size="small" type="warning">
+                        {{ $t('func') }}
+                        <el-icon class="el-icon--right">
+                          <arrow-down />
+                        </el-icon>
+                      </el-button>
+                      <template #dropdown>
+                        <el-dropdown-menu
+                          style="min-width: 84px; text-align: center"
+                        >
+                          <DropdownItem
+                            :permissions="[pms.DeployTask]"
+                            :command="'handleTaskCommand'"
+                          >
+                            {{ $t('deployPage.taskDeploy') }}
+                          </DropdownItem>
+                          <DropdownItem
+                            :permissions="[pms.FileCompare]"
+                            :command="'handleFileCompareCommand'"
+                          >
+                            {{ $t('deployPage.fileCompare') }}
+                          </DropdownItem>
+                          <DropdownItem
+                            :permissions="[pms.FileSync]"
+                            :command="'handleFileSyncCommand'"
+                          >
+                            {{ $t('deployPage.fileSync') }}
+                          </DropdownItem>
+                          <DropdownItem
+                            :permissions="[pms.ProcessManager]"
+                            :command="'handleProcessManagerCommand'"
+                          >
+                            {{ $t('deployPage.processManager') }}
+                          </DropdownItem>
+                          <DropdownItem
+                            v-if="row.review === 1"
+                            :permissions="[pms.DeployReview]"
+                            :command="'handleReviewCommand'"
+                          >
+                            {{ $t('deployPage.reviewDeploy') }}
+                          </DropdownItem>
+                        </el-dropdown-menu>
+                      </template>
+                    </el-dropdown>
+                    <Button
+                      type="success"
+                      size="small"
+                      style="margin-left: 5px"
+                      :permissions="[pms.DeployDetail]"
+                      @click="handleDetail(row)"
+                    >
+                      {{ $t('detail') }}
+                    </Button>
+                  </div>
+                  <el-tag :type="row.tagType" effect="plain">
                     {{ row.tagText }}
                   </el-tag>
                 </el-row>
-                <div style="margin-top: 8px">
-                  <Button
-                    v-if="row.deployState === 0"
-                    :permissions="[pms.DeployProject]"
-                    type="primary"
-                    size="small"
-                    @click="publish(row)"
-                  >
-                    {{ $t('initial') }}
-                  </Button>
-                  <Button
-                    v-else-if="row.deployState === 1"
-                    :permissions="[pms.DeployResetState]"
-                    type="primary"
-                    size="small"
-                    @click="resetState(row)"
-                  >
-                    {{ $t('deployPage.resetState') }}
-                  </Button>
-                  <Dropdown
-                    v-else
-                    :permissions="[pms.DeployProject]"
-                    :split-button="row.review === 1 ? false : true"
-                    trigger="click"
-                    type="primary"
-                    size="small"
-                    @click="publish(row)"
-                    @command="(funcName: string) => commandFunc[funcName](row)"
-                  >
-                    <el-button
-                      v-if="row.review === 1"
-                      size="small"
-                      type="primary"
-                    >
-                      {{ $t('submit') }}
-                      <el-icon class="el-icon--right">
-                        <arrow-down />
-                      </el-icon>
-                    </el-button>
-                    <span v-else>{{ $t('deploy') }}</span>
-                    <template #dropdown>
-                      <el-dropdown-menu>
-                        <el-dropdown-item :command="'handleCommitCommand'">
-                          Commit list
-                        </el-dropdown-item>
-                        <el-dropdown-item :command="'handleTagCommand'">
-                          Tag list
-                        </el-dropdown-item>
-                      </el-dropdown-menu>
-                    </template>
-                  </Dropdown>
-                  <el-dropdown
-                    trigger="click"
-                    style="margin-left: 5px"
-                    @command="(funcName) => commandFunc[funcName](row)"
-                  >
-                    <el-button size="small" type="warning">
-                      {{ $t('func') }}
-                      <el-icon class="el-icon--right">
-                        <arrow-down />
-                      </el-icon>
-                    </el-button>
-                    <template #dropdown>
-                      <el-dropdown-menu
-                        style="min-width: 84px; text-align: center"
-                      >
-                        <DropdownItem
-                          :permissions="[pms.DeployTask]"
-                          :command="'handleTaskCommand'"
-                        >
-                          {{ $t('deployPage.taskDeploy') }}
-                        </DropdownItem>
-                        <DropdownItem
-                          :permissions="[pms.FileCompare]"
-                          :command="'handleFileCompareCommand'"
-                        >
-                          {{ $t('deployPage.fileCompare') }}
-                        </DropdownItem>
-                        <DropdownItem
-                          :permissions="[pms.FileSync]"
-                          :command="'handleFileSyncCommand'"
-                        >
-                          {{ $t('deployPage.fileSync') }}
-                        </DropdownItem>
-                        <DropdownItem
-                          :permissions="[pms.ProcessManager]"
-                          :command="'handleProcessManagerCommand'"
-                        >
-                          {{ $t('deployPage.processManager') }}
-                        </DropdownItem>
-                        <DropdownItem
-                          v-if="row.review === 1"
-                          :permissions="[pms.DeployReview]"
-                          :command="'handleReviewCommand'"
-                        >
-                          {{ $t('deployPage.reviewDeploy') }}
-                        </DropdownItem>
-                      </el-dropdown-menu>
-                    </template>
-                  </el-dropdown>
-                  <Button
-                    type="success"
-                    size="small"
-                    style="margin-left: 5px"
-                    :permissions="[pms.DeployDetail]"
-                    @click="handleDetail(row)"
-                  >
-                    {{ $t('detail') }}
-                  </Button>
-                </div>
               </div>
             </el-card>
           </el-col>
