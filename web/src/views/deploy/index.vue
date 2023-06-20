@@ -953,7 +953,7 @@ function setStick(value: string) {
 }
 
 .fail:before {
-  animation: opacity linear 3s 1;
+  animation: opacity linear 5s 1;
   animation-fill-mode: forwards;
   background: #f56c6c;
   left: -50%;
