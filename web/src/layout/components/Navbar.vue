@@ -4,7 +4,6 @@
       class="navbar-namespace"
       trigger="click"
       placement="bottom"
-      @visible-change="handleNamespaceVisible"
       @command="handleNamespaceChange"
     >
       <el-row align="middle">
@@ -238,18 +237,18 @@ function showTransformDialog(type: string) {
   transformType.value = type
 }
 
-function handleNamespaceVisible(visible: boolean) {
-  if (visible === true) {
-    namespaceListLoading.value = true
-    new NamespaceOption()
-      .request()
-      .then((response) => {
-        namespaceList.value = response.data.list
-      })
-      .finally(() => {
-        namespaceListLoading.value = false
-      })
-  }
+getNamespaceList()
+
+function getNamespaceList() {
+  namespaceListLoading.value = true
+  new NamespaceOption()
+    .request()
+    .then((response) => {
+      namespaceList.value = response.data.list
+    })
+    .finally(() => {
+      namespaceListLoading.value = false
+    })
 }
 
 function handleNamespaceChange(namespace: NamespaceUserData) {

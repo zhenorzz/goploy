@@ -231,7 +231,7 @@
       <el-row
         v-loading="traceLoading"
         class="project-detail"
-        style="flex: 1; align-content: flex-start"
+        style="flex: 1; padding: 0 10px; align-content: flex-start"
         :style="{
           width: '100%',
           alignContent: 'flex-start',

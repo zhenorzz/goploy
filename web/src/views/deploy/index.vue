@@ -765,15 +765,15 @@ function publish(data: ProjectData) {
   const id = data.id
   let color = ''
   if (data.environment === 1) {
-    color = 'color: #F56C6C'
+    color = 'color: var(--el-color-danger)'
   } else if (data.environment === 3) {
-    color = 'color: #E6A23C'
+    color = 'color: var(--el-color-warning)'
   } else {
-    color = 'color: #909399'
+    color = 'color: var(--el-color-info)'
   }
   ElMessageBox.confirm('', t('tips'), {
     message: h('p', null, [
-      h('span', null, 'Deploy Project: '),
+      h('span', null, 'Deploy: '),
       h(
         'b',
         { style: color },
