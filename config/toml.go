@@ -18,14 +18,16 @@ import (
 )
 
 type Config struct {
-	Env    string       `toml:"env"`
-	APP    APPConfig    `toml:"app"`
-	Cookie CookieConfig `toml:"cookie"`
-	JWT    JWTConfig    `toml:"jwt"`
-	DB     DBConfig     `toml:"db"`
-	Log    LogConfig    `toml:"log"`
-	Web    WebConfig    `toml:"web"`
-	LDAP   LDAPConfig   `toml:"ldap"`
+	Env      string         `toml:"env"`
+	APP      APPConfig      `toml:"app"`
+	Cookie   CookieConfig   `toml:"cookie"`
+	JWT      JWTConfig      `toml:"jwt"`
+	DB       DBConfig       `toml:"db"`
+	Log      LogConfig      `toml:"log"`
+	Web      WebConfig      `toml:"web"`
+	LDAP     LDAPConfig     `toml:"ldap"`
+	Dingtalk DingtalkConfig `toml:"dingtalk"`
+	Feishu   FeishuConfig   `toml:"feishu"`
 }
 
 type APPConfig struct {
@@ -68,6 +70,16 @@ type LDAPConfig struct {
 	BaseDN     string `toml:"baseDN"`
 	UID        string `toml:"uid"`
 	UserFilter string `toml:"userFilter"`
+}
+
+type DingtalkConfig struct {
+	AppKey    string `toml:"appKey"`
+	AppSecret string `toml:"appSecret"`
+}
+
+type FeishuConfig struct {
+	AppKey    string `toml:"appKey"`
+	AppSecret string `toml:"appSecret"`
 }
 
 var Toml Config

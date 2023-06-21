@@ -61,6 +61,17 @@
       >
         Sign in
       </el-button>
+      <el-divider class="divider">
+        <span class="media-logo">
+          <span
+            v-for="item in mediaMap"
+            :key="item.media"
+            @click="handleMediaWindow(item.media)"
+          >
+            <svg-icon :icon-class="item.icon" class="icon" />
+          </span>
+        </span>
+      </el-divider>
     </el-form>
   </div>
 </template>
@@ -74,6 +85,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import type { ElForm } from 'element-plus'
 import { ref, watch, nextTick } from 'vue'
+import { MediaLoginUrl } from '@/api/user'
+import { ElMessage } from 'element-plus'
 const version = import.meta.env.VITE_APP_VERSION
 const store = useStore()
 const router = useRouter()
@@ -113,6 +126,8 @@ const loginRules: InstanceType<typeof ElForm>['rules'] = {
     },
   ],
 }
+
+const redirectUri = window.location.origin + '/#/login'
 const passwordType = ref('password')
 const loading = ref(false)
 const redirect = ref()
@@ -127,9 +142,49 @@ watch(
         route.query['token'] as string
       )
     }
+    let code = getUrlKeyVal('code')
+    let authCode = getUrlKeyVal('authCode')
+    let state = getUrlKeyVal('state')
+
+    if (code) {
+      handleMediaLogin(code.toString(), state.toString())
+    } else if (authCode) {
+      handleMediaLogin(authCode.toString(), state.toString())
+    }
   },
   { immediate: true }
 )
+
+const mediaLoginUrl = ref<Record<string, string>>({})
+const mediaMap = [
+  {
+    media: 'dingtalk',
+    icon: 'dingtalk',
+  },
+  {
+    media: 'feishu',
+    icon: 'feishu',
+  },
+]
+getMediaLoginUrl()
+
+function getUrlKeyVal(key: string) {
+  let value = ''
+  let sURL = window.document.URL
+  if (sURL.indexOf('?') > 0) {
+    let arrayParams = sURL.split('?')
+    let arrayURLParams = arrayParams[1].split('&')
+
+    for (let i = 0; i < arrayURLParams.length; i++) {
+      let sParam = arrayURLParams[i].split('=')
+      if (sParam[0] == key && sParam[1] != '') {
+        value = sParam[1]
+        break
+      }
+    }
+  }
+  return value
+}
 
 const password = ref<HTMLInputElement>()
 function showPwd() {
@@ -179,6 +234,38 @@ function handleLogin() {
       return Promise.reject(false)
     }
   })
+}
+
+function handleMediaLogin(authCode: string, state: string) {
+  loading.value = true
+  store
+    .dispatch('user/mediaLogin', { authCode, state, redirectUri })
+    .then(() => {
+      window.opener.location.reload()
+      window.close()
+    })
+    .catch(() => {
+      loading.value = false
+    })
+}
+
+function getMediaLoginUrl() {
+  new MediaLoginUrl({ redirectUri: redirectUri }).request().then((response) => {
+    mediaLoginUrl.value = response.data
+  })
+}
+
+function handleMediaWindow(media: string) {
+  if (mediaLoginUrl.value[media] === '') {
+    ElMessage.error('Please set ' + media + ' appkey and appsecrect first')
+    return
+  }
+
+  window.open(
+    mediaLoginUrl.value[media],
+    'loginPopup',
+    'left=200, top=200, width=800,height=600'
+  )
 }
 </script>
 
@@ -307,5 +394,22 @@ $light_gray: #eee;
     cursor: pointer;
     user-select: none;
   }
+}
+.media-logo {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  .icon {
+    width: 36px;
+    height: 36px;
+    margin: 0 5px;
+    cursor: pointer;
+  }
+}
+
+.divider {
+  --el-bg-color: #ffffff;
+  --el-border-color: #dcdfe6;
 }
 </style>
