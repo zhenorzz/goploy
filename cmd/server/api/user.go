@@ -465,7 +465,7 @@ func (User) GetMediaLoginUrl(gp *server.Goploy) server.Response {
 
 	dingtalk, feishu := "", ""
 
-	if config.Toml.Dingtalk.AppKey != "" {
+	if config.Toml.Dingtalk.AppKey != "" && config.Toml.Dingtalk.AppSecret != "" {
 		dingtalk = fmt.Sprintf(
 			"https://login.dingtalk.com/oauth2/auth?redirect_uri=%s&response_type=code&client_id=%s&scope=openid&prompt=consent&state=dingtalk",
 			reqData.RedirectUri,
@@ -473,7 +473,7 @@ func (User) GetMediaLoginUrl(gp *server.Goploy) server.Response {
 		)
 	}
 
-	if config.Toml.Feishu.AppKey != "" {
+	if config.Toml.Feishu.AppKey != "" && config.Toml.Feishu.AppSecret != "" {
 		feishu = fmt.Sprintf(
 			"https://passport.feishu.cn/suite/passport/oauth/authorize?redirect_uri=%s&client_id=%s&response_type=code&state=feishu",
 			reqData.RedirectUri,

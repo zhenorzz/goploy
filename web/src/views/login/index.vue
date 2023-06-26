@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container">
+  <div v-if="!query['code'] && !query['authCode']" class="login-container">
     <el-row class="login-mark" type="flex" align="middle" justify="center">
       <img src="@/assets/images/logo.png" width="120" height="120" />
     </el-row>
@@ -61,14 +61,14 @@
       >
         Sign in
       </el-button>
-      <el-divider class="divider">
+      <el-divider v-if="Object.keys(mediaLoginUrl).length > 0" class="divider">
         <span class="media-logo">
           <span
-            v-for="item in mediaMap"
-            :key="item.media"
-            @click="handleMediaWindow(item.media)"
+            v-for="(item, key) in mediaLoginUrl"
+            :key="mediaMap[key].media"
+            @click="handleMediaWindow(item)"
           >
-            <svg-icon :icon-class="item.icon" class="icon" />
+            <svg-icon :icon-class="mediaMap[key].icon" class="icon" />
           </span>
         </span>
       </el-divider>
@@ -84,9 +84,8 @@ import { validUsername, validPassword } from '@/utils/validate'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import type { ElForm } from 'element-plus'
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, reactive } from 'vue'
 import { MediaLoginUrl } from '@/api/user'
-import { ElMessage } from 'element-plus'
 const version = import.meta.env.VITE_APP_VERSION
 const store = useStore()
 const router = useRouter()
@@ -131,6 +130,7 @@ const redirectUri = window.location.origin + '/#/login'
 const passwordType = ref('password')
 const loading = ref(false)
 const redirect = ref()
+const query = ref()
 watch(
   useRoute(),
   (route) => {
@@ -142,49 +142,36 @@ watch(
         route.query['token'] as string
       )
     }
-    let code = getUrlKeyVal('code')
-    let authCode = getUrlKeyVal('authCode')
-    let state = getUrlKeyVal('state')
 
-    if (code) {
-      handleMediaLogin(code.toString(), state.toString())
-    } else if (authCode) {
-      handleMediaLogin(authCode.toString(), state.toString())
+    query.value = param2Obj(window.location.href)
+
+    if (query.value.code) {
+      handleMediaLogin(
+        query.value.code.toString(),
+        query.value.state.toString()
+      )
+    } else if (query.value.authCode) {
+      handleMediaLogin(
+        query.value.authCode.toString(),
+        query.value.state.toString()
+      )
     }
   },
   { immediate: true }
 )
 
 const mediaLoginUrl = ref<Record<string, string>>({})
-const mediaMap = [
-  {
+const mediaMap = reactive<Record<string, any>>({
+  dingtalk: {
     media: 'dingtalk',
     icon: 'dingtalk',
   },
-  {
+  feishu: {
     media: 'feishu',
     icon: 'feishu',
   },
-]
+})
 getMediaLoginUrl()
-
-function getUrlKeyVal(key: string) {
-  let value = ''
-  let sURL = window.document.URL
-  if (sURL.indexOf('?') > 0) {
-    let arrayParams = sURL.split('?')
-    let arrayURLParams = arrayParams[1].split('&')
-
-    for (let i = 0; i < arrayURLParams.length; i++) {
-      let sParam = arrayURLParams[i].split('=')
-      if (sParam[0] == key && sParam[1] != '') {
-        value = sParam[1]
-        break
-      }
-    }
-  }
-  return value
-}
 
 const password = ref<HTMLInputElement>()
 function showPwd() {
@@ -251,21 +238,16 @@ function handleMediaLogin(authCode: string, state: string) {
 
 function getMediaLoginUrl() {
   new MediaLoginUrl({ redirectUri: redirectUri }).request().then((response) => {
-    mediaLoginUrl.value = response.data
+    for (const media in response.data) {
+      if (response.data[media] != '') {
+        mediaLoginUrl.value[media] = response.data[media]
+      }
+    }
   })
 }
 
-function handleMediaWindow(media: string) {
-  if (mediaLoginUrl.value[media] === '') {
-    ElMessage.error('Please set ' + media + ' appkey and appsecrect first')
-    return
-  }
-
-  window.open(
-    mediaLoginUrl.value[media],
-    'loginPopup',
-    'left=200, top=200, width=800,height=600'
-  )
+function handleMediaWindow(url: string) {
+  window.open(url, 'loginPopup', 'left=200, top=200, width=800,height=600')
 }
 </script>
 

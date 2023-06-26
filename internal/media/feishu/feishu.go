@@ -6,8 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/internal/media/feishu/request"
-	"github.com/zhenorzz/goploy/internal/media/feishu/response"
+	"github.com/zhenorzz/goploy/internal/media/feishu/api"
 	"io"
 	"net/http"
 	"net/url"
@@ -27,6 +26,11 @@ type Client struct {
 	Key    string
 	Secret string
 	Client *http.Client
+	Method string
+	Api    string
+	Query  url.Values
+	Body   interface{}
+	Resp   Response
 }
 
 type Response interface {
@@ -57,7 +61,7 @@ func (f Feishu) Login(authCode string, redirectUri string) (string, error) {
 	return strings.Trim(userInfo.Mobile, "+86"), nil
 }
 
-func (c *Client) Request(method, api string, query url.Values, body interface{}, data Response) (err error) {
+func (c *Client) Request() (err error) {
 	var (
 		req          *http.Request
 		resp         *http.Response
@@ -65,21 +69,21 @@ func (c *Client) Request(method, api string, query url.Values, body interface{},
 		responseData []byte
 	)
 
-	uri, _ := url.Parse(api)
+	uri, _ := url.Parse(c.Api)
 
-	token = query.Get("access_token")
+	token = c.Query.Get("access_token")
 	if token != "" {
-		query.Del("access_token")
+		c.Query.Del("access_token")
 	}
 
-	uri.RawQuery = query.Encode()
+	uri.RawQuery = c.Query.Encode()
 
-	if body != nil {
-		b, _ := json.Marshal(body)
-		req, _ = http.NewRequest(method, uri.String(), bytes.NewBuffer(b))
+	if c.Body != nil {
+		b, _ := json.Marshal(c.Body)
+		req, _ = http.NewRequest(c.Method, uri.String(), bytes.NewBuffer(b))
 		req.Header.Set("Content-Type", "application/json")
 	} else {
-		req, _ = http.NewRequest(method, uri.String(), nil)
+		req, _ = http.NewRequest(c.Method, uri.String(), nil)
 	}
 
 	if token != "" {
@@ -96,31 +100,50 @@ func (c *Client) Request(method, api string, query url.Values, body interface{},
 		return err
 	}
 
-	if err = json.Unmarshal(responseData, &data); err != nil {
+	if err = json.Unmarshal(responseData, c.Resp); err != nil {
 		return err
 	}
 
-	if err = data.CheckError(); err != nil {
+	if err = c.Resp.CheckError(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (c *Client) GetUserAccessToken(authCode string, redirectUri string) (resp response.UserAccessTokenResp, err error) {
-	req := request.UserAccessTokenReq{
-		ClientId:     c.Key,
-		ClientSecret: c.Secret,
-		Code:         authCode,
-		GrantType:    "authorization_code",
-		RedirectUri:  redirectUri,
+func (c *Client) GetUserAccessToken(authCode string, redirectUri string) (resp api.UserAccessTokenResp, err error) {
+	param := api.UserAccessToken{
+		Request: api.UserAccessTokenReq{
+			ClientId:     c.Key,
+			ClientSecret: c.Secret,
+			Code:         authCode,
+			GrantType:    "authorization_code",
+			RedirectUri:  redirectUri,
+		},
+		Response: resp,
 	}
-	return resp, c.Request(http.MethodPost, UserAccessToken, nil, req, &resp)
+
+	c.Method = http.MethodPost
+	c.Api = UserAccessToken
+	c.Query = nil
+	c.Body = param.Request
+	c.Resp = &param.Response
+
+	return param.Response, c.Request()
 }
 
-func (c *Client) GetUserInfo(userAccessToken string) (resp response.UserInfoResp, err error) {
-	query := url.Values{}
-	query.Set("access_token", userAccessToken)
+func (c *Client) GetUserInfo(userAccessToken string) (resp api.UserInfoResp, err error) {
+	param := api.UserInfo{
+		Request:  nil,
+		Response: resp,
+	}
 
-	return resp, c.Request(http.MethodGet, UserInfo, query, nil, &resp)
+	c.Method = http.MethodGet
+	c.Api = UserInfo
+	c.Query = url.Values{}
+	c.Query.Set("access_token", userAccessToken)
+	c.Body = param.Request
+	c.Resp = &param.Response
+
+	return param.Response, c.Request()
 }

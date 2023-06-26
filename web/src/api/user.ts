@@ -69,10 +69,6 @@ export class MediaLoginUrl extends Request {
   public param: {
     redirectUri: string
   }
-  public declare datagram: {
-    dingtalk: string
-    feishu: string
-  }
   constructor(param: MediaLoginUrl['param']) {
     super()
     this.param = param

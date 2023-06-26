@@ -1,15 +1,40 @@
-package response
+package api
 
 import (
 	"errors"
 	"fmt"
 )
 
+type UserAccessToken struct {
+	Request  UserAccessTokenReq
+	Response UserAccessTokenResp
+}
+
+type UserInfo struct {
+	Request  interface{}
+	Response UserInfoResp
+}
+
+type UserAccessTokenReq struct {
+	ClientId     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	Code         string `json:"code"`
+	GrantType    string `json:"grant_type"`
+	RedirectUri  string `json:"redirect_uri"`
+}
+
 type CommonResponse struct {
 	Error            string `json:"error"`
 	ErrorDescription string `json:"error_description"`
 	Code             int    `json:"code"`
 	Message          string `json:"message"`
+}
+
+func (r *CommonResponse) CheckError() (err error) {
+	if r.Error != "" || r.Message != "" {
+		err = errors.New(fmt.Sprintf("api return error, code: %v, message: %s, error: %s", r.Code, r.Message, r.Error))
+	}
+	return err
 }
 
 type UserAccessTokenResp struct {
@@ -37,11 +62,4 @@ type UserInfoResp struct {
 	UserId       string `json:"user_id"`
 	Mobile       string `json:"mobile"`
 	CommonResponse
-}
-
-func (r *CommonResponse) CheckError() (err error) {
-	if r.Error != "" || r.Message != "" {
-		err = errors.New(fmt.Sprintf("api return error, code: %v, message: %s, error: %s", r.Code, r.Message, r.Error))
-	}
-	return err
 }

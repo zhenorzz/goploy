@@ -5,9 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/media/dingtalk/api"
 	"github.com/zhenorzz/goploy/internal/media/dingtalk/cache"
-	"github.com/zhenorzz/goploy/internal/media/dingtalk/request"
-	"github.com/zhenorzz/goploy/internal/media/dingtalk/response"
 	"io"
 	"net/http"
 	"net/url"
@@ -32,6 +31,11 @@ type Client struct {
 	Secret string
 	Client *http.Client
 	Cache  *cache.AccessTokenCache
+	Method string
+	Api    string
+	Query  url.Values
+	Body   interface{}
+	Resp   Response
 }
 
 type Response interface {
@@ -68,7 +72,7 @@ func (d Dingtalk) Login(authCode string, redirectUri string) (string, error) {
 	return contactUserInfo.Mobile, nil
 }
 
-func (c *Client) Request(method, api string, query url.Values, body interface{}, data Response) (err error) {
+func (c *Client) Request() (err error) {
 	var (
 		req          *http.Request
 		resp         *http.Response
@@ -76,23 +80,23 @@ func (c *Client) Request(method, api string, query url.Values, body interface{},
 		responseData []byte
 	)
 
-	uri, _ := url.Parse(api)
-	if strings.Contains(api, Api) {
-		token = query.Get("access_token")
-		query.Del("access_token")
+	uri, _ := url.Parse(c.Api)
+	if strings.Contains(c.Api, Api) {
+		token = c.Query.Get("access_token")
+		c.Query.Del("access_token")
 	}
 
-	uri.RawQuery = query.Encode()
+	uri.RawQuery = c.Query.Encode()
 
-	if body != nil {
-		b, _ := json.Marshal(body)
-		req, _ = http.NewRequest(method, uri.String(), bytes.NewBuffer(b))
+	if c.Body != nil {
+		b, _ := json.Marshal(c.Body)
+		req, _ = http.NewRequest(c.Method, uri.String(), bytes.NewBuffer(b))
 		req.Header.Set("Content-Type", "application/json")
 	} else {
-		req, _ = http.NewRequest(method, uri.String(), nil)
+		req, _ = http.NewRequest(c.Method, uri.String(), nil)
 	}
 
-	if strings.Contains(api, Api) {
+	if strings.Contains(c.Api, Api) {
 		req.Header.Set("x-acs-dingtalk-access-token", token)
 	}
 
@@ -106,67 +110,100 @@ func (c *Client) Request(method, api string, query url.Values, body interface{},
 		return err
 	}
 
-	if err = json.Unmarshal(responseData, &data); err != nil {
+	if err = json.Unmarshal(responseData, c.Resp); err != nil {
 		return err
 	}
 
-	if err = data.CheckError(); err != nil {
+	if err = c.Resp.CheckError(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (c *Client) GetUserAccessToken(authCode string) (resp response.UserAccessTokenResp, err error) {
-	req := request.UserAccessTokenReq{
-		ClientId:     c.Key,
-		ClientSecret: c.Secret,
-		Code:         authCode,
-		GrandType:    "authorization_code",
+func (c *Client) GetUserAccessToken(authCode string) (resp api.UserAccessTokenResp, err error) {
+	param := api.UserAccessToken{
+		Request: api.UserAccessTokenReq{
+			ClientId:     c.Key,
+			ClientSecret: c.Secret,
+			Code:         authCode,
+			GrandType:    "authorization_code",
+		},
+		Response: resp,
 	}
-	return resp, c.Request(http.MethodPost, UserAccessToken, nil, req, &resp)
+
+	c.Method = http.MethodPost
+	c.Api = UserAccessToken
+	c.Query = nil
+	c.Body = param.Request
+	c.Resp = &param.Response
+
+	return param.Response, c.Request()
 }
 
-func (c *Client) GetContactUser(userAccessToken string) (resp response.ContactUserResp, err error) {
-	query := url.Values{}
-	query.Set("access_token", userAccessToken)
+func (c *Client) GetContactUser(userAccessToken string) (resp api.ContactUserResp, err error) {
+	param := api.ContactUser{
+		Request:  nil,
+		Response: resp,
+	}
 
-	return resp, c.Request(http.MethodGet, ContactUserMe, query, nil, &resp)
+	c.Method = http.MethodGet
+	c.Api = ContactUserMe
+	c.Query = url.Values{}
+	c.Query.Set("access_token", userAccessToken)
+	c.Body = param.Request
+	c.Resp = &param.Response
+
+	return param.Response, c.Request()
 }
 
-func (c *Client) GetUserIdByMobile(mobile string) (resp response.MobileUserId, err error) {
+func (c *Client) GetUserIdByMobile(mobile string) (resp api.MobileUserIdResp, err error) {
 	accessToken, err := c.GetAccessToken()
 	if err != nil {
 		return resp, err
 	}
 
-	query := url.Values{}
-	query.Set("access_token", accessToken)
-
-	reqParam := request.GetUserIdByMobileReq{
-		Mobile: mobile,
+	param := api.MobileUserId{
+		Request: api.GetUserIdByMobileReq{
+			Mobile: mobile,
+		},
+		Response: resp,
 	}
 
-	return resp, c.Request(http.MethodPost, GetUserIdByMobile, query, reqParam, &resp)
+	c.Method = http.MethodPost
+	c.Api = GetUserIdByMobile
+	c.Query = url.Values{}
+	c.Query.Set("access_token", accessToken)
+	c.Body = param.Request
+	c.Resp = &param.Response
+
+	return param.Response, c.Request()
 }
 
 func (c *Client) GetAccessToken() (accessToken string, err error) {
 	accessToken, ok := c.Cache.Get(c.Key)
 	if !ok {
-		reqParam := request.AccessTokenReq{
-			AppKey:    c.Key,
-			AppSecret: c.Secret,
+		param := api.AccessToken{
+			Request: api.AccessTokenReq{
+				AppKey:    c.Key,
+				AppSecret: c.Secret,
+			},
+			Response: api.AccessTokenResp{},
 		}
 
-		var resp response.AccessTokenResp
+		c.Method = http.MethodPost
+		c.Api = GetAccessToken
+		c.Query = nil
+		c.Body = param.Request
+		c.Resp = &param.Response
 
-		if err = c.Request(http.MethodPost, GetAccessToken, nil, reqParam, &resp); err != nil {
+		if err = c.Request(); err != nil {
 			return "", err
 		}
 
-		c.Cache.Set(c.Key, resp.AccessToken, time.Duration(resp.ExpireIn))
+		c.Cache.Set(c.Key, param.Response.AccessToken, time.Duration(param.Response.ExpireIn))
 
-		accessToken = resp.AccessToken
+		accessToken = param.Response.AccessToken
 	}
 
 	return accessToken, nil
