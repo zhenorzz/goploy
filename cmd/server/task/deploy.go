@@ -615,6 +615,7 @@ func (gsync *Gsync) notify(deployState int, detail string) {
 			Content content `json:"content"`
 		}
 		text := ""
+        text += "Deploy：" + project.Name + "\n"
 		text += "Publisher: " + project.PublisherName + "\n"
 		text += "Author: " + commitInfo.Author + "\n"
 		if commitInfo.Tag != "" {
