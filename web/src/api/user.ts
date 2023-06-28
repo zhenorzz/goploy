@@ -46,6 +46,35 @@ export class extLogin extends Request {
   }
 }
 
+export class MediaLogin extends Request {
+  readonly url = '/user/mediaLogin'
+  readonly method = 'post'
+  public param: {
+    authCode: string
+    state: string
+    redirectUri: string
+  }
+  public declare datagram: {
+    namespaceList: { id: number; name: string; roleId: number }[]
+  }
+  constructor(param: MediaLogin['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class MediaLoginUrl extends Request {
+  readonly url = '/user/getMediaLoginUrl'
+  readonly method = 'get'
+  public param: {
+    redirectUri: string
+  }
+  constructor(param: MediaLoginUrl['param']) {
+    super()
+    this.param = param
+  }
+}
+
 export class Info extends Request {
   readonly url = '/user/info'
   readonly method = 'get'

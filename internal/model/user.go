@@ -71,6 +71,22 @@ func (u User) GetDataByAccount() (User, error) {
 	return user, nil
 }
 
+// GetDataByContact -
+func (u User) GetDataByContact() (User, error) {
+	var user User
+	err := sq.
+		Select("id, account, password, name, contact, super_manager, state, insert_time, update_time").
+		From(userTable).
+		Where(sq.Eq{"contact": u.Contact}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&user.ID, &user.Account, &user.Password, &user.Name, &user.Contact, &user.SuperManager, &user.State, &user.InsertTime, &user.UpdateTime)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
 // GetList -
 func (u User) GetList() (Users, error) {
 	rows, err := sq.

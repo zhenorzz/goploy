@@ -11,10 +11,12 @@ import (
 	"fmt"
 	"github.com/go-ldap/ldap/v3"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
+	"github.com/zhenorzz/goploy/internal/media"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -34,6 +36,8 @@ func (u User) Handler() []server.Route {
 		server.NewRoute("/user/add", http.MethodPost, u.Add).Permissions(config.AddMember).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/user/edit", http.MethodPut, u.Edit).Permissions(config.EditMember).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/user/remove", http.MethodDelete, u.Remove).Permissions(config.DeleteMember).LogFunc(middleware.AddOPLog),
+		server.NewWhiteRoute("/user/mediaLogin", http.MethodPost, u.MediaLogin),
+		server.NewWhiteRoute("/user/getMediaLoginUrl", http.MethodGet, u.GetMediaLoginUrl),
 	}
 }
 
@@ -383,4 +387,104 @@ func (User) ChangePassword(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{}
+}
+
+func (User) MediaLogin(gp *server.Goploy) server.Response {
+	type ReqData struct {
+		AuthCode    string `json:"authCode" validate:"required"`
+		State       string `json:"state" validate:"required"`
+		RedirectUri string `json:"redirectUri" validate:"omitempty"`
+	}
+
+	var reqData ReqData
+	if err := gp.Decode(&reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	var mobile string
+	var err error
+
+	mediaService := media.GetMedia(reqData.State)
+	if mobile, err = mediaService.Login(reqData.AuthCode, reqData.RedirectUri); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	userData, err := model.User{Contact: mobile}.GetDataByContact()
+	if err == sql.ErrNoRows {
+		return response.JSON{Code: response.Error, Message: "We couldn't find your account, please contact admin"}
+	}
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	if userData.State == model.Disable {
+		return response.JSON{Code: response.AccountDisabled, Message: "Account is disabled"}
+	}
+
+	namespaceList, err := model.Namespace{UserID: userData.ID}.GetAllByUserID()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	} else if len(namespaceList) == 0 {
+		return response.JSON{Code: response.Error, Message: "No space assigned, please contact the administrator"}
+	}
+
+	token, err := userData.CreateToken()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	_ = model.User{ID: userData.ID, LastLoginTime: time.Now().Format("20060102150405")}.UpdateLastLoginTime()
+
+	cookie := http.Cookie{
+		Name:     config.Toml.Cookie.Name,
+		Value:    token,
+		Path:     "/",
+		MaxAge:   config.Toml.Cookie.Expire,
+		HttpOnly: true,
+	}
+	http.SetCookie(gp.ResponseWriter, &cookie)
+	return response.JSON{
+		Data: struct {
+			Token         string           `json:"token"`
+			NamespaceList model.Namespaces `json:"namespaceList"`
+		}{Token: token, NamespaceList: namespaceList},
+	}
+}
+
+func (User) GetMediaLoginUrl(gp *server.Goploy) server.Response {
+	type ReqData struct {
+		RedirectUri string `schema:"redirectUri" validate:"required"`
+	}
+
+	var reqData ReqData
+	if err := gp.Decode(&reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	reqData.RedirectUri = url.QueryEscape(reqData.RedirectUri)
+
+	dingtalk, feishu := "", ""
+
+	if config.Toml.Dingtalk.AppKey != "" && config.Toml.Dingtalk.AppSecret != "" {
+		dingtalk = fmt.Sprintf(
+			"https://login.dingtalk.com/oauth2/auth?redirect_uri=%s&response_type=code&client_id=%s&scope=openid&prompt=consent&state=dingtalk",
+			reqData.RedirectUri,
+			config.Toml.Dingtalk.AppKey,
+		)
+	}
+
+	if config.Toml.Feishu.AppKey != "" && config.Toml.Feishu.AppSecret != "" {
+		feishu = fmt.Sprintf(
+			"https://passport.feishu.cn/suite/passport/oauth/authorize?redirect_uri=%s&client_id=%s&response_type=code&state=feishu",
+			reqData.RedirectUri,
+			config.Toml.Feishu.AppKey,
+		)
+	}
+
+	return response.JSON{
+		Data: struct {
+			Dingtalk string `json:"dingtalk"`
+			Feishu   string `json:"feishu"`
+		}{Dingtalk: dingtalk, Feishu: feishu},
+	}
 }

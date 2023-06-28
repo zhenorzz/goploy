@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container">
+  <div v-if="!query['state']" class="login-container">
     <el-row class="login-mark" type="flex" align="middle" justify="center">
       <img src="@/assets/images/logo.png" width="120" height="120" />
     </el-row>
@@ -61,6 +61,17 @@
       >
         Sign in
       </el-button>
+      <el-divider v-if="Object.keys(mediaLoginUrl).length > 0" class="divider">
+        <span class="media-logo">
+          <span
+            v-for="(item, key) in mediaLoginUrl"
+            :key="mediaMap[key].media"
+            @click="handleMediaWindow(item)"
+          >
+            <svg-icon :icon-class="mediaMap[key].icon" class="icon" />
+          </span>
+        </span>
+      </el-divider>
     </el-form>
   </div>
 </template>
@@ -73,7 +84,8 @@ import { validUsername, validPassword } from '@/utils/validate'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import type { ElForm } from 'element-plus'
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, reactive } from 'vue'
+import { MediaLoginUrl } from '@/api/user'
 const version = import.meta.env.VITE_APP_VERSION
 const store = useStore()
 const router = useRouter()
@@ -113,9 +125,12 @@ const loginRules: InstanceType<typeof ElForm>['rules'] = {
     },
   ],
 }
+
+const redirectUri = window.location.origin + '/#/login'
 const passwordType = ref('password')
 const loading = ref(false)
 const redirect = ref()
+const query = ref()
 watch(
   useRoute(),
   (route) => {
@@ -127,9 +142,36 @@ watch(
         route.query['token'] as string
       )
     }
+
+    query.value = param2Obj(window.location.href)
+
+    if (query.value['code']) {
+      handleMediaLogin(
+        query.value['code'].toString(),
+        query.value['state'].toString()
+      )
+    } else if (query.value['authCode']) {
+      handleMediaLogin(
+        query.value['authCode'].toString(),
+        query.value['state'].toString()
+      )
+    }
   },
   { immediate: true }
 )
+
+const mediaLoginUrl = ref<Record<string, string>>({})
+const mediaMap = reactive<Record<string, any>>({
+  dingtalk: {
+    media: 'dingtalk',
+    icon: 'dingtalk',
+  },
+  feishu: {
+    media: 'feishu',
+    icon: 'feishu',
+  },
+})
+getMediaLoginUrl()
 
 const password = ref<HTMLInputElement>()
 function showPwd() {
@@ -179,6 +221,33 @@ function handleLogin() {
       return Promise.reject(false)
     }
   })
+}
+
+function handleMediaLogin(authCode: string, state: string) {
+  loading.value = true
+  store
+    .dispatch('user/mediaLogin', { authCode, state, redirectUri })
+    .then(() => {
+      window.opener.location.reload()
+      window.close()
+    })
+    .catch(() => {
+      loading.value = false
+    })
+}
+
+function getMediaLoginUrl() {
+  new MediaLoginUrl({ redirectUri: redirectUri }).request().then((response) => {
+    for (const media in response.data) {
+      if (response.data[media] != '') {
+        mediaLoginUrl.value[media] = response.data[media]
+      }
+    }
+  })
+}
+
+function handleMediaWindow(url: string) {
+  window.open(url, 'loginPopup', 'left=200, top=200, width=800,height=600')
 }
 </script>
 
@@ -307,5 +376,22 @@ $light_gray: #eee;
     cursor: pointer;
     user-select: none;
   }
+}
+.media-logo {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  .icon {
+    width: 36px;
+    height: 36px;
+    margin: 0 5px;
+    cursor: pointer;
+  }
+}
+
+.divider {
+  --el-bg-color: #ffffff;
+  --el-border-color: #dcdfe6;
 }
 </style>

@@ -34,3 +34,10 @@ baseDN = ''
 uid = ''
 userFilter = ''
 
+[dingtalk]
+appKey = ''
+appSecret = ''
+
+[feishu]
+appKey = ''
+appSecret = ''
