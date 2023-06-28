@@ -4,29 +4,21 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/media/dingtalk/api"
+	"github.com/zhenorzz/goploy/internal/media/dingtalk/api/access_token"
+	"github.com/zhenorzz/goploy/internal/media/dingtalk/api/contact"
+	"github.com/zhenorzz/goploy/internal/media/dingtalk/api/get_user_by_mobile"
+	"github.com/zhenorzz/goploy/internal/media/dingtalk/api/user_access_token"
 	"github.com/zhenorzz/goploy/internal/media/dingtalk/cache"
 	"io"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 )
 
-const (
-	Api               = "https://api.dingtalk.com/"
-	Oapi              = "https://oapi.dingtalk.com/"
-	UserAccessToken   = Api + "v1.0/oauth2/userAccessToken"
-	ContactUserMe     = Api + "v1.0/contact/users/me"
-	GetUserIdByMobile = Oapi + "topapi/v2/user/getbymobile"
-	GetAccessToken    = Api + "v1.0/oauth2/accessToken"
-)
-
 type Dingtalk struct {
-}
-
-type Client struct {
 	Key    string
 	Secret string
 	Client *http.Client
@@ -35,32 +27,27 @@ type Client struct {
 	Api    string
 	Query  url.Values
 	Body   interface{}
-	Resp   Response
+	Resp   interface{}
+	Token  string
 }
 
-type Response interface {
-	CheckError() error
-}
+func (d *Dingtalk) Login(authCode string, redirectUri string) (string, error) {
+	d.Key = config.Toml.Dingtalk.AppKey
+	d.Secret = config.Toml.Dingtalk.AppSecret
+	d.Client = &http.Client{}
+	d.Cache = cache.GetCache()
 
-func (d Dingtalk) Login(authCode string, redirectUri string) (string, error) {
-	dingtalkClient := Client{
-		Key:    config.Toml.Dingtalk.AppKey,
-		Secret: config.Toml.Dingtalk.AppSecret,
-		Client: &http.Client{},
-		Cache:  cache.GetCache(),
-	}
-
-	userAccessTokenInfo, err := dingtalkClient.GetUserAccessToken(authCode)
+	userAccessTokenInfo, err := d.GetUserAccessToken(authCode)
 	if err != nil {
 		return "", err
 	}
 
-	contactUserInfo, err := dingtalkClient.GetContactUser(userAccessTokenInfo.AccessToken)
+	contactUserInfo, err := d.GetContactUser(userAccessTokenInfo.AccessToken)
 	if err != nil {
 		return "", err
 	}
 
-	mobileUserId, err := dingtalkClient.GetUserIdByMobile(contactUserInfo.Mobile)
+	mobileUserId, err := d.GetUserIdByMobile(contactUserInfo.Mobile)
 	if err != nil {
 		return "", err
 	}
@@ -72,35 +59,30 @@ func (d Dingtalk) Login(authCode string, redirectUri string) (string, error) {
 	return contactUserInfo.Mobile, nil
 }
 
-func (c *Client) Request() (err error) {
+func (d *Dingtalk) Request() (err error) {
 	var (
-		req          *http.Request
-		resp         *http.Response
-		token        string
-		responseData []byte
+		req            *http.Request
+		resp           *http.Response
+		responseData   []byte
+		commonResponse api.CommonResponse
 	)
 
-	uri, _ := url.Parse(c.Api)
-	if strings.Contains(c.Api, Api) {
-		token = c.Query.Get("access_token")
-		c.Query.Del("access_token")
-	}
+	uri, _ := url.Parse(d.Api)
+	uri.RawQuery = d.Query.Encode()
 
-	uri.RawQuery = c.Query.Encode()
-
-	if c.Body != nil {
-		b, _ := json.Marshal(c.Body)
-		req, _ = http.NewRequest(c.Method, uri.String(), bytes.NewBuffer(b))
+	if d.Body != nil {
+		b, _ := json.Marshal(d.Body)
+		req, _ = http.NewRequest(d.Method, uri.String(), bytes.NewBuffer(b))
 		req.Header.Set("Content-Type", "application/json")
 	} else {
-		req, _ = http.NewRequest(c.Method, uri.String(), nil)
+		req, _ = http.NewRequest(d.Method, uri.String(), nil)
 	}
 
-	if strings.Contains(c.Api, Api) {
-		req.Header.Set("x-acs-dingtalk-access-token", token)
+	if d.Token != "" {
+		req.Header.Set("x-acs-dingtalk-access-token", d.Token)
 	}
 
-	if resp, err = c.Client.Do(req); err != nil {
+	if resp, err = d.Client.Do(req); err != nil {
 		return err
 	}
 
@@ -110,100 +92,90 @@ func (c *Client) Request() (err error) {
 		return err
 	}
 
-	if err = json.Unmarshal(responseData, c.Resp); err != nil {
+	if err = json.Unmarshal(responseData, &commonResponse); err != nil {
 		return err
 	}
 
-	if err = c.Resp.CheckError(); err != nil {
+	if commonResponse.Code != "" {
+		return errors.New(fmt.Sprintf("api return error, code: %s, message: %s, request_id: %s", commonResponse.Code, commonResponse.Message, commonResponse.RequestId))
+	} else if commonResponse.ErrCode != 0 {
+		return errors.New(fmt.Sprintf("api return error, code: %v, message: %s, request_id: %s", commonResponse.ErrCode, commonResponse.ErrMsg, commonResponse.OldRequestId))
+	}
+
+	if err = json.Unmarshal(responseData, d.Resp); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (c *Client) GetUserAccessToken(authCode string) (resp api.UserAccessTokenResp, err error) {
-	param := api.UserAccessToken{
-		Request: api.UserAccessTokenReq{
-			ClientId:     c.Key,
-			ClientSecret: c.Secret,
-			Code:         authCode,
-			GrandType:    "authorization_code",
-		},
-		Response: resp,
+func (d *Dingtalk) GetUserAccessToken(authCode string) (resp user_access_token.Response, err error) {
+	d.Method = http.MethodPost
+	d.Api = user_access_token.Url
+	d.Query = nil
+	d.Token = ""
+	d.Body = user_access_token.Request{
+		ClientId:     d.Key,
+		ClientSecret: d.Secret,
+		Code:         authCode,
+		GrandType:    "authorization_code",
 	}
+	d.Resp = &resp
 
-	c.Method = http.MethodPost
-	c.Api = UserAccessToken
-	c.Query = nil
-	c.Body = param.Request
-	c.Resp = &param.Response
-
-	return param.Response, c.Request()
+	return resp, d.Request()
 }
 
-func (c *Client) GetContactUser(userAccessToken string) (resp api.ContactUserResp, err error) {
-	param := api.ContactUser{
-		Request:  nil,
-		Response: resp,
-	}
+func (d *Dingtalk) GetContactUser(userAccessToken string) (resp contact.Response, err error) {
+	d.Method = http.MethodGet
+	d.Api = contact.Url
+	d.Query = nil
+	d.Token = userAccessToken
+	d.Body = nil
+	d.Resp = &resp
 
-	c.Method = http.MethodGet
-	c.Api = ContactUserMe
-	c.Query = url.Values{}
-	c.Query.Set("access_token", userAccessToken)
-	c.Body = param.Request
-	c.Resp = &param.Response
-
-	return param.Response, c.Request()
+	return resp, d.Request()
 }
 
-func (c *Client) GetUserIdByMobile(mobile string) (resp api.MobileUserIdResp, err error) {
-	accessToken, err := c.GetAccessToken()
+func (d *Dingtalk) GetUserIdByMobile(mobile string) (resp get_user_by_mobile.Response, err error) {
+	accessToken, err := d.GetAccessToken()
 	if err != nil {
 		return resp, err
 	}
 
-	param := api.MobileUserId{
-		Request: api.GetUserIdByMobileReq{
-			Mobile: mobile,
-		},
-		Response: resp,
+	d.Method = http.MethodPost
+	d.Api = get_user_by_mobile.Url
+	d.Query = url.Values{}
+	d.Query.Set("access_token", accessToken)
+	d.Token = ""
+	d.Body = get_user_by_mobile.Request{
+		Mobile: mobile,
 	}
+	d.Resp = &resp
 
-	c.Method = http.MethodPost
-	c.Api = GetUserIdByMobile
-	c.Query = url.Values{}
-	c.Query.Set("access_token", accessToken)
-	c.Body = param.Request
-	c.Resp = &param.Response
-
-	return param.Response, c.Request()
+	return resp, d.Request()
 }
 
-func (c *Client) GetAccessToken() (accessToken string, err error) {
-	accessToken, ok := c.Cache.Get(c.Key)
+func (d *Dingtalk) GetAccessToken() (accessToken string, err error) {
+	accessToken, ok := d.Cache.Get(d.Key)
 	if !ok {
-		param := api.AccessToken{
-			Request: api.AccessTokenReq{
-				AppKey:    c.Key,
-				AppSecret: c.Secret,
-			},
-			Response: api.AccessTokenResp{},
+		var resp access_token.Response
+
+		d.Method = http.MethodPost
+		d.Api = access_token.Url
+		d.Query = nil
+		d.Body = access_token.Request{
+			AppKey:    d.Key,
+			AppSecret: d.Secret,
 		}
+		d.Resp = &resp
 
-		c.Method = http.MethodPost
-		c.Api = GetAccessToken
-		c.Query = nil
-		c.Body = param.Request
-		c.Resp = &param.Response
-
-		if err = c.Request(); err != nil {
+		if err = d.Request(); err != nil {
 			return "", err
 		}
 
-		c.Cache.Set(c.Key, param.Response.AccessToken, time.Duration(param.Response.ExpireIn))
+		d.Cache.Set(d.Key, resp.AccessToken, time.Duration(resp.ExpireIn))
 
-		accessToken = param.Response.AccessToken
+		accessToken = resp.AccessToken
 	}
 
 	return accessToken, nil

@@ -35,9 +35,9 @@ uid = ''
 userFilter = ''
 
 [dingtalk]
-appkey = ''
-appsecret = ''
+appKey = ''
+appSecret = ''
 
 [feishu]
-appkey = ''
-appsecret = ''
+appKey = ''
+appSecret = ''

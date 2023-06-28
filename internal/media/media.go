@@ -12,8 +12,8 @@ type Media interface {
 
 func GetMedia(state string) Media {
 	if strings.Contains(state, "dingtalk") {
-		return dingtalk.Dingtalk{}
+		return &dingtalk.Dingtalk{}
 	} else {
-		return feishu.Feishu{}
+		return &feishu.Feishu{}
 	}
 }

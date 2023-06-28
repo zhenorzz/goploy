@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!query['code'] && !query['authCode']" class="login-container">
+  <div v-if="!query['state']" class="login-container">
     <el-row class="login-mark" type="flex" align="middle" justify="center">
       <img src="@/assets/images/logo.png" width="120" height="120" />
     </el-row>
@@ -145,15 +145,15 @@ watch(
 
     query.value = param2Obj(window.location.href)
 
-    if (query.value.code) {
+    if (query.value['code']) {
       handleMediaLogin(
-        query.value.code.toString(),
-        query.value.state.toString()
+        query.value['code'].toString(),
+        query.value['state'].toString()
       )
-    } else if (query.value.authCode) {
+    } else if (query.value['authCode']) {
       handleMediaLogin(
-        query.value.authCode.toString(),
-        query.value.state.toString()
+        query.value['authCode'].toString(),
+        query.value['state'].toString()
       )
     }
   },
