@@ -23,7 +23,6 @@ type Feishu struct {
 	Api    string
 	Query  url.Values
 	Body   interface{}
-	Resp   interface{}
 	Token  string
 }
 
@@ -49,7 +48,7 @@ func (f *Feishu) Login(authCode string, redirectUri string) (string, error) {
 	return strings.Trim(userInfo.Mobile, "+86"), nil
 }
 
-func (f *Feishu) Request() (err error) {
+func request[T any](f *Feishu) (response T, err error) {
 	var (
 		req            *http.Request
 		resp           *http.Response
@@ -74,31 +73,31 @@ func (f *Feishu) Request() (err error) {
 	}
 
 	if resp, err = f.Client.Do(req); err != nil {
-		return err
+		return
 	}
 
 	defer resp.Body.Close()
 
 	if responseData, err = io.ReadAll(resp.Body); err != nil {
-		return err
+		return
 	}
 
 	if err = json.Unmarshal(responseData, &commonResponse); err != nil {
-		return err
+		return
 	}
 
 	if commonResponse.Error != "" || commonResponse.Message != "" {
-		return errors.New(fmt.Sprintf("api return error, code: %v, message: %s, error: %s", commonResponse.Code, commonResponse.Message, commonResponse.Error))
+		return response, errors.New(fmt.Sprintf("api return error, code: %v, message: %s, error: %s", commonResponse.Code, commonResponse.Message, commonResponse.Error))
 	}
 
-	if err = json.Unmarshal(responseData, f.Resp); err != nil {
-		return err
+	if err = json.Unmarshal(responseData, &response); err != nil {
+		return
 	}
 
-	return nil
+	return
 }
 
-func (f *Feishu) GetUserAccessToken(authCode string, redirectUri string) (resp user_access_token.Response, err error) {
+func (f *Feishu) GetUserAccessToken(authCode string, redirectUri string) (user_access_token.Response, error) {
 	f.Method = http.MethodPost
 	f.Api = user_access_token.Url
 	f.Query = nil
@@ -110,18 +109,16 @@ func (f *Feishu) GetUserAccessToken(authCode string, redirectUri string) (resp u
 		GrantType:    "authorization_code",
 		RedirectUri:  redirectUri,
 	}
-	f.Resp = &resp
 
-	return resp, f.Request()
+	return request[user_access_token.Response](f)
 }
 
-func (f *Feishu) GetUserInfo(userAccessToken string) (resp user_info.Response, err error) {
+func (f *Feishu) GetUserInfo(userAccessToken string) (user_info.Response, error) {
 	f.Method = http.MethodGet
 	f.Api = user_info.Url
 	f.Query = nil
 	f.Token = userAccessToken
 	f.Body = nil
-	f.Resp = &resp
 
-	return resp, f.Request()
+	return request[user_info.Response](f)
 }

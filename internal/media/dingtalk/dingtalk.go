@@ -11,7 +11,6 @@ import (
 	"github.com/zhenorzz/goploy/internal/media/dingtalk/api/contact"
 	"github.com/zhenorzz/goploy/internal/media/dingtalk/api/get_user_by_mobile"
 	"github.com/zhenorzz/goploy/internal/media/dingtalk/api/user_access_token"
-	"github.com/zhenorzz/goploy/internal/media/dingtalk/cache"
 	"io"
 	"net/http"
 	"net/url"
@@ -22,20 +21,19 @@ type Dingtalk struct {
 	Key    string
 	Secret string
 	Client *http.Client
-	Cache  *cache.AccessTokenCache
+	Cache  *AccessTokenCache
 	Method string
 	Api    string
 	Query  url.Values
 	Body   interface{}
-	Resp   interface{}
 	Token  string
 }
 
-func (d *Dingtalk) Login(authCode string, redirectUri string) (string, error) {
+func (d *Dingtalk) Login(authCode string, _ string) (string, error) {
 	d.Key = config.Toml.Dingtalk.AppKey
 	d.Secret = config.Toml.Dingtalk.AppSecret
 	d.Client = &http.Client{}
-	d.Cache = cache.GetCache()
+	d.Cache = GetCache()
 
 	userAccessTokenInfo, err := d.GetUserAccessToken(authCode)
 	if err != nil {
@@ -59,7 +57,7 @@ func (d *Dingtalk) Login(authCode string, redirectUri string) (string, error) {
 	return contactUserInfo.Mobile, nil
 }
 
-func (d *Dingtalk) Request() (err error) {
+func request[T any](d *Dingtalk) (response T, err error) {
 	var (
 		req            *http.Request
 		resp           *http.Response
@@ -83,30 +81,30 @@ func (d *Dingtalk) Request() (err error) {
 	}
 
 	if resp, err = d.Client.Do(req); err != nil {
-		return err
+		return
 	}
 
 	defer resp.Body.Close()
 
 	if responseData, err = io.ReadAll(resp.Body); err != nil {
-		return err
+		return
 	}
 
 	if err = json.Unmarshal(responseData, &commonResponse); err != nil {
-		return err
+		return
 	}
 
 	if commonResponse.Code != "" {
-		return errors.New(fmt.Sprintf("api return error, code: %s, message: %s, request_id: %s", commonResponse.Code, commonResponse.Message, commonResponse.RequestId))
+		return response, errors.New(fmt.Sprintf("api return error, code: %s, message: %s, request_id: %s", commonResponse.Code, commonResponse.Message, commonResponse.RequestId))
 	} else if commonResponse.ErrCode != 0 {
-		return errors.New(fmt.Sprintf("api return error, code: %v, message: %s, request_id: %s", commonResponse.ErrCode, commonResponse.ErrMsg, commonResponse.OldRequestId))
+		return response, errors.New(fmt.Sprintf("api return error, code: %v, message: %s, request_id: %s", commonResponse.ErrCode, commonResponse.ErrMsg, commonResponse.OldRequestId))
 	}
 
-	if err = json.Unmarshal(responseData, d.Resp); err != nil {
-		return err
+	if err = json.Unmarshal(responseData, &response); err != nil {
+		return
 	}
 
-	return nil
+	return
 }
 
 func (d *Dingtalk) GetUserAccessToken(authCode string) (resp user_access_token.Response, err error) {
@@ -120,43 +118,40 @@ func (d *Dingtalk) GetUserAccessToken(authCode string) (resp user_access_token.R
 		Code:         authCode,
 		GrandType:    "authorization_code",
 	}
-	d.Resp = &resp
 
-	return resp, d.Request()
+	return request[user_access_token.Response](d)
 }
 
-func (d *Dingtalk) GetContactUser(userAccessToken string) (resp contact.Response, err error) {
+func (d *Dingtalk) GetContactUser(userAccessToken string) (contact.Response, error) {
 	d.Method = http.MethodGet
 	d.Api = contact.Url
 	d.Query = nil
 	d.Token = userAccessToken
 	d.Body = nil
-	d.Resp = &resp
 
-	return resp, d.Request()
+	return request[contact.Response](d)
 }
 
-func (d *Dingtalk) GetUserIdByMobile(mobile string) (resp get_user_by_mobile.Response, err error) {
-	accessToken, err := d.GetAccessToken()
+func (d *Dingtalk) GetUserIdByMobile(mobile string) (get_user_by_mobile.Response, error) {
+	t, err := d.GetAccessToken()
 	if err != nil {
-		return resp, err
+		return get_user_by_mobile.Response{}, err
 	}
 
 	d.Method = http.MethodPost
 	d.Api = get_user_by_mobile.Url
 	d.Query = url.Values{}
-	d.Query.Set("access_token", accessToken)
+	d.Query.Set("access_token", t)
 	d.Token = ""
 	d.Body = get_user_by_mobile.Request{
 		Mobile: mobile,
 	}
-	d.Resp = &resp
 
-	return resp, d.Request()
+	return request[get_user_by_mobile.Response](d)
 }
 
-func (d *Dingtalk) GetAccessToken() (accessToken string, err error) {
-	accessToken, ok := d.Cache.Get(d.Key)
+func (d *Dingtalk) GetAccessToken() (string, error) {
+	t, ok := d.Cache.Get(d.Key)
 	if !ok {
 		var resp access_token.Response
 
@@ -167,16 +162,14 @@ func (d *Dingtalk) GetAccessToken() (accessToken string, err error) {
 			AppKey:    d.Key,
 			AppSecret: d.Secret,
 		}
-		d.Resp = &resp
-
-		if err = d.Request(); err != nil {
+		resp, err := request[access_token.Response](d)
+		if err != nil {
 			return "", err
 		}
 
 		d.Cache.Set(d.Key, resp.AccessToken, time.Duration(resp.ExpireIn))
-
-		accessToken = resp.AccessToken
+		t = resp.AccessToken
 	}
 
-	return accessToken, nil
+	return t, nil
 }
