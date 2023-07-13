@@ -7,6 +7,7 @@ package ws
 import (
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
+	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
@@ -96,6 +97,13 @@ func Send(d Data) {
 func (hub *Hub) connect(gp *server.Goploy) server.Response {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
+			if config.Toml.CORS.Enabled {
+				if config.Toml.CORS.Origins == "*" {
+					return true
+				} else if strings.Contains(config.Toml.CORS.Origins, r.Header.Get("origin")) {
+					return true
+				}
+			}
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
 				return true
 			}

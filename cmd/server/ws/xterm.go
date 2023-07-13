@@ -38,6 +38,13 @@ func (w *xtermBufferWriter) Write(p []byte) (int, error) {
 func (hub *Hub) xterm(gp *server.Goploy) server.Response {
 	upgrader := websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
+			if config.Toml.CORS.Enabled {
+				if config.Toml.CORS.Origins == "*" {
+					return true
+				} else if strings.Contains(config.Toml.CORS.Origins, r.Header.Get("origin")) {
+					return true
+				}
+			}
 			if strings.Contains(r.Header.Get("origin"), strings.Split(r.Host, ":")[0]) {
 				return true
 			}

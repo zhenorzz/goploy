@@ -55,6 +55,14 @@ func (d Deploy) Handler() []server.Route {
 	}
 }
 
+// GetList lists all existing projects
+// @Summary List deploy projects
+// @Tags Deploy
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Success 0 {object} model.Projects
+// @Failure 2 {string} string
+// @Router /deploy/getList [get]
 func (Deploy) GetList(gp *server.Goploy) server.Response {
 	var projects model.Projects
 	var err error
@@ -69,11 +77,20 @@ func (Deploy) GetList(gp *server.Goploy) server.Response {
 
 	return response.JSON{
 		Data: struct {
-			Project model.Projects `json:"list"`
-		}{Project: projects},
+			List model.Projects `json:"list"`
+		}{List: projects},
 	}
 }
 
+// GetPreview lists all deployed preview
+// @Summary List all deployed preview
+// @Tags Deploy
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam
+// @Param request query api.GetPreview.ReqData true "query params"
+// @Success 0 {object} api.GetPreview.RespData
+// @Failure 2 {string} string
+// @Router /deploy/GetPreview [get]
 func (Deploy) GetPreview(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ProjectID  int64  `schema:"projectId" validate:"gt=0"`
@@ -117,11 +134,12 @@ func (Deploy) GetPreview(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+	type RespData struct {
+		GitTraceList model.PublishTraces `json:"list"`
+		Pagination   model.Pagination    `json:"pagination"`
+	}
 	return response.JSON{
-		Data: struct {
-			GitTraceList model.PublishTraces `json:"list"`
-			Pagination   model.Pagination    `json:"pagination"`
-		}{GitTraceList: gitTraceList, Pagination: pagination},
+		Data: RespData{GitTraceList: gitTraceList, Pagination: pagination},
 	}
 }
 

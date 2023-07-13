@@ -28,12 +28,21 @@ type Config struct {
 	LDAP     LDAPConfig     `toml:"ldap"`
 	Dingtalk DingtalkConfig `toml:"dingtalk"`
 	Feishu   FeishuConfig   `toml:"feishu"`
+	CORS     CORSConfig     `toml:"cors"`
 }
 
 type APPConfig struct {
 	DeployLimit     int32         `toml:"deployLimit"`
 	ShutdownTimeout time.Duration `toml:"shutdownTimeout"`
 	RepositoryPath  string        `toml:"repositoryPath"`
+}
+
+type CORSConfig struct {
+	Enabled     bool   `toml:"enabled"`
+	Origins     string `toml:"origins"`
+	Methods     string `toml:"methods"`
+	Headers     string `toml:"headers"`
+	Credentials bool   `toml:"credentials"`
 }
 
 type CookieConfig struct {

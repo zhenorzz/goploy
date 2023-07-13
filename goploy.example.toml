@@ -4,6 +4,13 @@ deployLimit = 8
 shutdownTimeout = 10
 repositoryPath = ''
 
+[cors]
+enabled = false
+origins = '*'
+methods = 'GET, POST, PUT, DELETE, OPTIONS'
+headers = 'X-API-KEY'
+credentials = true
+
 [cookie]
 name = 'goploy_token'
 expire = 86400

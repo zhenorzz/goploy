@@ -6,6 +6,7 @@ read x
 if [[ $x =~ ^[1-9].[0-9]+.[0-9]+$ ]]
 then
   sed -i -e "s/const appVersion = \"[0-9].[0-9]\+.[0-9]\+\"/const appVersion = \"$x\"/g" cmd/server/main.go
+  sed -i -e "s/@version [0-9].[0-9]\+.[0-9]\+/@version $x/g" cmd/server/main.go
   sed -i -e "s/'[0-9].[0-9]\+.[0-9]\+'/'$x'/g" database/goploy.sql
   sed -i -e "s/GOPLOY_VER=v[0-9].[0-9]\+.[0-9]\+/GOPLOY_VER=v$x/g" docker/Dockerfile
   sed -i -e "s/\"version\": \"[0-9].[0-9]\+.[0-9]\+\"/\"version\": \"$x\"/g" web/package.json

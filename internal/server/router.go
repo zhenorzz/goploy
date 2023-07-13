@@ -47,6 +47,14 @@ func (rt *Router) Register(ra RouteHandler) {
 }
 
 func (rt *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
+	if config.Toml.CORS.Enabled {
+		w.Header().Set("Access-Control-Allow-Origin", config.Toml.CORS.Origins)
+		w.Header().Add("Access-Control-Allow-Headers", config.Toml.CORS.Headers)
+		w.Header().Add("Access-Control-Allow-Credentials", strconv.FormatBool(config.Toml.CORS.Credentials))
+		w.Header().Add("Access-Control-Allow-Methods", config.Toml.CORS.Methods)
+	}
+
 	// If in production env, serve file in go server,
 	// else serve file in npm
 	if config.Toml.Env == "production" {

@@ -1,6 +1,4 @@
 // Copyright 2022 The Goploy Authors. All rights reserved.
-// Use of this source code is governed by a GPLv3-style
-// license that can be found in the LICENSE file.
 
 package main
 
@@ -54,6 +52,31 @@ func init() {
 	go checkUpdate()
 }
 
+// @title Goploy
+// @version 1.15.0
+// @description A web deployment system tool!
+// @contact.name zhenorzz
+// @contact.url https://github.com/zhenorzz/goploy
+// @contact.email zhenorzz@gmail.com
+// @tag.name API
+// @tag.description the response type is response.JSON, code = 0 for success, otherwise error, see the message for more details.
+// @license.name GPLv3
+// @license.url https://www.gnu.org/licenses/gpl-3.0.html
+// @host 127.0.0.1:3001
+// @externalDocs.description Get started
+// @externalDocs.url https://docs.goploy.icu/
+// @securityDefinitions.apikey ApiKeyHeader
+// @in header
+// @name X-API-KEY
+// @securityDefinitions.apikey ApiKeyQueryParam
+// @in query
+// @name api_key
+// @securityDefinitions.apikey NamespaceHeader
+// @in query
+// @name G-N-ID
+// @securityDefinitions.apikey NamespaceQueryParam
+// @in query
+// @name G-N-ID
 func main() {
 	flag.Parse()
 	if help {
