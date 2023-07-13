@@ -60,7 +60,7 @@ func (d Deploy) Handler() []server.Route {
 // @Tags Deploy
 // @Produce json
 // @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
-// @Success 0 {object} model.Projects
+// @Success 0 {object} api.GetList.RespData
 // @Failure 2 {string} string
 // @Router /deploy/getList [get]
 func (Deploy) GetList(gp *server.Goploy) server.Response {
@@ -75,10 +75,11 @@ func (Deploy) GetList(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
+	type RespData struct {
+		List model.Projects `json:"list"`
+	}
 	return response.JSON{
-		Data: struct {
-			List model.Projects `json:"list"`
-		}{List: projects},
+		Data: RespData{List: projects},
 	}
 }
 
@@ -86,11 +87,11 @@ func (Deploy) GetList(gp *server.Goploy) server.Response {
 // @Summary List all deployed preview
 // @Tags Deploy
 // @Produce json
-// @Security ApiKeyHeader || ApiKeyQueryParam
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
 // @Param request query api.GetPreview.ReqData true "query params"
 // @Success 0 {object} api.GetPreview.RespData
 // @Failure 2 {string} string
-// @Router /deploy/GetPreview [get]
+// @Router /deploy/getPreview [get]
 func (Deploy) GetPreview(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ProjectID  int64  `schema:"projectId" validate:"gt=0"`
@@ -102,14 +103,10 @@ func (Deploy) GetPreview(gp *server.Goploy) server.Response {
 		Commit     string `schema:"commit"`
 		Filename   string `schema:"filename"`
 		Token      string `schema:"token"`
+		model.Pagination
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	pagination, err := model.PaginationFrom(gp.URLQuery)
-	if err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -129,7 +126,7 @@ func (Deploy) GetPreview(gp *server.Goploy) server.Response {
 		reqData.Filename,
 		commitDate,
 		strings.Split(reqData.DeployDate, ","),
-		pagination,
+		reqData.Pagination,
 	)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
@@ -143,6 +140,15 @@ func (Deploy) GetPreview(gp *server.Goploy) server.Response {
 	}
 }
 
+// GetPublishTrace shows a publishing trace
+// @Summary Show a publishing trace
+// @Tags Deploy
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param lastPublishToken query string true "last publish token"
+// @Success 0 {object} api.GetPublishTrace.RespData
+// @Failure 2 {string} string
+// @Router /deploy/getPublishTrace [get]
 func (Deploy) GetPublishTrace(gp *server.Goploy) server.Response {
 	lastPublishToken := gp.URLQuery.Get("lastPublishToken")
 	publishTraceList, err := model.PublishTrace{Token: lastPublishToken}.GetListByToken()
@@ -151,13 +157,24 @@ func (Deploy) GetPublishTrace(gp *server.Goploy) server.Response {
 	} else if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+
+	type RespData struct {
+		PublishTraceList model.PublishTraces `json:"list"`
+	}
 	return response.JSON{
-		Data: struct {
-			PublishTraceList model.PublishTraces `json:"list"`
-		}{PublishTraceList: publishTraceList},
+		Data: RespData{PublishTraceList: publishTraceList},
 	}
 }
 
+// GetPublishTraceDetail shows a publishing trace detail
+// @Summary Show a publishing trace detail
+// @Tags Deploy
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param id path int true "publish trace id"
+// @Success 0 {object} api.GetPublishTraceDetail.RespData
+// @Failure 2 {string} string
+// @Router /deploy/getPublishTraceDetail [get]
 func (Deploy) GetPublishTraceDetail(gp *server.Goploy) server.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
@@ -169,19 +186,30 @@ func (Deploy) GetPublishTraceDetail(gp *server.Goploy) server.Response {
 	} else if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+
+	type RespData struct {
+		Detail string `json:"detail"`
+	}
 	return response.JSON{
-		Data: struct {
-			Detail string `json:"detail"`
-		}{Detail: detail},
+		Data: RespData{Detail: detail},
 	}
 }
 
+// ResetState resets the project deploy state
+// @Summary Resets the project deploy state
+// @Tags Deploy
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body api.ResetState.ReqData true "body params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /deploy/resetState [put]
 func (Deploy) ResetState(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ProjectID int64 `json:"projectId" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -192,13 +220,22 @@ func (Deploy) ResetState(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// FileCompare compare the repository file with the server
+// @Summary Compare the repository file with the server
+// @Tags Deploy
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body api.FileCompare.ReqData true "body params"
+// @Success 0 {array} api.FileCompare.FileCompareData
+// @Failure 2 {string} string
+// @Router /deploy/fileCompare [post]
 func (Deploy) FileCompare(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
 		FilePath  string `json:"filePath" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -282,6 +319,15 @@ func (Deploy) FileCompare(gp *server.Goploy) server.Response {
 	return response.JSON{Data: fileCompareList}
 }
 
+// FileDiff shows the different between the repository file and the server
+// @Summary Show the different between the repository file and the server
+// @Tags Deploy
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body api.FileDiff.ReqData true "body params"
+// @Success 0 {object} api.FileDiff.RespData
+// @Failure 2 {string} string
+// @Router /deploy/fileDiff [post]
 func (Deploy) FileDiff(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
@@ -289,7 +335,7 @@ func (Deploy) FileDiff(gp *server.Goploy) server.Response {
 		FilePath  string `json:"filePath" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -330,12 +376,23 @@ func (Deploy) FileDiff(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return response.JSON{Data: struct {
+
+	type RespData struct {
 		SrcText  string `json:"srcText"`
 		DistText string `json:"distText"`
-	}{SrcText: string(srcText), DistText: string(distText)}}
+	}
+	return response.JSON{Data: RespData{SrcText: string(srcText), DistText: string(distText)}}
 }
 
+// ManageProcess manage the server process
+// @Summary Manage the server process
+// @Tags Deploy
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body api.ManageProcess.ReqData true "body params"
+// @Success 0 {object} api.ManageProcess.RespData
+// @Failure 2 {string} string
+// @Router /deploy/manageProcess [post]
 func (Deploy) ManageProcess(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ServerID         int64  `json:"serverId" validate:"gt=0"`
@@ -343,7 +400,7 @@ func (Deploy) ManageProcess(gp *server.Goploy) server.Response {
 		Command          string `json:"command" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -396,15 +453,25 @@ func (Deploy) ManageProcess(gp *server.Goploy) server.Response {
 	session.Stderr = &sshErrbuf
 	err = session.Run(script)
 	log.Trace(fmt.Sprintf("%s exec cmd %s, result %t, stdout: %s, stderr: %s", gp.UserInfo.Name, script, err == nil, sshOutbuf.String(), sshErrbuf.String()))
+	type RespData struct {
+		ExecRes bool   `json:"execRes"`
+		Stdout  string `json:"stdout"`
+		Stderr  string `json:"stderr"`
+	}
 	return response.JSON{
-		Data: struct {
-			ExecRes bool   `json:"execRes"`
-			Stdout  string `json:"stdout"`
-			Stderr  string `json:"stderr"`
-		}{ExecRes: err == nil, Stdout: sshOutbuf.String(), Stderr: sshErrbuf.String()},
+		Data: RespData{ExecRes: err == nil, Stdout: sshOutbuf.String(), Stderr: sshErrbuf.String()},
 	}
 }
 
+// Publish publishes the project
+// @Summary Publish the project
+// @Tags Deploy
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body api.Publish.ReqData true "body params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /deploy/publish [post]
 func (Deploy) Publish(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
@@ -412,7 +479,7 @@ func (Deploy) Publish(gp *server.Goploy) server.Response {
 		Branch    string `json:"branch"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	project, err := model.Project{ID: reqData.ProjectID}.GetData()
@@ -433,12 +500,21 @@ func (Deploy) Publish(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// Rebuild rollback the project
+// @Summary Rollback the project
+// @Tags Deploy
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body api.Publish.ReqData true "body params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /deploy/rebuild [post]
 func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		Token string `json:"token"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	var err error
@@ -589,6 +665,15 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 	return response.JSON{Data: "publish"}
 }
 
+// GreyPublish publishes the project on the selected servers
+// @Summary Publish the project on the selected servers
+// @Tags Deploy
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body api.GreyPublish.ReqData true "body params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /deploy/greyPublish [post]
 func (Deploy) GreyPublish(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ProjectID int64   `json:"projectId" validate:"gt=0"`
@@ -597,7 +682,7 @@ func (Deploy) GreyPublish(gp *server.Goploy) server.Response {
 		ServerIDs []int64 `json:"serverIds"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	project, err := model.Project{ID: reqData.ProjectID}.GetData()
@@ -641,6 +726,15 @@ func (Deploy) GreyPublish(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// Review reviews the project
+// @Summary Review the project
+// @Tags Deploy
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body api.Review.ReqData true "body params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /deploy/review [put]
 func (Deploy) Review(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ProjectReviewID int64 `json:"projectReviewId" validate:"gt=0"`
@@ -648,7 +742,7 @@ func (Deploy) Review(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -658,21 +752,21 @@ func (Deploy) Review(gp *server.Goploy) server.Response {
 		Editor:   gp.UserInfo.Name,
 		EditorID: gp.UserInfo.ID,
 	}
-	projectReview, err := projectReviewModel.GetData()
+	pr, err := projectReviewModel.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if projectReview.State != model.PENDING {
+	if pr.State != model.PENDING {
 		return response.JSON{Code: response.Error, Message: "Project review state is invalid"}
 	}
 
 	if reqData.State == model.APPROVE {
-		project, err := model.Project{ID: projectReview.ProjectID}.GetData()
+		project, err := model.Project{ID: pr.ProjectID}.GetData()
 		if err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
-		if err := projectDeploy(gp, project, projectReview.CommitID, projectReview.Branch); err != nil {
+		if err := projectDeploy(gp, project, pr.CommitID, pr.Branch); err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 	}
@@ -693,7 +787,7 @@ func (Deploy) Webhook(gp *server.Goploy) server.Response {
 		Ref string `json:"ref" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

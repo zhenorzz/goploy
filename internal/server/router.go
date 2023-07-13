@@ -94,7 +94,8 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Re
 		// check token
 		goployTokenCookie, err := r.Cookie(config.Toml.Cookie.Name)
 		if err != nil {
-			unParseToken = r.URL.Query().Get(config.Toml.Cookie.Name)
+			unParseToken = r.URL.Query().Get("api_key")
+			//unParseToken = r.URL.Query().Get(config.Toml.Cookie.Name)
 		} else {
 			unParseToken = goployTokenCookie.Value
 		}

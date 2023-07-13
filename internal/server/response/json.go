@@ -28,5 +28,6 @@ const (
 
 // JSON response
 func (j JSON) Write(w http.ResponseWriter, _ *http.Request) error {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	return json.NewEncoder(w).Encode(j)
 }
