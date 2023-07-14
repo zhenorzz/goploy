@@ -108,6 +108,7 @@
   "confirm": "确认",
   "save": "保存",
   "cancel": "取消",
+  "generate": "生成",
   "success": "成功",
   "open": "打开",
   "close": "关闭",
@@ -259,7 +260,8 @@
   "userPage": {
     "oldPassword": "原密码",
     "newPassword": "新密码",
-    "rePassword": "确认新密码"
+    "rePassword": "确认新密码",
+    "generateApiKeyTips": "旧的key将无法再次使用, 是否继续?"
   },
   "memberPage": {
     "permissionDesc": "超管具有所有空间和项目权限"

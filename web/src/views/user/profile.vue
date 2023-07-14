@@ -49,6 +49,43 @@
         </el-button>
       </el-form-item>
     </el-form>
+    <el-form ref="apiKeyForm" :model="formData" style="margin-left: 40px">
+      <el-form-item label="Api Key">
+        <template #label>
+          Api Key
+          <el-link
+            :underline="false"
+            href="//api-docs.goploy.icu"
+            target="_blank"
+            :icon="QuestionFilled"
+            style="color: #666"
+          />
+          <span> : {{ showApiKey ? apiKey : '****************' }}</span>
+        </template>
+        <el-button
+          type="primary"
+          link
+          :icon="CopyDocument"
+          @click="copyApiKey()"
+        >
+        </el-button>
+        <el-button
+          type="primary"
+          link
+          :icon="View"
+          @click="showApiKey = !showApiKey"
+        >
+        </el-button>
+        <el-button
+          :loading="formProps.loading"
+          type="primary"
+          link
+          :icon="RefreshRight"
+          @click="generateApiKey()"
+        >
+        </el-button>
+      </el-form-item>
+    </el-form>
   </div>
 </template>
 
@@ -56,17 +93,32 @@
 export default { name: 'UserProfile' }
 </script>
 <script lang="ts" setup>
+import {
+  QuestionFilled,
+  CopyDocument,
+  View,
+  RefreshRight,
+} from '@element-plus/icons-vue'
 import type { ElForm } from 'element-plus'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { validPassword } from '@/utils/validate'
-import { UserChangePassword } from '@/api/user'
+import {
+  UserChangePassword,
+  UserGetApiKey,
+  UserGenerateApiKey,
+} from '@/api/user'
 import { ref } from 'vue'
+import { copy } from '@/utils'
+import { useI18n } from 'vue-i18n'
+const { t } = useI18n()
 enum inputElem {
   old = 'old',
   new = 'new',
   confirm = 'confirm',
 }
 
+const apiKey = ref('')
+const showApiKey = ref(false)
 const form = ref<InstanceType<typeof ElForm>>()
 const formData = ref({
   old: '',
@@ -131,6 +183,7 @@ function showPwd(index: inputElem) {
     formProps.value.type[index] = 'password'
   }
 }
+
 function changePassword() {
   form.value?.validate((valid) => {
     if (valid) {
@@ -152,6 +205,37 @@ function changePassword() {
       return Promise.reject(false)
     }
   })
+}
+
+getApiKey()
+function getApiKey() {
+  new UserGetApiKey().request().then((response) => {
+    apiKey.value = response.data
+    if (apiKey.value == '') {
+      showApiKey.value = true
+    }
+  })
+}
+
+function copyApiKey() {
+  copy(apiKey.value)
+}
+function generateApiKey() {
+  ElMessageBox.confirm(t('userPage.generateApiKeyTips'), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
+    .then(() => {
+      new UserGenerateApiKey().request().then((response) => {
+        apiKey.value = response.data
+        showApiKey.value = true
+        ElMessage.success('Success')
+      })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
 }
 </script>
 

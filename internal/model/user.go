@@ -5,6 +5,7 @@
 package model
 
 import (
+	"crypto/rand"
 	"errors"
 	"github.com/zhenorzz/goploy/config"
 	"time"
@@ -96,6 +97,20 @@ func (u User) GetDataByApiKey() (User, error) {
 		return user, err
 	}
 	return user, nil
+}
+
+func (u User) GetApiKey() (apiKey string, err error) {
+	err = sq.
+		Select("api_key").
+		From(userTable).
+		Where(sq.Eq{"id": u.ID}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&apiKey)
+	if err != nil {
+		return apiKey, err
+	}
+	return apiKey, nil
 }
 
 func (u User) GetList() (Users, error) {
@@ -247,4 +262,22 @@ func (u User) CreateToken() (string, error) {
 
 	//Sign and get the complete encoded token as string
 	return tokenString, err
+}
+
+func (u User) CreateApiKey() (string, error) {
+	const alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	var bytes = make([]byte, 32)
+	rand.Read(bytes)
+	for i, b := range bytes {
+		bytes[i] = alphanum[b%byte(len(alphanum))]
+	}
+	_, err := sq.
+		Update(userTable).
+		SetMap(sq.Eq{
+			"api_key": string(bytes),
+		}).
+		Where(sq.Eq{"id": u.ID}).
+		RunWith(DB).
+		Exec()
+	return string(bytes), err
 }

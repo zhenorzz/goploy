@@ -29,9 +29,11 @@ func (u User) Handler() []server.Route {
 	return []server.Route{
 		server.NewWhiteRoute("/user/login", http.MethodPost, u.Login).LogFunc(middleware.AddLoginLog),
 		server.NewWhiteRoute("/user/extLogin", http.MethodPost, u.ExtLogin).LogFunc(middleware.AddLoginLog),
+		server.NewRoute("/user/getList", http.MethodGet, u.GetList).Permissions(config.ShowMemberPage),
 		server.NewRoute("/user/info", http.MethodGet, u.Info),
 		server.NewRoute("/user/changePassword", http.MethodPut, u.ChangePassword),
-		server.NewRoute("/user/getList", http.MethodGet, u.GetList).Permissions(config.ShowMemberPage),
+		server.NewRoute("/user/getApiKey", http.MethodGet, u.GetApiKey),
+		server.NewRoute("/user/generateApiKey", http.MethodPut, u.GenerateApiKey),
 		server.NewRoute("/user/add", http.MethodPost, u.Add).Permissions(config.AddMember).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/user/edit", http.MethodPut, u.Edit).Permissions(config.EditMember).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/user/remove", http.MethodDelete, u.Remove).Permissions(config.DeleteMember).LogFunc(middleware.AddOPLog),
@@ -451,6 +453,24 @@ func (User) ChangePassword(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{}
+}
+
+func (User) GetApiKey(gp *server.Goploy) server.Response {
+	apiKey, err := model.User{ID: gp.UserInfo.ID}.GetApiKey()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	return response.JSON{Data: apiKey}
+}
+
+func (User) GenerateApiKey(gp *server.Goploy) server.Response {
+	apiKey, err := model.User{ID: gp.UserInfo.ID}.CreateApiKey()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	return response.JSON{Data: apiKey}
 }
 
 func (User) MediaLogin(gp *server.Goploy) server.Response {

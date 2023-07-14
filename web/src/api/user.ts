@@ -150,6 +150,16 @@ export class UserRemove extends Request {
   }
 }
 
+export class UserGetApiKey extends Request {
+  readonly url = '/user/getApiKey'
+  readonly method = 'get'
+}
+
+export class UserGenerateApiKey extends Request {
+  readonly url = '/user/generateApiKey'
+  readonly method = 'put'
+}
+
 export class UserChangePassword extends Request {
   readonly url = '/user/changePassword'
   readonly method = 'put'

@@ -108,6 +108,7 @@
   "confirm": "Confirm",
   "save": "Save",
   "cancel": "Cancel",
+  "generate": "Generate",
   "success": "Success",
   "open": "Open",
   "close": "Close",
@@ -276,7 +277,8 @@
   "userPage": {
     "oldPassword": "Old password",
     "newPassword": "New password",
-    "rePassword": "Confirm password"
+    "rePassword": "Confirm password",
+    "generateApiKeyTips": "The old key will no longer be able to be used again, continue?"
   },
   "memberPage": {
     "permissionDesc": "Admin has all namespace and project permissions"
