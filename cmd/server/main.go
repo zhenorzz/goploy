@@ -59,7 +59,7 @@ func init() {
 // @contact.url https://github.com/zhenorzz/goploy
 // @contact.email zhenorzz@gmail.com
 // @tag.name API
-// @tag.description the response type is response.JSON, code = 0 for success, otherwise error, see the message for more details.
+// @tag.description the response type is response.JSON, code=0(success), code=1(deny), code=2(error), code=10000(AccountDisabled), code=10001(IllegalRequest), code=10002(NamespaceInvalid), code=10003(IllegalParam), code=10086(LoginExpired)
 // @license.name GPLv3
 // @license.url https://www.gnu.org/licenses/gpl-3.0.html
 // @host 127.0.0.1:3001
@@ -70,7 +70,7 @@ func init() {
 // @name X-API-KEY
 // @securityDefinitions.apikey ApiKeyQueryParam
 // @in query
-// @name api_key
+// @name X-API-KEY
 // @securityDefinitions.apikey NamespaceHeader
 // @in query
 // @name G-N-ID

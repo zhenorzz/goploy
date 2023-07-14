@@ -5,3 +5,4 @@
 package config
 
 const NamespaceHeaderName = "G-N-ID"
+const ApiKeyHeaderName = "X-API-KEY"

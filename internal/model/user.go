@@ -22,7 +22,6 @@ const (
 	GeneralUser  = 0
 )
 
-// User -
 type User struct {
 	ID            int64  `json:"id"`
 	Account       string `json:"account"`
@@ -34,12 +33,11 @@ type User struct {
 	InsertTime    string `json:"insertTime"`
 	UpdateTime    string `json:"updateTime"`
 	LastLoginTime string `json:"lastLoginTime"`
+	ApiKey        string `json:"apiKey"`
 }
 
-// Users -
 type Users []User
 
-// GetData -
 func (u User) GetData() (User, error) {
 	var user User
 	err := sq.
@@ -55,7 +53,6 @@ func (u User) GetData() (User, error) {
 	return user, nil
 }
 
-// GetDataByAccount -
 func (u User) GetDataByAccount() (User, error) {
 	var user User
 	err := sq.
@@ -71,7 +68,6 @@ func (u User) GetDataByAccount() (User, error) {
 	return user, nil
 }
 
-// GetDataByContact -
 func (u User) GetDataByContact() (User, error) {
 	var user User
 	err := sq.
@@ -87,7 +83,21 @@ func (u User) GetDataByContact() (User, error) {
 	return user, nil
 }
 
-// GetList -
+func (u User) GetDataByApiKey() (User, error) {
+	var user User
+	err := sq.
+		Select("id, account, password, name, contact, super_manager, state, insert_time, update_time").
+		From(userTable).
+		Where(sq.Eq{"api_key": u.ApiKey}).
+		RunWith(DB).
+		QueryRow().
+		Scan(&user.ID, &user.Account, &user.Password, &user.Name, &user.Contact, &user.SuperManager, &user.State, &user.InsertTime, &user.UpdateTime)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}
+
 func (u User) GetList() (Users, error) {
 	rows, err := sq.
 		Select("id, account, name, contact, super_manager, insert_time, update_time").
@@ -127,29 +137,6 @@ func (u User) GetTotal() (int64, error) {
 	return total, nil
 }
 
-func (u User) GetAll() (Users, error) {
-	rows, err := sq.
-		Select("id, account, name, contact, super_manager").
-		From(userTable).
-		Where(sq.Eq{"state": Enable}).
-		OrderBy("id DESC").
-		RunWith(DB).
-		Query()
-	if err != nil {
-		return nil, err
-	}
-	users := Users{}
-	for rows.Next() {
-		var user User
-
-		if err := rows.Scan(&user.ID, &user.Account, &user.Name, &user.Contact, &user.SuperManager); err != nil {
-			return users, err
-		}
-		users = append(users, user)
-	}
-	return users, nil
-}
-
 func (u User) AddRow() (int64, error) {
 	if u.Password == "" {
 		u.Password = u.Account + "!@#"
@@ -175,7 +162,6 @@ func (u User) AddRow() (int64, error) {
 	return id, err
 }
 
-// EditRow -
 func (u User) EditRow() error {
 	builder := sq.
 		Update(userTable).
@@ -198,7 +184,6 @@ func (u User) EditRow() error {
 	return err
 }
 
-// RemoveRow -
 func (u User) RemoveRow() error {
 	_, err := sq.
 		Update(userTable).
@@ -211,7 +196,6 @@ func (u User) RemoveRow() error {
 	return err
 }
 
-// UpdatePassword -
 func (u User) UpdatePassword() error {
 	password := []byte(u.Password)
 	// Hashing the password with the default cost of 10
@@ -243,7 +227,7 @@ func (u User) UpdateLastLoginTime() error {
 	return err
 }
 
-// Validate if user exists
+// Validate user password
 func (u User) Validate(inputPassword string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(inputPassword))
 	if err != nil {
@@ -252,7 +236,6 @@ func (u User) Validate(inputPassword string) error {
 	return nil
 }
 
-// CreateToken -
 func (u User) CreateToken() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":   u.ID,

@@ -32,7 +32,6 @@ func (u User) Handler() []server.Route {
 		server.NewRoute("/user/info", http.MethodGet, u.Info),
 		server.NewRoute("/user/changePassword", http.MethodPut, u.ChangePassword),
 		server.NewRoute("/user/getList", http.MethodGet, u.GetList).Permissions(config.ShowMemberPage),
-		server.NewRoute("/user/getOption", http.MethodGet, u.GetOption),
 		server.NewRoute("/user/add", http.MethodPost, u.Add).Permissions(config.AddMember).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/user/edit", http.MethodPut, u.Edit).Permissions(config.EditMember).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/user/remove", http.MethodDelete, u.Remove).Permissions(config.DeleteMember).LogFunc(middleware.AddOPLog),
@@ -41,13 +40,21 @@ func (u User) Handler() []server.Route {
 	}
 }
 
+// Login user
+// @Summary Login
+// @Tags User
+// @Produce json
+// @Param request body api.Login.ReqData true "body params"
+// @Success 0 {array} api.Login.RespData
+// @Failure 2 {string} string
+// @Router /user/login [post]
 func (User) Login(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		Account  string `json:"account" validate:"min=1,max=25"`
 		Password string `json:"password" validate:"password"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
@@ -128,14 +135,25 @@ func (User) Login(gp *server.Goploy) server.Response {
 		HttpOnly: true,
 	}
 	http.SetCookie(gp.ResponseWriter, &cookie)
+
+	type RespData struct {
+		Token         string           `json:"token"`
+		NamespaceList model.Namespaces `json:"namespaceList"`
+	}
+
 	return response.JSON{
-		Data: struct {
-			Token         string           `json:"token"`
-			NamespaceList model.Namespaces `json:"namespaceList"`
-		}{Token: token, NamespaceList: namespaceList},
+		Data: RespData{Token: token, NamespaceList: namespaceList},
 	}
 }
 
+// ExtLogin user
+// @Summary External login
+// @Tags User
+// @Produce json
+// @Param request body api.ExtLogin.ReqData true "body params"
+// @Success 0 {array} api.ExtLogin.RespData
+// @Failure 2 {string} string
+// @Router /user/extLogin [post]
 func (User) ExtLogin(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		Account string `json:"account" validate:"min=1,max=25"`
@@ -143,7 +161,7 @@ func (User) ExtLogin(gp *server.Goploy) server.Response {
 		Token   string `json:"token"  validate:"len=32"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
@@ -191,14 +209,23 @@ func (User) ExtLogin(gp *server.Goploy) server.Response {
 	}
 	http.SetCookie(gp.ResponseWriter, &cookie)
 
+	type RespData struct {
+		Token         string           `json:"token"`
+		NamespaceList model.Namespaces `json:"namespaceList"`
+	}
 	return response.JSON{
-		Data: struct {
-			Token         string           `json:"token"`
-			NamespaceList model.Namespaces `json:"namespaceList"`
-		}{Token: token, NamespaceList: namespaceList},
+		Data: RespData{Token: token, NamespaceList: namespaceList},
 	}
 }
 
+// Info shows user information
+// @Summary Show logged-in user information
+// @Tags User
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Success 0 {array} api.Info.RespData
+// @Failure 2 {string} string
+// @Router /user/info [get]
 func (User) Info(gp *server.Goploy) server.Response {
 	type RespData struct {
 		UserInfo struct {
@@ -229,28 +256,37 @@ func (User) Info(gp *server.Goploy) server.Response {
 	return response.JSON{Data: data}
 }
 
+// GetList lists all users
+// @Summary List all users
+// @Tags User
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Success 0 {array} api.GetList.RespData
+// @Failure 2 {string} string
+// @Router /user/getList [get]
 func (User) GetList(*server.Goploy) server.Response {
 	users, err := model.User{}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return response.JSON{
-		Data: struct {
-			Users model.Users `json:"list"`
-		}{Users: users},
-	}
-}
 
-func (User) GetOption(*server.Goploy) server.Response {
-	users, err := model.User{}.GetAll()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	return response.JSON{Data: struct {
+	type RespData struct {
 		Users model.Users `json:"list"`
-	}{Users: users}}
+	}
+	return response.JSON{
+		Data: RespData{Users: users},
+	}
 }
 
+// Add adds a user
+// @Summary Add a user
+// @Tags User
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request query api.Add.ReqData true "query params"
+// @Success 0 {array} api.Add.RespData
+// @Failure 2 {string} string
+// @Router /user/add [post]
 func (User) Add(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		Account      string `json:"account" validate:"min=1,max=25"`
@@ -261,7 +297,7 @@ func (User) Add(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -292,13 +328,23 @@ func (User) Add(gp *server.Goploy) server.Response {
 		}
 	}
 
+	type RespData struct {
+		ID int64 `json:"id"`
+	}
 	return response.JSON{
-		Data: struct {
-			ID int64 `json:"id"`
-		}{ID: id},
+		Data: RespData{ID: id},
 	}
 }
 
+// Edit edits the user
+// @Summary Edit the user
+// @Tags User
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request query api.Edit.ReqData true "query params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /user/edit [put]
 func (User) Edit(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"gt=0"`
@@ -308,7 +354,7 @@ func (User) Edit(gp *server.Goploy) server.Response {
 		SuperManager int64  `json:"superManager" validate:"min=0,max=1"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	userInfo, err := model.User{ID: reqData.ID}.GetData()
@@ -348,12 +394,21 @@ func (User) Edit(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// Remove removes the user
+// @Summary Remove the user
+// @Tags User
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request query api.Remove.ReqData true "query params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /user/remove [delete]
 func (User) Remove(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	if reqData.ID == 1 {
@@ -365,13 +420,22 @@ func (User) Remove(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// ChangePassword change the user password
+// @Summary Change the user password
+// @Tags User
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request query api.ChangePassword.ReqData true "query params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /user/changePassword [put]
 func (User) ChangePassword(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		OldPassword string `json:"oldPwd" validate:"password"`
 		NewPassword string `json:"newPwd" validate:"password"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	userData, err := model.User{ID: gp.UserInfo.ID}.GetData()

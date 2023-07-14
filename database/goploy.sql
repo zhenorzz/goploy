@@ -254,6 +254,7 @@ CREATE TABLE IF NOT EXISTS `user`  (
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `last_login_time` datetime DEFAULT NULL,
   `super_manager` tinyint(4) unsigned NOT NULL DEFAULT '0' COMMENT 'the mark of super admin',
+  `api_key` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci;
 

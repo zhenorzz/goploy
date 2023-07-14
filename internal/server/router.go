@@ -10,7 +10,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/config"
-	model2 "github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"github.com/zhenorzz/goploy/web"
 	"io"
@@ -90,29 +90,6 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Re
 	}
 
 	if !route.white {
-		unParseToken := ""
-		// check token
-		goployTokenCookie, err := r.Cookie(config.Toml.Cookie.Name)
-		if err != nil {
-			unParseToken = r.URL.Query().Get("api_key")
-			//unParseToken = r.URL.Query().Get(config.Toml.Cookie.Name)
-		} else {
-			unParseToken = goployTokenCookie.Value
-		}
-
-		if unParseToken == "" {
-			return gp, response.JSON{Code: response.IllegalRequest, Message: "Illegal request"}
-		}
-
-		claims := jwt.MapClaims{}
-		token, err := jwt.ParseWithClaims(unParseToken, claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte(config.Toml.JWT.Key), nil
-		})
-
-		if err != nil || !token.Valid {
-			return gp, response.JSON{Code: response.LoginExpired, Message: "Login expired"}
-		}
-
 		namespaceIDRaw := r.Header.Get(config.NamespaceHeaderName)
 		if namespaceIDRaw == "" {
 			namespaceIDRaw = r.URL.Query().Get(config.NamespaceHeaderName)
@@ -123,25 +100,58 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Re
 			return gp, response.JSON{Code: response.Deny, Message: "Invalid namespace"}
 		}
 
-		gp.UserInfo, err = model2.User{ID: int64(claims["id"].(float64))}.GetData()
-		if err != nil {
-			return gp, response.JSON{Code: response.Deny, Message: "Get user information error"}
+		apiKey := r.Header.Get(config.ApiKeyHeaderName)
+		if apiKey == "" {
+			apiKey = r.URL.Query().Get(config.ApiKeyHeaderName)
 		}
+
+		unParseToken := ""
+		// check token
+		goployTokenCookie, err := r.Cookie(config.Toml.Cookie.Name)
+		if err != nil {
+			unParseToken = r.URL.Query().Get(config.Toml.Cookie.Name)
+		} else {
+			unParseToken = goployTokenCookie.Value
+		}
+
+		if unParseToken != "" {
+			claims := jwt.MapClaims{}
+			token, err := jwt.ParseWithClaims(unParseToken, claims, func(token *jwt.Token) (interface{}, error) {
+				return []byte(config.Toml.JWT.Key), nil
+			})
+
+			if err != nil || !token.Valid {
+				return gp, response.JSON{Code: response.LoginExpired, Message: "Login expired"}
+			}
+
+			gp.UserInfo, err = model.User{ID: int64(claims["id"].(float64))}.GetData()
+			if err != nil {
+				return gp, response.JSON{Code: response.Deny, Message: "Get user information error"}
+			}
+		} else if apiKey != "" {
+			gp.UserInfo, err = model.User{ApiKey: apiKey}.GetDataByApiKey()
+			if err != nil {
+				return gp, response.JSON{Code: response.Deny, Message: "Get user information using api key error"}
+			}
+		} else {
+			return gp, response.JSON{Code: response.IllegalRequest, Message: "Illegal request"}
+		}
+
 		if gp.UserInfo.State != 1 {
 			return gp, response.JSON{Code: response.AccountDisabled, Message: "No available user"}
 		}
 
-		if gp.UserInfo.SuperManager == model2.SuperManager {
-			permissionIDs, err := model2.Permission{}.GetIDs()
+		if gp.UserInfo.SuperManager == model.SuperManager {
+			permissionIDs, err := model.Permission{}.GetIDs()
 			if err != nil {
 				return gp, response.JSON{Code: response.Deny, Message: err.Error()}
 			}
 			gp.Namespace.ID = namespaceID
 			gp.Namespace.PermissionIDs = permissionIDs
 		} else {
-			namespace, err := model2.NamespaceUser{
+			namespace, err := model.NamespaceUser{
 				NamespaceID: namespaceID,
-				UserID:      int64(claims["id"].(float64)),
+				UserID:      gp.UserInfo.ID,
 			}.GetDataByUserNamespace()
 			if err != nil {
 				if err == sql.ErrNoRows {
@@ -158,7 +168,7 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Re
 			return gp, response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 
-		goployTokenStr, err := model2.User{ID: int64(claims["id"].(float64)), Name: claims["name"].(string)}.CreateToken()
+		goployTokenStr, err := gp.UserInfo.CreateToken()
 		if err == nil {
 			// update jwt time
 			cookie := http.Cookie{Name: config.Toml.Cookie.Name, Value: goployTokenStr, Path: "/", MaxAge: config.Toml.Cookie.Expire, HttpOnly: true}
@@ -170,7 +180,7 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Re
 	gp.ResponseWriter = w
 	gp.URLQuery = r.URL.Query()
 
-	// save the body request data because ioutil.ReadAll will clear the requestBody
+	// save the body request data because io.ReadAll will clear the requestBody
 	if r.ContentLength > 0 && hasContentType(r, "application/json") {
 		gp.Body, _ = io.ReadAll(r.Body)
 	}

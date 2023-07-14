@@ -101,7 +101,7 @@ export class UserList extends Request {
 }
 
 export class UserOption extends Request {
-  readonly url = '/user/getOption'
+  readonly url = '/user/getList'
   readonly method = 'get'
   public declare datagram: {
     list: UserData[]

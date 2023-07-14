@@ -6,7 +6,7 @@ package api
 
 import (
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
-	model2 "github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"net/http"
@@ -31,11 +31,11 @@ func (Agent) GetServerID(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	s, err := model2.Server{
+	s, err := model.Server{
 		Name: reqData.Name,
 		IP:   reqData.IP,
 	}.GetData()
@@ -56,18 +56,18 @@ func (Agent) GetCronList(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	crons, err := model2.Cron{ServerID: reqData.ServerID}.GetList()
+	crons, err := model.Cron{ServerID: reqData.ServerID}.GetList()
 
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			List model2.Crons `json:"list"`
+			List model.Crons `json:"list"`
 		}{List: crons},
 	}
 }
@@ -81,18 +81,18 @@ func (Agent) GetCronLogs(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	crons, err := model2.CronLog{ServerID: reqData.ServerID, CronID: reqData.CronID}.GetList(reqData.Page, reqData.Rows)
+	crons, err := model.CronLog{ServerID: reqData.ServerID, CronID: reqData.CronID}.GetList(reqData.Page, reqData.Rows)
 
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			List model2.CronLogs `json:"list"`
+			List model.CronLogs `json:"list"`
 		}{List: crons},
 	}
 }
@@ -107,11 +107,11 @@ func (Agent) CronReport(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	err := model2.CronLog{
+	err := model.CronLog{
 		ServerID:   reqData.ServerId,
 		CronID:     reqData.CronId,
 		ExecCode:   reqData.ExecCode,
@@ -135,11 +135,11 @@ func (Agent) Report(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	err := model2.ServerAgentLog{
+	err := model.ServerAgentLog{
 		ServerID:   reqData.ServerId,
 		Type:       reqData.Type,
 		Item:       reqData.Item,
