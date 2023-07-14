@@ -55,6 +55,13 @@ func (p Project) Handler() []server.Route {
 	}
 }
 
+// GetLabelList lists all project's labels
+// @Summary List all project's labels
+// @Tags Project
+// @Produce json
+// @Success 0 {object} api.GetLabelList.RespData
+// @Failure 2 {string} string
+// @Router /project/getLabelList [get]
 func (Project) GetLabelList(gp *server.Goploy) server.Response {
 	var list []string
 	var err error
@@ -66,12 +73,21 @@ func (Project) GetLabelList(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+	type RespData struct {
+		List []string `json:"list"`
+	}
 	return response.JSON{
-		Data: struct {
-			List []string `json:"list"`
-		}{List: list},
+		Data: RespData{List: list},
 	}
 }
+
+// GetList lists all projects
+// @Summary List all projects
+// @Tags Project
+// @Produce json
+// @Success 0 {object} api.GetList.RespData
+// @Failure 2 {string} string
+// @Router /project/getList [get]
 func (Project) GetList(gp *server.Goploy) server.Response {
 	var projectList model.Projects
 	var err error
@@ -83,20 +99,30 @@ func (Project) GetList(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+
+	type RespData struct {
+		Projects model.Projects `json:"list"`
+	}
 	return response.JSON{
-		Data: struct {
-			Projects model.Projects `json:"list"`
-		}{Projects: projectList},
+		Data: RespData{Projects: projectList},
 	}
 }
 
+// PingRepos ping the repository
+// @Summary Ping the repository
+// @Tags Project
+// @Produce json
+// @Param request query api.PingRepos.ReqData true "query params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /project/pingRepos [get]
 func (Project) PingRepos(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		URL      string `schema:"url" validate:"required"`
 		RepoType string `schema:"repoType" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -144,13 +170,21 @@ func (Project) PingRepos(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// GetRemoteBranchList lists all remote branches
+// @Summary List all remote branches
+// @Tags Project
+// @Produce json
+// @Param request query api.GetRemoteBranchList.ReqData true "query params"
+// @Success 0 {object} api.GetRemoteBranchList.RespData
+// @Failure 2 {string} string
+// @Router /project/getRemoteBranchList [get]
 func (Project) GetRemoteBranchList(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		URL      string `schema:"url" validate:"required"`
 		RepoType string `schema:"repoType" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -196,11 +230,20 @@ func (Project) GetRemoteBranchList(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	return response.JSON{Data: struct {
+	type RespData struct {
 		Branch []string `json:"branch"`
-	}{Branch: list}}
+	}
+	return response.JSON{Data: RespData{Branch: list}}
 }
 
+// GetBindServerList lists all binding servers
+// @Summary List all binding servers
+// @Tags Project
+// @Produce json
+// @Param id path int true "project id"
+// @Success 0 {object} api.GetBindServerList.RespData
+// @Failure 2 {string} string
+// @Router /project/getBindServerList [get]
 func (Project) GetBindServerList(gp *server.Goploy) server.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
@@ -210,13 +253,23 @@ func (Project) GetBindServerList(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+
+	type RespData struct {
+		ProjectServers model.ProjectServers `json:"list"`
+	}
 	return response.JSON{
-		Data: struct {
-			ProjectServers model.ProjectServers `json:"list"`
-		}{ProjectServers: projectServers},
+		Data: RespData{ProjectServers: projectServers},
 	}
 }
 
+// GetBindUserList lists all binding users
+// @Summary List all binding users
+// @Tags Project
+// @Produce json
+// @Param id path int true "project id"
+// @Success 0 {object} api.GetBindUserList.RespData
+// @Failure 2 {string} string
+// @Router /project/getBindUserList [get]
 func (Project) GetBindUserList(gp *server.Goploy) server.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
@@ -226,13 +279,23 @@ func (Project) GetBindUserList(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+
+	type RespData struct {
+		ProjectUsers model.ProjectUsers `json:"list"`
+	}
 	return response.JSON{
-		Data: struct {
-			ProjectUsers model.ProjectUsers `json:"list"`
-		}{ProjectUsers: projectUsers},
+		Data: RespData{ProjectUsers: projectUsers},
 	}
 }
 
+// GetProjectFileList lists all project files
+// @Summary List all project files
+// @Tags Project
+// @Produce json
+// @Param id path int true "project id"
+// @Success 0 {object} api.GetProjectFileList.RespData
+// @Failure 2 {string} string
+// @Router /project/getProjectFileList [get]
 func (Project) GetProjectFileList(gp *server.Goploy) server.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
@@ -242,13 +305,23 @@ func (Project) GetProjectFileList(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+
+	type RespData struct {
+		ProjectFiles model.ProjectFiles `json:"list"`
+	}
 	return response.JSON{
-		Data: struct {
-			ProjectFiles model.ProjectFiles `json:"list"`
-		}{ProjectFiles: projectFiles},
+		Data: RespData{ProjectFiles: projectFiles},
 	}
 }
 
+// GetProjectFileContent shows the project file content
+// @Summary Show the project file content
+// @Tags Project
+// @Produce json
+// @Param id path int true "project id"
+// @Success 0 {object} api.GetProjectFileContent.RespData
+// @Failure 2 {string} string
+// @Router /project/getProjectFileContent [get]
 func (Project) GetProjectFileContent(gp *server.Goploy) server.Response {
 	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
 	if err != nil {
@@ -262,20 +335,30 @@ func (Project) GetProjectFileContent(gp *server.Goploy) server.Response {
 	if err != nil {
 		fmt.Println("read fail", err)
 	}
+
+	type RespData struct {
+		Content string `json:"content"`
+	}
 	return response.JSON{
-		Data: struct {
-			Content string `json:"content"`
-		}{Content: string(fileBytes)},
+		Data: RespData{Content: string(fileBytes)},
 	}
 }
 
+// GetReposFileList lists repository files
+// @Summary List repository files
+// @Tags Project
+// @Produce json
+// @Param request query api.GetReposFileList.ReqData true "query params"
+// @Success 0 {array} api.GetReposFileList.fileInfo
+// @Failure 2 {string} string
+// @Router /project/getReposFileList [get]
 func (Project) GetReposFileList(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ID   int64  `schema:"id" validate:"gt=0"`
 		Path string `schema:"path" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -310,6 +393,14 @@ func (Project) GetReposFileList(gp *server.Goploy) server.Response {
 	return response.JSON{Data: fileList}
 }
 
+// Add adds a project
+// @Summary Add a project
+// @Tags Project
+// @Produce json
+// @Param request body api.Add.ReqData true "body params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /project/add [post]
 func (Project) Add(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		Name                string              `json:"name" validate:"required"`
@@ -391,6 +482,14 @@ func (Project) Add(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// Edit edits the project
+// @Summary Edit the project
+// @Tags Project
+// @Produce json
+// @Param request body api.Edit.ReqData true "body params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /project/edit [put]
 func (Project) Edit(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ID                  int64               `json:"id" validate:"gt=0"`
@@ -498,6 +597,14 @@ func (Project) Edit(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// SetAutoDeploy updates project set auto_deploy
+// @Summary Update project set auto_deploy
+// @Tags Project
+// @Produce json
+// @Param request body api.SetAutoDeploy.ReqData true "body params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /project/setAutoDeploy [put]
 func (Project) SetAutoDeploy(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ID         int64 `json:"id" validate:"gt=0"`
@@ -518,6 +625,14 @@ func (Project) SetAutoDeploy(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// Remove removes the project
+// @Summary Remove the project
+// @Tags Project
+// @Produce json
+// @Param request body api.Remove.ReqData true "body params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /project/remove [delete]
 func (Project) Remove(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
@@ -544,6 +659,15 @@ func (Project) Remove(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// UploadFile uploads a file to the project
+// @Summary Upload a file to the project
+// @Tags Project
+// @Produce json
+// @Param request query api.UploadFile.ReqData true "query params"
+// @Param file formData file true "file"
+// @Success 0 {object} api.UploadFile.RespData
+// @Failure 2 {string} string
+// @Router /project/uploadFile [post]
 func (Project) UploadFile(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ProjectFileID int64  `schema:"projectFileId" validate:"gte=0"`
@@ -551,7 +675,7 @@ func (Project) UploadFile(gp *server.Goploy) server.Response {
 		Filename      string `schema:"filename"  validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -602,13 +726,22 @@ func (Project) UploadFile(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
+	type RespData struct {
+		ID int64 `json:"id"`
+	}
 	return response.JSON{
-		Data: struct {
-			ID int64 `json:"id"`
-		}{ID: reqData.ProjectFileID},
+		Data: RespData{ID: reqData.ProjectFileID},
 	}
 }
 
+// AddFile adds a file to the project
+// @Summary Add a file to the project
+// @Tags Project
+// @Produce json
+// @Param request body api.AddFile.ReqData true "body params"
+// @Success 0 {object} api.AddFile.RespData
+// @Failure 2 {string} string
+// @Router /project/addFile [post]
 func (Project) AddFile(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
@@ -652,13 +785,23 @@ func (Project) AddFile(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+
+	type RespData struct {
+		ID int64 `json:"id"`
+	}
 	return response.JSON{
-		Data: struct {
-			ID int64 `json:"id"`
-		}{ID: id},
+		Data: RespData{ID: id},
 	}
 }
 
+// EditFile edits the file to the project
+// @Summary Edit the file to the project
+// @Tags Project
+// @Produce json
+// @Param request body api.EditFile.ReqData true "body params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /project/editFile [put]
 func (Project) EditFile(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ID      int64  `json:"id" validate:"gt=0"`
@@ -695,6 +838,14 @@ func (Project) EditFile(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// RemoveFile removes the file from the project
+// @Summary Remove the file from the project
+// @Tags Project
+// @Produce json
+// @Param request body api.RemoveFile.ReqData true "body params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /project/removeFile [delete]
 func (Project) RemoveFile(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ProjectFileID int64 `json:"projectFileId" validate:"gt=0"`
@@ -723,50 +874,79 @@ func (Project) RemoveFile(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// GetReviewList lists all reviews in the project
+// @Summary List all reviews in the project
+// @Tags Project
+// @Produce json
+// @Param request query api.GetReviewList.ReqData true "query params"
+// @Success 0 {object} api.GetReviewList.RespData
+// @Failure 2 {string} string
+// @Router /project/getReviewList [get]
 func (Project) GetReviewList(gp *server.Goploy) server.Response {
-	pagination, err := model.PaginationFrom(gp.URLQuery)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
+	type ReqData struct {
+		ID int64 `schema:"id" validate:"gt=0"`
+		model.Pagination
 	}
-	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	ProjectReviews, pagination, err := model.ProjectReview{ProjectID: id}.GetListByProjectID(pagination)
 
+	var reqData ReqData
+	if err := gp.Decode(&reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	ProjectReviews, pagination, err := model.ProjectReview{ProjectID: reqData.ID}.GetListByProjectID(reqData.Pagination)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	type RespData struct {
+		ProjectReviews model.ProjectReviews `json:"list"`
+		Pagination     model.Pagination     `json:"pagination"`
 	}
 	return response.JSON{
-		Data: struct {
-			ProjectReviews model.ProjectReviews `json:"list"`
-			Pagination     model.Pagination     `json:"pagination"`
-		}{ProjectReviews: ProjectReviews, Pagination: pagination},
+		Data: RespData{ProjectReviews: ProjectReviews, Pagination: pagination},
 	}
 }
 
+// GetTaskList lists all tasks in the project
+// @Summary List all tasks in the project
+// @Tags Project
+// @Produce json
+// @Param request query api.GetTaskList.ReqData true "query params"
+// @Success 0 {object} api.GetTaskList.RespData
+// @Failure 2 {string} string
+// @Router /project/getTaskList [get]
 func (Project) GetTaskList(gp *server.Goploy) server.Response {
-	pagination, err := model.PaginationFrom(gp.URLQuery)
-	if err != nil {
+	type ReqData struct {
+		ID int64 `schema:"id" validate:"gt=0"`
+		model.Pagination
+	}
+	var reqData ReqData
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	id, err := strconv.ParseInt(gp.URLQuery.Get("id"), 10, 64)
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	projectTaskList, pagination, err := model.ProjectTask{ProjectID: id}.GetListByProjectID(pagination)
 
+	projectTaskList, pagination, err := model.ProjectTask{ProjectID: reqData.ID}.GetListByProjectID(reqData.Pagination)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	type RespData struct {
+		ProjectTasks model.ProjectTasks `json:"list"`
+		Pagination   model.Pagination   `json:"pagination"`
 	}
 	return response.JSON{
-		Data: struct {
-			ProjectTasks model.ProjectTasks `json:"list"`
-			Pagination   model.Pagination   `json:"pagination"`
-		}{ProjectTasks: projectTaskList, Pagination: pagination},
+		Data: RespData{ProjectTasks: projectTaskList, Pagination: pagination},
 	}
 }
 
+// AddTask adds a task to the project
+// @Summary Add a task to the project
+// @Tags Project
+// @Produce json
+// @Param request body api.AddTask.ReqData true "body params"
+// @Success 0 {object} api.AddTask.RespData
+// @Failure 2 {string} string
+// @Router /project/addTask [post]
 func (Project) AddTask(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
@@ -791,13 +971,23 @@ func (Project) AddTask(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+
+	type RespData struct {
+		ID int64 `json:"id"`
+	}
 	return response.JSON{
-		Data: struct {
-			ID int64 `json:"id"`
-		}{ID: id},
+		Data: RespData{ID: id},
 	}
 }
 
+// RemoveTask removes the task from the project
+// @Summary Remove the task from the project
+// @Tags Project
+// @Produce json
+// @Param request body api.RemoveTask.ReqData true "body params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /project/removeTask [delete]
 func (Project) RemoveTask(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
@@ -814,14 +1004,21 @@ func (Project) RemoveTask(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// GetProcessList lists all processes in the project
+// @Summary List all processes in the project
+// @Tags Project
+// @Produce json
+// @Param request query api.GetProcessList.ReqData true "query params"
+// @Success 0 {object} api.GetProcessList.RespData
+// @Failure 2 {string} string
+// @Router /project/getProcessList [get]
 func (Project) GetProcessList(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		ProjectID int64  `schema:"projectId" validate:"gt=0"`
-		Page      uint64 `schema:"page" validate:"gt=0"`
-		Rows      uint64 `schema:"rows" validate:"gt=0"`
+		ProjectID int64 `schema:"projectId" validate:"gt=0"`
+		model.Pagination
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -829,13 +1026,23 @@ func (Project) GetProcessList(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+
+	type RespData struct {
+		List model.ProjectProcesses `json:"list"`
+	}
 	return response.JSON{
-		Data: struct {
-			List model.ProjectProcesses `json:"list"`
-		}{List: list},
+		Data: RespData{List: list},
 	}
 }
 
+// AddProcess adds a process to the project
+// @Summary Add process to the project
+// @Tags Project
+// @Produce json
+// @Param request body api.AddProcess.ReqData true "body params"
+// @Success 0 {object} api.AddProcess.RespData
+// @Failure 2 {string} string
+// @Router /project/addProcess [post]
 func (Project) AddProcess(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ProjectID int64  `json:"projectId" validate:"gt=0"`
@@ -862,13 +1069,23 @@ func (Project) AddProcess(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+
+	type RespData struct {
+		ID int64 `json:"id"`
+	}
 	return response.JSON{
-		Data: struct {
-			ID int64 `json:"id"`
-		}{ID: id},
+		Data: RespData{ID: id},
 	}
 }
 
+// EditProcess edits the process in the project
+// @Summary Edit the process in the project
+// @Tags Project
+// @Produce json
+// @Param request body api.EditProcess.ReqData true "body params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /project/editProcess [post]
 func (Project) EditProcess(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ID      int64  `json:"id" validate:"gt=0"`
@@ -898,6 +1115,14 @@ func (Project) EditProcess(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// DeleteProcess deletes the process from the project
+// @Summary Delete the process from the project
+// @Tags Project
+// @Produce json
+// @Param request body api.DeleteProcess.ReqData true "body params"
+// @Success 0 {string} string
+// @Failure 2 {string} string
+// @Router /project/deleteProcess [delete]
 func (Project) DeleteProcess(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ID int64 `json:"id" validate:"gt=0"`
