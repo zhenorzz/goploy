@@ -178,6 +178,12 @@ func (gsync *Gsync) Exec() {
 		log.Errorf(projectLogFormat, gsync.Project.ID, err)
 	}
 
+	gsync.PublishTrace.Type = model.PublishFinish
+	gsync.PublishTrace.State = model.Success
+	if _, err := gsync.PublishTrace.AddRow(); err != nil {
+		log.Errorf(projectLogFormat, gsync.Project.ID, err)
+	}
+
 	log.Tracef(projectLogFormat, gsync.Project.ID, "deploy success")
 	ws.Send(ws.Data{
 		Type:    ws.TypeProject,
@@ -615,7 +621,7 @@ func (gsync *Gsync) notify(deployState int, detail string) {
 			Content content `json:"content"`
 		}
 		text := ""
-        text += "Deploy：" + project.Name + "\n"
+		text += "Deploy：" + project.Name + "\n"
 		text += "Publisher: " + project.PublisherName + "\n"
 		text += "Author: " + commitInfo.Author + "\n"
 		if commitInfo.Tag != "" {

@@ -41,6 +41,7 @@ const (
 	Deploy
 	AfterDeploy
 	DeployFinish
+	PublishFinish
 )
 
 func (pt PublishTrace) GetList(page, limit uint64) (PublishTraces, error) {
