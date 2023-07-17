@@ -19,12 +19,7 @@ func AddLoginLog(gp *server.Goploy, resp server.Response) {
 	respJson := resp.(response.JSON)
 	account := ""
 	if respJson.Code != response.IllegalParam {
-		type ReqData struct {
-			Account string `json:"account"`
-		}
-		var reqData ReqData
-		_ = json.Unmarshal(gp.Body, &reqData)
-		account = reqData.Account
+		account = gp.UserInfo.Account
 	}
 
 	err := model.LoginLog{

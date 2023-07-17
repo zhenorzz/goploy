@@ -137,7 +137,7 @@ func (User) Login(gp *server.Goploy) server.Response {
 		HttpOnly: true,
 	}
 	http.SetCookie(gp.ResponseWriter, &cookie)
-
+	gp.UserInfo = userData // for add login log
 	type RespData struct {
 		Token         string           `json:"token"`
 		NamespaceList model.Namespaces `json:"namespaceList"`
@@ -210,7 +210,7 @@ func (User) ExtLogin(gp *server.Goploy) server.Response {
 		HttpOnly: true,
 	}
 	http.SetCookie(gp.ResponseWriter, &cookie)
-
+	gp.UserInfo = userData // for add login log
 	type RespData struct {
 		Token         string           `json:"token"`
 		NamespaceList model.Namespaces `json:"namespaceList"`
@@ -527,6 +527,7 @@ func (User) MediaLogin(gp *server.Goploy) server.Response {
 		HttpOnly: true,
 	}
 	http.SetCookie(gp.ResponseWriter, &cookie)
+	gp.UserInfo = userData // for add login log
 	return response.JSON{
 		Data: struct {
 			Token         string           `json:"token"`
