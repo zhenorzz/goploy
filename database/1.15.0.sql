@@ -1,8 +1,8 @@
 ALTER TABLE `project`
 MODIFY COLUMN `after_deploy_script_mode` varchar(20) NOT NULL DEFAULT '' COMMENT 'deprecated after v1.15.0' AFTER `review_url`,
-MODIFY COLUMN `after_deploy_script` text NOT NULL COMMENT 'deprecated after v1.15.0' AFTER `after_deploy_script_mode`,
+MODIFY COLUMN `after_deploy_script` text COMMENT 'deprecated after v1.15.0' AFTER `after_deploy_script_mode`,
 MODIFY COLUMN `after_pull_script_mode` varchar(20) NOT NULL DEFAULT '' COMMENT 'deprecated after v1.15.0' AFTER `after_deploy_script`,
-MODIFY COLUMN `after_pull_script` text NOT NULL COMMENT 'deprecated after v1.15.0' AFTER `after_pull_script_mode`,
+MODIFY COLUMN `after_pull_script` text COMMENT 'deprecated after v1.15.0' AFTER `after_pull_script_mode`,
 ADD COLUMN `script` json NOT NULL COMMENT 'script' AFTER `review_url`;
 
 UPDATE project

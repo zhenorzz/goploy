@@ -37,7 +37,7 @@ func (u User) Handler() []server.Route {
 		server.NewRoute("/user/add", http.MethodPost, u.Add).Permissions(config.AddMember).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/user/edit", http.MethodPut, u.Edit).Permissions(config.EditMember).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/user/remove", http.MethodDelete, u.Remove).Permissions(config.DeleteMember).LogFunc(middleware.AddOPLog),
-		server.NewWhiteRoute("/user/mediaLogin", http.MethodPost, u.MediaLogin),
+		server.NewWhiteRoute("/user/mediaLogin", http.MethodPost, u.MediaLogin).LogFunc(middleware.AddLoginLog),
 		server.NewWhiteRoute("/user/getMediaLoginUrl", http.MethodGet, u.GetMediaLoginUrl),
 	}
 }

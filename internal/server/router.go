@@ -94,10 +94,13 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Re
 		if namespaceIDRaw == "" {
 			namespaceIDRaw = r.URL.Query().Get(config.NamespaceHeaderName)
 		}
-
-		namespaceID, err := strconv.ParseInt(namespaceIDRaw, 10, 64)
-		if err != nil {
-			return gp, response.JSON{Code: response.Deny, Message: "Invalid namespace"}
+		var namespaceID int64
+		if namespaceIDRaw != "" {
+			_id, err := strconv.ParseInt(namespaceIDRaw, 10, 64)
+			if err != nil {
+				return gp, response.JSON{Code: response.Deny, Message: "Invalid namespace"}
+			}
+			namespaceID = _id
 		}
 
 		apiKey := r.Header.Get(config.ApiKeyHeaderName)
