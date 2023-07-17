@@ -40,6 +40,7 @@ func (d Deploy) Handler() []server.Route {
 	return []server.Route{
 		server.NewRoute("/deploy/getList", http.MethodGet, d.GetList).Permissions(config.ShowDeployPage),
 		server.NewRoute("/deploy/getPublishTrace", http.MethodGet, d.GetPublishTrace).Permissions(config.DeployDetail),
+		server.NewRoute("/deploy/getPublishProgress", http.MethodGet, d.GetPublishProgress).Permissions(config.DeployProject),
 		server.NewRoute("/deploy/getPublishTraceDetail", http.MethodGet, d.GetPublishTraceDetail).Permissions(config.DeployDetail),
 		server.NewRoute("/deploy/getPreview", http.MethodGet, d.GetPreview).Permissions(config.DeployDetail),
 		server.NewRoute("/deploy/review", http.MethodPut, d.Review).Permissions(config.DeployReview).LogFunc(middleware.AddOPLog),
@@ -163,6 +164,67 @@ func (Deploy) GetPublishTrace(gp *server.Goploy) server.Response {
 	}
 	return response.JSON{
 		Data: RespData{PublishTraceList: publishTraceList},
+	}
+}
+
+// GetPublishProgress shows the progress of the publishing project
+// @Summary Show the progress of the publishing project
+// @Tags Deploy
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param lastPublishToken query string true "last publish token"
+// @Success 0 {object} api.GetPublishProgress.RespData
+// @Failure 2 {string} string
+// @Router /deploy/getPublishProgress [get]
+func (Deploy) GetPublishProgress(gp *server.Goploy) server.Response {
+	lastPublishToken := gp.URLQuery.Get("lastPublishToken")
+	publishTraceList, err := model.PublishTrace{Token: lastPublishToken}.GetListByToken()
+	if err == sql.ErrNoRows {
+		return response.JSON{Code: response.Error, Message: "No deploy record"}
+	} else if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	state := 1
+	message := ""
+	stage := ""
+	for _, trace := range publishTraceList {
+
+		switch trace.Type {
+		case model.QUEUE:
+			stage = "Enqueue"
+		case model.BeforePull:
+			stage = "Before Pull"
+		case model.Pull:
+			stage = "Pull"
+		case model.AfterPull:
+			stage = "After Pull"
+		case model.BeforeDeploy:
+			stage = "Before Pull"
+		case model.Deploy:
+			stage = "Deploy"
+		case model.AfterDeploy:
+			stage = "After Deploy"
+		case model.DeployFinish:
+			stage = "Deploy Finish"
+		case model.PublishFinish:
+			stage = "Publish Finish"
+			state = 2
+		}
+
+		if trace.State == model.Fail {
+			state = 0
+			message = "Encountered an error in " + stage
+			break
+		}
+
+	}
+	type RespData struct {
+		State   int    `json:"state"`
+		Stage   string `json:"stage"`
+		Message string `json:"message"`
+	}
+	return response.JSON{
+		Data: RespData{State: state, Stage: stage, Message: message},
 	}
 }
 
@@ -469,7 +531,7 @@ func (Deploy) ManageProcess(gp *server.Goploy) server.Response {
 // @Produce json
 // @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
 // @Param request body api.Publish.ReqData true "body params"
-// @Success 0 {string} string
+// @Success 0 {object} api.Publish.RespData
 // @Failure 2 {string} string
 // @Router /deploy/publish [post]
 func (Deploy) Publish(gp *server.Goploy) server.Response {
@@ -487,17 +549,22 @@ func (Deploy) Publish(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
+	token := ""
 	if project.DeployState == model.ProjectNotDeploy {
-		err = projectDeploy(gp, project, "", "")
+		token, err = projectDeploy(gp, project, "", "")
 	} else if project.Review == model.Enable {
 		err = projectReview(gp, project, reqData.Commit, reqData.Branch)
 	} else {
-		err = projectDeploy(gp, project, reqData.Commit, reqData.Branch)
+		token, err = projectDeploy(gp, project, reqData.Commit, reqData.Branch)
 	}
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return response.JSON{}
+
+	type RespData struct {
+		Token string `json:"token"`
+	}
+	return response.JSON{Data: RespData{Token: token}}
 }
 
 // Rebuild rollback the project
@@ -766,7 +833,7 @@ func (Deploy) Review(gp *server.Goploy) server.Response {
 		if err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
-		if err := projectDeploy(gp, project, pr.CommitID, pr.Branch); err != nil {
+		if _, err := projectDeploy(gp, project, pr.CommitID, pr.Branch); err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 	}
@@ -852,20 +919,20 @@ func (Deploy) Callback(gp *server.Goploy) server.Response {
 		Editor:   "admin",
 		EditorID: 1,
 	}
-	projectReview, err := projectReviewModel.GetData()
+	pr, err := projectReviewModel.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if projectReview.State != model.PENDING {
+	if pr.State != model.PENDING {
 		return response.JSON{Code: response.Error, Message: "Project review state is invalid"}
 	}
 
-	project, err := model.Project{ID: projectReview.ProjectID}.GetData()
+	project, err := model.Project{ID: pr.ProjectID}.GetData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	if err := projectDeploy(gp, project, projectReview.CommitID, projectReview.Branch); err != nil {
+	if _, err := projectDeploy(gp, project, pr.CommitID, pr.Branch); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -876,10 +943,10 @@ func (Deploy) Callback(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
-func projectDeploy(gp *server.Goploy, project model.Project, commitID string, branch string) error {
+func projectDeploy(gp *server.Goploy, project model.Project, commitID string, branch string) (string, error) {
 	projectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
 	if err != nil {
-		return err
+		return "", err
 	}
 	project.PublisherID = gp.UserInfo.ID
 	project.PublisherName = gp.UserInfo.Name
@@ -887,7 +954,7 @@ func projectDeploy(gp *server.Goploy, project model.Project, commitID string, br
 	project.LastPublishToken = uuid.New().String()
 	err = project.Publish()
 	if err != nil {
-		return err
+		return "", err
 	}
 	task.AddDeployTask(task.Gsync{
 		UserInfo:       gp.UserInfo,
@@ -896,7 +963,7 @@ func projectDeploy(gp *server.Goploy, project model.Project, commitID string, br
 		CommitID:       commitID,
 		Branch:         branch,
 	})
-	return nil
+	return project.LastPublishToken, nil
 }
 
 func projectReview(gp *server.Goploy, project model.Project, commitID string, branch string) error {
