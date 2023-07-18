@@ -167,7 +167,7 @@ func (d *Dingtalk) GetAccessToken() (string, error) {
 			return "", err
 		}
 
-		d.Cache.Set(d.Key, resp.AccessToken, time.Duration(resp.ExpireIn))
+		d.Cache.Set(d.Key, resp.AccessToken, time.Duration(resp.ExpireIn)*time.Second)
 		t = resp.AccessToken
 	}
 

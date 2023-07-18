@@ -26,7 +26,7 @@ func (ac *AccessTokenCache) Get(key string) (string, bool) {
 		return "", false
 	}
 
-	if !v.expireIn.IsZero() || v.expireIn.After(time.Now()) {
+	if !v.expireIn.IsZero() && v.expireIn.After(time.Now()) {
 		return v.accessToken, true
 	}
 
