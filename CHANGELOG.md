@@ -4,6 +4,22 @@ All notable changes to the "goploy" extension will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
+## [1.15.1] - 2023-07-18
+
+### Added
+
+- add user api key
+- add publish progress
+
+### Changed
+
+- support media login log
+
+### Bug fixed
+- [fix dingtalk token cache #58](https://github.com/zhenorzz/goploy/commit/d823222a6e19bb9691caa419eee164404606cede)
+- fix commit info
+
+
 ## [1.15.0] - 2023-06-28
 
 ### Added

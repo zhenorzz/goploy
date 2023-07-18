@@ -151,7 +151,7 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Re
 			}
 			gp.Namespace.ID = namespaceID
 			gp.Namespace.PermissionIDs = permissionIDs
-		} else {
+		} else if namespaceID > 0 {
 			namespace, err := model.NamespaceUser{
 				NamespaceID: namespaceID,
 				UserID:      gp.UserInfo.ID,
@@ -165,6 +165,8 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Re
 			}
 			gp.Namespace.ID = namespaceID
 			gp.Namespace.PermissionIDs = namespace.PermissionIDs
+		} else {
+			gp.Namespace.PermissionIDs = map[int64]struct{}{}
 		}
 
 		if err = route.hasPermission(gp.Namespace.PermissionIDs); err != nil {

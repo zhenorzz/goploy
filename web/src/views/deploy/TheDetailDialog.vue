@@ -667,7 +667,7 @@ function getPublishTrace(publishToken: string) {
         }
         if ([0, 1, 2, 3, 7].includes(trace.type)) {
           localTraceList.value[trace.type] = trace
-        } else {
+        } else if ([4, 5, 6].includes(trace.type)) {
           if (!remoteTraceList.value[trace.serverName]) {
             remoteTraceList.value[trace.serverName] = []
           }
