@@ -43,7 +43,10 @@ export class DeployRebuild extends Request {
     projectId: number
     token: string
   }
-  public declare datagram: string
+  public declare datagram: {
+    type: string
+    token: string
+  }
   constructor(param: DeployRebuild['param']) {
     super()
     this.param = param

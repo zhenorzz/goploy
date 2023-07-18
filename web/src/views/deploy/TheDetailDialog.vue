@@ -729,7 +729,7 @@ const rebuild = (data: PublishTraceData & PublishTraceExt) => {
       new DeployRebuild({ projectId: props.projectRow.id, token: data.token })
         .request()
         .then((response) => {
-          if (response.data === 'symlink') {
+          if (response.data.type === 'symlink') {
             ElMessage.success('Success')
           } else {
             props.onRebuilt?.()

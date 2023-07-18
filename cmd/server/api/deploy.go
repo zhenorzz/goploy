@@ -580,6 +580,11 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		Token string `json:"token"`
 	}
+	type RespData struct {
+		Type  string `json:"type"`
+		Token string `json:"token"`
+	}
+
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
@@ -703,7 +708,10 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 			project.PublisherName = gp.UserInfo.Name
 			project.LastPublishToken = reqData.Token
 			_ = project.Publish()
-			return response.JSON{Data: "symlink"}
+			return response.JSON{Data: RespData{
+				Type:  "symlink",
+				Token: reqData.Token,
+			}}
 		}
 	}
 
@@ -729,7 +737,10 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 			Branch:         commitInfo.Branch,
 		})
 	}
-	return response.JSON{Data: "publish"}
+	return response.JSON{Data: RespData{
+		Type:  "publish",
+		Token: project.LastPublishToken,
+	}}
 }
 
 // GreyPublish publishes the project on the selected servers
