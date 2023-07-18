@@ -36,6 +36,8 @@
 
 [Goploy-Agent](https://github.com/zhenorzz/goploy-agent) 监控服务器性能
 
+[Goploy-Vscode](https://github.com/goploy-devops/goploy-vscode) 在vscode插件市场搜索Goploy
+
 ## 内容列表
 
 - [功能](#功能)

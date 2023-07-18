@@ -36,7 +36,9 @@ Complete installation instructions, no difficulty in getting started!
 
 [Goploy-Agent](https://github.com/zhenorzz/goploy-agent) Monitor server performance
 
-[Jetbrains](https://www.jetbrains.com/?from=zhenorzz/goploy) supports this project with GoLand licenses. We appreciate their support for free and open source software!
+[Goploy-Vscode](https://github.com/goploy-devops/goploy-vscode) Search Goploy in Visual Studio Code
+
+[Jetbrains](https://www.jetbrains.com/?from=zhenorzz/goploy) Supports this project with GoLand licenses. We appreciate their support for free and open source software!
 
 ## Content
 
