@@ -38,7 +38,7 @@ var (
 	s    string
 )
 
-const appVersion = "1.15.0"
+const appVersion = "1.15.1"
 
 func init() {
 	flag.StringVar(&config.AssetDir, "asset-dir", "", "default: ./")
@@ -53,7 +53,7 @@ func init() {
 }
 
 // @title Goploy
-// @version 1.15.0
+// @version 1.15.1
 // @description A web deployment system tool!
 // @contact.name zhenorzz
 // @contact.url https://github.com/zhenorzz/goploy

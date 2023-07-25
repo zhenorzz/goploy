@@ -204,6 +204,9 @@ func parseGITLog(rawCommitLog string) []CommitInfo {
 			Diff:      strings.Trim(commitRowSplit[5], "\n"),
 		})
 	}
+	if len(commitList) == 0 {
+		return []CommitInfo{}
+	}
 	return commitList
 }
 
