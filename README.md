@@ -38,6 +38,8 @@ Complete installation instructions, no difficulty in getting started!
 
 [Goploy-Vscode](https://github.com/goploy-devops/goploy-vscode) Search Goploy in Visual Studio Code
 
+[Goploy-Jetbrains](https://github.com/goploy-devops/goploy-jetbrains) Search Goploy in Jetbrains
+
 [Jetbrains](https://www.jetbrains.com/?from=zhenorzz/goploy) Supports this project with GoLand licenses. We appreciate their support for free and open source software!
 
 ## Content
