@@ -2,9 +2,10 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package api
+package cron
 
 import (
+	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
 	model2 "github.com/zhenorzz/goploy/internal/model"
@@ -14,7 +15,7 @@ import (
 )
 
 // Cron struct
-type Cron API
+type Cron api.API
 
 func (c Cron) Handler() []server.Route {
 	return []server.Route{
@@ -32,7 +33,7 @@ func (Cron) GetList(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -57,7 +58,7 @@ func (Cron) GetLogs(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
@@ -84,7 +85,7 @@ func (Cron) Add(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -119,7 +120,7 @@ func (Cron) Edit(gp *server.Goploy) server.Response {
 		Description string `json:"description" validate:"max=255"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	err := model2.Cron{
@@ -143,7 +144,7 @@ func (Cron) Remove(gp *server.Goploy) server.Response {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

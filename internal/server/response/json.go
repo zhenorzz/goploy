@@ -10,6 +10,14 @@ import (
 )
 
 type JSON struct {
+	// Pass = 0
+	// Deny = 1
+	// Error = 2, see Message for details
+	// AccountDisabled  = 10000
+	// IllegalRequest = 10001
+	// NamespaceInvalid = 10002
+	// IllegalParam = 10003
+	// LoginExpired = 10086
 	Code    int         `json:"code"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
@@ -26,7 +34,6 @@ const (
 	LoginExpired     = 10086
 )
 
-// JSON response
 func (j JSON) Write(w http.ResponseWriter, _ *http.Request) error {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	return json.NewEncoder(w).Encode(j)

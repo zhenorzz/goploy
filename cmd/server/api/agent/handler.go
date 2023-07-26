@@ -2,9 +2,10 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package api
+package agent
 
 import (
+	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
@@ -12,7 +13,7 @@ import (
 	"net/http"
 )
 
-type Agent API
+type Agent api.API
 
 func (a Agent) Handler() []server.Route {
 	return []server.Route{

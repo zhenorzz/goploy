@@ -7,7 +7,7 @@
 *.sln
 *.sw*
 tmp
-repository
+/repository
 # local env files
 .env
 .env.local

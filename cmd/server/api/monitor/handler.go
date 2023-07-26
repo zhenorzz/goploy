@@ -2,9 +2,10 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package api
+package monitor
 
 import (
+	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/model"
@@ -16,7 +17,7 @@ import (
 	"strings"
 )
 
-type Monitor API
+type Monitor api.API
 
 func (m Monitor) Handler() []server.Route {
 	return []server.Route{
@@ -51,7 +52,7 @@ func (Monitor) Check(gp *server.Goploy) server.Response {
 		FailScript      string `json:"failScript"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	var err error
@@ -116,7 +117,7 @@ func (Monitor) Add(gp *server.Goploy) server.Response {
 		FailServerID    int64  `json:"failServerId" `
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -165,7 +166,7 @@ func (Monitor) Edit(gp *server.Goploy) server.Response {
 		FailServerID    int64  `json:"failServerId" `
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	err := model.Monitor{
@@ -197,7 +198,7 @@ func (Monitor) Toggle(gp *server.Goploy) server.Response {
 		State uint8 `json:"state" validate:"oneof=0 1"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -212,7 +213,7 @@ func (Monitor) Remove(gp *server.Goploy) server.Response {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

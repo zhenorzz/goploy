@@ -2,7 +2,7 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package api
+package user
 
 import (
 	"crypto/md5"
@@ -10,7 +10,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/go-ldap/ldap/v3"
+	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
+	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/media"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
@@ -19,11 +21,9 @@ import (
 	"net/url"
 	"strconv"
 	"time"
-
-	"github.com/zhenorzz/goploy/config"
 )
 
-type User API
+type User api.API
 
 func (u User) Handler() []server.Route {
 	return []server.Route{
@@ -46,14 +46,13 @@ func (u User) Handler() []server.Route {
 // @Summary Login
 // @Tags User
 // @Produce json
-// @Param request body api.Login.ReqData true "body params"
-// @Success 0 {array} api.Login.RespData
-// @Failure 2 {string} string
+// @Param request body user.Login.ReqData true "body params"
+// @Success 200 {object} response.JSON{data=user.Login.RespData}
 // @Router /user/login [post]
 func (User) Login(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		Account  string `json:"account" validate:"min=1,max=25"`
-		Password string `json:"password" validate:"password"`
+		Account  string `json:"account" validate:"required,min=1,max=25"`
+		Password string `json:"password" validate:"required,password"`
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {
@@ -152,15 +151,14 @@ func (User) Login(gp *server.Goploy) server.Response {
 // @Summary External login
 // @Tags User
 // @Produce json
-// @Param request body api.ExtLogin.ReqData true "body params"
-// @Success 0 {array} api.ExtLogin.RespData
-// @Failure 2 {string} string
+// @Param request body user.ExtLogin.ReqData true "body params"
+// @Success 200 {object} response.JSON{data=user.ExtLogin.RespData}
 // @Router /user/extLogin [post]
 func (User) ExtLogin(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		Account string `json:"account" validate:"min=1,max=25"`
+		Account string `json:"account" validate:"required,min=1,max=25"`
 		Time    int64  `json:"time"`
-		Token   string `json:"token"  validate:"len=32"`
+		Token   string `json:"token"  validate:"required,len=32"`
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {
@@ -225,8 +223,7 @@ func (User) ExtLogin(gp *server.Goploy) server.Response {
 // @Tags User
 // @Produce json
 // @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
-// @Success 0 {array} api.Info.RespData
-// @Failure 2 {string} string
+// @Success 200 {object} response.JSON{data=user.Info.RespData}
 // @Router /user/info [get]
 func (User) Info(gp *server.Goploy) server.Response {
 	type RespData struct {
@@ -263,8 +260,7 @@ func (User) Info(gp *server.Goploy) server.Response {
 // @Tags User
 // @Produce json
 // @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
-// @Success 0 {array} api.GetList.RespData
-// @Failure 2 {string} string
+// @Success 200 {object} response.JSON{data=user.GetList.RespData}
 // @Router /user/getList [get]
 func (User) GetList(*server.Goploy) server.Response {
 	users, err := model.User{}.GetList()
@@ -285,17 +281,16 @@ func (User) GetList(*server.Goploy) server.Response {
 // @Tags User
 // @Produce json
 // @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
-// @Param request query api.Add.ReqData true "query params"
-// @Success 0 {array} api.Add.RespData
-// @Failure 2 {string} string
+// @Param request body user.Add.ReqData true "body params"
+// @Success 200 {object} response.JSON{data=user.Add.RespData}
 // @Router /user/add [post]
 func (User) Add(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		Account      string `json:"account" validate:"min=1,max=25"`
+		Account      string `json:"account" validate:"required,min=1,max=25"`
 		Password     string `json:"password" validate:"omitempty,password"`
 		Name         string `json:"name" validate:"required"`
 		Contact      string `json:"contact" validate:"omitempty,len=11,numeric"`
-		SuperManager int64  `json:"superManager" validate:"min=0,max=1"`
+		SuperManager int64  `json:"superManager" validate:"required,oneof=0 1"`
 	}
 
 	var reqData ReqData
@@ -343,17 +338,16 @@ func (User) Add(gp *server.Goploy) server.Response {
 // @Tags User
 // @Produce json
 // @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
-// @Param request query api.Edit.ReqData true "query params"
-// @Success 0 {string} string
-// @Failure 2 {string} string
+// @Param request body user.Edit.ReqData true "body params"
+// @Success 200 {object} response.JSON
 // @Router /user/edit [put]
 func (User) Edit(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		ID           int64  `json:"id" validate:"gt=0"`
+		ID           int64  `json:"id" validate:"required,gt=0"`
 		Password     string `json:"password" validate:"omitempty,password"`
 		Name         string `json:"name" validate:"required"`
 		Contact      string `json:"contact" validate:"omitempty,len=11,numeric"`
-		SuperManager int64  `json:"superManager" validate:"min=0,max=1"`
+		SuperManager int64  `json:"superManager" validate:"required,oneof=0 1"`
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {
@@ -401,13 +395,12 @@ func (User) Edit(gp *server.Goploy) server.Response {
 // @Tags User
 // @Produce json
 // @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
-// @Param request query api.Remove.ReqData true "query params"
-// @Success 0 {string} string
-// @Failure 2 {string} string
+// @Param request body user.Remove.ReqData true "body params"
+// @Success 200 {object} response.JSON
 // @Router /user/remove [delete]
 func (User) Remove(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		ID int64 `json:"id" validate:"gt=0"`
+		ID int64 `json:"id" validate:"required,gt=0"`
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {
@@ -427,14 +420,13 @@ func (User) Remove(gp *server.Goploy) server.Response {
 // @Tags User
 // @Produce json
 // @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
-// @Param request query api.ChangePassword.ReqData true "query params"
-// @Success 0 {string} string
-// @Failure 2 {string} string
+// @Param request body user.ChangePassword.ReqData true "body params"
+// @Success 200 {object} response.JSON
 // @Router /user/changePassword [put]
 func (User) ChangePassword(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		OldPassword string `json:"oldPwd" validate:"password"`
-		NewPassword string `json:"newPwd" validate:"password"`
+		OldPassword string `json:"oldPwd" validate:"required,password"`
+		NewPassword string `json:"newPwd" validate:"required,password"`
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {

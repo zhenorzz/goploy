@@ -11,7 +11,18 @@ import (
 	"flag"
 	"fmt"
 	"github.com/hashicorp/go-version"
-	"github.com/zhenorzz/goploy/cmd/server/api"
+	"github.com/zhenorzz/goploy/cmd/server/api/agent"
+	"github.com/zhenorzz/goploy/cmd/server/api/cron"
+	"github.com/zhenorzz/goploy/cmd/server/api/deploy"
+	log2 "github.com/zhenorzz/goploy/cmd/server/api/log"
+	"github.com/zhenorzz/goploy/cmd/server/api/monitor"
+	"github.com/zhenorzz/goploy/cmd/server/api/namespace"
+	"github.com/zhenorzz/goploy/cmd/server/api/project"
+	"github.com/zhenorzz/goploy/cmd/server/api/repository"
+	"github.com/zhenorzz/goploy/cmd/server/api/role"
+	server2 "github.com/zhenorzz/goploy/cmd/server/api/server"
+	"github.com/zhenorzz/goploy/cmd/server/api/template"
+	"github.com/zhenorzz/goploy/cmd/server/api/user"
 	"github.com/zhenorzz/goploy/cmd/server/task"
 	"github.com/zhenorzz/goploy/cmd/server/ws"
 	"github.com/zhenorzz/goploy/config"
@@ -58,8 +69,6 @@ func init() {
 // @contact.name zhenorzz
 // @contact.url https://github.com/zhenorzz/goploy
 // @contact.email zhenorzz@gmail.com
-// @tag.name API
-// @tag.description the response type is response.JSON, code=0(success), code=1(deny), code=2(error), code=10000(AccountDisabled), code=10001(IllegalRequest), code=10002(NamespaceInvalid), code=10003(IllegalParam), code=10086(LoginExpired)
 // @license.name GPLv3
 // @license.url https://www.gnu.org/licenses/gpl-3.0.html
 // @host 127.0.0.1:3001
@@ -119,18 +128,18 @@ func main() {
 		Router: server.NewRouter(),
 	}
 
-	srv.Router.Register(api.User{})
-	srv.Router.Register(api.Namespace{})
-	srv.Router.Register(api.Role{})
-	srv.Router.Register(api.Project{})
-	srv.Router.Register(api.Repository{})
-	srv.Router.Register(api.Monitor{})
-	srv.Router.Register(api.Deploy{})
-	srv.Router.Register(api.Server{})
-	srv.Router.Register(api.Log{})
-	srv.Router.Register(api.Cron{})
-	srv.Router.Register(api.Agent{})
-	srv.Router.Register(api.Template{})
+	srv.Router.Register(user.User{})
+	srv.Router.Register(namespace.Namespace{})
+	srv.Router.Register(role.Role{})
+	srv.Router.Register(project.Project{})
+	srv.Router.Register(repository.Repository{})
+	srv.Router.Register(monitor.Monitor{})
+	srv.Router.Register(deploy.Deploy{})
+	srv.Router.Register(server2.Server{})
+	srv.Router.Register(log2.Log{})
+	srv.Router.Register(cron.Cron{})
+	srv.Router.Register(agent.Agent{})
+	srv.Router.Register(template.Template{})
 	srv.Router.Register(ws.GetHub())
 	go func() {
 		c := make(chan os.Signal, 1)
