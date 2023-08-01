@@ -5,6 +5,7 @@
 package monitor
 
 import (
+	"errors"
 	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
@@ -68,7 +69,8 @@ func (Monitor) Check(gp *server.Goploy) server.Response {
 	if err = m.Check(); err != nil {
 		sb.WriteString("MonitorErr : ")
 		sb.WriteString(err.Error())
-		if e, ok := err.(monitor.ScriptError); ok {
+		var e monitor.ScriptError
+		if errors.As(err, &e) {
 			serverID = e.ServerID
 		}
 

@@ -151,7 +151,7 @@ func (Deploy) GetPreview(gp *server.Goploy) server.Response {
 func (Deploy) GetPublishTrace(gp *server.Goploy) server.Response {
 	lastPublishToken := gp.URLQuery.Get("lastPublishToken")
 	publishTraceList, err := model.PublishTrace{Token: lastPublishToken}.GetListByToken()
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return response.JSON{Code: response.Error, Message: "No deploy record"}
 	} else if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
@@ -176,7 +176,7 @@ func (Deploy) GetPublishTrace(gp *server.Goploy) server.Response {
 func (Deploy) GetPublishProgress(gp *server.Goploy) server.Response {
 	lastPublishToken := gp.URLQuery.Get("lastPublishToken")
 	publishTraceList, err := model.PublishTrace{Token: lastPublishToken}.GetListByToken()
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return response.JSON{Code: response.Error, Message: "No deploy record"}
 	} else if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
@@ -239,7 +239,7 @@ func (Deploy) GetPublishTraceDetail(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	detail, err := model.PublishTrace{ID: id}.GetDetail()
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return response.JSON{Code: response.Error, Message: "No deploy record"}
 	} else if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}

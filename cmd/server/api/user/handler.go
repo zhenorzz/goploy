@@ -8,6 +8,7 @@ import (
 	"crypto/md5"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/go-ldap/ldap/v3"
 	"github.com/zhenorzz/goploy/cmd/server/api"
@@ -60,7 +61,7 @@ func (User) Login(gp *server.Goploy) server.Response {
 	}
 
 	userData, err := model.User{Account: reqData.Account}.GetDataByAccount()
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return response.JSON{Code: response.Error, Message: "We couldn't verify your identity. Please confirm if your username and password are correct."}
 	}
 	if err != nil {
@@ -299,7 +300,7 @@ func (User) Add(gp *server.Goploy) server.Response {
 	}
 
 	userInfo, err := model.User{Account: reqData.Account}.GetDataByAccount()
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	} else if userInfo != (model.User{}) {
 		return response.JSON{Code: response.Error, Message: "Account is already exist"}
@@ -486,7 +487,7 @@ func (User) MediaLogin(gp *server.Goploy) server.Response {
 	}
 
 	userData, err := model.User{Contact: mobile}.GetDataByContact()
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return response.JSON{Code: response.Error, Message: "We couldn't find your account, please contact admin"}
 	}
 	if err != nil {

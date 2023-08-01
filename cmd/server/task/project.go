@@ -6,6 +6,7 @@ package task
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/internal/model"
@@ -33,7 +34,7 @@ func startProjectTask() {
 func projectTask() {
 	date := time.Now().Format("2006-01-02 15:04:05")
 	projectTasks, err := model.ProjectTask{}.GetNotRunListLTDate(date)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Error("get project task list error, detail:" + err.Error())
 	}
 	for _, projectTask := range projectTasks {
