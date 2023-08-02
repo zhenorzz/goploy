@@ -35,7 +35,7 @@ func (rt rsyncTransmitter) args() []string {
 		srcPath = "/cygdrive/" + strings.Replace(srcPath, ":\\", "/", 1)
 	}
 
-	rsyncOption, _ := pkg.ParseCommandLine(project.TransferOption)
+	rsyncOption, _ := pkg.ParseCommandLine(project.ReplaceVars(project.TransferOption))
 	rsyncOption = append([]string{
 		"--include",
 		fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode)),

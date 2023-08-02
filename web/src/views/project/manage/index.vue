@@ -634,6 +634,14 @@
                       }}</span>
                     </el-row>
                     <el-row>
+                      <span>${PROJECT_ENV}: </span>
+                      <span>{{
+                        formData.environment > 0
+                          ? formData.environment
+                          : 'project.environment'
+                      }}</span>
+                    </el-row>
+                    <el-row>
                       <span>${REPOSITORY_TYPE}: </span>
                       <span>{{
                         formData.repoType !== ''
@@ -784,6 +792,14 @@
                         formData.branch !== ''
                           ? formData.branch
                           : 'project.branch'
+                      }}</span>
+                    </el-row>
+                    <el-row>
+                      <span>${PROJECT_ENV}: </span>
+                      <span>{{
+                        formData.environment > 0
+                          ? formData.environment
+                          : 'project.environment'
                       }}</span>
                     </el-row>
                     <el-row>
@@ -974,6 +990,14 @@
                         formData.branch !== ''
                           ? formData.branch
                           : 'project.branch'
+                      }}</span>
+                    </el-row>
+                    <el-row>
+                      <span>${PROJECT_ENV}: </span>
+                      <span>{{
+                        formData.environment > 0
+                          ? formData.environment
+                          : 'project.environment'
                       }}</span>
                     </el-row>
                     <el-row>
