@@ -642,6 +642,12 @@
                       }}</span>
                     </el-row>
                     <el-row>
+                      <span>${PROJECT_LABEL}: </span>
+                      <span>{{
+                        formData.label !== '' ? formData.label : 'project.label'
+                      }}</span>
+                    </el-row>
+                    <el-row>
                       <span>${REPOSITORY_TYPE}: </span>
                       <span>{{
                         formData.repoType !== ''
@@ -659,7 +665,7 @@
                     </el-row>
                     <el-row>
                       <span>${PUBLISH_TOKEN}: </span>
-                      <span>project.branch</span>
+                      <span>project.last_publish_token</span>
                     </el-row>
                     <el-row>
                       <span>${COMMIT_ID}: </span>
@@ -803,6 +809,12 @@
                       }}</span>
                     </el-row>
                     <el-row>
+                      <span>${PROJECT_LABEL}: </span>
+                      <span>{{
+                        formData.label !== '' ? formData.label : 'project.label'
+                      }}</span>
+                    </el-row>
+                    <el-row>
                       <span>${REPOSITORY_TYPE}: </span>
                       <span>{{
                         formData.repoType !== ''
@@ -820,7 +832,7 @@
                     </el-row>
                     <el-row>
                       <span>${PUBLISH_TOKEN}: </span>
-                      <span>project.branch</span>
+                      <span>project.last_publish_token</span>
                     </el-row>
                     <el-row>
                       <span>${SERVER_TOTAL_NUMBER}: </span>
@@ -1001,6 +1013,12 @@
                       }}</span>
                     </el-row>
                     <el-row>
+                      <span>${PROJECT_LABEL}: </span>
+                      <span>{{
+                        formData.label !== '' ? formData.label : 'project.label'
+                      }}</span>
+                    </el-row>
+                    <el-row>
                       <span>${REPOSITORY_TYPE}: </span>
                       <span>{{
                         formData.repoType !== ''
@@ -1018,7 +1036,7 @@
                     </el-row>
                     <el-row>
                       <span>${PUBLISH_TOKEN}: </span>
-                      <span>project.branch</span>
+                      <span>project.last_publish_token</span>
                     </el-row>
                     <el-row>
                       <span>${COMMIT_ID}: </span>
