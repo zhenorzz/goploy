@@ -40,7 +40,7 @@ func (st sftpTransmitter) Exec() (string, error) {
 	defer sftpClient.Close()
 
 	project := st.Project
-	transferOption, _ := pkg.ParseCommandLine(project.ReplaceVars(project.TransferOption))
+	transferOption, _ := pkg.ParseCommandLine(st.ProjectServer.ReplaceVars(project.ReplaceVars(project.TransferOption)))
 	var opt struct {
 		isVerbose bool
 		isDelete  bool

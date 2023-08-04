@@ -8,8 +8,6 @@ import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/zhenorzz/goploy/internal/pkg"
-	"strconv"
-	"strings"
 )
 
 const projectServerTable = "`project_server`"
@@ -209,22 +207,5 @@ func (ps ProjectServer) ToSSHOption() string {
 }
 
 func (ps ProjectServer) ReplaceVars(script string) string {
-	scriptVars := map[string]string{
-		"${SERVER_ID}":            strconv.FormatInt(ps.ServerID, 10),
-		"${SERVER_NAME}":          ps.Server.Name,
-		"${SERVER_IP}":            ps.Server.IP,
-		"${SERVER_PORT}":          strconv.Itoa(ps.Server.Port),
-		"${SERVER_OWNER}":         ps.Server.Owner,
-		"${SERVER_PASSWORD}":      ps.Server.Password,
-		"${SERVER_PATH}":          ps.Server.Path,
-		"${SERVER_JUMP_IP}":       ps.Server.JumpIP,
-		"${SERVER_JUMP_PORT}":     strconv.Itoa(ps.Server.JumpPort),
-		"${SERVER_JUMP_OWNER}":    ps.Server.JumpOwner,
-		"${SERVER_JUMP_PASSWORD}": ps.Server.JumpPassword,
-		"${SERVER_JUMP_PATH}":     ps.Server.JumpPath,
-	}
-	for key, value := range scriptVars {
-		script = strings.Replace(script, key, value, -1)
-	}
-	return script
+	return ps.Server.ReplaceVars(script)
 }

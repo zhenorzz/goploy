@@ -127,12 +127,6 @@
           :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
         >
           <template #default="scope">
-            <el-button
-              color="#626aef"
-              :dark="isDark"
-              :icon="Files"
-              @click="handleProject(scope.row)"
-            />
             <Button
               :icon="DataAnalysis"
               :permissions="[pms.ShowServerMonitorPage]"
@@ -149,6 +143,12 @@
               :icon="Edit"
               :permissions="[pms.EditServer]"
               @click="handleEdit(scope.row)"
+            />
+            <el-button
+              color="#626aef"
+              :dark="isDark"
+              :icon="Files"
+              @click="handleProject(scope.row)"
             />
           </template>
         </el-table-column>
