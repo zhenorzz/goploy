@@ -330,8 +330,8 @@ func (Deploy) FileCompare(gp *server.Goploy) server.Response {
 
 	distPath := path.Join(project.Path, reqData.FilePath)
 	for _, projectServer := range projectServers {
-		go func(server model.ProjectServer) {
-			fileCompare := FileCompareData{server.ServerName, server.ServerIP, server.ServerID, "no change", false}
+		go func(server model.Server) {
+			fileCompare := FileCompareData{server.Name, server.IP, server.ID, "no change", false}
 			client, err := server.ToSSHConfig().Dial()
 			if err != nil {
 				fileCompare.Status = "client error"
@@ -365,7 +365,7 @@ func (Deploy) FileCompare(gp *server.Goploy) server.Response {
 				return
 			}
 			ch <- fileCompare
-		}(projectServer)
+		}(projectServer.Server)
 	}
 
 	for i := 0; i < len(projectServers); i++ {
@@ -612,7 +612,7 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 			}
 		} else if publishTrace.Type == model.Deploy {
 			for _, projectServer := range projectServers {
-				if strings.Contains(publishTrace.Ext, projectServer.ServerIP) {
+				if strings.Contains(publishTrace.Ext, projectServer.Server.IP) {
 					publishTraceServerCount++
 					break
 				}
@@ -629,7 +629,7 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 		for _, projectServer := range projectServers {
 			go func(projectServer model.ProjectServer) {
 				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
-				cmdEntity := cmd.New(projectServer.ServerOS)
+				cmdEntity := cmd.New(projectServer.Server.OS)
 				afterDeployCommands := []string{cmdEntity.Symlink(destDir, project.Path), cmdEntity.ChangeDirTime(destDir)}
 				if project.Script.AfterDeploy.Content != "" {
 					scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode))

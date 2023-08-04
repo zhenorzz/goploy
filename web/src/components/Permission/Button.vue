@@ -12,9 +12,7 @@ const props = defineProps({
   },
 })
 const store = useStore()
-
 const show = ref(false)
-
 show.value = props.permissions.some((permission) =>
   store.state.permission.permissionIds.includes(permission)
 )

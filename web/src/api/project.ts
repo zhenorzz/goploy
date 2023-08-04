@@ -1,3 +1,4 @@
+import { ServerData } from './server'
 import { Request, Pagination, ID, Total } from './types'
 
 export interface ProjectScript {
@@ -49,13 +50,8 @@ export interface ProjectServerData {
   id: number
   projectId: number
   serverId: number
-  serverName: string
-  serverIP: string
-  serverPort: number
-  serverOwner: string
-  serverPassword: string
-  serverPath: string
-  serverDescription: string
+  project: ProjectData
+  server: ServerData
   insertTime: string
   updateTime: string
 }

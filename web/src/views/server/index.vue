@@ -122,11 +122,17 @@
         <el-table-column
           prop="operation"
           :label="$t('op')"
-          width="190"
+          width="250"
           align="center"
           :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
         >
           <template #default="scope">
+            <el-button
+              color="#626aef"
+              :dark="isDark"
+              :icon="Files"
+              @click="handleProject(scope.row)"
+            />
             <Button
               :icon="DataAnalysis"
               :permissions="[pms.ShowServerMonitorPage]"
@@ -436,6 +442,50 @@
         </el-button>
       </template>
     </el-dialog>
+    <el-dialog
+      v-model="projectDialogVisible"
+      :title="$t('manage')"
+      :close-on-click-modal="false"
+      :fullscreen="$store.state.app.device === 'mobile'"
+    >
+      <el-table
+        border
+        stripe
+        highlight-current-row
+        :data="projectData"
+        @selection-change="handleProjectSelectionChange"
+      >
+        <el-table-column type="selection" width="55" />
+        <el-table-column width="60" prop="projectId" :label="$t('project')" />
+        <el-table-column :label="$t('name')">
+          <template #default="scope">
+            {{ scope.row.project.name }}
+          </template>
+        </el-table-column>
+        <el-table-column width="160" :label="$t('branch')" align="center">
+          <template #default="scope">
+            {{ scope.row.project.branch }}
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('environment')" align="center">
+          <template #default="scope">
+            {{ $t(`envOption[${scope.row.project.environment || 0}]`) }}
+          </template>
+        </el-table-column>
+      </el-table>
+      <template #footer>
+        <Button
+          type="danger"
+          :permissions="[pms.UnbindServerProject]"
+          @click="handleUnbindProject"
+        >
+          {{ $t('unbind') }}
+        </Button>
+        <el-button @click="projectDialogVisible = false">
+          {{ $t('cancel') }}
+        </el-button>
+      </template>
+    </el-dialog>
   </el-row>
 </template>
 
@@ -446,6 +496,7 @@ export default { name: 'ServerIndex' }
 import pms from '@/permission'
 import { Button, Switch } from '@/components/Permission'
 import {
+  Files,
   Refresh,
   Plus,
   Edit,
@@ -463,6 +514,8 @@ import {
   ServerToggle,
   ServerData,
   ServerInstallAgent,
+  ServerProjectList,
+  ServerProjectUnbind,
 } from '@/api/server'
 import { HttpResponse } from '@/api/types'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
@@ -470,10 +523,14 @@ import { ref, computed } from 'vue'
 import { copy, humanSize } from '@/utils'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
+import { useDark } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
+import { ProjectServerData } from '@/api/project'
 const { t } = useI18n()
+const isDark = useDark()
 const router = useRouter()
 const dialogVisible = ref(false)
+const projectDialogVisible = ref(false)
 const agentDialogVisible = ref(false)
 const serverName = ref('')
 const serverHost = ref('')
@@ -481,6 +538,8 @@ const tableLoading = ref(false)
 const tableData = ref<ServerList['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 20 })
 const selectedItems = ref<ServerList['datagram']['list']>([])
+const projectData = ref<ServerProjectList['datagram']['list']>([])
+const selectedProjectItems = ref<ServerProjectList['datagram']['list']>([])
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
   id: 0,
@@ -637,6 +696,47 @@ function handleCopy(data: ServerData) {
   formData.value = Object.assign({}, data)
   formData.value.id = 0
   dialogVisible.value = true
+}
+
+function handleProject(data: ServerData) {
+  projectDialogVisible.value = true
+  projectData.value = []
+  new ServerProjectList({ id: data.id })
+    .request()
+    .then((response) => {
+      projectData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+
+function handleProjectSelectionChange(value: ProjectServerData[]) {
+  selectedProjectItems.value = value
+}
+
+function handleUnbindProject() {
+  if (selectedProjectItems.value.length === 0) {
+    return
+  }
+  ElMessageBox.confirm(t('serverPage.unbindProjectTips'), t('tips'), {
+    confirmButtonText: t('confirm'),
+    cancelButtonText: t('cancel'),
+    type: 'warning',
+  })
+    .then(() => {
+      new ServerProjectUnbind({
+        ids: selectedProjectItems.value.map((_) => _.id),
+      })
+        .request()
+        .then(() => {
+          ElMessage.success('Success')
+          projectDialogVisible.value = false
+        })
+    })
+    .catch(() => {
+      ElMessage.info('Cancel')
+    })
 }
 
 function handleMonitor(data: ServerData) {

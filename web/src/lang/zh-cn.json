@@ -104,6 +104,7 @@
   "expression": "表达式",
   "delete": "删除",
   "remove": "移除",
+  "unbind": "解绑",
   "install": "安装",
   "confirm": "确认",
   "save": "保存",
@@ -244,7 +245,8 @@
     "ManageServerNginx": "Nginx进程管理",
     "EditNginxConfig": "编辑Nginx配置文件",
     "AddNginxConfig": "添加Nginx配置文件",
-    "DeleteNginxConfig": "删除Nginx配置文件"
+    "DeleteNginxConfig": "删除Nginx配置文件",
+    "UnbindServerProject": "移除服务器的项目"
   },
   "tagsView": {
     "refresh": "刷新",
@@ -301,7 +303,8 @@
     "transferFile": "传输文件",
     "sftpFileCount": "个项目",
     "saveTemplate": "保存模板",
-    "execTips": "执行{command}命令?"
+    "execTips": "执行{command}命令?",
+    "unbindProjectTips": "此操作将移除选中项目, 是否继续?"
   },
   "monitorPage": {
     "scriptMode": "脚本类型",

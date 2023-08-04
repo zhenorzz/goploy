@@ -15,24 +15,13 @@ import (
 const projectServerTable = "`project_server`"
 
 type ProjectServer struct {
-	ID                 int64  `json:"id"`
-	ProjectID          int64  `json:"projectId"`
-	ServerID           int64  `json:"serverId"`
-	ServerName         string `json:"serverName"`
-	ServerOS           string `json:"serverOS"`
-	ServerIP           string `json:"serverIP"`
-	ServerPort         int    `json:"serverPort"`
-	ServerOwner        string `json:"serverOwner"`
-	ServerPassword     string `json:"serverPassword"`
-	ServerPath         string `json:"serverPath"`
-	ServerJumpIP       string `json:"serverJumpIP"`
-	ServerJumpPort     int    `json:"serverJumpPort"`
-	ServerJumpOwner    string `json:"serverJumpOwner"`
-	ServerJumpPassword string `json:"serverJumpPassword"`
-	ServerJumpPath     string `json:"serverJumpPath"`
-	ServerDescription  string `json:"serverDescription"`
-	InsertTime         string `json:"insertTime"`
-	UpdateTime         string `json:"updateTime"`
+	ID         int64   `json:"id"`
+	ProjectID  int64   `json:"projectId"`
+	ServerID   int64   `json:"serverId"`
+	Project    Project `json:"project,omitempty"`
+	Server     Server  `json:"server,omitempty"`
+	InsertTime string  `json:"insertTime"`
+	UpdateTime string  `json:"updateTime"`
 }
 
 type ProjectServers []ProjectServer
@@ -75,19 +64,59 @@ func (ps ProjectServer) GetBindServerListByProjectID() (ProjectServers, error) {
 			&projectServer.ID,
 			&projectServer.ProjectID,
 			&projectServer.ServerID,
-			&projectServer.ServerName,
-			&projectServer.ServerOS,
-			&projectServer.ServerIP,
-			&projectServer.ServerPort,
-			&projectServer.ServerOwner,
-			&projectServer.ServerPassword,
-			&projectServer.ServerPath,
-			&projectServer.ServerJumpIP,
-			&projectServer.ServerJumpPort,
-			&projectServer.ServerJumpOwner,
-			&projectServer.ServerJumpPassword,
-			&projectServer.ServerJumpPath,
-			&projectServer.ServerDescription,
+			&projectServer.Server.Name,
+			&projectServer.Server.OS,
+			&projectServer.Server.IP,
+			&projectServer.Server.Port,
+			&projectServer.Server.Owner,
+			&projectServer.Server.Password,
+			&projectServer.Server.Path,
+			&projectServer.Server.JumpIP,
+			&projectServer.Server.JumpPort,
+			&projectServer.Server.JumpOwner,
+			&projectServer.Server.JumpPassword,
+			&projectServer.Server.JumpPath,
+			&projectServer.Server.Description,
+			&projectServer.InsertTime,
+			&projectServer.UpdateTime); err != nil {
+			return nil, err
+		}
+		projectServers = append(projectServers, projectServer)
+	}
+	return projectServers, nil
+}
+
+func (ps ProjectServer) GetBindProjectListByServerID() (ProjectServers, error) {
+	rows, err := sq.
+		Select(`
+			project_server.id, 
+			project_id, 
+			server_id, 
+			project.name, 
+			project.branch, 
+			project.environment, 
+			project_server.insert_time, 
+			project_server.update_time`).
+		From(projectServerTable).
+		LeftJoin(projectTable + " ON project_server.project_id = project.id").
+		Where(sq.Eq{"server_id": ps.ServerID}).
+		RunWith(DB).
+		Query()
+
+	if err != nil {
+		return nil, err
+	}
+	projectServers := ProjectServers{}
+	for rows.Next() {
+		var projectServer ProjectServer
+
+		if err := rows.Scan(
+			&projectServer.ID,
+			&projectServer.ProjectID,
+			&projectServer.ServerID,
+			&projectServer.Project.Name,
+			&projectServer.Project.Branch,
+			&projectServer.Project.Environment,
 			&projectServer.InsertTime,
 			&projectServer.UpdateTime); err != nil {
 			return nil, err
@@ -122,6 +151,15 @@ func (ps ProjectServer) DeleteRow() error {
 	return err
 }
 
+func (ps ProjectServer) DeleteInID(id []int64) error {
+	_, err := sq.
+		Delete(projectServerTable).
+		Where(sq.Eq{"id": id}).
+		RunWith(DB).
+		Exec()
+	return err
+}
+
 func (ps ProjectServer) DeleteByProjectID() error {
 	_, err := sq.
 		Delete(projectServerTable).
@@ -133,57 +171,57 @@ func (ps ProjectServer) DeleteByProjectID() error {
 
 func (ps ProjectServer) ToSSHConfig() pkg.SSHConfig {
 	return pkg.SSHConfig{
-		User:         ps.ServerOwner,
-		Password:     ps.ServerPassword,
-		Path:         ps.ServerPath,
-		Host:         ps.ServerIP,
-		Port:         ps.ServerPort,
-		JumpUser:     ps.ServerJumpOwner,
-		JumpPassword: ps.ServerJumpPassword,
-		JumpPath:     ps.ServerJumpPath,
-		JumpHost:     ps.ServerJumpIP,
-		JumpPort:     ps.ServerJumpPort,
+		User:         ps.Server.Owner,
+		Password:     ps.Server.Password,
+		Path:         ps.Server.Path,
+		Host:         ps.Server.IP,
+		Port:         ps.Server.Port,
+		JumpUser:     ps.Server.JumpOwner,
+		JumpPassword: ps.Server.JumpPassword,
+		JumpPath:     ps.Server.JumpPath,
+		JumpHost:     ps.Server.JumpIP,
+		JumpPort:     ps.Server.JumpPort,
 	}
 }
 
 func (ps ProjectServer) ToSSHOption() string {
 	proxyCommand := ""
-	if ps.ServerJumpIP != "" {
-		if ps.ServerJumpPath != "" {
-			if ps.ServerJumpPassword != "" {
-				proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", ps.ServerJumpPassword, ps.ServerJumpPath, ps.ServerJumpPort, ps.ServerJumpOwner, ps.ServerJumpIP)
+	if ps.Server.JumpIP != "" {
+		if ps.Server.JumpPath != "" {
+			if ps.Server.JumpPassword != "" {
+				proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", ps.Server.JumpPassword, ps.Server.JumpPath, ps.Server.JumpPort, ps.Server.JumpOwner, ps.Server.JumpIP)
 			} else {
-				proxyCommand = fmt.Sprintf("-o ProxyCommand='ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", ps.ServerJumpPath, ps.ServerJumpPort, ps.ServerJumpOwner, ps.ServerJumpIP)
+				proxyCommand = fmt.Sprintf("-o ProxyCommand='ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", ps.Server.JumpPath, ps.Server.JumpPort, ps.Server.JumpOwner, ps.Server.JumpIP)
 			}
 		} else {
-			proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s ssh -o StrictHostKeyChecking=no -W %%h:%%p -p %d %s@%s' ", ps.ServerJumpPassword, ps.ServerJumpPort, ps.ServerJumpOwner, ps.ServerJumpIP)
+			proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s ssh -o StrictHostKeyChecking=no -W %%h:%%p -p %d %s@%s' ", ps.Server.JumpPassword, ps.Server.JumpPort, ps.Server.JumpOwner, ps.Server.JumpIP)
 		}
 	}
-	if ps.ServerPath != "" {
-		if ps.ServerPassword != "" {
-			return fmt.Sprintf("sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no %s -p %d -i %s", ps.ServerPassword, proxyCommand, ps.ServerPort, ps.ServerPath)
+	if ps.Server.Path != "" {
+		if ps.Server.Password != "" {
+			return fmt.Sprintf("sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no %s -p %d -i %s", ps.Server.Password, proxyCommand, ps.Server.Port, ps.Server.Path)
 		} else {
-			return fmt.Sprintf("ssh -o StrictHostKeyChecking=no %s -p %d -i %s", proxyCommand, ps.ServerPort, ps.ServerPath)
+			return fmt.Sprintf("ssh -o StrictHostKeyChecking=no %s -p %d -i %s", proxyCommand, ps.Server.Port, ps.Server.Path)
 		}
 	} else {
-		return fmt.Sprintf("sshpass -p %s ssh -o StrictHostKeyChecking=no %s -p %d", ps.ServerPassword, proxyCommand, ps.ServerPort)
+		return fmt.Sprintf("sshpass -p %s ssh -o StrictHostKeyChecking=no %s -p %d", ps.Server.Password, proxyCommand, ps.Server.Port)
 	}
 }
 
 func (ps ProjectServer) ReplaceVars(script string) string {
 	scriptVars := map[string]string{
 		"${SERVER_ID}":            strconv.FormatInt(ps.ServerID, 10),
-		"${SERVER_NAME}":          ps.ServerName,
-		"${SERVER_IP}":            ps.ServerIP,
-		"${SERVER_PORT}":          strconv.Itoa(ps.ServerPort),
-		"${SERVER_OWNER}":         ps.ServerOwner,
-		"${SERVER_PASSWORD}":      ps.ServerPassword,
-		"${SERVER_PATH}":          ps.ServerPath,
-		"${SERVER_JUMP_IP}":       ps.ServerJumpIP,
-		"${SERVER_JUMP_PORT}":     strconv.Itoa(ps.ServerJumpPort),
-		"${SERVER_JUMP_OWNER}":    ps.ServerJumpOwner,
-		"${SERVER_JUMP_PASSWORD}": ps.ServerJumpPassword,
-		"${SERVER_JUMP_PATH}":     ps.ServerJumpPath,
+		"${SERVER_NAME}":          ps.Server.Name,
+		"${SERVER_IP}":            ps.Server.IP,
+		"${SERVER_PORT}":          strconv.Itoa(ps.Server.Port),
+		"${SERVER_OWNER}":         ps.Server.Owner,
+		"${SERVER_PASSWORD}":      ps.Server.Password,
+		"${SERVER_PATH}":          ps.Server.Path,
+		"${SERVER_JUMP_IP}":       ps.Server.JumpIP,
+		"${SERVER_JUMP_PORT}":     strconv.Itoa(ps.Server.JumpPort),
+		"${SERVER_JUMP_OWNER}":    ps.Server.JumpOwner,
+		"${SERVER_JUMP_PASSWORD}": ps.Server.JumpPassword,
+		"${SERVER_JUMP_PATH}":     ps.Server.JumpPath,
 	}
 	for key, value := range scriptVars {
 		script = strings.Replace(script, key, value, -1)

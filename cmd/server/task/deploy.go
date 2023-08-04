@@ -295,7 +295,7 @@ func (gsync *Gsync) serverStage() error {
 			ServerID   int64  `json:"serverId"`
 			ServerName string `json:"serverName"`
 			Command    string `json:"command"`
-		}{projectServer.ServerID, projectServer.ServerName, logCmd})
+		}{projectServer.ServerID, projectServer.Server.Name, logCmd})
 		publishTraceModel.Ext = string(ext)
 
 		if transmitterOutput, err := transmitterEntity.Exec(); err != nil {
@@ -307,7 +307,7 @@ func (gsync *Gsync) serverStage() error {
 			}
 
 			ch <- syncMessage{
-				serverName: projectServer.ServerName,
+				serverName: projectServer.Server.Name,
 				projectID:  project.ID,
 				detail:     err.Error(),
 				state:      model.ProjectFail,
@@ -322,7 +322,7 @@ func (gsync *Gsync) serverStage() error {
 		}
 
 		var afterDeployCommands []string
-		cmdEntity := cmd.New(projectServer.ServerOS)
+		cmdEntity := cmd.New(projectServer.Server.OS)
 		if len(project.SymlinkPath) != 0 {
 			destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
 			afterDeployCommands = append(afterDeployCommands, cmdEntity.Symlink(destDir, project.Path))
@@ -337,7 +337,7 @@ func (gsync *Gsync) serverStage() error {
 		// no symlink and deploy script
 		if len(afterDeployCommands) == 0 {
 			ch <- syncMessage{
-				serverName: projectServer.ServerName,
+				serverName: projectServer.Server.Name,
 				projectID:  project.ID,
 				state:      model.ProjectSuccess,
 			}
@@ -349,7 +349,7 @@ func (gsync *Gsync) serverStage() error {
 			ServerID   int64  `json:"serverId"`
 			ServerName string `json:"serverName"`
 			Script     string `json:"script"`
-		}{projectServer.ServerID, projectServer.ServerName, completeAfterDeployCmd})
+		}{projectServer.ServerID, projectServer.Server.Name, completeAfterDeployCmd})
 		publishTraceModel.Ext = string(ext)
 
 		client, err := projectServer.ToSSHConfig().Dial()
@@ -361,7 +361,7 @@ func (gsync *Gsync) serverStage() error {
 				log.Errorf(projectLogFormat, project.ID, err)
 			}
 			ch <- syncMessage{
-				serverName: projectServer.ServerName,
+				serverName: projectServer.Server.Name,
 				projectID:  project.ID,
 				detail:     err.Error(),
 				state:      model.ProjectFail,
@@ -379,7 +379,7 @@ func (gsync *Gsync) serverStage() error {
 				log.Errorf(projectLogFormat, project.ID, err)
 			}
 			ch <- syncMessage{
-				serverName: projectServer.ServerName,
+				serverName: projectServer.Server.Name,
 				projectID:  project.ID,
 				detail:     sessionErr.Error(),
 				state:      model.ProjectFail,
@@ -397,7 +397,7 @@ func (gsync *Gsync) serverStage() error {
 				log.Errorf(projectLogFormat, project.ID, err)
 			}
 			ch <- syncMessage{
-				serverName: projectServer.ServerName,
+				serverName: projectServer.Server.Name,
 				projectID:  project.ID,
 				detail:     fmt.Sprintf("%s\noutput: %s", err.Error(), output),
 				state:      model.ProjectFail,
@@ -411,7 +411,7 @@ func (gsync *Gsync) serverStage() error {
 			log.Error("projectID: " + strconv.FormatInt(project.ID, 10) + " " + err.Error())
 		}
 		ch <- syncMessage{
-			serverName: projectServer.ServerName,
+			serverName: projectServer.Server.Name,
 			projectID:  project.ID,
 			state:      model.ProjectSuccess,
 		}
@@ -532,10 +532,10 @@ func (gsync *Gsync) notify(deployState int, detail string) {
 	}
 	serverList := ""
 	for _, projectServer := range gsync.ProjectServers {
-		if projectServer.ServerName != projectServer.ServerIP {
-			serverList += projectServer.ServerName + "(" + projectServer.ServerIP + ")"
+		if projectServer.Server.Name != projectServer.Server.IP {
+			serverList += projectServer.Server.Name + "(" + projectServer.Server.IP + ")"
 		} else {
-			serverList += projectServer.ServerIP
+			serverList += projectServer.Server.IP
 		}
 		serverList += ", "
 	}

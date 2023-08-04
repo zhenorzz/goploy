@@ -377,7 +377,7 @@
               :key="index"
               :label="item.serverId"
             >
-              {{ item.serverName + '(' + item.serverDescription + ')' }}
+              {{ item.server.name + '(' + item.server.description + ')' }}
             </el-checkbox>
           </el-checkbox-group>
         </el-form-item>

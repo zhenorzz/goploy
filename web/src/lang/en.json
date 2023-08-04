@@ -104,6 +104,7 @@
   "expression": "Expression",
   "delete": "Delete",
   "remove": "Remove",
+  "unbind": "Unbind",
   "install": "Install",
   "confirm": "Confirm",
   "save": "Save",
@@ -261,7 +262,8 @@
     "ManageServerNginx": "Manage nginx process",
     "EditNginxConfig": "Edit the nginx config",
     "AddNginxConfig": "Add the nginx config",
-    "DeleteNginxConfig": "Delete the nginx config"
+    "DeleteNginxConfig": "Delete the nginx config",
+    "UnbindServerProject": "Unbind projects"
   },
   "tagsView": {
     "refresh": "Refresh",
@@ -318,7 +320,8 @@
     "transferFile": "Transfer file",
     "sftpFileCount": "items",
     "saveTemplate": "Save template",
-    "execTips": "Exec command {command}?"
+    "execTips": "Exec command {command}?",
+    "unbindProjectTips": "This action will remove the selected projects, continue?"
   },
   "monitorPage": {
     "defaultServer": "Follow Host",

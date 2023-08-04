@@ -23,7 +23,7 @@ type rsyncTransmitter struct {
 func (rt rsyncTransmitter) args() []string {
 	project := rt.Project
 	projectServer := rt.ProjectServer
-	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
+	remoteMachine := projectServer.Server.Owner + "@" + projectServer.Server.IP
 	destDir := project.Path
 	if len(project.SymlinkPath) != 0 {
 		destDir = path.Join(project.SymlinkPath, project.LastPublishToken)
@@ -42,7 +42,7 @@ func (rt rsyncTransmitter) args() []string {
 	}, rsyncOption...)
 	rsyncOption = append(rsyncOption, "-e", projectServer.ToSSHOption())
 
-	if projectServer.ServerOS == model.ServerOSLinux {
+	if projectServer.Server.OS == model.ServerOSLinux {
 		rsyncOption = append(rsyncOption, "--rsync-path=mkdir -p "+destDir+" && rsync")
 	}
 
