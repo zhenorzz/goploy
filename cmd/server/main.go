@@ -14,7 +14,7 @@ import (
 	"github.com/zhenorzz/goploy/cmd/server/api/agent"
 	"github.com/zhenorzz/goploy/cmd/server/api/cron"
 	"github.com/zhenorzz/goploy/cmd/server/api/deploy"
-	log2 "github.com/zhenorzz/goploy/cmd/server/api/log"
+	logApi "github.com/zhenorzz/goploy/cmd/server/api/log"
 	"github.com/zhenorzz/goploy/cmd/server/api/monitor"
 	"github.com/zhenorzz/goploy/cmd/server/api/namespace"
 	"github.com/zhenorzz/goploy/cmd/server/api/project"
@@ -136,7 +136,7 @@ func main() {
 	srv.Router.Register(monitor.Monitor{})
 	srv.Router.Register(deploy.Deploy{})
 	srv.Router.Register(server2.Server{})
-	srv.Router.Register(log2.Log{})
+	srv.Router.Register(logApi.Log{})
 	srv.Router.Register(cron.Cron{})
 	srv.Router.Register(agent.Agent{})
 	srv.Router.Register(template.Template{})

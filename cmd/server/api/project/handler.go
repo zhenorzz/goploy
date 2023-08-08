@@ -270,7 +270,7 @@ func (Project) GetBindUserList(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	projectUsers, err := model.ProjectUser{ProjectID: id, NamespaceID: gp.Namespace.ID}.GetBindUserListByProjectID()
+	projectUsers, err := model.ProjectUser{ProjectID: id}.GetBindUserListByProjectID()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}

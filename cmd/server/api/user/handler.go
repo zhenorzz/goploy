@@ -291,7 +291,7 @@ func (User) Add(gp *server.Goploy) server.Response {
 		Password     string `json:"password" validate:"omitempty,password"`
 		Name         string `json:"name" validate:"required"`
 		Contact      string `json:"contact" validate:"omitempty,len=11,numeric"`
-		SuperManager int64  `json:"superManager" validate:"required,oneof=0 1"`
+		SuperManager int64  `json:"superManager" validate:"oneof=0 1"`
 	}
 
 	var reqData ReqData
@@ -348,7 +348,7 @@ func (User) Edit(gp *server.Goploy) server.Response {
 		Password     string `json:"password" validate:"omitempty,password"`
 		Name         string `json:"name" validate:"required"`
 		Contact      string `json:"contact" validate:"omitempty,len=11,numeric"`
-		SuperManager int64  `json:"superManager" validate:"required,oneof=0 1"`
+		SuperManager int64  `json:"superManager" validate:"oneof=0 1"`
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {

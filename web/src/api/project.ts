@@ -1,5 +1,6 @@
 import { ServerData } from './server'
 import { Request, Pagination, ID, Total } from './types'
+import { UserData } from './user'
 
 export interface ProjectScript {
   afterPull: { mode: string; content: string }
@@ -58,11 +59,10 @@ export interface ProjectServerData {
 
 export interface ProjectUserData {
   id: number
-  namespaceId: number
   projectId: number
-  projectName: string
   userId: number
-  userName: string
+  project: ProjectData
+  user: UserData
   role: string
   insertTime: string
   updateTime: string
@@ -257,7 +257,7 @@ export class ProjectFileList extends Request {
   public declare datagram: {
     list: ProjectFileData[]
   }
-  constructor(param: ProjectUserList['param']) {
+  constructor(param: ProjectFileList['param']) {
     super()
     this.param = param
   }
@@ -270,7 +270,7 @@ export class ProjectFileContent extends Request {
   public declare datagram: {
     content: string
   }
-  constructor(param: ProjectUserList['param']) {
+  constructor(param: ProjectFileContent['param']) {
     super()
     this.param = param
   }
