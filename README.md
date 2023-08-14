@@ -4,13 +4,13 @@
 
 <p align="center">
   <a href="#">
-      <img src="https://img.shields.io/badge/readme%20style-standard-brightgreen.svg">
+      <img src="https://img.shields.io/badge/readme%20style-standard-brightgreen.svg" alt="readme">
   </a>
   <a href="#">
-      <img src="https://img.shields.io/badge/give%20me-a%20star-green.svg">
+      <img src="https://img.shields.io/badge/give%20me-a%20star-green.svg" alt="give me a star">
     </a>
   <a href="LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-yellow.svg">
+    <img src="https://img.shields.io/badge/License-GPLv3-yellow.svg" alt="License-GPLv3">
   </a>
 </p>
 
@@ -33,6 +33,8 @@ Complete installation instructions, no difficulty in getting started!
 [Dockerfile](./docker/Dockerfile)
 
 [Document](https://docs.goploy.icu)
+
+[OpenAPI](https://api-doc.goploy.icu)
 
 [Goploy-Agent](https://github.com/zhenorzz/goploy-agent) Monitor server performance
 

@@ -4,13 +4,13 @@
 
 <p align="center">
   <a href="#">
-      <img src="https://img.shields.io/badge/readme%20style-standard-brightgreen.svg">
+      <img src="https://img.shields.io/badge/readme%20style-standard-brightgreen.svg" alt="readme">
   </a>
   <a href="#">
-      <img src="https://img.shields.io/badge/give%20me-a%20star-green.svg">
+      <img src="https://img.shields.io/badge/give%20me-a%20star-green.svg" alt="give me a star">
     </a>
   <a href="LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-yellow.svg">
+    <img src="https://img.shields.io/badge/License-GPLv3-yellow.svg" alt="License-GPLv3">
   </a>
 </p>
 
@@ -34,6 +34,8 @@
 
 [帮助文档](https://docs.goploy.icu)
 
+[OpenAPI](https://api-doc.goploy.icu)
+
 [Goploy-Agent](https://github.com/zhenorzz/goploy-agent) 监控服务器性能
 
 [Goploy-Vscode](https://github.com/goploy-devops/goploy-vscode) 在Vscode插件市场搜索Goploy
@@ -49,7 +51,6 @@
 - [原理图](#原理图)
 - [后端开发说明](#后端开发说明)
 - [前端开发说明](#前端开发说明)
-- [相关仓库](#相关仓库)
 - [如何贡献](#如何贡献)
 - [使用许可](#使用许可)
 

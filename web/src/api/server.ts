@@ -1,3 +1,4 @@
+import { ProjectServerData } from './project'
 import { HttpResponse, Request, ID } from './types'
 
 export interface ServerData {
@@ -115,6 +116,19 @@ export class ServerOption extends Request {
   }
 }
 
+export class ServerProjectList extends Request {
+  readonly url = '/server/getBindProjectList'
+  readonly method = 'get'
+  public param: ID
+  public declare datagram: {
+    list: ProjectServerData[]
+  }
+  constructor(param: ServerProjectList['param']) {
+    super()
+    this.param = param
+  }
+}
+
 export class ServerAdd extends Request {
   readonly url = '/server/add'
   readonly method = 'post'
@@ -195,6 +209,18 @@ export class ServerToggle extends Request {
     state: number
   }
   constructor(param: ServerToggle['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class ServerProjectUnbind extends Request {
+  readonly url = '/server/unbindProject'
+  readonly method = 'delete'
+  public param: {
+    ids: number[]
+  }
+  constructor(param: ServerProjectUnbind['param']) {
     super()
     this.param = param
   }

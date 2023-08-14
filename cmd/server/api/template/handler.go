@@ -2,9 +2,10 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package api
+package template
 
 import (
+	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
@@ -12,7 +13,7 @@ import (
 	"net/http"
 )
 
-type Template API
+type Template api.API
 
 func (t Template) Handler() []server.Route {
 	return []server.Route{
@@ -27,7 +28,7 @@ func (Template) GetOption(gp *server.Goploy) server.Response {
 		Type uint8 `json:"type" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -48,7 +49,7 @@ func (Template) Add(gp *server.Goploy) server.Response {
 		Description string `json:"description" validate:"max=2047"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -74,7 +75,7 @@ func (Template) Remove(gp *server.Goploy) server.Response {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

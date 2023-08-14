@@ -6,6 +6,7 @@ package task
 
 import (
 	"database/sql"
+	"errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/cmd/server/ws"
 	"github.com/zhenorzz/goploy/internal/model"
@@ -58,7 +59,7 @@ var monitorCaches = map[int64]MonitorCache{}
 
 func monitorTask() {
 	monitors, err := model.Monitor{State: model.Enable}.GetAllByState()
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Error("get monitor list error, detail:" + err.Error())
 	}
 	monitorIDs := map[int64]struct{}{}
@@ -111,8 +112,9 @@ func monitorTask() {
 				}
 			}
 			var serverID int64
-			if err, ok := err.(monitor.ScriptError); ok {
-				serverID = err.ServerID
+			var se monitor.ScriptError
+			if errors.As(err, &se) {
+				serverID = se.ServerID
 			}
 
 			if err = ms.RunFailScript(serverID); err != nil {

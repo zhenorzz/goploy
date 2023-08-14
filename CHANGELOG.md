@@ -10,8 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - add user api key
 - add publish progress
-- add vscode extension
-- add jetbrains extension
+- [add vscode extension](https://github.com/goploy-devops/goploy-vscode)
+- [add jetbrains extension](https://github.com/goploy-devops/goploy-jetbrains)
 
 ### Changed
 

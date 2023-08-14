@@ -2,9 +2,10 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package api
+package role
 
 import (
+	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/model"
@@ -13,7 +14,7 @@ import (
 	"net/http"
 )
 
-type Role API
+type Role api.API
 
 func (r Role) Handler() []server.Route {
 	return []server.Route{
@@ -28,48 +29,80 @@ func (r Role) Handler() []server.Route {
 	}
 }
 
+// GetList lists roles
+// @Summary List roles
+// @Tags Role
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Success 200 {object} response.JSON{data=role.GetList.RespData}
+// @Router /role/getList [get]
 func (Role) GetList(*server.Goploy) server.Response {
 	roleList, err := model.Role{}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
+	type RespData struct {
+		List model.Roles `json:"list"`
+	}
+
 	return response.JSON{
-		Data: struct {
-			List model.Roles `json:"list"`
-		}{List: roleList},
+		Data: RespData{List: roleList},
 	}
 }
 
+// GetOption lists all roles
+// @Summary List all roles
+// @Tags Role
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Success 200 {object} response.JSON{data=role.GetOption.RespData}
+// @Router /role/getOption [get]
 func (Role) GetOption(*server.Goploy) server.Response {
 	list, err := model.Role{}.GetAll()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	return response.JSON{Data: struct {
+
+	type RespData struct {
 		List model.Roles `json:"list"`
-	}{list}}
+	}
+	return response.JSON{Data: RespData{list}}
 }
 
+// GetPermissionList lists permissions
+// @Summary List permissions
+// @Tags Role
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Success 200 {object} response.JSON{data=role.GetPermissionList.RespData}
+// @Router /role/getPermissionList [get]
 func (Role) GetPermissionList(*server.Goploy) server.Response {
 	list, err := model.Permission{}.GetList()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-
+	type RespData struct {
+		List model.Permissions `json:"list"`
+	}
 	return response.JSON{
-		Data: struct {
-			List model.Permissions `json:"list"`
-		}{List: list},
+		Data: RespData{List: list},
 	}
 }
 
+// GetPermissionBindings lists role permissions
+// @Summary List role permissions
+// @Tags Role
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Success 200 {object} response.JSON{data=role.GetPermissionBindings.RespData}
+// @Router /role/getPermissionBindings [get]
 func (Role) GetPermissionBindings(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		RoleID int64 `json:"roleId" validate:"required"`
+		RoleID int64 `json:"roleId" validate:"required,gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -78,20 +111,29 @@ func (Role) GetPermissionBindings(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
+	type RespData struct {
+		List model.RolePermissions `json:"list"`
+	}
 	return response.JSON{
-		Data: struct {
-			List model.RolePermissions `json:"list"`
-		}{List: list},
+		Data: RespData{List: list},
 	}
 }
 
+// Add adds a role
+// @Summary Add a role
+// @Tags Role
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body role.Add.ReqData true "body params"
+// @Success 200 {object} response.JSON{data=role.Add.RespData}
+// @Router /role/add [post]
 func (Role) Add(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		Name        string `json:"name" validate:"required"`
 		Description string `json:"description" validate:"max=255"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -100,21 +142,30 @@ func (Role) Add(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
+	type RespData struct {
+		ID int64 `json:"id"`
+	}
 	return response.JSON{
-		Data: struct {
-			ID int64 `json:"id"`
-		}{ID: id},
+		Data: RespData{ID: id},
 	}
 }
 
+// Edit edits the role
+// @Summary Edit the role
+// @Tags Role
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body role.Edit.ReqData true "body params"
+// @Success 200 {object} response.JSON
+// @Router /role/edit [put]
 func (Role) Edit(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		ID          int64  `json:"id" validate:"gt=0"`
+		ID          int64  `json:"id" validate:"required,gt=0"`
 		Name        string `json:"name" validate:"required"`
 		Description string `json:"description" validate:"max=255"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -126,12 +177,20 @@ func (Role) Edit(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// Remove removes the role
+// @Summary Remove the role
+// @Tags Role
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body role.Remove.ReqData true "body params"
+// @Success 200 {object} response.JSON
+// @Router /role/remove [delete]
 func (Role) Remove(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		ID int64 `json:"id" validate:"gt=0"`
+		ID int64 `json:"id" validate:"required,gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -150,13 +209,21 @@ func (Role) Remove(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// ChangePermission changes the role permissions
+// @Summary Change the role permissions
+// @Tags Role
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body role.ChangePermission.ReqData true "body params"
+// @Success 200 {object} response.JSON
+// @Router /role/changePermission [put]
 func (Role) ChangePermission(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		PermissionIDs []int64 `json:"permissionIds" validate:"required"`
-		RoleID        int64   `json:"roleId" validate:"required"`
+		RoleID        int64   `json:"roleId" validate:"required,gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

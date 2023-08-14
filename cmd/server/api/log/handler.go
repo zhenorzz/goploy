@@ -2,9 +2,10 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package api
+package log
 
 import (
+	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
@@ -13,7 +14,7 @@ import (
 )
 
 // Log struct
-type Log API
+type Log api.API
 
 func (l Log) Handler() []server.Route {
 	return []server.Route{
@@ -38,7 +39,7 @@ func (Log) GetLoginLogList(gp *server.Goploy) server.Response {
 		Rows    uint64 `schema:"rows" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
@@ -58,7 +59,7 @@ func (Log) GetLoginLogTotal(gp *server.Goploy) server.Response {
 		Account string `schema:"account"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 	total, err := model.LoginLog{Account: reqData.Account}.GetTotal()
@@ -81,7 +82,7 @@ func (Log) GetOperationLogList(gp *server.Goploy) server.Response {
 		Rows     uint64 `schema:"rows" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
@@ -109,7 +110,7 @@ func (Log) GetOperationLogTotal(gp *server.Goploy) server.Response {
 		API      string `schema:"api"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
@@ -138,7 +139,7 @@ func (Log) GetSftpLogList(gp *server.Goploy) server.Response {
 		Rows       uint64 `schema:"rows" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
@@ -165,7 +166,7 @@ func (Log) GetSftpLogTotal(gp *server.Goploy) server.Response {
 		ServerName string `schema:"serverName"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
@@ -194,7 +195,7 @@ func (Log) GetTerminalLogList(gp *server.Goploy) server.Response {
 		Rows       uint64 `schema:"rows" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
@@ -221,7 +222,7 @@ func (Log) GetTerminalLogTotal(gp *server.Goploy) server.Response {
 		ServerName string `schema:"serverName"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
@@ -247,7 +248,7 @@ func (Log) GetTerminalRecord(gp *server.Goploy) server.Response {
 		RecordID int64 `schema:"recordId" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 	terminalLog, err := model.TerminalLog{ID: reqData.RecordID}.GetData()
@@ -268,7 +269,7 @@ func (Log) GetPublishLogList(gp *server.Goploy) server.Response {
 		Rows        uint64 `schema:"rows" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
@@ -295,7 +296,7 @@ func (Log) GetPublishLogTotal(gp *server.Goploy) server.Response {
 		ProjectName string `schema:"projectName"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 

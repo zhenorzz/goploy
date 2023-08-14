@@ -172,7 +172,9 @@ function getList() {
               'route.' + children.meta.title
             )
           }
-        } catch (error) {}
+        } catch (error) {
+          console.log(error)
+        }
       }
       tableData.value = response.data.list.map((item) => {
         item.routerName = routerObj[item.router] || item.router

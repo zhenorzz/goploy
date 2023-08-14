@@ -23,7 +23,7 @@ type sftpTransmitter struct {
 }
 
 func (st sftpTransmitter) String() string {
-	return "sftp " + st.Project.TransferOption
+	return "sftp " + st.Project.ReplaceVars(st.Project.TransferOption)
 }
 
 func (st sftpTransmitter) Exec() (string, error) {
@@ -40,7 +40,7 @@ func (st sftpTransmitter) Exec() (string, error) {
 	defer sftpClient.Close()
 
 	project := st.Project
-	transferOption, _ := pkg.ParseCommandLine(project.TransferOption)
+	transferOption, _ := pkg.ParseCommandLine(st.ProjectServer.ReplaceVars(project.ReplaceVars(project.TransferOption)))
 	var opt struct {
 		isVerbose bool
 		isDelete  bool

@@ -6,6 +6,7 @@ package task
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/internal/model"
@@ -49,7 +50,7 @@ func serverMonitorTask() {
 	loop++
 	var serverCaches = map[int64]model.Server{}
 	serverMonitorTasks, err := model.ServerMonitor{}.GetAllModBy(loop, time.Now().Format("15:04"))
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Error("get server monitor list error, detail:" + err.Error())
 	}
 	for _, serverMonitor := range serverMonitorTasks {

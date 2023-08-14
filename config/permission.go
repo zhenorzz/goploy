@@ -88,4 +88,5 @@ const (
 	AddNginxConfig          = 81
 	EditNginxConfig         = 82
 	DeleteNginxConfig       = 83
+	UnbindServerProject     = 84
 )

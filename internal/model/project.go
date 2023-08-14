@@ -568,6 +568,8 @@ func (p Project) ReplaceVars(script string) string {
 		"${PROJECT_SYMLINK_PATH}": path.Join(p.SymlinkPath, p.LastPublishToken),
 		"${PROJECT_NAME}":         p.Name,
 		"${PROJECT_BRANCH}":       p.Branch,
+		"${PROJECT_ENV}":          strconv.FormatUint(uint64(p.Environment), 10),
+		"${PROJECT_LABEL}":        p.Label,
 		"${REPOSITORY_TYPE}":      p.RepoType,
 		"${REPOSITORY_URL}":       p.URL,
 		"${REPOSITORY_PATH}":      config.GetProjectPath(p.ID),

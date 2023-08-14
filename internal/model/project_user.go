@@ -14,14 +14,13 @@ import (
 const projectUserTable = "`project_user`"
 
 type ProjectUser struct {
-	ID          int64  `json:"id"`
-	NamespaceID int64  `json:"namespaceId,omitempty"`
-	ProjectID   int64  `json:"projectId"`
-	ProjectName string `json:"projectName"`
-	UserID      int64  `json:"userId"`
-	UserName    string `json:"userName"`
-	InsertTime  string `json:"insertTime"`
-	UpdateTime  string `json:"updateTime"`
+	ID         int64   `json:"id"`
+	ProjectID  int64   `json:"projectId"`
+	UserID     int64   `json:"userId"`
+	Project    Project `json:"project,omitempty"`
+	User       User    `json:"user,omitempty"`
+	InsertTime string  `json:"insertTime"`
+	UpdateTime string  `json:"updateTime"`
 }
 
 type ProjectUsers []ProjectUser
@@ -45,7 +44,7 @@ func (pu ProjectUser) GetBindUserListByProjectID() (ProjectUsers, error) {
 			&projectUser.ID,
 			&projectUser.ProjectID,
 			&projectUser.UserID,
-			&projectUser.UserName,
+			&projectUser.User.Name,
 			&projectUser.InsertTime,
 			&projectUser.UpdateTime,
 		); err != nil {

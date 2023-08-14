@@ -23,7 +23,7 @@ type rsyncTransmitter struct {
 func (rt rsyncTransmitter) args() []string {
 	project := rt.Project
 	projectServer := rt.ProjectServer
-	remoteMachine := projectServer.ServerOwner + "@" + projectServer.ServerIP
+	remoteMachine := projectServer.Server.Owner + "@" + projectServer.Server.IP
 	destDir := project.Path
 	if len(project.SymlinkPath) != 0 {
 		destDir = path.Join(project.SymlinkPath, project.LastPublishToken)
@@ -35,14 +35,14 @@ func (rt rsyncTransmitter) args() []string {
 		srcPath = "/cygdrive/" + strings.Replace(srcPath, ":\\", "/", 1)
 	}
 
-	rsyncOption, _ := pkg.ParseCommandLine(project.TransferOption)
+	rsyncOption, _ := pkg.ParseCommandLine(projectServer.ReplaceVars(project.ReplaceVars(project.TransferOption)))
 	rsyncOption = append([]string{
 		"--include",
 		fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode)),
 	}, rsyncOption...)
 	rsyncOption = append(rsyncOption, "-e", projectServer.ToSSHOption())
 
-	if projectServer.ServerOS == model.ServerOSLinux {
+	if projectServer.Server.OS == model.ServerOSLinux {
 		rsyncOption = append(rsyncOption, "--rsync-path=mkdir -p "+destDir+" && rsync")
 	}
 

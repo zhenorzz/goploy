@@ -2,7 +2,7 @@
 // Use of this source code is governed by a GPLv3-style
 // license that can be found in the LICENSE file.
 
-package api
+package server
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/pkg/sftp"
 	log "github.com/sirupsen/logrus"
+	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/model"
@@ -29,18 +30,20 @@ import (
 )
 
 // Server struct
-type Server API
+type Server api.API
 
 func (s Server) Handler() []server.Route {
 	return []server.Route{
 		server.NewRoute("/server/getList", http.MethodGet, s.GetList).Permissions(config.ShowServerPage),
 		server.NewRoute("/server/getOption", http.MethodGet, s.GetOption),
+		server.NewRoute("/server/getBindProjectList", http.MethodGet, s.GetBindProjectList).Permissions(config.ShowServerPage),
 		server.NewRoute("/server/getPublicKey", http.MethodGet, s.GetPublicKey).Permissions(config.AddServer, config.EditServer).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/server/check", http.MethodPost, s.Check).Permissions(config.AddServer, config.EditServer).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/server/import", http.MethodPost, s.Import).Permissions(config.ImportCSV).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/server/add", http.MethodPost, s.Add).Permissions(config.AddServer).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/server/edit", http.MethodPut, s.Edit).Permissions(config.EditServer).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/server/toggle", http.MethodPut, s.Toggle).Permissions(config.EditServer).LogFunc(middleware.AddOPLog),
+		server.NewRoute("/server/unbindProject", http.MethodDelete, s.UnbindProject).Permissions(config.UnbindServerProject).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/server/installAgent", http.MethodPost, s.InstallAgent).Permissions(config.InstallAgent).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/server/previewFile", http.MethodGet, s.PreviewFile).Permissions(config.SFTPPreviewFile).LogFunc(middleware.AddPreviewLog),
 		server.NewRoute("/server/downloadFile", http.MethodGet, s.DownloadFile).Permissions(config.SFTPDownloadFile).LogFunc(middleware.AddDownloadLog),
@@ -96,6 +99,35 @@ func (Server) GetOption(gp *server.Goploy) server.Response {
 	}
 }
 
+// GetBindProjectList lists all binding projects
+// @Summary List all binding projects
+// @Tags Server
+// @Produce json
+// @Param request query server.GetBindUserList.ReqData true "query params"
+// @Success 200 {object} response.JSON{data=project.GetBindProjectList.RespData}
+// @Router /server/getBindProjectList [get]
+func (Server) GetBindProjectList(gp *server.Goploy) server.Response {
+	type ReqData struct {
+		ID int64 `json:"id" validate:"gt=0"`
+	}
+	var reqData ReqData
+	if err := gp.Decode(&reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	projectServers, err := model.ProjectServer{ServerID: reqData.ID}.GetBindProjectListByServerID()
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	type RespData struct {
+		ProjectServers model.ProjectServers `json:"list"`
+	}
+	return response.JSON{
+		Data: RespData{ProjectServers: projectServers},
+	}
+}
+
 func (Server) GetPublicKey(gp *server.Goploy) server.Response {
 	publicKeyPath := gp.URLQuery.Get("path")
 
@@ -124,7 +156,7 @@ func (Server) Check(gp *server.Goploy) server.Response {
 		JumpPassword string `json:"jumpPassword"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -291,6 +323,14 @@ func (Server) Import(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// Add adds the servers
+// @Summary Add the servers
+// @Tags Server
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body server.Add.ReqData true "body params"
+// @Success 200 {object} response.JSON
+// @Router /server/add [post]
 func (s Server) Add(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		Name         string `json:"name" validate:"required"`
@@ -310,7 +350,7 @@ func (s Server) Add(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -344,6 +384,14 @@ func (s Server) Add(gp *server.Goploy) server.Response {
 	}
 }
 
+// Edit edits the servers
+// @Summary Edit the servers
+// @Tags Server
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body server.Edit.ReqData true "body params"
+// @Success 200 {object} response.JSON
+// @Router /server/edit [put]
 func (s Server) Edit(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ID           int64  `json:"id" validate:"gt=0"`
@@ -363,7 +411,7 @@ func (s Server) Edit(gp *server.Goploy) server.Response {
 		JumpPassword string `json:"jumpPassword"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	srv := model.Server{
@@ -391,13 +439,21 @@ func (s Server) Edit(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// Toggle toggles the server state
+// @Summary Toggle the server state
+// @Tags Server
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body server.Toggle.ReqData true "body params"
+// @Success 200 {object} response.JSON
+// @Router /server/toggle [put]
 func (Server) Toggle(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ID    int64 `json:"id" validate:"gt=0"`
 		State int8  `json:"state" validate:"oneof=0 1"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -407,16 +463,39 @@ func (Server) Toggle(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
+// UnbindProject unbinds the projects
+// @Summary Unbind the projects
+// @Tags Server
+// @Produce json
+// @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
+// @Param request body server.UnbindProject.ReqData true "body params"
+// @Success 200 {object} response.JSON
+// @Router /server/unbindProject [delete]
+func (Server) UnbindProject(gp *server.Goploy) server.Response {
+	type ReqData struct {
+		IDs []int64 `json:"ids" validate:"required,min=1"`
+	}
+	var reqData ReqData
+	if err := gp.Decode(&reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	if err := (model.ProjectServer{}).DeleteInID(reqData.IDs); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	return response.JSON{}
+}
+
 func (Server) InstallAgent(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		IDs         []int64 `json:"ids" validate:"min=1"`
+		IDs         []int64 `json:"ids" validate:"required,min=1"`
 		InstallPath string  `json:"installPath" validate:"required"`
 		Tool        string  `json:"tool" validate:"required"`
 		ReportURL   string  `json:"reportURL" validate:"required"`
 		WebPort     string  `json:"webPort" validate:"omitempty"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -455,14 +534,14 @@ func (Server) InstallAgent(gp *server.Goploy) server.Response {
 				fmt.Sprintf("[./goploy-agent -s stop || true"),
 				downloadCommand,
 				"touch ./goploy-agent.toml",
-				"echo env = 'production' > ./goploy-agent.toml",
+				"echo env = \\'production\\' > ./goploy-agent.toml",
 				"echo [goploy] >> ./goploy-agent.toml",
-				fmt.Sprintf("echo reportURL = '%s' >> ./goploy-agent.toml", reqData.ReportURL),
-				fmt.Sprintf("echo key = '%s' >> ./goploy-agent.toml", config.Toml.JWT.Key),
-				"echo uidType = 'id' >> ./goploy-agent.toml",
+				fmt.Sprintf("echo reportURL = \\'%s\\' >> ./goploy-agent.toml", reqData.ReportURL),
+				fmt.Sprintf("echo key = \\'%s\\' >> ./goploy-agent.toml", config.Toml.JWT.Key),
+				"echo uidType = \\'id\\' >> ./goploy-agent.toml",
 				fmt.Sprintf("echo uid = '%d' >> ./goploy-agent.toml", id),
 				"echo [log] >> ./goploy-agent.toml",
-				"echo path = 'stdout' >> ./goploy-agent.toml",
+				"echo path = \\'stdout\\' >> ./goploy-agent.toml",
 				"echo [web] >> ./goploy-agent.toml",
 				fmt.Sprintf("echo port = '%s' >> ./goploy-agent.toml", reqData.WebPort),
 				"chmod a+x ./goploy-agent",
@@ -519,7 +598,7 @@ func (Server) UploadFile(gp *server.Goploy) server.Response {
 		FilePath string `schema:"filePath"  validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
@@ -567,7 +646,7 @@ func (Server) EditFile(gp *server.Goploy) server.Response {
 		Content  string `json:"content" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -609,7 +688,7 @@ func (Server) CopyFile(gp *server.Goploy) server.Response {
 		DstName  string `json:"dstName" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -650,7 +729,7 @@ func (Server) RenameFile(gp *server.Goploy) server.Response {
 		CurrentName string `json:"currentName" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -682,7 +761,7 @@ func (Server) DeleteFile(gp *server.Goploy) server.Response {
 		ServerID int64  `json:"serverId" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -728,7 +807,7 @@ func (Server) TransferFile(gp *server.Goploy) server.Response {
 		DestDir        string  `json:"destDir" validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -855,7 +934,7 @@ func (Server) Report(gp *server.Goploy) server.Response {
 		DatetimeRange string `schema:"datetimeRange"  validate:"required"`
 	}
 	var reqData ReqData
-	if err := decodeQuery(gp.URLQuery, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -933,7 +1012,7 @@ func (s Server) AddMonitor(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -980,7 +1059,7 @@ func (s Server) EditMonitor(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -1012,7 +1091,7 @@ func (s Server) DeleteMonitor(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -1046,7 +1125,7 @@ func (Server) AddProcess(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -1074,7 +1153,7 @@ func (Server) EditProcess(gp *server.Goploy) server.Response {
 		Items string `json:"items"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	err := model.ServerProcess{
@@ -1094,7 +1173,7 @@ func (Server) DeleteProcess(gp *server.Goploy) server.Response {
 		ID int64 `json:"id" validate:"gt=0"`
 	}
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -1125,7 +1204,7 @@ func (Server) ExecProcess(gp *server.Goploy) server.Response {
 	respData.ExecRes = false
 	respData.ServerID = reqData.ServerID
 
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		respData.Stderr = err.Error()
 		return response.JSON{Data: respData}
 	}
@@ -1190,7 +1269,7 @@ func (Server) ExecScript(gp *server.Goploy) server.Response {
 	}
 
 	var reqData ReqData
-	if err := decodeJson(gp.Body, &reqData); err != nil {
+	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
