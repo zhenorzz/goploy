@@ -19,6 +19,7 @@ export class Login extends Request {
   public param: {
     account: string
     password: string
+    captchaKey: string
   }
   public declare datagram: {
     namespaceList: { id: number; name: string; roleId: number }[]
@@ -168,6 +169,37 @@ export class UserChangePassword extends Request {
     newPwd: string
   }
   constructor(param: UserChangePassword['param']) {
+    super()
+    this.param = param
+  }
+}
+
+export class GetCaptchaConfig extends Request {
+  readonly url = '/user/getCaptchaConfig'
+  readonly method = 'get'
+  public declare datagram: {
+    enabled: boolean
+  }
+}
+
+export class GetCaptcha extends Request {
+  readonly url = '/user/getCaptcha'
+  readonly method = 'get'
+  public declare datagram: {
+    base64: string
+    thumbBase64: string
+    key: string
+  }
+}
+
+export class CheckCaptcha extends Request {
+  readonly url = '/user/checkCaptcha'
+  readonly method = 'post'
+  public param: {
+    dots: number[]
+    key: string
+  }
+  constructor(param: CheckCaptcha['param']) {
     super()
     this.param = param
   }

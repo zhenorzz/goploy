@@ -19,6 +19,7 @@ func Init() {
 	startProjectTask()
 	startServerMonitorTask()
 	startDeployTask()
+	startMemoryCacheTask()
 }
 
 func Shutdown(ctx context.Context) error {

@@ -29,6 +29,7 @@ type Config struct {
 	Dingtalk DingtalkConfig `toml:"dingtalk"`
 	Feishu   FeishuConfig   `toml:"feishu"`
 	CORS     CORSConfig     `toml:"cors"`
+	CAPTCHA  CaptchaConfig  `toml:"captcha"`
 }
 
 type APPConfig struct {
@@ -89,6 +90,10 @@ type DingtalkConfig struct {
 type FeishuConfig struct {
 	AppKey    string `toml:"appKey"`
 	AppSecret string `toml:"appSecret"`
+}
+
+type CaptchaConfig struct {
+	Enabled bool `toml:"enabled"`
 }
 
 var Toml Config

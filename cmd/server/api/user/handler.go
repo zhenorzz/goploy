@@ -11,9 +11,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-ldap/ldap/v3"
+	"github.com/wenlng/go-captcha/captcha"
 	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/cache/memory"
 	"github.com/zhenorzz/goploy/internal/media"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
@@ -40,6 +42,9 @@ func (u User) Handler() []server.Route {
 		server.NewRoute("/user/remove", http.MethodDelete, u.Remove).Permissions(config.DeleteMember).LogFunc(middleware.AddOPLog),
 		server.NewWhiteRoute("/user/mediaLogin", http.MethodPost, u.MediaLogin).LogFunc(middleware.AddLoginLog),
 		server.NewWhiteRoute("/user/getMediaLoginUrl", http.MethodGet, u.GetMediaLoginUrl),
+		server.NewWhiteRoute("/user/getCaptchaConfig", http.MethodGet, u.GetCaptchaConfig),
+		server.NewWhiteRoute("/user/getCaptcha", http.MethodGet, u.GetCaptcha),
+		server.NewWhiteRoute("/user/checkCaptcha", http.MethodPost, u.CheckCaptcha),
 	}
 }
 
@@ -52,12 +57,27 @@ func (u User) Handler() []server.Route {
 // @Router /user/login [post]
 func (User) Login(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		Account  string `json:"account" validate:"required,min=1,max=25"`
-		Password string `json:"password" validate:"required,password"`
+		Account    string `json:"account" validate:"required,min=1,max=25"`
+		Password   string `json:"password" validate:"required,password"`
+		CaptchaKey string `json:"captchaKey" validate:"omitempty"`
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
+	}
+
+	if config.Toml.CAPTCHA.Enabled {
+		captchaCache := memory.GetCaptchaCache()
+		if !captchaCache.IsChecked(reqData.CaptchaKey) {
+			return response.JSON{Code: response.Error, Message: "Captcha error, please check captcha again"}
+		}
+		// captcha should be deleted after check
+		captchaCache.Delete(reqData.CaptchaKey)
+	}
+
+	userCache := memory.GetUserCache()
+	if userCache.IsLock(reqData.Account) {
+		return response.JSON{Code: response.Error, Message: "Your account has been locked, please retry login in 15 minutes"}
 	}
 
 	userData, err := model.User{Account: reqData.Account}.GetDataByAccount()
@@ -108,6 +128,11 @@ func (User) Login(gp *server.Goploy) server.Response {
 		}
 	} else {
 		if err := userData.Validate(reqData.Password); err != nil {
+			errorTimes := userCache.IncErrorTimes(reqData.Account)
+			// error times over 5 times, then lock the account 15 minutes
+			if errorTimes >= memory.MaxErrorTimes {
+				userCache.LockAccount(reqData.Account)
+			}
 			return response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 	}
@@ -565,4 +590,82 @@ func (User) GetMediaLoginUrl(gp *server.Goploy) server.Response {
 			Feishu   string `json:"feishu"`
 		}{Dingtalk: dingtalk, Feishu: feishu},
 	}
+}
+
+func (User) GetCaptchaConfig(gp *server.Goploy) server.Response {
+	return response.JSON{
+		Data: struct {
+			Enabled bool `json:"enabled"`
+		}{
+			Enabled: config.Toml.CAPTCHA.Enabled,
+		},
+	}
+}
+
+func (User) GetCaptcha(gp *server.Goploy) server.Response {
+	capt := captcha.GetCaptcha()
+
+	dots, b64, tb64, key, err := capt.Generate()
+	if err != nil {
+		return response.JSON{Code: response.AccountDisabled, Message: "generate captcha fail, error msg:" + err.Error()}
+	}
+
+	captchaCache := memory.GetCaptchaCache()
+	captchaCache.Set(key, dots, 2*time.Minute)
+
+	return response.JSON{
+		Data: struct {
+			Base64      string `json:"base64"`
+			ThumbBase64 string `json:"thumbBase64"`
+			Key         string `json:"key"`
+		}{
+			Base64:      b64,
+			ThumbBase64: tb64,
+			Key:         key,
+		},
+	}
+}
+
+func (User) CheckCaptcha(gp *server.Goploy) server.Response {
+	type ReqData struct {
+		Key         string  `json:"key" validate:"required"`
+		Dots        []int64 `json:"dots" validate:"required"`
+		RedirectUri string  `json:"redirectUri" validate:"omitempty"`
+	}
+
+	var reqData ReqData
+	if err := gp.Decode(&reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
+	captchaCache := memory.GetCaptchaCache()
+	dotsCache, ok := captchaCache.Get(reqData.Key)
+	if !ok {
+		return response.JSON{Code: response.Error, Message: "Illegal key, please refresh the captcha again"}
+	}
+	dots, _ := dotsCache.(map[int]captcha.CharDot)
+
+	check := false
+	if (len(dots) * 2) == len(reqData.Dots) {
+		for i, dot := range dots {
+			j := i * 2
+			k := i*2 + 1
+			sx, _ := strconv.ParseFloat(fmt.Sprintf("%v", reqData.Dots[j]), 64)
+			sy, _ := strconv.ParseFloat(fmt.Sprintf("%v", reqData.Dots[k]), 64)
+
+			check = captcha.CheckPointDistWithPadding(int64(sx), int64(sy), int64(dot.Dx), int64(dot.Dy), int64(dot.Width), int64(dot.Height), 5)
+			if !check {
+				break
+			}
+		}
+	}
+
+	if !check {
+		return response.JSON{Code: response.Error, Message: "check captcha fail"}
+	}
+
+	// set captcha key checked for login verify
+	captchaCache.Set(reqData.Key, true, 2*time.Minute)
+
+	return response.JSON{}
 }

@@ -18,6 +18,7 @@ require (
 	github.com/pkg/sftp v1.13.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/vearutop/statigz v1.1.8
+	github.com/wenlng/go-captcha v1.2.5
 	golang.org/x/crypto v0.1.0
 	gopkg.in/go-playground/validator.v9 v9.31.0
 )
@@ -25,6 +26,7 @@ require (
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20211209120228-48547f28849e // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.3 // indirect
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/kr/fs v0.1.0 // indirect
@@ -32,6 +34,7 @@ require (
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	golang.org/x/image v0.1.0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 )

@@ -48,3 +48,6 @@ appSecret = ''
 [feishu]
 appKey = ''
 appSecret = ''
+
+[captcha]
+enabled = false
