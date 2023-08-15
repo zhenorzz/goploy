@@ -54,12 +54,12 @@
 
       <div v-if="captchaVisible">
         <GoCaptchaBtn
-          v-model="captStatus"
+          v-model="captchaStatus"
           class="go-captcha-btn"
           width="100%"
           height="44px"
-          :image-base64="captBase64"
-          :thumb-base64="captThumbBase64"
+          :image-base64="captchaBase64"
+          :thumb-base64="captchaThumbBase64"
           @confirm="handleConfirm"
           @refresh="handleRequestCaptCode"
         />
@@ -196,11 +196,11 @@ getMediaLoginUrl()
 getCaptchaConfig()
 
 const captchaVisible = ref(false)
-const captBase64 = ref('')
-const captThumbBase64 = ref('')
-const captKey = ref('')
-const captStatus = ref('default')
-const captAutoRefreshCount = ref(0)
+const captchaBase64 = ref('')
+const captchaThumbBase64 = ref('')
+const captchaKey = ref('')
+const captchaStatus = ref('default')
+const captchaAutoRefreshCount = ref(0)
 
 function getCaptchaConfig() {
   new GetCaptchaConfig().request().then((response) => {
@@ -209,14 +209,14 @@ function getCaptchaConfig() {
 }
 
 function handleRequestCaptCode() {
-  captBase64.value = ''
-  captThumbBase64.value = ''
-  captKey.value = ''
+  captchaBase64.value = ''
+  captchaThumbBase64.value = ''
+  captchaKey.value = ''
 
   new GetCaptcha().request().then((response) => {
-    captBase64.value = response.data.base64
-    captThumbBase64.value = response.data.thumbBase64
-    captKey.value = response.data.key
+    captchaBase64.value = response.data.base64
+    captchaThumbBase64.value = response.data.thumbBase64
+    captchaKey.value = response.data.key
     loginForm.value.captchaKey = response.data.key
   })
 }
@@ -231,23 +231,23 @@ function handleConfirm(dots: { x: number; y: number; index: number }[]) {
     dotArr.push(dot.x, dot.y)
   }
 
-  new CheckCaptcha({ dots: dotArr, key: captKey.value })
+  new CheckCaptcha({ dots: dotArr, key: captchaKey.value })
     .request()
     .then((response) => {
       ElMessage.success(`check captcha success`)
-      captStatus.value = 'success'
-      captAutoRefreshCount.value = 0
+      captchaStatus.value = 'success'
+      captchaAutoRefreshCount.value = 0
     })
     .catch(() => {
-      if (captAutoRefreshCount.value > 5) {
-        captAutoRefreshCount.value = 0
-        captStatus.value = 'over'
+      if (captchaAutoRefreshCount.value > 5) {
+        captchaAutoRefreshCount.value = 0
+        captchaStatus.value = 'over'
         return
       }
 
       handleRequestCaptCode()
-      captAutoRefreshCount.value += 1
-      captStatus.value = 'error'
+      captchaAutoRefreshCount.value += 1
+      captchaStatus.value = 'error'
     })
 }
 
@@ -293,7 +293,7 @@ function handleLogin() {
         })
         .catch(() => {
           if (captchaVisible.value) {
-            captStatus.value = 'default'
+            captchaStatus.value = 'default'
             loginForm.value.captchaKey = ''
           }
           loading.value = false

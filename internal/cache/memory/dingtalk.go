@@ -16,6 +16,7 @@ type accessToken struct {
 }
 
 var accessTokenCache *AccessTokenCache
+var dingtalkOnce sync.Once
 
 func (ac *AccessTokenCache) Get(key string) (string, bool) {
 	ac.mutex.RLock()
@@ -61,11 +62,11 @@ func (ac *AccessTokenCache) CleanExpired() {
 }
 
 func GetDingTalkAccessTokenCache() *AccessTokenCache {
-	if accessTokenCache == nil {
+	dingtalkOnce.Do(func() {
 		accessTokenCache = &AccessTokenCache{
 			c: make(map[string]accessToken),
 		}
-	}
+	})
 
 	return accessTokenCache
 }

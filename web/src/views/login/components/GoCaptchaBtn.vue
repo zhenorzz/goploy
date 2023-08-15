@@ -121,21 +121,21 @@ const props = defineProps({
 })
 const popoverRef = ref()
 const popoverVisible = ref(false)
-const captStatus = ref('default')
+const captchaStatus = ref('default')
 
 const style = computed(() => {
   return `width:${props.width}; height:${props.height};`
 })
 
 const activeClass = computed(() => {
-  return `wg-cap-active__${captStatus.value}`
+  return `wg-cap-active__${captchaStatus.value}`
 })
 watch(popoverVisible, (val: boolean) => {
   if (val) {
-    captStatus.value = 'check'
+    captchaStatus.value = 'check'
     emit('refresh')
-  } else if (captStatus.value === 'check') {
-    captStatus.value = props.modelValue
+  } else if (captchaStatus.value === 'check') {
+    captchaStatus.value = props.modelValue
   }
   if (!val) {
     popoverRef.value.hide()
@@ -144,8 +144,8 @@ watch(popoverVisible, (val: boolean) => {
 watch(
   () => props.modelValue,
   (val: (typeof props)['modelValue']) => {
-    if (captStatus.value !== 'check') {
-      captStatus.value = val
+    if (captchaStatus.value !== 'check') {
+      captchaStatus.value = val
     }
     if (val === 'over' || val === 'success') {
       setTimeout(() => {
@@ -154,7 +154,7 @@ watch(
     }
   }
 )
-watch(captStatus, (val: string) => {
+watch(captchaStatus, (val: string) => {
   if (val !== 'check' && props.modelValue !== val) {
     emit('input', val)
   }
@@ -167,7 +167,7 @@ function handleBtnEvent() {
   }, 0)
 }
 function handleRefreshEvent() {
-  captStatus.value = 'check'
+  captchaStatus.value = 'check'
   emit('refresh')
 }
 function handleConfirmEvent(data: any) {

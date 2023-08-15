@@ -16,6 +16,7 @@ type captcha struct {
 }
 
 var captchaCache *CaptchaCache
+var captchaOnce sync.Once
 
 func (c *CaptchaCache) Get(key string) (interface{}, bool) {
 	c.mutex.RLock()
@@ -81,11 +82,11 @@ func (c *CaptchaCache) CleanExpired() {
 }
 
 func GetCaptchaCache() *CaptchaCache {
-	if captchaCache == nil {
+	captchaOnce.Do(func() {
 		captchaCache = &CaptchaCache{
 			c: make(map[string]captcha),
 		}
-	}
+	})
 
 	return captchaCache
 }

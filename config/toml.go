@@ -29,7 +29,7 @@ type Config struct {
 	Dingtalk DingtalkConfig `toml:"dingtalk"`
 	Feishu   FeishuConfig   `toml:"feishu"`
 	CORS     CORSConfig     `toml:"cors"`
-	CAPTCHA  CaptchaConfig  `toml:"captcha"`
+	Captcha  CaptchaConfig  `toml:"captcha"`
 }
 
 type APPConfig struct {

@@ -24,6 +24,7 @@ type user struct {
 }
 
 var userCache *UserCache
+var userOnce sync.Once
 
 func (uc *UserCache) IncErrorTimes(account string) int {
 	uc.mutex.Lock()
@@ -96,11 +97,11 @@ func getLockKey(account string) string {
 }
 
 func GetUserCache() *UserCache {
-	if userCache == nil {
+	userOnce.Do(func() {
 		userCache = &UserCache{
 			c: make(map[string]user),
 		}
-	}
+	})
 
 	return userCache
 }

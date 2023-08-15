@@ -66,7 +66,7 @@ func (User) Login(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	if config.Toml.CAPTCHA.Enabled {
+	if config.Toml.Captcha.Enabled {
 		captchaCache := memory.GetCaptchaCache()
 		if !captchaCache.IsChecked(reqData.CaptchaKey) {
 			return response.JSON{Code: response.Error, Message: "Captcha error, please check captcha again"}
@@ -597,7 +597,7 @@ func (User) GetCaptchaConfig(gp *server.Goploy) server.Response {
 		Data: struct {
 			Enabled bool `json:"enabled"`
 		}{
-			Enabled: config.Toml.CAPTCHA.Enabled,
+			Enabled: config.Toml.Captcha.Enabled,
 		},
 	}
 }
