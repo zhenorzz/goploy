@@ -8,7 +8,3 @@ type Captcha interface {
 	Delete(key string)
 	IsChecked(key string) bool
 }
-
-type CaptchaData struct {
-	Dots interface{}
-}

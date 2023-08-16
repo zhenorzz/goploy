@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"github.com/zhenorzz/goploy/internal/cache"
 	"sync"
 	"time"
 )
@@ -12,8 +11,8 @@ type AccessTokenCache struct {
 }
 
 type accessToken struct {
-	cache.AccessTokenData
-	expireIn time.Time
+	accessToken string
+	expireIn    time.Time
 }
 
 var accessTokenCache = &AccessTokenCache{
@@ -30,7 +29,7 @@ func (ac *AccessTokenCache) Get(key string) (string, bool) {
 	}
 
 	if !v.expireIn.IsZero() && v.expireIn.After(time.Now()) {
-		return v.AccessToken, true
+		return v.accessToken, true
 	}
 
 	return "", false
@@ -47,10 +46,8 @@ func (ac *AccessTokenCache) Set(key string, value string, ttl time.Duration) {
 	}
 
 	ac.data[key] = accessToken{
-		AccessTokenData: cache.AccessTokenData{
-			AccessToken: value,
-		},
-		expireIn: expireIn,
+		accessToken: value,
+		expireIn:    expireIn,
 	}
 
 	time.AfterFunc(ttl, func() {

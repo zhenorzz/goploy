@@ -16,7 +16,6 @@ import (
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/cache"
-	"github.com/zhenorzz/goploy/internal/cache/factory"
 	"github.com/zhenorzz/goploy/internal/media"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
@@ -68,10 +67,10 @@ func (User) Login(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	userCache := factory.GetUserCache()
+	userCache := cache.GetUserCache()
 
 	if config.Toml.Captcha.Enabled && userCache.IsShowCaptcha(reqData.Account) {
-		captchaCache := factory.GetCaptchaCache()
+		captchaCache := cache.GetCaptchaCache()
 		if !captchaCache.IsChecked(reqData.CaptchaKey) {
 			return response.JSON{Code: response.Error, Message: "Captcha error, please check captcha again"}
 		}
@@ -131,10 +130,10 @@ func (User) Login(gp *server.Goploy) server.Response {
 		}
 	} else {
 		if err := userData.Validate(reqData.Password); err != nil {
-			errorTimes := userCache.IncErrorTimes(reqData.Account)
+			errorTimes := userCache.IncErrorTimes(reqData.Account, cache.UserCacheExpireTime, cache.UserCacheShowCaptchaTime)
 			// error times over 5 times, then lock the account 15 minutes
 			if errorTimes >= cache.UserCacheMaxErrorTimes {
-				userCache.LockAccount(reqData.Account)
+				userCache.LockAccount(reqData.Account, cache.UserCacheLockTime)
 			}
 			return response.JSON{Code: response.Deny, Message: err.Error()}
 		}
@@ -631,7 +630,7 @@ func (User) GetCaptcha(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.AccountDisabled, Message: "generate captcha fail, error msg:" + err.Error()}
 	}
 
-	captchaCache := factory.GetCaptchaCache()
+	captchaCache := cache.GetCaptchaCache()
 	captchaCache.Set(key, dots, 2*time.Minute)
 
 	return response.JSON{
@@ -659,7 +658,7 @@ func (User) CheckCaptcha(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	captchaCache := factory.GetCaptchaCache()
+	captchaCache := cache.GetCaptchaCache()
 	dotsCache, ok := captchaCache.Get(reqData.Key)
 	if !ok {
 		return response.JSON{Code: response.Error, Message: "Illegal key, please refresh the captcha again"}

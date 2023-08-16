@@ -51,3 +51,6 @@ appSecret = ''
 
 [captcha]
 enabled = false
+
+[cache]
+type = 'memory'

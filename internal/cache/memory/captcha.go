@@ -1,7 +1,6 @@
 package memory
 
 import (
-	"github.com/zhenorzz/goploy/internal/cache"
 	"sync"
 	"time"
 )
@@ -12,7 +11,7 @@ type CaptchaCache struct {
 }
 
 type captcha struct {
-	cache.CaptchaData
+	dots     interface{}
 	expireIn time.Time
 }
 
@@ -30,7 +29,7 @@ func (c *CaptchaCache) Get(key string) (interface{}, bool) {
 	}
 
 	if !v.expireIn.IsZero() && v.expireIn.After(time.Now()) {
-		return v.Dots, true
+		return v.dots, true
 	}
 
 	return nil, false
@@ -47,9 +46,7 @@ func (c *CaptchaCache) Set(key string, value interface{}, ttl time.Duration) {
 	}
 
 	c.data[key] = captcha{
-		CaptchaData: cache.CaptchaData{
-			Dots: value,
-		},
+		dots:     value,
 		expireIn: expireIn,
 	}
 
