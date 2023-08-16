@@ -52,7 +52,7 @@
         </span>
       </el-form-item>
 
-      <div v-if="captchaVisible">
+      <div v-if="captchaEnabled && captchaShow">
         <GoCaptchaBtn
           v-model="captchaStatus"
           class="go-captcha-btn"
@@ -106,6 +106,8 @@ import {
   GetCaptchaConfig,
 } from '@/api/user'
 import GoCaptchaBtn from './components/GoCaptchaBtn.vue'
+import { useI18n } from 'vue-i18n'
+const { locale } = useI18n({ useScope: 'global' })
 const version = import.meta.env.VITE_APP_VERSION
 const store = useStore()
 const router = useRouter()
@@ -195,7 +197,8 @@ const mediaMap = reactive<Record<string, any>>({
 getMediaLoginUrl()
 getCaptchaConfig()
 
-const captchaVisible = ref(false)
+const captchaEnabled = ref(false)
+const captchaShow = ref(false)
 const captchaBase64 = ref('')
 const captchaThumbBase64 = ref('')
 const captchaKey = ref('')
@@ -204,7 +207,7 @@ const captchaAutoRefreshCount = ref(0)
 
 function getCaptchaConfig() {
   new GetCaptchaConfig().request().then((response) => {
-    captchaVisible.value = response.data.enabled
+    captchaEnabled.value = response.data.enabled
   })
 }
 
@@ -213,7 +216,7 @@ function handleRequestCaptCode() {
   captchaThumbBase64.value = ''
   captchaKey.value = ''
 
-  new GetCaptcha().request().then((response) => {
+  new GetCaptcha({ language: locale.value }).request().then((response) => {
     captchaBase64.value = response.data.base64
     captchaThumbBase64.value = response.data.thumbBase64
     captchaKey.value = response.data.key
@@ -234,7 +237,7 @@ function handleConfirm(dots: { x: number; y: number; index: number }[]) {
   new CheckCaptcha({ dots: dotArr, key: captchaKey.value })
     .request()
     .then((response) => {
-      ElMessage.success(`check captcha success`)
+      ElMessage.success(`captcha passed`)
       captchaStatus.value = 'success'
       captchaAutoRefreshCount.value = 0
     })
@@ -292,7 +295,8 @@ function handleLogin() {
           loading.value = false
         })
         .catch(() => {
-          if (captchaVisible.value) {
+          if (captchaEnabled.value) {
+            captchaShow.value = true
             captchaStatus.value = 'default'
             loginForm.value.captchaKey = ''
           }

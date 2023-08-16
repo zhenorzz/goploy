@@ -1,107 +1,130 @@
 package memory
 
 import (
+	"github.com/zhenorzz/goploy/internal/cache"
 	"sync"
 	"time"
 )
 
-const (
-	Key           = "login_error_times_"
-	LockKey       = "login_lock_"
-	MaxErrorTimes = 5
-	ExpireTime    = 5 * time.Minute
-	LockTime      = 15 * time.Minute
-)
-
 type UserCache struct {
-	c     map[string]user
-	mutex sync.RWMutex
+	data map[string]user
+	sync.RWMutex
 }
 
 type user struct {
-	times    int
+	cache.UserData
 	expireIn time.Time
 }
 
-var userCache *UserCache
-var userOnce sync.Once
+var userCache = &UserCache{
+	data: make(map[string]user),
+}
 
 func (uc *UserCache) IncErrorTimes(account string) int {
-	uc.mutex.Lock()
-	defer uc.mutex.Unlock()
+	uc.Lock()
+	defer uc.Unlock()
 
 	cacheKey := getCacheKey(account)
 
 	times := 0
-	v, ok := uc.c[cacheKey]
+	v, ok := uc.data[cacheKey]
 	if ok && !v.expireIn.IsZero() && v.expireIn.After(time.Now()) {
-		times = v.times
+		times = v.Times
 	}
 
 	times += 1
 
-	uc.c[cacheKey] = user{
-		times:    times,
-		expireIn: time.Now().Add(ExpireTime),
+	uc.data[cacheKey] = user{
+		UserData: cache.UserData{
+			Times: times,
+		},
+		expireIn: time.Now().Add(cache.UserCacheExpireTime),
 	}
+
+	// show captcha
+	showCaptchaKey := getShowCaptchaKey(account)
+	uc.data[showCaptchaKey] = user{
+		UserData: cache.UserData{
+			Times: 1,
+		},
+		expireIn: time.Now().Add(cache.UserCacheShowCaptchaTime),
+	}
+
+	time.AfterFunc(cache.UserCacheShowCaptchaTime, func() {
+		delete(uc.data, showCaptchaKey)
+	})
+
+	time.AfterFunc(cache.UserCacheExpireTime, func() {
+		delete(uc.data, cacheKey)
+	})
 
 	return times
 }
 
 func (uc *UserCache) LockAccount(account string) {
-	uc.mutex.Lock()
-	defer uc.mutex.Unlock()
+	uc.Lock()
+	defer uc.Unlock()
 
 	lockKey := getLockKey(account)
 
-	uc.c[lockKey] = user{
-		times:    1,
-		expireIn: time.Now().Add(LockTime),
+	uc.data[lockKey] = user{
+		UserData: cache.UserData{
+			Times: 1,
+		},
+		expireIn: time.Now().Add(cache.UserCacheLockTime),
 	}
+
+	time.AfterFunc(cache.UserCacheLockTime, func() {
+		delete(uc.data, lockKey)
+	})
 
 	cacheKey := getCacheKey(account)
 
-	_, ok := uc.c[cacheKey]
+	_, ok := uc.data[cacheKey]
 	if ok {
-		delete(uc.c, cacheKey)
+		delete(uc.data, cacheKey)
 	}
 }
 
 func (uc *UserCache) IsLock(account string) bool {
-	uc.mutex.RLock()
-	defer uc.mutex.RUnlock()
+	uc.RLock()
+	defer uc.RUnlock()
 
 	lockKey := getLockKey(account)
-	v, ok := uc.c[lockKey]
+	v, ok := uc.data[lockKey]
 
-	return ok && !v.expireIn.IsZero() && v.expireIn.After(time.Now()) && v.times > 0
+	return ok && !v.expireIn.IsZero() && v.expireIn.After(time.Now()) && v.Times > 0
 }
 
-func (uc *UserCache) CleanExpired() {
-	uc.mutex.Lock()
-	defer uc.mutex.Unlock()
+func (uc *UserCache) IsShowCaptcha(account string) bool {
+	uc.RLock()
+	defer uc.RUnlock()
 
-	for key, val := range uc.c {
-		if val.expireIn.Before(time.Now()) {
-			delete(uc.c, key)
-		}
-	}
+	showCaptchaKey := getShowCaptchaKey(account)
+	v, ok := uc.data[showCaptchaKey]
+
+	return ok && !v.expireIn.IsZero() && v.expireIn.After(time.Now()) && v.Times > 0
+}
+
+func (uc *UserCache) DeleteShowCaptcha(account string) {
+	uc.Lock()
+	defer uc.Unlock()
+
+	delete(uc.data, getShowCaptchaKey(account))
 }
 
 func getCacheKey(account string) string {
-	return Key + account
+	return cache.UserCacheKey + account
 }
 
 func getLockKey(account string) string {
-	return LockKey + account
+	return cache.UserCacheLockKey + account
+}
+
+func getShowCaptchaKey(account string) string {
+	return cache.UserCacheShowCaptchaKey + account
 }
 
 func GetUserCache() *UserCache {
-	userOnce.Do(func() {
-		userCache = &UserCache{
-			c: make(map[string]user),
-		}
-	})
-
 	return userCache
 }

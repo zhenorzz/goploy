@@ -30,6 +30,7 @@ type Config struct {
 	Feishu   FeishuConfig   `toml:"feishu"`
 	CORS     CORSConfig     `toml:"cors"`
 	Captcha  CaptchaConfig  `toml:"captcha"`
+	Cache    CacheConfig    `toml:"cache"`
 }
 
 type APPConfig struct {
@@ -94,6 +95,10 @@ type FeishuConfig struct {
 
 type CaptchaConfig struct {
 	Enabled bool `toml:"enabled"`
+}
+
+type CacheConfig struct {
+	Type string `toml:"type"`
 }
 
 var Toml Config

@@ -1,7 +1,10 @@
 <template>
   <div class="wg-cap-wrap">
     <div class="wg-cap-wrap__header">
-      <span>请在下图<em>依次</em>点击：</span>
+      <span
+        >{{ $t('loginPage.captchaTips')
+        }}<em>{{ $t('loginPage.captchaInOrder') }}</em></span
+      >
       <img
         v-if="thumbBase64Code"
         class="wg-cap-wrap__thumb"
@@ -45,7 +48,7 @@
         />
       </div>
       <div class="wg-cap-wrap__btn">
-        <button @click="handleConfirmEvent">确认</button>
+        <button @click="handleConfirmEvent">{{ $t('confirm') }}</button>
       </div>
     </div>
   </div>

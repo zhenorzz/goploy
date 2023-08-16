@@ -15,7 +15,8 @@ import (
 	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/internal/cache/memory"
+	"github.com/zhenorzz/goploy/internal/cache"
+	"github.com/zhenorzz/goploy/internal/cache/factory"
 	"github.com/zhenorzz/goploy/internal/media"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
@@ -23,6 +24,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -66,8 +68,10 @@ func (User) Login(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	if config.Toml.Captcha.Enabled {
-		captchaCache := memory.GetCaptchaCache()
+	userCache := factory.GetUserCache()
+
+	if config.Toml.Captcha.Enabled && userCache.IsShowCaptcha(reqData.Account) {
+		captchaCache := factory.GetCaptchaCache()
 		if !captchaCache.IsChecked(reqData.CaptchaKey) {
 			return response.JSON{Code: response.Error, Message: "Captcha error, please check captcha again"}
 		}
@@ -75,7 +79,6 @@ func (User) Login(gp *server.Goploy) server.Response {
 		captchaCache.Delete(reqData.CaptchaKey)
 	}
 
-	userCache := memory.GetUserCache()
 	if userCache.IsLock(reqData.Account) {
 		return response.JSON{Code: response.Error, Message: "Your account has been locked, please retry login in 15 minutes"}
 	}
@@ -130,12 +133,14 @@ func (User) Login(gp *server.Goploy) server.Response {
 		if err := userData.Validate(reqData.Password); err != nil {
 			errorTimes := userCache.IncErrorTimes(reqData.Account)
 			// error times over 5 times, then lock the account 15 minutes
-			if errorTimes >= memory.MaxErrorTimes {
+			if errorTimes >= cache.UserCacheMaxErrorTimes {
 				userCache.LockAccount(reqData.Account)
 			}
 			return response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 	}
+
+	userCache.DeleteShowCaptcha(reqData.Account)
 
 	if userData.State == model.Disable {
 		return response.JSON{Code: response.AccountDisabled, Message: "Account is disabled"}
@@ -603,14 +608,30 @@ func (User) GetCaptchaConfig(gp *server.Goploy) server.Response {
 }
 
 func (User) GetCaptcha(gp *server.Goploy) server.Response {
+	type ReqData struct {
+		Language string `schema:"language" validate:"required"`
+	}
+
+	var reqData ReqData
+	if err := gp.Decode(&reqData); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
 	capt := captcha.GetCaptcha()
+	if reqData.Language == "zh-cn" {
+		chars := captcha.GetCaptchaDefaultChars()
+		_ = capt.SetRangChars(*chars)
+	} else {
+		chars := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		_ = capt.SetRangChars(strings.Split(chars, ""))
+	}
 
 	dots, b64, tb64, key, err := capt.Generate()
 	if err != nil {
 		return response.JSON{Code: response.AccountDisabled, Message: "generate captcha fail, error msg:" + err.Error()}
 	}
 
-	captchaCache := memory.GetCaptchaCache()
+	captchaCache := factory.GetCaptchaCache()
 	captchaCache.Set(key, dots, 2*time.Minute)
 
 	return response.JSON{
@@ -638,7 +659,7 @@ func (User) CheckCaptcha(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	captchaCache := memory.GetCaptchaCache()
+	captchaCache := factory.GetCaptchaCache()
 	dotsCache, ok := captchaCache.Get(reqData.Key)
 	if !ok {
 		return response.JSON{Code: response.Error, Message: "Illegal key, please refresh the captcha again"}
@@ -653,7 +674,7 @@ func (User) CheckCaptcha(gp *server.Goploy) server.Response {
 			sx, _ := strconv.ParseFloat(fmt.Sprintf("%v", reqData.Dots[j]), 64)
 			sy, _ := strconv.ParseFloat(fmt.Sprintf("%v", reqData.Dots[k]), 64)
 
-			check = captcha.CheckPointDistWithPadding(int64(sx), int64(sy), int64(dot.Dx), int64(dot.Dy), int64(dot.Width), int64(dot.Height), 5)
+			check = captcha.CheckPointDistWithPadding(int64(sx), int64(sy), int64(dot.Dx), int64(dot.Dy), int64(dot.Width), int64(dot.Height), 15)
 			if !check {
 				break
 			}

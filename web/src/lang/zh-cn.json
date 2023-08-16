@@ -374,5 +374,15 @@
     "reviewStateOption": ["待审", "已审", "拒审"],
     "removeProjectTaskTips": "此操作删除{projectName}的定时任务, 是否继续?",
     "publishCommitTips": "此操作将重新构建{commit}, 是否继续?"
+  },
+  "loginPage": {
+    "captchaDefault": "点击按键进行人机验证",
+    "captchaCheck": "正在进行人机验证...",
+    "captchaError": "人机验证失败",
+    "captchaOver": "点击次数过多",
+    "captchaSuccess": "人机验证已通过",
+    "captchaRetry": "点击重试",
+    "captchaTips": "请在下图",
+    "captchaInOrder": "依次点击"
   }
 }

@@ -185,10 +185,17 @@ export class GetCaptchaConfig extends Request {
 export class GetCaptcha extends Request {
   readonly url = '/user/getCaptcha'
   readonly method = 'get'
+  public param: {
+    language: any
+  }
   public declare datagram: {
     base64: string
     thumbBase64: string
     key: string
+  }
+  constructor(param: GetCaptcha['param']) {
+    super()
+    this.param = param
   }
 }
 

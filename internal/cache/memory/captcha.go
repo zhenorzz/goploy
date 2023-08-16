@@ -1,42 +1,44 @@
 package memory
 
 import (
+	"github.com/zhenorzz/goploy/internal/cache"
 	"sync"
 	"time"
 )
 
 type CaptchaCache struct {
-	c     map[string]captcha
-	mutex sync.RWMutex
+	data map[string]captcha
+	sync.RWMutex
 }
 
 type captcha struct {
-	dots     interface{}
+	cache.CaptchaData
 	expireIn time.Time
 }
 
-var captchaCache *CaptchaCache
-var captchaOnce sync.Once
+var captchaCache = &CaptchaCache{
+	data: make(map[string]captcha),
+}
 
 func (c *CaptchaCache) Get(key string) (interface{}, bool) {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
+	c.RLock()
+	defer c.RUnlock()
 
-	v, ok := c.c[key]
+	v, ok := c.data[key]
 	if !ok {
 		return nil, false
 	}
 
 	if !v.expireIn.IsZero() && v.expireIn.After(time.Now()) {
-		return v.dots, true
+		return v.Dots, true
 	}
 
 	return nil, false
 }
 
 func (c *CaptchaCache) Set(key string, value interface{}, ttl time.Duration) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.Lock()
+	defer c.Unlock()
 
 	var expireIn time.Time
 
@@ -44,17 +46,23 @@ func (c *CaptchaCache) Set(key string, value interface{}, ttl time.Duration) {
 		expireIn = time.Now().Add(ttl)
 	}
 
-	c.c[key] = captcha{
-		dots:     value,
+	c.data[key] = captcha{
+		CaptchaData: cache.CaptchaData{
+			Dots: value,
+		},
 		expireIn: expireIn,
 	}
+
+	time.AfterFunc(ttl, func() {
+		delete(c.data, key)
+	})
 }
 
 func (c *CaptchaCache) Delete(key string) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+	c.Lock()
+	defer c.Unlock()
 
-	delete(c.c, key)
+	delete(c.data, key)
 }
 
 func (c *CaptchaCache) IsChecked(key string) bool {
@@ -70,23 +78,6 @@ func (c *CaptchaCache) IsChecked(key string) bool {
 	return false
 }
 
-func (c *CaptchaCache) CleanExpired() {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
-	for key, val := range c.c {
-		if val.expireIn.Before(time.Now()) {
-			delete(c.c, key)
-		}
-	}
-}
-
 func GetCaptchaCache() *CaptchaCache {
-	captchaOnce.Do(func() {
-		captchaCache = &CaptchaCache{
-			c: make(map[string]captcha),
-		}
-	})
-
 	return captchaCache
 }

@@ -6,7 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/internal/cache/memory"
+	"github.com/zhenorzz/goploy/internal/cache"
+	"github.com/zhenorzz/goploy/internal/cache/factory"
 	"github.com/zhenorzz/goploy/internal/media/dingtalk/api"
 	"github.com/zhenorzz/goploy/internal/media/dingtalk/api/access_token"
 	"github.com/zhenorzz/goploy/internal/media/dingtalk/api/contact"
@@ -22,7 +23,7 @@ type Dingtalk struct {
 	Key    string
 	Secret string
 	Client *http.Client
-	Cache  *memory.AccessTokenCache
+	Cache  cache.DingtalkAccessToken
 	Method string
 	Api    string
 	Query  url.Values
@@ -34,7 +35,7 @@ func (d *Dingtalk) Login(authCode string, _ string) (string, error) {
 	d.Key = config.Toml.Dingtalk.AppKey
 	d.Secret = config.Toml.Dingtalk.AppSecret
 	d.Client = &http.Client{}
-	d.Cache = memory.GetDingTalkAccessTokenCache()
+	d.Cache = factory.GetDingTalkAccessTokenCache()
 
 	userAccessTokenInfo, err := d.GetUserAccessToken(authCode)
 	if err != nil {
