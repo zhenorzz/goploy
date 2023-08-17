@@ -52,6 +52,19 @@
         </span>
       </el-form-item>
 
+      <div v-if="captchaEnabled && captchaShow">
+        <GoCaptchaBtn
+          v-model="captchaStatus"
+          class="go-captcha-btn"
+          width="100%"
+          height="44px"
+          :image-base64="captchaBase64"
+          :thumb-base64="captchaThumbBase64"
+          @confirm="handleConfirm"
+          @refresh="handleRequestCaptCode"
+        />
+      </div>
+
       <el-button
         :loading="loading"
         type="primary"
@@ -84,8 +97,17 @@ import { validUsername, validPassword } from '@/utils/validate'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import type { ElForm } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { ref, watch, nextTick, reactive } from 'vue'
-import { MediaLoginUrl } from '@/api/user'
+import {
+  MediaLoginUrl,
+  GetCaptcha,
+  CheckCaptcha,
+  GetCaptchaConfig,
+} from '@/api/user'
+import GoCaptchaBtn from './components/GoCaptchaBtn.vue'
+import { useI18n } from 'vue-i18n'
+const { locale } = useI18n({ useScope: 'global' })
 const version = import.meta.env.VITE_APP_VERSION
 const store = useStore()
 const router = useRouter()
@@ -94,6 +116,7 @@ const loginForm = ref({
   account: import.meta.env.PROD === true ? '' : 'admin',
   password: import.meta.env.PROD === true ? '' : 'admin!@#',
   phrase: '',
+  captchaKey: '',
 })
 const loginRules: InstanceType<typeof ElForm>['rules'] = {
   account: [
@@ -172,6 +195,64 @@ const mediaMap = reactive<Record<string, any>>({
   },
 })
 getMediaLoginUrl()
+getCaptchaConfig()
+
+const captchaEnabled = ref(false)
+const captchaShow = ref(false)
+const captchaBase64 = ref('')
+const captchaThumbBase64 = ref('')
+const captchaKey = ref('')
+const captchaStatus = ref('default')
+const captchaAutoRefreshCount = ref(0)
+
+function getCaptchaConfig() {
+  new GetCaptchaConfig().request().then((response) => {
+    captchaEnabled.value = response.data.enabled
+  })
+}
+
+function handleRequestCaptCode() {
+  captchaBase64.value = ''
+  captchaThumbBase64.value = ''
+  captchaKey.value = ''
+
+  new GetCaptcha({ language: locale.value }).request().then((response) => {
+    captchaBase64.value = response.data.base64
+    captchaThumbBase64.value = response.data.thumbBase64
+    captchaKey.value = response.data.key
+    loginForm.value.captchaKey = response.data.key
+  })
+}
+
+function handleConfirm(dots: { x: number; y: number; index: number }[]) {
+  if (dots.length < 1) {
+    ElMessage.warning('please check the captcha')
+    return
+  }
+  let dotArr = []
+  for (const dot of dots) {
+    dotArr.push(dot.x, dot.y)
+  }
+
+  new CheckCaptcha({ dots: dotArr, key: captchaKey.value })
+    .request()
+    .then((response) => {
+      ElMessage.success(`captcha passed`)
+      captchaStatus.value = 'success'
+      captchaAutoRefreshCount.value = 0
+    })
+    .catch(() => {
+      if (captchaAutoRefreshCount.value > 5) {
+        captchaAutoRefreshCount.value = 0
+        captchaStatus.value = 'over'
+        return
+      }
+
+      handleRequestCaptCode()
+      captchaAutoRefreshCount.value += 1
+      captchaStatus.value = 'error'
+    })
+}
 
 const password = ref<HTMLInputElement>()
 function showPwd() {
@@ -214,6 +295,11 @@ function handleLogin() {
           loading.value = false
         })
         .catch(() => {
+          if (captchaEnabled.value) {
+            captchaShow.value = true
+            captchaStatus.value = 'default'
+            loginForm.value.captchaKey = ''
+          }
           loading.value = false
         })
       return Promise.resolve(true)

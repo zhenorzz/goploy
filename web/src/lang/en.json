@@ -404,5 +404,15 @@
     ],
     "removeProjectTaskTips": "This action will delete the crontab task in {projectName}, continue?",
     "publishCommitTips": "This action will rebuild {commit}, continue?"
+  },
+  "loginPage": {
+    "captchaDefault": "Click on the button for check captcha",
+    "captchaCheck": "Checking captcha...",
+    "captchaError": "Check captcha fail",
+    "captchaOver": "Too many clicks<em>retry</em>",
+    "captchaSuccess": "Captcha passed",
+    "captchaRetry": "Click to retry",
+    "captchaTips": "Please click",
+    "captchaInOrder": "in order"
   }
 }

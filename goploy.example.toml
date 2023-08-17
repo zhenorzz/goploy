@@ -48,3 +48,9 @@ appSecret = ''
 [feishu]
 appKey = ''
 appSecret = ''
+
+[captcha]
+enabled = false
+
+[cache]
+type = 'memory'
