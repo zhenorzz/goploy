@@ -246,7 +246,7 @@ func (u User) UpdateLastLoginTime() error {
 func (u User) Validate(inputPassword string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(inputPassword))
 	if err != nil {
-		return errors.New("password error")
+		return errors.New("invalid username or password")
 	}
 	return nil
 }

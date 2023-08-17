@@ -596,16 +596,30 @@ func (User) GetMediaLoginUrl(gp *server.Goploy) server.Response {
 	}
 }
 
-func (User) GetCaptchaConfig(gp *server.Goploy) server.Response {
+// GetCaptchaConfig show the captcha config
+// @Summary Show the captcha config
+// @Tags User
+// @Produce json
+// @Success 200 {object} response.JSON{data=user.GetCaptchaConfig.RespData}
+// @Router /user/getCaptchaConfig [get]
+func (User) GetCaptchaConfig(*server.Goploy) server.Response {
+	type RespData struct {
+		Enabled bool `json:"enabled"`
+	}
 	return response.JSON{
-		Data: struct {
-			Enabled bool `json:"enabled"`
-		}{
+		Data: RespData{
 			Enabled: config.Toml.Captcha.Enabled,
 		},
 	}
 }
 
+// GetCaptcha show a captcha
+// @Summary Show a captcha
+// @Tags User
+// @Produce json
+// @Param request query user.GetCaptcha.ReqData true "query params"
+// @Success 200 {object} response.JSON{data=user.GetCaptcha.RespData}
+// @Router /user/getCaptcha [get]
 func (User) GetCaptcha(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		Language string `schema:"language" validate:"required"`
@@ -633,12 +647,13 @@ func (User) GetCaptcha(gp *server.Goploy) server.Response {
 	captchaCache := cache.GetCaptchaCache()
 	captchaCache.Set(key, dots, 2*time.Minute)
 
+	type RespData struct {
+		Base64      string `json:"base64"`
+		ThumbBase64 string `json:"thumbBase64"`
+		Key         string `json:"key"`
+	}
 	return response.JSON{
-		Data: struct {
-			Base64      string `json:"base64"`
-			ThumbBase64 string `json:"thumbBase64"`
-			Key         string `json:"key"`
-		}{
+		Data: RespData{
 			Base64:      b64,
 			ThumbBase64: tb64,
 			Key:         key,
@@ -646,6 +661,13 @@ func (User) GetCaptcha(gp *server.Goploy) server.Response {
 	}
 }
 
+// CheckCaptcha check the captcha
+// @Summary Check the captcha
+// @Tags User
+// @Produce json
+// @Param request body user.CheckCaptcha.ReqData true "body params"
+// @Success 200 {object} response.JSON
+// @Router /user/checkCaptcha [post]
 func (User) CheckCaptcha(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		Key         string  `json:"key" validate:"required"`

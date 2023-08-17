@@ -4,6 +4,26 @@ All notable changes to the "goploy" extension will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
+## [1.15.2] - 2023-08-17
+
+### Added
+- [add captcha](https://github.com/zhenorzz/goploy/pull/64)
+- add predefine var ${PROJECT_LABEL}
+- add predefine var ${PROJECT_ENV}
+- support predefine var in transmitter
+- support unbind projects in server page
+
+### Changed
+
+- changed file structure
+- optimize projectUser struct
+- optimize projectServer struct
+
+### Bug fixed
+
+- fix install agent
+
+
 ## [1.15.1] - 2023-07-18
 
 ### Added
@@ -18,6 +38,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - support media login log
 
 ### Bug fixed
+
 - [fix dingtalk token cache #58](https://github.com/zhenorzz/goploy/commit/d823222a6e19bb9691caa419eee164404606cede)
 - fix commit info
 
@@ -36,6 +57,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - [load namespace list when the page opened](https://github.com/zhenorzz/goploy/commit/d171343857356ab2f55db07e96a7004f1d2fe30a)
 
 ### Bug fixed
+
 - [fix missing project name in lark notify](https://github.com/zhenorzz/goploy/commit/0372c2e9b8542fb7e434a07b9a909fd52d60e58f)
 
 ## [1.14.0] - 2023-05-25
@@ -54,6 +76,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Optimize code
 
 ### Bug fixed
+
 - [Jump server #54](https://github.com/zhenorzz/goploy/pull/54)
 - Ping db after open connection
 - Fix page css
@@ -61,6 +84,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [1.13.1] - 2023-04-29
 
 ### Bug fixed
+
 - Fix windows mkdir
 - Refresh file sync project list
 - [Fix check monitor config](https://github.com/zhenorzz/goploy/commit/dae371d96cbf241c4dbf9776c48dc1611e4dcff1)
@@ -78,6 +102,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Show server name in monitor table
 
 ### Bug fixed
+
 - Navbar dark mode
 - Windows ssh connect
 
@@ -90,6 +115,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Update Server process list UI
 
 ### Bug fixed
+
 - Server process output newline
 
 ## [1.12.2] - 2022-11-02
@@ -99,6 +125,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Support delete file via sftp
 
 ### Bug fixed
+
 - Key column 'server_id' doesn't exist in table
 
 
@@ -110,6 +137,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Update package.json
 
 ### Bug fixed
+
 - Translation
 - Dark mode
 ## [1.12.0] - 2022-10-11
@@ -125,6 +153,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Server process manage
 
 ### Bug fixed
+
 - Xterm disconnect before unmount
 
 ## [1.11.0] - 2022-09-19
@@ -136,6 +165,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - serial/parallel publish to server
 
 ### Bug fixed
+
 - Fix after deploy script
 
 ## [1.10.0] - 2022-08-31
@@ -153,6 +183,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [1.9.1] - 2022-08-16
 
 ### Bug fixed
+
 - Fix dockerfile
 - Fix bat newline
 - Fix sftp dropdown
@@ -174,6 +205,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Support after deploy script replace commit info
 
 ### Bug fixed
+
 - Fix svn commit list
 
 ## [1.8.0] - 2022-05-17
@@ -184,6 +216,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Show deploy detail in realtime
 
 ### Bug fixed
+
 - fix deploy list remove item failed
 - fix ftp login anonymous
 
@@ -194,6 +227,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - show server on edit monitor item
 
 ### Bug fixed
+
 - fix ace editor not found
 - fix monitor nil pointer
 
@@ -210,6 +244,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Support password login ssh (only work in linux)
 
 ### Bug fixed
+
 - fix web script editor
 
 ## [1.6.0] - 2022-04-11
@@ -234,6 +269,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - file sync move to deploy page
 
 ### Bug fixed
+
 - fix vue3 SFCs ref undefined
 - fix cron task date popover
 - fix publish detail filter popover
@@ -251,6 +287,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - migrate docs to goploy-devops/goploy-doc
 
 ### Bug fixed
+
 - sftp file upload
 
 ## [1.4.6] - 2022-02-24
@@ -261,6 +298,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - sftp file preview
 
 ### Bug fixed
+
 - web cookies undefined
 
 ## [1.4.5] - 2022-01-26
@@ -272,6 +310,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - support copy server config
 
 ### Bug fixed
+
 - git current branch
 
 ## [1.4.4] - 2022-01-17
