@@ -67,7 +67,7 @@
         </template>
       </el-table-column>
       <el-table-column label="Server">
-        <template #default="scope"> {{ scope.row.serverName }} </template>
+        <template #default="scope"> {{ scope.row.server.name }} </template>
       </el-table-column>
       <el-table-column
         prop="operation"
