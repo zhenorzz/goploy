@@ -6,6 +6,7 @@ package pkg
 
 import (
 	"bytes"
+	"fmt"
 	"os/exec"
 )
 
@@ -25,7 +26,7 @@ func (svn *SVN) Run(operator string, options ...string) error {
 	cmd.Stdout = &svn.Output
 	cmd.Stderr = &svn.Err
 	if err := cmd.Run(); err != nil {
-		return err
+		return fmt.Errorf("error: %s, detail: %s, command: %s, paste it to command-line to check if it is correct", err, svn.Err.String(), cmd.String())
 	}
 	return nil
 }

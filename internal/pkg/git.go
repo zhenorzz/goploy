@@ -26,7 +26,7 @@ func (git *GIT) Run(operator string, options ...string) error {
 	cmd.Stdout = &git.Output
 	cmd.Stderr = &git.Err
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("error: %s, detail: %s", err, git.Err.String())
+		return fmt.Errorf("error: %s, detail: %s, command: %s, paste it to command-line to check if it is correct", err, git.Err.String(), cmd.String())
 	}
 	return nil
 }
