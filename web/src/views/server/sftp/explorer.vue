@@ -37,7 +37,7 @@
           @keyup.enter="dirOpen(dir)"
         >
           <template #append>
-            <el-button :icon="RefreshRight" @click="refresh" />
+            <el-button :icon="RefreshRight" @click="dirOpen(dir)" />
           </template>
         </el-input>
       </el-row>
