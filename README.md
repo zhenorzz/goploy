@@ -114,9 +114,10 @@ go build -o goploy cmd/server/main.go
 4. `npm run dev` or `yarn dev`
 5. build `npm run build` or `yarn build`
 
-## Repository
+## Contact
 
-- [element-plus](https://element-plus.gitee.io/) - UI。
+[TG](https://t.me/zhenorzz) 
+[Email](zhenorzz@gmail.com)
 
 ## Contribute
 
