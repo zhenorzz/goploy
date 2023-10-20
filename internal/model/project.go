@@ -413,7 +413,7 @@ func (p Project) GetDeployList() (Projects, error) {
 			project.deploy_state, 
 			project.update_time`).
 		From(projectTable).
-		LeftJoin(fmt.Sprintf("%[1]s ON %[1]s.token = %s.last_publish_token and type = %d", publishTraceTable, projectTable, Pull)).
+		LeftJoin(fmt.Sprintf("%[1]s ON %[1]s.project_id = %s.id and %[1]s.token = %s.last_publish_token and type = %d", publishTraceTable, projectTable, Pull)).
 		Where(sq.Eq{
 			"project.namespace_id": p.NamespaceID,
 			"project.state":        Enable,
