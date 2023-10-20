@@ -179,7 +179,7 @@
               <el-icon
                 v-if="
                   item.token === projectRow.lastPublishToken &&
-                  projectRow.deployState === 1
+                  projectRow.deployState === DeployState.Deploying
                 "
                 class="is-loading"
                 style="font-size: 15px; float: right"
@@ -189,7 +189,7 @@
               <SvgIcon
                 v-else-if="
                   item.token === projectRow.lastPublishToken &&
-                  projectRow.deployState === 3
+                  projectRow.deployState === DeployState.Fail
                 "
                 style="color: #f56c6c; font-size: 15px; float: right"
                 icon-class="close"
@@ -238,87 +238,114 @@
           flex: $store.state.app.device === 'mobile' ? '' : 1,
         }"
       >
-        <div v-if="localTraceList[2]" style="width: 100%">
+        <div v-if="localTraceList[PublishTraceType.Pull]" style="width: 100%">
           <el-row style="margin: 5px 0">
             <div class="project-title">
               <span style="margin-right: 5px; text-transform: capitalize">
                 {{ projectRow.repoType }}
               </span>
               <span
-                v-if="localTraceList[2].state === 1"
+                v-if="localTraceList[PublishTraceType.Pull].state === 1"
                 class="icon-success"
               ></span>
               <span v-else class="icon-fail"></span>
             </div>
           </el-row>
-          <el-row>Time: {{ localTraceList[2].updateTime }}</el-row>
-          <template v-if="localTraceList[2].state !== 0">
-            <el-row>Branch: {{ localTraceList[2]['branch'] }}</el-row>
+          <el-row>
+            Time:
+            {{ localTraceList[PublishTraceType.Pull].updateTime }}
+          </el-row>
+          <template v-if="localTraceList[PublishTraceType.Pull].state !== 0">
+            <el-row>
+              Branch:
+              {{ localTraceList[PublishTraceType.Pull]['branch'] }}
+            </el-row>
             <el-row>
               Commit:
               <RepoURL
                 :url="projectRow.url"
-                :suffix="`/commit/${localTraceList[2]['commit']}`"
-                :text="localTraceList[2]['commit']"
+                :suffix="`/commit/${
+                  localTraceList[PublishTraceType.Pull]['commit']
+                }`"
+                :text="localTraceList[PublishTraceType.Pull]['commit']"
               >
               </RepoURL>
             </el-row>
-            <el-row>Message: {{ localTraceList[2]['message'] }}</el-row>
-            <el-row>Author: {{ localTraceList[2]['author'] }}</el-row>
+            <el-row>
+              Message:
+              {{ localTraceList[PublishTraceType.Pull]['message'] }}
+            </el-row>
+            <el-row>
+              Author:
+              {{ localTraceList[PublishTraceType.Pull]['author'] }}
+            </el-row>
             <el-row>
               Datetime:
               {{
-                localTraceList[2]['timestamp']
-                  ? parseTime(localTraceList[2]['timestamp'])
+                localTraceList[PublishTraceType.Pull]['timestamp']
+                  ? parseTime(
+                      localTraceList[PublishTraceType.Pull]['timestamp']
+                    )
                   : ''
               }}
             </el-row>
             <el-row>
               <span style="white-space: pre-line">
-                {{ localTraceList[2]['diff'] }}
+                {{ localTraceList[PublishTraceType.Pull]['diff'] }}
               </span>
             </el-row>
           </template>
           <el-row v-else style="margin: 5px 0">
             <span style="white-space: pre-line; padding: 5px 0">
-              {{ localTraceList[2].detail }}
+              {{ localTraceList[PublishTraceType.Pull].detail }}
             </span>
           </el-row>
         </div>
-        <div v-if="localTraceList[3]" style="width: 100%">
+        <div
+          v-if="localTraceList[PublishTraceType.AfterPull]"
+          style="width: 100%"
+        >
           <el-row style="margin: 5px 0" class="project-title">
             <span style="margin-right: 5px">After Pull</span>
             <span
-              v-if="localTraceList[3].state === 1"
+              v-if="localTraceList[PublishTraceType.AfterPull].state === 1"
               class="icon-success"
             ></span>
             <span v-else class="icon-fail"></span>
           </el-row>
-          <el-row>Time: {{ localTraceList[3].updateTime }}</el-row>
+          <el-row>
+            Time: {{ localTraceList[PublishTraceType.AfterPull].updateTime }}
+          </el-row>
           <el-row style="width: 100%">
             <div>Script:</div>
             <pre style="white-space: pre-line">
-            {{ localTraceList[3].script }}
+            {{ localTraceList[PublishTraceType.AfterPull].script }}
             </pre>
           </el-row>
           <div
-            v-loading="traceDetail[localTraceList[3].id] === ''"
+            v-loading="
+              traceDetail[localTraceList[PublishTraceType.AfterPull].id] === ''
+            "
             style="margin: 5px 0"
           >
             <span>[goploy ~]#</span>
             <el-button
               v-if="
-                localTraceList[3].state === 1 &&
-                !(localTraceList[3].id in traceDetail)
+                localTraceList[PublishTraceType.AfterPull].state === 1 &&
+                !(localTraceList[PublishTraceType.AfterPull].id in traceDetail)
               "
               type="primary"
               link
-              @click="getPublishTraceDetail(localTraceList[3])"
+              @click="
+                getPublishTraceDetail(
+                  localTraceList[PublishTraceType.AfterPull]
+                )
+              "
             >
               {{ $t('deployPage.showDetail') }}
             </el-button>
             <span v-else style="white-space: pre-line; padding: 5px 0">
-              {{ traceDetail[localTraceList[3].id] }}
+              {{ traceDetail[localTraceList[PublishTraceType.AfterPull].id] }}
             </span>
           </div>
         </div>
@@ -330,7 +357,7 @@
             :name="serverName"
           >
             <div v-for="(trace, key) in item" :key="key">
-              <template v-if="trace.type === 4">
+              <template v-if="trace.type === PublishTraceType.BeforeDeploy">
                 <el-row style="margin: 5px 0" class="project-title">
                   <span style="margin-right: 5px">Before deploy</span>
                   <span v-if="trace.state === 1" class="icon-success"></span>
@@ -358,7 +385,7 @@
                   </div>
                 </div>
               </template>
-              <template v-else-if="trace.type === 5">
+              <template v-else-if="trace.type === PublishTraceType.Deploy">
                 <el-row style="margin: 5px 0" class="project-title">
                   <span style="margin-right: 5px; text-transform: capitalize">
                     {{ projectRow.transferType }}
@@ -385,7 +412,7 @@
                   </div>
                 </div>
               </template>
-              <template v-else-if="trace.type === 6">
+              <template v-else-if="trace.type === PublishTraceType.AfterDeploy">
                 <el-row style="margin: 5px 0" class="project-title">
                   <span style="margin-right: 5px">After deploy</span>
                   <span v-if="trace.state === 1" class="icon-success"></span>
@@ -416,40 +443,57 @@
             </div>
           </el-tab-pane>
         </el-tabs>
-        <div v-if="localTraceList[7]" style="width: 100%">
+        <div
+          v-if="localTraceList[PublishTraceType.DeployFinish]"
+          style="width: 100%"
+        >
           <el-row style="margin: 5px 0" class="project-title">
             <span style="margin-right: 5px">Deploy Finish</span>
             <span
-              v-if="localTraceList[7].state === 1"
+              v-if="localTraceList[PublishTraceType.DeployFinish].state === 1"
               class="icon-success"
             ></span>
             <span v-else class="icon-fail"></span>
           </el-row>
-          <el-row>Time: {{ localTraceList[7].updateTime }}</el-row>
+          <el-row>
+            Time: {{ localTraceList[PublishTraceType.DeployFinish].updateTime }}
+          </el-row>
           <el-row style="width: 100%">
             <div>Script:</div>
             <pre style="white-space: pre-line">
-            {{ localTraceList[7].script }}
+            {{ localTraceList[PublishTraceType.DeployFinish].script }}
             </pre>
           </el-row>
           <div
-            v-loading="traceDetail[localTraceList[7].id] === ''"
+            v-loading="
+              traceDetail[localTraceList[PublishTraceType.DeployFinish].id] ===
+              ''
+            "
             style="margin: 5px 0"
           >
             <span>[goploy ~]#</span>
             <el-button
               v-if="
-                localTraceList[7].state === 1 &&
-                !(localTraceList[7].id in traceDetail)
+                localTraceList[PublishTraceType.DeployFinish].state === 1 &&
+                !(
+                  localTraceList[PublishTraceType.DeployFinish].id in
+                  traceDetail
+                )
               "
               type="primary"
               link
-              @click="getPublishTraceDetail(localTraceList[7])"
+              @click="
+                getPublishTraceDetail(
+                  localTraceList[PublishTraceType.DeployFinish]
+                )
+              "
             >
               {{ $t('deployPage.showDetail') }}
             </el-button>
             <span v-else style="white-space: pre-line; padding: 5px 0">
-              {{ traceDetail[localTraceList[7].id] }}
+              {{
+                traceDetail[localTraceList[PublishTraceType.DeployFinish].id]
+              }}
             </span>
           </div>
         </div>
@@ -462,10 +506,12 @@
 import { Search, Refresh, Close, Loading } from '@element-plus/icons-vue'
 import RepoURL from '@/components/RepoURL/index.vue'
 import {
+  DeployState,
   DeployPreviewList,
   DeployRebuild,
   DeployTrace,
   DeployTraceDetail,
+  PublishTraceType,
   PublishTraceData,
   PublishTraceExt,
 } from '@/api/deploy'
@@ -665,9 +711,23 @@ function getPublishTrace(publishToken: string) {
         if (trace.detail !== '') {
           traceDetail.value[trace.id] = trace.detail
         }
-        if ([0, 1, 2, 3, 7].includes(trace.type)) {
+        if (
+          [
+            PublishTraceType.Queue,
+            PublishTraceType.BeforePull,
+            PublishTraceType.Pull,
+            PublishTraceType.AfterPull,
+            PublishTraceType.DeployFinish,
+          ].includes(trace.type)
+        ) {
           localTraceList.value[trace.type] = trace
-        } else if ([4, 5, 6].includes(trace.type)) {
+        } else if (
+          [
+            PublishTraceType.BeforeDeploy,
+            PublishTraceType.Deploy,
+            PublishTraceType.AfterDeploy,
+          ].includes(trace.type)
+        ) {
           if (!remoteTraceList.value[trace.serverName]) {
             remoteTraceList.value[trace.serverName] = []
           }
@@ -676,11 +736,14 @@ function getPublishTrace(publishToken: string) {
       }
       activeRomoteTracePane.value = Object.keys(remoteTraceList.value)[0]
       if (props.projectRow.lastPublishToken === publishToken) {
-        if (props.projectRow.deployState === 1 && !timeout) {
+        if (
+          props.projectRow.deployState === DeployState.Deploying &&
+          !timeout
+        ) {
           timeout = setInterval(() => {
             getPublishTrace(publishToken)
           }, 1000)
-        } else if (props.projectRow.deployState !== 1) {
+        } else if (props.projectRow.deployState !== DeployState.Deploying) {
           clearInterval(timeout)
         }
       } else {

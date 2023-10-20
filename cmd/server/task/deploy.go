@@ -121,7 +121,7 @@ func AddDeployTask(gsync Gsync) {
 		ProjectName:   gsync.Project.Name,
 		PublisherID:   gsync.UserInfo.ID,
 		PublisherName: gsync.UserInfo.Name,
-		Type:          model.QUEUE,
+		Type:          model.Queue,
 		State:         model.Success,
 	}
 	if _, err := gsync.PublishTrace.AddRow(); err != nil {

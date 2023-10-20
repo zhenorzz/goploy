@@ -1,6 +1,25 @@
 import { Request, Pagination, Total, ID } from './types'
 import { ProjectData } from './project'
 
+export enum DeployState {
+  Uninitialized = 0,
+  Deploying = 1,
+  Success = 2,
+  Fail = 3,
+}
+
+export enum PublishTraceType {
+  Queue,
+  BeforePull,
+  Pull,
+  AfterPull,
+  BeforeDeploy,
+  Deploy,
+  AfterDeploy,
+  DeployFinish,
+  PublishFinish,
+}
+
 export interface PublishTraceData {
   id: number
   token: string

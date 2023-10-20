@@ -73,11 +73,11 @@
               }"
               class="card"
               :class="
-                row.deployState === 0
+                row.deployState === DeployState.Uninitialized
                   ? ''
-                  : row.deployState === 1
+                  : row.deployState === DeployState.Deploying
                   ? 'deploying'
-                  : row.deployState === 2
+                  : row.deployState === DeployState.Success
                   ? 'success'
                   : 'fail'
               "
@@ -186,7 +186,7 @@
                 <el-row style="margin-top: 10px" justify="space-between">
                   <div>
                     <Button
-                      v-if="row.deployState === 0"
+                      v-if="row.deployState === DeployState.Uninitialized"
                       :permissions="[pms.DeployProject]"
                       type="primary"
                       size="small"
@@ -195,7 +195,7 @@
                       {{ $t('initial') }}
                     </Button>
                     <Button
-                      v-else-if="row.deployState === 1"
+                      v-else-if="row.deployState === DeployState.Deploying"
                       :permissions="[pms.DeployResetState]"
                       type="primary"
                       size="small"
@@ -421,6 +421,7 @@ import pms from '@/permission'
 import { Button, Dropdown, DropdownItem } from '@/components/Permission'
 import { More, ArrowDown } from '@element-plus/icons-vue'
 import {
+  DeployState,
   DeployList,
   DeployPublish,
   DeployResetState,

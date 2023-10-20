@@ -33,7 +33,7 @@ type PublishTraces []PublishTrace
 
 // publish trace state
 const (
-	QUEUE = iota
+	Queue = iota
 	BeforePull
 	Pull
 	AfterPull

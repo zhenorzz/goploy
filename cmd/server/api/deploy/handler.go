@@ -187,7 +187,7 @@ func (Deploy) GetPublishProgress(gp *server.Goploy) server.Response {
 	for _, trace := range publishTraceList {
 
 		switch trace.Type {
-		case model.QUEUE:
+		case model.Queue:
 			stage = "Enqueue"
 		case model.BeforePull:
 			stage = "Before Pull"
