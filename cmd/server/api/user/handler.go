@@ -21,7 +21,6 @@ import (
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -42,8 +41,7 @@ func (u User) Handler() []server.Route {
 		server.NewRoute("/user/edit", http.MethodPut, u.Edit).Permissions(config.EditMember).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/user/remove", http.MethodDelete, u.Remove).Permissions(config.DeleteMember).LogFunc(middleware.AddOPLog),
 		server.NewWhiteRoute("/user/mediaLogin", http.MethodPost, u.MediaLogin).LogFunc(middleware.AddLoginLog),
-		server.NewWhiteRoute("/user/getMediaLoginUrl", http.MethodGet, u.GetMediaLoginUrl),
-		server.NewWhiteRoute("/user/getCaptchaConfig", http.MethodGet, u.GetCaptchaConfig),
+		server.NewWhiteRoute("/user/getConfig", http.MethodGet, u.GetConfig),
 		server.NewWhiteRoute("/user/getCaptcha", http.MethodGet, u.GetCaptcha),
 		server.NewWhiteRoute("/user/checkCaptcha", http.MethodPost, u.CheckCaptcha),
 	}
@@ -558,58 +556,50 @@ func (User) MediaLogin(gp *server.Goploy) server.Response {
 	}
 }
 
-func (User) GetMediaLoginUrl(gp *server.Goploy) server.Response {
-	type ReqData struct {
-		RedirectUri string `schema:"redirectUri" validate:"required"`
-	}
-
-	var reqData ReqData
-	if err := gp.Decode(&reqData); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	reqData.RedirectUri = url.QueryEscape(reqData.RedirectUri)
+// GetConfig show the captcha config
+// @Summary Show the captcha config
+// @Tags User
+// @Produce json
+// @Success 200 {object} response.JSON{data=user.GetConfig.RespData}
+// @Router /user/getConfig [get]
+func (User) GetConfig(*server.Goploy) server.Response {
 
 	dingtalk, feishu := "", ""
 
 	if config.Toml.Dingtalk.AppKey != "" && config.Toml.Dingtalk.AppSecret != "" {
 		dingtalk = fmt.Sprintf(
-			"https://login.dingtalk.com/oauth2/auth?redirect_uri=%s&response_type=code&client_id=%s&scope=openid&prompt=consent&state=dingtalk",
-			reqData.RedirectUri,
+			"https://login.dingtalk.com/oauth2/auth?response_type=code&client_id=%s&scope=openid&prompt=consent&state=dingtalk",
 			config.Toml.Dingtalk.AppKey,
 		)
 	}
 
 	if config.Toml.Feishu.AppKey != "" && config.Toml.Feishu.AppSecret != "" {
 		feishu = fmt.Sprintf(
-			"https://passport.feishu.cn/suite/passport/oauth/authorize?redirect_uri=%s&client_id=%s&response_type=code&state=feishu",
-			reqData.RedirectUri,
+			"https://passport.feishu.cn/suite/passport/oauth/authorize?client_id=%s&response_type=code&state=feishu",
 			config.Toml.Feishu.AppKey,
 		)
 	}
 
-	return response.JSON{
-		Data: struct {
+	type RespData struct {
+		LDAP struct {
+			Enabled bool `json:"enabled"`
+		} `json:"ldap"`
+		Captcha struct {
+			Enabled bool `json:"enabled"`
+		} `json:"captcha"`
+		MediaURL struct {
 			Dingtalk string `json:"dingtalk"`
 			Feishu   string `json:"feishu"`
-		}{Dingtalk: dingtalk, Feishu: feishu},
+		} `json:"mediaURL"`
 	}
-}
+	resp := &RespData{}
+	resp.LDAP.Enabled = config.Toml.LDAP.Enabled
+	resp.Captcha.Enabled = config.Toml.Captcha.Enabled
+	resp.MediaURL.Dingtalk = dingtalk
+	resp.MediaURL.Feishu = feishu
 
-// GetCaptchaConfig show the captcha config
-// @Summary Show the captcha config
-// @Tags User
-// @Produce json
-// @Success 200 {object} response.JSON{data=user.GetCaptchaConfig.RespData}
-// @Router /user/getCaptchaConfig [get]
-func (User) GetCaptchaConfig(*server.Goploy) server.Response {
-	type RespData struct {
-		Enabled bool `json:"enabled"`
-	}
 	return response.JSON{
-		Data: RespData{
-			Enabled: config.Toml.Captcha.Enabled,
-		},
+		Data: resp,
 	}
 }
 

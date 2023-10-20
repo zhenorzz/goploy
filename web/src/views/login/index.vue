@@ -99,12 +99,7 @@ import { useStore } from 'vuex'
 import type { ElForm } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { ref, watch, nextTick, reactive } from 'vue'
-import {
-  MediaLoginUrl,
-  GetCaptcha,
-  CheckCaptcha,
-  GetCaptchaConfig,
-} from '@/api/user'
+import { GetCaptcha, CheckCaptcha, GetConfig } from '@/api/user'
 import GoCaptchaBtn from './components/GoCaptchaBtn.vue'
 import { useI18n } from 'vue-i18n'
 const { locale } = useI18n({ useScope: 'global' })
@@ -137,7 +132,7 @@ const loginRules: InstanceType<typeof ElForm>['rules'] = {
       required: true,
       trigger: 'blur',
       validator: (_, value) => {
-        if (!validPassword(value)) {
+        if (ldapEnabled.value == false && !validPassword(value)) {
           return new Error(
             '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]'
           )
@@ -194,9 +189,9 @@ const mediaMap = reactive<Record<string, any>>({
     icon: 'feishu',
   },
 })
-getMediaLoginUrl()
-getCaptchaConfig()
+getConfig()
 
+const ldapEnabled = ref(false)
 const captchaEnabled = ref(false)
 const captchaShow = ref(false)
 const captchaBase64 = ref('')
@@ -205,9 +200,17 @@ const captchaKey = ref('')
 const captchaStatus = ref('default')
 const captchaAutoRefreshCount = ref(0)
 
-function getCaptchaConfig() {
-  new GetCaptchaConfig().request().then((response) => {
-    captchaEnabled.value = response.data.enabled
+function getConfig() {
+  new GetConfig().request().then((response) => {
+    captchaEnabled.value = response.data.captcha.enabled
+    ldapEnabled.value = response.data.ldap.enabled
+    for (const media in response.data['mediaURL']) {
+      if (response.data['mediaURL'][media] != '') {
+        mediaLoginUrl.value[media] = `${
+          response.data['mediaURL'][media]
+        }&redirect_uri=${encodeURIComponent(redirectUri)}`
+      }
+    }
   })
 }
 
@@ -320,16 +323,6 @@ function handleMediaLogin(authCode: string, state: string) {
     .catch(() => {
       loading.value = false
     })
-}
-
-function getMediaLoginUrl() {
-  new MediaLoginUrl({ redirectUri: redirectUri }).request().then((response) => {
-    for (const media in response.data) {
-      if (response.data[media] != '') {
-        mediaLoginUrl.value[media] = response.data[media]
-      }
-    }
-  })
 }
 
 function handleMediaWindow(url: string) {

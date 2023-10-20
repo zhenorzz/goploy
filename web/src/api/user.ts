@@ -64,18 +64,6 @@ export class MediaLogin extends Request {
   }
 }
 
-export class MediaLoginUrl extends Request {
-  readonly url = '/user/getMediaLoginUrl'
-  readonly method = 'get'
-  public param: {
-    redirectUri: string
-  }
-  constructor(param: MediaLoginUrl['param']) {
-    super()
-    this.param = param
-  }
-}
-
 export class Info extends Request {
   readonly url = '/user/info'
   readonly method = 'get'
@@ -174,11 +162,20 @@ export class UserChangePassword extends Request {
   }
 }
 
-export class GetCaptchaConfig extends Request {
-  readonly url = '/user/getCaptchaConfig'
+export class GetConfig extends Request {
+  readonly url = '/user/getConfig'
   readonly method = 'get'
   public declare datagram: {
-    enabled: boolean
+    ldap: {
+      enabled: boolean
+    }
+    captcha: {
+      enabled: boolean
+    }
+    mediaURL: {
+      dingtalk: string
+      feishu: string
+    }
   }
 }
 
