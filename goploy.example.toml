@@ -32,13 +32,15 @@ path = 'stdout'
 [web]
 port = '80'
 
+# public ldap https://www.forumsys.com/2022/05/10/online-ldap-test-server/
 [ldap]
 enabled = false
-url = ''
-bindDN = ''
-password = ''
-baseDN = ''
-uid = ''
+url = 'ldap://ldap.forumsys.com'
+bindDN = 'cn=read-only-admin,dc=example,dc=com'
+password = 'password'
+baseDN = 'dc=example,dc=com'
+uid = 'uid'
+name = 'cn'
 userFilter = ''
 
 [dingtalk]

@@ -81,10 +81,7 @@ func (User) Login(gp *server.Goploy) server.Response {
 	}
 
 	userData, err := model.User{Account: reqData.Account}.GetDataByAccount()
-	if errors.Is(err, sql.ErrNoRows) {
-		return response.JSON{Code: response.Error, Message: "We couldn't verify your identity. Please confirm if your username and password are correct."}
-	}
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -113,7 +110,7 @@ func (User) Login(gp *server.Goploy) server.Response {
 			0,
 			false,
 			filter,
-			[]string{config.Toml.LDAP.UID},
+			[]string{config.Toml.LDAP.UID, config.Toml.LDAP.Name},
 			nil)
 
 		sr, err := conn.Search(searchRequest)
@@ -126,7 +123,23 @@ func (User) Login(gp *server.Goploy) server.Response {
 		if err := conn.Bind(sr.Entries[0].DN, reqData.Password); err != nil {
 			return response.JSON{Code: response.Deny, Message: err.Error()}
 		}
+
+		// add user when user could not be found
+		if userData.ID == 0 {
+			userData = model.User{
+				Account:  reqData.Account,
+				Password: reqData.Password,
+				Name:     sr.Entries[0].GetAttributeValue(config.Toml.LDAP.Name),
+				State:    model.Enable,
+			}
+			userData.ID, err = userData.AddRow()
+			return response.JSON{Code: response.Error, Message: err.Error()}
+		}
+
 	} else {
+		if userData.ID == 0 {
+			return response.JSON{Code: response.Error, Message: "We couldn't verify your identity. Please confirm if your username and password are correct."}
+		}
 		if err := userData.Validate(reqData.Password); err != nil {
 			errorTimes := userCache.IncErrorTimes(reqData.Account, cache.UserCacheExpireTime, cache.UserCacheShowCaptchaTime)
 			// error times over 5 times, then lock the account 15 minutes
