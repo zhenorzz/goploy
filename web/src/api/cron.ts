@@ -17,6 +17,35 @@ export interface CronData {
   UpdateTime: string
 }
 
+export interface CronLogData {
+  id: number
+  serverId: number
+  cronId: number
+  execCode: number
+  message: string
+  ReportTime: string
+  InsertTime: string
+}
+
+export class CronLogs extends Request {
+  readonly url = '/cron/getLogs'
+  readonly method = 'post'
+  public param: {
+    cronId: number
+    serverId: number
+    page: number
+    rows: number
+  }
+
+  public declare datagram: {
+    list: CronLogData[]
+  }
+  constructor(param: CronLogs['param']) {
+    super()
+    this.param = param
+  }
+}
+
 export class CronList extends Request {
   readonly url = '/cron/getList'
   readonly method = 'post'

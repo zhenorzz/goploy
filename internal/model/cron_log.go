@@ -10,7 +10,6 @@ import (
 
 const cronLogTable = "`cron_log`"
 
-// CronLog -
 type CronLog struct {
 	ID         int64  `json:"id"`
 	CronID     int64  `json:"cronId"`
@@ -21,10 +20,8 @@ type CronLog struct {
 	InsertTime string `json:"insertTime"`
 }
 
-// CronLogs -
 type CronLogs []CronLog
 
-// GetList -
 func (cl CronLog) GetList(page, limit uint64) (CronLogs, error) {
 	rows, err := sq.
 		Select(

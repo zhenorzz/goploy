@@ -8,7 +8,7 @@ import (
 	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
-	model2 "github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"net/http"
@@ -20,7 +20,7 @@ type Cron api.API
 func (c Cron) Handler() []server.Route {
 	return []server.Route{
 		server.NewRoute("/cron/getList", http.MethodPost, c.GetList).Permissions(config.ShowCronPage),
-		server.NewRoute("/cron/getLogs", http.MethodPost, c.GetLogs).Permissions(config.ShowCronPage),
+		server.NewRoute("/cron/getLogs", http.MethodGet, c.GetLogs).Permissions(config.ShowCronPage),
 		server.NewRoute("/cron/add", http.MethodPost, c.Add).Permissions(config.AddCron).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/cron/edit", http.MethodPut, c.Edit).Permissions(config.EditCron).LogFunc(middleware.AddOPLog),
 		server.NewRoute("/cron/remove", http.MethodDelete, c.Remove).Permissions(config.DeleteCron).LogFunc(middleware.AddOPLog),
@@ -37,14 +37,14 @@ func (Cron) GetList(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	crons, err := model2.Cron{ServerID: reqData.ServerID}.GetList()
+	crons, err := model.Cron{ServerID: reqData.ServerID}.GetList()
 
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			List model2.Crons `json:"list"`
+			List model.Crons `json:"list"`
 		}{List: crons},
 	}
 }
@@ -62,14 +62,14 @@ func (Cron) GetLogs(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.IllegalParam, Message: err.Error()}
 	}
 
-	crons, err := model2.CronLog{ServerID: reqData.ServerID, CronID: reqData.CronID}.GetList(reqData.Page, reqData.Rows)
+	crons, err := model.CronLog{ServerID: reqData.ServerID, CronID: reqData.CronID}.GetList(reqData.Page, reqData.Rows)
 
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{
 		Data: struct {
-			List model2.CronLogs `json:"list"`
+			List model.CronLogs `json:"list"`
 		}{List: crons},
 	}
 }
@@ -89,7 +89,7 @@ func (Cron) Add(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	id, err := model2.Cron{
+	id, err := model.Cron{
 		ServerID:    reqData.ServerID,
 		Expression:  reqData.Expression,
 		Command:     reqData.Command,
@@ -123,7 +123,7 @@ func (Cron) Edit(gp *server.Goploy) server.Response {
 	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	err := model2.Cron{
+	err := model.Cron{
 		ID:          reqData.ID,
 		Expression:  reqData.Expression,
 		Command:     reqData.Command,
@@ -148,7 +148,7 @@ func (Cron) Remove(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := (model2.Cron{ID: reqData.ID}).RemoveRow(); err != nil {
+	if err := (model.Cron{ID: reqData.ID}).RemoveRow(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 

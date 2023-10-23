@@ -88,11 +88,12 @@
         <el-table-column
           prop="operation"
           :label="$t('op')"
-          width="130"
+          width="190"
           align="center"
           :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
         >
           <template #default="scope">
+            <el-button :icon="Tickets" @click="handleShowLogs(scope.row)" />
             <Button
               type="primary"
               :icon="Edit"
@@ -188,6 +189,33 @@
         </el-button>
       </template>
     </el-dialog>
+    <el-dialog
+      v-model="cronDialogVisible"
+      :title="$t('detail')"
+      :fullscreen="$store.state.app.device === 'mobile'"
+    >
+      <el-table
+        v-loading="cronTableLoading"
+        border
+        stripe
+        highlight-current-row
+        max-height="447px"
+        :data="cronTableData"
+      >
+        <el-table-column prop="reportTime" label="Report time" width="160" />
+        <el-table-column prop="message" label="Message" />
+        <el-table-column prop="result" label="Result" width="120">
+          <template #default="scope">
+            <span v-if="scope.row.execCode > 0" style="color: #f56c6c">
+              {{ $t('fail') }} ({{ scope.row.execCode }})
+            </span>
+            <span v-else style="color: #67c23a">
+              {{ $t('success') }}
+            </span>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </el-row>
 </template>
 <script lang="ts">
@@ -196,10 +224,17 @@ export default { name: 'ServerCron' }
 <script lang="ts" setup>
 import pms from '@/permission'
 import Button from '@/components/Permission/Button.vue'
-import { Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Refresh, Plus, Edit, Delete, Tickets } from '@element-plus/icons-vue'
 import cronstrue from 'cronstrue/i18n'
 import { ServerOption } from '@/api/server'
-import { CronList, CronAdd, CronEdit, CronRemove, CronData } from '@/api/cron'
+import {
+  CronList,
+  CronLogs,
+  CronAdd,
+  CronEdit,
+  CronRemove,
+  CronData,
+} from '@/api/cron'
 import type { ElForm } from 'element-plus'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref, computed } from 'vue'
@@ -207,9 +242,12 @@ import { useI18n } from 'vue-i18n'
 const { locale, t } = useI18n({ useScope: 'global' })
 const serverId = ref('')
 const dialogVisible = ref(false)
+const cronDialogVisible = ref(false)
 const serverOption = ref<ServerOption['datagram']['list']>([])
 const tableLoading = ref(false)
 const tableData = ref<CronList['datagram']['list']>([])
+const cronTableLoading = ref(false)
+const cronTableData = ref<CronLogs['datagram']['list']>([])
 const pagination = ref({ page: 1, rows: 20 })
 const form = ref<InstanceType<typeof ElForm>>()
 const tempFormData = {
@@ -290,6 +328,23 @@ const tablePage = computed(() => {
 function refresList() {
   pagination.value.page = 1
   getList()
+}
+
+function handleShowLogs(data: CronData) {
+  new CronLogs({
+    serverId: Number(serverId.value),
+    cronId: data.id,
+    page: 1,
+    rows: 50,
+  })
+    .request()
+    .then((response) => {
+      cronTableData.value = response.data.list
+    })
+    .finally(() => {
+      cronTableLoading.value = false
+    })
+  cronDialogVisible.value = true
 }
 
 function handleAdd() {
