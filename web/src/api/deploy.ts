@@ -45,6 +45,7 @@ export interface PublishTraceExt {
   diff: string
   script: string
   command: string
+  step: string
 }
 
 export class DeployList extends Request {

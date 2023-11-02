@@ -24,6 +24,9 @@ func (ct customTransmitter) String() string {
 	scriptVars := map[string]string{
 		"${AFTER_DEPLOY_FILENAME}": fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, server.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode)),
 	}
+	for index, scriptName := range project.Script.AfterDeploy.ScriptNames {
+		scriptVars[fmt.Sprintf("${AFTER_DEPLOY_FILENAME_YAML_%d}", index)] = scriptName
+	}
 	for key, value := range scriptVars {
 		script = strings.Replace(script, key, value, -1)
 	}

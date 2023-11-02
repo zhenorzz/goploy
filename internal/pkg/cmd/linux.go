@@ -13,7 +13,7 @@ import (
 type LinuxCmd struct{}
 
 func (c LinuxCmd) Script(mode, file string) string {
-	if mode == "" {
+	if mode == "" || mode == "yaml" {
 		mode = "bash"
 	}
 	return fmt.Sprintf("%s %s", mode, file)

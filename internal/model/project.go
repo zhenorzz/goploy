@@ -22,13 +22,27 @@ type ProjectScript struct {
 		Content string `json:"content"`
 	} `json:"afterPull"`
 	AfterDeploy struct {
-		Mode    string `json:"mode"`
-		Content string `json:"content"`
+		Mode        string   `json:"mode"`
+		Content     string   `json:"content"`
+		ScriptNames []string `json:"scriptNames"`
 	} `json:"afterDeploy"`
 	DeployFinish struct {
 		Mode    string `json:"mode"`
 		Content string `json:"content"`
 	} `json:"deployFinish"`
+}
+
+type YamlScript struct {
+	Name  string `yaml:"name"`
+	Steps []struct {
+		Name     string   `yaml:"name"`
+		Commands []string `yaml:"commands"`
+	} `yaml:"steps"`
+}
+
+type StepScript struct {
+	Step       string
+	ScriptName string
 }
 
 type Project struct {
@@ -407,7 +421,8 @@ func (p Project) GetDeployList() (Projects, error) {
 			project.environment, 
 			project.branch, 
 			project.symlink_path, 
-			project.review, 
+			project.review,
+			project.script,
 			project.last_publish_token,
 			project.auto_deploy,
 			project.deploy_state, 
@@ -436,7 +451,7 @@ func (p Project) GetDeployList() (Projects, error) {
 	projects := Projects{}
 	for rows.Next() {
 		var project Project
-
+		var script []byte
 		if err := rows.Scan(
 			&project.ID,
 			&project.Name,
@@ -451,12 +466,18 @@ func (p Project) GetDeployList() (Projects, error) {
 			&project.Branch,
 			&project.SymlinkPath,
 			&project.Review,
+			&script,
 			&project.LastPublishToken,
 			&project.AutoDeploy,
 			&project.DeployState,
 			&project.UpdateTime); err != nil {
 			return projects, err
 		}
+
+		if err = json.Unmarshal(script, &project.Script); err != nil {
+			return nil, err
+		}
+
 		projects = append(projects, project)
 	}
 

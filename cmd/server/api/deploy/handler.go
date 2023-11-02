@@ -25,6 +25,8 @@ import (
 	"github.com/zhenorzz/goploy/internal/repo"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
+	"github.com/zhenorzz/goploy/internal/transmitter"
+	"gopkg.in/yaml.v3"
 	"io"
 	"net/http"
 	"net/url"
@@ -628,23 +630,63 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 		ch := make(chan bool, len(projectServers))
 		for _, projectServer := range projectServers {
 			go func(projectServer model.ProjectServer) {
+				var scripts []model.StepScript
 				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
 				cmdEntity := cmd.New(projectServer.Server.OS)
-				afterDeployCommands := []string{cmdEntity.Symlink(destDir, project.Path), cmdEntity.ChangeDirTime(destDir)}
+
 				if project.Script.AfterDeploy.Content != "" {
 					scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode))
 					scriptContent := project.ReplaceVars(project.Script.AfterDeploy.Content)
 					scriptContent = projectServer.ReplaceVars(scriptContent)
-					err = os.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(project.ReplaceVars(project.Script.AfterDeploy.Content)), 0755)
-					if err != nil {
-						log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " write file err: " + err.Error())
-						ch <- false
-						return
+
+					if project.Script.AfterDeploy.Mode == "yaml" {
+						var yamlScript model.YamlScript
+						if err := yaml.Unmarshal([]byte(scriptContent), &yamlScript); err != nil {
+							log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " unmarshal yaml script fail err: " + err.Error())
+							ch <- false
+							return
+						}
+
+						scriptExt := "sh"
+						if projectServer.Server.OS == "windows" {
+							scriptExt = "bat"
+						}
+
+						for stepIndex, step := range yamlScript.Steps {
+							scriptContent = strings.Join(step.Commands, "\n")
+							scriptName = fmt.Sprintf("goploy-after-deploy-p%d-s%d-y%d.%s", project.ID, projectServer.ServerID, stepIndex, scriptExt)
+							scripts = append(scripts, model.StepScript{
+								Step:       step.Name,
+								ScriptName: scriptName,
+							})
+							err = os.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(scriptContent), 0755)
+							if err != nil {
+								log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " write file err: " + err.Error())
+								ch <- false
+								return
+							}
+						}
+					} else {
+						scripts = append(scripts, model.StepScript{
+							Step:       "",
+							ScriptName: scriptName,
+						})
+						err = os.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(scriptContent), 0755)
+						if err != nil {
+							log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " write file err: " + err.Error())
+							ch <- false
+							return
+						}
 					}
-					afterDeployScriptPath := path.Join(project.Path, scriptName)
-					afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.Script.AfterDeploy.Mode, afterDeployScriptPath))
-					afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
 				}
+
+				transmitterEntity := transmitter.New(project, projectServer)
+				if transmitterOutput, err := transmitterEntity.Exec(); err != nil {
+					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " transmit exec err: " + err.Error() + ", output: " + transmitterOutput)
+					ch <- false
+					return
+				}
+
 				client, err := projectServer.ToSSHConfig().Dial()
 				if err != nil {
 					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " dial err: " + err.Error())
@@ -652,12 +694,14 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 					return
 				}
 				defer client.Close()
+
 				session, err := client.NewSession()
 				if err != nil {
 					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " new session err: " + err.Error())
 					ch <- false
 					return
 				}
+				defer session.Close()
 
 				// check if the path is existed or not
 				if output, err := session.CombinedOutput("cd " + destDir); err != nil {
@@ -665,20 +709,36 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 					ch <- false
 					return
 				}
-				session, err = client.NewSession()
-				if err != nil {
-					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " new session err: " + err.Error())
-					ch <- false
-					return
+
+				result := true
+				for _, script := range scripts {
+					func() {
+						afterDeployCommands := []string{cmdEntity.Symlink(destDir, project.Path), cmdEntity.ChangeDirTime(destDir)}
+						afterDeployScriptPath := path.Join(project.Path, script.ScriptName)
+						afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.Script.AfterDeploy.Mode, afterDeployScriptPath))
+						afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
+
+						session, err = client.NewSession()
+						defer session.Close()
+						if err != nil {
+							log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " new session err: " + err.Error())
+							result = false
+							return
+						}
+
+						// redirect to project path
+						if output, err := session.CombinedOutput(strings.Join(afterDeployCommands, "&&")); err != nil {
+							log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " symlink err: " + err.Error() + ", detail: " + string(output))
+							result = false
+							return
+						}
+					}()
+					if !result {
+						break
+					}
 				}
 
-				// redirect to project path
-				if output, err := session.CombinedOutput(strings.Join(afterDeployCommands, "&&")); err != nil {
-					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " symlink err: " + err.Error() + ", detail: " + string(output))
-					ch <- false
-					return
-				}
-				ch <- true
+				ch <- result
 			}(projectServer)
 		}
 
