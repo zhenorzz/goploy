@@ -34,7 +34,7 @@ require (
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	golang.org/x/image v0.5.0 // indirect
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/image v0.10.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 )
