@@ -119,7 +119,8 @@ go build -o goploy cmd/server/main.go
 
 ## 买点东西支持一下
 - [一枝红杏, 高速稳定便宜机场, 双十一优惠后最低53块钱起](https://order.yizhihongxing.org/aff.php?aff=18213)
-- [阿里云双 11 活动上线： 99 元 3M 服务器不限新老用户 可原价续费 1 年](https://www.aliyun.com/minisite/goods?userCode=pv25wklv)
+- [阿里云双 11 活动上线： 99 元 3M 服务器不限新老用户 可原价续费 1 年](https://reurl.cc/ga3bVp)
+
 ## 如何贡献
 
 非常欢迎你的加入!
