@@ -468,7 +468,12 @@
                   <el-row style="margin: 5px 0">
                     Time: {{ trace.updateTime }}
                   </el-row>
-                  <el-row>Script: {{ trace.script }}</el-row>
+                  <el-row>
+                    Script:
+                    <pre style="white-space: pre-line">
+                      {{ trace.script }}
+                    </pre>
+                  </el-row>
                   <div
                     v-loading="traceDetail[trace.id] === ''"
                     style="margin: 5px 0"

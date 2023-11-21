@@ -14,6 +14,7 @@ import (
 	"github.com/zhenorzz/goploy/cmd/server/ws"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/pipeline/docker"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/internal/pkg/cmd"
 	"github.com/zhenorzz/goploy/internal/repo"
@@ -25,7 +26,6 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -277,18 +277,17 @@ func (gsync *Gsync) serverStage() error {
 		project := gsync.Project
 		publishTraceModel := gsync.PublishTrace
 		// write after deploy script for rsync
-		var scripts []model.StepScript
+		var dockerScript docker.Script
 		scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode))
-
+		scriptContent := ""
 		if project.Script.AfterDeploy.Content != "" {
-			scriptContent := project.ReplaceVars(project.Script.AfterDeploy.Content)
+			scriptContent = project.ReplaceVars(project.Script.AfterDeploy.Content)
 			scriptContent = projectServer.ReplaceVars(scriptContent)
 			scriptContent = strings.Replace(scriptContent, "${SERVER_TOTAL_NUMBER}", strconv.Itoa(len(gsync.ProjectServers)), -1)
 			scriptContent = strings.Replace(scriptContent, "${SERVER_SERIAL_NUMBER}", strconv.Itoa(index), -1)
 
 			if project.Script.AfterDeploy.Mode == "yaml" {
-				var yamlScript model.YamlScript
-				if err := yaml.Unmarshal([]byte(scriptContent), &yamlScript); err != nil {
+				if err := yaml.Unmarshal([]byte(scriptContent), &dockerScript); err != nil {
 					log.Error(fmt.Sprintf("projectID: %d unmarshal yaml script fail err: %s", project.ID, err))
 					publishTraceModel.Detail = fmt.Sprintf("err: %s", err)
 					publishTraceModel.State = model.Fail
@@ -305,26 +304,15 @@ func (gsync *Gsync) serverStage() error {
 					return
 				}
 
-				scriptExt := "sh"
-				if projectServer.Server.OS == "windows" {
-					scriptExt = "bat"
-				}
-
-				for stepIndex, step := range yamlScript.Steps {
+				for stepIndex, step := range dockerScript.Steps {
+					scriptName = fmt.Sprintf("goploy-after-deploy-p%d-s%d-y%d", project.ID, projectServer.ServerID, stepIndex)
+					// delete the script
+					step.Commands = append(step.Commands, fmt.Sprintf("rm -f %s", docker.GetDockerProjectScriptPath(project.ID, scriptName)))
 					scriptContent = strings.Join(step.Commands, "\n")
-					scriptName = fmt.Sprintf("goploy-after-deploy-p%d-s%d-y%d.%s", project.ID, projectServer.ServerID, stepIndex, scriptExt)
-					scripts = append(scripts, model.StepScript{
-						Step:       step.Name,
-						ScriptName: scriptName,
-					})
 					project.Script.AfterDeploy.ScriptNames = append(project.Script.AfterDeploy.ScriptNames, scriptName)
 					_ = os.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(scriptContent), 0755)
 				}
 			} else {
-				scripts = append(scripts, model.StepScript{
-					Step:       "",
-					ScriptName: scriptName,
-				})
 				project.Script.AfterDeploy.ScriptNames = append(project.Script.AfterDeploy.ScriptNames, scriptName)
 				_ = os.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(scriptContent), 0755)
 			}
@@ -363,106 +351,166 @@ func (gsync *Gsync) serverStage() error {
 			}
 		}
 
-		client, err := projectServer.ToSSHConfig().Dial()
-		if err != nil {
-			log.Error(err.Error())
-			publishTraceModel.Detail = err.Error()
-			publishTraceModel.State = model.Fail
-			if _, err := publishTraceModel.AddRow(); err != nil {
-				log.Errorf(projectLogFormat, project.ID, err)
+		if project.Script.AfterDeploy.Mode == "yaml" && len(dockerScript.Steps) > 0 {
+			dockerConfig := docker.Config{
+				ProjectID:   project.ID,
+				ProjectPath: project.Path,
+				Server:      projectServer.Server,
 			}
-			ch <- syncMessage{
-				serverName: projectServer.Server.Name,
-				projectID:  project.ID,
-				detail:     err.Error(),
-				state:      model.ProjectFail,
+
+			if err := dockerConfig.Setup(); err != nil {
+				log.Error(fmt.Sprintf("projectID: %d err: %s", project.ID, err))
+				publishTraceModel.Detail = err.Error()
+				publishTraceModel.State = model.Fail
+				if _, err := publishTraceModel.AddRow(); err != nil {
+					log.Errorf(projectLogFormat, project.ID, err)
+				}
+				ch <- syncMessage{
+					serverName: projectServer.Server.Name,
+					projectID:  project.ID,
+					detail:     err.Error(),
+					state:      model.ProjectFail,
+				}
+				return
 			}
-			return
-		}
-		defer client.Close()
 
-		errMessage := ""
-		for _, script := range scripts {
-			func() {
-				var afterDeployCommands []string
-				cmdEntity := cmd.New(projectServer.Server.OS)
-				if len(project.SymlinkPath) != 0 {
-					destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
-					afterDeployCommands = append(afterDeployCommands, cmdEntity.Symlink(destDir, project.Path))
-				}
+			for stepIndex, step := range dockerScript.Steps {
+				step.ScriptName = fmt.Sprintf("goploy-after-deploy-p%d-s%d-y%d", project.ID, projectServer.ServerID, stepIndex)
+				dockerOutput, dockerErr := dockerConfig.Run(step)
 
-				if project.Script.AfterDeploy.Content != "" {
-					afterDeployScriptPath := path.Join(project.Path, script.ScriptName)
-					afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.Script.AfterDeploy.Mode, afterDeployScriptPath))
-					afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
-				}
-
-				// no symlink and deploy script
-				if len(afterDeployCommands) == 0 {
-					return
-				}
-				completeAfterDeployCmd := strings.Join(afterDeployCommands, "&&")
+				scriptContent = strings.Join(step.Commands, "\n")
 				publishTraceModel.Type = model.AfterDeploy
 				ext, _ = json.Marshal(struct {
 					ServerID   int64  `json:"serverId"`
 					ServerName string `json:"serverName"`
 					Script     string `json:"script"`
 					Step       string `json:"step"`
-				}{projectServer.ServerID, projectServer.Server.Name, completeAfterDeployCmd, script.Step})
+				}{projectServer.ServerID, projectServer.Server.Name, scriptContent, step.Name})
 				publishTraceModel.Ext = string(ext)
 
-				session, sessionErr := client.NewSession()
-				defer session.Close()
+				scriptFullName := path.Join(config.GetProjectPath(project.ID), step.ScriptName)
+				_ = os.Remove(scriptFullName)
 
-				if sessionErr != nil {
-					log.Error(sessionErr.Error())
-					publishTraceModel.Detail = sessionErr.Error()
+				if dockerErr != "" {
+					log.Error(fmt.Sprintf("projectID: %d run docker script err: %s", project.ID, dockerErr))
+					publishTraceModel.Detail = fmt.Sprintf("err: %s\noutput: %s", dockerErr, dockerOutput)
 					publishTraceModel.State = model.Fail
 					if _, err := publishTraceModel.AddRow(); err != nil {
 						log.Errorf(projectLogFormat, project.ID, err)
 					}
-					errMessage = sessionErr.Error()
-					return
-				}
-
-				log.Trace(fmt.Sprintf("projectID: %d ssh exec: %s", project.ID, completeAfterDeployCmd))
-
-				output, err := session.CombinedOutput(completeAfterDeployCmd)
-				if err != nil {
-					log.Error(fmt.Sprintf("projectID: %d ssh exec err: %s, output: %s", project.ID, err, output))
-					publishTraceModel.Detail = fmt.Sprintf("err: %s\noutput: %s", err, output)
-					publishTraceModel.State = model.Fail
-					if _, err := publishTraceModel.AddRow(); err != nil {
-						log.Errorf(projectLogFormat, project.ID, err)
+					ch <- syncMessage{
+						serverName: projectServer.Server.Name,
+						projectID:  project.ID,
+						detail:     fmt.Sprintf("err: %s\noutput: %s", dockerErr, dockerOutput),
+						state:      model.ProjectFail,
 					}
-					errMessage = fmt.Sprintf("%s\noutput: %s", err.Error(), output)
 					return
+				} else {
+					publishTraceModel.Detail = dockerOutput
+					publishTraceModel.State = model.Success
+					if _, err := publishTraceModel.AddRow(); err != nil {
+						log.Error("projectID: " + strconv.FormatInt(project.ID, 10) + " " + err.Error())
+					}
 				}
+			}
+		} else {
+			var afterDeployCommands []string
+			cmdEntity := cmd.New(projectServer.Server.OS)
+			if len(project.SymlinkPath) != 0 {
+				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
+				afterDeployCommands = append(afterDeployCommands, cmdEntity.Symlink(destDir, project.Path))
+			}
 
-				publishTraceModel.Detail = string(output)
-				publishTraceModel.State = model.Success
+			if project.Script.AfterDeploy.Content != "" {
+				afterDeployScriptPath := path.Join(project.Path, scriptName)
+				afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.Script.AfterDeploy.Mode, afterDeployScriptPath))
+				afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
+			}
+
+			// no symlink and deploy script
+			if len(afterDeployCommands) == 0 {
+				ch <- syncMessage{
+					serverName: projectServer.Server.Name,
+					projectID:  project.ID,
+					state:      model.ProjectSuccess,
+				}
+				return
+			}
+			completeAfterDeployCmd := strings.Join(afterDeployCommands, "&&")
+			publishTraceModel.Type = model.AfterDeploy
+			ext, _ = json.Marshal(struct {
+				ServerID   int64  `json:"serverId"`
+				ServerName string `json:"serverName"`
+				Script     string `json:"script"`
+			}{projectServer.ServerID, projectServer.Server.Name, scriptContent})
+			publishTraceModel.Ext = string(ext)
+
+			client, err := projectServer.ToSSHConfig().Dial()
+			if err != nil {
+				log.Error(err.Error())
+				publishTraceModel.Detail = err.Error()
+				publishTraceModel.State = model.Fail
 				if _, err := publishTraceModel.AddRow(); err != nil {
-					log.Error("projectID: " + strconv.FormatInt(project.ID, 10) + " " + err.Error())
+					log.Errorf(projectLogFormat, project.ID, err)
 				}
-			}()
-			if errMessage != "" {
-				break
+				ch <- syncMessage{
+					serverName: projectServer.Server.Name,
+					projectID:  project.ID,
+					detail:     err.Error(),
+					state:      model.ProjectFail,
+				}
+				return
+			}
+			defer client.Close()
+
+			session, sessionErr := client.NewSession()
+			if sessionErr != nil {
+				log.Error(sessionErr.Error())
+				publishTraceModel.Detail = sessionErr.Error()
+				publishTraceModel.State = model.Fail
+				if _, err := publishTraceModel.AddRow(); err != nil {
+					log.Errorf(projectLogFormat, project.ID, err)
+				}
+				ch <- syncMessage{
+					serverName: projectServer.Server.Name,
+					projectID:  project.ID,
+					detail:     sessionErr.Error(),
+					state:      model.ProjectFail,
+				}
+				return
+			}
+			defer session.Close()
+
+			log.Trace(fmt.Sprintf("projectID: %d ssh exec: %s", project.ID, completeAfterDeployCmd))
+
+			output, err := session.CombinedOutput(completeAfterDeployCmd)
+			if err != nil {
+				log.Error(fmt.Sprintf("projectID: %d ssh exec err: %s, output: %s", project.ID, err, output))
+				publishTraceModel.Detail = fmt.Sprintf("err: %s\noutput: %s", err, output)
+				publishTraceModel.State = model.Fail
+				if _, err := publishTraceModel.AddRow(); err != nil {
+					log.Errorf(projectLogFormat, project.ID, err)
+				}
+				ch <- syncMessage{
+					serverName: projectServer.Server.Name,
+					projectID:  project.ID,
+					detail:     fmt.Sprintf("%s\noutput: %s", err.Error(), output),
+					state:      model.ProjectFail,
+				}
+				return
+			}
+
+			publishTraceModel.Detail = string(output)
+			publishTraceModel.State = model.Success
+			if _, err := publishTraceModel.AddRow(); err != nil {
+				log.Error("projectID: " + strconv.FormatInt(project.ID, 10) + " " + err.Error())
 			}
 		}
 
-		if errMessage != "" {
-			ch <- syncMessage{
-				serverName: projectServer.Server.Name,
-				projectID:  project.ID,
-				detail:     errMessage,
-				state:      model.ProjectFail,
-			}
-		} else {
-			ch <- syncMessage{
-				serverName: projectServer.Server.Name,
-				projectID:  project.ID,
-				state:      model.ProjectSuccess,
-			}
+		ch <- syncMessage{
+			serverName: projectServer.Server.Name,
+			projectID:  project.ID,
+			state:      model.ProjectSuccess,
 		}
 	}
 
@@ -536,56 +584,80 @@ func (gsync *Gsync) runLocalScript() error {
 	}
 	scriptText := project.ReplaceVars(commitInfo.ReplaceVars(content))
 
-	var scripts []model.StepScript
-	var scriptExt string
-	// yaml
+	// run yaml script by docker
 	if mode == "yaml" {
-		var yamlScript model.YamlScript
-		err := yaml.Unmarshal([]byte(scriptText), &yamlScript)
+		var dockerScript docker.Script
+		err := yaml.Unmarshal([]byte(scriptText), &dockerScript)
 		if err != nil {
 			return errors.New("unmarshal yaml script fail")
 		}
 
-		scriptMode = "bash"
-		scriptExt = "sh"
-
-		if runtime.GOOS == "windows" {
-			scriptMode = "cmd"
-			scriptExt = "bat"
+		projectPath, err := filepath.Abs(config.GetProjectPath(project.ID))
+		if err != nil {
+			return fmt.Errorf("get repository abs path err: %s", err)
 		}
 
-		for stepIndex, step := range yamlScript.Steps {
-			scriptFullName := scriptName + fmt.Sprintf("-y%d.%s", stepIndex, scriptExt)
-			scriptFullName = path.Join(srcPath, scriptFullName)
-			scripts = append(scripts, model.StepScript{
-				Step:       step.Name,
-				ScriptName: scriptFullName,
-			})
-			_ = os.WriteFile(scriptFullName, []byte(strings.Join(step.Commands, "\n")), 0755)
+		if len(dockerScript.Steps) == 0 {
+			return nil
+		}
+
+		dockerConfig := docker.Config{
+			ProjectID:   project.ID,
+			ProjectPath: projectPath,
+		}
+
+		if err = dockerConfig.Setup(); err != nil {
+			return err
+		}
+
+		for stepIndex, step := range dockerScript.Steps {
+			scriptText = strings.Join(step.Commands, "\n")
+			tmpScriptName := scriptName + fmt.Sprintf("-y%d", stepIndex)
+			scriptFullName := path.Join(srcPath, tmpScriptName)
+			step.ScriptName = tmpScriptName
+
+			_ = os.WriteFile(scriptFullName, []byte(scriptText), 0755)
+
+			dockerOutput, dockerErr := dockerConfig.Run(step)
+
+			ext, _ := json.Marshal(struct {
+				Script string `json:"script"`
+				Step   string `json:"step"`
+			}{scriptText, step.Name})
+			gsync.PublishTrace.Ext = string(ext)
+
+			_ = os.Remove(scriptFullName)
+
+			if dockerErr != "" {
+				gsync.PublishTrace.Detail = dockerErr
+				gsync.PublishTrace.State = model.Fail
+				if _, err := gsync.PublishTrace.AddRow(); err != nil {
+					log.Errorf(projectLogFormat, gsync.Project.ID, err)
+				}
+				return fmt.Errorf("run docker script err: %s", dockerErr)
+			} else {
+				gsync.PublishTrace.Detail = dockerOutput
+				gsync.PublishTrace.State = model.Success
+				if _, err := gsync.PublishTrace.AddRow(); err != nil {
+					log.Errorf(projectLogFormat, gsync.Project.ID, err)
+				}
+			}
 		}
 	} else {
 		scriptName += fmt.Sprintf(".%s", pkg.GetScriptExt(mode))
 		scriptFullName := path.Join(srcPath, scriptName)
-		scripts = append(scripts, model.StepScript{
-			Step:       "",
-			ScriptName: scriptFullName,
-		})
 		_ = os.WriteFile(scriptFullName, []byte(scriptText), 0755)
-	}
 
-	errMessage := ""
-	for _, script := range scripts {
 		var commandOptions []string
 		if scriptMode == "cmd" {
 			commandOptions = append(commandOptions, "/C")
-			script.ScriptName, _ = filepath.Abs(script.ScriptName)
+			scriptFullName, _ = filepath.Abs(scriptFullName)
 		}
-		commandOptions = append(commandOptions, script.ScriptName)
+		commandOptions = append(commandOptions, scriptFullName)
 
 		ext, _ := json.Marshal(struct {
 			Script string `json:"script"`
-			Step   string `json:"step"`
-		}{scriptMode + strings.Join(commandOptions, "&&"), script.Step})
+		}{Script: scriptText})
 		gsync.PublishTrace.Ext = string(ext)
 
 		handler := exec.Command(scriptMode, commandOptions...)
@@ -597,25 +669,18 @@ func (gsync *Gsync) runLocalScript() error {
 			if _, err := gsync.PublishTrace.AddRow(); err != nil {
 				log.Errorf(projectLogFormat, gsync.Project.ID, err)
 			}
-			errMessage = fmt.Sprintf("err: %s, output: %s", err, string(output))
+			return fmt.Errorf("err: %s, output: %s", err, string(output))
 		} else {
-			_ = os.Remove(script.ScriptName)
+			_ = os.Remove(scriptFullName)
 			gsync.PublishTrace.Detail = string(output)
 			gsync.PublishTrace.State = model.Success
 			if _, err := gsync.PublishTrace.AddRow(); err != nil {
 				log.Errorf(projectLogFormat, gsync.Project.ID, err)
 			}
 		}
-		if errMessage != "" {
-			break
-		}
 	}
 
-	if errMessage != "" {
-		return errors.New(errMessage)
-	} else {
-		return nil
-	}
+	return nil
 }
 
 // commit id

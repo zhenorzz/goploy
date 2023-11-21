@@ -32,19 +32,6 @@ type ProjectScript struct {
 	} `json:"deployFinish"`
 }
 
-type YamlScript struct {
-	Name  string `yaml:"name"`
-	Steps []struct {
-		Name     string   `yaml:"name"`
-		Commands []string `yaml:"commands"`
-	} `yaml:"steps"`
-}
-
-type StepScript struct {
-	Step       string
-	ScriptName string
-}
-
 type Project struct {
 	ID                  int64         `json:"id"`
 	NamespaceID         int64         `json:"namespaceId"`

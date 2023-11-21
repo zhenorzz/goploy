@@ -12,7 +12,7 @@ import (
 type WindowsCmd struct{}
 
 func (w WindowsCmd) Script(mode, file string) string {
-	if mode == "" || mode == "cmd" || mode == "yaml" {
+	if mode == "" || mode == "cmd" {
 		mode = "cmd /C"
 	}
 	return fmt.Sprintf("%s %s", mode, w.Path(file))
