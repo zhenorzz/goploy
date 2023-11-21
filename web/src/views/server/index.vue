@@ -744,6 +744,7 @@ function handleMonitor(data: ServerData) {
 }
 
 function onSwitchState(value: boolean, index: number) {
+  index = (pagination.value.page - 1) * pagination.value.rows + index
   const data = tableData.value[index]
   if (value) {
     new ServerToggle({ id: data.id, state: value ? 1 : 0 })
