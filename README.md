@@ -116,8 +116,6 @@ go build -o goploy cmd/server/main.go
 
 ## Contact
 
-[TG](https://t.me/zhenorzz) 
-
 [Email](mailto:zhenorzz@gmail.com)
 
 ## Contribute
