@@ -245,7 +245,7 @@
                 {{ projectRow.repoType }}
               </span>
               <span
-                v-if="localTraceList[PublishTraceType.Pull].state === 1"
+                v-if="localTraceList[PublishTraceType.Pull][0].state === 1"
                 class="icon-success"
               ></span>
               <span v-else class="icon-fail"></span>
@@ -253,51 +253,51 @@
           </el-row>
           <el-row>
             Time:
-            {{ localTraceList[PublishTraceType.Pull].updateTime }}
+            {{ localTraceList[PublishTraceType.Pull][0].updateTime }}
           </el-row>
-          <template v-if="localTraceList[PublishTraceType.Pull].state !== 0">
+          <template v-if="localTraceList[PublishTraceType.Pull][0].state !== 0">
             <el-row>
               Branch:
-              {{ localTraceList[PublishTraceType.Pull]['branch'] }}
+              {{ localTraceList[PublishTraceType.Pull][0]['branch'] }}
             </el-row>
             <el-row>
               Commit:
               <RepoURL
                 :url="projectRow.url"
                 :suffix="`/commit/${
-                  localTraceList[PublishTraceType.Pull]['commit']
+                  localTraceList[PublishTraceType.Pull][0]['commit']
                 }`"
-                :text="localTraceList[PublishTraceType.Pull]['commit']"
+                :text="localTraceList[PublishTraceType.Pull][0]['commit']"
               >
               </RepoURL>
             </el-row>
             <el-row>
               Message:
-              {{ localTraceList[PublishTraceType.Pull]['message'] }}
+              {{ localTraceList[PublishTraceType.Pull][0]['message'] }}
             </el-row>
             <el-row>
               Author:
-              {{ localTraceList[PublishTraceType.Pull]['author'] }}
+              {{ localTraceList[PublishTraceType.Pull][0]['author'] }}
             </el-row>
             <el-row>
               Datetime:
               {{
-                localTraceList[PublishTraceType.Pull]['timestamp']
+                localTraceList[PublishTraceType.Pull][0]['timestamp']
                   ? parseTime(
-                      localTraceList[PublishTraceType.Pull]['timestamp']
+                      localTraceList[PublishTraceType.Pull][0]['timestamp']
                     )
                   : ''
               }}
             </el-row>
             <el-row>
               <span style="white-space: pre-line">
-                {{ localTraceList[PublishTraceType.Pull]['diff'] }}
+                {{ localTraceList[PublishTraceType.Pull][0]['diff'] }}
               </span>
             </el-row>
           </template>
           <el-row v-else style="margin: 5px 0">
             <span style="white-space: pre-line; padding: 5px 0">
-              {{ localTraceList[PublishTraceType.Pull].detail }}
+              {{ localTraceList[PublishTraceType.Pull][0].detail }}
             </span>
           </el-row>
         </div>
@@ -308,45 +308,54 @@
           <el-row style="margin: 5px 0" class="project-title">
             <span style="margin-right: 5px">After Pull</span>
             <span
-              v-if="localTraceList[PublishTraceType.AfterPull].state === 1"
+              v-if="
+                !localTraceList[PublishTraceType.AfterPull]
+                  .map((localTrace) => localTrace.state)
+                  .includes(0)
+              "
               class="icon-success"
             ></span>
             <span v-else class="icon-fail"></span>
           </el-row>
-          <el-row>
-            Time: {{ localTraceList[PublishTraceType.AfterPull].updateTime }}
-          </el-row>
-          <el-row style="width: 100%">
-            <div>Script:</div>
-            <pre style="white-space: pre-line">
-            {{ localTraceList[PublishTraceType.AfterPull].script }}
-            </pre>
-          </el-row>
           <div
-            v-loading="
-              traceDetail[localTraceList[PublishTraceType.AfterPull].id] === ''
-            "
-            style="margin: 5px 0"
+            v-for="(trace, traceKey) in localTraceList[
+              PublishTraceType.AfterPull
+            ]"
+            :key="traceKey"
           >
-            <span>[goploy ~]#</span>
-            <el-button
-              v-if="
-                localTraceList[PublishTraceType.AfterPull].state === 1 &&
-                !(localTraceList[PublishTraceType.AfterPull].id in traceDetail)
-              "
-              type="primary"
-              link
-              @click="
-                getPublishTraceDetail(
-                  localTraceList[PublishTraceType.AfterPull]
-                )
-              "
+            <el-divider
+              v-if="traceKey !== 0"
+              border-style="dashed"
+              style="margin: 0"
+            />
+            <el-row
+              v-if="trace.step && trace.step !== ''"
+              style="margin-top: 5px"
             >
-              {{ $t('deployPage.showDetail') }}
-            </el-button>
-            <span v-else style="white-space: pre-line; padding: 5px 0">
-              {{ traceDetail[localTraceList[PublishTraceType.AfterPull].id] }}
-            </span>
+              Step: {{ trace.step }}
+            </el-row>
+            <el-row> Time: {{ trace.updateTime }} </el-row>
+            <el-row style="width: 100%">
+              <div>Script:</div>
+              <pre style="white-space: pre-line">
+            {{ trace.script }}
+            </pre
+              >
+            </el-row>
+            <div v-loading="traceDetail[trace.id] === ''" style="margin: 5px 0">
+              <span>[goploy ~]#</span>
+              <el-button
+                v-if="trace.state === 1 && !(trace.id in traceDetail)"
+                type="primary"
+                link
+                @click="getPublishTraceDetail(trace)"
+              >
+                {{ $t('deployPage.showDetail') }}
+              </el-button>
+              <span v-else style="white-space: pre-line; padding: 5px 0">
+                {{ traceDetail[trace.id] }}
+              </span>
+            </div>
           </div>
         </div>
         <el-tabs v-model="activeRomoteTracePane" style="width: 100%">
@@ -356,87 +365,131 @@
             :label="serverName"
             :name="serverName"
           >
-            <div v-for="(trace, key) in item" :key="key">
-              <template v-if="trace.type === PublishTraceType.BeforeDeploy">
+            <div v-for="(traceList, key) in item" :key="key">
+              <template v-if="Number(key) === PublishTraceType.BeforeDeploy">
                 <el-row style="margin: 5px 0" class="project-title">
                   <span style="margin-right: 5px">Before deploy</span>
-                  <span v-if="trace.state === 1" class="icon-success"></span>
+                  <span
+                    v-if="!traceList.map((trace) => trace.state).includes(0)"
+                    class="icon-success"
+                  ></span>
                   <span v-else class="icon-fail"></span>
                 </el-row>
-                <el-row style="margin: 5px 0">
-                  Time: {{ trace.updateTime }}
-                </el-row>
-                <el-row>
-                  Script:
-                  <pre style="white-space: pre-line">{{ trace.script }}</pre>
-                </el-row>
-                <div v-loading="traceDetail[trace.id] === ''">
-                  <span style="padding: 5px 0">[goploy ~]#</span>
-                  <el-button
-                    v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                    type="primary"
-                    link
-                    @click="getPublishTraceDetail(trace)"
+                <div v-for="(trace, traceKey) in traceList" :key="traceKey">
+                  <el-divider
+                    v-if="traceKey !== 0"
+                    border-style="dashed"
+                    style="margin: 0"
+                  />
+                  <el-row
+                    v-if="trace.step && trace.step !== ''"
+                    style="margin-top: 5px"
                   >
-                    {{ $t('deployPage.showDetail') }}
-                  </el-button>
-                  <div v-else style="white-space: pre-line; padding: 5px 0">
-                    {{ traceDetail[trace.id] }}
+                    Step: {{ trace.step }}
+                  </el-row>
+                  <el-row style="margin: 5px 0">
+                    Time: {{ trace.updateTime }}
+                  </el-row>
+                  <el-row>
+                    Script:
+                    <pre style="white-space: pre-line">{{ trace.script }}</pre>
+                  </el-row>
+                  <div v-loading="traceDetail[trace.id] === ''">
+                    <span style="padding: 5px 0">[goploy ~]#</span>
+                    <el-button
+                      v-if="trace.state === 1 && !(trace.id in traceDetail)"
+                      type="primary"
+                      link
+                      @click="getPublishTraceDetail(trace)"
+                    >
+                      {{ $t('deployPage.showDetail') }}
+                    </el-button>
+                    <div v-else style="white-space: pre-line; padding: 5px 0">
+                      {{ traceDetail[trace.id] }}
+                    </div>
                   </div>
                 </div>
               </template>
-              <template v-else-if="trace.type === PublishTraceType.Deploy">
+              <template v-else-if="Number(key) === PublishTraceType.Deploy">
                 <el-row style="margin: 5px 0" class="project-title">
                   <span style="margin-right: 5px; text-transform: capitalize">
                     {{ projectRow.transferType }}
                   </span>
-                  <span v-if="trace.state === 1" class="icon-success"></span>
+                  <span
+                    v-if="!traceList.map((trace) => trace.state).includes(0)"
+                    class="icon-success"
+                  ></span>
                   <span v-else class="icon-fail"></span>
                 </el-row>
-                <el-row style="margin: 5px 0">
-                  Time: {{ trace.updateTime }}
-                </el-row>
-                <el-row>Command: {{ trace.command }}</el-row>
-                <div v-loading="traceDetail[trace.id] === ''">
-                  <span style="padding: 5px 0">[goploy ~]#</span>
-                  <el-button
-                    v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                    type="primary"
-                    link
-                    @click="getPublishTraceDetail(trace)"
-                  >
-                    {{ $t('deployPage.showDetail') }}
-                  </el-button>
-                  <div v-else style="white-space: pre-line; padding: 5px 0">
-                    {{ traceDetail[trace.id] }}
+                <div v-for="(trace, traceKey) in traceList" :key="traceKey">
+                  <el-row style="margin: 5px 0">
+                    Time: {{ trace.updateTime }}
+                  </el-row>
+                  <el-row>Command: {{ trace.command }}</el-row>
+                  <div v-loading="traceDetail[trace.id] === ''">
+                    <span style="padding: 5px 0">[goploy ~]#</span>
+                    <el-button
+                      v-if="trace.state === 1 && !(trace.id in traceDetail)"
+                      type="primary"
+                      link
+                      @click="getPublishTraceDetail(trace)"
+                    >
+                      {{ $t('deployPage.showDetail') }}
+                    </el-button>
+                    <div v-else style="white-space: pre-line; padding: 5px 0">
+                      {{ traceDetail[trace.id] }}
+                    </div>
                   </div>
                 </div>
               </template>
-              <template v-else-if="trace.type === PublishTraceType.AfterDeploy">
+              <template
+                v-else-if="Number(key) === PublishTraceType.AfterDeploy"
+              >
                 <el-row style="margin: 5px 0" class="project-title">
                   <span style="margin-right: 5px">After deploy</span>
-                  <span v-if="trace.state === 1" class="icon-success"></span>
+                  <span
+                    v-if="!traceList.map((trace) => trace.state).includes(0)"
+                    class="icon-success"
+                  ></span>
                   <span v-else class="icon-fail"></span>
                 </el-row>
-                <el-row style="margin: 5px 0">
-                  Time: {{ trace.updateTime }}
-                </el-row>
-                <el-row>Script: {{ trace.script }}</el-row>
-                <div
-                  v-loading="traceDetail[trace.id] === ''"
-                  style="margin: 5px 0"
-                >
-                  <span>[goploy ~]#</span>
-                  <el-button
-                    v-if="trace.state === 1 && !(trace.id in traceDetail)"
-                    type="primary"
-                    link
-                    @click="getPublishTraceDetail(trace)"
+                <div v-for="(trace, traceKey) in traceList" :key="traceKey">
+                  <el-divider
+                    v-if="traceKey !== 0"
+                    border-style="dashed"
+                    style="margin: 0"
+                  />
+                  <el-row
+                    v-if="trace.step && trace.step !== ''"
+                    style="margin-top: 5px"
                   >
-                    {{ $t('deployPage.showDetail') }}
-                  </el-button>
-                  <div v-else style="white-space: pre-line; padding: 5px 0">
-                    {{ traceDetail[trace.id] }}
+                    Step: {{ trace.step }}
+                  </el-row>
+                  <el-row style="margin: 5px 0">
+                    Time: {{ trace.updateTime }}
+                  </el-row>
+                  <el-row>
+                    Script:
+                    <pre style="white-space: pre-line">
+                      {{ trace.script }}
+                    </pre>
+                  </el-row>
+                  <div
+                    v-loading="traceDetail[trace.id] === ''"
+                    style="margin: 5px 0"
+                  >
+                    <span>[goploy ~]#</span>
+                    <el-button
+                      v-if="trace.state === 1 && !(trace.id in traceDetail)"
+                      type="primary"
+                      link
+                      @click="getPublishTraceDetail(trace)"
+                    >
+                      {{ $t('deployPage.showDetail') }}
+                    </el-button>
+                    <div v-else style="white-space: pre-line; padding: 5px 0">
+                      {{ traceDetail[trace.id] }}
+                    </div>
                   </div>
                 </div>
               </template>
@@ -450,51 +503,52 @@
           <el-row style="margin: 5px 0" class="project-title">
             <span style="margin-right: 5px">Deploy Finish</span>
             <span
-              v-if="localTraceList[PublishTraceType.DeployFinish].state === 1"
+              v-if="
+                !localTraceList[PublishTraceType.DeployFinish]
+                  .map((localTrace) => localTrace.state)
+                  .includes(0)
+              "
               class="icon-success"
             ></span>
             <span v-else class="icon-fail"></span>
           </el-row>
-          <el-row>
-            Time: {{ localTraceList[PublishTraceType.DeployFinish].updateTime }}
-          </el-row>
-          <el-row style="width: 100%">
-            <div>Script:</div>
-            <pre style="white-space: pre-line">
-            {{ localTraceList[PublishTraceType.DeployFinish].script }}
-            </pre>
-          </el-row>
           <div
-            v-loading="
-              traceDetail[localTraceList[PublishTraceType.DeployFinish].id] ===
-              ''
-            "
-            style="margin: 5px 0"
+            v-for="(trace, traceKey) in localTraceList[
+              PublishTraceType.DeployFinish
+            ]"
+            :key="traceKey"
           >
-            <span>[goploy ~]#</span>
-            <el-button
-              v-if="
-                localTraceList[PublishTraceType.DeployFinish].state === 1 &&
-                !(
-                  localTraceList[PublishTraceType.DeployFinish].id in
-                  traceDetail
-                )
-              "
-              type="primary"
-              link
-              @click="
-                getPublishTraceDetail(
-                  localTraceList[PublishTraceType.DeployFinish]
-                )
-              "
+            <el-row
+              v-if="trace.step && trace.step !== ''"
+              style="margin-top: 5px"
             >
-              {{ $t('deployPage.showDetail') }}
-            </el-button>
-            <span v-else style="white-space: pre-line; padding: 5px 0">
-              {{
-                traceDetail[localTraceList[PublishTraceType.DeployFinish].id]
-              }}
-            </span>
+              Step: {{ trace.step }}
+            </el-row>
+            <el-row>
+              Time:
+              {{ trace.updateTime }}
+            </el-row>
+            <el-row style="width: 100%">
+              <div>Script:</div>
+              <pre style="white-space: pre-line">
+            {{ trace.script }}
+            </pre
+              >
+            </el-row>
+            <div v-loading="traceDetail[trace.id] === ''" style="margin: 5px 0">
+              <span>[goploy ~]#</span>
+              <el-button
+                v-if="trace.state === 1 && !(trace.id in traceDetail)"
+                type="primary"
+                link
+                @click="getPublishTraceDetail(trace)"
+              >
+                {{ $t('deployPage.showDetail') }}
+              </el-button>
+              <span v-else style="white-space: pre-line; padding: 5px 0">
+                {{ traceDetail[trace.id] }}
+              </span>
+            </div>
           </div>
         </div>
       </el-row>
@@ -581,7 +635,7 @@ const shortcuts = [
 const userOption = ref<NamespaceUserOption['datagram']['list']>([])
 watch(
   () => props.modelValue,
-  (val: typeof props['modelValue']) => {
+  (val: (typeof props)['modelValue']) => {
     if (val === true) {
       clearFilterParams()
       getPreviewList(props.projectRow.id)
@@ -607,9 +661,11 @@ const gitTraceList = ref<(PublishTraceData & PublishTraceExt)[]>([])
 const pagination = reactive({ page: 1, rows: 11, total: 0 })
 const traceDetail = ref<Record<number, string>>({})
 const publishToken = ref('')
-const localTraceList = ref<(PublishTraceData & PublishTraceExt)[]>([])
+const localTraceList = ref<
+  Record<number, (PublishTraceData & PublishTraceExt)[]>
+>({})
 const remoteTraceList = ref<
-  Record<string, (PublishTraceData & PublishTraceExt)[]>
+  Record<string, Record<number, (PublishTraceData & PublishTraceExt)[]>>
 >({})
 const filterlength = computed(() => {
   let number = 0
@@ -671,7 +727,7 @@ const getPreviewList = (projectId: number) => {
         publishToken.value = gitTraceList.value[0].token
         getPublishTrace(publishToken.value)
       } else {
-        localTraceList.value = []
+        localTraceList.value = {}
         remoteTraceList.value = {}
       }
       pagination.total = response.data.pagination.total
@@ -705,7 +761,7 @@ function getPublishTrace(publishToken: string) {
         }
         return element as PublishTraceData & PublishTraceExt
       })
-      localTraceList.value = []
+      localTraceList.value = {}
       remoteTraceList.value = {}
       for (const trace of publishTraceList) {
         if (trace.detail !== '') {
@@ -720,7 +776,10 @@ function getPublishTrace(publishToken: string) {
             PublishTraceType.DeployFinish,
           ].includes(trace.type)
         ) {
-          localTraceList.value[trace.type] = trace
+          if (!localTraceList.value[trace.type]) {
+            localTraceList.value[trace.type] = []
+          }
+          localTraceList.value[trace.type].push(trace)
         } else if (
           [
             PublishTraceType.BeforeDeploy,
@@ -729,9 +788,13 @@ function getPublishTrace(publishToken: string) {
           ].includes(trace.type)
         ) {
           if (!remoteTraceList.value[trace.serverName]) {
-            remoteTraceList.value[trace.serverName] = []
+            remoteTraceList.value[trace.serverName] = {}
           }
-          remoteTraceList.value[trace.serverName].push(trace)
+          if (!remoteTraceList.value[trace.serverName][trace.type]) {
+            remoteTraceList.value[trace.serverName][trace.type] = []
+          }
+
+          remoteTraceList.value[trace.serverName][trace.type].push(trace)
         }
       }
       activeRomoteTracePane.value = Object.keys(remoteTraceList.value)[0]

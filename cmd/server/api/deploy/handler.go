@@ -20,11 +20,14 @@ import (
 	"github.com/zhenorzz/goploy/cmd/server/task"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/pipeline/docker"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/internal/pkg/cmd"
 	"github.com/zhenorzz/goploy/internal/repo"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
+	"github.com/zhenorzz/goploy/internal/transmitter"
+	"gopkg.in/yaml.v3"
 	"io"
 	"net/http"
 	"net/url"
@@ -628,23 +631,51 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 		ch := make(chan bool, len(projectServers))
 		for _, projectServer := range projectServers {
 			go func(projectServer model.ProjectServer) {
+				var dockerScript docker.Script
 				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
 				cmdEntity := cmd.New(projectServer.Server.OS)
-				afterDeployCommands := []string{cmdEntity.Symlink(destDir, project.Path), cmdEntity.ChangeDirTime(destDir)}
+				scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode))
+
 				if project.Script.AfterDeploy.Content != "" {
-					scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode))
 					scriptContent := project.ReplaceVars(project.Script.AfterDeploy.Content)
 					scriptContent = projectServer.ReplaceVars(scriptContent)
-					err = os.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(project.ReplaceVars(project.Script.AfterDeploy.Content)), 0755)
-					if err != nil {
-						log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " write file err: " + err.Error())
-						ch <- false
-						return
+
+					if project.Script.AfterDeploy.Mode == "yaml" {
+						if err := yaml.Unmarshal([]byte(scriptContent), &dockerScript); err != nil {
+							log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " unmarshal yaml script fail err: " + err.Error())
+							ch <- false
+							return
+						}
+
+						for stepIndex, step := range dockerScript.Steps {
+							scriptName = fmt.Sprintf("goploy-after-deploy-p%d-s%d-y%d", project.ID, projectServer.ServerID, stepIndex)
+							// delete the script
+							step.Commands = append(step.Commands, fmt.Sprintf("rm -f %s", docker.GetDockerProjectScriptPath(project.ID, scriptName)))
+							scriptContent = strings.Join(step.Commands, "\n")
+							err = os.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(scriptContent), 0755)
+							if err != nil {
+								log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " write file err: " + err.Error())
+								ch <- false
+								return
+							}
+						}
+					} else {
+						err = os.WriteFile(path.Join(config.GetProjectPath(project.ID), scriptName), []byte(scriptContent), 0755)
+						if err != nil {
+							log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " write file err: " + err.Error())
+							ch <- false
+							return
+						}
 					}
-					afterDeployScriptPath := path.Join(project.Path, scriptName)
-					afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.Script.AfterDeploy.Mode, afterDeployScriptPath))
-					afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
 				}
+
+				transmitterEntity := transmitter.New(project, projectServer)
+				if transmitterOutput, err := transmitterEntity.Exec(); err != nil {
+					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " transmit exec err: " + err.Error() + ", output: " + transmitterOutput)
+					ch <- false
+					return
+				}
+
 				client, err := projectServer.ToSSHConfig().Dial()
 				if err != nil {
 					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " dial err: " + err.Error())
@@ -652,12 +683,14 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 					return
 				}
 				defer client.Close()
+
 				session, err := client.NewSession()
 				if err != nil {
 					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " new session err: " + err.Error())
 					ch <- false
 					return
 				}
+				defer session.Close()
 
 				// check if the path is existed or not
 				if output, err := session.CombinedOutput("cd " + destDir); err != nil {
@@ -665,19 +698,55 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 					ch <- false
 					return
 				}
-				session, err = client.NewSession()
-				if err != nil {
-					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " new session err: " + err.Error())
-					ch <- false
-					return
+
+				if project.Script.AfterDeploy.Mode == "yaml" && len(dockerScript.Steps) > 0 {
+					dockerConfig := docker.Config{
+						ProjectID:   project.ID,
+						ProjectPath: project.Path,
+						Server:      projectServer.Server,
+					}
+
+					if err := dockerConfig.Setup(); err != nil {
+						log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " setup docker err: " + err.Error())
+						ch <- false
+						return
+					}
+
+					for stepIndex, step := range dockerScript.Steps {
+						step.ScriptName = fmt.Sprintf("goploy-after-deploy-p%d-s%d-y%d", project.ID, projectServer.ServerID, stepIndex)
+						dockerOutput, dockerErr := dockerConfig.Run(step)
+
+						scriptFullName := path.Join(config.GetProjectPath(project.ID), step.ScriptName)
+						_ = os.Remove(scriptFullName)
+
+						if dockerErr != "" {
+							log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " run docker script err: " + err.Error() + ", detail: " + string(dockerOutput))
+							ch <- false
+							return
+						}
+					}
+				} else {
+					afterDeployCommands := []string{cmdEntity.Symlink(destDir, project.Path), cmdEntity.ChangeDirTime(destDir)}
+					afterDeployScriptPath := path.Join(project.Path, scriptName)
+					afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.Script.AfterDeploy.Mode, afterDeployScriptPath))
+					afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
+
+					session, err = client.NewSession()
+					defer session.Close()
+					if err != nil {
+						log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " new session err: " + err.Error())
+						ch <- false
+						return
+					}
+
+					// redirect to project path
+					if output, err := session.CombinedOutput(strings.Join(afterDeployCommands, "&&")); err != nil {
+						log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " symlink err: " + err.Error() + ", detail: " + string(output))
+						ch <- false
+						return
+					}
 				}
 
-				// redirect to project path
-				if output, err := session.CombinedOutput(strings.Join(afterDeployCommands, "&&")); err != nil {
-					log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " symlink err: " + err.Error() + ", detail: " + string(output))
-					ch <- false
-					return
-				}
 				ch <- true
 			}(projectServer)
 		}

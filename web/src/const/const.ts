@@ -6,6 +6,7 @@ const scriptLang = {
     { label: 'python', value: 'python', lang: 'python' },
     { label: 'php', value: 'php', lang: 'php' },
     { label: 'bat', value: 'cmd', lang: 'batchfile' },
+    { label: 'yaml', value: 'yaml', lang: 'yaml' },
   ],
   getScriptLang: function (mode = '') {
     if (mode !== '') {

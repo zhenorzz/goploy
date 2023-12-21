@@ -5,7 +5,6 @@
 package transmitter
 
 import (
-	"fmt"
 	"github.com/pkg/sftp"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/model"
@@ -97,7 +96,7 @@ func (st sftpTransmitter) Exec() (string, error) {
 		}
 		nextItem = ""
 	}
-	includes = append(includes, fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, st.ProjectServer.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode)))
+	includes = append(includes, project.Script.AfterDeploy.ScriptNames...)
 
 	srcPath := config.GetProjectPath(project.ID) + "/"
 	destPath := project.Path

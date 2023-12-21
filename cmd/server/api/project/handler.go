@@ -597,7 +597,7 @@ func (Project) Edit(gp *server.Goploy) server.Response {
 func (Project) SetAutoDeploy(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		ID         int64 `json:"id" validate:"required,gt=0"`
-		AutoDeploy uint8 `json:"autoDeploy" validate:"required,gte=0"`
+		AutoDeploy uint8 `json:"autoDeploy" validate:"oneof=0 1"`
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {

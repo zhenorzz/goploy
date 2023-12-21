@@ -5,7 +5,6 @@
 package transmitter
 
 import (
-	"fmt"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
@@ -36,10 +35,12 @@ func (rt rsyncTransmitter) args() []string {
 	}
 
 	rsyncOption, _ := pkg.ParseCommandLine(projectServer.ReplaceVars(project.ReplaceVars(project.TransferOption)))
-	rsyncOption = append([]string{
-		"--include",
-		fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode)),
-	}, rsyncOption...)
+	var includes []string
+	for _, scriptName := range project.Script.AfterDeploy.ScriptNames {
+		includes = append(includes, "--include", scriptName)
+	}
+
+	rsyncOption = append(includes, rsyncOption...)
 	rsyncOption = append(rsyncOption, "-e", projectServer.ToSSHOption())
 
 	if projectServer.Server.OS == model.ServerOSLinux {
