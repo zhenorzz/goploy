@@ -8,7 +8,7 @@
   >
     <el-row type="flex">
       <div v-if="showPreivew" v-loading="filterloading" class="publish-preview">
-        <div>
+        <el-row>
           <el-popover
             v-model:visible="filterInpurtVisible"
             placement="bottom-start"
@@ -131,7 +131,7 @@
               <el-button
                 :icon="Search"
                 :loading="filterloading"
-                style="width: 270px"
+                style="flex:1"
                 @click="filterInpurtVisible = !filterInpurtVisible"
               >
                 Filter({{ filterlength }})
@@ -140,10 +140,11 @@
           </el-popover>
           <el-button
             type="primary"
+            style="margin-left: 5px;"
             :icon="Refresh"
             @click="searchPreviewList"
           />
-        </div>
+        </el-row>
         <el-radio-group v-model="publishToken" @change="handleTraceChange">
           <el-row
             v-for="(item, index) in gitTraceList"
@@ -151,59 +152,44 @@
             style="margin: 5px 0; width: 100%"
           >
             <el-radio class="publish-commit" :label="item.token" border>
-              <span class="publish-name">{{ item.publisherName }}</span>
-              <span
-                v-if="projectRow.repoType === 'svn'"
-                class="publish-commitID"
-                :title="item['commit']"
-              >
-                revision: {{ item['commit'].substring(0, 6) }}
-              </span>
-              <span
-                v-else-if="projectRow.repoType === 'sftp'"
-                class="publish-commitID"
-                :title="item['token']"
-              >
-                uuid: {{ item['token'].substring(0, 6) }}
-              </span>
-              <span
-                v-else-if="projectRow.repoType === 'ftp'"
-                class="publish-commitID"
-                :title="item['token']"
-              >
-                uuid: {{ item['token'].substring(0, 6) }}
-              </span>
-              <span v-else class="publish-commitID" :title="item['commit']">
-                commitID: {{ item['commit'].substring(0, 6) }}
-              </span>
-              <el-icon
-                v-if="
-                  item.token === projectRow.lastPublishToken &&
-                  projectRow.deployState === DeployState.Deploying
-                "
-                class="is-loading"
-                style="font-size: 15px; float: right"
-              >
-                <Loading />
-              </el-icon>
-              <SvgIcon
-                v-else-if="
-                  item.token === projectRow.lastPublishToken &&
-                  projectRow.deployState === DeployState.Fail
-                "
-                style="color: #f56c6c; font-size: 15px; float: right"
-                icon-class="close"
-              />
-              <SvgIcon
-                v-else-if="item.state === 1"
-                style="color: #67c23a; font-size: 15px; float: right"
-                icon-class="check"
-              />
-              <SvgIcon
-                v-else
-                style="color: #f56c6c; font-size: 15px; float: right"
-                icon-class="close"
-              />
+              <el-row>
+                <span class="publish-name">{{ item.publisherName }}</span>
+                <span class="publish-commitID" :title="item['commit']">
+                  {{ ['ftp', 'sftp'].includes(projectRow.repoType) ? item['token'] :item['commit'] }}
+                </span>
+                <span style="margin:0 10px;">
+                  {{ getTimeDiff(item.updateTime, item.insertTime) }}
+                </span>
+                <el-icon
+                  v-if="
+                    item.token === projectRow.lastPublishToken &&
+                    projectRow.deployState === DeployState.Deploying
+                  "
+                  class="is-loading"
+                  style="font-size: 15px; margin-right: 10px;"
+                >
+                  <Loading />
+                </el-icon>
+                <SvgIcon
+                  v-else-if="
+                    item.token === projectRow.lastPublishToken &&
+                    projectRow.deployState === DeployState.Fail
+                  "
+                  style="color: #f56c6c; font-size: 15px; margin-right: 10px;"
+                  icon-class="close"
+                />
+                <SvgIcon
+                  v-else-if="item.state === 1"
+                  style="color: #67c23a; font-size: 15px; margin-right: 10px;"
+                  icon-class="check"
+                />
+                <SvgIcon
+                  v-else
+                  style="color: #f56c6c; font-size: 15px; margin-right: 10px;"
+                  icon-class="close"
+                />
+                
+              </el-row>
             </el-radio>
             <el-button
               v-if="
@@ -211,11 +197,11 @@
                 (['git', 'svn'].includes(projectRow.repoType) ||
                   projectRow.symlinkPath != '')
               "
+              :icon="RefreshLeft"
               type="danger"
               plain
               @click="rebuild(item)"
             >
-              rollback
             </el-button>
           </el-row>
         </el-radio-group>
@@ -242,7 +228,8 @@
           <el-row style="margin: 5px 0">
             <div class="project-title">
               <span style="margin-right: 5px; text-transform: capitalize">
-                {{ projectRow.repoType }}
+                {{ projectRow.repoType }} 
+                {{ getTimeDiff(localTraceList[PublishTraceType.Pull][0].updateTime, localTraceList[PublishTraceType.Pull][0].insertTime) }}
               </span>
               <span
                 v-if="localTraceList[PublishTraceType.Pull][0].state === 1"
@@ -306,7 +293,9 @@
           style="width: 100%"
         >
           <el-row style="margin: 5px 0" class="project-title">
-            <span style="margin-right: 5px">After Pull</span>
+            <span style="margin-right: 5px">
+              After Pull {{ getTimeDiff(localTraceList[PublishTraceType.AfterPull][0].updateTime, localTraceList[PublishTraceType.AfterPull][localTraceList[PublishTraceType.AfterPull].length-1].insertTime) }}
+            </span>
             <span
               v-if="
                 !localTraceList[PublishTraceType.AfterPull]
@@ -368,7 +357,9 @@
             <div v-for="(traceList, key) in item" :key="key">
               <template v-if="Number(key) === PublishTraceType.BeforeDeploy">
                 <el-row style="margin: 5px 0" class="project-title">
-                  <span style="margin-right: 5px">Before deploy</span>
+                  <span style="margin-right: 5px">
+                    Before deploy {{ getTimeDiff(traceList[0].updateTime, traceList[traceList.length-1].insertTime) }}
+                  </span>
                   <span
                     v-if="!traceList.map((trace) => trace.state).includes(0)"
                     class="icon-success"
@@ -413,7 +404,7 @@
               <template v-else-if="Number(key) === PublishTraceType.Deploy">
                 <el-row style="margin: 5px 0" class="project-title">
                   <span style="margin-right: 5px; text-transform: capitalize">
-                    {{ projectRow.transferType }}
+                    {{ projectRow.transferType }} {{ getTimeDiff(traceList[0].updateTime, traceList[traceList.length-1].insertTime) }}
                   </span>
                   <span
                     v-if="!traceList.map((trace) => trace.state).includes(0)"
@@ -446,7 +437,9 @@
                 v-else-if="Number(key) === PublishTraceType.AfterDeploy"
               >
                 <el-row style="margin: 5px 0" class="project-title">
-                  <span style="margin-right: 5px">After deploy</span>
+                  <span style="margin-right: 5px">
+                    After deploy {{ getTimeDiff(traceList[0].updateTime, traceList[traceList.length-1].insertTime) }}
+                  </span>
                   <span
                     v-if="!traceList.map((trace) => trace.state).includes(0)"
                     class="icon-success"
@@ -501,7 +494,10 @@
           style="width: 100%"
         >
           <el-row style="margin: 5px 0" class="project-title">
-            <span style="margin-right: 5px">Deploy Finish</span>
+            <span style="margin-right: 5px">
+              Deploy Finish
+              {{ getTimeDiff(localTraceList[PublishTraceType.DeployFinish][0].updateTime, localTraceList[PublishTraceType.DeployFinish][localTraceList[PublishTraceType.DeployFinish].length-1].insertTime) }}
+            </span>
             <span
               v-if="
                 !localTraceList[PublishTraceType.DeployFinish]
@@ -557,7 +553,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Search, Refresh, Close, Loading } from '@element-plus/icons-vue'
+import { Search, Refresh, Close, Loading, RefreshLeft } from '@element-plus/icons-vue'
 import RepoURL from '@/components/RepoURL/index.vue'
 import {
   DeployState,
@@ -571,7 +567,7 @@ import {
 } from '@/api/deploy'
 import { ProjectData } from '@/api/project'
 import { NamespaceUserOption } from '@/api/namespace'
-import { empty, parseTime } from '@/utils'
+import { empty, parseTime, getTimeDiff } from '@/utils'
 import type { ElRadioGroup } from 'element-plus'
 import { ElMessageBox, ElMessage, ElDatePicker } from 'element-plus'
 import { useI18n } from 'vue-i18n'
@@ -880,12 +876,15 @@ const rebuild = (data: PublishTraceData & PublishTraceExt) => {
   }
   &-commit {
     margin-right: 5px;
-    padding-right: 8px;
-    flex: 1;
+    width: 279px;
   }
   &-commitID {
     display: inline-block;
     vertical-align: top;
+    flex: 1;
+    min-width: 1px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   &-name {
     width: 60px;

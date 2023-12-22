@@ -184,7 +184,8 @@ func (pt PublishTrace) GetPreview(
 			"MIN(publisher_name) publisher_name",
 			"MIN(state) state",
 			"GROUP_CONCAT(IF(type = 2 and ext != '', JSON_EXTRACT(ext, '$.commit') , '') SEPARATOR '') as ext",
-			"MIN(update_time) update_time",
+			"MIN(insert_time) insert_time",
+			"MAX(update_time) update_time",
 		).
 		From(publishTraceTable)
 	if pt.ProjectID != 0 {
@@ -232,6 +233,7 @@ func (pt PublishTrace) GetPreview(
 			&publishTrace.PublisherName,
 			&publishTrace.State,
 			&publishTrace.Ext,
+			&publishTrace.InsertTime,
 			&publishTrace.UpdateTime); err != nil {
 			return nil, pagination, err
 		}
@@ -297,8 +299,8 @@ func (pt PublishTrace) GetDetail() (string, error) {
 func (pt PublishTrace) AddRow() (int64, error) {
 	result, err := sq.
 		Insert(publishTraceTable).
-		Columns("token", "project_id", "project_name", "detail", "state", "publisher_id", "publisher_name", "type", "ext").
-		Values(pt.Token, pt.ProjectID, pt.ProjectName, pt.Detail, pt.State, pt.PublisherID, pt.PublisherName, pt.Type, pt.Ext).
+		Columns("token", "project_id", "project_name", "detail", "state", "publisher_id", "publisher_name", "type", "ext", "insert_time").
+		Values(pt.Token, pt.ProjectID, pt.ProjectName, pt.Detail, pt.State, pt.PublisherID, pt.PublisherName, pt.Type, pt.Ext, pt.InsertTime).
 		RunWith(DB).
 		Exec()
 

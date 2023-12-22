@@ -1,7 +1,7 @@
 import { createI18n } from 'vue-i18n'
 import Cookies from 'js-cookie'
-import elementEnLocale from 'element-plus/lib/locale/lang/en' // element-ui lang
-import elementZhLocale from 'element-plus/lib/locale/lang/zh-cn'
+import elementEnLocale from 'element-plus/dist/locale/en' // element-ui lang
+import elementZhLocale from 'element-plus/dist/locale/zh-cn'
 import localMessages from '@intlify/vite-plugin-vue-i18n/messages'
 
 export const elementLocale = {

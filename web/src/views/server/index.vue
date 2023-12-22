@@ -319,7 +319,7 @@
           <el-form-item :label="$t('serverPage.jumpHost')">
             <el-input v-model="formData.jumpIP" autocomplete="off" />
           </el-form-item>
-          <el-form-item :label="$t('serverPage.jumpPort')">
+          <el-form-item prop="jumpPort" :label="$t('serverPage.jumpPort')">
             <el-input v-model.number="formData.jumpPort" autocomplete="off" />
           </el-form-item>
           <el-form-item :label="$t('serverPage.loginType')">
@@ -795,6 +795,9 @@ function check() {
 
 function submit() {
   form.value?.validate((valid) => {
+    if (typeof formData.value.jumpPort !== 'number') {
+      formData.value.jumpPort = 0
+    }
     if (valid) {
       if (formData.value.id === 0) {
         add()

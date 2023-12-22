@@ -228,10 +228,15 @@ const processLoading = ref(false)
 const projectProcessId = ref<number>()
 const processOption = ref<ProjectProcessList['datagram']['list']>([])
 const getList = () => {
-  processLoading.value = true
-  projectProcessId.value = undefined
-  processOption.value = []
   tableData.value = []
+  const _processId = localStorage.getItem(`${props.projectRow.id}-latest-use-process`)
+  projectProcessId.value = undefined
+  if (_processId) {
+    projectProcessId.value = Number(_processId)
+    handleProcessChange(projectProcessId.value)
+  }
+  processLoading.value = true
+  processOption.value = []
   new ProjectProcessList(
     { projectId: props.projectRow.id },
     { page: 1, rows: 999 }
@@ -239,6 +244,7 @@ const getList = () => {
     .request()
     .then((response) => {
       processOption.value = response.data.list
+      
     })
     .finally(() => {
       processLoading.value = false
@@ -248,7 +254,8 @@ const getList = () => {
 const table = ref()
 const tableLoading = ref(false)
 const tableData = ref<ProjectServerList['datagram']['list']>([])
-const handleProcessChange = () => {
+const handleProcessChange = (processId: number) => {
+  localStorage.setItem(`${props.projectRow.id}-latest-use-process`, processId.toString())
   if (tableData.value.length > 0) {
     return
   }
@@ -316,6 +323,9 @@ watch(
     formData.value.projectId = val.id
   }
 )
+
+
+
 
 function handleAdd() {
   processVisible.value = true

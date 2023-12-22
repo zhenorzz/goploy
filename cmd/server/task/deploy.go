@@ -123,6 +123,7 @@ func AddDeployTask(gsync Gsync) {
 		ProjectName:   gsync.Project.Name,
 		PublisherID:   gsync.UserInfo.ID,
 		PublisherName: gsync.UserInfo.Name,
+		InsertTime:    time.Now().Format("20060102150405"),
 		Type:          model.Queue,
 		State:         model.Success,
 	}
@@ -182,6 +183,7 @@ func (gsync *Gsync) Exec() {
 
 	gsync.PublishTrace.Type = model.PublishFinish
 	gsync.PublishTrace.State = model.Success
+	gsync.PublishTrace.InsertTime = time.Now().Format("20060102150405")
 	if _, err := gsync.PublishTrace.AddRow(); err != nil {
 		log.Errorf(projectLogFormat, gsync.Project.ID, err)
 	}
@@ -201,8 +203,8 @@ func (gsync *Gsync) repoStage() error {
 		Type:    ws.TypeProject,
 		Message: deployMessage{ProjectID: gsync.Project.ID, ProjectName: gsync.Project.Name, State: Deploying, Message: "Repo follow"},
 	})
-
 	gsync.PublishTrace.Type = model.Pull
+	gsync.PublishTrace.InsertTime = time.Now().Format("20060102150405")
 	var err error
 	r, _ := repo.GetRepo(gsync.Project.RepoType)
 	if len(gsync.CommitID) == 0 {
@@ -263,6 +265,7 @@ func (gsync *Gsync) afterPullScriptStage() error {
 	}
 
 	gsync.PublishTrace.Type = model.AfterPull
+	gsync.PublishTrace.InsertTime = time.Now().Format("20060102150405")
 	return gsync.runLocalScript()
 }
 
@@ -276,6 +279,7 @@ func (gsync *Gsync) serverStage() error {
 	var serverSync = func(projectServer model.ProjectServer, index int) {
 		project := gsync.Project
 		publishTraceModel := gsync.PublishTrace
+		publishTraceModel.InsertTime = time.Now().Format("20060102150405")
 		// write after deploy script for rsync
 		var dockerScript docker.Script
 		scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode))
@@ -380,6 +384,7 @@ func (gsync *Gsync) serverStage() error {
 
 				scriptContent = strings.Join(step.Commands, "\n")
 				publishTraceModel.Type = model.AfterDeploy
+				publishTraceModel.InsertTime = time.Now().Format("20060102150405")
 				ext, _ = json.Marshal(struct {
 					ServerID   int64  `json:"serverId"`
 					ServerName string `json:"serverName"`
@@ -438,6 +443,7 @@ func (gsync *Gsync) serverStage() error {
 			}
 			completeAfterDeployCmd := strings.Join(afterDeployCommands, "&&")
 			publishTraceModel.Type = model.AfterDeploy
+			publishTraceModel.InsertTime = time.Now().Format("20060102150405")
 			ext, _ = json.Marshal(struct {
 				ServerID   int64  `json:"serverId"`
 				ServerName string `json:"serverName"`
@@ -543,6 +549,7 @@ func (gsync *Gsync) deployFinishScriptStage() error {
 	}
 
 	gsync.PublishTrace.Type = model.DeployFinish
+	gsync.PublishTrace.InsertTime = time.Now().Format("20060102150405")
 	return gsync.runLocalScript()
 }
 

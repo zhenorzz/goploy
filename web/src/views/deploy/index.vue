@@ -53,8 +53,8 @@
       />
     </el-row>
     <el-row class="app-table">
-      <el-scrollbar style="width: 100%">
-        <el-row style="width: 100%" :gutter="10">
+      <el-scrollbar style="width: 100%;">
+        <el-row style="width: 100%" :gutter="10" v-infinite-scroll="load" :infinite-scroll-disabled="disabled">
           <el-col
             v-for="(row, index) in tablePage.list"
             :key="index"
@@ -302,19 +302,8 @@
             </el-card>
           </el-col>
         </el-row>
+      
       </el-scrollbar>
-    </el-row>
-    <el-row type="flex" justify="end" style="width: 100%; margin-top: 5px">
-      <el-pagination
-        v-model:current-page="pagination.page"
-        :total="tablePage.total"
-        :page-size="pagination.rows"
-        background
-        :page-sizes="[20, 50, 100]"
-        layout="total, prev, pager, next"
-        @size-change="handleSizeChange"
-        @current-change="handlePageChange"
-      />
     </el-row>
     <TheDetailDialog
       v-model="dialogVisible"
@@ -464,10 +453,11 @@ const searchProject = ref({
   pin: '',
 })
 const selectedItem = ref({} as ProjectData)
-const tableloading = ref(false)
+const noMore = computed(() => tablePage.value.total === tablePage.value.list.length)
+const disabled = computed(() => noMore.value)
 const tableData = ref<any[]>([])
 const labelList = ref<string[]>([])
-const pagination = ref({ page: 1, rows: 20 })
+const pagination = ref({ page: 0, rows: 24 })
 const greyServerForm = ref<InstanceType<typeof ElForm>>()
 const greyServerFormProps = ref({
   disabled: false,
@@ -514,7 +504,7 @@ const tablePage = computed(() => {
   }
   return {
     list: _tableData.slice(
-      (pagination.value.page - 1) * pagination.value.rows,
+      0,
       pagination.value.page * pagination.value.rows
     ),
     total: _tableData.length,
@@ -556,7 +546,6 @@ getList()
 getLabelList()
 
 function getList() {
-  tableloading.value = true
   new DeployList()
     .request()
     .then((response) => {
@@ -583,10 +572,8 @@ function getList() {
       })
       sortChange(searchProject.value.sort)
     })
-    .finally(() => {
-      tableloading.value = false
-    })
 }
+
 function getLabelList() {
   new LabelList().request().then((response) => {
     labelList.value = response.data.list
@@ -664,13 +651,9 @@ function sortChange(sort: string) {
   stickChange()
 }
 
-function handleSizeChange(val = 1) {
-  pagination.value.rows = val
-  handlePageChange(1)
-}
-
-function handlePageChange(page = 1) {
-  pagination.value.page = page
+function load() {
+  pagination.value.page++
+  
 }
 
 function handleDetail(data: ProjectData) {

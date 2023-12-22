@@ -301,3 +301,12 @@ export function repoURLToHref(url: string, suffix: string): string {
     return ''
   }
 }
+
+export function getTimeDiff(s1: string,s2: string): string {
+  let D1 = new Date(s1);
+  let D2 = new Date(s2);
+  let seconds =  (D1.getTime()-D2.getTime())/1000
+  var minutes = Math.floor(seconds / 60);
+  seconds = seconds % 60;
+  return (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+}
