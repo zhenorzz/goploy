@@ -217,10 +217,7 @@
       <el-row
         v-loading="traceLoading"
         class="project-detail"
-        style="flex: 1; padding: 0 10px; align-content: flex-start"
         :style="{
-          width: '100%',
-          alignContent: 'flex-start',
           flex: $store.state.app.device === 'mobile' ? '' : 1,
         }"
       >
@@ -918,7 +915,8 @@ const rebuild = (data: PublishTraceData & PublishTraceExt) => {
 }
 .project {
   &-detail {
-    padding-left: 5px;
+    padding: 0 10px; 
+    align-content: flex-start;
     height: 490px;
     overflow-y: auto;
     @include scrollBar();
