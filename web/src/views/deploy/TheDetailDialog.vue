@@ -7,7 +7,7 @@
     @close="onClose"
   >
     <el-row type="flex">
-      <div v-if="showPreivew" v-loading="filterloading" class="publish-preview">
+      <div v-if="showPreivew" v-loading="filterloading" class="publish-preview" :style="$store.state.app.device === 'mobile' ? '' : 'width:330px'">
         <el-row>
           <el-popover
             v-model:visible="filterInpurtVisible"
@@ -872,11 +872,13 @@ const rebuild = (data: PublishTraceData & PublishTraceExt) => {
     width: 80px;
   }
   &-preview {
-    width: 330px;
+    display: flex;
+    flex-direction: column;
   }
   &-commit {
     margin-right: 5px;
     width: 279px;
+    flex: 1;
   }
   &-commitID {
     display: inline-block;
