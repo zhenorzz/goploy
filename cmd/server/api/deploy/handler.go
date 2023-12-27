@@ -641,11 +641,7 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 					scriptContent = projectServer.ReplaceVars(scriptContent)
 
 					if project.Script.AfterDeploy.Mode == "yaml" {
-						if err := yaml.Unmarshal([]byte(scriptContent), &dockerScript); err != nil {
-							log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " unmarshal yaml script fail err: " + err.Error())
-							ch <- false
-							return
-						}
+						_ = yaml.Unmarshal([]byte(scriptContent), &dockerScript)
 
 						for stepIndex, step := range dockerScript.Steps {
 							scriptName = fmt.Sprintf("goploy-after-deploy-p%d-s%d-y%d", project.ID, projectServer.ServerID, stepIndex)
@@ -719,8 +715,8 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 						scriptFullName := path.Join(config.GetProjectPath(project.ID), step.ScriptName)
 						_ = os.Remove(scriptFullName)
 
-						if dockerErr != "" {
-							log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " run docker script err: " + err.Error() + ", detail: " + string(dockerOutput))
+						if dockerErr != nil {
+							log.Error("projectID:" + strconv.FormatInt(project.ID, 10) + " run docker script err: " + dockerErr.Error() + ", detail: " + dockerOutput)
 							ch <- false
 							return
 						}

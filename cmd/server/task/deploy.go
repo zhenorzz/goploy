@@ -291,22 +291,7 @@ func (gsync *Gsync) serverStage() error {
 			scriptContent = strings.Replace(scriptContent, "${SERVER_SERIAL_NUMBER}", strconv.Itoa(index), -1)
 
 			if project.Script.AfterDeploy.Mode == "yaml" {
-				if err := yaml.Unmarshal([]byte(scriptContent), &dockerScript); err != nil {
-					log.Error(fmt.Sprintf("projectID: %d unmarshal yaml script fail err: %s", project.ID, err))
-					publishTraceModel.Detail = fmt.Sprintf("err: %s", err)
-					publishTraceModel.State = model.Fail
-					if _, err := publishTraceModel.AddRow(); err != nil {
-						log.Errorf(projectLogFormat, project.ID, err)
-					}
-
-					ch <- syncMessage{
-						serverName: projectServer.Server.Name,
-						projectID:  project.ID,
-						detail:     err.Error(),
-						state:      model.ProjectFail,
-					}
-					return
-				}
+				_ = yaml.Unmarshal([]byte(scriptContent), &dockerScript)
 
 				for stepIndex, step := range dockerScript.Steps {
 					scriptName = fmt.Sprintf("goploy-after-deploy-p%d-s%d-y%d", project.ID, projectServer.ServerID, stepIndex)
@@ -379,12 +364,13 @@ func (gsync *Gsync) serverStage() error {
 			}
 
 			for stepIndex, step := range dockerScript.Steps {
+				publishTraceModel.Type = model.AfterDeploy
+				publishTraceModel.InsertTime = time.Now().Format("20060102150405")
+
 				step.ScriptName = fmt.Sprintf("goploy-after-deploy-p%d-s%d-y%d", project.ID, projectServer.ServerID, stepIndex)
 				dockerOutput, dockerErr := dockerConfig.Run(step)
 
 				scriptContent = strings.Join(step.Commands, "\n")
-				publishTraceModel.Type = model.AfterDeploy
-				publishTraceModel.InsertTime = time.Now().Format("20060102150405")
 				ext, _ = json.Marshal(struct {
 					ServerID   int64  `json:"serverId"`
 					ServerName string `json:"serverName"`
@@ -396,7 +382,7 @@ func (gsync *Gsync) serverStage() error {
 				scriptFullName := path.Join(config.GetProjectPath(project.ID), step.ScriptName)
 				_ = os.Remove(scriptFullName)
 
-				if dockerErr != "" {
+				if dockerErr != nil {
 					log.Error(fmt.Sprintf("projectID: %d run docker script err: %s", project.ID, dockerErr))
 					publishTraceModel.Detail = fmt.Sprintf("err: %s\noutput: %s", dockerErr, dockerOutput)
 					publishTraceModel.State = model.Fail
@@ -594,10 +580,7 @@ func (gsync *Gsync) runLocalScript() error {
 	// run yaml script by docker
 	if mode == "yaml" {
 		var dockerScript docker.Script
-		err := yaml.Unmarshal([]byte(scriptText), &dockerScript)
-		if err != nil {
-			return errors.New("unmarshal yaml script fail")
-		}
+		_ = yaml.Unmarshal([]byte(scriptText), &dockerScript)
 
 		projectPath, err := filepath.Abs(config.GetProjectPath(project.ID))
 		if err != nil {
@@ -618,6 +601,7 @@ func (gsync *Gsync) runLocalScript() error {
 		}
 
 		for stepIndex, step := range dockerScript.Steps {
+			gsync.PublishTrace.InsertTime = time.Now().Format("20060102150405")
 			scriptText = strings.Join(step.Commands, "\n")
 			tmpScriptName := scriptName + fmt.Sprintf("-y%d", stepIndex)
 			scriptFullName := path.Join(srcPath, tmpScriptName)
@@ -635,8 +619,8 @@ func (gsync *Gsync) runLocalScript() error {
 
 			_ = os.Remove(scriptFullName)
 
-			if dockerErr != "" {
-				gsync.PublishTrace.Detail = dockerErr
+			if dockerErr != nil {
+				gsync.PublishTrace.Detail = dockerErr.Error()
 				gsync.PublishTrace.State = model.Fail
 				if _, err := gsync.PublishTrace.AddRow(); err != nil {
 					log.Errorf(projectLogFormat, gsync.Project.ID, err)
