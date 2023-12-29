@@ -4,6 +4,21 @@ All notable changes to the "goploy" extension will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
+## [1.16.0] - 2023-12-29
+
+### Added
+- [project script yaml mode](https://github.com/zhenorzz/goploy/pull/67)
+- add deploy time
+- create user when ldap is enabled
+- add cron logs
+
+### Bug fixed
+
+- fix element-plus locale
+- fix toggle server state
+- fix project set auto deploy
+
+
 ## [1.15.3] - 2023-10-23
 
 ### Bug fixed
