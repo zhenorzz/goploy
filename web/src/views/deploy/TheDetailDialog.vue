@@ -131,7 +131,7 @@
               <el-button
                 :icon="Search"
                 :loading="filterloading"
-                style="flex:1"
+                style="flex: 1"
                 @click="filterInpurtVisible = !filterInpurtVisible"
               >
                 Filter({{ filterlength }})
@@ -140,7 +140,7 @@
           </el-popover>
           <el-button
             type="primary"
-            style="margin-left: 5px;"
+            style="margin-left: 5px"
             :icon="Refresh"
             @click="searchPreviewList"
           />
@@ -155,9 +155,13 @@
               <el-row>
                 <span class="publish-name">{{ item.publisherName }}</span>
                 <span class="publish-commitID" :title="item['commit']">
-                  {{ ['ftp', 'sftp'].includes(projectRow.repoType) ? item['token'] :item['commit'] }}
+                  {{
+                    ['ftp', 'sftp'].includes(projectRow.repoType)
+                      ? item['token']
+                      : item['commit']
+                  }}
                 </span>
-                <span style="margin:0 10px;">
+                <span style="margin: 0 10px">
                   {{ getTimeDiff(item.updateTime, item.insertTime) }}
                 </span>
                 <el-icon
@@ -166,7 +170,7 @@
                     projectRow.deployState === DeployState.Deploying
                   "
                   class="is-loading"
-                  style="font-size: 15px; margin-right: 10px;"
+                  style="font-size: 15px; margin-right: 10px"
                 >
                   <Loading />
                 </el-icon>
@@ -175,20 +179,19 @@
                     item.token === projectRow.lastPublishToken &&
                     projectRow.deployState === DeployState.Fail
                   "
-                  style="color: #f56c6c; font-size: 15px; margin-right: 10px;"
+                  style="color: #f56c6c; font-size: 15px; margin-right: 10px"
                   icon-class="close"
                 />
                 <SvgIcon
                   v-else-if="item.state === 1"
-                  style="color: #67c23a; font-size: 15px; margin-right: 10px;"
+                  style="color: #67c23a; font-size: 15px; margin-right: 10px"
                   icon-class="check"
                 />
                 <SvgIcon
                   v-else
-                  style="color: #f56c6c; font-size: 15px; margin-right: 10px;"
+                  style="color: #f56c6c; font-size: 15px; margin-right: 10px"
                   icon-class="close"
                 />
-                
               </el-row>
             </el-radio>
             <el-button
@@ -225,8 +228,13 @@
           <el-row style="margin: 5px 0">
             <div class="project-title">
               <span style="margin-right: 5px; text-transform: capitalize">
-                {{ projectRow.repoType }} 
-                {{ getTimeDiff(localTraceList[PublishTraceType.Pull][0].updateTime, localTraceList[PublishTraceType.Pull][0].insertTime) }}
+                {{ projectRow.repoType }}
+                {{
+                  getTimeDiff(
+                    localTraceList[PublishTraceType.Pull][0].updateTime,
+                    localTraceList[PublishTraceType.Pull][0].insertTime
+                  )
+                }}
               </span>
               <span
                 v-if="localTraceList[PublishTraceType.Pull][0].state === 1"
@@ -291,7 +299,15 @@
         >
           <el-row style="margin: 5px 0" class="project-title">
             <span style="margin-right: 5px">
-              After Pull {{ getTimeDiff(localTraceList[PublishTraceType.AfterPull][0].updateTime, localTraceList[PublishTraceType.AfterPull][localTraceList[PublishTraceType.AfterPull].length-1].insertTime) }}
+              After Pull
+              {{
+                getTimeDiff(
+                  localTraceList[PublishTraceType.AfterPull][
+                    localTraceList[PublishTraceType.AfterPull].length - 1
+                  ].updateTime,
+                  localTraceList[PublishTraceType.AfterPull][0].insertTime
+                )
+              }}
             </span>
             <span
               v-if="
@@ -355,7 +371,13 @@
               <template v-if="Number(key) === PublishTraceType.BeforeDeploy">
                 <el-row style="margin: 5px 0" class="project-title">
                   <span style="margin-right: 5px">
-                    Before deploy {{ getTimeDiff(traceList[0].updateTime, traceList[traceList.length-1].insertTime) }}
+                    Before deploy
+                    {{
+                      getTimeDiff(
+                        traceList[traceList.length - 1].updateTime,
+                        traceList[0].insertTime
+                      )
+                    }}
                   </span>
                   <span
                     v-if="!traceList.map((trace) => trace.state).includes(0)"
@@ -401,7 +423,13 @@
               <template v-else-if="Number(key) === PublishTraceType.Deploy">
                 <el-row style="margin: 5px 0" class="project-title">
                   <span style="margin-right: 5px; text-transform: capitalize">
-                    {{ projectRow.transferType }} {{ getTimeDiff(traceList[0].updateTime, traceList[traceList.length-1].insertTime) }}
+                    {{ projectRow.transferType }}
+                    {{
+                      getTimeDiff(
+                        traceList[traceList.length - 1].updateTime,
+                        traceList[0].insertTime
+                      )
+                    }}
                   </span>
                   <span
                     v-if="!traceList.map((trace) => trace.state).includes(0)"
@@ -435,7 +463,13 @@
               >
                 <el-row style="margin: 5px 0" class="project-title">
                   <span style="margin-right: 5px">
-                    After deploy {{ getTimeDiff(traceList[0].updateTime, traceList[traceList.length-1].insertTime) }}
+                    After deploy
+                    {{
+                      getTimeDiff(
+                        traceList[traceList.length - 1].updateTime,
+                        traceList[0].insertTime
+                      )
+                    }}
                   </span>
                   <span
                     v-if="!traceList.map((trace) => trace.state).includes(0)"
@@ -493,7 +527,14 @@
           <el-row style="margin: 5px 0" class="project-title">
             <span style="margin-right: 5px">
               Deploy Finish
-              {{ getTimeDiff(localTraceList[PublishTraceType.DeployFinish][0].updateTime, localTraceList[PublishTraceType.DeployFinish][localTraceList[PublishTraceType.DeployFinish].length-1].insertTime) }}
+              {{
+                getTimeDiff(
+                  localTraceList[PublishTraceType.DeployFinish][
+                    localTraceList[PublishTraceType.DeployFinish].length - 1
+                  ].updateTime,
+                  localTraceList[PublishTraceType.DeployFinish][0].insertTime
+                )
+              }}
             </span>
             <span
               v-if="
@@ -550,7 +591,13 @@
 </template>
 
 <script lang="ts" setup>
-import { Search, Refresh, Close, Loading, RefreshLeft } from '@element-plus/icons-vue'
+import {
+  Search,
+  Refresh,
+  Close,
+  Loading,
+  RefreshLeft,
+} from '@element-plus/icons-vue'
 import RepoURL from '@/components/RepoURL/index.vue'
 import {
   DeployState,

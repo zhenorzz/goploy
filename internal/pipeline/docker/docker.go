@@ -18,6 +18,7 @@ import (
 	"github.com/zhenorzz/goploy/internal/model"
 	"path"
 	"path/filepath"
+	"strings"
 )
 
 type Script struct {
@@ -66,7 +67,7 @@ func (c *Config) Setup() (err error) {
 	return nil
 }
 
-func (c *Config) Run(step Step) (outStr string, errStr string) {
+func (c *Config) Run(step Step) (outStr string, runErr error) {
 	defer func() {
 		c.Destroy(step)
 	}()
@@ -83,20 +84,45 @@ func (c *Config) Run(step Step) (outStr string, errStr string) {
 	if step.ImageOptions.Dockerfile != "" {
 		localProjectPath, err := filepath.Abs(config.GetProjectPath(c.ProjectID))
 		if err != nil {
-			errStr = fmt.Sprintf("get local repository abs path err: %s", err)
+			runErr = fmt.Errorf("get local repository abs path err: %s", err)
 			return
 		}
 
 		tar, err := archive.TarWithOptions(filepath.Join(localProjectPath, step.ImageOptions.Dockerfile), &archive.TarOptions{})
 
-		_, err = c.Client.ImageBuild(ctx, tar, types.ImageBuildOptions{
+		buildResponse, err := c.Client.ImageBuild(ctx, tar, types.ImageBuildOptions{
 			Tags:        []string{step.Image},
 			Dockerfile:  "Dockerfile",
 			Remove:      true,
 			ForceRemove: true,
 		})
+		defer buildResponse.Body.Close()
+
 		if err != nil {
-			errStr = fmt.Sprintf("build image err: %s", err)
+			runErr = fmt.Errorf("build image err: %s", err)
+			return
+		}
+
+		buildOutput := strings.Builder{}
+		dec := json.NewDecoder(buildResponse.Body)
+		for {
+			var output map[string]interface{}
+			if err := dec.Decode(&output); err != nil {
+				break
+			}
+			if output["stream"] != nil {
+				tmpStream, _ := output["stream"].(string)
+				buildOutput.WriteString(tmpStream)
+			}
+			if output["error"] != nil {
+				tmpError, _ := output["error"].(string)
+				buildOutput.WriteString("error: " + tmpError)
+			}
+		}
+
+		// build image fail, output the build details
+		if !strings.Contains(buildOutput.String(), "Successfully built") {
+			runErr = fmt.Errorf("build image err, details:\n%s", buildOutput.String())
 			return
 		}
 	} else {
@@ -113,7 +139,7 @@ func (c *Config) Run(step Step) (outStr string, errStr string) {
 
 		_, err := c.Client.ImagePull(ctx, step.Image, pullOptions)
 		if err != nil {
-			errStr = fmt.Sprintf("pull docker image err: %s", err)
+			runErr = fmt.Errorf("pull docker image err: %s", err)
 			return
 		}
 	}
@@ -144,7 +170,7 @@ func (c *Config) Run(step Step) (outStr string, errStr string) {
 	if client.IsErrNotFound(err) && step.ImageOptions.Dockerfile == "" {
 		_, err = c.Client.ImagePull(ctx, step.Image, pullOptions)
 		if err != nil {
-			errStr = fmt.Sprintf("pull docker image twice err: %s", err)
+			runErr = fmt.Errorf("pull docker image twice err: %s", err)
 			return
 		}
 
@@ -160,32 +186,32 @@ func (c *Config) Run(step Step) (outStr string, errStr string) {
 	}
 
 	if err != nil {
-		errStr = fmt.Sprintf("create docker container err: %s", err)
+		runErr = fmt.Errorf("create docker container err: %s", err)
 		return
 	}
 
-	if err := c.Client.ContainerStart(ctx, step.ContainerName, types.ContainerStartOptions{}); err != nil {
-		errStr = fmt.Sprintf("start docker container err: %s", err)
+	if err = c.Client.ContainerStart(ctx, step.ContainerName, types.ContainerStartOptions{}); err != nil {
+		runErr = fmt.Errorf("start docker container err: %s", err)
 		return
 	}
 
 	statusCh, errCh := c.Client.ContainerWait(ctx, step.ContainerName, container.WaitConditionNotRunning)
 	select {
-	case err := <-errCh:
+	case err = <-errCh:
 		if err != nil {
-			errStr = fmt.Sprintf("wait docker container err: %s", err)
+			runErr = fmt.Errorf("wait docker container err: %s", err)
 			break
 		}
 	case <-statusCh:
 	}
 
-	if errStr != "" {
+	if runErr != nil {
 		return
 	}
 
 	out, err := c.Client.ContainerLogs(ctx, step.ContainerName, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
-		errStr = fmt.Sprintf("logs docker container err: %s", err)
+		runErr = fmt.Errorf("logs docker container err: %s", err)
 		return
 	}
 
@@ -194,11 +220,11 @@ func (c *Config) Run(step Step) (outStr string, errStr string) {
 	defer out.Close()
 
 	if dockerErrbuf.Len() > 0 {
-		errStr = fmt.Sprintf("run docker script err: %s", dockerErrbuf.String())
+		runErr = fmt.Errorf("run docker script err: %s", dockerErrbuf.String())
 		return
 	}
 
-	return dockerOutbuf.String(), errStr
+	return dockerOutbuf.String(), nil
 }
 
 func (c *Config) Destroy(step Step) {

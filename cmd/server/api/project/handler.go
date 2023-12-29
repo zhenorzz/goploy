@@ -11,10 +11,12 @@ import (
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/pipeline/docker"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"github.com/zhenorzz/goploy/internal/repo"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
+	"gopkg.in/yaml.v3"
 	"io"
 	"net/http"
 	"os"
@@ -423,6 +425,10 @@ func (Project) Add(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: "Invalid transfer option format"}
 	}
 
+	if err := verifyProjectScript(reqData.Script); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+
 	projectID, err := model.Project{
 		NamespaceID:         gp.Namespace.ID,
 		Name:                reqData.Name,
@@ -510,6 +516,10 @@ func (Project) Edit(gp *server.Goploy) server.Response {
 
 	if _, err := pkg.ParseCommandLine(reqData.TransferOption); err != nil {
 		return response.JSON{Code: response.Error, Message: "Invalid option format"}
+	}
+
+	if err := verifyProjectScript(reqData.Script); err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
 	projectData, err := model.Project{ID: reqData.ID}.GetData()
@@ -1113,4 +1123,29 @@ func (Project) DeleteProcess(gp *server.Goploy) server.Response {
 	}
 
 	return response.JSON{}
+}
+
+func verifyProjectScript(projectScript model.ProjectScript) error {
+	var dockerScript docker.Script
+	errStr := "unmarshal %s yaml script fail, please check it"
+
+	if projectScript.AfterPull.Mode == "yaml" && projectScript.AfterPull.Content != "" {
+		if err := yaml.Unmarshal([]byte(projectScript.AfterPull.Content), &dockerScript); err != nil {
+			return fmt.Errorf(errStr, "After Pull")
+		}
+	}
+
+	if projectScript.AfterDeploy.Mode == "yaml" && projectScript.AfterDeploy.Content != "" {
+		if err := yaml.Unmarshal([]byte(projectScript.AfterDeploy.Content), &dockerScript); err != nil {
+			return fmt.Errorf(errStr, "After Deploy")
+		}
+	}
+
+	if projectScript.DeployFinish.Mode == "yaml" && projectScript.DeployFinish.Content != "" {
+		if err := yaml.Unmarshal([]byte(projectScript.DeployFinish.Content), &dockerScript); err != nil {
+			return fmt.Errorf(errStr, "Deploy Finish")
+		}
+	}
+
+	return nil
 }
