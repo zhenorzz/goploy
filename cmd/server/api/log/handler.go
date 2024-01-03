@@ -258,7 +258,7 @@ func (Log) GetTerminalRecord(gp *server.Goploy) server.Response {
 	if gp.UserInfo.SuperManager != model.SuperManager && terminalLog.NamespaceID != gp.Namespace.ID {
 		return response.JSON{Code: response.Error, Message: "You have no access to enter this record"}
 	}
-	return response.File{Filename: config.GetTerminalLogPath(reqData.RecordID)}
+	return response.File{Filename: config.GetTerminalLogPath(reqData.RecordID), Disposition: "attachment"}
 }
 
 func (Log) GetPublishLogList(gp *server.Goploy) server.Response {

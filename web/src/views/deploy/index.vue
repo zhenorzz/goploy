@@ -53,8 +53,13 @@
       />
     </el-row>
     <el-row class="app-table">
-      <el-scrollbar style="width: 100%;">
-        <el-row style="width: 100%" :gutter="10" v-infinite-scroll="load" :infinite-scroll-disabled="disabled">
+      <el-scrollbar style="width: 100%">
+        <el-row
+          v-infinite-scroll="load"
+          style="width: 100%"
+          :gutter="10"
+          :infinite-scroll-disabled="disabled"
+        >
           <el-col
             v-for="(row, index) in tablePage.list"
             :key="index"
@@ -302,7 +307,6 @@
             </el-card>
           </el-col>
         </el-row>
-      
       </el-scrollbar>
     </el-row>
     <TheDetailDialog
@@ -453,7 +457,9 @@ const searchProject = ref({
   pin: '',
 })
 const selectedItem = ref({} as ProjectData)
-const noMore = computed(() => tablePage.value.total === tablePage.value.list.length)
+const noMore = computed(
+  () => tablePage.value.total === tablePage.value.list.length
+)
 const disabled = computed(() => noMore.value)
 const tableData = ref<any[]>([])
 const labelList = ref<string[]>([])
@@ -503,10 +509,7 @@ const tablePage = computed(() => {
     )
   }
   return {
-    list: _tableData.slice(
-      0,
-      pagination.value.page * pagination.value.rows
-    ),
+    list: _tableData.slice(0, pagination.value.page * pagination.value.rows),
     total: _tableData.length,
   }
 })
@@ -546,32 +549,30 @@ getList()
 getLabelList()
 
 function getList() {
-  new DeployList()
-    .request()
-    .then((response) => {
-      tableData.value = response.data.list.map((item) => {
-        let element: any = item
-        element.tagType = 'info'
-        element.tagText = 'Not deploy'
-        if (element.deployState === 2) {
-          element.tagType = 'success'
-          element.tagText = 'Success'
-        } else if (element.deployState === 1) {
-          element.tagType = 'warning'
-          element.tagText = 'Deploying'
-        } else if (element.deployState === 3) {
-          element.tagType = 'danger'
-          element.tagText = 'Fail'
-        }
-        try {
-          Object.assign(element, JSON.parse(element.publishExt))
-        } catch (error) {
-          console.log('Project not deploy')
-        }
-        return element
-      })
-      sortChange(searchProject.value.sort)
+  new DeployList().request().then((response) => {
+    tableData.value = response.data.list.map((item) => {
+      let element: any = item
+      element.tagType = 'info'
+      element.tagText = 'Not deploy'
+      if (element.deployState === 2) {
+        element.tagType = 'success'
+        element.tagText = 'Success'
+      } else if (element.deployState === 1) {
+        element.tagType = 'warning'
+        element.tagText = 'Deploying'
+      } else if (element.deployState === 3) {
+        element.tagType = 'danger'
+        element.tagText = 'Fail'
+      }
+      try {
+        Object.assign(element, JSON.parse(element.publishExt))
+      } catch (error) {
+        console.log('Project not deploy')
+      }
+      return element
     })
+    sortChange(searchProject.value.sort)
+  })
 }
 
 function getLabelList() {
@@ -653,7 +654,6 @@ function sortChange(sort: string) {
 
 function load() {
   pagination.value.page++
-  
 }
 
 function handleDetail(data: ProjectData) {

@@ -57,3 +57,42 @@ export class RepositoryTagList extends Request {
     this.param = { ...param }
   }
 }
+
+export interface RepositoryFile {
+  [key: string]: any
+  name: string
+  mode: string
+  isDir: boolean
+}
+
+export class RepositoryFileList extends Request {
+  readonly url = '/repository/getFileList'
+  readonly method = 'get'
+  readonly timeout = 0
+  public param: {
+    id: number
+    dir: string
+  }
+
+  public declare datagram: {
+    list: RepositoryFile[]
+  }
+  constructor(param: RepositoryFileList['param']) {
+    super()
+    this.param = { ...param }
+  }
+}
+
+export class RepositoryDeleteFile extends Request {
+  readonly url = '/repository/deleteFile'
+  readonly method = 'delete'
+  readonly timeout = 0
+  public param: {
+    id: number
+    file: string
+  }
+  constructor(param: RepositoryDeleteFile['param']) {
+    super()
+    this.param = param
+  }
+}

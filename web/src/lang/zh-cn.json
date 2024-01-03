@@ -246,7 +246,9 @@
     "EditNginxConfig": "编辑Nginx配置文件",
     "AddNginxConfig": "添加Nginx配置文件",
     "DeleteNginxConfig": "删除Nginx配置文件",
-    "UnbindServerProject": "移除服务器的项目"
+    "UnbindServerProject": "移除服务器的项目",
+    "ManageRepository": "管理仓库文件"
+    
   },
   "tagsView": {
     "refresh": "刷新",
@@ -355,7 +357,8 @@
     "autoDeployTitle": "构建触发器：达成某种条件后自动构建发布项目",
     "autoDeployGitTips": "填入连接http(s)://域名(IP)/deploy/webhook?project_id={projectId}\n勾选push event即可, (Gitlab可以选对应的分支)",
     "autoDeploySVNTips": "前往服务器SVN的hook目录（可前往谷歌查找hook所在的位置）\n填入连接http(s)://域名(IP)/deploy/webhook?project_id={projectId} -X POST --header \"Content-Type: application/json\" --header \"X-SVN-Event: push\" -d \"{ref}\" 即可",
-    "projectFileTips": "构建项目时上传到目标服务器"
+    "projectFileTips": "构建项目时上传到目标服务器",
+    "deleteDir": "删除该目录"
   },
   "deployPage": {
     "resetState": "重置状态",

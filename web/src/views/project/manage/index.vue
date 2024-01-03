@@ -114,7 +114,7 @@
         <el-table-column
           prop="operation"
           :label="$t('op')"
-          width="190"
+          width="250"
           align="center"
           :fixed="$store.state.app.device === 'mobile' ? false : 'right'"
         >
@@ -124,6 +124,13 @@
               :icon="Edit"
               :permissions="[pms.EditProject]"
               @click="handleEdit(scope.row)"
+            />
+            <Button
+              color="#626aef"
+              :icon="Files"
+              :dark="isDark"
+              :permissions="[pms.ManageRepository]"
+              @click="handleShowFiles(scope.row)"
             />
             <el-tooltip
               class="item"
@@ -1108,7 +1115,11 @@
         </el-button>
       </template>
     </el-dialog>
-    <el-dialog v-model="dialogAutoDeployVisible" :title="$t('setting')">
+    <el-dialog
+      v-model="dialogAutoDeployVisible"
+      :title="$t('setting')"
+      :fullscreen="$store.state.app.device === 'mobile'"
+    >
       <el-form ref="autoDeployForm" :model="autoDeployFormData">
         <el-row style="margin: 10px">
           {{ $t('projectPage.autoDeployTitle') }}
@@ -1174,12 +1185,20 @@
         </el-button>
       </template>
     </el-dialog>
+    <el-dialog
+      v-model="dialogFilesVisible"
+      :title="$t('detail')"
+      :fullscreen="$store.state.app.device === 'mobile'"
+    >
+      <explorer :project="selectedItem"></explorer>
+    </el-dialog>
   </el-row>
 </template>
 <script lang="ts">
 export default { name: 'ProjectIndex' }
 </script>
 <script lang="ts" setup>
+import explorer from './components/Explorer.vue'
 import pms from '@/permission'
 import { scriptLang } from '@/const/const'
 import Button from '@/components/Permission/Button.vue'
@@ -1191,6 +1210,7 @@ import {
   Plus,
   Edit,
   QuestionFilled,
+  Files,
   DocumentCopy,
   Delete,
 } from '@element-plus/icons-vue'
@@ -1238,6 +1258,7 @@ const searchProject = ref({
 })
 const dialogVisible = ref(false)
 const dialogAutoDeployVisible = ref(false)
+const dialogFilesVisible = ref(false)
 const serverOption = ref<ServerOption['datagram']['list']>([])
 const userOption = ref<NamespaceUserOption['datagram']['list']>([])
 const selectedItem = ref({} as ProjectData)
@@ -1401,6 +1422,11 @@ function handleAdd() {
   }
   formProps.value.symlink = false
   dialogVisible.value = true
+}
+
+function handleShowFiles(data: ProjectData) {
+  selectedItem.value = data
+  dialogFilesVisible.value = true
 }
 
 function handleEdit(data: ProjectData) {

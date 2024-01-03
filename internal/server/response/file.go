@@ -12,7 +12,8 @@ import (
 )
 
 type File struct {
-	Filename string
+	Filename    string
+	Disposition string // attachment | inline
 }
 
 func (f File) Write(w http.ResponseWriter, _ *http.Request) error {
@@ -26,10 +27,14 @@ func (f File) Write(w http.ResponseWriter, _ *http.Request) error {
 		return err
 	}
 
-	w.Header().Set("Content-Disposition", "attachment; filename="+fileStat.Name())
-	w.Header().Set("Content-Type", "application/x-asciicast")
-	w.Header().Set("Content-Length", strconv.FormatInt(fileStat.Size(), 10))
+	if f.Disposition == "attachment" {
+		w.Header().Set("Content-Disposition", "attachment;filename="+fileStat.Name())
+		w.Header().Set("Content-Type", "application/octet-stream")
+	} else {
+		w.Header().Set("Content-Disposition", "inline;filename="+fileStat.Name())
+	}
 
+	w.Header().Set("Content-Length", strconv.FormatInt(fileStat.Size(), 10))
 	_, err = io.Copy(w, file)
 	if err != nil {
 		return err

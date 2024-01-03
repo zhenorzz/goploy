@@ -83,4 +83,5 @@ export default Object.freeze({
   EditNginxConfig: 82,
   DeleteNginxConfig: 83,
   UnbindServerProject: 84,
+  ManageRepository: 85,
 })

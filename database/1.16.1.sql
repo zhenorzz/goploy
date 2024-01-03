@@ -1,0 +1,1 @@
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (85, 43, 'ManageRepository',  0, '');
