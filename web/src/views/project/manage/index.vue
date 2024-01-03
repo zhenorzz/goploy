@@ -1187,7 +1187,7 @@
     </el-dialog>
     <el-dialog
       v-model="dialogFilesVisible"
-      :title="$t('detail')"
+      :title="$t('projectPage.repositoryDialogTitle')"
       :fullscreen="$store.state.app.device === 'mobile'"
     >
       <explorer :project="selectedItem"></explorer>
