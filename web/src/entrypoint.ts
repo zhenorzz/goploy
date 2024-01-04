@@ -1,6 +1,5 @@
 import router from './router'
 import store from './store'
-import { ElMessage } from 'element-plus'
 import NProgress from 'nprogress' // progress bar
 import 'nprogress/nprogress.css' // progress bar style
 import { isLogin, logout } from '@/utils/auth' // get token from cookie

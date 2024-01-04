@@ -361,8 +361,7 @@ import {
   GridComponent,
   LegendComponent,
 } from 'echarts/components'
-import type { ElForm } from 'element-plus'
-import { ElMessageBox, ElMessage, ElDatePicker } from 'element-plus'
+import type { ElForm, ElDatePicker } from 'element-plus'
 import {
   ServerMonitorData,
   ServerReport,

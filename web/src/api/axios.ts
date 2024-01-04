@@ -1,5 +1,4 @@
 import axios, { AxiosResponse, AxiosRequestConfig, AxiosError } from 'axios'
-import { ElMessageBox, ElMessage } from 'element-plus'
 import {
   NamespaceKey,
   getNamespaceId,

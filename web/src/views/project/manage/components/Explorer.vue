@@ -174,7 +174,6 @@ import {
   RepositoryFileList,
   RepositoryDeleteFile,
 } from '@/api/repository'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import { ref, PropType, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'

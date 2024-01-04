@@ -7,7 +7,12 @@
     @close="onClose"
   >
     <el-row type="flex">
-      <div v-if="showPreivew" v-loading="filterloading" class="publish-preview" :style="$store.state.app.device === 'mobile' ? '' : 'width:330px'">
+      <div
+        v-if="showPreivew"
+        v-loading="filterloading"
+        class="publish-preview"
+        :style="$store.state.app.device === 'mobile' ? '' : 'width:330px'"
+      >
         <el-row>
           <el-popover
             v-model:visible="filterInpurtVisible"
@@ -612,8 +617,7 @@ import {
 import { ProjectData } from '@/api/project'
 import { NamespaceUserOption } from '@/api/namespace'
 import { empty, parseTime, getTimeDiff } from '@/utils'
-import type { ElRadioGroup } from 'element-plus'
-import { ElMessageBox, ElMessage, ElDatePicker } from 'element-plus'
+import type { ElRadioGroup, ElDatePicker } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import dayjs from 'dayjs'
 import { computed, watch, ref, reactive, PropType } from 'vue'
@@ -675,7 +679,7 @@ const shortcuts = [
 const userOption = ref<NamespaceUserOption['datagram']['list']>([])
 watch(
   () => props.modelValue,
-  (val: (typeof props)['modelValue']) => {
+  (val: typeof props['modelValue']) => {
     if (val === true) {
       clearFilterParams()
       getPreviewList(props.projectRow.id)
@@ -962,7 +966,7 @@ const rebuild = (data: PublishTraceData & PublishTraceExt) => {
 }
 .project {
   &-detail {
-    padding: 0 10px; 
+    padding: 0 10px;
     align-content: flex-start;
     height: 490px;
     overflow-y: auto;

@@ -201,7 +201,6 @@ import {
 } from '@/api/server'
 import permission from '@/permission'
 import { Button } from '@/components/Permission'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import { ref, PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ManageNginx } from '@/api/server'

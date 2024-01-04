@@ -115,7 +115,6 @@
 import RepoURL from '@/components/RepoURL/index.vue'
 import { DeployReview } from '@/api/deploy'
 import { ProjectReviewList } from '@/api/project'
-import { ElMessageBox, ElMessage } from 'element-plus'
 import { computed, watch, ref, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 const props = defineProps({

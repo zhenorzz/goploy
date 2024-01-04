@@ -2,7 +2,6 @@ import { Module, MutationTree, ActionTree } from 'vuex'
 import { WebsocketState } from './types'
 import { RootState } from '../../types'
 import { parseTime } from '@/utils'
-import { ElMessageBox, ElMessage } from 'element-plus'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 
 const state: WebsocketState = {

@@ -200,7 +200,6 @@ import path from 'path-browserify'
 import { FileCompare, FileDiff } from '@/api/deploy'
 import { ReposFileList, ProjectData } from '@/api/project'
 import { humanSize } from '@/utils'
-import { ElMessage } from 'element-plus'
 import { computed, PropType, ref } from 'vue'
 const props = defineProps({
   modelValue: {

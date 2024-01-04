@@ -31,6 +31,9 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
       }),
       viteCompression({ deleteOriginFile: true }),
       AutoImport({
+        // eslintrc: {
+        //   enabled: true,
+        // },
         resolvers: [ElementPlusResolver()],
       }),
       Components({

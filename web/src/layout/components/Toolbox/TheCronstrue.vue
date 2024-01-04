@@ -40,7 +40,6 @@
 
 <script lang="ts" setup>
 import cronstrue from 'cronstrue/i18n'
-import { ElMessage } from 'element-plus'
 import { reactive } from 'vue'
 defineProps({
   modelValue: {

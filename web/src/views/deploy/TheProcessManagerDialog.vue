@@ -193,7 +193,6 @@ import {
   ProjectData,
 } from '@/api/project'
 import type { ElForm } from 'element-plus'
-import { ElMessageBox, ElMessage } from 'element-plus'
 import { computed, watch, ref, PropType } from 'vue'
 import { useI18n } from 'vue-i18n'
 const props = defineProps({
@@ -229,7 +228,9 @@ const projectProcessId = ref<number>()
 const processOption = ref<ProjectProcessList['datagram']['list']>([])
 const getList = () => {
   tableData.value = []
-  const _processId = localStorage.getItem(`${props.projectRow.id}-latest-use-process`)
+  const _processId = localStorage.getItem(
+    `${props.projectRow.id}-latest-use-process`
+  )
   projectProcessId.value = undefined
   if (_processId) {
     projectProcessId.value = Number(_processId)
@@ -244,7 +245,6 @@ const getList = () => {
     .request()
     .then((response) => {
       processOption.value = response.data.list
-      
     })
     .finally(() => {
       processLoading.value = false
@@ -255,7 +255,10 @@ const table = ref()
 const tableLoading = ref(false)
 const tableData = ref<ProjectServerList['datagram']['list']>([])
 const handleProcessChange = (processId: number) => {
-  localStorage.setItem(`${props.projectRow.id}-latest-use-process`, processId.toString())
+  localStorage.setItem(
+    `${props.projectRow.id}-latest-use-process`,
+    processId.toString()
+  )
   if (tableData.value.length > 0) {
     return
   }
@@ -323,9 +326,6 @@ watch(
     formData.value.projectId = val.id
   }
 )
-
-
-
 
 function handleAdd() {
   processVisible.value = true

@@ -139,7 +139,6 @@ import {
 } from '@/api/project'
 import { VAceEditor } from 'vue3-ace-editor'
 import * as ace from 'ace-builds/src-noconflict/ace'
-import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref, computed, watch } from 'vue'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 import { HttpResponse, ID } from '@/api/types'

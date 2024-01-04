@@ -249,7 +249,6 @@ import {
   ServerRenameFile,
   ServerDeleteFile,
 } from '@/api/server'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import { HttpResponse } from '@/api/types'
 import { ref, PropType, computed, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -556,11 +555,6 @@ function forward() {
     backwardHistory.value.push(dir.value)
     goto(target)
   }
-}
-
-function refresh() {
-  fileListLoading.value = true
-  ws?.send(dir.value)
 }
 
 function filterFile(value: string) {

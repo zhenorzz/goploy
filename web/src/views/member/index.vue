@@ -180,7 +180,6 @@ import {
 import { validUsername, validPassword } from '@/utils/validate'
 import { UserData, UserList, UserAdd, UserEdit, UserRemove } from '@/api/user'
 import type { ElForm } from 'element-plus'
-import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 const { t } = useI18n()

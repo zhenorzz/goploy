@@ -171,7 +171,6 @@ export default { name: 'ServerSFTP' }
 import explorer from './explorer.vue'
 import path from 'path-browserify'
 import type { ElForm } from 'element-plus'
-import { ElMessage } from 'element-plus'
 import { VAceEditor } from 'vue3-ace-editor'
 import * as ace from 'ace-builds/src-noconflict/ace'
 import { getModeForPath } from 'ace-builds/src-noconflict/ext-modelist'

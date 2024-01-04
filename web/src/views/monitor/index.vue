@@ -540,7 +540,6 @@ import {
   MonitorData,
 } from '@/api/monitor'
 import type { ElForm } from 'element-plus'
-import { ElMessageBox, ElMessage } from 'element-plus'
 import { ref, watch, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'

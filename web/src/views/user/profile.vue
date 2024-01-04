@@ -100,7 +100,6 @@ import {
   RefreshRight,
 } from '@element-plus/icons-vue'
 import type { ElForm } from 'element-plus'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import { validPassword } from '@/utils/validate'
 import {
   UserChangePassword,

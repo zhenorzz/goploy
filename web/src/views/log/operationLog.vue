@@ -129,7 +129,6 @@ export default { name: 'OperationLog' }
 <script lang="ts" setup>
 import '@/components/JSONTree/index.css'
 import { jsonTree } from '@/components/JSONTree'
-import { ElMessage } from 'element-plus'
 import { QuestionFilled, Search } from '@element-plus/icons-vue'
 import { copy } from '@/utils'
 import { OperationLogList, OperationLogTotal } from '@/api/log'

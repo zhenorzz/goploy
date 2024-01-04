@@ -1,7 +1,6 @@
 import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import { AttachAddon } from 'xterm-addon-attach'
-import { ElMessage } from 'element-plus'
 import { NamespaceKey, getNamespaceId } from '@/utils/namespace'
 export class xterm {
   private serverId: number

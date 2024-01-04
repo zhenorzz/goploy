@@ -219,7 +219,6 @@ import {
 } from '@/api/project'
 import type { ElForm } from 'element-plus'
 import { RepositoryBranchList, RepositoryCommitList } from '@/api/repository'
-import { ElMessageBox, ElMessage } from 'element-plus'
 import { parseTime } from '@/utils'
 import { PropType, computed, watch, ref, reactive } from 'vue'
 import dayjs from 'dayjs'

@@ -278,7 +278,6 @@ import {
   CircleClose,
 } from '@element-plus/icons-vue'
 import { VAceEditor } from 'vue3-ace-editor'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import type { ElForm } from 'element-plus'
 import * as ace from 'ace-builds/src-noconflict/ace'
 import { ServerData, ServerOption, ServerExecScript } from '@/api/server'
