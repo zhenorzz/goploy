@@ -175,7 +175,7 @@
                     projectRow.deployState === DeployState.Deploying
                   "
                   class="is-loading"
-                  style="font-size: 15px; margin-right: 10px"
+                  style="font-size: 15px"
                 >
                   <Loading />
                 </el-icon>
@@ -184,17 +184,17 @@
                     item.token === projectRow.lastPublishToken &&
                     projectRow.deployState === DeployState.Fail
                   "
-                  style="color: #f56c6c; font-size: 15px; margin-right: 10px"
+                  style="color: #f56c6c; font-size: 15px"
                   icon-class="close"
                 />
                 <SvgIcon
                   v-else-if="item.state === 1"
-                  style="color: #67c23a; font-size: 15px; margin-right: 10px"
+                  style="color: #67c23a; font-size: 15px"
                   icon-class="check"
                 />
                 <SvgIcon
                   v-else
-                  style="color: #f56c6c; font-size: 15px; margin-right: 10px"
+                  style="color: #f56c6c; font-size: 15px"
                   icon-class="close"
                 />
               </el-row>
@@ -929,19 +929,16 @@ const rebuild = (data: PublishTraceData & PublishTraceExt) => {
     flex: 1;
   }
   &-commitID {
-    display: inline-block;
-    vertical-align: top;
     flex: 1;
-    min-width: 1px;
+    min-width: 0;
+    width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   &-name {
     width: 60px;
-    display: inline-block;
     text-align: center;
     overflow: hidden;
-    vertical-align: top;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
