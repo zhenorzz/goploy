@@ -53,17 +53,31 @@
     >
       <el-table-column type="expand">
         <template #default="{}">
-          <el-row>
-            {{ $t('deployPage.execRes') }}:
-            <span
-              :class="commandRes.execRes ? 'exec-success' : 'exec-fail'"
-              style="padding-left: 5px"
-            >
-              {{ commandRes.execRes }}
-            </span>
+          <el-row
+            v-if="commandRes.hasOwnProperty('execRes')"
+            style="padding: 8px 16px; flex-direction: column; line-height: 20px"
+          >
+            <el-row>
+              {{ $t('deployPage.execRes') }}:
+              <span
+                :class="commandRes.execRes ? 'exec-success' : 'exec-fail'"
+                style="padding-left: 5px"
+              >
+                {{ commandRes.execRes ? $t('success') : $t('fail') }}
+              </span>
+            </el-row>
+            <el-row style="white-space: pre-wrap">
+              {{ $t('deployPage.execTime') }}: {{ commandRes.startTime }} -
+              {{ commandRes.endTime }}
+            </el-row>
+            <el-row style="white-space: pre-wrap">
+              {{ commandRes.stdout }}
+            </el-row>
+            <el-row style="white-space: pre-wrap">
+              {{ commandRes.stderr }}
+            </el-row>
           </el-row>
-          <el-row style="white-space: pre-wrap">{{ commandRes.stdout }}</el-row>
-          <el-row style="white-space: pre-wrap">{{ commandRes.stderr }}</el-row>
+          <el-row v-else style="padding: 0 8px"> {{ 'not run' }} </el-row>
         </template>
       </el-table-column>
       <el-table-column label="Server">
@@ -272,11 +286,9 @@ const handleProcessChange = (processId: number) => {
       tableLoading.value = false
     })
 }
-const commandRes = ref<ManageProcess['datagram']>({
-  execRes: true,
-  stdout: '',
-  stderr: '',
-})
+const commandRes = ref<ManageProcess['datagram']>(
+  {} as ManageProcess['datagram']
+)
 const commandLoading = ref(false)
 const handleProcessCmd = (data: ProjectServerData, command: string) => {
   ElMessageBox.confirm(t('deployPage.execTips', { command }), t('tips'), {

@@ -396,6 +396,7 @@
     "processManager": "Process manager",
     "execTips": "Exec command {command}?",
     "execRes": "Exec result",
+    "execTime": "Exec time",
     "deleteProcessTips": "This action will delete the process, continue?",
     "resetStateTips": "This action will reset project state, continue?",
     "reviewDeploy": "Review deploy",

@@ -451,6 +451,7 @@ func (Deploy) FileDiff(gp *server.Goploy) server.Response {
 // @Success 200 {object} response.JSON{data=deploy.ManageProcess.RespData}
 // @Router /deploy/manageProcess [post]
 func (Deploy) ManageProcess(gp *server.Goploy) server.Response {
+	startTime := time.Now().Format(time.DateTime)
 	type ReqData struct {
 		ServerID         int64  `json:"serverId" validate:"required,gt=0"`
 		ProjectProcessID int64  `json:"projectProcessId" validate:"required,gt=0"`
@@ -511,12 +512,20 @@ func (Deploy) ManageProcess(gp *server.Goploy) server.Response {
 	err = session.Run(script)
 	log.Trace(fmt.Sprintf("%s exec cmd %s, result %t, stdout: %s, stderr: %s", gp.UserInfo.Name, script, err == nil, sshOutbuf.String(), sshErrbuf.String()))
 	type RespData struct {
-		ExecRes bool   `json:"execRes"`
-		Stdout  string `json:"stdout"`
-		Stderr  string `json:"stderr"`
+		ExecRes   bool   `json:"execRes"`
+		Stdout    string `json:"stdout"`
+		Stderr    string `json:"stderr"`
+		StartTime string `json:"startTime"`
+		EndTime   string `json:"endTime"`
 	}
 	return response.JSON{
-		Data: RespData{ExecRes: err == nil, Stdout: sshOutbuf.String(), Stderr: sshErrbuf.String()},
+		Data: RespData{
+			ExecRes:   err == nil,
+			Stdout:    sshOutbuf.String(),
+			Stderr:    sshErrbuf.String(),
+			StartTime: startTime,
+			EndTime:   time.Now().Format(time.DateTime),
+		},
 	}
 }
 

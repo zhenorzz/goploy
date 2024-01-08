@@ -227,6 +227,8 @@ export class ManageProcess extends Request {
     execRes: boolean
     stdout: string
     stderr: string
+    startTime: string
+    endTime: string
   }
   constructor(param: ManageProcess['param']) {
     super()
