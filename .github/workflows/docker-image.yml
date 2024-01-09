@@ -22,6 +22,6 @@ jobs:
           docker version
           docker login --username=${{ secrets.DOCKER_USERNAME }} --password=${{ secrets.DOCKER_PASSWORD }}
           # 使用Dockerfile构建镜像
-          docker build -t zhenorzz/goploy . --file docker/Dockerfile 
+          docker build -t zhenorzz/goploy:${{ steps.get_version.outputs.VERSION }} . --file docker/Dockerfile
           # 推送镜像到镜像仓库
           docker push zhenorzz/goploy:${{ steps.get_version.outputs.VERSION }}
