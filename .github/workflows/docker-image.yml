@@ -10,8 +10,12 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+  
     steps:
+    - name: Get version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+      
     - uses: actions/checkout@v2
     - name: Build the Docker image
       run: |
@@ -20,4 +24,4 @@ jobs:
           # 使用Dockerfile构建镜像
           docker build -t zhenorzz/goploy . --file docker/Dockerfile 
           # 推送镜像到镜像仓库
-          docker push zhenorzz/goploy
+          docker push zhenorzz/goploy:${{ steps.get_version.outputs.VERSION }}
