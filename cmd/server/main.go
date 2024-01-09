@@ -37,6 +37,7 @@ import (
 	"os/signal"
 	"runtime"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -183,6 +184,83 @@ func install() {
 		Log:    config.LogConfig{Path: "stdout"},
 		Web:    config.WebConfig{Port: "80"},
 	}
+
+	if !runningInDocker() {
+		cfg = readStdin(cfg)
+	} else {
+		cfg.DB.Host = os.Getenv("DB_HOST")
+		cfg.DB.User = os.Getenv("DB_USER")
+		cfg.DB.Password = os.Getenv("DB_USER_PASSWORD")
+		cfg.DB.Database = os.Getenv("DB_NAME")
+		cfg.DB.Port = os.Getenv("DB_PORT")
+		if cfg.DB.Port == "" {
+			cfg.DB.Port = "3306"
+		}
+	}
+
+	println("Start to install the database...")
+
+	db, err := sql.Open(cfg.DB.Type, fmt.Sprintf(
+		"%s:%s@(%s:%s)/?charset=utf8mb4,utf8\n",
+		cfg.DB.User,
+		cfg.DB.Password,
+		cfg.DB.Host,
+		cfg.DB.Port))
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	if err := model.CreateDB(db, cfg.DB.Database); err != nil {
+		panic(err)
+	}
+	if err := model.UseDB(db, cfg.DB.Database); err != nil {
+		panic(err)
+	}
+	if err := model.ImportSQL(db, database.GoploySQL); err != nil {
+		panic(err)
+	}
+	println("Database installation is complete")
+	println("Start writing configuration file...")
+	err = config.Write(cfg)
+	if err != nil {
+		panic("Write config file error, " + err.Error())
+	}
+	println("Write configuration file completed")
+}
+
+func handleClientSignal() {
+	switch s {
+	case "stop":
+		pidFile := config.GetPidFile()
+		pidStr, err := os.ReadFile(pidFile)
+		if err != nil {
+			log.Fatal("handle stop, ", err.Error(), ", may be the server not start")
+		}
+		pid, _ := strconv.Atoi(string(pidStr))
+		process, err := os.FindProcess(pid)
+		if err != nil {
+			log.Fatal("handle stop, ", err.Error(), ", may be the server not start")
+		}
+		err = process.Signal(syscall.SIGTERM)
+		if err != nil {
+			log.Fatal("handle stop, ", err.Error())
+		}
+		println("App is trying to shutdown, wait for a minute")
+		for i := 0; i < 5; i++ {
+			time.Sleep(time.Second)
+			if _, err := os.Stat(pidFile); errors.Is(err, os.ErrNotExist) {
+				println("Success")
+				break
+			} else if err != nil {
+				log.Fatal("handle stop, ", err.Error())
+			}
+		}
+
+		os.Exit(1)
+	}
+}
+
+func readStdin(cfg config.Config) config.Config {
 	println("Installation guide ↓")
 	inputReader := bufio.NewReader(os.Stdin)
 	println("Installation guidelines (Enter to confirm input)")
@@ -253,67 +331,7 @@ func install() {
 	if len(port) != 0 {
 		cfg.Web.Port = port
 	}
-
-	println("Start to install the database...")
-
-	db, err := sql.Open(cfg.DB.Type, fmt.Sprintf(
-		"%s:%s@(%s:%s)/?charset=utf8mb4,utf8\n",
-		cfg.DB.User,
-		cfg.DB.Password,
-		cfg.DB.Host,
-		cfg.DB.Port))
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-	if err := model.CreateDB(db, cfg.DB.Database); err != nil {
-		panic(err)
-	}
-	if err := model.UseDB(db, cfg.DB.Database); err != nil {
-		panic(err)
-	}
-	if err := model.ImportSQL(db, database.GoploySQL); err != nil {
-		panic(err)
-	}
-	println("Database installation is complete")
-	println("Start writing configuration file...")
-	err = config.Write(cfg)
-	if err != nil {
-		panic("Write config file error, " + err.Error())
-	}
-	println("Write configuration file completed")
-}
-
-func handleClientSignal() {
-	switch s {
-	case "stop":
-		pidFile := config.GetPidFile()
-		pidStr, err := os.ReadFile(pidFile)
-		if err != nil {
-			log.Fatal("handle stop, ", err.Error(), ", may be the server not start")
-		}
-		pid, _ := strconv.Atoi(string(pidStr))
-		process, err := os.FindProcess(pid)
-		if err != nil {
-			log.Fatal("handle stop, ", err.Error(), ", may be the server not start")
-		}
-		err = process.Signal(syscall.SIGTERM)
-		if err != nil {
-			log.Fatal("handle stop, ", err.Error())
-		}
-		println("App is trying to shutdown, wait for a minute")
-		for i := 0; i < 5; i++ {
-			time.Sleep(time.Second)
-			if _, err := os.Stat(pidFile); errors.Is(err, os.ErrNotExist) {
-				println("Success")
-				break
-			} else if err != nil {
-				log.Fatal("handle stop, ", err.Error())
-			}
-		}
-
-		os.Exit(1)
-	}
+	return cfg
 }
 
 func checkUpdate() {
@@ -352,4 +370,25 @@ func checkUpdate() {
 		println("New release available")
 		println(result["html_url"].(string))
 	}
+}
+
+func runningInDocker() bool {
+	_, err := os.Stat("/.dockerenv")
+	if err == nil {
+		return true
+	}
+
+	if _, err := os.Stat("/proc/self/cgroup"); err == nil {
+		data, err := os.ReadFile("/proc/self/cgroup")
+		if err == nil {
+			lines := strings.Split(string(data), "\n")
+			for _, line := range lines {
+				if strings.Contains(line, "docker") {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
 }
