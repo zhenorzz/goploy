@@ -13,11 +13,14 @@ jobs:
   
     steps:
     - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
     - name: Get version
       id: get_version
-      run: echo "VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_ENV
+      run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "VERSION=${{ github.event.release.name }}" >> $GITHUB_ENV
+          else
+            echo "VERSION=latest" >> $GITHUB_ENV
+          fi
    
     - name: Build the Docker image
       run: |
