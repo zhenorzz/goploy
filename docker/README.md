@@ -1,5 +1,5 @@
 <p align=center>
-    <img src="https://raw.githubusercontent.com/zhenorzz/goploy/master/banner.png" alt="logo" title="logo" />
+    <img src="https://raw.githubusercontent.com/zhenorzz/goploy/master/logo.png" alt="logo" title="logo" />
 </p>
 
 <p align="center">
@@ -26,19 +26,20 @@ Complete installation instructions, no difficulty in getting started!
 
 # How to use?
 
-Import sql file: [goploy.sql](https://github.com/zhenorzz/goploy/blob/master/model/sql/goploy.sql)
-
-Setup configuration file: cp [goploy.example.toml](https://github.com/zhenorzz/goploy/blob/master/goploy.example.toml) /path/to/repository/goploy.toml
-
 Run it with all needed parameter:
 
 ```console
 docker run -it \
-    -p 3000:80 \
+    --name=goploy \
+    --env=DB_HOST=mysql \
+    --env=DB_USER=root \
+    --env=DB_USER_PASSWORD=YourPasswordHere \
+    --env=DB_NAME=goploy \
     -v /path/to/.ssh:/root/.ssh \
     -v /path/to/hosts:/etc/hosts \
     -v /path/to/repository:/opt/goploy/repository \
-    zhenorzz/goploy
+    -p 3000:80 \
+    zhenorzz/goploy[:tag]
 ```
 
 That's it.

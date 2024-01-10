@@ -4,8 +4,6 @@ LABEL maintainer="zhenorzz@gmail.com"
 ARG GOPLOY_VER=v1.16.1
 ENV GOPLOY_VER=${GOPLOY_VER}
 
-ENV MYSQL_PORT=3306
-
 RUN echo "https://mirrors.aliyun.com/alpine/latest-stable/main/" > /etc/apk/repositories
 RUN echo "https://mirrors.aliyun.com/alpine/latest-stable/community/" >> /etc/apk/repositories
 
