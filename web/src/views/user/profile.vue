@@ -144,8 +144,6 @@ const formRules: InstanceType<typeof ElForm>['rules'] = {
   new: [
     {
       required: true,
-      message:
-        '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]',
       trigger: ['blur'],
       validator: (_, value) => {
         if (!validPassword(value)) {

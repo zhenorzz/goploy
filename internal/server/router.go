@@ -6,6 +6,7 @@ package server
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt"
 	log "github.com/sirupsen/logrus"
@@ -157,7 +158,7 @@ func (rt *Router) doRequest(w http.ResponseWriter, r *http.Request) (*Goploy, Re
 				UserID:      gp.UserInfo.ID,
 			}.GetDataByUserNamespace()
 			if err != nil {
-				if err == sql.ErrNoRows {
+				if errors.Is(err, sql.ErrNoRows) {
 					return gp, response.JSON{Code: response.NamespaceInvalid, Message: "No available namespace"}
 				} else {
 					return gp, response.JSON{Code: response.Deny, Message: err.Error()}

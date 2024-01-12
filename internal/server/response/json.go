@@ -31,6 +31,7 @@ const (
 	IllegalRequest   = 10001
 	NamespaceInvalid = 10002
 	IllegalParam     = 10003
+	PasswordExpired  = 10004
 	LoginExpired     = 10086
 )
 

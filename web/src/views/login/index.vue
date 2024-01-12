@@ -5,7 +5,7 @@
     </el-row>
     <el-form
       ref="form"
-      :model="loginForm"
+      :model="loginFormData"
       :rules="loginRules"
       class="login-form"
       auto-complete="on"
@@ -13,7 +13,7 @@
     >
       <div class="title-container">
         <h3 class="title">
-          Sign in to Goploy <sub>{{ version }}</sub>
+          Goploy <sub>{{ version }}</sub>
         </h3>
       </div>
 
@@ -22,8 +22,8 @@
           <svg-icon icon-class="user" />
         </span>
         <input
-          v-model="loginForm.account"
-          placeholder="account"
+          v-model="loginFormData.account"
+          :placeholder="$t('account')"
           name="account"
           type="text"
           tabindex="1"
@@ -36,18 +36,69 @@
           <svg-icon icon-class="password" />
         </span>
         <input
-          :key="passwordType"
-          v-model="loginForm.password"
-          :type="passwordType"
-          placeholder="password"
+          v-model="loginFormData.password"
+          :type="loginFormProps.type.password"
+          :placeholder="$t('password')"
           name="password"
           tabindex="2"
           auto-complete="on"
           @keyup.enter="handleLogin"
         />
-        <span class="show-pwd" @click="showPwd">
+        <span class="show-pwd" @click="showPwd(inputElem.password)">
           <svg-icon
-            :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'"
+            :icon-class="
+              loginFormProps.type[inputElem.password] === 'password'
+                ? 'eye'
+                : 'eye-open'
+            "
+          />
+        </span>
+      </el-form-item>
+
+      <el-form-item
+        v-if="loginFormProps.showEditPassword"
+        prop="newPassword"
+        class="login-form-input"
+      >
+        <span class="svg-container">
+          <svg-icon icon-class="password" />
+        </span>
+        <input
+          v-model="loginFormData.newPassword"
+          :type="loginFormProps.type.newPassword"
+          :placeholder="$t('userPage.newPassword')"
+        />
+        <span class="show-pwd" @click="showPwd(inputElem.newPassword)">
+          <svg-icon
+            :icon-class="
+              loginFormProps.type[inputElem.newPassword] === 'password'
+                ? 'eye'
+                : 'eye-open'
+            "
+          />
+        </span>
+      </el-form-item>
+
+      <el-form-item
+        v-if="loginFormProps.showEditPassword"
+        prop="confirmPassword"
+        class="login-form-input"
+      >
+        <span class="svg-container">
+          <svg-icon icon-class="password" />
+        </span>
+        <input
+          v-model="loginFormData.confirmPassword"
+          :type="loginFormProps.type.confirmPassword"
+          :placeholder="$t('userPage.rePassword')"
+        />
+        <span class="show-pwd" @click="showPwd(inputElem.confirmPassword)">
+          <svg-icon
+            :icon-class="
+              loginFormProps.type[inputElem.confirmPassword] === 'password'
+                ? 'eye'
+                : 'eye-open'
+            "
           />
         </span>
       </el-form-item>
@@ -72,7 +123,7 @@
         style="width: 100%; margin-bottom: 30px"
         @click.prevent="handleLogin"
       >
-        Sign in
+        {{ $t('signIn') }}
       </el-button>
       <el-divider v-if="Object.keys(mediaLoginUrl).length > 0" class="divider">
         <span class="media-logo">
@@ -102,16 +153,34 @@ import { GetCaptcha, CheckCaptcha, GetConfig } from '@/api/user'
 import GoCaptchaBtn from './components/GoCaptchaBtn.vue'
 import { useI18n } from 'vue-i18n'
 const { locale } = useI18n({ useScope: 'global' })
+enum inputElem {
+  password = 'password',
+  newPassword = 'newPassword',
+  confirmPassword = 'confirmPassword',
+}
 const version = import.meta.env.VITE_APP_VERSION
 const store = useStore()
 const router = useRouter()
 const form = ref<InstanceType<typeof ElForm>>()
-const loginForm = ref({
+const loginFormData = ref({
   account: import.meta.env.PROD === true ? '' : 'admin',
   password: import.meta.env.PROD === true ? '' : 'admin!@#',
+  newPassword: '',
+  confirmPassword: '',
   phrase: '',
   captchaKey: '',
 })
+
+const loginFormProps = ref({
+  loading: false,
+  showEditPassword: false,
+  type: {
+    password: 'password',
+    newPassword: 'password',
+    confirmPassword: 'password',
+  },
+})
+
 const loginRules: InstanceType<typeof ElForm>['rules'] = {
   account: [
     {
@@ -141,10 +210,39 @@ const loginRules: InstanceType<typeof ElForm>['rules'] = {
       },
     },
   ],
+  newPassword: [
+    {
+      required: true,
+      trigger: ['blur'],
+      validator: (_, value) => {
+        if (!validPassword(value)) {
+          return new Error(
+            '8 to 16 characters and a minimum of 2 character sets from these classes: [letters], [numbers], [special characters]'
+          )
+        } else {
+          return true
+        }
+      },
+    },
+  ],
+  confirmPassword: [
+    {
+      required: true,
+      trigger: ['blur'],
+      validator: (_, value) => {
+        if (value === '') {
+          return new Error('Please enter the password again')
+        } else if (value !== loginFormData.value.newPassword) {
+          return new Error('The two passwords do not match!')
+        } else {
+          return true
+        }
+      },
+    },
+  ],
 }
 
 const redirectUri = window.location.origin + '/#/login'
-const passwordType = ref('password')
 const loading = ref(false)
 const redirect = ref()
 const query = ref()
@@ -204,9 +302,10 @@ function getConfig() {
     captchaEnabled.value = response.data.captcha.enabled
     ldapEnabled.value = response.data.ldap.enabled
     for (const media in response.data['mediaURL']) {
-      if (response.data['mediaURL'][media] != '') {
-        mediaLoginUrl.value[media] = `${
-          response.data['mediaURL'][media]
+      const key = media as keyof typeof response.data['mediaURL']
+      if (response.data['mediaURL'][key] != '') {
+        mediaLoginUrl.value[key] = `${
+          response.data['mediaURL'][key]
         }&redirect_uri=${encodeURIComponent(redirectUri)}`
       }
     }
@@ -222,7 +321,7 @@ function handleRequestCaptCode() {
     captchaBase64.value = response.data.base64
     captchaThumbBase64.value = response.data.thumbBase64
     captchaKey.value = response.data.key
-    loginForm.value.captchaKey = response.data.key
+    loginFormData.value.captchaKey = response.data.key
   })
 }
 
@@ -256,16 +355,12 @@ function handleConfirm(dots: { x: number; y: number; index: number }[]) {
     })
 }
 
-const password = ref<HTMLInputElement>()
-function showPwd() {
-  if (passwordType.value === 'password') {
-    passwordType.value = ''
+function showPwd(index: inputElem) {
+  if (loginFormProps.value.type[index] === 'password') {
+    loginFormProps.value.type[index] = ''
   } else {
-    passwordType.value = 'password'
+    loginFormProps.value.type[index] = 'password'
   }
-  nextTick(() => {
-    password.value?.focus()
-  })
 }
 
 function handleExtLogin(account: string, time: number, token: string) {
@@ -288,7 +383,7 @@ function handleLogin() {
     if (valid) {
       loading.value = true
       store
-        .dispatch('user/login', loginForm.value)
+        .dispatch('user/login', loginFormData.value)
         .then(() => {
           router.push({
             path: redirect.value || '/',
@@ -296,11 +391,13 @@ function handleLogin() {
           })
           loading.value = false
         })
-        .catch(() => {
-          if (captchaEnabled.value) {
+        .catch((error) => {
+          if (error.data.code == 10004) {
+            loginFormProps.value.showEditPassword = true
+          } else if (captchaEnabled.value) {
             captchaShow.value = true
             captchaStatus.value = 'default'
-            loginForm.value.captchaKey = ''
+            loginFormData.value.captchaKey = ''
           }
           loading.value = false
         })
@@ -364,6 +461,7 @@ $cursor: #2f2f2f;
   }
   .el-form-item__error {
     padding-top: 4px;
+    z-index: 1;
   }
   .el-form-item {
     background: #fff;

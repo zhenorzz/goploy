@@ -6,9 +6,8 @@ import (
 )
 
 const (
-	UserCacheKey            = "login_error_times_"
-	UserCacheLockKey        = "login_lock_"
-	UserCacheShowCaptchaKey = "login_show_captcha_"
+	UserCacheKey     = "login_error_times_"
+	UserCacheLockKey = "login_lock_"
 )
 
 type UserCache struct {
@@ -18,6 +17,7 @@ type UserCache struct {
 
 type user struct {
 	times    int
+	data     any
 	expireIn time.Time
 }
 
@@ -25,7 +25,7 @@ var userCache = &UserCache{
 	data: make(map[string]user),
 }
 
-func (uc *UserCache) IncErrorTimes(account string, expireTime time.Duration, showCaptchaTime time.Duration) int {
+func (uc *UserCache) IncrErrorTimes(account string, expireTime time.Duration) int {
 	uc.Lock()
 	defer uc.Unlock()
 
@@ -45,16 +45,6 @@ func (uc *UserCache) IncErrorTimes(account string, expireTime time.Duration, sho
 	}
 	time.AfterFunc(expireTime, func() {
 		delete(uc.data, cacheKey)
-	})
-
-	// show captcha
-	showCaptchaKey := getShowCaptchaKey(account)
-	uc.data[showCaptchaKey] = user{
-		times:    1,
-		expireIn: time.Now().Add(showCaptchaTime),
-	}
-	time.AfterFunc(showCaptchaTime, func() {
-		delete(uc.data, showCaptchaKey)
 	})
 
 	return times
@@ -97,17 +87,16 @@ func (uc *UserCache) IsShowCaptcha(account string) bool {
 	uc.RLock()
 	defer uc.RUnlock()
 
-	showCaptchaKey := getShowCaptchaKey(account)
-	v, ok := uc.data[showCaptchaKey]
+	v, ok := uc.data[getCacheKey(account)]
 
 	return ok && !v.expireIn.IsZero() && v.expireIn.After(time.Now()) && v.times > 0
 }
 
-func (uc *UserCache) DeleteShowCaptcha(account string) {
+func (uc *UserCache) DeleteErrorTimes(account string) {
 	uc.Lock()
 	defer uc.Unlock()
 
-	delete(uc.data, getShowCaptchaKey(account))
+	delete(uc.data, getCacheKey(account))
 }
 
 func getCacheKey(account string) string {
@@ -116,10 +105,6 @@ func getCacheKey(account string) string {
 
 func getLockKey(account string) string {
 	return UserCacheLockKey + account
-}
-
-func getShowCaptchaKey(account string) string {
-	return UserCacheShowCaptchaKey + account
 }
 
 func GetUserCache() *UserCache {

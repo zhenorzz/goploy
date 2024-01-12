@@ -3,6 +3,8 @@ env = 'production'
 deployLimit = 8
 shutdownTimeout = 10
 repositoryPath = ''
+# How many days before the password needs to be changed?
+passwordPeriod = 0
 
 [cors]
 enabled = false

@@ -20,6 +20,7 @@ import (
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
+	"github.com/zhenorzz/goploy/internal/validator"
 	"net/http"
 	"strconv"
 	"strings"
@@ -56,9 +57,10 @@ func (u User) Handler() []server.Route {
 // @Router /user/login [post]
 func (User) Login(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		Account    string `json:"account" validate:"required,min=1,max=25"`
-		Password   string `json:"password" validate:"required,password"`
-		CaptchaKey string `json:"captchaKey" validate:"omitempty"`
+		Account     string `json:"account" validate:"required,min=1,max=25"`
+		Password    string `json:"password" validate:"required,password"`
+		NewPassword string `json:"newPassword"`
+		CaptchaKey  string `json:"captchaKey" validate:"omitempty"`
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {
@@ -138,28 +140,51 @@ func (User) Login(gp *server.Goploy) server.Response {
 
 	} else {
 		if userData.ID == 0 {
-			return response.JSON{Code: response.Error, Message: "We couldn't verify your identity. Please confirm if your username and password are correct."}
+			return response.JSON{Code: response.Error, Message: "We couldn't verify your identity. Please confirm if your username and password are correct"}
 		}
 		if err := userData.Validate(reqData.Password); err != nil {
-			errorTimes := userCache.IncErrorTimes(reqData.Account, cache.UserCacheExpireTime, cache.UserCacheShowCaptchaTime)
 			// error times over 5 times, then lock the account 15 minutes
-			if errorTimes >= cache.UserCacheMaxErrorTimes {
+			if userCache.IncrErrorTimes(reqData.Account, cache.UserCacheExpireTime) >= cache.UserCacheMaxErrorTimes {
 				userCache.LockAccount(reqData.Account, cache.UserCacheLockTime)
 			}
 			return response.JSON{Code: response.Deny, Message: err.Error()}
 		}
 	}
 
-	userCache.DeleteShowCaptcha(reqData.Account)
+	userCache.DeleteErrorTimes(reqData.Account)
 
 	if userData.State == model.Disable {
 		return response.JSON{Code: response.AccountDisabled, Message: "Account is disabled"}
 	}
+
 	namespaceList, err := model.Namespace{UserID: userData.ID}.GetAllByUserID()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	} else if len(namespaceList) == 0 {
 		return response.JSON{Code: response.Error, Message: "No space assigned, please contact the administrator"}
+	}
+
+	if reqData.NewPassword != "" {
+		if err := validator.Validate.Var(reqData.NewPassword, "password"); err != nil {
+			return response.JSON{Code: response.PasswordExpired, Message: err.Error()}
+		}
+		if reqData.Password == reqData.NewPassword {
+			return response.JSON{Code: response.PasswordExpired, Message: "The password cannot be the same as the previous one"}
+		}
+		if err := (model.User{ID: userData.ID, Password: reqData.NewPassword, PasswordUpdateTime: sql.NullString{
+			String: time.Now().Format("20060102150405"),
+			Valid:  true,
+		}}).UpdatePassword(); err != nil {
+			return response.JSON{Code: response.Error, Message: err.Error()}
+		}
+	} else if !userData.PasswordUpdateTime.Valid {
+		return response.JSON{Code: response.PasswordExpired, Message: "You need to change your password upon first login"}
+	} else if config.Toml.APP.PasswordPeriod > 0 {
+		passwordUpdateTime, _ := time.Parse(time.DateTime, userData.PasswordUpdateTime.String)
+		passwordUpdateTime = passwordUpdateTime.AddDate(0, 0, config.Toml.APP.PasswordPeriod)
+		if passwordUpdateTime.Before(time.Now()) {
+			return response.JSON{Code: response.PasswordExpired, Message: "Password expired, please change"}
+		}
 	}
 
 	token, err := userData.CreateToken()
@@ -482,7 +507,14 @@ func (User) ChangePassword(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := (model.User{ID: gp.UserInfo.ID, Password: reqData.NewPassword}).UpdatePassword(); err != nil {
+	if reqData.OldPassword == reqData.NewPassword {
+		return response.JSON{Code: response.Error, Message: "The password cannot be the same as the previous one."}
+	}
+
+	if err := (model.User{ID: gp.UserInfo.ID, Password: reqData.NewPassword, PasswordUpdateTime: sql.NullString{
+		String: time.Now().Format("20060102150405"),
+		Valid:  true,
+	}}).UpdatePassword(); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	return response.JSON{}

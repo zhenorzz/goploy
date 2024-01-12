@@ -6,6 +6,7 @@ package model
 
 import (
 	"crypto/rand"
+	"database/sql"
 	"errors"
 	"github.com/zhenorzz/goploy/config"
 	"time"
@@ -24,17 +25,18 @@ const (
 )
 
 type User struct {
-	ID            int64  `json:"id"`
-	Account       string `json:"account"`
-	Password      string `json:"password"`
-	Name          string `json:"name"`
-	Contact       string `json:"contact"`
-	SuperManager  int64  `json:"superManager"`
-	State         uint8  `json:"state"`
-	InsertTime    string `json:"insertTime"`
-	UpdateTime    string `json:"updateTime"`
-	LastLoginTime string `json:"lastLoginTime"`
-	ApiKey        string `json:"apiKey"`
+	ID                 int64          `json:"id"`
+	Account            string         `json:"account"`
+	Password           string         `json:"password"`
+	PasswordUpdateTime sql.NullString `json:"passwordUpdateTime"`
+	Name               string         `json:"name"`
+	Contact            string         `json:"contact"`
+	SuperManager       int64          `json:"superManager"`
+	State              uint8          `json:"state"`
+	InsertTime         string         `json:"insertTime"`
+	UpdateTime         string         `json:"updateTime"`
+	LastLoginTime      string         `json:"lastLoginTime"`
+	ApiKey             string         `json:"apiKey"`
 }
 
 type Users []User
@@ -57,12 +59,12 @@ func (u User) GetData() (User, error) {
 func (u User) GetDataByAccount() (User, error) {
 	var user User
 	err := sq.
-		Select("id, account, password, name, contact, super_manager, state, insert_time, update_time").
+		Select("id, account, password, password_update_time, name, contact, super_manager, state, insert_time, update_time").
 		From(userTable).
 		Where(sq.Eq{"account": u.Account}).
 		RunWith(DB).
 		QueryRow().
-		Scan(&user.ID, &user.Account, &user.Password, &user.Name, &user.Contact, &user.SuperManager, &user.State, &user.InsertTime, &user.UpdateTime)
+		Scan(&user.ID, &user.Account, &user.Password, &user.PasswordUpdateTime, &user.Name, &user.Contact, &user.SuperManager, &user.State, &user.InsertTime, &user.UpdateTime)
 	if err != nil {
 		return user, err
 	}
@@ -221,7 +223,8 @@ func (u User) UpdatePassword() error {
 	_, err = sq.
 		Update(userTable).
 		SetMap(sq.Eq{
-			"password": string(hashedPassword),
+			"password":             string(hashedPassword),
+			"password_update_time": u.PasswordUpdateTime,
 		}).
 		Where(sq.Eq{"id": u.ID}).
 		RunWith(DB).

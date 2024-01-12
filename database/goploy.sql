@@ -247,6 +247,7 @@ CREATE TABLE IF NOT EXISTS `user`  (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `account` varchar(30) NOT NULL DEFAULT '',
   `password` varchar(60) NOT NULL DEFAULT '',
+  `password_update_time` datetime DEFAULT NULL,
   `name` varchar(30) NOT NULL DEFAULT '',
   `contact` varchar(255) NOT NULL DEFAULT '',
   `state` tinyint(1) NOT NULL DEFAULT '1' COMMENT '0.disable 1.enable',

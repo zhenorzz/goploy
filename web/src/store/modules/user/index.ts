@@ -31,11 +31,12 @@ const mutations: MutationTree<UserState> = {
 const actions: ActionTree<UserState, RootState> = {
   // user login
   login(_, userInfo) {
-    const { account, password, captchaKey } = userInfo
+    const { account, password, newPassword, captchaKey } = userInfo
     return new Promise((resolve, reject) => {
       new Login({
         account: account.trim(),
         password: password,
+        newPassword: newPassword,
         captchaKey: captchaKey,
       })
         .request()

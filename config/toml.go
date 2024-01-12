@@ -37,6 +37,7 @@ type APPConfig struct {
 	DeployLimit     int32         `toml:"deployLimit"`
 	ShutdownTimeout time.Duration `toml:"shutdownTimeout"`
 	RepositoryPath  string        `toml:"repositoryPath"`
+	PasswordPeriod  int           `toml:"passwordPeriod"`
 }
 
 type CORSConfig struct {

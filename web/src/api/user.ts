@@ -19,6 +19,7 @@ export class Login extends Request {
   public param: {
     account: string
     password: string
+    newPassword: string
     captchaKey: string
   }
   public declare datagram: {
