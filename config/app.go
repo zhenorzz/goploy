@@ -4,5 +4,27 @@
 
 package config
 
+import (
+	"time"
+)
+
 const NamespaceHeaderName = "G-N-ID"
 const ApiKeyHeaderName = "X-API-KEY"
+
+type APPConfig struct {
+	DeployLimit     int32         `toml:"deployLimit"`
+	ShutdownTimeout time.Duration `toml:"shutdownTimeout"`
+	RepositoryPath  string        `toml:"repositoryPath"`
+	PasswordPeriod  int           `toml:"passwordPeriod"`
+}
+
+func (a *APPConfig) OnChange() error {
+	setAPPDefault()
+	return nil
+}
+
+func setAPPDefault() {
+	if Toml.APP.ShutdownTimeout == 0 {
+		Toml.APP.ShutdownTimeout = 10
+	}
+}

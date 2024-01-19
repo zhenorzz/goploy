@@ -12,7 +12,6 @@ import (
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/database"
 	"github.com/zhenorzz/goploy/internal/pkg"
-	"log"
 	"net/url"
 	"path"
 	"sort"
@@ -46,10 +45,26 @@ const (
 	DENY
 )
 
+type Model struct {
+	*sql.DB
+	config.BaseObserver
+}
+
+func (d *Model) OnChange() error {
+	return connectDB()
+}
+
 // DB init when the program start
-var DB *sql.DB
+var DB = &Model{}
 
 func Init() {
+	if err := connectDB(); err != nil {
+		panic(err)
+	}
+	config.GetEventBus().Subscribe(config.DBEventTopic, DB)
+}
+
+func connectDB() error {
 	dbConn := fmt.Sprintf(
 		"%s:%s@(%s:%s)/%s?charset=utf8mb4,utf8",
 		config.Toml.DB.User,
@@ -62,16 +77,18 @@ func Init() {
 	{
 		// @see https://github.com/go-sql-driver/mysql/wiki/Examples#a-word-on-sqlopen
 		var err error
-		DB, err = sql.Open(config.Toml.DB.Type, dbConn)
+		DB.DB, err = sql.Open(config.Toml.DB.Type, dbConn)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 		// ping db to make sure the db has connected
-		if err := DB.Ping(); err != nil {
-			log.Fatal(err)
+		if err = DB.Ping(); err != nil {
+			return err
 		}
 	}
+
+	return nil
 }
 
 // PaginationFrom param return pagination struct
@@ -106,7 +123,7 @@ func UseDB(db *sql.DB, name string) error {
 	return nil
 }
 
-func ImportSQL(db *sql.DB, sqlPath string) error {
+func ImportSQL(db *Model, sqlPath string) error {
 	sqlContent, err := database.File.ReadFile(sqlPath)
 	if err != nil {
 		return err
