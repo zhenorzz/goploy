@@ -216,7 +216,7 @@ func install() {
 	if err := model.UseDB(db, cfg.DB.Database); err != nil {
 		panic(err)
 	}
-	if err := model.ImportSQL(db, database.GoploySQL); err != nil {
+	if err := model.ImportSQL(&model.Model{DB: db}, database.GoploySQL); err != nil {
 		panic(err)
 	}
 	println("Database installation is complete")

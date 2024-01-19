@@ -6,15 +6,11 @@ package config
 
 import (
 	"fmt"
-	"github.com/pelletier/go-toml/v2"
-	log "github.com/sirupsen/logrus"
-	"io"
+	"github.com/knadh/koanf/parsers/toml"
+	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/providers/structs"
+	"github.com/knadh/koanf/v2"
 	"os"
-	"path"
-	"path/filepath"
-	"runtime"
-	"strings"
-	"time"
 )
 
 type Config struct {
@@ -33,155 +29,85 @@ type Config struct {
 	Cache    CacheConfig    `toml:"cache"`
 }
 
-type APPConfig struct {
-	DeployLimit     int32         `toml:"deployLimit"`
-	ShutdownTimeout time.Duration `toml:"shutdownTimeout"`
-	RepositoryPath  string        `toml:"repositoryPath"`
-	PasswordPeriod  int           `toml:"passwordPeriod"`
-}
-
-type CORSConfig struct {
-	Enabled     bool   `toml:"enabled"`
-	Origins     string `toml:"origins"`
-	Methods     string `toml:"methods"`
-	Headers     string `toml:"headers"`
-	Credentials bool   `toml:"credentials"`
-}
-
-type CookieConfig struct {
-	Name   string `toml:"name"`
-	Expire int    `toml:"expire"` // second
-}
-
-type JWTConfig struct {
-	Key string `toml:"key"`
-}
-
-type DBConfig struct {
-	Type     string `toml:"type"`
-	User     string `toml:"user"`
-	Password string `toml:"password"`
-	Host     string `toml:"host"`
-	Port     string `toml:"port"`
-	Database string `toml:"database"`
-}
-
-type LogConfig struct {
-	Path string `toml:"path"`
-}
-
-type WebConfig struct {
-	Port string `toml:"port"`
-}
-
-type LDAPConfig struct {
-	Enabled    bool   `toml:"enabled"`
-	URL        string `toml:"url"`
-	BindDN     string `toml:"bindDN"`
-	Password   string `toml:"password"`
-	BaseDN     string `toml:"baseDN"`
-	UID        string `toml:"uid"`
-	Name       string `toml:"name"`
-	UserFilter string `toml:"userFilter"`
-}
-
-type DingtalkConfig struct {
-	AppKey    string `toml:"appKey"`
-	AppSecret string `toml:"appSecret"`
-}
-
-type FeishuConfig struct {
-	AppKey    string `toml:"appKey"`
-	AppSecret string `toml:"appSecret"`
-}
-
-type CaptchaConfig struct {
-	Enabled bool `toml:"enabled"`
-}
-
-type CacheConfig struct {
-	Type string `toml:"type"`
-}
-
 var Toml Config
+var Koanf = koanf.New(".")
 
 func InitToml() {
-	config, err := os.ReadFile(GetConfigFile())
-	if err != nil {
-		panic(err)
-	}
-	err = toml.Unmarshal(config, &Toml)
-	if err != nil {
+	// If first time load config error, need to panic
+	if err := setToml(); err != nil {
 		panic(err)
 	}
 	setAPPDefault()
 	setDBDefault()
 	setLogger()
-}
 
-func setAPPDefault() {
-	if Toml.APP.ShutdownTimeout == 0 {
-		Toml.APP.ShutdownTimeout = 10
-	}
-}
+	GetEventBus().Subscribe(APPEventTopic, &Toml.APP)
+	GetEventBus().Subscribe(LogEventTopic, &Toml.Log)
+	GetEventBus().Subscribe(DBEventTopic, &Toml.DB)
 
-func setDBDefault() {
-	if Toml.DB.Type == "" {
-		Toml.DB.Type = "mysql"
-	}
-	if Toml.DB.Host == "" {
-		Toml.DB.Host = "127.0.0.1"
-	}
-	if Toml.DB.Port == "" {
-		Toml.DB.Port = "3306"
-	}
-	if Toml.DB.Database == "" {
-		Toml.DB.Database = "goploy"
-	}
-}
-
-func setLogger() {
-	var logFile io.Writer
-	logPathEnv := Toml.Log.Path
-	if strings.ToLower(logPathEnv) == "stdout" {
-		logFile = os.Stdout
-	} else {
-		logPath, err := filepath.Abs(logPathEnv)
+	err := file.Provider(GetConfigFile()).Watch(func(event interface{}, err error) {
 		if err != nil {
 			fmt.Println(err.Error())
+			return
 		}
-		if _, err := os.Stat(logPath); err != nil && os.IsNotExist(err) {
-			if err := os.Mkdir(logPath, os.ModePerm); nil != err {
-				panic(err.Error())
-			}
-		}
-		logFile, err = os.OpenFile(logPath+"/goploy.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766)
-		if nil != err {
-			panic(err.Error())
-		}
-	}
-	log.SetReportCaller(true)
 
-	log.SetFormatter(&log.TextFormatter{
-		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
-			return fmt.Sprintf("%s()", path.Base(f.Function)), fmt.Sprintf("%s:%d", path.Base(f.File), f.Line)
-		},
+		oldToml := Toml
+
+		if err = setToml(); err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		if err = PublishEvents(Toml, getEventTopics(oldToml, Toml)); err != nil {
+			// If new config publish events error, use the old config
+			fmt.Printf("publish config events error: %v \n", err)
+			errToml := Toml
+			Toml = oldToml
+			_ = PublishEvents(Toml, getEventTopics(errToml, Toml))
+		}
 	})
 
-	log.SetOutput(logFile)
+	if err != nil {
+		panic(err)
+	}
+}
 
-	log.SetLevel(log.TraceLevel)
+func getEventTopics(oldToml Config, newToml Config) (topics []string) {
+	if oldToml.DB != newToml.DB {
+		topics = append(topics, DBEventTopic)
+	}
 
+	if oldToml.Log != newToml.Log {
+		topics = append(topics, LogEventTopic)
+	}
+
+	if oldToml.APP != newToml.APP {
+		topics = append(topics, APPEventTopic)
+	}
+
+	return topics
+}
+
+func setToml() error {
+	if err := Koanf.Load(file.Provider(GetConfigFile()), toml.Parser()); err != nil {
+		return fmt.Errorf("load config file error: %s", err)
+	}
+
+	if err := Koanf.Unmarshal("", &Toml); err != nil {
+		return fmt.Errorf("unmarshal config error: %s", err)
+	}
+
+	return nil
 }
 
 func Write(cfg Config) error {
-	yamlData, err := toml.Marshal(&cfg)
-
-	if err != nil {
+	if err := Koanf.Load(structs.Provider(cfg, "toml"), nil); err != nil {
 		return err
 	}
 
-	err = os.WriteFile(GetConfigFile(), yamlData, 0644)
+	b, _ := Koanf.Marshal(toml.Parser())
+
+	err := os.WriteFile(GetConfigFile(), b, 0644)
 	if err != nil {
 		return err
 	}
