@@ -19,12 +19,12 @@ type APPConfig struct {
 }
 
 func (a *APPConfig) OnChange() error {
-	setAPPDefault()
+	a.SetDefault()
 	return nil
 }
 
-func setAPPDefault() {
-	if Toml.APP.ShutdownTimeout == 0 {
-		Toml.APP.ShutdownTimeout = 10
+func (a *APPConfig) SetDefault() {
+	if a.ShutdownTimeout == 0 {
+		a.ShutdownTimeout = 10
 	}
 }

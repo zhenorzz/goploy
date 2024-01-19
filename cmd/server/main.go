@@ -5,7 +5,6 @@ package main
 import (
 	"bufio"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -106,21 +105,11 @@ func main() {
 \____/\____/ .___/_/\____/\__, /  
           /_/            /____/   ` + appVersion + "\n")
 	install()
-	config.InitToml()
+	config.Init()
 	model.Init()
 	if err := model.Update(appVersion); err != nil {
 		println(err.Error())
 	}
-	pid := strconv.Itoa(os.Getpid())
-	_ = os.WriteFile(config.GetPidFile(), []byte(pid), 0755)
-	println("Start at " + time.Now().String())
-	println("goploy -h for more help")
-	println("Current pid:   " + pid)
-	println("Config Loaded: " + config.GetConfigFile())
-	println("Env:           " + config.Toml.Env)
-	println("Log:           " + config.Toml.Log.Path)
-	println("Listen:        " + config.Toml.Web.Port)
-	println("Running...")
 	task.Init()
 	srv := server.Server{
 		Server: http.Server{
@@ -165,8 +154,6 @@ func main() {
 		println("Task shutdown gracefully")
 	}()
 	srv.Spin()
-	_ = os.Remove(config.GetAssetDir())
-	println("shutdown success")
 }
 
 func install() {
@@ -200,23 +187,18 @@ func install() {
 
 	println("Start to install the database...")
 
-	db, err := sql.Open(cfg.DB.Type, fmt.Sprintf(
-		"%s:%s@(%s:%s)/?charset=utf8mb4,utf8\n",
-		cfg.DB.User,
-		cfg.DB.Password,
-		cfg.DB.Host,
-		cfg.DB.Port))
+	runner, err := model.Open(cfg.DB)
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
-	if err := model.CreateDB(db, cfg.DB.Database); err != nil {
+	defer runner.Close()
+	if err := runner.CreateDB(cfg.DB.Database); err != nil {
 		panic(err)
 	}
-	if err := model.UseDB(db, cfg.DB.Database); err != nil {
+	if err := runner.UseDB(cfg.DB.Database); err != nil {
 		panic(err)
 	}
-	if err := model.ImportSQL(&model.Model{DB: db}, database.GoploySQL); err != nil {
+	if err := runner.ImportSQL(database.GoploySQL); err != nil {
 		panic(err)
 	}
 	println("Database installation is complete")

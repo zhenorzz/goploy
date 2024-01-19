@@ -12,10 +12,8 @@ import (
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/database"
 	"github.com/zhenorzz/goploy/internal/pkg"
-	"net/url"
 	"path"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -45,17 +43,17 @@ const (
 	DENY
 )
 
-type Model struct {
+type SQLRunner struct {
 	*sql.DB
 	config.BaseObserver
 }
 
-func (d *Model) OnChange() error {
+func (db *SQLRunner) OnChange() error {
 	return connectDB()
 }
 
 // DB init when the program start
-var DB = &Model{}
+var DB = &SQLRunner{}
 
 func Init() {
 	if err := connectDB(); err != nil {
@@ -65,47 +63,41 @@ func Init() {
 }
 
 func connectDB() error {
+	if runner, err := Open(config.Toml.DB); err != nil {
+		return err
+	} else {
+		DB = runner
+		return nil
+	}
+}
+
+func Open(dbConfig config.DBConfig) (*SQLRunner, error) {
 	dbConn := fmt.Sprintf(
 		"%s:%s@(%s:%s)/%s?charset=utf8mb4,utf8",
-		config.Toml.DB.User,
-		config.Toml.DB.Password,
-		config.Toml.DB.Host,
-		config.Toml.DB.Port,
-		config.Toml.DB.Database,
+		dbConfig.User,
+		dbConfig.Password,
+		dbConfig.Host,
+		dbConfig.Port,
+		dbConfig.Database,
 	)
 
 	{
 		// @see https://github.com/go-sql-driver/mysql/wiki/Examples#a-word-on-sqlopen
 		var err error
-		DB.DB, err = sql.Open(config.Toml.DB.Type, dbConn)
+		db, err := sql.Open(dbConfig.Type, dbConn)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		// ping db to make sure the db has connected
-		if err = DB.Ping(); err != nil {
-			return err
+		if err = db.Ping(); err != nil {
+			return nil, err
 		}
+		return &SQLRunner{DB: db}, nil
 	}
-
-	return nil
 }
 
-// PaginationFrom param return pagination struct
-func PaginationFrom(param url.Values) (Pagination, error) {
-	page, err := strconv.ParseUint(param.Get("page"), 10, 64)
-	if err != nil {
-		return Pagination{}, errors.New("invalid page")
-	}
-	rows, err := strconv.ParseUint(param.Get("rows"), 10, 64)
-	if err != nil {
-		return Pagination{}, errors.New("invalid rows")
-	}
-	pagination := Pagination{Page: page, Rows: rows}
-	return pagination, nil
-}
-
-func CreateDB(db *sql.DB, name string) error {
+func (db *SQLRunner) CreateDB(name string) error {
 	query := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`", name)
 	_, err := db.Exec(query)
 	if err != nil {
@@ -114,7 +106,7 @@ func CreateDB(db *sql.DB, name string) error {
 	return nil
 }
 
-func UseDB(db *sql.DB, name string) error {
+func (db *SQLRunner) UseDB(name string) error {
 	query := fmt.Sprintf("USE `%s`", name)
 	_, err := db.Exec(query)
 	if err != nil {
@@ -123,7 +115,7 @@ func UseDB(db *sql.DB, name string) error {
 	return nil
 }
 
-func ImportSQL(db *Model, sqlPath string) error {
+func (db *SQLRunner) ImportSQL(sqlPath string) error {
 	sqlContent, err := database.File.ReadFile(sqlPath)
 	if err != nil {
 		return err
@@ -187,7 +179,7 @@ func Update(targetVerStr string) error {
 
 	for _, ver := range vers {
 		if currentVer.LessThan(ver) && targetVer.GreaterThanOrEqual(ver) {
-			if err := ImportSQL(DB, ver.String()+database.FileExt); err != nil {
+			if err := DB.ImportSQL(ver.String() + database.FileExt); err != nil {
 				return err
 			}
 		}

@@ -16,11 +16,11 @@ type LogConfig struct {
 }
 
 func (l *LogConfig) OnChange() error {
-	setLogger()
+	l.SetDefault()
 	return nil
 }
 
-func setLogger() {
+func (l *LogConfig) SetDefault() {
 	var logFile io.Writer
 	logPathEnv := Toml.Log.Path
 	if strings.ToLower(logPathEnv) == "stdout" {

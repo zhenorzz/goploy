@@ -10,21 +10,21 @@ type DBConfig struct {
 }
 
 func (d *DBConfig) OnChange() error {
-	setDBDefault()
+	d.SetDefault()
 	return nil
 }
 
-func setDBDefault() {
-	if Toml.DB.Type == "" {
-		Toml.DB.Type = "mysql"
+func (d *DBConfig) SetDefault() {
+	if d.Type == "" {
+		d.Type = "mysql"
 	}
-	if Toml.DB.Host == "" {
-		Toml.DB.Host = "127.0.0.1"
+	if d.Host == "" {
+		d.Host = "127.0.0.1"
 	}
-	if Toml.DB.Port == "" {
-		Toml.DB.Port = "3306"
+	if d.Port == "" {
+		d.Port = "3306"
 	}
-	if Toml.DB.Database == "" {
-		Toml.DB.Database = "goploy"
+	if d.Database == "" {
+		d.Database = "goploy"
 	}
 }

@@ -100,7 +100,7 @@ func (Repository) GetCommitList(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	list, err := r.BranchLog(project.ID, reqData.Branch, 10)
+	list, err := r.BranchLog(project.ID, reqData.Branch, 50)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}

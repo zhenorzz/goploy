@@ -11,6 +11,7 @@ import (
 	"github.com/knadh/koanf/providers/structs"
 	"github.com/knadh/koanf/v2"
 	"os"
+	"reflect"
 )
 
 type Config struct {
@@ -29,17 +30,30 @@ type Config struct {
 	Cache    CacheConfig    `toml:"cache"`
 }
 
+type SetDefault interface {
+	SetDefault()
+}
+
 var Toml Config
 var Koanf = koanf.New(".")
 
-func InitToml() {
+func Init() {
 	// If first time load config error, need to panic
 	if err := setToml(); err != nil {
 		panic(err)
 	}
-	setAPPDefault()
-	setDBDefault()
-	setLogger()
+
+	v := reflect.ValueOf(&Toml)
+	// 遍历结构体的字段
+	for i := 0; i < v.Elem().NumField(); i++ {
+		// 获取每个字段的值
+		fieldValue := v.Elem().Field(i)
+		// 获取到每个字段的值对应的接口
+		config := fieldValue.Addr().Interface()
+		if c, ok := config.(SetDefault); ok {
+			c.SetDefault()
+		}
+	}
 
 	GetEventBus().Subscribe(APPEventTopic, &Toml.APP)
 	GetEventBus().Subscribe(LogEventTopic, &Toml.Log)
