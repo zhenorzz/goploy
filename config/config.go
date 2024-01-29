@@ -44,11 +44,8 @@ func Init() {
 	}
 
 	v := reflect.ValueOf(&Toml)
-	// 遍历结构体的字段
 	for i := 0; i < v.Elem().NumField(); i++ {
-		// 获取每个字段的值
 		fieldValue := v.Elem().Field(i)
-		// 获取到每个字段的值对应的接口
 		config := fieldValue.Addr().Interface()
 		if c, ok := config.(SetDefault); ok {
 			c.SetDefault()

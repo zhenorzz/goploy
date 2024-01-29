@@ -333,9 +333,9 @@ func (Deploy) FileCompare(gp *server.Goploy) server.Response {
 
 	distPath := path.Join(project.Path, reqData.FilePath)
 	for _, projectServer := range projectServers {
-		go func(server model.Server) {
-			fileCompare := FileCompareData{server.Name, server.IP, server.ID, "no change", false}
-			client, err := server.ToSSHConfig().Dial()
+		go func(projectServer model.ProjectServer) {
+			fileCompare := FileCompareData{projectServer.Server.Name, projectServer.Server.IP, projectServer.ServerID, "no change", false}
+			client, err := projectServer.ToSSHConfig().Dial()
 			if err != nil {
 				fileCompare.Status = "client error"
 				ch <- fileCompare
@@ -368,7 +368,7 @@ func (Deploy) FileCompare(gp *server.Goploy) server.Response {
 				return
 			}
 			ch <- fileCompare
-		}(projectServer.Server)
+		}(projectServer)
 	}
 
 	for i := 0; i < len(projectServers); i++ {
