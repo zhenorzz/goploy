@@ -1,7 +1,7 @@
 # Import sql manually https://github.com/zhenorzz/goploy/blob/master/model/sql/goploy.sql
 FROM alpine
 LABEL maintainer="zhenorzz@gmail.com"
-ARG GOPLOY_VER=v1.16.1
+ARG GOPLOY_VER=v1.16.2
 ENV GOPLOY_VER=${GOPLOY_VER}
 
 RUN echo "https://mirrors.aliyun.com/alpine/latest-stable/main/" > /etc/apk/repositories
