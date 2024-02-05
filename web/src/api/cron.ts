@@ -29,7 +29,7 @@ export interface CronLogData {
 
 export class CronLogs extends Request {
   readonly url = '/cron/getLogs'
-  readonly method = 'post'
+  readonly method = 'get'
   public param: {
     cronId: number
     serverId: number
