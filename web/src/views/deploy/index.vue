@@ -100,51 +100,30 @@
                     :content="row.label"
                     placement="bottom"
                   >
-                    <span
-                      v-if="row.environment === 1"
-                      style="
-                        flex: 1;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        font-size: 14px;
-                        font-weight: 600;
-                        white-space: nowrap;
-                        color: var(--el-color-danger);
-                      "
+                    <el-row
+                      align="middle"
+                      class="card-title__text"
+                      :style="envTitleStyle[row.environment || 0]"
                     >
-                      #{{ row.id }} {{ row.name }} -
-                      {{ $t(`envOption[${row.environment || 0}]`) }}
-                    </span>
-                    <span
-                      v-else-if="row.environment === 3"
-                      style="
-                        flex: 1;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        font-size: 14px;
-                        font-weight: 600;
-                        white-space: nowrap;
-                        color: var(--el-color-warning);
-                      "
-                    >
-                      #{{ row.id }} {{ row.name }} -
-                      {{ $t(`envOption[${row.environment || 0}]`) }}
-                    </span>
-                    <span
-                      v-else
-                      style="
-                        flex: 1;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        font-size: 14px;
-                        font-weight: 600;
-                        white-space: nowrap;
-                        color: var(--el-color-info);
-                      "
-                    >
-                      #{{ row.id }} {{ row.name }} -
-                      {{ $t(`envOption[${row.environment || 0}]`) }}
-                    </span>
+                      <span style="margin-right: 4px">#{{ row.id }}</span>
+                      <el-link
+                        v-if="isLink(row.name)"
+                        :href="row.name"
+                        target="_blank"
+                        :underline="false"
+                        class="card-title__text"
+                        style="color: inherit"
+                      >
+                        {{ row.name }}
+                        <el-icon>
+                          <Link />
+                        </el-icon>
+                      </el-link>
+                      <span v-else>{{ row.name }}</span>
+                      <span style="margin-left: 4px">
+                        - {{ $t(`envOption[${row.environment || 0}]`) }}
+                      </span>
+                    </el-row>
                   </el-tooltip>
 
                   <el-dropdown
@@ -412,7 +391,7 @@ export default { name: 'DeployIndex' }
 <script lang="ts" setup>
 import pms from '@/permission'
 import { Button, Dropdown, DropdownItem } from '@/components/Permission'
-import { More, ArrowDown } from '@element-plus/icons-vue'
+import { Link, More, ArrowDown } from '@element-plus/icons-vue'
 import {
   DeployState,
   DeployList,
@@ -422,7 +401,7 @@ import {
 } from '@/api/deploy'
 import { ProjectServerList, ProjectData, LabelList } from '@/api/project'
 import RepoURL from '@/components/RepoURL/index.vue'
-import { parseTime } from '@/utils'
+import { isLink, parseTime } from '@/utils'
 import TheDetailDialog from './TheDetailDialog.vue'
 import TheCommitListDialog from './TheCommitListDialog.vue'
 import TheTagListDialog from './TheTagListDialog.vue'
@@ -455,6 +434,23 @@ const searchProject = ref({
   label: [] as string[],
   pin: '',
 })
+const envTitleStyle = [
+  {
+    color: 'var(--el-color-info)',
+  },
+  {
+    color: 'var(--el-color-danger)',
+  },
+  {
+    color: 'var(--el-color-info)',
+  },
+  {
+    color: 'var(--el-color-warning)',
+  },
+  {
+    color: 'var(--el-color-info)',
+  },
+]
 const selectedItem = ref({} as ProjectData)
 const noMore = computed(
   () => tablePage.value.total === tablePage.value.list.length
@@ -917,6 +913,13 @@ function setStick(value: string) {
     position: absolute;
     width: 1000px;
     height: 1000px;
+  }
+  .card-title__text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
   }
 }
 
