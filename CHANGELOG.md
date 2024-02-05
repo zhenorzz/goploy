@@ -7,17 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [1.16.2] - 2024-02-05
 
 ### Added
-- add process exec time
-- add manage repository
-- add docker env
+- support periodic update password
+- support project hyperlink
 
 ### Changed
 
-- change detail dialog css
+- change load config publish event
 
 ### Bug fixed
 
-- fix element-plus auto import
+- fix file compare missing server id
+- fix get cron logs invalid request method
 
 ## [1.16.1] - 2024-01-10
 
@@ -33,8 +33,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Bug fixed
 
 - fix element-plus auto import
-
-
 
 ## [1.16.0] - 2023-12-29
 
