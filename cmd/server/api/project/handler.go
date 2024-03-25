@@ -126,7 +126,7 @@ func (Project) PingRepos(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if strings.Contains(reqData.URL, "git@") {
+	if strings.HasSuffix(reqData.URL, "git@") {
 		host := strings.Split(reqData.URL, "git@")[1]
 		host = strings.Split(host, ":")[0]
 		homeDir, err := os.UserHomeDir()
