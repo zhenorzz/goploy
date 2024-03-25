@@ -44,11 +44,7 @@
                 }
               }
             "
-            style="
-              height: 288px;
-              padding-top: 10px;
-              border: 1px solid var(--el-border-color);
-            "
+            style="height: 400px; border: 1px solid var(--el-border-color)"
           ></div>
         </el-col>
       </el-row>
@@ -445,6 +441,7 @@ const chartBaseOption = {
     textStyle: {
       fontSize: 14,
     },
+    top: 10,
     padding: [5, 20],
   },
   tooltip: {
@@ -687,6 +684,7 @@ function restoreFormData() {
 
 .chart-container {
   width: 100%;
+  background-color: var(--el-bg-color);
   max-height: calc(100vh - 180px);
 }
 </style>
