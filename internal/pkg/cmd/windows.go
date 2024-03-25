@@ -6,7 +6,6 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 )
 
 type WindowsCmd struct{}
@@ -15,22 +14,18 @@ func (w WindowsCmd) Script(mode, file string) string {
 	if mode == "" || mode == "cmd" {
 		mode = "cmd /C"
 	}
-	return fmt.Sprintf("%s %s", mode, w.Path(file))
+	return fmt.Sprintf("%s %s", mode, file)
 }
 
 func (w WindowsCmd) ChangeDirTime(dir string) string {
-	tmpFile := w.Path(dir + "/goploy.tmp")
+	tmpFile := Join(dir, "goploy.tmp")
 	return fmt.Sprintf("type nul > %s && del %[1]s", tmpFile)
 }
 
-func (WindowsCmd) Path(file string) string {
-	return strings.ReplaceAll(file, "/", "\\")
-}
-
 func (w WindowsCmd) Symlink(src, target string) string {
-	return fmt.Sprintf("mklink /D %s %s", w.Path(target), w.Path(src))
+	return fmt.Sprintf("mklink /D %s %s", target, src)
 }
 
 func (w WindowsCmd) Remove(file string) string {
-	return fmt.Sprintf("del /Q %s", w.Path(file))
+	return fmt.Sprintf("del /Q %s", file)
 }

@@ -23,10 +23,6 @@ func (c LinuxCmd) ChangeDirTime(dir string) string {
 	return fmt.Sprintf("touch -m %s", dir)
 }
 
-func (c LinuxCmd) Path(file string) string {
-	return file
-}
-
 func (LinuxCmd) Symlink(src, target string) string {
 	// use relative path to fix docker symlink
 	relativeSrc := strings.Replace(src, path.Dir(target), ".", 1)

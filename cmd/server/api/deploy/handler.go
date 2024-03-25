@@ -641,8 +641,8 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 		for _, projectServer := range projectServers {
 			go func(projectServer model.ProjectServer) {
 				var dockerScript docker.Script
-				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
 				cmdEntity := cmd.New(projectServer.Server.OS)
+				destDir := cmd.Join(project.SymlinkPath, project.LastPublishToken)
 				scriptName := fmt.Sprintf("goploy-after-deploy-p%d-s%d.%s", project.ID, projectServer.ServerID, pkg.GetScriptExt(project.Script.AfterDeploy.Mode))
 
 				if project.Script.AfterDeploy.Content != "" {
@@ -732,7 +732,7 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 					}
 				} else {
 					afterDeployCommands := []string{cmdEntity.Symlink(destDir, project.Path), cmdEntity.ChangeDirTime(destDir)}
-					afterDeployScriptPath := path.Join(project.Path, scriptName)
+					afterDeployScriptPath := cmd.Join(project.Path, scriptName)
 					afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.Script.AfterDeploy.Mode, afterDeployScriptPath))
 					afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
 

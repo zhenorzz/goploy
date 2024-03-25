@@ -408,12 +408,12 @@ func (gsync *Gsync) serverStage() error {
 			var afterDeployCommands []string
 			cmdEntity := cmd.New(projectServer.Server.OS)
 			if len(project.SymlinkPath) != 0 {
-				destDir := path.Join(project.SymlinkPath, project.LastPublishToken)
+				destDir := cmd.Join(project.SymlinkPath, project.LastPublishToken)
 				afterDeployCommands = append(afterDeployCommands, cmdEntity.Symlink(destDir, project.Path))
 			}
 
 			if project.Script.AfterDeploy.Content != "" {
-				afterDeployScriptPath := path.Join(project.Path, scriptName)
+				afterDeployScriptPath := cmd.Join(project.Path, scriptName)
 				afterDeployCommands = append(afterDeployCommands, cmdEntity.Script(project.Script.AfterDeploy.Mode, afterDeployScriptPath))
 				afterDeployCommands = append(afterDeployCommands, cmdEntity.Remove(afterDeployScriptPath))
 			}

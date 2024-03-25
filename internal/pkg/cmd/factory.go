@@ -4,10 +4,13 @@
 
 package cmd
 
+import (
+	"strings"
+)
+
 type Cmd interface {
 	Symlink(src, target string) string
 	Remove(file string) string
-	Path(file string) string
 	ChangeDirTime(dir string) string
 	Script(mode, file string) string
 }
@@ -18,4 +21,32 @@ func New(os string) Cmd {
 	} else {
 		return LinuxCmd{}
 	}
+}
+
+func ExtractSeparator(path string) byte {
+	if strings.Contains(path, "\\") {
+		return '\\'
+	}
+	return '/'
+}
+
+func Join(elem ...string) string {
+	size := 0
+	for _, e := range elem {
+		size += len(e)
+	}
+	if size == 0 {
+		return ""
+	}
+	sep := ExtractSeparator(elem[0])
+	buf := make([]byte, 0, size+len(elem)-1)
+	for _, e := range elem {
+		if len(buf) > 0 || e != "" {
+			if len(buf) > 0 {
+				buf = append(buf, sep)
+			}
+			buf = append(buf, e...)
+		}
+	}
+	return string(buf)
 }
