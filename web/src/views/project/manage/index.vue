@@ -1433,7 +1433,6 @@ function handleEdit(data: ProjectData) {
   formProps.value.symlink = formData.value.symlinkPath !== ''
   formProps.value.branch = []
   formProps.value.reviewURL = ''
-  formProps.value.reviewURLParam = []
   formProps.value.disabled = true
   formData.value.userIds = []
   formData.value.serverIds = []
@@ -1450,6 +1449,7 @@ function handleEdit(data: ProjectData) {
   })
 
   if (formData.value.review === 1 && formData.value.reviewURL.length > 0) {
+    formProps.value.reviewURLParam = []
     const url = new URL(formData.value.reviewURL)
     formProps.value.reviewURLParamOption.forEach((item) => {
       if (url.searchParams.has(item.value.split('=')[0])) {
