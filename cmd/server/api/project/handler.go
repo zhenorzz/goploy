@@ -7,6 +7,14 @@ package project
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"os/exec"
+	"path"
+	"strconv"
+	"strings"
+
 	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
@@ -17,13 +25,6 @@ import (
 	"github.com/zhenorzz/goploy/internal/server"
 	"github.com/zhenorzz/goploy/internal/server/response"
 	"gopkg.in/yaml.v3"
-	"io"
-	"net/http"
-	"os"
-	"os/exec"
-	"path"
-	"strconv"
-	"strings"
 )
 
 type Project api.API
@@ -667,7 +668,7 @@ func (Project) Remove(gp *server.Goploy) server.Response {
 // @Router /project/uploadFile [post]
 func (Project) UploadFile(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		ProjectFileID int64  `schema:"projectFileId" validate:"required,gte=0"`
+		ProjectFileID int64  `schema:"projectFileId" validate:"gte=0"`
 		ProjectID     int64  `schema:"projectId"  validate:"required,gt=0"`
 		Filename      string `schema:"filename"  validate:"required"`
 	}
