@@ -4,6 +4,17 @@ All notable changes to the "goploy" extension will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
+## [1.16.3] - 2024-03-29
+
+### Bug fixed
+
+- fix ping ssh:// protocol repository 
+- fix win server path join
+- fix echart height
+- fix missing review callback
+- fix required project file id
+
+
 ## [1.16.2] - 2024-02-05
 
 ### Added
