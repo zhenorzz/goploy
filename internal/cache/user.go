@@ -11,7 +11,5 @@ type User interface {
 }
 
 const (
-	UserCacheMaxErrorTimes = 5
-	UserCacheExpireTime    = 5 * time.Minute
-	UserCacheLockTime      = 15 * time.Minute
+	UserCacheExpireTime = 5 * time.Minute
 )

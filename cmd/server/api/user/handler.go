@@ -143,9 +143,9 @@ func (User) Login(gp *server.Goploy) server.Response {
 			return response.JSON{Code: response.Error, Message: "We couldn't verify your identity. Please confirm if your username and password are correct"}
 		}
 		if err := userData.Validate(reqData.Password); err != nil {
-			// error times over 5 times, then lock the account 15 minutes
-			if userCache.IncrErrorTimes(reqData.Account, cache.UserCacheExpireTime) >= cache.UserCacheMaxErrorTimes {
-				userCache.LockAccount(reqData.Account, cache.UserCacheLockTime)
+			// error times over config.Toml.APP.PasswordMaxErrorTimes, then lock the account 15 minutes
+			if userCache.IncrErrorTimes(reqData.Account, cache.UserCacheExpireTime) >= config.Toml.APP.LoginMaxErrorTimes {
+				userCache.LockAccount(reqData.Account, config.Toml.APP.LoginLockDuration*time.Second)
 			}
 			return response.JSON{Code: response.Deny, Message: err.Error()}
 		}

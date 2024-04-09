@@ -12,10 +12,12 @@ const NamespaceHeaderName = "G-N-ID"
 const ApiKeyHeaderName = "X-API-KEY"
 
 type APPConfig struct {
-	DeployLimit     int32         `toml:"deployLimit"`
-	ShutdownTimeout time.Duration `toml:"shutdownTimeout"`
-	RepositoryPath  string        `toml:"repositoryPath"`
-	PasswordPeriod  int           `toml:"passwordPeriod"`
+	DeployLimit        int32         `toml:"deployLimit"`
+	ShutdownTimeout    time.Duration `toml:"shutdownTimeout"`
+	RepositoryPath     string        `toml:"repositoryPath"`
+	PasswordPeriod     int           `toml:"passwordPeriod"`
+	LoginMaxErrorTimes int           `toml:"loginMaxErrorTimes"`
+	LoginLockDuration  time.Duration `toml:"loginLockDuration"`
 }
 
 func (a *APPConfig) OnChange() error {
@@ -26,5 +28,13 @@ func (a *APPConfig) OnChange() error {
 func (a *APPConfig) SetDefault() {
 	if a.ShutdownTimeout == 0 {
 		a.ShutdownTimeout = 10
+	}
+
+	if a.LoginMaxErrorTimes == 0 {
+		a.LoginMaxErrorTimes = 5
+	}
+
+	if a.LoginLockDuration == 0 {
+		a.LoginLockDuration = 900
 	}
 }

@@ -5,6 +5,10 @@ shutdownTimeout = 10
 repositoryPath = ''
 # How many days before the password needs to be changed?
 passwordPeriod = 0
+# Maximum number of login attempts
+LoginMaxErrorTimes = 5
+# The duration of lockout after reaching the maximum number of login attempts
+LoginLockDuration = 1800
 
 [cors]
 enabled = false
