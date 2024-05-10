@@ -6,6 +6,8 @@ package model
 
 import (
 	"fmt"
+	"strings"
+
 	sq "github.com/Masterminds/squirrel"
 	"github.com/zhenorzz/goploy/internal/pkg"
 )
@@ -187,25 +189,31 @@ func (ps ProjectServer) ToSSHOption() string {
 	if ps.Server.JumpIP != "" {
 		if ps.Server.JumpPath != "" {
 			if ps.Server.JumpPassword != "" {
-				proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", ps.Server.JumpPassword, ps.Server.JumpPath, ps.Server.JumpPort, ps.Server.JumpOwner, ps.Server.JumpIP)
+				proxyCommand = fmt.Sprintf(`-o ProxyCommand="sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s" `, quote(ps.Server.JumpPassword), ps.Server.JumpPath, ps.Server.JumpPort, ps.Server.JumpOwner, ps.Server.JumpIP)
 			} else {
-				proxyCommand = fmt.Sprintf("-o ProxyCommand='ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s' ", ps.Server.JumpPath, ps.Server.JumpPort, ps.Server.JumpOwner, ps.Server.JumpIP)
+				proxyCommand = fmt.Sprintf(`-o ProxyCommand="ssh -o StrictHostKeyChecking=no -W %%h:%%p -i %s -p %d %s@%s" `, ps.Server.JumpPath, ps.Server.JumpPort, ps.Server.JumpOwner, ps.Server.JumpIP)
 			}
 		} else {
-			proxyCommand = fmt.Sprintf("-o ProxyCommand='sshpass -p %s ssh -o StrictHostKeyChecking=no -W %%h:%%p -p %d %s@%s' ", ps.Server.JumpPassword, ps.Server.JumpPort, ps.Server.JumpOwner, ps.Server.JumpIP)
+			proxyCommand = fmt.Sprintf(`-o ProxyCommand="sshpass -p %s ssh -o StrictHostKeyChecking=no -W %%h:%%p -p %d %s@%s" `, quote(ps.Server.JumpPassword), ps.Server.JumpPort, ps.Server.JumpOwner, ps.Server.JumpIP)
 		}
 	}
 	if ps.Server.Path != "" {
 		if ps.Server.Password != "" {
-			return fmt.Sprintf("sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no %s -p %d -i %s", ps.Server.Password, proxyCommand, ps.Server.Port, ps.Server.Path)
+			return fmt.Sprintf(`sshpass -p %s -P assphrase ssh -o StrictHostKeyChecking=no %s -p %d -i %s`, quote(ps.Server.Password), proxyCommand, ps.Server.Port, ps.Server.Path)
 		} else {
-			return fmt.Sprintf("ssh -o StrictHostKeyChecking=no %s -p %d -i %s", proxyCommand, ps.Server.Port, ps.Server.Path)
+			return fmt.Sprintf(`ssh -o StrictHostKeyChecking=no %s -p %d -i %s`, proxyCommand, ps.Server.Port, ps.Server.Path)
 		}
 	} else {
-		return fmt.Sprintf("sshpass -p %s ssh -o StrictHostKeyChecking=no %s -p %d", ps.Server.Password, proxyCommand, ps.Server.Port)
+		return fmt.Sprintf(`sshpass -p %s ssh -o StrictHostKeyChecking=no %s -p %d`, quote(ps.Server.Password), proxyCommand, ps.Server.Port)
 	}
 }
 
 func (ps ProjectServer) ReplaceVars(script string) string {
 	return ps.Server.ReplaceVars(script)
+}
+
+// Note that doubling a single-quote inside a single-quoted string gives you a single-quote
+// see `man rsync`
+func quote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", "''") + "'"
 }
