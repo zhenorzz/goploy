@@ -1,5 +1,6 @@
 {
   "default": "默认",
+  "select": "选择",
   "name": "名称",
   "signIn": "登录",
   "tag": "标签",
@@ -354,6 +355,8 @@
     "afterDeployScriptTips": "部署后在目标服务器运行的脚本\n运行方式：打包成一份脚本文件\n如需重启服务，请注意是否需要nohup",
     "deployFinishScriptLabel": "部署完成运行脚本",
     "deployFinishScriptTips": "部署完成后在宿主服务器运行的脚本\n运行方式：打包成一份脚本文件\n检查服务器是否安装该脚本类型(默认以bash运行)",
+    "customVariableLabel": "自定义变量",
+    "customVariableTips": "可用在每个脚本中，构建时可选择传入参数",
     "predefinedVar": "预定义变量",
     "autoDeployTitle": "构建触发器：达成某种条件后自动构建发布项目",
     "autoDeployGitTips": "填入连接http(s)://域名(IP)/deploy/webhook?project_id={projectId}\n勾选push event即可, (Gitlab可以选对应的分支)",
@@ -379,7 +382,7 @@
     "reviewTips": "此操作将通过该次提交, 是否继续?",
     "reviewStateOption": ["待审", "已审", "拒审"],
     "removeProjectTaskTips": "此操作删除{projectName}的定时任务, 是否继续?",
-    "publishCommitTips": "此操作将重新构建{commit}, 是否继续?"
+    "publishCommitTips": "此操作将发布\n{commit}"
   },
   "loginPage": {
     "captchaDefault": "点击按键进行人机验证",

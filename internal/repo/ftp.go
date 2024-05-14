@@ -10,7 +10,6 @@ import (
 	"github.com/jlaffaye/ftp"
 	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/internal/model"
 	"io"
 	"net/url"
 	"os"
@@ -34,18 +33,7 @@ func (ftpRepo FtpRepo) Ping(url string) error {
 	return nil
 }
 
-// Create -
-func (ftpRepo FtpRepo) Create(projectID int64) error {
-	project, err := model.Project{ID: projectID}.GetData()
-	if err != nil {
-		log.Error(fmt.Sprintf("The project does not exist, projectID:%d", projectID))
-		return err
-	}
-	return ftpRepo.Follow(project, "")
-}
-
-func (ftpRepo FtpRepo) Follow(project model.Project, _ string) error {
-	projectID := project.ID
+func (ftpRepo FtpRepo) Follow(projectID int64, _ string, projectURL string, _ string) error {
 	srcPath := config.GetProjectPath(projectID)
 	_ = os.RemoveAll(srcPath)
 	if err := os.MkdirAll(srcPath, 0755); err != nil {
@@ -53,7 +41,7 @@ func (ftpRepo FtpRepo) Follow(project model.Project, _ string) error {
 		return err
 	}
 
-	c, err := ftpRepo.dial(project.URL)
+	c, err := ftpRepo.dial(projectURL)
 	if err != nil {
 		log.Error(fmt.Sprintf("The project fail to connect ftp, projectID:%d, error:%s", projectID, err.Error()))
 		return err

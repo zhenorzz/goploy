@@ -6,6 +6,7 @@ export interface ProjectScript {
   afterPull: { mode: string; content: string }
   afterDeploy: { mode: string; content: string }
   deployFinish: { mode: string; content: string }
+  customVariables: { name: string; value: string; type: string }[]
 }
 
 export interface ProjectData {
@@ -25,10 +26,6 @@ export interface ProjectData {
   review: number
   reviewURL: string
   script: ProjectScript
-  afterPullScriptMode: string
-  afterPullScript: string
-  afterDeployScriptMode: string
-  afterDeployScript: string
   transferType: string
   transferOption: string
   deployServerMode: string

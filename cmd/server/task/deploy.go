@@ -117,12 +117,18 @@ func AddDeployTask(gsync Gsync) {
 			}{gsync.Project.LastPublishToken},
 		},
 	})
+
+	queueExt := model.PublishTraceQueueExt{
+		Script: gsync.Project.Script,
+	}
+	ext, _ := json.Marshal(queueExt)
 	gsync.PublishTrace = model.PublishTrace{
 		Token:         gsync.Project.LastPublishToken,
 		ProjectID:     gsync.Project.ID,
 		ProjectName:   gsync.Project.Name,
 		PublisherID:   gsync.UserInfo.ID,
 		PublisherName: gsync.UserInfo.Name,
+		Ext:           string(ext),
 		InsertTime:    time.Now().Format("20060102150405"),
 		Type:          model.Queue,
 		State:         model.Success,
@@ -208,9 +214,9 @@ func (gsync *Gsync) repoStage() error {
 	var err error
 	r, _ := repo.GetRepo(gsync.Project.RepoType)
 	if len(gsync.CommitID) == 0 {
-		err = r.Follow(gsync.Project, "origin/"+gsync.Project.Branch)
+		err = r.Follow(gsync.Project.ID, "origin/"+gsync.Project.Branch, gsync.Project.URL, gsync.Project.Branch)
 	} else {
-		err = r.Follow(gsync.Project, gsync.CommitID)
+		err = r.Follow(gsync.Project.ID, gsync.CommitID, gsync.Project.URL, gsync.Project.Branch)
 	}
 
 	if err != nil {
@@ -286,6 +292,7 @@ func (gsync *Gsync) serverStage() error {
 		scriptContent := ""
 		if project.Script.AfterDeploy.Content != "" {
 			scriptContent = project.ReplaceVars(project.Script.AfterDeploy.Content)
+			scriptContent = project.ReplaceCustomVars(scriptContent)
 			scriptContent = projectServer.ReplaceVars(scriptContent)
 			scriptContent = strings.Replace(scriptContent, "${SERVER_TOTAL_NUMBER}", strconv.Itoa(len(gsync.ProjectServers)), -1)
 			scriptContent = strings.Replace(scriptContent, "${SERVER_SERIAL_NUMBER}", strconv.Itoa(index), -1)
@@ -575,7 +582,9 @@ func (gsync *Gsync) runLocalScript() error {
 	if mode != "" {
 		scriptMode = mode
 	}
-	scriptText := project.ReplaceVars(commitInfo.ReplaceVars(content))
+	scriptText := commitInfo.ReplaceVars(content)
+	scriptText = project.ReplaceVars(scriptText)
+	scriptText = project.ReplaceCustomVars(scriptText)
 
 	// run yaml script by docker
 	if mode == "yaml" {

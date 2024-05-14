@@ -10,7 +10,6 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"os"
 	"strconv"
@@ -33,40 +32,35 @@ func (SvnRepo) Ping(url string) error {
 	return nil
 }
 
-// Create -
-func (SvnRepo) Create(projectID int64) error {
+func (SvnRepo) create(projectID int64, url string) error {
 	srcPath := config.GetProjectPath(projectID)
 	if _, err := os.Stat(srcPath); err == nil {
 		return nil
 	}
-	project, err := model.Project{ID: projectID}.GetData()
-	if err != nil {
-		log.Trace("The project does not exist, projectID:" + strconv.FormatInt(projectID, 10))
-		return err
-	}
+
 	if err := os.RemoveAll(srcPath); err != nil {
-		log.Trace("The project fail to remove, projectID:" + strconv.FormatInt(project.ID, 10) + " ,error: " + err.Error())
+		log.Trace("The project fail to remove, projectID:" + strconv.FormatInt(projectID, 10) + " ,error: " + err.Error())
 		return err
 	}
 	svn := pkg.SVN{}
-	options := strings.Split(project.URL, " ")
+	options := strings.Split(url, " ")
 	options = append(options, srcPath)
 	if err := svn.Clone(options...); err != nil {
-		log.Error("The project fail to initialize, projectID:" + strconv.FormatInt(project.ID, 10) + " ,error: " + err.Error() + ", detail: " + svn.Err.String())
+		log.Error("The project fail to initialize, projectID:" + strconv.FormatInt(projectID, 10) + " ,error: " + err.Error() + ", detail: " + svn.Err.String())
 		return err
 	}
-	log.Trace("The project success to initialize, projectID:" + strconv.FormatInt(project.ID, 10))
+	log.Trace("The project success to initialize, projectID:" + strconv.FormatInt(projectID, 10))
 	return nil
 }
 
-func (svnRepo SvnRepo) Follow(project model.Project, target string) error {
-	if err := svnRepo.Create(project.ID); err != nil {
+func (svnRepo SvnRepo) Follow(projectID int64, target string, url string, _ string) error {
+	if err := svnRepo.create(projectID, url); err != nil {
 		return err
 	}
-	svn := pkg.SVN{Dir: config.GetProjectPath(project.ID)}
+	svn := pkg.SVN{Dir: config.GetProjectPath(projectID)}
 
 	// the length of commit id is 40
-	log.Trace("projectID:" + strconv.FormatInt(project.ID, 10) + " svn up")
+	log.Trace("projectID:" + strconv.FormatInt(projectID, 10) + " svn up")
 	if strings.Index(target, "r") == 0 {
 		if err := svn.Pull("-r", target); err != nil {
 			log.Error(err.Error() + ", detail: " + svn.Err.String())

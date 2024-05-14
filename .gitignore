@@ -15,6 +15,7 @@ tmp
 
 goploy
 goploy_arm64
+goploy_arm64.mac
 goploy.exe*
 goploy.mac
 goploy.pid

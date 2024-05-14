@@ -138,6 +138,8 @@ export class DeployPublish extends Request {
     projectId: number
     branch: string
     commit: string
+    serverIds?: number[]
+    customVariables?: { name: string; value: string; type: string }[]
   }
   constructor(param: DeployPublish['param']) {
     super()

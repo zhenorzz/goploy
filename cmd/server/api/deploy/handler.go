@@ -539,9 +539,11 @@ func (Deploy) ManageProcess(gp *server.Goploy) server.Response {
 // @Router /deploy/publish [post]
 func (Deploy) Publish(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		ProjectID int64  `json:"projectId" validate:"required,gt=0"`
-		Commit    string `json:"commit"`
-		Branch    string `json:"branch"`
+		ProjectID       int64                               `json:"projectId" validate:"required,gt=0"`
+		Commit          string                              `json:"commit"`
+		Branch          string                              `json:"branch"`
+		ServerIDs       []int64                             `json:"serverIds"`
+		CustomVariables []model.ProjectScriptCustomVariable `json:"customVariables"`
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {
@@ -554,11 +556,11 @@ func (Deploy) Publish(gp *server.Goploy) server.Response {
 
 	token := ""
 	if project.DeployState == model.ProjectNotDeploy {
-		token, err = projectDeploy(gp, project, "", "")
+		token, err = projectDeploy(gp, project, "", "", reqData.ServerIDs, reqData.CustomVariables)
 	} else if project.Review == model.Enable {
 		err = projectReview(gp, project, reqData.Commit, reqData.Branch)
 	} else {
-		token, err = projectDeploy(gp, project, reqData.Commit, reqData.Branch)
+		token, err = projectDeploy(gp, project, reqData.Commit, reqData.Branch, reqData.ServerIDs, reqData.CustomVariables)
 	}
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
@@ -617,7 +619,17 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 			break
 		}
 
-		if publishTrace.Type == model.Pull {
+		if publishTrace.Type == model.Queue {
+			var queueExt model.PublishTraceQueueExt
+			if publishTrace.Ext != "" {
+				err := json.Unmarshal([]byte(publishTrace.Ext), &queueExt)
+				if err != nil {
+					return response.JSON{Code: response.Error, Message: err.Error()}
+				}
+				// set the token script
+				project.Script = queueExt.Script
+			}
+		} else if publishTrace.Type == model.Pull {
 			err := json.Unmarshal([]byte(publishTrace.Ext), &commitInfo)
 			if err != nil {
 				return response.JSON{Code: response.Error, Message: err.Error()}
@@ -647,6 +659,7 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 
 				if project.Script.AfterDeploy.Content != "" {
 					scriptContent := project.ReplaceVars(project.Script.AfterDeploy.Content)
+					scriptContent = project.ReplaceCustomVars(scriptContent)
 					scriptContent = projectServer.ReplaceVars(scriptContent)
 
 					if project.Script.AfterDeploy.Mode == "yaml" {
@@ -815,56 +828,8 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 // @Param request body deploy.GreyPublish.ReqData true "body params"
 // @Success 200 {object} response.JSON
 // @Router /deploy/greyPublish [post]
-func (Deploy) GreyPublish(gp *server.Goploy) server.Response {
-	type ReqData struct {
-		ProjectID int64   `json:"projectId" validate:"required,gt=0"`
-		Commit    string  `json:"commit"`
-		Branch    string  `json:"branch"`
-		ServerIDs []int64 `json:"serverIds"`
-	}
-	var reqData ReqData
-	if err := gp.Decode(&reqData); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	project, err := model.Project{ID: reqData.ProjectID}.GetData()
-
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	bindProjectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
-
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
-	projectServers := model.ProjectServers{}
-
-	for _, projectServer := range bindProjectServers {
-		for _, serverID := range reqData.ServerIDs {
-			if projectServer.ServerID == serverID {
-				projectServers = append(projectServers, projectServer)
-			}
-		}
-	}
-
-	project.PublisherID = gp.UserInfo.ID
-	project.PublisherName = gp.UserInfo.Name
-	project.DeployState = model.ProjectDeploying
-	project.LastPublishToken = uuid.New().String()
-	err = project.Publish()
-	if err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-	task.AddDeployTask(task.Gsync{
-		UserInfo:       gp.UserInfo,
-		Project:        project,
-		ProjectServers: projectServers,
-		CommitID:       reqData.Commit,
-		Branch:         reqData.Branch,
-	})
-
-	return response.JSON{}
+func (d Deploy) GreyPublish(gp *server.Goploy) server.Response {
+	return d.Publish(gp)
 }
 
 // Review reviews the project
@@ -906,7 +871,7 @@ func (Deploy) Review(gp *server.Goploy) server.Response {
 		if err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
-		if _, err := projectDeploy(gp, project, pr.CommitID, pr.Branch); err != nil {
+		if _, err := projectDeploy(gp, project, pr.CommitID, pr.Branch, nil, nil); err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
 	}
@@ -1005,7 +970,7 @@ func (Deploy) Callback(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	if _, err := projectDeploy(gp, project, pr.CommitID, pr.Branch); err != nil {
+	if _, err := projectDeploy(gp, project, pr.CommitID, pr.Branch, nil, nil); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
@@ -1016,11 +981,32 @@ func (Deploy) Callback(gp *server.Goploy) server.Response {
 	return response.JSON{}
 }
 
-func projectDeploy(gp *server.Goploy, project model.Project, commitID string, branch string) (string, error) {
-	projectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
+func projectDeploy(gp *server.Goploy, project model.Project, commitID string, branch string, serverIDs []int64, customVariables []model.ProjectScriptCustomVariable) (string, error) {
+	bindProjectServers, err := model.ProjectServer{ProjectID: project.ID}.GetBindServerListByProjectID()
+
 	if err != nil {
 		return "", err
 	}
+
+	projectServers := bindProjectServers
+
+	if len(serverIDs) > 0 {
+		projectServers = model.ProjectServers{}
+		for _, projectServer := range bindProjectServers {
+			for _, serverID := range serverIDs {
+				if projectServer.ServerID == serverID {
+					projectServers = append(projectServers, projectServer)
+				}
+			}
+		}
+	}
+
+	if len(customVariables) > 0 {
+		project.Script.CustomVariables = customVariables
+	} else {
+		project.Script.CustomVariables = []model.ProjectScriptCustomVariable{}
+	}
+
 	project.PublisherID = gp.UserInfo.ID
 	project.PublisherName = gp.UserInfo.Name
 	project.DeployState = model.ProjectDeploying

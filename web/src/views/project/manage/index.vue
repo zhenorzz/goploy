@@ -1096,6 +1096,72 @@
               />
             </el-form-item>
           </el-tab-pane>
+          <el-tab-pane name="customVariable">
+            <template #label>
+              <span style="vertical-align: middle; padding-right: 4px">
+                {{ $t('projectPage.customVariableLabel') }}
+              </span>
+              <el-tooltip class="item" effect="dark" placement="bottom">
+                <template #content>
+                  <div style="white-space: pre-line">
+                    {{ $t('projectPage.customVariableTips') }}
+                  </div>
+                </template>
+                <el-icon style="vertical-align: middle" :size="16">
+                  <question-filled />
+                </el-icon>
+              </el-tooltip>
+            </template>
+            <el-row type="flex" justify="end" style="margin-bottom: 10px">
+              <el-button
+                type="primary"
+                :icon="Plus"
+                @click="handleCusotmVariableAdd"
+              />
+            </el-row>
+            <el-form-item prop="customVariableScript" label-width="0px">
+              <el-row
+                v-for="(variable, index) in formData.script.customVariables"
+                :key="index"
+                type="flex"
+                style="width: 100%"
+              >
+                <el-input
+                  v-model.trim="variable.name"
+                  style="flex: 1"
+                  autocomplete="off"
+                  placeholder="variable name"
+                >
+                  <template #prepend>${</template>
+                  <template #append>}</template>
+                </el-input>
+                <el-select v-model="variable.type" style="width: 200px">
+                  <el-option
+                    v-for="item in formProps.customVariablesType"
+                    :key="item"
+                    :label="item"
+                    :value="item"
+                  />
+                </el-select>
+                <el-input
+                  v-model.trim="variable.value"
+                  style="flex: 1"
+                  autocomplete="off"
+                  :placeholder="
+                    variable.type == 'list'
+                      ? 'value split by comma'
+                      : 'default value'
+                  "
+                />
+                <el-button
+                  type="warning"
+                  :icon="Minus"
+                  plain
+                  @click="handleCusotmVariableDelete(index)"
+                />
+              </el-row>
+            </el-form-item>
+          </el-tab-pane>
         </el-tabs>
       </el-form>
       <template #footer>
@@ -1208,6 +1274,7 @@ import {
   View,
   Link,
   Plus,
+  Minus,
   Edit,
   QuestionFilled,
   Files,
@@ -1315,6 +1382,7 @@ const formProps = ref({
   pinging: false,
   lsBranchLoading: false,
   tab: 'base',
+  customVariablesType: ['string', 'list'],
 })
 const tempFormData = {
   id: 0,
@@ -1329,6 +1397,7 @@ const tempFormData = {
     afterPull: { mode: '', content: '' },
     afterDeploy: { mode: '', content: '' },
     deployFinish: { mode: '', content: '' },
+    customVariables: [] as { name: string; value: string; type: string }[],
   },
   environment: 1,
   branch: '',
@@ -1507,6 +1576,21 @@ function handleAutoDeploy(data: ProjectData) {
   selectedItem.value = data
   autoDeployFormData.value.id = data.id
   autoDeployFormData.value.autoDeploy = data.autoDeploy
+}
+
+function handleCusotmVariableAdd() {
+  if (!formData.value.script.customVariables) {
+    formData.value.script.customVariables = []
+  }
+  formData.value.script.customVariables.push({
+    name: '',
+    value: '',
+    type: 'string',
+  })
+}
+
+function handleCusotmVariableDelete(index: number) {
+  formData.value.script.customVariables.splice(index, 1)
 }
 
 enum ScriptKey {

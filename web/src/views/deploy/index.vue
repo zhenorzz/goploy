@@ -170,16 +170,7 @@
                 <el-row style="margin-top: 10px" justify="space-between">
                   <div>
                     <Button
-                      v-if="row.deployState === DeployState.Uninitialized"
-                      :permissions="[pms.DeployProject]"
-                      type="primary"
-                      size="small"
-                      @click="publish(row)"
-                    >
-                      {{ $t('initial') }}
-                    </Button>
-                    <Button
-                      v-else-if="row.deployState === DeployState.Deploying"
+                      v-if="row.deployState === DeployState.Deploying"
                       :permissions="[pms.DeployResetState]"
                       type="primary"
                       size="small"
@@ -187,38 +178,15 @@
                     >
                       {{ $t('deployPage.resetState') }}
                     </Button>
-                    <Dropdown
+                    <Button
                       v-else
                       :permissions="[pms.DeployProject]"
-                      :split-button="row.review === 1 ? false : true"
-                      trigger="click"
                       type="primary"
                       size="small"
                       @click="publish(row)"
-                      @command="(funcName: string) => commandFunc[funcName](row)"
                     >
-                      <el-button
-                        v-if="row.review === 1"
-                        size="small"
-                        type="primary"
-                      >
-                        {{ $t('submit') }}
-                        <el-icon class="el-icon--right">
-                          <arrow-down />
-                        </el-icon>
-                      </el-button>
-                      <span v-else>{{ $t('deploy') }}</span>
-                      <template #dropdown>
-                        <el-dropdown-menu>
-                          <el-dropdown-item :command="'handleCommitCommand'">
-                            Commit list
-                          </el-dropdown-item>
-                          <el-dropdown-item :command="'handleTagCommand'">
-                            Tag list
-                          </el-dropdown-item>
-                        </el-dropdown-menu>
-                      </template>
-                    </Dropdown>
+                      {{ $t('deploy') }}
+                    </Button>
                     <el-dropdown
                       trigger="click"
                       style="margin-left: 5px"
@@ -296,72 +264,110 @@
     <TheCommitListDialog
       v-model="commitDialogVisible"
       :project-row="selectedItem"
+      @cancel="handleCancelSelectCommit"
     >
       <template #tableOP="scope">
         <Button
           type="primary"
           :permissions="[pms.DeployProject]"
-          @click="publishByCommit(scope.row)"
+          @click="selectCommit(scope.row)"
         >
-          {{ $t('deploy') }}
-        </Button>
-        <Button
-          type="warning"
-          :permissions="[pms.GreyDeploy]"
-          @click="handleGreyPublish(scope.row)"
-        >
-          {{ $t('grey') }}
+          {{ $t('select') }}
         </Button>
       </template>
     </TheCommitListDialog>
-    <TheTagListDialog v-model="tagDialogVisible" :project-row="selectedItem">
-      <template #tableOP="scope">
-        <Button
-          type="primary"
-          :permissions="[pms.DeployProject]"
-          @click="publishByCommit(scope.row)"
-        >
-          {{ $t('deploy') }}
-        </Button>
-        <Button
-          type="warning"
-          :permissions="[pms.GreyDeploy]"
-          @click="handleGreyPublish(scope.row)"
-        >
-          {{ $t('grey') }}
-        </Button>
-      </template>
-    </TheTagListDialog>
     <TheTaskListDialog
       v-model="taskListDialogVisible"
       :project-row="selectedItem"
     />
-    <el-dialog v-model="greyServerDialogVisible" :title="$t('deploy')">
-      <el-form
-        ref="greyServerForm"
-        :rules="greyServerFormRules"
-        :model="greyServerFormData"
-      >
-        <el-form-item :label="$t('server')" label-width="80px" prop="serverIds">
-          <el-checkbox-group v-model="greyServerFormData.serverIds">
-            <el-checkbox
-              v-for="(item, index) in greyServerFormProps.serverOption"
-              :key="index"
-              :label="item.serverId"
-            >
-              {{ item.server.name + '(' + item.server.description + ')' }}
-            </el-checkbox>
-          </el-checkbox-group>
-        </el-form-item>
-      </el-form>
+    <el-dialog
+      v-model="publishDialogVisible"
+      :title="publishFormProps.title"
+      class="publish-dialog"
+      align-center
+      width="450px"
+      :fullscreen="$store.state.app.device === 'mobile'"
+    >
+      <template #header>
+        <el-row style="white-space: pre-wrap" v-html="publishFormProps.title" />
+      </template>
+      <el-row>
+        <el-row
+          v-for="(variable, index) in publishFormProps.customVariables"
+          :key="index"
+          type="flex"
+          align="middle"
+          style="width: 100%; margin-bottom: 10px"
+        >
+          <el-row style="margin-right: 10px">
+            <span>${</span>{{ variable.name }}<span>}</span>
+          </el-row>
+          <el-select
+            v-if="variable.type == 'list'"
+            v-model="variable.value"
+            style="flex: 1"
+          >
+            <el-option
+              v-for="item in selectedItem.script.customVariables[index].value.split(',')"
+              :key="item"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
+          <el-input
+            v-else
+            v-model.trim="variable.value"
+            style="flex: 1"
+            autocomplete="off"
+            placeholder="variable value"
+          >
+          </el-input>
+        </el-row>
+        <el-row style="width: 100%">
+          <el-checkbox
+            v-model="publishFormProps.selectCommit"
+            :label="`Select Commit (default lastest ${selectedItem.branch})`"
+            :disabled="publishFormProps.selectTag"
+            @change="handleSelectCommit"
+          />
+          <el-row
+            v-show="publishFormProps.selectCommit"
+            style="width: 100%; padding-left: 20px"
+          >
+            {{ publishFormProps.branch }}
+            {{ publishFormProps.commit }}
+          </el-row>
+        </el-row>
+        <el-row style="width: 100%; margin-top: 10px">
+          <el-checkbox
+            v-model="publishFormProps.selectServer"
+            :label="`Select Server (default all)`"
+            @change="handleSelectServer"
+          />
+          <el-row
+            v-show="publishFormProps.selectServer"
+            style="width: 100%; padding-left: 20px"
+          >
+            <el-checkbox-group v-model="publishFormProps.serverIds">
+              <el-checkbox
+                v-for="(item, index) in publishFormProps.serverOption"
+                :key="index"
+                :label="item.serverId"
+              >
+                {{ item.server.name + '(' + item.server.description + ')' }}
+              </el-checkbox>
+            </el-checkbox-group>
+          </el-row>
+        </el-row>
+      </el-row>
       <template #footer>
-        <el-button @click="greyServerDialogVisible = false">
+        <el-button @click="publishDialogVisible = false">
           {{ $t('cancel') }}
         </el-button>
         <el-button
-          :disabled="greyServerFormProps.disabled"
+          :disabled="publishFormProps.disabled"
           type="primary"
-          @click="greyPublish"
+          @click="publishFormProps.func"
         >
           {{ $t('confirm') }}
         </el-button>
@@ -397,20 +403,17 @@ import {
   DeployList,
   DeployPublish,
   DeployResetState,
-  DeployGreyPublish,
 } from '@/api/deploy'
 import { ProjectServerList, ProjectData, LabelList } from '@/api/project'
 import RepoURL from '@/components/RepoURL/index.vue'
-import { isLink, parseTime } from '@/utils'
+import { isLink, parseTime, deepClone } from '@/utils'
 import TheDetailDialog from './TheDetailDialog.vue'
 import TheCommitListDialog from './TheCommitListDialog.vue'
-import TheTagListDialog from './TheTagListDialog.vue'
 import TheTaskListDialog from './TheTaskListDialog.vue'
 import TheReviewListDialog from './TheReviewListDialog.vue'
 import TheProcessManagerDialog from './TheProcessManagerDialog.vue'
 import TheFileCompareDialog from './TheFileCompareDialog.vue'
 import TheFileSyncDialog from './TheFileSyncDialog.vue'
-import type { ElForm } from 'element-plus'
 import { computed, watch, h, ref } from 'vue'
 import { CommitData } from '@/api/repository'
 import { useStore } from 'vuex'
@@ -418,13 +421,12 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const store = useStore()
 const commitDialogVisible = ref(false)
-const tagDialogVisible = ref(false)
-const greyServerDialogVisible = ref(false)
 const taskListDialogVisible = ref(false)
 const fileSyncDialogVisible = ref(false)
 const fileCompareDialogVisible = ref(false)
 const processManagerDialogVisible = ref(false)
 const reviewListDialogVisible = ref(false)
+const publishDialogVisible = ref(false)
 const dialogVisible = ref(false)
 const stickList = ref(getStick())
 const searchProject = ref({
@@ -459,26 +461,23 @@ const disabled = computed(() => noMore.value)
 const tableData = ref<any[]>([])
 const labelList = ref<string[]>([])
 const pagination = ref({ page: 0, rows: 24 })
-const greyServerForm = ref<InstanceType<typeof ElForm>>()
-const greyServerFormProps = ref({
+
+const tempPublishFormProps = {
   disabled: false,
-  serverOption: [] as ProjectServerList['datagram']['list'],
-})
-const greyServerFormData = ref({
-  projectId: 0,
+  title: '',
+  customVariables: [],
   commit: '',
+  branch: '',
   serverIds: [],
-})
-const greyServerFormRules: InstanceType<typeof ElForm>['rules'] = {
-  serverIds: [
-    {
-      type: 'array',
-      required: true,
-      message: 'Server required',
-      trigger: 'change',
-    },
-  ],
+  selectCommit: false,
+  selectServer: false,
+  serverOption: [] as ProjectServerList['datagram']['list'],
+  func: () => {
+    ElMessage.error('Undefined function')
+  },
 }
+const publishFormProps = ref(tempPublishFormProps)
+
 const tablePage = computed(() => {
   let _tableData = tableData.value
   if (searchProject.value.name !== '') {
@@ -663,16 +662,27 @@ function handleRebuilt() {
   tableData.value[projectIndex].deployState = 1
 }
 
-function handleGreyPublish(data: CommitData) {
+function handleSelectCommit(state) {
+  if (state == false) {
+    publishFormProps.value.branch = ''
+    publishFormProps.value.commit = ''
+    return
+  }
+  commitDialogVisible.value = true
+}
+
+function handleSelectServer() {
   new ProjectServerList({ id: selectedItem.value.id })
     .request()
     .then((response) => {
-      greyServerFormProps.value.serverOption = response.data.list
+      publishFormProps.value.serverOption = response.data.list
     })
-  // add projectID to server form
-  greyServerFormData.value.projectId = selectedItem.value.id
-  greyServerFormData.value.commit = data.commit
-  greyServerDialogVisible.value = true
+}
+
+function handleCancelSelectCommit(state) {
+  publishFormProps.value.branch = ''
+  publishFormProps.value.commit = ''
+  publishFormProps.value.selectCommit = false
 }
 
 const cardMoreFunc: { [K: string]: (data: ProjectData) => void } = {
@@ -696,23 +706,11 @@ function handleUnpinCard(data: ProjectData) {
 }
 
 const commandFunc: { [K: string]: (data: ProjectData) => void } = {
-  handleCommitCommand,
-  handleTagCommand,
   handleTaskCommand,
   handleFileCompareCommand,
   handleFileSyncCommand,
   handleProcessManagerCommand,
   handleReviewCommand,
-}
-
-function handleCommitCommand(data: ProjectData) {
-  selectedItem.value = data
-  commitDialogVisible.value = true
-}
-
-function handleTagCommand(data: ProjectData) {
-  selectedItem.value = data
-  tagDialogVisible.value = true
 }
 
 function handleTaskCommand(data: ProjectData) {
@@ -740,8 +738,14 @@ function handleReviewCommand(data: ProjectData) {
   reviewListDialogVisible.value = true
 }
 
+function selectCommit(data: CommitData) {
+  publishFormProps.value.branch = data.branch
+  publishFormProps.value.commit = data.commit
+  commitDialogVisible.value = false
+}
+
 function publish(data: ProjectData) {
-  const id = data.id
+  restorePublishForm()
   let color = ''
   if (data.environment === 1) {
     color = 'color: var(--el-color-danger)'
@@ -750,63 +754,41 @@ function publish(data: ProjectData) {
   } else {
     color = 'color: var(--el-color-info)'
   }
-  ElMessageBox.confirm('', t('tips'), {
-    message: h('p', null, [
-      h('span', null, 'Deploy: '),
-      h(
-        'b',
-        { style: color },
-        data.name + ' - ' + t(`envOption[${data.environment}]`)
-      ),
-    ]),
-    confirmButtonText: t('confirm'),
-    cancelButtonText: t('cancel'),
-    type: 'warning',
-  })
-    .then(() => {
-      new DeployPublish({ projectId: id, commit: '', branch: '' })
-        .request()
-        .then(() => {
-          const projectIndex = tableData.value.findIndex(
-            (element) => element.id === id
-          )
-          tableData.value[projectIndex].deployState = 1
-        })
+  selectedItem.value = deepClone(data)
+  const customVariables = deepClone(data.script.customVariables)
+  publishFormProps.value.customVariables =
+    customVariables &&
+    customVariables.map((item) => {
+      if (item.type == 'list') {
+        item.value = ''
+      }
+      return item
     })
-    .catch(() => {
-      ElMessage.info('Cancel')
-    })
-}
+  publishDialogVisible.value = true
 
-function publishByCommit(data: CommitData) {
-  ElMessageBox.confirm(
-    t('deployPage.publishCommitTips', { commit: data.commit }),
-    t('tips'),
-    {
-      confirmButtonText: t('confirm'),
-      cancelButtonText: t('cancel'),
-      type: 'warning',
-    }
-  )
-    .then(() => {
-      new DeployPublish({
-        projectId: selectedItem.value.id,
-        branch: data.branch,
-        commit: data.commit,
+  let env = t(`envOption[${data.environment}]`)
+  publishFormProps.value.title = `<span style="${color}; font-weight: 600; font-size: 15px">${data.name} - ${env}</span>`
+  publishFormProps.value.func = () => {
+    publishFormProps.value.disabled = true
+    new DeployPublish({
+      projectId: data.id,
+      commit: publishFormProps.value.commit,
+      branch: publishFormProps.value.branch,
+      customVariables: publishFormProps.value.customVariables,
+      serverIds: publishFormProps.value.serverIds,
+    })
+      .request()
+      .then(() => {
+        publishDialogVisible.value = false
+        const projectIndex = tableData.value.findIndex(
+          (element) => element.id === data.id
+        )
+        tableData.value[projectIndex].deployState = 1
       })
-        .request()
-        .then(() => {
-          const projectIndex = tableData.value.findIndex(
-            (element) => element.id === selectedItem.value.id
-          )
-          tableData.value[projectIndex].deployState = 1
-          commitDialogVisible.value = false
-          tagDialogVisible.value = false
-        })
-    })
-    .catch(() => {
-      ElMessage.info('Cancel')
-    })
+      .finally(() => {
+        publishFormProps.value.disabled = false
+      })
+  }
 }
 
 function resetState(data: ProjectData) {
@@ -829,48 +811,6 @@ function resetState(data: ProjectData) {
     .catch(() => {
       ElMessage.info('Cancel')
     })
-}
-
-function greyPublish() {
-  greyServerForm.value?.validate((valid) => {
-    if (valid) {
-      const data = greyServerFormData.value
-      ElMessageBox.confirm(
-        t('deployPage.publishCommitTips', {
-          commit: data.commit,
-        }),
-        t('tips'),
-        {
-          confirmButtonText: t('confirm'),
-          cancelButtonText: t('cancel'),
-          type: 'warning',
-        }
-      )
-        .then(() => {
-          new DeployGreyPublish({
-            projectId: data.projectId,
-            commit: data.commit,
-            serverIds: data.serverIds,
-          })
-            .request()
-            .then(() => {
-              const projectIndex = tableData.value.findIndex(
-                (element) => element.id === data.projectId
-              )
-              tableData.value[projectIndex].deployState = 1
-              commitDialogVisible.value = false
-              tagDialogVisible.value = false
-              greyServerDialogVisible.value = false
-            })
-        })
-        .catch(() => {
-          ElMessage.info('Cancel')
-        })
-      return Promise.resolve(true)
-    } else {
-      return Promise.reject(false)
-    }
-  })
 }
 
 function enterToBR(detail: string) {
@@ -900,8 +840,28 @@ function getStick(): number[] {
 function setStick(value: string) {
   localStorage.setItem('deploy-stick', value)
 }
-</script>
 
+function restorePublishForm() {
+  publishFormProps.value = { ...tempPublishFormProps }
+  console.log(publishFormProps.value)
+}
+</script>
+<style lang="scss">
+.publish-dialog {
+  .el-dialog__header {
+    padding: 20px 15px 10px 15px;
+    margin-right: 0px;
+  }
+  .el-dialog__body {
+    padding-top: 10px;
+    padding-left: 15px;
+    padding-bottom: 10px;
+  }
+  .el-dialog__footer {
+    padding: 10px 15px;
+  }
+}
+</style>
 <style lang="scss" scoped>
 .card {
   border: none;

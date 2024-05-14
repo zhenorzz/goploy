@@ -3,6 +3,9 @@
     v-model="dialogVisible"
     title="Tag"
     :fullscreen="$store.state.app.device === 'mobile'"
+    :show-close="false"
+    :close-on-press-escape="false"
+    :close-on-click-modal="false"
   >
     <el-table
       v-loading="tableLoading"
@@ -76,7 +79,7 @@
       </el-table-column>
     </el-table>
     <template #footer>
-      <el-button @click="dialogVisible = false">
+      <el-button @click="cancel">
         {{ $t('cancel') }}
       </el-button>
     </template>
@@ -97,7 +100,7 @@ const props = defineProps({
     required: true,
   },
 })
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'cancel'])
 const dialogVisible = computed({
   get: () => props.modelValue,
   set: (val) => {
@@ -122,4 +125,9 @@ watch(
     }
   }
 )
+
+function cancel() {
+  emit('cancel')
+  dialogVisible.value = false
+}
 </script>

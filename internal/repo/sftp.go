@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/sftp"
 	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"golang.org/x/crypto/ssh"
 	"io"
@@ -36,17 +35,7 @@ func (sftpRepo SftpRepo) Ping(url string) error {
 	return nil
 }
 
-func (sftpRepo SftpRepo) Create(projectID int64) error {
-	project, err := model.Project{ID: projectID}.GetData()
-	if err != nil {
-		log.Error(fmt.Sprintf("The project does not exist, projectID:%d", projectID))
-		return err
-	}
-	return sftpRepo.Follow(project, "")
-}
-
-func (sftpRepo SftpRepo) Follow(project model.Project, _ string) error {
-	projectID := project.ID
+func (sftpRepo SftpRepo) Follow(projectID int64, _ string, projectURL string, _ string) error {
 	srcPath := config.GetProjectPath(projectID)
 	_ = os.RemoveAll(srcPath)
 	if err := os.MkdirAll(srcPath, 0755); err != nil {
@@ -54,7 +43,7 @@ func (sftpRepo SftpRepo) Follow(project model.Project, _ string) error {
 		return err
 	}
 
-	sshClient, err := sftpRepo.dial(project.URL)
+	sshClient, err := sftpRepo.dial(projectURL)
 	if err != nil {
 		log.Error(fmt.Sprintf("The project fail to connect ftp, projectID:%d, error:%s", projectID, err.Error()))
 		return err
@@ -110,7 +99,7 @@ func (sftpRepo SftpRepo) Follow(project model.Project, _ string) error {
 		}
 		return nil
 	}
-	_url, _, _ := sftpRepo.parseURL(project.URL)
+	_url, _, _ := sftpRepo.parseURL(projectURL)
 	u, err := url.Parse(_url)
 	if err != nil {
 		log.Error(fmt.Sprintf("The project fail to parse url, projectID:%d, error:%s", projectID, err.Error()))

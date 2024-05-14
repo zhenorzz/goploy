@@ -1,5 +1,6 @@
 {
   "default": "Default",
+  "select": "Select",
   "name": "Name",
   "signIn": "Sign in",
   "tag": "Tag",
@@ -408,7 +409,7 @@
       "Rejected"
     ],
     "removeProjectTaskTips": "This action will delete the crontab task in {projectName}, continue?",
-    "publishCommitTips": "This action will rebuild {commit}, continue?"
+    "publishCommitTips": "This action will publish {commit}, continue?"
   },
   "loginPage": {
     "captchaDefault": "Click on the button for check captcha",

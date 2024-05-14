@@ -28,6 +28,10 @@ type PublishTrace struct {
 	UpdateTime    string `json:"updateTime"`
 }
 
+type PublishTraceQueueExt struct {
+	Script ProjectScript `json:"script"`
+}
+
 // PublishTraces -
 type PublishTraces []PublishTrace
 

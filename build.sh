@@ -29,6 +29,8 @@ env GOOS=linux go build -o goploy cmd/server/main.go
 
 env GOOS=linux GOARCH=arm64 go build -o goploy_arm64 cmd/server/main.go
 
+env GOOS=darwin GOARCH=arm64 go build -o goploy_arm64.mac cmd/server/main.go
+
 env GOOS=darwin go build -o goploy.mac cmd/server/main.go
 
 env GOOS=windows go build -o goploy.exe cmd/server/main.go

@@ -4,6 +4,20 @@ All notable changes to the "goploy" extension will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
+## [1.17.0] - 2024-05-14
+
+### Added
+- [custom variable](https://github.com/zhenorzz/goploy/issues/101)
+- custom login lock time
+
+### Changed
+
+- change deploy dialog ui
+
+### Bug fixed
+- [fix quote in rsync remote shell](https://github.com/zhenorzz/goploy/pull/107)
+
+
 ## [1.16.3] - 2024-03-29
 
 ### Bug fixed

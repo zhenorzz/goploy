@@ -13,10 +13,8 @@ import (
 
 type Repo interface {
 	Ping(url string) error
-	// Create one repository
-	Create(projectID int64) error
 	// Follow the repository code and update to latest
-	Follow(project model.Project, target string) error
+	Follow(projectID int64, target string, url string, branch string) error
 	// RemoteBranchList list remote branches in the url
 	RemoteBranchList(url string) ([]string, error)
 	// BranchList list the local repository's branches

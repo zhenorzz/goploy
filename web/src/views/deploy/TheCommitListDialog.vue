@@ -3,8 +3,19 @@
     v-model="dialogVisible"
     title="Commit"
     :fullscreen="$store.state.app.device === 'mobile'"
+    :show-close="false"
+    :close-on-press-escape="false"
+    :close-on-click-modal="false"
+    class="commit-dialog"
   >
+    <el-row type="flex" justify="end" @change="handleChangeType">
+      <el-radio-group v-model="type" style="margin-bottom: 10px">
+        <el-radio-button label="Commit" value="Commit" />
+        <el-radio-button label="Tag" value="Tag" />
+      </el-radio-group>
+    </el-row>
     <el-select
+      v-if="type == 'Commit'"
       v-model="branch"
       v-loading="branchLoading"
       filterable
@@ -34,6 +45,17 @@
           <div style="padding-left: 50px; white-space: pre-line">
             {{ scope.row.diff }}
           </div>
+        </template>
+      </el-table-column>
+      <el-table-column v-if="type == 'Tag'" prop="tag" label="tag">
+        <template #default="scope">
+          <RepoURL
+            style="font-size: 12px"
+            :url="projectRow.url"
+            :suffix="'/tree/' + scope.row.tag"
+            :text="scope.row.tag"
+          >
+          </RepoURL>
         </template>
       </el-table-column>
       <el-table-column
@@ -77,7 +99,7 @@
       </el-table-column>
     </el-table>
     <template #footer>
-      <el-button @click="dialogVisible = false">
+      <el-button @click="cancel">
         {{ $t('cancel') }}
       </el-button>
     </template>
@@ -85,7 +107,11 @@
 </template>
 <script lang="ts" setup>
 import RepoURL from '@/components/RepoURL/index.vue'
-import { RepositoryBranchList, RepositoryCommitList } from '@/api/repository'
+import {
+  RepositoryBranchList,
+  RepositoryCommitList,
+  RepositoryTagList,
+} from '@/api/repository'
 import { ProjectData } from '@/api/project'
 import { parseTime } from '@/utils'
 import { PropType, computed, watch, ref } from 'vue'
@@ -99,13 +125,16 @@ const props = defineProps({
     required: true,
   },
 })
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'cancel'])
 const dialogVisible = computed({
   get: () => props.modelValue,
   set: (val) => {
     emit('update:modelValue', val)
   },
 })
+
+const type = ref('Commit')
+
 const branchLoading = ref(false)
 const branchOption = ref<RepositoryBranchList['datagram']['list']>([])
 const branch = ref('')
@@ -152,4 +181,35 @@ const getCommitList = () => {
       tableLoading.value = false
     })
 }
+
+const getTagList = () => {
+  tableLoading.value = true
+  new RepositoryTagList({ id: props.projectRow.id })
+    .request()
+    .then((response) => {
+      tableData.value = response.data.list
+    })
+    .finally(() => {
+      tableLoading.value = false
+    })
+}
+
+function handleChangeType() {
+  tableData.value = []
+  if (type.value == 'Tag') {
+    getTagList()
+  }
+}
+
+function cancel() {
+  emit('cancel')
+  dialogVisible.value = false
+}
 </script>
+<style lang="scss">
+.commit-dialog {
+  .el-dialog__header {
+    display: none;
+  }
+}
+</style>

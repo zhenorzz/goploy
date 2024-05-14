@@ -30,6 +30,13 @@ type ProjectScript struct {
 		Mode    string `json:"mode"`
 		Content string `json:"content"`
 	} `json:"deployFinish"`
+	CustomVariables []ProjectScriptCustomVariable `json:"customVariables"`
+}
+
+type ProjectScriptCustomVariable struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+	Type  string `json:"type"`
 }
 
 type Project struct {
@@ -585,6 +592,14 @@ func (p Project) ReplaceVars(script string) string {
 	}
 	for key, value := range scriptVars {
 		script = strings.Replace(script, key, value, -1)
+	}
+	return script
+}
+
+func (p Project) ReplaceCustomVars(script string) string {
+	for _, variable := range p.Script.CustomVariables {
+		key := fmt.Sprintf("${%s}", variable.Name)
+		script = strings.Replace(script, key, variable.Value, -1)
 	}
 	return script
 }

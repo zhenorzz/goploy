@@ -9,7 +9,6 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pkg"
 	"os"
 	"strconv"
@@ -31,22 +30,18 @@ func (GitRepo) Ping(url string) error {
 	return nil
 }
 
-func (GitRepo) Create(projectID int64) error {
+func (GitRepo) create(projectID int64, url string, branch string) error {
 	srcPath := config.GetProjectPath(projectID)
 	if _, err := os.Stat(srcPath); err == nil {
 		return nil
 	}
-	project, err := model.Project{ID: projectID}.GetData()
-	if err != nil {
-		log.Error(fmt.Sprintf("The project does not exist, projectID:%d", projectID))
-		return err
-	}
+
 	if err := os.RemoveAll(srcPath); err != nil {
 		log.Error(fmt.Sprintf("The project fail to remove, projectID:%d, error: %s", projectID, err.Error()))
 		return err
 	}
 	git := pkg.GIT{}
-	if err := git.Clone(project.URL, srcPath); err != nil {
+	if err := git.Clone(url, srcPath); err != nil {
 		log.Error(fmt.Sprintf("The project fail to initialize, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
 		return err
 	}
@@ -57,30 +52,30 @@ func (GitRepo) Create(projectID int64) error {
 		return err
 	}
 
-	currentBranch := pkg.ClearNewline(git.Output.String())
-	if project.Branch != currentBranch {
-		if err := git.Checkout("-b", project.Branch, "origin/"+project.Branch); err != nil {
-			log.Error(fmt.Sprintf("The project fail to switch branch, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
-			_ = os.RemoveAll(srcPath)
-			return err
-		}
-	}
+	//currentBranch := pkg.ClearNewline(git.Output.String())
+	//if branch != currentBranch {
+	//	if err := git.Checkout("-b", branch, "origin/"+branch); err != nil {
+	//		log.Error(fmt.Sprintf("The project fail to switch branch, projectID:%d, error:%s, detail:%s", projectID, err.Error(), git.Err.String()))
+	//		_ = os.RemoveAll(srcPath)
+	//		return err
+	//	}
+	//}
 	log.Trace(fmt.Sprintf("The project success to initialize, projectID:%d", projectID))
 	return nil
 }
 
-func (gitRepo GitRepo) Follow(project model.Project, target string) error {
-	if err := gitRepo.Create(project.ID); err != nil {
+func (gitRepo GitRepo) Follow(projectID int64, target string, url string, branch string) error {
+	if err := gitRepo.create(projectID, url, branch); err != nil {
 		return err
 	}
-	git := pkg.GIT{Dir: config.GetProjectPath(project.ID)}
-	log.Trace("projectID: " + strconv.FormatInt(project.ID, 10) + " git add .")
+	git := pkg.GIT{Dir: config.GetProjectPath(projectID)}
+	log.Trace("projectID: " + strconv.FormatInt(projectID, 10) + " git add .")
 	if err := git.Add("."); err != nil {
 		log.Error(err.Error() + ", detail: " + git.Err.String())
 		return err
 	}
 
-	log.Trace("projectID: " + strconv.FormatInt(project.ID, 10) + " git reset --hard")
+	log.Trace("projectID: " + strconv.FormatInt(projectID, 10) + " git reset --hard")
 	if err := git.Reset("--hard"); err != nil {
 		log.Error(err.Error() + ", detail: " + git.Err.String())
 		return err
@@ -88,14 +83,14 @@ func (gitRepo GitRepo) Follow(project model.Project, target string) error {
 
 	// the length of commit id is 40
 	if len(target) != 40 {
-		log.Trace("projectID: " + strconv.FormatInt(project.ID, 10) + " git fetch")
+		log.Trace("projectID: " + strconv.FormatInt(projectID, 10) + " git fetch")
 		if err := git.Fetch(); err != nil {
 			log.Error(err.Error() + ", detail: " + git.Err.String())
 			return err
 		}
 	}
 
-	log.Trace("projectID: " + strconv.FormatInt(project.ID, 10) + " git checkout -B goploy " + target)
+	log.Trace("projectID: " + strconv.FormatInt(projectID, 10) + " git checkout -B goploy " + target)
 	if err := git.Checkout("-B", "goploy", target); err != nil {
 		log.Error(err.Error() + ", detail: " + git.Err.String())
 		return err
