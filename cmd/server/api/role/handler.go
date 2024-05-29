@@ -5,6 +5,8 @@
 package role
 
 import (
+	"database/sql"
+	"errors"
 	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
 	"github.com/zhenorzz/goploy/config"
@@ -195,7 +197,7 @@ func (Role) Remove(gp *server.Goploy) server.Response {
 	}
 
 	namespaceUser, err := (model.NamespaceUser{RoleID: reqData.ID}).GetDataByRoleID()
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 	if namespaceUser.ID > 0 {

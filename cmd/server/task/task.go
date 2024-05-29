@@ -6,6 +6,7 @@ package task
 
 import (
 	"context"
+	"github.com/zhenorzz/goploy/cmd/server/task/deploy"
 	"sync/atomic"
 	"time"
 )
@@ -16,9 +17,8 @@ var stop = make(chan struct{})
 
 func Init() {
 	startMonitorTask()
-	startProjectTask()
 	startServerMonitorTask()
-	startDeployTask()
+	deploy.Run(&counter, stop)
 }
 
 func Shutdown(ctx context.Context) error {

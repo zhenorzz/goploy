@@ -17,7 +17,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/cmd/server/api"
 	"github.com/zhenorzz/goploy/cmd/server/api/middleware"
-	"github.com/zhenorzz/goploy/cmd/server/task"
+	"github.com/zhenorzz/goploy/cmd/server/task/deploy"
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/pipeline/docker"
@@ -806,7 +806,7 @@ func (Deploy) Rebuild(gp *server.Goploy) server.Response {
 		if err != nil {
 			return response.JSON{Code: response.Error, Message: err.Error()}
 		}
-		task.AddDeployTask(task.Gsync{
+		deploy.AddTask(deploy.Gsync{
 			UserInfo:       gp.UserInfo,
 			Project:        project,
 			ProjectServers: projectServers,
@@ -937,7 +937,7 @@ func (Deploy) Webhook(gp *server.Goploy) server.Response {
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
-	task.AddDeployTask(task.Gsync{
+	deploy.AddTask(deploy.Gsync{
 		UserInfo:       gp.UserInfo,
 		Project:        project,
 		ProjectServers: projectServers,
@@ -1015,7 +1015,7 @@ func projectDeploy(gp *server.Goploy, project model.Project, commitID string, br
 	if err != nil {
 		return "", err
 	}
-	task.AddDeployTask(task.Gsync{
+	deploy.AddTask(deploy.Gsync{
 		UserInfo:       gp.UserInfo,
 		Project:        project,
 		ProjectServers: projectServers,
