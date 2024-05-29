@@ -187,11 +187,16 @@ func install() {
 
 	println("Start to install the database...")
 
-	runner, err := model.Open(cfg.DB)
+	// open connection without database
+	runner, err := model.Open(config.DBConfig{
+		Host: cfg.DB.Host, User: cfg.DB.User, Password: cfg.DB.Password, Port: cfg.DB.Port,
+	})
 	if err != nil {
 		panic(err)
 	}
 	defer runner.Close()
+
+	// create database if not exists
 	if err := runner.CreateDB(cfg.DB.Database); err != nil {
 		panic(err)
 	}
