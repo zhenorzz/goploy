@@ -1,6 +1,6 @@
 import { Request, ID } from './types'
 
-export interface MonitorData {
+export type MonitorData = {
   id: number
   namespaceId: number
   name: string
@@ -22,6 +22,13 @@ export interface MonitorData {
   updateTime: string
 }
 
+export type MonitorTargetData = {
+  items: string[]
+  timeout: number
+  process?: string
+  script?: string
+}
+
 export class MonitorList extends Request {
   readonly url = '/monitor/getList'
   readonly method = 'get'
@@ -37,7 +44,7 @@ export class MonitorAdd extends Request {
   public param: {
     name: string
     type: number
-    target: string
+    target: MonitorTargetData
     second: number
     times: number
     silentCycle: number
@@ -58,7 +65,7 @@ export class MonitorEdit extends Request {
     id: number
     name: string
     type: number
-    target: string
+    target: MonitorTargetData
     second: number
     times: number
     silentCycle: number
@@ -88,7 +95,7 @@ export class MonitorCheck extends Request {
   readonly timeout = 100000
   public param: {
     type: number
-    target: string
+    target: MonitorTargetData
     successServerId: number
     successScript: string
     failServerId: number

@@ -1,0 +1,1 @@
+update monitor set target = JSON_REPLACE(target, '$.timeout',  CONVERT(JSON_EXTRACT(target,'$.timeout'), unsigned));

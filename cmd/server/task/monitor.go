@@ -40,7 +40,6 @@ func startMonitorTask() {
 
 type monitorMessage struct {
 	MonitorID    int64  `json:"monitorId"`
-	State        uint8  `json:"state"`
 	ErrorContent string `json:"errorContent"`
 }
 
@@ -72,7 +71,7 @@ func monitorTask() {
 
 		if monitorCache.silentCycle > 0 {
 			monitorCache.silentCycle++
-			if monitorCache.silentCycle >= m.SilentCycle {
+			if monitorCache.silentCycle >= m.SilentCycle*60 {
 				monitorCache.silentCycle = 0
 			}
 			monitorCaches[m.ID] = monitorCache
@@ -86,6 +85,7 @@ func monitorTask() {
 		}
 
 		monitorCache.time = now
+
 		ms := monitor.NewMonitorFromTarget(
 			m.Type,
 			m.Target,
@@ -104,10 +104,10 @@ func monitorTask() {
 					monitorCache.errorTimes = 0
 					monitorCache.silentCycle = 1
 					log.Trace("m " + m.Name + " notify return " + body)
-					_ = m.TurnOff(monitorErrorContent)
+					_ = m.UpdateLatestErrorContent(monitorErrorContent)
 					ws.Send(ws.Data{
 						Type:    ws.TypeMonitor,
-						Message: monitorMessage{MonitorID: m.ID, State: model.Disable, ErrorContent: monitorErrorContent},
+						Message: monitorMessage{MonitorID: m.ID, ErrorContent: monitorErrorContent},
 					})
 				}
 			}
@@ -121,7 +121,7 @@ func monitorTask() {
 				log.Error("Failed to run fail script " + err.Error())
 			}
 		} else {
-			for _, item := range ms.Items {
+			for _, item := range ms.Target.Items {
 				serverID, err := strconv.ParseInt(item, 10, 64)
 				if err != nil {
 					err = ms.RunSuccessScript(-1)

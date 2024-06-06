@@ -45,12 +45,12 @@ func (Monitor) GetList(gp *server.Goploy) server.Response {
 
 func (Monitor) Check(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		Type            int    `json:"type" validate:"oneof=1 2 3 4 5"`
-		Target          string `json:"target" validate:"required"`
-		SuccessServerID int64  `json:"successServerId"`
-		SuccessScript   string `json:"successScript"`
-		FailServerID    int64  `json:"failServerId"`
-		FailScript      string `json:"failScript"`
+		Type            int                 `json:"type" validate:"oneof=1 2 3 4 5"`
+		Target          model.MonitorTarget `json:"target" validate:"required"`
+		SuccessServerID int64               `json:"successServerId"`
+		SuccessScript   string              `json:"successScript"`
+		FailServerID    int64               `json:"failServerId"`
+		FailScript      string              `json:"failScript"`
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {
@@ -81,7 +81,7 @@ func (Monitor) Check(gp *server.Goploy) server.Response {
 		}
 	} else {
 		sb.WriteString("Monitor : Success \n")
-		for _, item := range m.Items {
+		for _, item := range m.Target.Items {
 			serverID, err = strconv.ParseInt(item, 10, 64)
 			if err != nil {
 				err = m.RunSuccessScript(-1)
@@ -104,19 +104,19 @@ func (Monitor) Check(gp *server.Goploy) server.Response {
 
 func (Monitor) Add(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		Name            string `json:"name" validate:"required"`
-		Type            int    `json:"type" validate:"oneof=1 2 3 4 5"`
-		Target          string `json:"target" validate:"required"`
-		Second          int    `json:"second" validate:"gt=0"`
-		Times           uint16 `json:"times" validate:"gt=0"`
-		SilentCycle     int    `json:"silentCycle" validate:"required"`
-		NotifyType      uint8  `json:"notifyType" validate:"gt=0"`
-		NotifyTarget    string `json:"notifyTarget" validate:"required"`
-		Description     string `json:"description" validate:"max=255"`
-		FailScript      string `json:"failScript" `
-		SuccessScript   string `json:"successScript" `
-		SuccessServerID int64  `json:"successServerId" `
-		FailServerID    int64  `json:"failServerId" `
+		Name            string              `json:"name" validate:"required"`
+		Type            int                 `json:"type" validate:"oneof=1 2 3 4 5"`
+		Target          model.MonitorTarget `json:"target" validate:"required"`
+		Second          int                 `json:"second" validate:"gt=0"`
+		Times           uint16              `json:"times" validate:"gt=0"`
+		SilentCycle     int                 `json:"silentCycle" validate:"required"`
+		NotifyType      uint8               `json:"notifyType" validate:"gt=0"`
+		NotifyTarget    string              `json:"notifyTarget" validate:"required"`
+		Description     string              `json:"description" validate:"max=255"`
+		FailScript      string              `json:"failScript" `
+		SuccessScript   string              `json:"successScript" `
+		SuccessServerID int64               `json:"successServerId" `
+		FailServerID    int64               `json:"failServerId" `
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {
@@ -152,25 +152,26 @@ func (Monitor) Add(gp *server.Goploy) server.Response {
 
 func (Monitor) Edit(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		ID              int64  `json:"id" validate:"gt=0"`
-		Name            string `json:"name" validate:"required"`
-		Type            int    `json:"type" validate:"oneof=1 2 3 4 5"`
-		Target          string `json:"target" validate:"required"`
-		Second          int    `json:"second" validate:"gt=0"`
-		Times           uint16 `json:"times" validate:"gt=0"`
-		SilentCycle     int    `json:"silentCycle" validate:"required"`
-		NotifyType      uint8  `json:"notifyType" validate:"gt=0"`
-		NotifyTarget    string `json:"notifyTarget" validate:"required"`
-		Description     string `json:"description" validate:"max=255"`
-		FailScript      string `json:"failScript" `
-		SuccessScript   string `json:"successScript" `
-		SuccessServerID int64  `json:"successServerId" `
-		FailServerID    int64  `json:"failServerId" `
+		ID              int64               `json:"id" validate:"gt=0"`
+		Name            string              `json:"name" validate:"required"`
+		Type            int                 `json:"type" validate:"oneof=1 2 3 4 5"`
+		Target          model.MonitorTarget `json:"target" validate:"required"`
+		Second          int                 `json:"second" validate:"gt=0"`
+		Times           uint16              `json:"times" validate:"gt=0"`
+		SilentCycle     int                 `json:"silentCycle" validate:"required"`
+		NotifyType      uint8               `json:"notifyType" validate:"gt=0"`
+		NotifyTarget    string              `json:"notifyTarget" validate:"required"`
+		Description     string              `json:"description" validate:"max=255"`
+		FailScript      string              `json:"failScript" `
+		SuccessScript   string              `json:"successScript" `
+		SuccessServerID int64               `json:"successServerId" `
+		FailServerID    int64               `json:"failServerId" `
 	}
 	var reqData ReqData
 	if err := gp.Decode(&reqData); err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
+
 	err := model.Monitor{
 		ID:              reqData.ID,
 		Name:            reqData.Name,

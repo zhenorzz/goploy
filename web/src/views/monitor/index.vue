@@ -91,7 +91,6 @@
           align="center"
         >
           <template #default="scope">
-            {{ $t(`switchOption[${scope.row.state || 0}]`) }}
             <Switch
               :model-value="scope.row.state === 1"
               active-color="#13ce66"
@@ -294,7 +293,7 @@
               </el-form-item>
             </template>
             <el-form-item :label="$t('timeout') + '(s)'">
-              <el-input
+              <el-input-number
                 v-model="formProps.timeout"
                 autocomplete="off"
                 placeholder=""
@@ -538,6 +537,7 @@ import {
   MonitorToggle,
   MonitorRemove,
   MonitorData,
+  MonitorTargetData,
 } from '@/api/monitor'
 import type { ElForm } from 'element-plus'
 import { ref, watch, computed } from 'vue'
@@ -566,7 +566,7 @@ const tempFormData = {
   id: 0,
   name: '',
   type: 1,
-  target: '',
+  target: {} as MonitorTargetData,
   second: 60,
   times: 1,
   silentCycle: 1440,
@@ -608,7 +608,6 @@ watch(
     )
     if (monitorIndex !== -1) {
       tableData.value[monitorIndex].errorContent = data.errorContent
-      tableData.value[monitorIndex].state = data.state
     }
   }
 )
@@ -640,7 +639,6 @@ async function getList() {
     .request()
     .then((response) => {
       tableData.value = response.data.list.map((elem) => {
-        elem.target = JSON.parse(elem.target)
         if (elem.type == 4 || elem.type == 5) {
           elem.target.itemsName = elem.target.items
             .map(
@@ -778,31 +776,31 @@ function check() {
   })
 }
 
-function formatTarget(type: number): string {
-  let target = ''
-  if (4 > type && type > 0) {
-    target = JSON.stringify({
+function formatTarget(type: number): MonitorTargetData {
+  let target = {} as MonitorTargetData
+  if (0 < type && type < 4) {
+    target = {
       items: formProps.value.items,
       timeout: formProps.value.timeout || 0,
-    })
+    }
   } else if (type === 4) {
     if (formProps.value.process.length === 0) {
-      throw new Error('Process empty')
+      throw 'Process empty'
     }
-    target = JSON.stringify({
+    target = {
       items: formProps.value.items,
       timeout: formProps.value.timeout || 0,
       process: formProps.value.process,
-    })
+    }
   } else if (type === 5) {
     if (formProps.value.script.length === 0) {
-      throw new Error('Script empty')
+      throw 'Script empty'
     }
-    target = JSON.stringify({
+    target = {
       items: formProps.value.items,
       timeout: formProps.value.timeout || 0,
       script: formProps.value.script,
-    })
+    }
   }
   return target
 }

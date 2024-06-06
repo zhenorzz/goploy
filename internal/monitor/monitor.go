@@ -6,7 +6,6 @@ package monitor
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/zhenorzz/goploy/internal/model"
@@ -43,10 +42,7 @@ func (s Script) IsValid() bool {
 
 type Monitor struct {
 	Type          int
-	Items         []string
-	Timeout       time.Duration
-	Process       string
-	Script        string
+	Target        model.MonitorTarget
 	FailScript    Script
 	SuccessScript Script
 }
@@ -71,13 +67,11 @@ func WithFailScript(serverID int64, content string) Option {
 	}
 }
 
-func NewMonitorFromTarget(t int, target string, options ...Option) Monitor {
-	m := Monitor{}
-	if err := json.Unmarshal([]byte(target), &m); err != nil {
-		return m
+func NewMonitorFromTarget(t int, target model.MonitorTarget, options ...Option) Monitor {
+	m := Monitor{
+		Target: target,
+		Type:   t,
 	}
-	m.Type = t
-
 	for _, option := range options {
 		option(&m)
 	}
@@ -95,7 +89,7 @@ func (m Monitor) Check() error {
 	case 3:
 		err = m.CheckHostAlive()
 	case 4:
-		m.Script = fmt.Sprintf("ps -ef|grep -v grep|grep %s", m.Process)
+		m.Target.Script = fmt.Sprintf("ps -ef|grep -v grep|grep %s", m.Target.Process)
 		fallthrough
 	case 5:
 		err = m.CheckScript()
@@ -106,9 +100,9 @@ func (m Monitor) Check() error {
 }
 
 func (m Monitor) CheckSite() error {
-	for _, url := range m.Items {
+	for _, url := range m.Target.Items {
 		client := http.Client{
-			Timeout: m.Timeout * time.Second,
+			Timeout: m.Target.Timeout * time.Second,
 		}
 		if resp, err := client.Get(url); err != nil {
 			return err
@@ -120,8 +114,8 @@ func (m Monitor) CheckSite() error {
 }
 
 func (m Monitor) CheckPort() error {
-	for _, address := range m.Items {
-		conn, err := net.DialTimeout("tcp", address, m.Timeout*time.Second)
+	for _, address := range m.Target.Items {
+		conn, err := net.DialTimeout("tcp", address, m.Target.Timeout*time.Second)
 		if err != nil {
 			return err
 		}
@@ -132,12 +126,12 @@ func (m Monitor) CheckPort() error {
 
 func (m Monitor) CheckHostAlive() error {
 	var stdout, stderr bytes.Buffer
-	for _, addr := range m.Items {
+	for _, addr := range m.Target.Items {
 		var arg []string
 		if runtime.GOOS == "windows" {
-			arg = append(arg, "-n", "1", "-w", strconv.Itoa(int(m.Timeout*1000)), addr)
+			arg = append(arg, "-n", "1", "-w", strconv.Itoa(int(m.Target.Timeout*1000)), addr)
 		} else {
-			arg = append(arg, "-c", "1", "-W", strconv.Itoa(int(m.Timeout)), addr)
+			arg = append(arg, "-c", "1", "-W", strconv.Itoa(int(m.Target.Timeout)), addr)
 		}
 
 		stdout.Reset()
@@ -154,19 +148,19 @@ func (m Monitor) CheckHostAlive() error {
 }
 
 func (m Monitor) CheckScript() error {
-	for _, serverIDStr := range m.Items {
+	for _, serverIDStr := range m.Target.Items {
 		serverID, err := strconv.ParseInt(serverIDStr, 10, 64)
 		if err != nil {
 			return err
 		}
-		server, client, session, err := NewServerSession(serverID, m.Timeout*time.Second)
+		server, client, session, err := NewServerSession(serverID, m.Target.Timeout*time.Second)
 		if err != nil {
 			return err
 		}
 		var stdout, stderr bytes.Buffer
 		session.Stdout = &stdout
 		session.Stderr = &stderr
-		err = session.Run(server.ReplaceVars(m.Script))
+		err = session.Run(server.ReplaceVars(m.Target.Script))
 		_ = client.Close()
 		_ = session.Close()
 		if err != nil {
@@ -183,7 +177,7 @@ func (m Monitor) RunFailScript(serverID int64) error {
 		}
 
 		if sId != -1 {
-			server, client, session, err := NewServerSession(sId, m.Timeout*time.Second)
+			server, client, session, err := NewServerSession(sId, m.Target.Timeout*time.Second)
 			if err != nil {
 				return err
 			}
@@ -211,7 +205,7 @@ func (m Monitor) RunSuccessScript(serverID int64) error {
 		}
 
 		if sId != -1 {
-			server, client, session, err := NewServerSession(sId, m.Timeout*time.Second)
+			server, client, session, err := NewServerSession(sId, m.Target.Timeout*time.Second)
 			if err != nil {
 				return err
 			}

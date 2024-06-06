@@ -4,9 +4,22 @@ All notable changes to the "goploy" extension will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
+## [1.17.1] - 2024-06-06
+
+### Changed
+
+- file struct
+- monitor kill enable when encounter error
+
+### Bug fixed
+
+- fix create db if not exists
+- fix table monitor.target.timeout column type
+
 ## [1.17.0] - 2024-05-14
 
 ### Added
+
 - [custom variable](https://github.com/zhenorzz/goploy/issues/101)
 - custom login lock time
 
