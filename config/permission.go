@@ -11,12 +11,11 @@ const (
 	ShowSFTPLogPage         = 4
 	ShowTerminalLogPage     = 5
 	ShowTerminalRecord      = 6
-	Member                  = 7
+	Setting                 = 7
 	ShowMemberPage          = 8
 	AddMember               = 9
 	EditMember              = 10
 	DeleteMember            = 11
-	Namespace               = 12
 	ShowNamespacePage       = 13
 	AddNamespace            = 14
 	EditNamespace           = 15
@@ -90,4 +89,6 @@ const (
 	DeleteNginxConfig       = 83
 	UnbindServerProject     = 84
 	ManageRepository        = 85
+	ShowNotificationPage    = 85
+	EditNotification        = 85
 )

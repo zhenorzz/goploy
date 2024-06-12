@@ -10,6 +10,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/internal/model"
+	"github.com/zhenorzz/goploy/internal/notify"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -108,12 +109,11 @@ func serverMonitorTask() {
 				}
 				serverCaches[serverMonitor.ServerID] = server
 			}
-			body, err := serverMonitor.Notify(serverCaches[serverMonitor.ServerID], cycleValue)
-			if err != nil {
-				log.Error(fmt.Sprintf("monitor task %d notify error, %s", serverMonitor.ID, err.Error()))
-			} else {
-				log.Trace(fmt.Sprintf("monitor task %d notify return %s", serverMonitor.ID, body))
-			}
+			_ = notify.Send(fmt.Sprintf("server-monitor%d", serverMonitor.ID), notify.UseByServerMonitor, notify.ServerMonitorData{
+				Server:        serverCaches[serverMonitor.ServerID],
+				ServerMonitor: serverMonitor,
+				CycleValue:    cycleValue,
+			}, serverMonitor.NotifyType, serverMonitor.NotifyTarget)
 		}
 		serverMonitorCaches[serverMonitor.ID] = monitorCache
 	}

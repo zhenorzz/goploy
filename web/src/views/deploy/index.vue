@@ -111,7 +111,7 @@
                         :href="row.name"
                         target="_blank"
                         :underline="false"
-                        class="card-title__text"
+                        class="card-title__link"
                         style="color: inherit"
                       >
                         {{ row.name }}
@@ -292,6 +292,9 @@
         <el-row style="white-space: pre-wrap" v-html="publishFormProps.title" />
       </template>
       <el-row>
+        <el-row v-if="selectedItem.deployState === DeployState.Uninitialized">
+          {{ $t('initial') }}
+        </el-row>
         <el-row
           v-for="(variable, index) in publishFormProps.customVariables"
           :key="index"
@@ -323,11 +326,13 @@
           >
           </el-input>
         </el-row>
-        <el-row style="width: 100%">
+        <el-row
+          v-if="selectedItem.deployState !== DeployState.Uninitialized"
+          style="width: 100%"
+        >
           <el-checkbox
             v-model="publishFormProps.selectCommit"
             :label="`Select Commit (default lastest ${selectedItem.branch})`"
-            :disabled="publishFormProps.selectTag"
             @change="handleSelectCommit"
           />
           <el-row
@@ -338,7 +343,10 @@
             {{ publishFormProps.commit }}
           </el-row>
         </el-row>
-        <el-row style="width: 100%; margin-top: 10px">
+        <el-row
+          v-if="selectedItem.deployState !== DeployState.Uninitialized"
+          style="width: 100%; margin-top: 10px"
+        >
           <el-checkbox
             v-model="publishFormProps.selectServer"
             :label="`Select Server (default all)`"
@@ -662,7 +670,7 @@ function handleRebuilt() {
   tableData.value[projectIndex].deployState = 1
 }
 
-function handleSelectCommit(state) {
+function handleSelectCommit(state: boolean) {
   if (state == false) {
     publishFormProps.value.branch = ''
     publishFormProps.value.commit = ''
@@ -679,7 +687,7 @@ function handleSelectServer() {
     })
 }
 
-function handleCancelSelectCommit(state) {
+function handleCancelSelectCommit() {
   publishFormProps.value.branch = ''
   publishFormProps.value.commit = ''
   publishFormProps.value.selectCommit = false
@@ -758,7 +766,7 @@ function publish(data: ProjectData) {
   const customVariables = deepClone(data.script.customVariables)
   publishFormProps.value.customVariables =
     customVariables &&
-    customVariables.map((item) => {
+    customVariables.map((item: any) => {
       if (item.type == 'list') {
         item.value = ''
       }
@@ -878,6 +886,13 @@ function restorePublishForm() {
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex: 1;
+  }
+  .card-title__link {
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-weight: 600;
     white-space: nowrap;
   }

@@ -1,4 +1,5 @@
 {
+  "title": "Title",
   "default": "Default",
   "select": "Select",
   "name": "Name",
@@ -171,9 +172,11 @@
     "serverCrontab": "Crontab UI",
     "serverCron": "Cron",
     "serverNginx": "Nginx",
-    "namespace": "Namespace",
+    "setting": "Setting",
     "namespaceSetting": "NS setting",
     "roleSetting": "Role setting",
+    "memberSetting": "Member setting",
+    "notificationSetting": "Notify setting",
     "member": "Member",
     "log": "Log",
     "loginLog": "Login log",

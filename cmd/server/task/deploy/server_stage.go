@@ -270,9 +270,10 @@ func (gsync *Gsync) serverStage() error {
 	for i := 0; i < len(gsync.ProjectServers); i++ {
 		msg := <-ch
 		if msg.state == model.ProjectFail {
-			message += msg.serverName + " error message: " + msg.detail
+			message += msg.serverName + " error message: " + msg.detail + ", "
 		}
 	}
+	message = strings.TrimRight(message, ", ")
 	close(ch)
 
 	if message != "" {

@@ -7,10 +7,12 @@ package task
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/cmd/server/ws"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/monitor"
+	"github.com/zhenorzz/goploy/internal/notify"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -98,12 +100,14 @@ func monitorTask() {
 			monitorCache.errorTimes++
 			log.Error("m " + m.Name + " encounter error, " + monitorErrorContent)
 			if m.Times <= uint16(monitorCache.errorTimes) {
-				if body, err := m.Notify(monitorErrorContent); err != nil {
+				if err := notify.Send(fmt.Sprintf("monitor%d", m.ID), notify.UseByMonitor, notify.MonitorData{
+					Monitor:  m,
+					ErrorMsg: monitorErrorContent,
+				}, m.NotifyType, m.NotifyTarget); err != nil {
 					log.Error("m " + m.Name + " notify error, " + err.Error())
 				} else {
 					monitorCache.errorTimes = 0
 					monitorCache.silentCycle = 1
-					log.Trace("m " + m.Name + " notify return " + body)
 					_ = m.UpdateLatestErrorContent(monitorErrorContent)
 					ws.Send(ws.Data{
 						Type:    ws.TypeMonitor,

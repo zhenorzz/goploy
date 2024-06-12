@@ -165,7 +165,7 @@
 </template>
 
 <script lang="ts">
-export default { name: 'MemberIndex' }
+export default { name: 'MemberSetting' }
 </script>
 <script lang="ts" setup>
 import permission from '@/permission'

@@ -169,7 +169,7 @@
   </el-row>
 </template>
 <script lang="ts">
-export default { name: 'NamespaceRole' }
+export default { name: 'RoleSetting' }
 </script>
 <script lang="ts" setup>
 import pms from '@/permission'

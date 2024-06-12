@@ -5,13 +5,7 @@
 package model
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
 	sq "github.com/Masterminds/squirrel"
-	"io"
-	"net/http"
-	"time"
 )
 
 const serverMonitorTable = "`server_monitor`"
@@ -218,100 +212,4 @@ func (sm ServerMonitor) DeleteRow() error {
 		RunWith(DB).
 		Exec()
 	return err
-}
-
-func (sm ServerMonitor) Notify(server Server, cycleValue string) (string, error) {
-	var err error
-	var resp *http.Response
-	if sm.NotifyType == NotifyWeiXin {
-		type markdown struct {
-			Content string `json:"content"`
-		}
-		type message struct {
-			Msgtype  string   `json:"msgtype"`
-			Markdown markdown `json:"markdown"`
-		}
-		content := fmt.Sprintf("Server: %s(%s)\n ", server.Name, server.Description)
-		content += "Item: <font color=\"warning\">" + sm.Item + " warning</font>\n "
-		content += fmt.Sprintf("Event: %s value: %s, %s %s \n ", sm.Formula, cycleValue, sm.Operator, sm.Value)
-
-		msg := message{
-			Msgtype: "markdown",
-			Markdown: markdown{
-				Content: content,
-			},
-		}
-		b, _ := json.Marshal(msg)
-		resp, err = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
-	} else if sm.NotifyType == NotifyDingTalk {
-		type markdown struct {
-			Title string `json:"title"`
-			Text  string `json:"text"`
-		}
-		type message struct {
-			Msgtype  string   `json:"msgtype"`
-			Markdown markdown `json:"markdown"`
-		}
-		content := fmt.Sprintf("Server: %s(%s)\n ", server.Name, server.Description)
-		content += "Item: " + sm.Item + "\n "
-		content += fmt.Sprintf("Event: %s value: %s, %s %s \n ", sm.Formula, cycleValue, sm.Operator, sm.Value)
-
-		msg := message{
-			Msgtype: "markdown",
-			Markdown: markdown{
-				Title: fmt.Sprintf("%s %s warning", server.Name, sm.Item),
-				Text:  content,
-			},
-		}
-		b, _ := json.Marshal(msg)
-		resp, err = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
-	} else if sm.NotifyType == NotifyFeiShu {
-		type message struct {
-			Title string `json:"title"`
-			Text  string `json:"text"`
-		}
-
-		content := fmt.Sprintf("Server: %s(%s)\n ", server.Name, server.Description)
-		content += "Item: " + sm.Item + "\n "
-		content += fmt.Sprintf("Event: %s value: %s, %s %s \n ", sm.Formula, cycleValue, sm.Operator, sm.Value)
-
-		msg := message{
-			Title: fmt.Sprintf("%s %s warning", server.Name, sm.Item),
-			Text:  content,
-		}
-		b, _ := json.Marshal(msg)
-		resp, err = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
-	} else if sm.NotifyType == NotifyCustom {
-		type message struct {
-			Code    int    `json:"code"`
-			Message string `json:"message"`
-			Data    struct {
-				Server      Server        `json:"server"`
-				MonitorRule ServerMonitor `json:"monitorRule"`
-				Value       string        `json:"value"`
-				Time        string        `json:"time"`
-			} `json:"data"`
-		}
-		code := 0
-		msg := message{
-			Code:    code,
-			Message: fmt.Sprintf("%s %s warning", server.Name, sm.Item),
-		}
-		msg.Data.Server = server
-		msg.Data.MonitorRule = sm
-		msg.Data.Value = cycleValue
-		msg.Data.Time = time.Now().Format("2006-01-02 15:04:05")
-		b, _ := json.Marshal(msg)
-		resp, err = http.Post(sm.NotifyTarget, "application/json", bytes.NewBuffer(b))
-	}
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	responseData, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	} else {
-		return string(responseData), err
-	}
 }

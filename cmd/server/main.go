@@ -16,6 +16,7 @@ import (
 	logApi "github.com/zhenorzz/goploy/cmd/server/api/log"
 	"github.com/zhenorzz/goploy/cmd/server/api/monitor"
 	"github.com/zhenorzz/goploy/cmd/server/api/namespace"
+	"github.com/zhenorzz/goploy/cmd/server/api/notification"
 	"github.com/zhenorzz/goploy/cmd/server/api/project"
 	"github.com/zhenorzz/goploy/cmd/server/api/repository"
 	"github.com/zhenorzz/goploy/cmd/server/api/role"
@@ -49,7 +50,7 @@ var (
 	s    string
 )
 
-const appVersion = "1.17.1"
+const appVersion = "1.17.2"
 
 func init() {
 	flag.StringVar(&config.AssetDir, "asset-dir", "", "default: ./")
@@ -64,7 +65,7 @@ func init() {
 }
 
 // @title Goploy
-// @version 1.17.1
+// @version 1.17.2
 // @description A web deployment system tool!
 // @contact.name zhenorzz
 // @contact.url https://github.com/zhenorzz/goploy
@@ -130,6 +131,7 @@ func main() {
 	srv.Router.Register(cron.Cron{})
 	srv.Router.Register(agent.Agent{})
 	srv.Router.Register(template.Template{})
+	srv.Router.Register(notification.Notification{})
 	srv.Router.Register(ws.GetHub())
 	go func() {
 		c := make(chan os.Signal, 1)
@@ -188,9 +190,9 @@ func install() {
 	println("Start to install the database...")
 
 	// open connection without database
-	runner, err := model.Open(config.DBConfig{
-		Host: cfg.DB.Host, User: cfg.DB.User, Password: cfg.DB.Password, Port: cfg.DB.Port,
-	})
+	dbConfig := cfg.DB
+	dbConfig.Database = ""
+	runner, err := model.Open(dbConfig)
 	if err != nil {
 		panic(err)
 	}

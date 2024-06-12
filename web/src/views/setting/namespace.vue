@@ -127,7 +127,7 @@
   </el-row>
 </template>
 <script lang="ts">
-export default { name: 'NamespaceIndex' }
+export default { name: 'NamespaceSetting' }
 </script>
 <script lang="ts" setup>
 import permission from '@/permission'

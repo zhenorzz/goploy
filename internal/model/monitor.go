@@ -5,10 +5,7 @@
 package model
 
 import (
-	"bytes"
 	"encoding/json"
-	"io"
-	"net/http"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
@@ -236,107 +233,4 @@ func (m Monitor) UpdateLatestErrorContent(errorContent string) error {
 		RunWith(DB).
 		Exec()
 	return err
-}
-
-func (m Monitor) Notify(errMsg string) (string, error) {
-	var err error
-	var resp *http.Response
-	if m.NotifyType == NotifyWeiXin {
-		type markdown struct {
-			Content string `json:"content"`
-		}
-		type message struct {
-			Msgtype  string   `json:"msgtype"`
-			Markdown markdown `json:"markdown"`
-		}
-		content := "Monitor: <font color=\"warning\">" + m.Name + "</font>\n "
-		content += "> <font color=\"warning\">can not access</font> \n "
-		content += "> <font color=\"comment\">" + errMsg + "</font> \n "
-
-		msg := message{
-			Msgtype: "markdown",
-			Markdown: markdown{
-				Content: content,
-			},
-		}
-		b, _ := json.Marshal(msg)
-		resp, err = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
-	} else if m.NotifyType == NotifyDingTalk {
-		type markdown struct {
-			Title string `json:"title"`
-			Text  string `json:"text"`
-		}
-		type message struct {
-			Msgtype  string   `json:"msgtype"`
-			Markdown markdown `json:"markdown"`
-		}
-		text := "#### Monitor: " + m.Name + " can not access \n >" + errMsg
-
-		msg := message{
-			Msgtype: "markdown",
-			Markdown: markdown{
-				Title: m.Name,
-				Text:  text,
-			},
-		}
-		b, _ := json.Marshal(msg)
-		resp, err = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
-	} else if m.NotifyType == NotifyFeiShu {
-		type content struct {
-			Text string `json:"text"`
-		}
-		type message struct {
-			MsgType string  `json:"msg_type"`
-			Content content `json:"content"`
-		}
-
-		text := m.Name + " can not access\n "
-		text += "detail:  " + errMsg
-
-		msg := message{
-			MsgType: "text",
-			Content: content{
-				Text: text,
-			},
-		}
-		b, _ := json.Marshal(msg)
-		resp, err = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
-	} else if m.NotifyType == NotifyCustom {
-		type message struct {
-			Code    int    `json:"code"`
-			Message string `json:"message"`
-			Data    struct {
-				MonitorName string        `json:"monitorName"`
-				Type        int           `json:"type"`
-				Target      MonitorTarget `json:"target"`
-				Second      int           `json:"second"`
-				Times       uint16        `json:"times"`
-				Error       string        `json:"error"`
-			} `json:"data"`
-		}
-		code := 0
-		msg := message{
-			Code:    code,
-			Message: m.Name + " can not access",
-		}
-		msg.Data.MonitorName = m.Name
-		msg.Data.Type = m.Type
-		msg.Data.Target = m.Target
-		msg.Data.Second = m.Second
-		msg.Data.Times = m.Times
-		msg.Data.Error = errMsg
-		b, _ := json.Marshal(msg)
-		resp, err = http.Post(m.NotifyTarget, "application/json", bytes.NewBuffer(b))
-	}
-	if err != nil {
-		return "", err
-	}
-
-	defer resp.Body.Close()
-	responseData, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	} else {
-		return string(responseData), err
-	}
 }

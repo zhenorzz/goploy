@@ -389,10 +389,21 @@ CREATE TABLE IF NOT EXISTS `terminal_log` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+CREATE TABLE IF NOT EXISTS `notification_template` (
+    `id` int unsigned auto_increment,
+    `type`  tinyint unsigned default 0 not null,
+    `use_by` varchar(255) default '' not null,
+    `title`  varchar(255) default ''  not null,
+    `template` text not null,
+    `insert_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 collate = utf8mb4_general_ci;
+
 INSERT IGNORE INTO `user`(`id`, `account`, `password`, `name`, `contact`, `state`, `super_manager`) VALUES (1, 'admin', '$2a$10$89ZJ2xeJj35GOw11Qiucr.phaEZP4.kBX6aKTs7oWFp1xcGBBgijm', '超管', '', 1, 1);
 INSERT IGNORE INTO `namespace`(`id`, `name`) VALUES (1, 'goploy');
 INSERT IGNORE INTO `namespace_user`(`id`, `namespace_id`, `user_id`, `role_id`) VALUES (1, 1, 1, 0);
-INSERT IGNORE INTO `system_config` (`id`, `key`, `value`) VALUES (1, 'version', '1.17.1');
+INSERT IGNORE INTO `system_config` (`id`, `key`, `value`) VALUES (1, 'version', '1.17.2');
 INSERT IGNORE INTO `role`(`id`, `name`, `description`) VALUES (1, 'manager', '');
 INSERT IGNORE INTO `role`(`id`, `name`, `description`) VALUES (2, 'member', '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (1, 0, 'Log', 0, '');
@@ -401,22 +412,21 @@ INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALU
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (4, 1, 'ShowSFTPLogPage', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (5, 1, 'ShowTerminalLogPage', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (6, 1, 'ShowTerminalRecord', 0, '');
-INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (7, 0, 'Member', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (7, 0, 'Setting', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (8, 7, 'ShowMemberPage', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (9, 7, 'AddMember', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (10, 7, 'EditMember', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (11, 7, 'DeleteMember', 0, '');
-INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (12, 0, 'Namespace', 0, '');
-INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (13, 12, 'ShowNamespacePage', 0, '');
-INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (14, 12, 'AddNamespace', 0, '');
-INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (15, 12, 'EditNamespace', 0, '');
-INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (16, 12, 'AddNamespaceUser', 0, '');
-INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (17, 12, 'DeleteNamespaceUser', 0, '');
-INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (18, 12, 'ShowRolePage', 0, '');
-INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (19, 12, 'AddRole', 0, '');
-INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (20, 12, 'EditRole', 0, '');
-INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (21, 12, 'DeleteRole', 0, '');
-INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (22, 12, 'EditPermission', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (13, 7, 'ShowNamespacePage', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (14, 7, 'AddNamespace', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (15, 7, 'EditNamespace', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (16, 7, 'AddNamespaceUser', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (17, 7, 'DeleteNamespaceUser', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (18, 7, 'ShowRolePage', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (19, 7, 'AddRole', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (20, 7, 'EditRole', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (21, 7, 'DeleteRole', 0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (22, 7, 'EditPermission', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (23, 0, 'Server', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (24, 23, 'ShowServerPage', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (25, 23, 'AddServer', 0, '');
@@ -479,6 +489,9 @@ INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALU
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (83, 23, 'DeleteNginxConfig', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (84, 23, 'UnbindServerProject', 0, '');
 INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (85, 43, 'ManageRepository',  0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (86, 7, 'ShowNotificationPage',  0, '');
+INSERT IGNORE INTO `permission`(`id`, `pid`, `name`, `sort`, `description`) VALUES (87, 7, 'EditNotification',  0, '');
+
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 14);
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 15);
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (1, 16);
@@ -535,3 +548,89 @@ INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (2, 59);
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (2, 60);
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (2, 61);
 INSERT IGNORE INTO `role_permission`(`role_id`, `permission_id`) VALUES (2, 67);
+
+INSERT INTO `notification_template` (id, type, use_by, title, template) VALUES (1, 1, 'deploy', '{{ .Project.Name }}', 'Deploy: <font color="warning">{{ .Project.Name }}</font>
+Publisher: <font color="comment">{{ .Project.PublisherName }}</font>
+Author: <font color="comment">{{ .CommitInfo.Author }}</font>
+{{ if ne .CommitInfo.Tag }}Tag: <font color="comment">{{ .CommitInfo.Tag }}</font>{{ end }}
+Branch: <font color="comment">{{ .CommitInfo.Branch }}</font>
+CommitSHA: <font color="comment">{{ .CommitInfo.Commit }}</font>
+CommitMessage: <font color="comment">{{ .CommitInfo.Message }}</font>
+ServerList:<font color="comment">
+{{- range .ProjectServers}}
+  {{- if ne .Server.Name .Server.IP}}
+    {{- .Server.Name}}({{.Server.IP}})
+  {{- else}}
+    {{- .Server.IP}}
+  {{- end}}
+{{- end}}
+</font>
+{{- if eq .DeployState 2 }}
+State: <font color="green">success</font>
+{{- else }}
+State: <font color="red">fail</font>
+{{- end }}
+{{- if ne .DeployDetail ""}}
+Detail: <font color="comment">{{.DeployDetail}}</font>
+{{- end }}');
+INSERT INTO `notification_template` (id, type, use_by, title, template) VALUES (2, 2, 'deploy', '{{ .Project.Name }}', '#### Deploy：{{ .Project.Name }}
+#### Publisher：{{ .Project.PublisherName }}
+#### Author：{{ .CommitInfo.Author }}
+#### {{ if ne .CommitInfo.Tag }}Tag: {{ .CommitInfo.Tag }}{{ end }}
+#### Branch：{{ .CommitInfo.Branch }}
+#### CommitSHA：{{ .CommitInfo.Commit }}
+#### CommitMessage： {{ .CommitInfo.Message }}
+####  ServerList:
+{{- range .ProjectServers}}
+  {{- if ne .Server.Name .Server.IP}}
+    {{- .Server.Name}}({{.Server.IP}})
+  {{- else}}
+    {{- .Server.IP}}
+  {{- end}}
+{{- end}}
+####
+{{- if eq .DeployState 2 }}State: <font color="green">success</font>
+{{- else }}State: <font color="red">fail</font>
+{{- end }}
+{{- if ne .DeployDetail ""}}
+> Detail: <font color="comment">{{.DeployDetail}}</font>
+{{- end }}
+');
+INSERT INTO `notification_template` (id, type, use_by, title, template) VALUES (3, 3, 'deploy', 'Deploy: {{ .Project.Name }}', 'Publisher: {{ .Project.PublisherName }}
+Author: {{ .CommitInfo.Author }}
+{{ if ne .CommitInfo.Tag "" }}Tag: {{ .CommitInfo.Tag }}{{ end }}
+Branch: {{ .CommitInfo.Branch }}
+CommitSHA: {{ .CommitInfo.Commit }}
+CommitMessage: {{ .CommitInfo.Message }}
+ServerList:
+{{- range .ProjectServers}}
+  {{- if ne .Server.Name .Server.IP}}
+    {{- .Server.Name}}({{.Server.IP}}),
+  {{- else}}
+    {{- .Server.IP}},
+  {{- end}}
+{{- end}}
+{{- if eq .DeployState 2 }}
+State: success
+{{- else }}
+State: fail
+{{- end }}
+{{- if ne .DeployDetail ""}}
+Detail: {{.DeployDetail }}
+{{- end }}');
+INSERT INTO `notification_template` (id, type, use_by, title, template) VALUES (4, 1, 'monitor', '{{ .Monitor.Name }}', 'Monitor: <font color="warning">{{ .Monitor.Name }}</font>
+> <font color="warning">can not access</font>
+> <font color="comment">{{ .ErrorMsg }}</font>');
+INSERT INTO `notification_template` (id, type, use_by, title, template) VALUES (5, 2, 'monitor', '{{ .Monitor.Name }}', '#### Monitor: {{ .Monitor.Name }} can not access
+{{ .ErrorMsg }}');
+INSERT INTO `notification_template` (id, type, use_by, title, template) VALUES (6, 3, 'monitor', '{{ .Monitor.Name }}', 'can not access
+detail: {{ .ErrorMsg }}');
+INSERT INTO `notification_template` (id, type, use_by, title, template) VALUES (7, 1, 'server_monitor', '{{ .Server.Name }} {{ .ServerMonitor.Item }} Warning', 'Server: {{ .Server.Name }}({{ .Server.Description }})
+Item: <font color="warning">{{ .ServerMonitor.Item }} warning</font>
+Event: {{ .ServerMonitor.Formula }} value: {{ .CycleValue }}, {{ .ServerMonitor.Operator }} {{ .ServerMonitor.Value }}');
+INSERT INTO `notification_template` (id, type, use_by, title, template) VALUES (8, 2, 'server_monitor', '{{ .Server.Name }} {{ .ServerMonitor.Item }} Warning', 'Server: {{ .Server.Name }}({{ .Server.Description }})
+Item: {{ .ServerMonitor.Item }} warning
+Event: {{ .ServerMonitor.Formula }} value: {{ .CycleValue }}, {{ .ServerMonitor.Operator }} {{ .ServerMonitor.Value }}');
+INSERT INTO `notification_template` (id, type, use_by, title, template) VALUES (9, 3, 'server_monitor', '{{ .Server.Name }} {{ .ServerMonitor.Item }} Warning', 'Server: {{ .Server.Name }}({{ .Server.Description }})
+Item: {{ .ServerMonitor.Item }} warning
+Event: {{ .ServerMonitor.Formula }} value: {{ .CycleValue }}, {{ .ServerMonitor.Operator }} {{ .ServerMonitor.Value }}');

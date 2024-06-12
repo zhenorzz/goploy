@@ -4,6 +4,22 @@ All notable changes to the "goploy" extension will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
+## [1.17.2] - 2024-06-12
+
+### Added
+
+- notification template
+
+
+### Changed
+
+- router order
+
+### Bug fixed
+
+- fix unknown driver
+- fix deploy page css
+
 ## [1.17.1] - 2024-06-06
 
 ### Changed

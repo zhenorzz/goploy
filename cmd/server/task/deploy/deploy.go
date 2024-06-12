@@ -197,7 +197,6 @@ func (gsync *Gsync) exec() {
 			log.Errorf(projectLogFormat, gsync.Project.ID, err)
 		}
 		gsync.notify(model.ProjectFail, err.Error())
-
 	}()
 
 	err = gsync.repoStage()

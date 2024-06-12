@@ -169,19 +169,19 @@ export default <RouteRecordRaw[]>[
     ],
   },
   {
-    path: '/namespace',
+    path: '/setting',
     component: Layout,
-    redirect: '/namespace/index',
-    name: 'namespace',
+    redirect: '/setting/namespace',
+    name: 'setting',
     meta: {
-      title: 'namespace',
-      icon: 'namespace',
+      title: 'setting',
+      icon: 'setting',
     },
     children: [
       {
-        path: 'index',
-        name: 'NamespaceIndex',
-        component: () => import('@/views/namespace/index.vue'),
+        path: 'namespace',
+        name: 'NamespaceSetting',
+        component: () => import('@/views/setting/namespace.vue'),
         meta: {
           title: 'namespaceSetting',
           icon: 'namespaceSetting',
@@ -190,34 +190,32 @@ export default <RouteRecordRaw[]>[
       },
       {
         path: 'role',
-        name: 'NamespaceRole',
-        component: () => import('@/views/namespace/role.vue'),
+        name: 'RoleSetting',
+        component: () => import('@/views/setting/role.vue'),
         meta: {
           title: 'roleSetting',
           icon: 'roleSetting',
           permissions: [permission.ShowRolePage],
         },
       },
-    ],
-  },
-  {
-    path: '/member',
-    component: Layout,
-    redirect: '/member/index',
-    name: 'member',
-    meta: {
-      title: 'member',
-      icon: 'user',
-    },
-    children: [
       {
-        path: 'index',
-        name: 'MemberIndex',
-        component: () => import('@/views/member/index.vue'),
+        path: 'member',
+        name: 'MemberSetting',
+        component: () => import('@/views/setting/member.vue'),
         meta: {
-          title: 'member',
+          title: 'memberSetting',
           icon: 'user',
           permissions: [permission.ShowMemberPage],
+        },
+      },
+      {
+        path: 'notification',
+        name: 'NotificationSetting',
+        component: () => import('@/views/setting/notification.vue'),
+        meta: {
+          title: 'notificationSetting',
+          icon: 'notifySetting',
+          permissions: [permission.ShowNotificationPage],
         },
       },
     ],
