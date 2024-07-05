@@ -53,6 +53,9 @@ func (ftpRepo FtpRepo) Follow(projectID int64, _ string, projectURL string, _ st
 			return err
 		}
 		for _, entry := range remoteEntries {
+			if entry.Name == "." || entry.Name == ".." {
+				continue
+			}
 			if entry.Type == 1 {
 				nextLocalDir := path.Join(localDir, entry.Name)
 				if err := os.Mkdir(nextLocalDir, 0755); err != nil {
