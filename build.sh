@@ -43,8 +43,8 @@ echo "env GOOS=darwin GOARCH=arm64 go build -o goploy_arm64.mac cmd/server/main.
 env GOOS=darwin GOARCH=arm64 go build -o goploy_arm64.mac cmd/server/main.go
 echo "goploy_arm64.mac done";
 
-echo "env GOOS=darwin go build -o goploy.mac cmd/server/main.go";
-env GOOS=darwin go build -o goploy.mac cmd/server/main.go
+echo "env GOOS=darwin GOARCH=amd64 go build -o goploy.mac cmd/server/main.go";
+env GOOS=darwin GOARCH=amd64 go build -o goploy.mac cmd/server/main.go
 echo "goploy.mac done";
 
 echo "env GOOS=windows GOARCH=amd64 go build -o goploy.exe cmd/server/main.go";
