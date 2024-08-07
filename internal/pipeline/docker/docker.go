@@ -190,7 +190,7 @@ func (c *Config) Run(step Step) (outStr string, runErr error) {
 		return
 	}
 
-	if err = c.Client.ContainerStart(ctx, step.ContainerName, types.ContainerStartOptions{}); err != nil {
+	if err = c.Client.ContainerStart(ctx, step.ContainerName, container.StartOptions{}); err != nil {
 		runErr = fmt.Errorf("start docker container err: %s", err)
 		return
 	}
@@ -209,7 +209,7 @@ func (c *Config) Run(step Step) (outStr string, runErr error) {
 		return
 	}
 
-	out, err := c.Client.ContainerLogs(ctx, step.ContainerName, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+	out, err := c.Client.ContainerLogs(ctx, step.ContainerName, container.LogsOptions{ShowStdout: true, ShowStderr: true})
 	if err != nil {
 		runErr = fmt.Errorf("logs docker container err: %s", err)
 		return
@@ -230,7 +230,7 @@ func (c *Config) Run(step Step) (outStr string, runErr error) {
 func (c *Config) Destroy(step Step) {
 	ctx := context.Background()
 	_ = c.Client.ContainerKill(ctx, step.ContainerName, "9")
-	_ = c.Client.ContainerRemove(ctx, step.ContainerName, types.ContainerRemoveOptions{
+	_ = c.Client.ContainerRemove(ctx, step.ContainerName, container.RemoveOptions{
 		RemoveVolumes: true,
 		RemoveLinks:   false,
 		Force:         true,

@@ -1,6 +1,8 @@
 module github.com/zhenorzz/goploy
 
-go 1.18
+go 1.21
+
+toolchain go1.22.5
 
 require (
 	github.com/Masterminds/squirrel v1.4.0
