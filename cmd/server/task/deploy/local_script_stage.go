@@ -77,6 +77,7 @@ func (gsync *Gsync) runLocalScript() error {
 	}
 	scriptText := commitInfo.ReplaceVars(content)
 	scriptText = project.ReplaceVars(scriptText)
+	scriptText = gsync.ProjectServers.ReplaceVars(scriptText)
 	scriptText = project.ReplaceCustomVars(scriptText)
 
 	// run yaml script by docker
