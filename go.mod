@@ -6,7 +6,7 @@ toolchain go1.22.5
 
 require (
 	github.com/Masterminds/squirrel v1.4.0
-	github.com/docker/docker v26.1.4+incompatible
+	github.com/docker/docker v26.1.5+incompatible
 	github.com/go-ldap/ldap/v3 v3.4.1
 	github.com/go-playground/locales v0.13.0
 	github.com/go-playground/universal-translator v0.17.0
