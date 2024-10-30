@@ -5,6 +5,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -210,6 +211,16 @@ func (ps ProjectServer) ToSSHOption() string {
 
 func (ps ProjectServer) ReplaceVars(script string) string {
 	return ps.Server.ReplaceVars(script)
+}
+
+func (ps ProjectServers) ReplaceVars(script string) string {
+	var servers []Server
+	for _, p := range ps {
+		servers = append(servers, p.Server)
+	}
+	serverJson, _ := json.Marshal(servers)
+	script = strings.Replace(script, "${PROJECT_SERVERS}", string(serverJson), -1)
+	return script
 }
 
 // Note that doubling a single-quote inside a single-quoted string gives you a single-quote
