@@ -24,13 +24,20 @@
             <el-row>
               <el-button
                 style=""
+                :type="pinedProcessIds.includes(item.id) ? 'warning' : 'info'"
+                text
+                :icon="Paperclip"
+                @click.stop="handlePin(item)"
+              />
+              <el-button
+                style=""
                 type="primary"
                 text
                 :icon="Edit"
                 @click.stop="handleEdit(item)"
               />
               <el-button
-                type="primary"
+                type="danger"
                 text
                 :icon="Delete"
                 @click.stop="handleDelete(item.id)"
@@ -40,6 +47,20 @@
         </el-option>
       </el-select>
       <el-button type="primary" :icon="Plus" @click="handleAdd" />
+    </el-row>
+    <el-row v-if="pinedProcessOption.length > 0">
+      <el-radio-group v-model="pinProjectProcessId" size="small" @change="(id) => handlePinProcessChange(id)">
+        <el-radio 
+          v-for="item in pinedProcessOption"
+          :key="item.id"
+          style="margin-right: 10px;margin-top: 10px;"
+          :value="item.id"
+          :label="item.id"
+          border
+        >
+          {{item.name}}
+        </el-radio>
+      </el-radio-group>
     </el-row>
     <el-table
       ref="table"
@@ -194,7 +215,7 @@
   </el-dialog>
 </template>
 <script lang="ts" setup>
-import { Edit, Delete, Plus } from '@element-plus/icons-vue'
+import { Edit, Delete, Plus, Paperclip } from '@element-plus/icons-vue'
 import { ManageProcess } from '@/api/deploy'
 import {
   ProjectProcessData,
@@ -240,18 +261,14 @@ watch(
 const processLoading = ref(false)
 const projectProcessId = ref<number>()
 const processOption = ref<ProjectProcessList['datagram']['list']>([])
+const pinProjectProcessId = ref<number>(0)
+const pinedProcessOption = ref<ProjectProcessList['datagram']['list']>([])
+const pinedProcessIds = ref<number[]>([])
 const getList = () => {
   tableData.value = []
-  const _processId = localStorage.getItem(
-    `${props.projectRow.id}-latest-use-process`
-  )
-  projectProcessId.value = undefined
-  if (_processId) {
-    projectProcessId.value = Number(_processId)
-    handleProcessChange(projectProcessId.value)
-  }
   processLoading.value = true
   processOption.value = []
+  pinedProcessOption.value = []
   new ProjectProcessList(
     { projectId: props.projectRow.id },
     { page: 1, rows: 999 }
@@ -259,6 +276,25 @@ const getList = () => {
     .request()
     .then((response) => {
       processOption.value = response.data.list
+      const _pinedProjectProcessIds = localStorage.getItem(
+        `${props.projectRow.id}-pined-project-process`
+      )
+      if (_pinedProjectProcessIds) {
+        const pinedProjectProcessIds = JSON.parse(_pinedProjectProcessIds) as number[]
+        pinedProcessIds.value = pinedProjectProcessIds
+        pinedProcessOption.value = pinedProjectProcessIds.map(pinedProjectProcessId=> {
+            return processOption.value.find(e => e.id == pinedProjectProcessId)
+        }) as ProjectProcessList['datagram']['list']
+      }
+
+      const _processId = localStorage.getItem(
+        `${props.projectRow.id}-latest-use-process`
+      )
+      projectProcessId.value = undefined
+      if (_processId) {
+        projectProcessId.value = Number(_processId)
+        handleProcessChange(projectProcessId.value)
+      }
     })
     .finally(() => {
       processLoading.value = false
@@ -273,6 +309,10 @@ const handleProcessChange = (processId: number) => {
     `${props.projectRow.id}-latest-use-process`,
     processId.toString()
   )
+
+  const foundIdPos = pinedProcessIds.value.indexOf(processId) 
+  pinProjectProcessId.value = foundIdPos > -1 ? processId : 0
+
   if (tableData.value.length > 0) {
     return
   }
@@ -286,6 +326,12 @@ const handleProcessChange = (processId: number) => {
       tableLoading.value = false
     })
 }
+
+const handlePinProcessChange = (processId: number) => {
+  projectProcessId.value = processId
+  handleProcessChange(processId)
+}
+
 const commandRes = ref<ManageProcess['datagram']>(
   {} as ManageProcess['datagram']
 )
@@ -361,12 +407,33 @@ function handleDelete(id: number) {
     .then(() => {
       new ProjectProcessDelete({ id }).request().then(() => {
         ElMessage.success('Success')
+        const foundIdPos = pinedProcessIds.value.indexOf(id) 
+        console.log(foundIdPos)
+        if (foundIdPos > -1) {
+          pinedProcessIds.value.splice(foundIdPos, 1)
+          localStorage.setItem(`${props.projectRow.id}-pined-project-process`, JSON.stringify(pinedProcessIds.value))
+        }
         getList()
       })
     })
     .catch(() => {
       ElMessage.info('Cancel')
     })
+}
+function handlePin(data: ProjectProcessData) {
+  const foundIdPos = pinedProcessIds.value.indexOf(data.id) 
+  if (foundIdPos > -1) {
+    const foundPinedProcessPos = pinedProcessOption.value.findIndex((ele) => ele.id == data.id)
+    if (foundPinedProcessPos > -1) {
+      pinedProcessOption.value.splice(foundPinedProcessPos, 1)
+    }
+    pinedProcessIds.value.splice(foundIdPos, 1)
+  } else {
+    pinedProcessOption.value.push(data)
+    pinedProcessIds.value.push(data.id)
+  }
+
+  localStorage.setItem(`${props.projectRow.id}-pined-project-process`, JSON.stringify(pinedProcessIds.value))
 }
 
 function submit() {
