@@ -4,8 +4,18 @@ All notable changes to the "goploy" extension will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
+## [1.17.4] - 2025-02-18
 
-## [1.17.2] - 2024-07-05
+### Added
+
+- add ${PROJECT_SERVERS}
+- add pin project process
+
+### Bug fixed
+
+- delete tag list cache
+
+## [1.17.3] - 2024-07-05
 
 ### Bug fixed
 

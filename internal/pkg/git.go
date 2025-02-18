@@ -66,6 +66,13 @@ func (git *GIT) Fetch(options ...string) error {
 	return nil
 }
 
+func (git *GIT) Tag(options ...string) error {
+	if err := git.Run("tag", options...); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (git *GIT) Log(options ...string) error {
 	if err := git.Run("log", options...); err != nil {
 		return err

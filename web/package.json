@@ -1,6 +1,6 @@
 {
   "name": "goploy",
-  "version": "1.17.3",
+  "version": "1.17.4",
   "license": "GPL-3.0-or-later",
   "scripts": {
     "dev": "vite",

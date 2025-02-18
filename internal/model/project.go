@@ -474,7 +474,6 @@ func (p Project) GetDeployList() (Projects, error) {
 
 		projects = append(projects, project)
 	}
-
 	return projects, nil
 
 }

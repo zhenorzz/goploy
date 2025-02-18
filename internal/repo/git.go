@@ -161,6 +161,13 @@ func (GitRepo) BranchLog(projectID int64, branch string, rows int) ([]CommitInfo
 	return list, nil
 }
 
+// TagLog
+// delete all local tags
+// git tag -l | xargs git tag -d
+// get remote tags
+// git fetch --prune --tags
+// show records
+// git log --tags --simplify-by-decoration -n 10 --no-walk --stat --pretty=format:"%H %an %at %s %d"
 func (GitRepo) TagLog(projectID int64, rows int) ([]CommitInfo, error) {
 	git := pkg.GIT{Dir: config.GetProjectPath(projectID)}
 	if err := git.Add("."); err != nil {
@@ -171,7 +178,16 @@ func (GitRepo) TagLog(projectID int64, rows int) ([]CommitInfo, error) {
 		return []CommitInfo{}, err
 	}
 
-	if err := git.Pull(); err != nil {
+	if err := git.Tag("-l"); err != nil {
+		return []CommitInfo{}, err
+	}
+	for _, tag := range strings.Fields(git.Output.String())[:rows] {
+		if err := git.Tag("-d", tag); err != nil {
+			return []CommitInfo{}, err
+		}
+	}
+
+	if err := git.Fetch("--prune", "--tags"); err != nil {
 		return []CommitInfo{}, err
 	}
 
