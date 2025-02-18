@@ -181,7 +181,14 @@ func (GitRepo) TagLog(projectID int64, rows int) ([]CommitInfo, error) {
 	if err := git.Tag("-l"); err != nil {
 		return []CommitInfo{}, err
 	}
-	for _, tag := range strings.Fields(git.Output.String())[:rows] {
+
+	tags := strings.Fields(git.Output.String())
+	if len(tags) < rows {
+		rows = len(tags)
+	}
+
+	firstNTags := tags[:rows]
+	for _, tag := range firstNTags {
 		if err := git.Tag("-d", tag); err != nil {
 			return []CommitInfo{}, err
 		}
