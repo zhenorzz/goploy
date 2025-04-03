@@ -21,7 +21,7 @@ import (
 )
 
 var deployList = list.New()
-var deploySecondTick = time.Tick(time.Millisecond)
+var deployTimer = time.NewTimer(time.Millisecond)
 var cronMinuteTick = time.Tick(time.Minute)
 
 type Gsync struct {
@@ -69,7 +69,7 @@ func Run(counter *int32, stop <-chan struct{}) {
 	go func() {
 		for {
 			select {
-			case <-deploySecondTick:
+			case <-deployTimer.C:
 				if atomic.LoadInt32(&deployingNumber) < config.Toml.APP.DeployLimit {
 					atomic.AddInt32(&deployingNumber, 1)
 					if deployElem := deployList.Front(); deployElem != nil {
@@ -79,9 +79,15 @@ func Run(counter *int32, stop <-chan struct{}) {
 							atomic.AddInt32(&deployingNumber, -1)
 							wg.Done()
 						}(deployList.Remove(deployElem).(*Gsync))
+						//list中还有项目，1ms后继续执行
+                                                deployTimer.Reset(time.Millisecond);
 					} else {
+						//list中没有需要部署的项目，不需要再执行检查
 						atomic.AddInt32(&deployingNumber, -1)
 					}
+				} else {
+					//当前并行部署达到最大，100ms后继续执行检查
+					deployTimer.Reset(100 * time.Millisecond)
 				}
 			case <-cronMinuteTick:
 				cronTask()
@@ -179,6 +185,8 @@ func AddTask(gsync Gsync) {
 		log.Errorf(projectLogFormat, gsync.Project.ID, "insert trace error, "+err.Error())
 	}
 	deployList.PushBack(&gsync)
+	//有新的待部署项目，1毫秒后执行部署检查
+	deployTimer.Reset(time.Millisecond)
 }
 
 func (gsync *Gsync) exec() {
