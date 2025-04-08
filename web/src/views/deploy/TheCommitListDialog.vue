@@ -10,12 +10,12 @@
   >
     <el-row type="flex" justify="end" @change="handleChangeType">
       <el-radio-group v-model="type" style="margin-bottom: 10px">
-        <el-radio-button label="Commit" value="Commit" />
-        <el-radio-button label="Tag" value="Tag" />
+        <el-radio-button :label="types.commit" :value="types.commit" />
+        <el-radio-button :label="types.tag" :value="types.tag" />
       </el-radio-group>
     </el-row>
     <el-select
-      v-if="type == 'Commit'"
+      v-if="type == types.commit"
       v-model="branch"
       v-loading="branchLoading"
       filterable
@@ -47,7 +47,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column v-if="type == 'Tag'" prop="tag" label="tag">
+      <el-table-column v-if="type == types.tag" prop="tag" label="tag">
         <template #default="scope">
           <RepoURL
             style="font-size: 12px"
@@ -133,7 +133,11 @@ const dialogVisible = computed({
   },
 })
 
-const type = ref('Commit')
+const types = {
+  commit: 'Commit',
+  tag: 'Tag',
+}
+const type = ref(types.commit)
 
 const branchLoading = ref(false)
 const branchOption = ref<RepositoryBranchList['datagram']['list']>([])
@@ -196,7 +200,7 @@ const getTagList = () => {
 
 function handleChangeType() {
   tableData.value = []
-  if (type.value == 'Tag') {
+  if (type.value == types.tag) {
     getTagList()
   }
 }
@@ -204,6 +208,7 @@ function handleChangeType() {
 function cancel() {
   emit('cancel')
   dialogVisible.value = false
+  type.value = types.commit
 }
 </script>
 <style lang="scss">
