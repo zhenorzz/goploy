@@ -120,7 +120,8 @@ CREATE TABLE IF NOT EXISTS `publish_trace` (
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `ext` longtext NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
-  KEY `idx_project_id` (`project_id`) USING BTREE COMMENT 'project_id'
+  KEY `idx_project_id` (`project_id`) USING BTREE COMMENT 'project_id',
+  KEY `idx_token` (`token`) USING BTREE COMMENT 'token'
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `monitor` (
