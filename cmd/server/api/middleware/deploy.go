@@ -7,6 +7,7 @@ package middleware
 import (
 	"encoding/json"
 	"errors"
+
 	"github.com/zhenorzz/goploy/config"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/server"
@@ -39,6 +40,8 @@ func FilterEvent(gp *server.Goploy) error {
 	} else if XGiteeEvent := gp.Request.Header.Get("X-Gitee-Event"); len(XGiteeEvent) != 0 && XGiteeEvent == "Push Hook" {
 		return nil
 	} else if XSVNEvent := gp.Request.Header.Get("X-SVN-Event"); len(XSVNEvent) != 0 && XSVNEvent == "push" {
+		return nil
+	} else if XSVNEvent := gp.Request.Header.Get("X-Codeup-Event"); len(XSVNEvent) != 0 && XSVNEvent == "Push Hook" {
 		return nil
 	} else {
 		return errors.New("only receive push event")
