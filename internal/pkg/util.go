@@ -29,26 +29,16 @@ func GetScriptExt(scriptMode string) string {
 // ParseCommandLine parse cmd arg
 func ParseCommandLine(command string) ([]string, error) {
 	var args []string
-	state := "start"
-	current := ""
-	quote := "\""
-	escapeNext := true
+	var current strings.Builder
+	inQuotes := false
+	quoteChar := byte(0)
+	escapeNext := false
+
 	for i := 0; i < len(command); i++ {
 		c := command[i]
 
-		if state == "quotes" {
-			if string(c) != quote {
-				current += string(c)
-			} else {
-				args = append(args, current)
-				current = ""
-				state = "start"
-			}
-			continue
-		}
-
 		if escapeNext {
-			current += string(c)
+			current.WriteByte(c)
 			escapeNext = false
 			continue
 		}
@@ -58,35 +48,39 @@ func ParseCommandLine(command string) ([]string, error) {
 			continue
 		}
 
-		if c == '"' {
-			state = "quotes"
-			quote = string(c)
-			continue
-		}
-
-		if state == "arg" {
-			if c == ' ' || c == '=' || c == '\t' {
-				args = append(args, current)
-				current = ""
-				state = "start"
+		if inQuotes {
+			if c == quoteChar {
+				inQuotes = false
+				quoteChar = 0
 			} else {
-				current += string(c)
+				current.WriteByte(c)
 			}
 			continue
 		}
 
-		if c != ' ' && c != '=' && c != '\t' {
-			state = "arg"
-			current += string(c)
+		if c == '"' || c == '\'' {
+			inQuotes = true
+			quoteChar = c
+			continue
 		}
+
+		if c == ' ' || c == '\t' {
+			if current.Len() > 0 {
+				args = append(args, current.String())
+				current.Reset()
+			}
+			continue
+		}
+
+		current.WriteByte(c)
 	}
 
-	if state == "quotes" {
-		return []string{}, fmt.Errorf("unclosed quote in command line: %s", command)
+	if current.Len() > 0 {
+		args = append(args, current.String())
 	}
 
-	if current != "" {
-		args = append(args, current)
+	if inQuotes {
+		return nil, fmt.Errorf("unclosed quote in command line: %s", command)
 	}
 
 	return args, nil
