@@ -1236,6 +1236,12 @@
                 :url="selectedItem.url"
                 suffix="/hooks"
                 text="Gitee Webhook"
+              />、
+              <RepoURL
+                style="font-size: 14px"
+                :url="selectedItem.url"
+                suffix="/settings/webhooks"
+                text="Codeup Webhook"
               />
             </el-row>
             {{
