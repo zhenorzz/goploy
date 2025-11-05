@@ -2,11 +2,12 @@ package deploy
 
 import (
 	"encoding/json"
+	"time"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/zhenorzz/goploy/cmd/server/ws"
 	"github.com/zhenorzz/goploy/internal/model"
 	"github.com/zhenorzz/goploy/internal/repo"
-	"time"
 )
 
 func (gsync *Gsync) repoStage() error {

@@ -312,13 +312,7 @@
                 },
               ]"
             >
-              <el-radio-group v-model="formData.second">
-                <el-radio :label="60">1 min</el-radio>
-                <el-radio :label="300">5 min</el-radio>
-                <el-radio :label="900">15 min</el-radio>
-                <el-radio :label="1800">30 min</el-radio>
-                <el-radio :label="3600">60 min</el-radio>
-              </el-radio-group>
+              <el-input-number v-model="formData.second" :min="1" />
             </el-form-item>
             <el-form-item
               :label="$t('monitorPage.failTimes')"

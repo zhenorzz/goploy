@@ -7,11 +7,12 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	sq "github.com/Masterminds/squirrel"
-	"github.com/zhenorzz/goploy/config"
 	"path"
 	"strconv"
 	"strings"
+
+	sq "github.com/Masterminds/squirrel"
+	"github.com/zhenorzz/goploy/config"
 )
 
 const projectTable = "`project`"
@@ -86,10 +87,11 @@ const (
 )
 
 const (
-	RepoGit  = "git"
-	RepoSVN  = "svn"
-	RepoFTP  = "ftp"
-	RepoSFTP = "sftp"
+	RepoGit   = "git"
+	RepoSVN   = "svn"
+	RepoFTP   = "ftp"
+	RepoSFTP  = "sftp"
+	RepoEmpty = "empty"
 )
 
 // Project notify type

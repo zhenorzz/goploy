@@ -73,29 +73,29 @@
       :data="tableData"
     >
       <el-table-column type="expand">
-        <template #default="{}">
+        <template #default="scope">
           <el-row
-            v-if="commandRes.hasOwnProperty('execRes')"
+            v-if="commandRes[scope.row.serverId]?.hasOwnProperty('execRes')"
             style="padding: 8px 16px; flex-direction: column; line-height: 20px"
           >
             <el-row>
               {{ $t('deployPage.execRes') }}:
               <span
-                :class="commandRes.execRes ? 'exec-success' : 'exec-fail'"
+                :class="commandRes[scope.row.serverId]?.execRes ? 'exec-success' : 'exec-fail'"
                 style="padding-left: 5px"
               >
-                {{ commandRes.execRes ? $t('success') : $t('fail') }}
+                {{ commandRes[scope.row.serverId]?.execRes ? $t('success') : $t('fail') }}
               </span>
             </el-row>
             <el-row style="white-space: pre-wrap">
-              {{ $t('deployPage.execTime') }}: {{ commandRes.startTime }} -
-              {{ commandRes.endTime }}
+              {{ $t('deployPage.execTime') }}: {{ commandRes[scope.row.serverId]?.startTime }} -
+              {{ commandRes[scope.row.serverId]?.endTime }}
             </el-row>
             <el-row style="white-space: pre-wrap">
-              {{ commandRes.stdout }}
+              {{ commandRes[scope.row.serverId]?.stdout }}
             </el-row>
             <el-row style="white-space: pre-wrap">
-              {{ commandRes.stderr }}
+              {{ commandRes[scope.row.serverId]?.stderr }}
             </el-row>
           </el-row>
           <el-row v-else style="padding: 0 8px"> {{ 'not run' }} </el-row>
@@ -228,7 +228,7 @@ import {
   ProjectData,
 } from '@/api/project'
 import type { ElForm } from 'element-plus'
-import { computed, watch, ref, PropType } from 'vue'
+import { computed, watch, ref, PropType, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 const props = defineProps({
   modelValue: {
@@ -332,9 +332,7 @@ const handlePinProcessChange = (processId: number) => {
   handleProcessChange(processId)
 }
 
-const commandRes = ref<ManageProcess['datagram']>(
-  {} as ManageProcess['datagram']
-)
+const commandRes = reactive<{[key: string]: ManageProcess['datagram']}>({})
 const commandLoading = ref(false)
 const handleProcessCmd = (data: ProjectServerData, command: string) => {
   ElMessageBox.confirm(t('deployPage.execTips', { command }), t('tips'), {
@@ -351,7 +349,7 @@ const handleProcessCmd = (data: ProjectServerData, command: string) => {
       })
         .request()
         .then((response) => {
-          commandRes.value = response.data
+          commandRes[data.serverId] = response.data
           table.value.toggleRowExpansion(data, true)
         })
         .finally(() => {

@@ -119,7 +119,7 @@ func (Project) GetList(gp *server.Goploy) server.Response {
 // @Router /project/pingRepos [get]
 func (Project) PingRepos(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		URL      string `schema:"url" validate:"required"`
+		URL      string `schema:"url"`
 		RepoType string `schema:"repoType" validate:"required"`
 	}
 	var reqData ReqData
@@ -180,7 +180,7 @@ func (Project) PingRepos(gp *server.Goploy) server.Response {
 // @Router /project/getRemoteBranchList [get]
 func (Project) GetRemoteBranchList(gp *server.Goploy) server.Response {
 	type ReqData struct {
-		URL      string `schema:"url" validate:"required"`
+		URL      string `schema:"url"`
 		RepoType string `schema:"repoType" validate:"required"`
 	}
 	var reqData ReqData
@@ -399,7 +399,7 @@ func (Project) Add(gp *server.Goploy) server.Response {
 	type ReqData struct {
 		Name                string              `json:"name" validate:"required"`
 		RepoType            string              `json:"repoType" validate:"required"`
-		URL                 string              `json:"url" validate:"required"`
+		URL                 string              `json:"url"`
 		Label               string              `json:"label"`
 		Path                string              `json:"path" validate:"required"`
 		Environment         uint8               `json:"environment" validate:"required"`

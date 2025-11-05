@@ -7,12 +7,13 @@ package repo
 import (
 	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/zhenorzz/goploy/config"
-	"github.com/zhenorzz/goploy/internal/pkg"
 	"os"
 	"strconv"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/zhenorzz/goploy/config"
+	"github.com/zhenorzz/goploy/internal/pkg"
 )
 
 type GitRepo struct{}

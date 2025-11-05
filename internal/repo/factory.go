@@ -6,9 +6,10 @@ package repo
 
 import (
 	"fmt"
-	"github.com/zhenorzz/goploy/internal/model"
 	"strconv"
 	"strings"
+
+	"github.com/zhenorzz/goploy/internal/model"
 )
 
 type Repo interface {
@@ -40,14 +41,17 @@ type CommitInfo struct {
 }
 
 func GetRepo(repoType string) (Repo, error) {
-	if repoType == model.RepoGit {
+	switch repoType {
+	case model.RepoGit:
 		return GitRepo{}, nil
-	} else if repoType == model.RepoSVN {
+	case model.RepoSVN:
 		return SvnRepo{}, nil
-	} else if repoType == model.RepoFTP {
+	case model.RepoFTP:
 		return FtpRepo{}, nil
-	} else if repoType == model.RepoSFTP {
+	case model.RepoSFTP:
 		return SftpRepo{}, nil
+	case model.RepoEmpty:
+		return EmptyRepo{}, nil
 	}
 	return nil, fmt.Errorf("wrong repo type passed")
 }

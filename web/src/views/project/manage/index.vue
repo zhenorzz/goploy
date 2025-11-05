@@ -206,7 +206,7 @@
               prop="url"
               :rules="[
                 {
-                  required: true,
+                  required: formData.repoType !== 'empty',
                   message: 'Repository url required',
                   trigger: ['blur'],
                 },
@@ -231,11 +231,12 @@
                 </el-tooltip>
               </template>
               <el-row type="flex" style="width: 100%">
-                <el-select v-model="formData.repoType" style="width: 70px">
+                <el-select v-model="formData.repoType" style="width: 120px">
                   <el-option label="git" value="git" />
                   <el-option label="svn" value="svn" />
                   <el-option label="ftp" value="ftp" />
                   <el-option label="sftp" value="sftp" />
+                  <el-option label="empty" value="empty" />
                 </el-select>
                 <el-input
                   v-model.trim="formData.url"
@@ -581,7 +582,7 @@
                   "
                   style="flex: 1"
                   @change="
-                    (mode) => {
+                    (mode: string) => {
                       handleScriptModeChange(ScriptKey.AfterPull, mode)
                     }
                   "
@@ -752,7 +753,7 @@
                   "
                   style="flex: 1"
                   @change="
-                    (mode) => {
+                    (mode: string) => {
                       handleScriptModeChange(ScriptKey.AfterDeploy, mode)
                     }
                   "
@@ -956,7 +957,7 @@
                   "
                   style="flex: 1"
                   @change="
-                    (mode) => {
+                    (mode: string) => {
                       handleScriptModeChange(ScriptKey.DeployFinish, mode)
                     }
                   "
@@ -1706,7 +1707,7 @@ function setAutoDeploy() {
 }
 
 function pingRepos() {
-  if (formData.value.url === '') {
+  if (formData.value.url === '' && formData.value.repoType !== 'empty') {
     ElMessage.error('url can not be blank')
     formProps.value.branch = []
     return
@@ -1726,7 +1727,7 @@ function pingRepos() {
 }
 
 function getRemoteBranchList() {
-  if (formData.value.url === '') {
+  if (formData.value.url === '' && formData.value.repoType !== 'empty') {
     ElMessage.error('url can not be blank')
     formProps.value.branch = []
     return

@@ -238,6 +238,9 @@ export function isLink(url: string): boolean {
 }
 
 export function hideURLPwd(url: string): string {
+  if (url === '') {
+    return ''
+  }
   const lastAtIndex = url.lastIndexOf('git@')
   if (lastAtIndex !== -1) {
     return url
