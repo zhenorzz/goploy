@@ -30,6 +30,7 @@ func GetScriptExt(scriptMode string) string {
 func ParseCommandLine(command string) ([]string, error) {
 	var args []string
 	var current strings.Builder
+
 	inQuotes := false
 	quoteChar := byte(0)
 	escapeNext := false
@@ -43,7 +44,7 @@ func ParseCommandLine(command string) ([]string, error) {
 			continue
 		}
 
-		if c == '\\' {
+		if c == '\\' && !inQuotes {
 			escapeNext = true
 			continue
 		}
@@ -81,6 +82,11 @@ func ParseCommandLine(command string) ([]string, error) {
 
 	if inQuotes {
 		return nil, fmt.Errorf("unclosed quote in command line: %s", command)
+	}
+
+	// 检查未处理的转义字符
+	if escapeNext {
+		return nil, fmt.Errorf("dangling escape character at end of command line: %s", command)
 	}
 
 	return args, nil
