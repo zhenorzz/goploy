@@ -20,7 +20,7 @@ DELETE FROM `permission` WHERE `id` = 12;
 INSERT INTO goploy.notification_template (id, type, use_by, title, template) VALUES (1, 1, 'deploy', '{{ .Project.Name }}', 'Deploy: <font color="warning">{{ .Project.Name }}</font>
 Publisher: <font color="comment">{{ .Project.PublisherName }}</font>
 Author: <font color="comment">{{ .CommitInfo.Author }}</font>
-{{ if ne .CommitInfo.Tag }}Tag: <font color="comment">{{ .CommitInfo.Tag }}</font>{{ end }}
+{{ if ne .CommitInfo.Tag ""}}Tag: <font color="comment">{{ .CommitInfo.Tag }}</font>{{ end }}
 Branch: <font color="comment">{{ .CommitInfo.Branch }}</font>
 CommitSHA: <font color="comment">{{ .CommitInfo.Commit }}</font>
 CommitMessage: <font color="comment">{{ .CommitInfo.Message }}</font>
@@ -44,7 +44,7 @@ Detail: <font color="comment">{{.DeployDetail}}</font>
 INSERT INTO goploy.notification_template (id, type, use_by, title, template) VALUES (2, 2, 'deploy', '{{ .Project.Name }}', '#### Deploy：{{ .Project.Name }}
 #### Publisher：{{ .Project.PublisherName }}
 #### Author：{{ .CommitInfo.Author }}
-#### {{ if ne .CommitInfo.Tag }}Tag: {{ .CommitInfo.Tag }}{{ end }}
+#### {{ if ne .CommitInfo.Tag ""}}Tag: {{ .CommitInfo.Tag }}{{ end }}
 #### Branch：{{ .CommitInfo.Branch }}
 #### CommitSHA：{{ .CommitInfo.Commit }}
 #### CommitMessage： {{ .CommitInfo.Message }}
