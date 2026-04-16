@@ -72,8 +72,8 @@ func (Repository) GetBranchList(gp *server.Goploy) server.Response {
 	}
 }
 
-// GetCommitList lists latest 10 commits
-// @Summary List latest 10 commits
+// GetCommitList lists latest 50 commits
+// @Summary List latest 50 commits
 // @Tags Repository
 // @Produce json
 // @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
@@ -113,8 +113,8 @@ func (Repository) GetCommitList(gp *server.Goploy) server.Response {
 	}
 }
 
-// GetTagList lists latest 10 tags
-// @Summary List latest 10 tags
+// GetTagList lists latest 50 tags
+// @Summary List latest 50 tags
 // @Tags Repository
 // @Produce json
 // @Security ApiKeyHeader || ApiKeyQueryParam || NamespaceHeader || NamespaceQueryParam
@@ -140,7 +140,7 @@ func (Repository) GetTagList(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	list, err := r.TagLog(project.ID, 10)
+	list, err := r.TagLog(project.ID, 50)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
