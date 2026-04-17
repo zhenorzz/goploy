@@ -168,7 +168,7 @@ func (GitRepo) BranchLog(projectID int64, branch string, rows int) ([]CommitInfo
 // get remote tags
 // git fetch --prune --tags
 // show records
-// git log --tags --simplify-by-decoration -n 10 --no-walk --stat --pretty=format:"%H %an %at %s %d"
+// git log --tags --simplify-by-decoration -n {rows} --no-walk --stat --pretty=format:"%H %an %at %s %d"
 func (GitRepo) TagLog(projectID int64, rows int) ([]CommitInfo, error) {
 	git := pkg.GIT{Dir: config.GetProjectPath(projectID)}
 	if err := git.Add("."); err != nil {
