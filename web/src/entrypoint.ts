@@ -3,6 +3,7 @@ import store from './store'
 import NProgress from 'nprogress' // progress bar
 import 'nprogress/nprogress.css' // progress bar style
 import { isLogin, logout } from '@/utils/auth' // get token from cookie
+import { hasLoginCallbackQuery } from '@/utils/loginCallback'
 import { RouteRecordRaw } from 'vue-router'
 
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
@@ -15,6 +16,10 @@ router.beforeEach(async (to) => {
   // determine whether the user has logged in
   if (isLogin()) {
     if (to.path === '/login') {
+      if (hasLoginCallbackQuery(to.query)) {
+        return true
+      }
+
       // if is logged in, redirect to the home page
       NProgress.done()
       return '/'

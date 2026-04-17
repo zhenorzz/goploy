@@ -144,6 +144,7 @@ export default { name: 'Login' }
 </script>
 <script lang="ts" setup>
 import { param2Obj } from '@/utils'
+import { parseLoginCallbackParams } from '@/utils/loginCallback'
 import { validUsername, validPassword } from '@/utils/validate'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
@@ -250,27 +251,22 @@ watch(
   useRoute(),
   (route) => {
     redirect.value = route.query?.redirect
-    if (route.query['account'] && route.query['time'] && route.query['token']) {
+    const callbackParams = parseLoginCallbackParams(route.query)
+
+    if (callbackParams?.extLogin) {
       handleExtLogin(
-        route.query['account'] as string,
-        Number(route.query['time']),
-        route.query['token'] as string
+        callbackParams.extLogin.account,
+        callbackParams.extLogin.time,
+        callbackParams.extLogin.token
+      )
+    } else if (callbackParams?.mediaLogin) {
+      handleMediaLogin(
+        callbackParams.mediaLogin.authCode,
+        callbackParams.mediaLogin.state
       )
     }
 
     query.value = param2Obj(window.location.href)
-
-    if (query.value['code']) {
-      handleMediaLogin(
-        query.value['code'].toString(),
-        query.value['state'].toString()
-      )
-    } else if (query.value['authCode']) {
-      handleMediaLogin(
-        query.value['authCode'].toString(),
-        query.value['state'].toString()
-      )
-    }
   },
   { immediate: true }
 )
