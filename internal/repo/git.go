@@ -106,12 +106,17 @@ func (GitRepo) RemoteBranchList(url string) ([]string, error) {
 	}
 
 	var list []string
-	for _, branchWithSha := range strings.Split(git.Output.String(), "\n") {
-		if len(branchWithSha) != 0 {
-			branchWithShaSlice := strings.Fields(branchWithSha)
-			branchWithHead := branchWithShaSlice[len(branchWithShaSlice)-1]
-			branchWithHeadSlice := strings.Split(branchWithHead, "/")
-			list = append(list, branchWithHeadSlice[len(branchWithHeadSlice)-1])
+	for _, line := range strings.Split(strings.TrimSpace(git.Output.String()),"\n") {
+		fields := strings.fields(line)
+		if len(fields) < 2{
+			continue
+		}
+
+		ref := fields[1] // refs/heads/feature/login
+
+		if strings.HasPrefix(ref, "refs/heads/") {
+			branch := strings.TrimPrefix(ref, "refs/heads/")
+			list = append(list, branch)
 		}
 	}
 	return list, nil
