@@ -1,6 +1,6 @@
 module github.com/zhenorzz/goploy
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/Masterminds/squirrel v1.4.0
@@ -69,7 +69,7 @@ require (
 	go.opentelemetry.io/otel v1.19.0 // indirect
 	go.opentelemetry.io/otel/metric v1.19.0 // indirect
 	go.opentelemetry.io/otel/trace v1.19.0 // indirect
-	golang.org/x/image v0.18.0 // indirect
+	golang.org/x/image v0.38.0 // indirect
 	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/sys v0.38.0 // indirect
