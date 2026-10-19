@@ -302,16 +302,15 @@ func (Deploy) FileCompare(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := pkg.ValidateRelativePath(reqData.FilePath); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
 	project, err := model.Project{ID: reqData.ProjectID, NamespaceID: gp.Namespace.ID}.GetNamespaceData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	srcPath := filepath.Join(config.GetProjectPath(project.ID), filepath.FromSlash(strings.ReplaceAll(reqData.FilePath, `\`, "/")))
+	srcPath, _, err := pkg.ResolvePath(config.GetProjectPath(project.ID), reqData.FilePath)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
 	file, err := os.Open(srcPath)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
@@ -405,16 +404,16 @@ func (Deploy) FileDiff(gp *server.Goploy) server.Response {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	if err := pkg.ValidateRelativePath(reqData.FilePath); err != nil {
-		return response.JSON{Code: response.Error, Message: err.Error()}
-	}
-
 	project, err := model.Project{ID: reqData.ProjectID, NamespaceID: gp.Namespace.ID}.GetNamespaceData()
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
 
-	srcText, err := os.ReadFile(filepath.Join(config.GetProjectPath(project.ID), filepath.FromSlash(strings.ReplaceAll(reqData.FilePath, `\`, "/"))))
+	srcPath, _, err := pkg.ResolvePath(config.GetProjectPath(project.ID), reqData.FilePath)
+	if err != nil {
+		return response.JSON{Code: response.Error, Message: err.Error()}
+	}
+	srcText, err := os.ReadFile(srcPath)
 	if err != nil {
 		return response.JSON{Code: response.Error, Message: err.Error()}
 	}
