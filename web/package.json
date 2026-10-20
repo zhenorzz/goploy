@@ -16,7 +16,7 @@
     "cron-validator": "^1.2.1",
     "cronstrue": "^1.113.0",
     "diff": "^5.0.0",
-    "echarts": "^5.2.1",
+    "echarts": "^6.1.0",
     "element-plus": "^2.3.4",
     "js-cookie": "^3.0.7",
     "listenercount": "^1.0.1",
