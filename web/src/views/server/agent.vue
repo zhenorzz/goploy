@@ -350,6 +350,9 @@ import { Refresh, Bell, Tickets, Edit, Delete } from '@element-plus/icons-vue'
 import * as echarts from 'echarts/core'
 import { LineChart } from 'echarts/charts'
 import 'echarts/theme/dark-mushroom.js'
+// echarts 6 ships a new default theme. Register the bundled v5 theme so light
+// mode keeps the 5.x palette and component metrics.
+import 'echarts/theme/v5.js'
 import { CanvasRenderer } from 'echarts/renderers'
 import {
   TitleComponent,
@@ -456,6 +459,15 @@ const chartBaseOption = {
   legend: {
     bottom: 0,
     data: [],
+  },
+  grid: {
+    // echarts 6 changes the default grid (left 15% / top 65 / bottom 80) and
+    // shrinks it further to keep labels on canvas. These are the 5.3.3 defaults.
+    left: '10%',
+    top: 60,
+    right: '10%',
+    bottom: 70,
+    outerBoundsMode: 'none',
   },
   series: [],
 }
@@ -644,7 +656,10 @@ function report(chartName: string, values: Date[]) {
           'dark-mushroom'
         )
       } else {
-        chart = echarts.init(chartRefs.value[chartName] as HTMLDivElement)
+        chart = echarts.init(
+          chartRefs.value[chartName] as HTMLDivElement,
+          'v5'
+        )
       }
 
       let chartOption = deepClone(chartBaseOption)
