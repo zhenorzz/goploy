@@ -41,11 +41,23 @@ export default ({ mode }: ConfigEnv): UserConfigExport => {
       }),
     ],
     build: {
-      rollupOptions: {
+      // Vite 8 (Rolldown) dropped the object form of output.manualChunks.
+      // Keep element-plus and echarts in their own chunks via codeSplitting groups.
+      rolldownOptions: {
         output: {
-          manualChunks: {
-            elementUI: ['element-plus'],
-            echarts: ['echarts'],
+          codeSplitting: {
+            groups: [
+              {
+                name: 'elementUI',
+                test: /node_modules[\\/]element-plus[\\/]/,
+                priority: 20,
+              },
+              {
+                name: 'echarts',
+                test: /node_modules[\\/]echarts[\\/]/,
+                priority: 20,
+              },
+            ],
           },
         },
       },
